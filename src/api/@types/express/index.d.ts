@@ -1,7 +1,7 @@
 namespace Express {
     export interface Request {
         user?: any;
-        //isAuthenticated?: boolean;
+        oidc?: any;
         sessionId?: string;
 
         isAuthenticated(): boolean;

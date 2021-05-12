@@ -1,18 +1,9 @@
 import { Express, NextFunction, Request, Response } from "express"
 import * as ExpressSession from "express-session";
-import { AuthUser } from "../models/auth";
-import { AUTH_REDIRECT, VIVVO_CONFIG } from "../config";
+import { AuthUser } from "../models";
+import { AUTH_REDIRECT } from "../config";
 
-var OidcStrategy = require('passport-openidconnect').Strategy
-var passport = require('passport')
-
-export function ensureLoggedIn(req: Request, res: Response, next: NextFunction) {
-    if (req.isAuthenticated()) {
-        return next();
-    }
-
-    res.redirect('/api/auth/login');
-}
+import { auth } from "express-openid-connect";
 
 export function configureAuthentication(app: Express) {
     app.use(ExpressSession.default({
@@ -21,52 +12,57 @@ export function configureAuthentication(app: Express) {
         saveUninitialized: true
     }));
 
-    app.use(passport.initialize());
-    app.use(passport.session());
+    app.use(auth({
+        authRequired: false,
+        auth0Logout: false,
+        authorizationParams: {
+            response_type: 'code',
+            audience: '',
+            scope: 'openid profile email',
+        },
+        routes: {
+            login: "/api/auth/login",
+            //logout: "/api/auth/logout",
+            postLogoutRedirect: "/custom-logout"
+        }
+    }));
 
-    passport.serializeUser((user: any, next: any) => {
-        var authUser = AuthUser.fromPassport(user);
-        next(null, authUser)
+    app.use("/", async (req: Request, res: Response, next: NextFunction) => {
+        if (req.oidc.isAuthenticated()) {
+            req.user = AuthUser.fromOpenId(req.oidc.user);
+            (req.session as any).user = req.user;
+        }
+
+        next();
     });
 
-    passport.deserializeUser((obj: any, next: any) => {
-        next(null, obj)
+    app.get("/", async (req: Request, res: Response) => {
+        if (req.oidc.isAuthenticated()) {
+            let user = AuthUser.fromOpenId(req.oidc.user) as AuthUser;
+            req.user = user;
+
+            res.redirect(AUTH_REDIRECT);
+        }
     });
 
-    passport.use('oidc', new OidcStrategy(VIVVO_CONFIG,
-        (issuer: any, sub: any, profile: any, accessToken: any, refreshToken: any, done: any) => {
-            return done(null, profile)
-        }));
-
-    app.use('/api/auth/login', passport.authenticate('oidc'));
-
-    app.get('/api/auth/logout', (req: any, res) => {
-        req.logout();
-        req.session.destroy();
-        res.status(202).send();
-    });
-
-    /* app.use('/profile', ensureLoggedIn, (req, res) => {
-        res.send(req.user);
-    }); */
-
-    app.use("/api/auth/isAuthenticated", (req: Request, res: Response) => {
-        if (req.isAuthenticated()) {
-            return res.send(req.user);
+    app.get("/api/auth/isAuthenticated", (req: Request, res: Response) => {
+        if (req.oidc.isAuthenticated()) {
+            return res.send({ data: req.user });
         }
 
         return res.status(401).send();
     });
 
-    app.use('/authorization-code/callback',
-        passport.authenticate('oidc', { failureRedirect: '/api/error' }),
-        (req, res) => {
-            res.redirect(AUTH_REDIRECT);
-        }
-    );
+    app.get('/api/auth/logout', async (req: any, res) => {
+        req.session.destroy();
+        (res as any).oidc.logout({ returnTo: "/" });
+    });
+}
 
-    app.use("/api/error", (req: Request, res: Response) => {
-        console.log(req)
-        res.status(500).send("Authentication error");
-    })
+export function EnsureAuthenticated(req: Request, res: Response, next: NextFunction) {
+    if (req.oidc.isAuthenticated()) {
+        return next();
+    }
+
+    res.status(401).send("Not authenticated"); //;.redirect('/api/auth/login');
 }
