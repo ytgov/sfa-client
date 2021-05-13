@@ -60,6 +60,7 @@
               </template>
               <v-date-picker
                 v-model="item.birth_date"
+                :max="maxDate"
                 @input="item.birth_date_menu = false"
                 @change="birthChanged(item)"
               ></v-date-picker>
@@ -160,6 +161,7 @@ export default {
   data: () => ({
     relationshipOptions: ["Mother", "Father"],
     dependents: [],
+    maxDate: moment().format("YYYY-MM-DD")
   }),
   async created() {},
   methods: {
