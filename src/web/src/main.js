@@ -5,29 +5,22 @@ import store from "./store";
 import axios from "axios";
 
 import vuetify from "./plugins/vuetify";
+import VueCurrencyInput from 'vue-currency-input'
 
 Vue.config.productionTip = false;
 
-/* Vue.directive("yk-btn", {
-  bind: function (el) {
-    el.style.backgroundColor = "#a000bb";
-    el.style.color = "#fff";
-    el.style.fontWeight = "400";
-    el.style.textTransform = "none";
-    el.style.borderRadius = "0"
-  }
-});
+axios.defaults.withCredentials = true;
+Vue.use(VueCurrencyInput, { globalOptions: { currency: 'USD' } });
 
-Vue.directive("yk-primary", {
-  bind: function (el) {
-    el.style.backgroundColor = "#a000bb";
-    el.style.color = "#bbb";
-    el.style.fontWeight = "700";
-    el.style.textTransform = "lowercase";
-  }
-}); */
+import ParentInfoForm from "./components/ParentInfoForm";
+import ParentDependentsForm from "./components/ParentDependentsForm";
+import ConfirmDialog from "./components/ConfirmDialog";
 
-axios.defaults.withCredentials = true
+
+Vue.component("confirm-dialog", ConfirmDialog);
+
+Vue.component("parent-info-form", ParentInfoForm);
+Vue.component("parent-dependents-form", ParentDependentsForm);
 
 new Vue({
   router,

@@ -144,6 +144,8 @@ export default {
 
     if (!this.isAuthenticated) this.hasSidebar = false;
     else this.hasSidebar = config.hasSidebar;
+
+    this.hasSidebar = true;
   },
   watch: {
     isAuthenticated: function(val) {

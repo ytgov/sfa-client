@@ -1,14 +1,14 @@
 import Vue from "vue";
 import VueRouter from "vue-router";
-import Home from "../components/Home.vue";
-import Dashboard from "../components/Dashboard.vue";
+import Home from "../views/Home.vue";
+import Dashboard from "../views/Dashboard.vue";
 import NotFound from "../views/NotFound.vue";
-import Form from "../components/Form";
-import Grid from "../components/Grid";
-import Login from "../components/Login";
-import LoginComplete from "../components/LoginComplete";
-import Profile from "../components/Profile";
+import Login from "../views/Login";
+import LoginComplete from "../views/LoginComplete";
+import Profile from "../views/Profile";
 import store from "../store";
+
+import ParentInformation from "../views/ParentInformation";
 
 Vue.use(VueRouter);
 
@@ -23,22 +23,16 @@ const routes = [
     name: "Dashboard",
     component: Dashboard
   },
+
+  
   {
-    path: "/form",
-    name: "Basic Form",
-    component: Form,
-    meta: {
-      requiresAuth: true
-    }
+    path: "/parent-information",
+    name: "ParentInformation",
+    component: ParentInformation
   },
-  {
-    path: "/grid",
-    name: "Data grid",
-    component: Grid,
-    meta: {
-      requiresAuth: true
-    }
-  },
+
+
+
   {
     path: "/sign-in",
     name: "Login",
