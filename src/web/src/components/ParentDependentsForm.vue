@@ -169,8 +169,6 @@ export default {
       this.dependents.push({ last_name: "", first_name: "", birth_date: "" });
     },
     removeDependent(index) {
-      console.log("REmOVING", index);
-
       this.$refs.confirm.show(
         "Are you sure?",
         "Click 'Confirm' below to permanently remove this dependent.",
