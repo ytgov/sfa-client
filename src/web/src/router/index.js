@@ -8,7 +8,22 @@ import LoginComplete from "../views/LoginComplete";
 import Profile from "../views/Profile";
 import store from "../store";
 
+import Personal from "../views/Personal";
+import ResidenceHistory from "../views/ResidenceHistory";
+import AcademicYear from "../views/AcademicYear";
+import OtherAgencyFunding from "../views/OtherAgencyFunding";
+import SFAFundingRequests from "../views/SFAFundingRequests";
+import EducationHistory from "../views/EducationHistory";
+import StudentDependents from "../views/StudentDependents";
+import ScholarshipApplications from "../views/ScholarshipApplications";
+import CSLFundingRequests from "../views/CSLFundingRequests";
+import AccomEmployment from "../views/AccomEmployment";
+import Expenses from "../views/Expenses";
+import Income from "../views/Income";
 import ParentInformation from "../views/ParentInformation";
+import Spouse from "../views/Spouse";
+import Documentation from "../views/Documentation";
+
 
 Vue.use(VueRouter);
 
@@ -24,12 +39,89 @@ const routes = [
     component: Dashboard
   },
 
+  {
+    path: "/personal",
+    name: "Personal",
+    component: Personal
+  },
+  {
+    path: "/residence-history",
+    name: "ResidenceHistory",
+    component: ResidenceHistory
+  },
   
+  {
+    path: "/academic-year",
+    name: "AcademicYear",
+    component: AcademicYear
+  },
+  {
+    path: "/other-agencies-funding",
+    name: "OtherAgencyFunding",
+    component: OtherAgencyFunding
+  },
+  {
+    path: "/sfa-funding-requests",
+    name: "SFAFundingRequests",
+    component: SFAFundingRequests
+  },
+
+  {
+    path: "/education-history",
+    name: "EducationHistory",
+    component: EducationHistory
+  },
+  {
+    path: "/student-dependents",
+    name: "StudentDependents",
+    component: StudentDependents
+  },
+  {
+    path: "/scholarship-applications",
+    name: "ScholarshipApplications",
+    component: ScholarshipApplications
+  },
+  {
+    path: "/csl-funding-requests",
+    name: "CSLFundingRequests",
+    component: CSLFundingRequests
+  },
+  {
+    path: "/accomodation-employment",
+    name: "AccomEmployment",
+    component: AccomEmployment
+  },
+  {
+    path: "/expenses",
+    name: "Expenses",
+    component: Expenses
+  },
+  {
+    path: "/income",
+    name: "Income",
+    component: Income
+  },
   {
     path: "/parent-information",
     name: "ParentInformation",
     component: ParentInformation
   },
+  {
+    path: "/spouse",
+    name: "Spouse",
+    component: Spouse
+  },
+  {
+    path: "/documentation",
+    name: "Documentation",
+    component: Documentation
+  },
+
+
+
+
+
+
 
 
 

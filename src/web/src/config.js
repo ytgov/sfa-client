@@ -5,14 +5,84 @@ export const hasSidebar = true;
 export const hasSidebarClosable = false;
 
 export const sections = [
-    {
+   /*  {
         name: "Dashboard",
         url: "/",
         icon: "mdi-view-dashboard"
+    }, */
+    {
+        name: "Personal",
+        url: "/personal",
+        icon: "mdi-account"
+    },
+    {
+        name: "Residence History",
+        url: "/residence-history",
+        icon: "mdi-home"
+    },
+    {
+        name: "Academic Year",
+        url: "/academic-year",
+        icon: "mdi-school"
+    },
+    {
+        name: "Other Agencies Funding",
+        url: "/other-agencies-funding",
+        icon: "mdi-currency-usd"
+    },
+    {
+        name: "SFA Funding Requests",
+        url: "/sfa-funding-requests",
+        icon: "mdi-currency-usd"
+    },
+    {
+        name: "Education History",
+        url: "/education-history",
+        icon: "mdi-school"
+    },
+    {
+        name: "Student Dependents",
+        url: "/student-dependents",
+        icon: "mdi-baby"
+    },
+    {
+        name: "Scholarship Applications",
+        url: "/scholarship-applications",
+        icon: "mdi-baby"
+    },
+    {
+        name: "CSL Funding Requests",
+        url: "/csl-funding-requests",
+        icon: "mdi-baby"
+    },
+    {
+        name: "Accom & Employment",
+        url: "/accomodation-employment",
+        icon: "mdi-baby"
+    },
+    {
+        name: "Expenses",
+        url: "/expenses",
+        icon: "mdi-baby"
+    },
+    {
+        name: "Income",
+        url: "/income",
+        icon: "mdi-baby"
     },
     {
         name: "Parent Information",
         url: "/parent-information",
+        icon: "mdi-account-child"
+    },
+    {
+        name: "Spouse",
+        url: "/spouse",
+        icon: "mdi-baby"
+    },
+    {
+        name: "Documentation",
+        url: "/documentation",
         icon: "mdi-account-child"
     },
 ];
