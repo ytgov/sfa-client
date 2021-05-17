@@ -1,40 +1,205 @@
 <template>
-  <div class="home">
+  <div>
     <h1>Student Dependents</h1>
-    <hr />
+    <v-card class="default mb-5" v-for="(item, i) of dependents" :key="i">
+      <v-card-title
+        >Dependent {{ 1 + i }}
+        <v-spacer></v-spacer>
+        <v-btn
+          color="warning"
+          x-small
+          fab
+          class="my-0"
+          @click="removeDependent(i)"
+          ><v-icon>mdi-close</v-icon></v-btn
+        >
+      </v-card-title>
+      <v-card-text>
+        <div class="row">
+          <div class="col-md-4">
+            <v-text-field
+              outlined
+              dense
+              background-color="white"
+              hide-details
+              label="Last name"
+              v-model="item.last_name"
+            ></v-text-field>
+          </div>
+          <div class="col-md-4">
+            <v-text-field
+              outlined
+              dense
+              background-color="white"
+              hide-details
+              label="First name"
+              v-model="item.first_name"
+            ></v-text-field>
+          </div>
+          <div class="col-md-4">
+            <v-menu
+              v-model="item.birth_date_menu"
+              :close-on-content-click="false"
+              transition="scale-transition"
+              left
+              nudge-top="26"
+              offset-y
+              min-width="auto"
+            >
+              <template v-slot:activator="{ on, attrs }">
+                <v-text-field
+                  v-model="item.birth_date"
+                  label="Birth date"
+                  append-icon="mdi-calendar"
+                  readonly
+                  outlined
+                  dense
+                  background-color="white"
+                  v-bind="attrs"
+                  v-on="on"
+                ></v-text-field>
+              </template>
+              <v-date-picker
+                v-model="item.birth_date"
+                :max="maxDate"
+                @input="item.birth_date_menu = false"
+                @change="birthChanged(item)"
+              ></v-date-picker>
+            </v-menu>
+          </div>
 
-    <v-tabs v-model="tab" background-color="#fff2d5" color="primary">
-      <v-tab key="0">Contact</v-tab>
-      <v-tab key="1">Basic</v-tab>
-      <v-tab key="1">Statistical</v-tab>
-      <v-tab key="1">Ids / Pre-system info</v-tab>
-      <v-tab key="1">Next of kin / consent</v-tab>
-    </v-tabs>
+          <div class="col-md-8">
+            <v-select
+              outlined
+              dense
+              background-color="white"
+              hide-details
+              label="Relationship"
+              :items="relationshipOptions"
+              v-model="item.relationship"
+            ></v-select>
+          </div>
+          <div class="col-md-4">
+            <v-text-field
+              outlined
+              dense
+              background-color="white"
+              hide-details
+              readonly
+              label="Age"
+              v-model="item.age"
+            ></v-text-field>
+          </div>
 
-    <v-tabs-items v-model="tab" style="padding: 20px">
-      <v-tab-item key="0">
-      </v-tab-item>
-      <v-tab-item key="1">
-      </v-tab-item>
-    </v-tabs-items>
+          <div class="col-md-4 py-0">
+            <v-switch
+              dense
+              hide-details
+              label="Resides with"
+              v-model="item.resides_with"
+            ></v-switch>
+          </div>
+
+          <div class="col-md-4 py-0">
+            <v-switch
+              dense
+              hide-details
+              label="Shared custody"
+              v-model="item.shared_custody"
+            ></v-switch>
+          </div>
+
+          <div class="col-md-4 py-0">
+            <v-switch
+              dense
+              hide-details
+              label="In post-secondary"
+              v-model="item.post_secondary"
+            ></v-switch>
+          </div>
+
+          <div class="col-md-4 py-0">
+            <v-switch
+              dense
+              hide-details
+              label="STA eligible dependent"
+              v-model="item.sta_eligible_dependent"
+            ></v-switch>
+          </div>
+
+          <div class="col-md-4 py-0">
+            <v-switch
+              dense
+              hide-details
+              label="CSL eligible dependent"
+              v-model="item.csl_eligible_dependent"
+            ></v-switch>
+          </div>
+          <div class="col-md-4 py-0">
+            <v-switch
+              dense
+              hide-details
+              label="CSG eligible dependent"
+              v-model="item.csg_eligible_dependent"
+            ></v-switch>
+          </div>
+
+          <div class="col-md-6 mt-3">
+            <v-textarea
+              outlined
+              dense
+              background-color="white"
+              hide-details
+              label="Comments"
+              v-model="item.comments"
+            ></v-textarea>
+          </div>
+          <div class="col-md-6 mt-3">
+            <v-textarea
+              outlined
+              dense
+              background-color="white"
+              hide-details
+              label="Shared custody info"
+              v-model="item.shared_custody_info"
+            ></v-textarea>
+          </div>
+        </div>
+      </v-card-text>
+    </v-card>
+    <v-btn color="info" @click="addDependent()">Add dependent</v-btn>
+
+    <confirm-dialog ref="confirm"></confirm-dialog>
   </div>
 </template>
 
 <script>
-import router from "../router";
-import store from "../store";
+import moment from "moment";
 
 export default {
-  name: "Home",
   data: () => ({
-    tab: 0,
+    relationshipOptions: ["Child", "Grandchild"],
+    dependents: [],
+    maxDate: moment().format("YYYY-MM-DD"),
   }),
-  async created() {
-    await store.dispatch("checkAuthentication");
-    var isAuth = store.getters.isAuthenticated;
-
-    if (isAuth) router.push("/dashboard");
+  async created() {},
+  methods: {
+    addDependent() {
+      this.dependents.push({ birth_date: "" });
+    },
+    removeDependent(index) {
+      this.$refs.confirm.show(
+        "Are you sure?",
+        "Click 'Confirm' below to permanently remove this dependent.",
+        () => {
+          this.dependents.splice(index, 1);
+        },
+        () => {}
+      );
+    },
+    birthChanged(item) {
+      item.age = moment().diff(item.birth_date, "years");
+    },
   },
-  methods: {},
 };
 </script>
