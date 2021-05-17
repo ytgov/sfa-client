@@ -1,0 +1,477 @@
+<template>
+  <div>
+    <v-card class="default mb-5">
+      <v-card-title>Institution</v-card-title>
+      <v-card-text>
+        <div class="row">
+          <div class="col-md-8">
+            <div class="row">
+              <div class="col-md-12">
+                <v-select
+                  outlined
+                  dense
+                  background-color="white"
+                  hide-details
+                  label="Institution"
+                  v-model="institution.name"
+                  :items="institutionOptions"
+                ></v-select>
+              </div>
+              <div class="col-md-12">
+                <v-text-field
+                  outlined
+                  dense
+                  background-color="white"
+                  hide-details
+                  label="Address"
+                  v-model="institution.address"
+                ></v-text-field>
+              </div>
+              <div class="col-md-6">
+                <v-text-field
+                  outlined
+                  dense
+                  background-color="white"
+                  hide-details
+                  label="City"
+                  v-model="institution.city"
+                ></v-text-field>
+              </div>
+              <div class="col-md-6">
+                <v-select
+                  outlined
+                  dense
+                  background-color="white"
+                  hide-details
+                  label="Province"
+                  v-model="institution.province"
+                  :items="provinceOptions"
+                ></v-select>
+              </div>
+              <div class="col-md-6">
+                <v-text-field
+                  outlined
+                  dense
+                  background-color="white"
+                  hide-details
+                  label="Postal code"
+                  v-model="institution.postal"
+                ></v-text-field>
+              </div>
+              <div class="col-md-6">
+                <v-select
+                  outlined
+                  dense
+                  background-color="white"
+                  hide-details
+                  label="Country"
+                  :items="countryOptions"
+                  v-model="institution.country"
+                ></v-select>
+              </div>
+              <div class="col-md-3">
+                <v-text-field
+                  outlined
+                  dense
+                  background-color="white"
+                  hide-details
+                  label="Care of"
+                  v-model="institution.care_of"
+                ></v-text-field>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-md-4">
+            <div class="row">
+              <div class="col-md-12">
+                <v-text-field
+                  outlined
+                  dense
+                  readonly
+                  background-color="white"
+                  hide-details
+                  label="Inst. code"
+                  v-model="institution.inst_code"
+                ></v-text-field>
+              </div>
+
+              <div class="col-md-12">
+                <v-text-field
+                  outlined
+                  dense
+                  readonly
+                  background-color="white"
+                  hide-details
+                  label="Inst. level"
+                  v-model="institution.inst_level"
+                ></v-text-field>
+              </div>
+              <div class="col-md-12">
+                <v-text-field
+                  outlined
+                  dense
+                  readonly
+                  background-color="white"
+                  hide-details
+                  label="FOS"
+                  v-model="institution.fos"
+                ></v-text-field>
+              </div>
+              <div class="col-md-12">
+                <v-text-field
+                  outlined
+                  dense
+                  readonly
+                  background-color="white"
+                  hide-details
+                  label="Classes start"
+                  v-model="institution.classes_start"
+                ></v-text-field>
+              </div>
+              <div class="col-md-12">
+                <v-text-field
+                  outlined
+                  dense
+                  readonly
+                  background-color="white"
+                  hide-details
+                  label="Classes end"
+                  v-model="institution.classes_end"
+                ></v-text-field>
+              </div>
+            </div>
+          </div>
+        </div>
+      </v-card-text>
+    </v-card>
+
+    <v-card class="default mb-5">
+      <v-card-title>Student</v-card-title>
+      <v-card-text>
+        <div class="row">
+          <div class="col-md-3">
+            <v-text-field
+              outlined
+              dense
+              background-color="white"
+              hide-details
+              label="Student number"
+              v-model="student_info.student_number"
+            ></v-text-field>
+          </div>
+          <div class="col-md-5">
+            <v-select
+              outlined
+              dense
+              background-color="white"
+              hide-details
+              label="Program study area"
+              v-model="student_info.study_area"
+              :items="programAreaOptions"
+            ></v-select>
+          </div>
+          <div class="col-md-4">
+            <v-select
+              outlined
+              dense
+              background-color="white"
+              hide-details
+              label="Program type"
+              v-model="student_info.program_type"
+              :items="programTypeOptions"
+            ></v-select>
+          </div>
+          <div class="col-md-3">
+            <v-select
+              outlined
+              dense
+              background-color="white"
+              hide-details
+              label="Program division"
+              v-model="student_info.program_division"
+              :items="programDivisionOptions"
+            ></v-select>
+          </div>
+
+          <div class="col-md-2">
+            <v-text-field
+              outlined
+              dense
+              background-color="white"
+              hide-details
+              label="Program duration"
+              v-model="student_info.program_duration"
+            ></v-text-field>
+          </div>
+          <div class="col-md-3">
+            <v-text-field
+              outlined
+              dense
+              background-color="white"
+              hide-details
+              label="Entering year #"
+              v-model="student_info.enter_year"
+            ></v-text-field>
+          </div>
+        </div>
+      </v-card-text>
+    </v-card>
+
+    <v-card class="default mb-5">
+      <v-card-title>Academic Year</v-card-title>
+      <v-card-text>
+        <div class="row">
+          <div class="col-md-3">
+            <v-text-field
+              outlined
+              dense
+              background-color="white"
+              hide-details
+              label="Academic year"
+              v-model="academic_year"
+            ></v-text-field>
+          </div>
+          <div class="col-md-9 py-0">
+            <v-switch
+              outlined
+              dense
+              hide-details
+              label="By correspondence"
+              v-model="by_correspondence"
+            ></v-switch>
+          </div>
+
+          <div class="col-md-4">
+            <v-menu
+              v-model="pre_study_start_menu"
+              :close-on-content-click="false"
+              transition="scale-transition"
+              left
+              nudge-top="26"
+              offset-y
+              min-width="auto"
+            >
+              <template v-slot:activator="{ on, attrs }">
+                <v-text-field
+                  v-model="pre_study_start"
+                  label="Pre-study start"
+                  append-icon="mdi-calendar"
+                  readonly
+                  outlined
+                  hide-details
+                  dense
+                  background-color="white"
+                  v-bind="attrs"
+                  v-on="on"
+                ></v-text-field>
+              </template>
+              <v-date-picker
+                v-model="pre_study_start"
+                @input="pre_study_start_menu = false"
+              ></v-date-picker>
+            </v-menu>
+          </div>
+
+          <div class="col-md-4">
+            <v-menu
+              v-model="pre_study_end_menu"
+              :close-on-content-click="false"
+              transition="scale-transition"
+              left
+              nudge-top="26"
+              offset-y
+              min-width="auto"
+            >
+              <template v-slot:activator="{ on, attrs }">
+                <v-text-field
+                  v-model="pre_study_end"
+                  label="Pre-study end"
+                  append-icon="mdi-calendar"
+                  readonly
+                  outlined
+                  hide-details
+                  dense
+                  background-color="white"
+                  v-bind="attrs"
+                  v-on="on"
+                ></v-text-field>
+              </template>
+              <v-date-picker
+                v-model="pre_study_end"
+                @input="pre_study_end_menu = false"
+              ></v-date-picker>
+            </v-menu>
+          </div>
+
+          <div class="col-md-4"></div>
+          <div class="col-md-4">
+            <v-menu
+              v-model="classes_start_menu"
+              :close-on-content-click="false"
+              transition="scale-transition"
+              left
+              nudge-top="26"
+              offset-y
+              min-width="auto"
+            >
+              <template v-slot:activator="{ on, attrs }">
+                <v-text-field
+                  v-model="classes_start"
+                  label="Classes start"
+                  append-icon="mdi-calendar"
+                  readonly
+                  outlined
+                  hide-details
+                  dense
+                  background-color="white"
+                  v-bind="attrs"
+                  v-on="on"
+                ></v-text-field>
+              </template>
+              <v-date-picker
+                v-model="classes_start"
+                @input="classes_start_menu = false"
+              ></v-date-picker>
+            </v-menu>
+          </div>
+          <div class="col-md-4">
+            <v-menu
+              v-model="classes_end_menu"
+              :close-on-content-click="false"
+              transition="scale-transition"
+              left
+              nudge-top="26"
+              offset-y
+              min-width="auto"
+            >
+              <template v-slot:activator="{ on, attrs }">
+                <v-text-field
+                  v-model="classes_end"
+                  label="Classes end"
+                  append-icon="mdi-calendar"
+                  hide-details
+                  readonly
+                  outlined
+                  dense
+                  background-color="white"
+                  v-bind="attrs"
+                  v-on="on"
+                ></v-text-field>
+              </template>
+              <v-date-picker
+                v-model="classes_end"
+                @input="classes_end_menu = false"
+              ></v-date-picker>
+            </v-menu>
+          </div>
+          <div class="col-md-4"></div>
+          <div class="col-md-2">
+            <v-text-field
+              outlined
+              dense
+              background-color="white"
+              hide-details
+              label="Co-op start year"
+              v-model="coop_start_year"
+            ></v-text-field>
+          </div>
+          <div class="col-md-2">
+            <v-text-field
+              outlined
+              dense
+              background-color="white"
+              hide-details
+              label="Co-op start month"
+              v-model="coop_start_month"
+            ></v-text-field>
+          </div>
+          <div class="col-md-2">
+            <v-text-field
+              outlined
+              dense
+              background-color="white"
+              hide-details
+              label="Co-op end year"
+              v-model="coop_end_year"
+            ></v-text-field>
+          </div>
+          <div class="col-md-2">
+            <v-text-field
+              outlined
+              dense
+              background-color="white"
+              hide-details
+              label="Co-op end month"
+              v-model="coop_end_month"
+            ></v-text-field>
+          </div>
+          <div class="col-md-3 py-0">
+            <v-switch
+              outlined
+              dense
+              hide-details
+              label="Co-op paid?"
+              v-model="coop_paid"
+            ></v-switch>
+          </div>
+        </div>
+      </v-card-text>
+    </v-card>
+  </div>
+</template>
+
+<script>
+export default {
+  data: () => ({
+    countryOptions: ["Canada", "United States"],
+    provinceOptions: ["Yukon", "British Columbia"],
+    institutionOptions: ["Yukon University", "UBC"],
+    programAreaOptions: ["Business Administration", "Computer Science"],
+    programTypeOptions: ["Diploma", "Degree"],
+    programDivisionOptions: ["Quarters", "Semesters"],
+
+    pre_study_start_menu: null,
+    pre_study_end_menu: null,
+    classes_start_menu: null,
+    classes_end_menu: null,
+
+    institution: {
+      name: "",
+      address: "",
+      city: "",
+      province: "",
+      postal: "",
+      country: "",
+      care_of: "",
+
+      inst_code: "",
+      inst_level: "",
+      fos: "",
+      classes_start: "",
+      classes_end: "",
+    },
+    student_info: {
+      student_number: "123",
+      study_area: "TEST",
+      program_type: "Diploma",
+      program_duration: 1,
+      enter_year: 2,
+      program_division: "",
+    },
+    academic_year: 123,
+    pre_study_start: null,
+    pre_study_end: null,
+    classes_start: null,
+    classes_end: null,
+    by_correspondence: false,
+    coop_start_year: null,
+    coop_start_month: null,
+    coop_end_year: null,
+    coop_end_month: null,
+    coop_paid: false,
+  }),
+  async created() {},
+  methods: {},
+};
+</script>
