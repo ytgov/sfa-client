@@ -23,6 +23,11 @@ import StatisticalForm from "./components/StatisticalForm";
 import ConsentForm from "./components/ConsentForm";
 
 
+import ProgramInformationForm from "./components/ProgramInformationForm";
+import CreditCheckForm from "./components/CreditCheckForm";
+import CSLRestrictionForm from "./components/CSLRestrictionForm";
+
+
 Vue.component("confirm-dialog", ConfirmDialog);
 
 Vue.component("contact-form", ContactForm);
@@ -31,6 +36,9 @@ Vue.component("statistical-form", StatisticalForm);
 Vue.component("consent-form", ConsentForm);
 
 
+Vue.component("program-information", ProgramInformationForm);
+Vue.component("credit-check", CreditCheckForm);
+Vue.component("csl-restriction", CSLRestrictionForm);
 
 Vue.component("parent-info-form", ParentInfoForm);
 Vue.component("parent-dependents-form", ParentDependentsForm);
