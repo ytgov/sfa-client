@@ -4,17 +4,20 @@
     <hr />
 
     <v-tabs v-model="tab" background-color="#fff2d5" color="primary">
-      <v-tab key="0">Contact</v-tab>
-      <v-tab key="1">Basic</v-tab>
-      <v-tab key="1">Statistical</v-tab>
-      <v-tab key="1">Ids / Pre-system info</v-tab>
-      <v-tab key="1">Next of kin / consent</v-tab>
+      <v-tab key="0">Training Allowance</v-tab>
+      <v-tab key="1">Yukon Grant</v-tab>
+      <v-tab key="2">Yukon Excellence Awards</v-tab>
     </v-tabs>
 
     <v-tabs-items v-model="tab" style="padding: 20px">
       <v-tab-item key="0">
+        <training-allowance></training-allowance>
       </v-tab-item>
       <v-tab-item key="1">
+        <yukon-grant></yukon-grant>
+      </v-tab-item>
+      <v-tab-item key="2">
+        <yukon-excellence></yukon-excellence>
       </v-tab-item>
     </v-tabs-items>
   </div>

@@ -173,7 +173,6 @@ export default {
         "Are you sure?",
         "Click 'Confirm' below to permanently remove this dependent.",
         () => {
-          console.log("DID CONFIR%M");
           this.dependents.splice(index, 1);
         },
         () => {}

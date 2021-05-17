@@ -27,6 +27,9 @@ import ProgramInformationForm from "./components/ProgramInformationForm";
 import CreditCheckForm from "./components/CreditCheckForm";
 import CSLRestrictionForm from "./components/CSLRestrictionForm";
 
+import TrainingAllowance from "./components/TrainingAllowance";
+import YukonGrant from "./components/YukonGrant";
+import YukonExcellence from "./components/YukonExcellence";
 
 Vue.component("confirm-dialog", ConfirmDialog);
 
@@ -35,10 +38,13 @@ Vue.component("basic-demographics-form", BasicDemographicsForm);
 Vue.component("statistical-form", StatisticalForm);
 Vue.component("consent-form", ConsentForm);
 
-
 Vue.component("program-information", ProgramInformationForm);
 Vue.component("credit-check", CreditCheckForm);
 Vue.component("csl-restriction", CSLRestrictionForm);
+
+Vue.component("training-allowance", TrainingAllowance);
+Vue.component("yukon-grant", YukonGrant);
+Vue.component("yukon-excellence", YukonExcellence);
 
 Vue.component("parent-info-form", ParentInfoForm);
 Vue.component("parent-dependents-form", ParentDependentsForm);
