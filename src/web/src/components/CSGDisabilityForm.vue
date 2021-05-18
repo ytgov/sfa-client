@@ -1,0 +1,177 @@
+<template>
+  <div>
+    <v-switch
+      outlined
+      dense
+      hide-details
+      label="Applying for CSG for students with disabilities"
+      v-model="is_applying"
+    ></v-switch>
+
+    <v-card v-if="is_applying" class="default mt-5">
+      <v-card-text>
+        <div class="row">
+          <div class="col-md-12">
+            <h3>Disabilities</h3>
+            <div v-for="(item, i) of disabilities" :key="i" class="row">
+              <div class="col-md-5">
+                <v-select
+                  outlined
+                  dense
+                  background-color="white"
+                  hide-details
+                  label="Nature of disability"
+                  v-model="item.nature_of_disability"
+                  :items="disabilityOptions"
+                ></v-select>
+              </div>
+              <div class="col-md-5">
+                <v-text-field
+                  outlined
+                  dense
+                  background-color="white"
+                  hide-details
+                  label="Comment"
+                  v-model="item.comment"
+                ></v-text-field>
+              </div>
+              <div class="col-md-2">
+                <v-btn
+                  color="warning"
+                  x-small
+                  fab
+                  title="Remove"
+                  class="my-0 float-right"
+                  @click="removeDisability(i)"
+                  ><v-icon>mdi-close</v-icon></v-btn
+                >
+              </div>
+            </div>
+            <v-btn color="info" @click="addDisability()">Add record</v-btn>
+            <hr />
+          </div>
+
+          <div class="col-md-12">
+            <h3>Services Required</h3>
+            <div v-for="(item, i) of services" :key="i" class="row">
+              <div class="col-md-10">
+                <v-select
+                  outlined
+                  dense
+                  background-color="white"
+                  hide-details
+                  label="Service required"
+                  v-model="item.service_required"
+                  :items="serviceOptions"
+                ></v-select>
+              </div>
+              <div class="col-md-2">
+                <v-btn
+                  color="warning"
+                  x-small
+                  fab
+                  title="Remove"
+                  class="my-0 float-right"
+                  @click="removeService(i)"
+                  ><v-icon>mdi-close</v-icon></v-btn
+                >
+              </div>
+            </div>
+            <v-btn color="info" @click="addService()">Add service</v-btn>
+            <hr />
+          </div>
+
+          <div class="col-md-12">
+            <v-text-field
+              outlined
+              dense
+              background-color="white"
+              hide-details
+              label="Equipment required"
+              v-model="equipment_required"
+            ></v-text-field>
+          </div>
+          <div class="col-md-8">
+            <v-text-field
+              outlined
+              dense
+              background-color="white"
+              hide-details
+              label="Previous CSG-disability amount received this loan year"
+              v-model="previous_amount"
+              v-currency="{ currency: 'USD', locale: 'en' }"
+            ></v-text-field>
+          </div>
+          <div class="col-md-4 pt-0">
+            <v-switch
+              dense
+              hide-details
+              label="Permanent disability"
+              v-model="permanent_disability"
+            ></v-switch>
+          </div>
+
+          <div class="col-md-12">
+            <v-textarea
+              outlined
+              dense
+              background-color="white"
+              hide-details
+              label="Comments"
+              v-model="comments"
+            ></v-textarea>
+          </div>
+        </div>
+      </v-card-text>
+    </v-card>
+
+    <confirm-dialog ref="confirm"></confirm-dialog>
+  </div>
+</template>
+
+<script>
+export default {
+  data: () => ({
+    disabilityOptions: ["Disability 1", "Disability 2"],
+    serviceOptions: ["Service 1", "Service 2"],
+
+    disabilities: [],
+    services: [],
+
+    is_applying: true,
+    equipment_required: "",
+    previous_amount: 0,
+    permanent_disability: false,
+    comments: "",
+  }),
+  async created() {},
+  methods: {
+    addDisability() {
+      this.disabilities.push({});
+    },
+    removeDisability(index) {
+      this.$refs.confirm.show(
+        "Are you sure?",
+        "Click 'Confirm' below to permanently remove this disability.",
+        () => {
+          this.disabilities.splice(index, 1);
+        },
+        () => {}
+      );
+    },
+    addService() {
+      this.services.push({});
+    },
+    removeService(index) {
+      this.$refs.confirm.show(
+        "Are you sure?",
+        "Click 'Confirm' below to permanently remove this service.",
+        () => {
+          this.services.splice(index, 1);
+        },
+        () => {}
+      );
+    },
+  },
+};
+</script>

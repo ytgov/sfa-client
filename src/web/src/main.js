@@ -31,6 +31,14 @@ import TrainingAllowance from "./components/TrainingAllowance";
 import YukonGrant from "./components/YukonGrant";
 import YukonExcellence from "./components/YukonExcellence";
 
+import CSLFullTimeForm from "./components/CSLFullTimeForm";
+import CSLPartTimeForm from "./components/CSLPartTimeForm";
+import CSGDisabilityForm from "./components/CSGDisabilityForm";
+import CanadaStudyForm from "./components/CanadaStudyForm";
+
+import AccommodationForm from "./components/AccommodationForm";
+import EmploymentForm from "./components/EmploymentForm";
+
 Vue.component("confirm-dialog", ConfirmDialog);
 
 Vue.component("contact-form", ContactForm);
@@ -45,6 +53,14 @@ Vue.component("csl-restriction", CSLRestrictionForm);
 Vue.component("training-allowance", TrainingAllowance);
 Vue.component("yukon-grant", YukonGrant);
 Vue.component("yukon-excellence", YukonExcellence);
+
+Vue.component("csl-fulltime", CSLFullTimeForm);
+Vue.component("csl-parttime", CSLPartTimeForm);
+Vue.component("csg-disability", CSGDisabilityForm);
+Vue.component("canada-study", CanadaStudyForm);
+
+Vue.component("accommodation", AccommodationForm);
+Vue.component("employment", EmploymentForm);
 
 Vue.component("parent-info-form", ParentInfoForm);
 Vue.component("parent-dependents-form", ParentDependentsForm);
