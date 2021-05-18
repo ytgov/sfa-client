@@ -56,8 +56,8 @@ export const sections = [
         icon: "mdi-baby"
     },
     {
-        name: "Accom & Employment",
-        url: "/accomodation-employment",
+        name: "Accommodation",
+        url: "/accommodation",
         icon: "mdi-baby"
     },
     {

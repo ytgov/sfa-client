@@ -17,7 +17,7 @@ import EducationHistory from "../views/EducationHistory";
 import StudentDependents from "../views/StudentDependents";
 import ScholarshipApplications from "../views/ScholarshipApplications";
 import CSLFundingRequests from "../views/CSLFundingRequests";
-import AccomEmployment from "../views/AccomEmployment";
+import Accommodation from "../views/Accommodation";
 import Expenses from "../views/Expenses";
 import Income from "../views/Income";
 import ParentInformation from "../views/ParentInformation";
@@ -87,9 +87,9 @@ const routes = [
     component: CSLFundingRequests
   },
   {
-    path: "/accomodation-employment",
-    name: "AccomEmployment",
-    component: AccomEmployment
+    path: "/accommodation",
+    name: "Accommodation",
+    component: Accommodation
   },
   {
     path: "/expenses",

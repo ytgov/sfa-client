@@ -37,7 +37,9 @@ import CSGDisabilityForm from "./components/CSGDisabilityForm";
 import CanadaStudyForm from "./components/CanadaStudyForm";
 
 import AccommodationForm from "./components/AccommodationForm";
-import EmploymentForm from "./components/EmploymentForm";
+
+import PreStudyExpensesForm from "./components/PreStudyExpensesForm";
+import StudyExpensesForm from "./components/StudyExpensesForm";
 
 Vue.component("confirm-dialog", ConfirmDialog);
 
@@ -60,7 +62,9 @@ Vue.component("csg-disability", CSGDisabilityForm);
 Vue.component("canada-study", CanadaStudyForm);
 
 Vue.component("accommodation", AccommodationForm);
-Vue.component("employment", EmploymentForm);
+
+Vue.component("prestudy-expenses", PreStudyExpensesForm);
+Vue.component("study-expenses", StudyExpensesForm);
 
 Vue.component("parent-info-form", ParentInfoForm);
 Vue.component("parent-dependents-form", ParentDependentsForm);
