@@ -58,6 +58,8 @@
             ></v-select>
           </div>
           <div class="col-md-4 pt-0">
+          </div>
+          <div class="col-md-4 pt-0">
             <v-switch
               outlined
               dense
