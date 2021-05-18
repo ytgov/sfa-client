@@ -41,6 +41,9 @@ import AccommodationForm from "./components/AccommodationForm";
 import PreStudyExpensesForm from "./components/PreStudyExpensesForm";
 import StudyExpensesForm from "./components/StudyExpensesForm";
 
+import PreStudyIncomeForm from "./components/PreStudyIncomeForm";
+import StudyIncomeForm from "./components/StudyIncomeForm";
+
 Vue.component("confirm-dialog", ConfirmDialog);
 
 Vue.component("contact-form", ContactForm);
@@ -65,6 +68,9 @@ Vue.component("accommodation", AccommodationForm);
 
 Vue.component("prestudy-expenses", PreStudyExpensesForm);
 Vue.component("study-expenses", StudyExpensesForm);
+
+Vue.component("prestudy-income", PreStudyIncomeForm);
+Vue.component("study-income", StudyIncomeForm);
 
 Vue.component("parent-info-form", ParentInfoForm);
 Vue.component("parent-dependents-form", ParentDependentsForm);
