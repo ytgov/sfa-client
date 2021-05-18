@@ -22,6 +22,7 @@
         </div>
       </v-card-text>
     </v-card>
+    <h3>Applications</h3>
 
     <v-card class="default mb-5" v-for="(item, i) of applications" :key="i">
       <v-card-title
