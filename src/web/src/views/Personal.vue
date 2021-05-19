@@ -7,7 +7,6 @@
       <v-tab key="0">Contact</v-tab>
       <v-tab key="1">Basic</v-tab>
       <v-tab key="2">Statistical</v-tab>
-      <v-tab key="3">Ids / Pre-system info</v-tab>
       <v-tab key="4">Next of kin / consent</v-tab>
     </v-tabs>
 
@@ -20,8 +19,6 @@
       </v-tab-item>
       <v-tab-item key="2">
         <statistical-form></statistical-form>
-      </v-tab-item>
-      <v-tab-item key="3">
       </v-tab-item>
       <v-tab-item key="4">
         <consent-form></consent-form>

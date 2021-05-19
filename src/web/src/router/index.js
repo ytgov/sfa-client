@@ -9,6 +9,7 @@ import Profile from "../views/Profile";
 import store from "../store";
 
 import Personal from "../views/Personal";
+import Status from "../views/Status";
 import ResidenceHistory from "../views/ResidenceHistory";
 import AcademicYear from "../views/AcademicYear";
 import OtherAgencyFunding from "../views/OtherAgencyFunding";
@@ -43,6 +44,11 @@ const routes = [
     path: "/personal",
     name: "Personal",
     component: Personal
+  },
+  {
+    path: "/status",
+    name: "Status",
+    component: Status
   },
   {
     path: "/residence-history",

@@ -16,6 +16,11 @@ export const sections = [
         icon: "mdi-account"
     },
     {
+        name: "Assessment & Status",
+        url: "/status",
+        icon: "mdi-account"
+    },
+    {
         name: "Residence History",
         url: "/residence-history",
         icon: "mdi-home"
