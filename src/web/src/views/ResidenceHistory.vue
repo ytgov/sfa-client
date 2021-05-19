@@ -5,7 +5,7 @@
 
     <div class="row">
       <div class="col-md-12">
-        <v-card class="default mb-5 mt-5">
+        <v-card class="default mt-5">
           <v-card-title>Residences</v-card-title>
           <v-card-text>
             <div

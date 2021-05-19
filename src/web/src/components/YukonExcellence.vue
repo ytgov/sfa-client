@@ -4,7 +4,7 @@
       <v-card-title>Yukon Excellence Awards</v-card-title>
       <v-card-text>
         <div class="row">
-          <div class="col-md-12 py-0">
+          <div class="col-md-12 pt-0">
             <v-switch
               outlined
               dense

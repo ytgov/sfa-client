@@ -69,7 +69,7 @@
                   v-model="institution.country"
                 ></v-select>
               </div>
-              <div class="col-md-3">
+              <div class="col-md-12">
                 <v-text-field
                   outlined
                   dense
@@ -222,7 +222,7 @@
       <v-card-title>Academic Year</v-card-title>
       <v-card-text>
         <div class="row">
-          <div class="col-md-3">
+          <div class="col-md-4">
             <v-text-field
               outlined
               dense
@@ -232,7 +232,7 @@
               v-model="academic_year"
             ></v-text-field>
           </div>
-          <div class="col-md-9 py-0">
+          <div class="col-md-8 py-0">
             <v-switch
               outlined
               dense
