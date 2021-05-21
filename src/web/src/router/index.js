@@ -8,6 +8,10 @@ import LoginComplete from "../views/LoginComplete";
 import Profile from "../views/Profile";
 import store from "../store";
 
+import Reports from "../views/Reports";
+import Administration from "../views/Administration";
+import Search from "../views/Search";
+
 import Personal from "../views/Personal";
 import Status from "../views/Status";
 import ResidenceHistory from "../views/ResidenceHistory";
@@ -25,7 +29,6 @@ import ParentInformation from "../views/ParentInformation";
 import Spouse from "../views/Spouse";
 import Documentation from "../views/Documentation";
 
-
 Vue.use(VueRouter);
 
 const routes = [
@@ -41,95 +44,106 @@ const routes = [
   },
 
   {
-    path: "/personal",
+    path: "/application/:id/personal",
     name: "Personal",
-    component: Personal
+    component: Personal,
+    meta: {
+      //requiresAuth: true
+    }
   },
   {
-    path: "/status",
+    path: "/application/:id/status",
     name: "Status",
     component: Status
   },
   {
-    path: "/residence-history",
+    path: "/application/:id/residence-history",
     name: "ResidenceHistory",
     component: ResidenceHistory
   },
-  
+
   {
-    path: "/academic-year",
+    path: "/application/:id/academic-year",
     name: "AcademicYear",
     component: AcademicYear
   },
   {
-    path: "/other-agencies-funding",
+    path: "/application/:id/other-agencies-funding",
     name: "OtherAgencyFunding",
     component: OtherAgencyFunding
   },
   {
-    path: "/sfa-funding-requests",
+    path: "/application/:id/sfa-funding-requests",
     name: "SFAFundingRequests",
     component: SFAFundingRequests
   },
 
   {
-    path: "/education-history",
+    path: "/application/:id/education-history",
     name: "EducationHistory",
     component: EducationHistory
   },
   {
-    path: "/student-dependents",
+    path: "/application/:id/student-dependents",
     name: "StudentDependents",
     component: StudentDependents
   },
   {
-    path: "/scholarship-applications",
+    path: "/application/:id/scholarship-applications",
     name: "ScholarshipApplications",
     component: ScholarshipApplications
   },
   {
-    path: "/csl-funding-requests",
+    path: "/application/:id/csl-funding-requests",
     name: "CSLFundingRequests",
     component: CSLFundingRequests
   },
   {
-    path: "/accommodation",
+    path: "/application/:id/accommodation",
     name: "Accommodation",
     component: Accommodation
   },
   {
-    path: "/expenses",
+    path: "/application/:id/expenses",
     name: "Expenses",
     component: Expenses
   },
   {
-    path: "/income",
+    path: "/application/:id/income",
     name: "Income",
     component: Income
   },
   {
-    path: "/parent-information",
+    path: "/application/:id/parent-information",
     name: "ParentInformation",
     component: ParentInformation
   },
   {
-    path: "/spouse",
+    path: "/application/:id/spouse",
     name: "Spouse",
     component: Spouse
   },
   {
-    path: "/documentation",
+    path: "/application/:id/documentation",
     name: "Documentation",
     component: Documentation
   },
 
-
-
-
-
-
-
-
+  {
+    path: "/reports",
+    name: "Reports",
+    component: Reports
+  },
+  {
+    path: "/administration",
+    name: "Administration",
+    component: Administration
+  },
+  {
+    path: "/search",
+    name: "Search",
+    component: Search
+  },
 
   {
     path: "/sign-in",
@@ -164,6 +178,8 @@ const router = new VueRouter({
 
 router.beforeEach(async (to, from, next) => {
   var requiresAuth = to.meta.requiresAuth || false;
+
+  store.dispatch("setAppSidebar", to.path.startsWith("/application"))
 
   if (!requiresAuth) {
     return next();

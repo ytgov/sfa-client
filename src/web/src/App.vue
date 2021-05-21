@@ -58,6 +58,14 @@
         style="margin-left: 15px; max-width: 150px; margin-right: 20px"
         hide-details
       ></v-select> -->
+      <v-btn color="primary" text class="mr-1" to="/dashboard">Home</v-btn>
+
+      <v-btn color="primary" text class="mr-1" to="/reports">Reports</v-btn>
+      <v-btn color="primary" text class="mr-5" to="/administration"
+        >Administration</v-btn
+      >
+
+      <v-divider class="mr-5" vertical inset></v-divider>
 
       <div v-if="isAuthenticated">
         <span>{{ username }}</span>
@@ -86,7 +94,7 @@
         </v-menu>
       </div>
       <div v-else>
-        <router-link to="/sign-in">Sign in</router-link>
+        <v-btn color="primary" text to="/sign-in">Sign in</v-btn>
       </div>
 
       <!-- <v-app-bar-nav-icon @click.stop="drawerRight = !drawerRight"></v-app-bar-nav-icon> -->
@@ -116,13 +124,16 @@ export default {
   name: "App",
   components: {},
   computed: {
-    ...mapState("isAuthenticated"),
+    ...mapState(["isAuthenticated", "showAppSidebar"]),
     username() {
       return store.getters.fullName;
     },
     isAuthenticated() {
       return store.getters.isAuthenticated;
-    }
+    },
+    showAppSidebar() {
+      return store.getters.showAppSidebar;
+    },
   },
   data: () => ({
     dialog: false,
@@ -135,39 +146,40 @@ export default {
     applicationIcon: config.applicationIcon,
     sections: config.sections,
     hasSidebar: false, //config.hasSidebar,
-    hasSidebarClosable: config.hasSidebarClosable
+    hasSidebarClosable: config.hasSidebarClosable,
   }),
-  created: async function() {
+  created: async function () {
+    store.dispatch(
+      "setAppSidebar",
+      this.$route.path.startsWith("/application")
+    );
+    this.hasSidebar = this.$route.path.startsWith("/application");
+
     await store.dispatch("checkAuthentication");
-    //this.username = store.getters.fullName
-    console.log(this.isAuthenticated);
-
-    if (!this.isAuthenticated) this.hasSidebar = false;
-    else this.hasSidebar = config.hasSidebar;
-
-    this.hasSidebar = true;
   },
   watch: {
-    isAuthenticated: function(val) {
+    isAuthenticated: function (val) {
       if (!val) this.hasSidebar = false;
-      else this.hasSidebar = config.hasSidebar;
-    }
+      else store.getters.showAppSidebar;
+    },
+    showAppSidebar: function (val) {
+      this.hasSidebar = val; // && this.isAuthenticated;
+    },
   },
   methods: {
-    nav: function(location) {
+    nav: function (location) {
       router.push(location);
-      console.log(location);
     },
-    toggleHeader: function() {
+    toggleHeader: function () {
       this.headerShow = !this.headerShow;
     },
-    toggleMenu: function() {
+    toggleMenu: function () {
       this.menuShow = !this.menuShow;
     },
-    signOut: function() {
+    signOut: function () {
       store.dispatch("signOut");
       router.push("/");
-    }
-  }
+    },
+  },
 };
 </script>

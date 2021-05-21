@@ -12,82 +12,82 @@ export const sections = [
     }, */
     {
         name: "Personal",
-        url: "/personal",
+        url: "/application/1234/personal",
         icon: "mdi-account"
     },
     {
         name: "Assessment & Status",
-        url: "/status",
+        url: "/application/1234/status",
         icon: "mdi-account"
     },
     {
         name: "Residence History",
-        url: "/residence-history",
+        url: "/application/1234/residence-history",
         icon: "mdi-home"
     },
     {
         name: "Academic Year",
-        url: "/academic-year",
+        url: "/application/1234/academic-year",
         icon: "mdi-school"
     },
     {
         name: "Other Agencies Funding",
-        url: "/other-agencies-funding",
+        url: "/application/1234/other-agencies-funding",
         icon: "mdi-currency-usd"
     },
     {
         name: "SFA Funding Requests",
-        url: "/sfa-funding-requests",
+        url: "/application/1234/sfa-funding-requests",
         icon: "mdi-currency-usd"
     },
     {
         name: "Education History",
-        url: "/education-history",
+        url: "/application/1234/education-history",
         icon: "mdi-school"
     },
     {
         name: "Student Dependents",
-        url: "/student-dependents",
+        url: "/application/1234/student-dependents",
         icon: "mdi-baby"
     },
     {
         name: "Scholarship Applications",
-        url: "/scholarship-applications",
+        url: "/application/1234/scholarship-applications",
         icon: "mdi-baby"
     },
     {
         name: "CSL Funding Requests",
-        url: "/csl-funding-requests",
+        url: "/application/1234/csl-funding-requests",
         icon: "mdi-baby"
     },
     {
         name: "Accommodation",
-        url: "/accommodation",
+        url: "/application/1234/accommodation",
         icon: "mdi-baby"
     },
     {
         name: "Expenses",
-        url: "/expenses",
+        url: "/application/1234/expenses",
         icon: "mdi-baby"
     },
     {
         name: "Income",
-        url: "/income",
+        url: "/application/1234/income",
         icon: "mdi-baby"
     },
     {
         name: "Parent Information",
-        url: "/parent-information",
+        url: "/application/1234/parent-information",
         icon: "mdi-account-child"
     },
     {
         name: "Spouse",
-        url: "/spouse",
+        url: "/application/1234/spouse",
         icon: "mdi-baby"
     },
     {
         name: "Documentation",
-        url: "/documentation",
+        url: "/application/1234/documentation",
         icon: "mdi-account-child"
     },
 ];

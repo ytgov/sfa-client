@@ -36,14 +36,14 @@ export function configureAuthentication(app: Express) {
         next();
     });
 
-    app.get("/", async (req: Request, res: Response) => {
+    /* app.get("/", async (req: Request, res: Response) => {
         if (req.oidc.isAuthenticated()) {
             let user = AuthUser.fromOpenId(req.oidc.user) as AuthUser;
             req.user = user;
 
             res.redirect(AUTH_REDIRECT);
         }
-    });
+    }); */
 
     app.get("/api/auth/isAuthenticated", (req: Request, res: Response) => {
         if (req.oidc.isAuthenticated()) {

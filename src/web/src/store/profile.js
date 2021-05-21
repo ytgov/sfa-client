@@ -29,8 +29,8 @@ const actions = {
 };
 const mutations = {
     setProfile(state, profile) {
-        state.firstName = profile.givenName;
-        state.lastName = profile.familyName;
+        state.firstName = profile.first_name;
+        state.lastName = profile.last_name;
         state.email = profile.email;
         state.id = profile.id;
         state.username = profile.username;
