@@ -24,18 +24,6 @@
             ></v-select>
           </div>
 
-          <div class="col-md-6"></div>
-          <div class="col-md-6">
-            <v-select
-              outlined
-              dense
-              background-color="white"
-              hide-details
-              label="Pre-study classification"
-              v-model="pre_study_classification"
-              :items="classificationOptions"
-            ></v-select>
-          </div>
           <div class="col-md-6">
             <v-select
               outlined
@@ -113,16 +101,6 @@
           </div>
 
           <div class="col-md-4">
-            <v-text-field
-              outlined
-              dense
-              background-color="white"
-              hide-details
-              label="Remaining transition grant years"
-              v-model="remaining_grant_years"
-            ></v-text-field>
-          </div>
-          <div class="col-md-4">
             <v-select
               outlined
               dense
@@ -169,11 +147,9 @@ export default {
 
     is_applying: true,
     province: "",
-    pre_study_classification: "",
     study_classification: "",
     requested_amount: 0,
     student_income: 0,
-    remaining_grant_years: 0,
     full_amount_requested: false,
     applying_for_csg_only: false,
     crown_ward: false,

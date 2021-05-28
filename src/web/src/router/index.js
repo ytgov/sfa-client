@@ -15,17 +15,9 @@ import Search from "../views/Search";
 import Personal from "../views/Personal";
 import Status from "../views/Status";
 import AcademicYear from "../views/AcademicYear";
-import OtherAgencyFunding from "../views/OtherAgencyFunding";
 import SFAFundingRequests from "../views/SFAFundingRequests";
-import EducationHistory from "../views/EducationHistory";
-import StudentDependents from "../views/StudentDependents";
 import ScholarshipApplications from "../views/ScholarshipApplications";
 import CSLFundingRequests from "../views/CSLFundingRequests";
-import Accommodation from "../views/Accommodation";
-import Expenses from "../views/Expenses";
-import Income from "../views/Income";
-import ParentInformation from "../views/ParentInformation";
-import Spouse from "../views/Spouse";
 import Documentation from "../views/Documentation";
 
 Vue.use(VueRouter);
@@ -61,25 +53,9 @@ const routes = [
     component: AcademicYear
   },
   {
-    path: "/application/:id/other-agencies-funding",
-    name: "OtherAgencyFunding",
-    component: OtherAgencyFunding
-  },
-  {
     path: "/application/:id/sfa-funding-requests",
     name: "SFAFundingRequests",
     component: SFAFundingRequests
-  },
-
-  {
-    path: "/application/:id/education-history",
-    name: "EducationHistory",
-    component: EducationHistory
-  },
-  {
-    path: "/application/:id/student-dependents",
-    name: "StudentDependents",
-    component: StudentDependents
   },
   {
     path: "/application/:id/scholarship-applications",
@@ -90,31 +66,6 @@ const routes = [
     path: "/application/:id/csl-funding-requests",
     name: "CSLFundingRequests",
     component: CSLFundingRequests
-  },
-  {
-    path: "/application/:id/accommodation",
-    name: "Accommodation",
-    component: Accommodation
-  },
-  {
-    path: "/application/:id/expenses",
-    name: "Expenses",
-    component: Expenses
-  },
-  {
-    path: "/application/:id/income",
-    name: "Income",
-    component: Income
-  },
-  {
-    path: "/application/:id/parent-information",
-    name: "ParentInformation",
-    component: ParentInformation
-  },
-  {
-    path: "/application/:id/spouse",
-    name: "Spouse",
-    component: Spouse
   },
   {
     path: "/application/:id/documentation",

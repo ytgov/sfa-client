@@ -1,6 +1,5 @@
 <template>
   <div>
-    <h1>Student Dependents</h1>
     <v-card class="default mb-5" v-for="(item, i) of dependents" :key="i">
       <v-card-title
         >Dependent {{ 1 + i }}

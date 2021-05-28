@@ -15,7 +15,7 @@
               outlined
               dense
               hide-details
-              label="Moving to another cummun ity to attend program?"
+              label="Moving to another community to attend program?"
               v-model="is_moving"
             ></v-switch>
           </div>
@@ -27,17 +27,6 @@
               label="Maintaining two residences"
               v-model="is_two_residences"
             ></v-switch>
-          </div>
-
-          <div class="col-md-12">
-            <v-textarea
-              outlined
-              dense
-              background-color="white"
-              hide-details
-              label="Comments"
-              v-model="comments"
-            ></v-textarea>
           </div>
         </div>
       </v-card-text>
@@ -51,7 +40,6 @@ export default {
     is_applying: false,
     is_moving: false,
     is_two_residences: false,
-    comments: "",
   }),
   async created() {},
   methods: {},

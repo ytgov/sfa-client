@@ -4,8 +4,7 @@
 
     <v-tabs v-model="tab" background-color="#fff2d5" color="primary">
       <v-tab key="0">Program</v-tab>
-      <v-tab key="1">Credit Check</v-tab>
-      <v-tab key="2">CSL Restrictions</v-tab>
+      <v-tab key="1">Other Funding</v-tab>
     </v-tabs>
 
     <v-tabs-items v-model="tab" style="padding: 20px">
@@ -13,10 +12,7 @@
         <program-information></program-information>
       </v-tab-item>
       <v-tab-item key="1">
-        <credit-check></credit-check>
-      </v-tab-item>
-      <v-tab-item key="2">
-        <csl-restriction></csl-restriction>
+        <other-funding></other-funding>
       </v-tab-item>
     </v-tabs-items>
   </div>

@@ -1,6 +1,5 @@
 <template>
   <div class="home">
-    <h1>Education History</h1>
 
     <v-card class="default">
       <v-card-title>Secondary Education History</v-card-title>
@@ -16,6 +15,25 @@
               v-model="high_school"
               :items="highSchoolOptions"
             ></v-select>
+          </div>
+          <div class="col-md-4">
+            <v-text-field
+              outlined
+              dense
+              background-color="white"
+              hide-details
+              label="High school student number"
+              v-model="high_school_student_number"
+            ></v-text-field>
+          </div>
+          <div class="col-md-8 pt-0">
+            <v-switch
+              outlined
+              dense
+              hide-details
+              label="Checked for high school student number"
+              v-model="checked_student_number"
+            ></v-switch>
           </div>
           <div class="col-md-4">
             <v-text-field
@@ -93,95 +111,27 @@
               v-model="last_grade_completed"
               :items="educationLevelOptions"
             ></v-select>
-          </div>          
+          </div>         
+
+
+          <div class="col-md-4">
+            <v-text-field
+              outlined
+              dense
+              background-color="white"
+              hide-details
+              label="Average 12th grade mark"
+              type="number"
+              step="0.01"
+              v-model="high_school_12_mark"
+            ></v-text-field>
+          </div>
+
+
         </div>
       </v-card-text>
     </v-card>
 
-    <hr class="mt-5 mb-5" />
-    <h3>Post-Secondary Education</h3>
-    <v-card class="default mb-5" v-for="(item, i) of post_secondary" :key="i">
-      <v-card-title
-        >Education {{ 1 + i }}
-        <v-spacer></v-spacer>
-        <v-btn color="warning" x-small fab class="my-0" @click="removeEducation(i)"
-          ><v-icon>mdi-close</v-icon></v-btn
-        >
-      </v-card-title>
-      <v-card-text>
-        <div class="row">
-          <div class="col-md-6">
-            <v-select
-              outlined
-              dense
-              background-color="white"
-              hide-details
-              label="Institution"
-              v-model="item.institution"
-              :items="institutionOptions"
-            ></v-select>
-          </div>
-          <div class="col-md-6">
-            <v-select
-              outlined
-              dense
-              background-color="white"
-              hide-details
-              label="Study area"
-              v-model="item.study_area"
-              :items="studyAreaOptions"
-            ></v-select>
-          </div>
-          <div class="col-md-3">
-            <v-select
-              outlined
-              dense
-              background-color="white"
-              hide-details
-              label="From year"
-              v-model="item.from_year"
-              :items="yearOptions"
-            ></v-select>
-          </div>
-          <div class="col-md-3">
-            <v-select
-              outlined
-              dense
-              background-color="white"
-              hide-details
-              label="From month"
-              v-model="item.from_month"
-              :items="monthOptions"
-            ></v-select>
-          </div>
-          <div class="col-md-3">
-            <v-select
-              outlined
-              dense
-              background-color="white"
-              hide-details
-              label="To year"
-              v-model="item.to_year"
-              :items="yearOptions"
-            ></v-select>
-          </div>
-          <div class="col-md-3">
-            <v-select
-              outlined
-              dense
-              background-color="white"
-              hide-details
-              label="To month"
-              v-model="item.to_month"
-              :items="monthOptions"
-            ></v-select>
-          </div>
-        </div>
-      </v-card-text>
-    </v-card>
-    <v-btn color="info" @click="addEducation()">Add post-secondary education</v-btn>
-
-    <confirm-dialog ref="confirm"></confirm-dialog>
   </div>
 </template>
 
@@ -200,6 +150,8 @@ export default {
     studyAreaOptions: ["Business administration"],
 
     high_school: "",
+    high_school_student_number: "",
+    checked_student_number: false,
     high_school_city: "",
     high_school_province: "",
     high_school_country: "",
@@ -207,8 +159,8 @@ export default {
     last_high_month: "",
     last_grade_completed: "",
     eduction_level: "",
+    high_school_12_mark: "",
 
-    post_secondary: [],
   }),
   async created() {
     this.monthOptions = [];
@@ -227,19 +179,7 @@ export default {
     }
   },
   methods: {
-    addEducation() {
-      this.post_secondary.push({ amount: 0 });
-    },
-    removeEducation(index) {
-      this.$refs.confirm.show(
-        "Are you sure?",
-        "Click 'Confirm' below to permanently remove this post-secondary education.",
-        () => {
-          this.post_secondary.splice(index, 1);
-        },
-        () => {}
-      );
-    },
+   
   },
 };
 </script>

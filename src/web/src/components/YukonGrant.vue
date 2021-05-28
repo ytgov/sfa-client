@@ -33,17 +33,6 @@
               v-currency="{ currency: 'USD', locale: 'en' }"
             ></v-text-field>
           </div>
-
-          <div class="col-md-12">
-            <v-textarea
-              outlined
-              dense
-              background-color="white"
-              hide-details
-              label="Comments"
-              v-model="comments"
-            ></v-textarea>
-          </div>
         </div>
       </v-card-text>
     </v-card>
@@ -58,7 +47,6 @@ export default {
     is_applying: false,
     category: "",
     estimated_fees: 0,
-    comments: "",
   }),
   async created() {},
   methods: {},

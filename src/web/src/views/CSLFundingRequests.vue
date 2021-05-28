@@ -6,7 +6,10 @@
       <v-tab key="0">CSL Full-Time</v-tab>
       <v-tab key="1">CSL Part-Time</v-tab>
       <v-tab key="2">CSG Disability</v-tab>
-      <v-tab key="3">CSG/CAG Other</v-tab>
+      <v-tab key="3">Credit Check</v-tab>
+      <v-tab key="4">Accommodation</v-tab>
+      <v-tab key="5">Expenses</v-tab>
+      <v-tab key="6">Income</v-tab>
     </v-tabs>
 
     <v-tabs-items v-model="tab" style="padding: 20px">
@@ -20,7 +23,19 @@
         <csg-disability></csg-disability>
       </v-tab-item>
       <v-tab-item key="3">
-        <canada-study></canada-study>
+        <credit-check></credit-check>
+      </v-tab-item>
+      <v-tab-item key="4">
+        <accommodation></accommodation>
+      </v-tab-item>
+      <v-tab-item key="5">
+        <h2>Pre-Study Expenses</h2>
+        <prestudy-expenses></prestudy-expenses>
+        <h2>Study Expenses</h2>
+        <study-expenses></study-expenses>
+      </v-tab-item>
+      <v-tab-item key="6">
+        <study-income></study-income>
       </v-tab-item>
     </v-tabs-items>
   </div>

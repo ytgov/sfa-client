@@ -1,7 +1,5 @@
 <template>
   <div class="home">
-    <h1>Spouse</h1>
-
     <v-card class="default mb-5">
       <v-card-title>Name and SIN</v-card-title>
       <v-card-text>
@@ -62,49 +60,6 @@
     </v-card>
 
     <v-card class="default mb-5">
-      <v-card-title>Pre-Study Period</v-card-title>
-      <v-card-text>
-        <div class="row">
-          <div class="col-md-8">
-            <v-select
-              outlined
-              dense
-              background-color="white"
-              hide-details
-              label="Pre-study employment status"
-              v-model="pre_study_employment_status"
-              :items="employmentStatusOptions"
-            ></v-select>
-          </div>
-          <div class="col-md-4">
-            If employed, enter employment details under income tab
-          </div>
-          <div class="col-md-2">Post secondary Information</div>
-          <div class="col-md-5">
-            <v-text-field
-              outlined
-              dense
-              background-color="white"
-              hide-details
-              label="In school from"
-              v-model="pre_study_post_secondary_from"
-            ></v-text-field>
-          </div>
-          <div class="col-md-5">
-            <v-text-field
-              outlined
-              dense
-              background-color="white"
-              hide-details
-              label="In school to"
-              v-model="pre_study_post_secondary_to"
-            ></v-text-field>
-          </div>
-        </div>
-      </v-card-text>
-    </v-card>
-
-    <v-card class="default mb-5">
       <v-card-title>Study Period</v-card-title>
       <v-card-text>
         <div class="row">
@@ -114,7 +69,7 @@
               dense
               background-color="white"
               hide-details
-              label="Pre-study employment status"
+              label="Study employment status"
               v-model="study_employment_status"
               :items="employmentStatusOptions"
             ></v-select>

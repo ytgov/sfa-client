@@ -1,6 +1,5 @@
 <template>
   <div class="home">
-    <h1>Other Agencies Funding</h1>
 
     <v-switch
       dense

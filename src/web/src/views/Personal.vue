@@ -7,8 +7,13 @@
       <v-tab key="1">Demographics</v-tab>
       <v-tab key="2">Consent</v-tab>
       <v-tab key="3">Residence History</v-tab>
-      <v-tab key="4">YEA Info</v-tab>
-      <v-tab key="5">Yukon Grant/STA Info</v-tab>
+      <v-tab key="4">Education</v-tab>
+      <v-tab key="5">Dependents</v-tab>
+      <v-tab key="6">YEA Info</v-tab>
+      <v-tab key="7">Yukon Grant/STA Info</v-tab>
+      <v-tab key="8">Parent Info</v-tab>
+      <v-tab key="9">Spouse</v-tab>
+      <v-tab key="10">CSL Info</v-tab>
     </v-tabs>
 
     <v-tabs-items v-model="tab" style="padding: 20px">
@@ -24,6 +29,26 @@
       </v-tab-item>
       <v-tab-item key="3">
         <residence-history-form></residence-history-form>
+      </v-tab-item>
+      <v-tab-item key="4">
+        <education-history-form></education-history-form>
+      </v-tab-item>
+      <v-tab-item key="5">
+        <student-dependents-form></student-dependents-form>
+      </v-tab-item>
+      <v-tab-item key="6"> </v-tab-item>
+      <v-tab-item key="7"> </v-tab-item>
+      <v-tab-item key="8">
+        <parent-info-form></parent-info-form>
+        <hr class="mt-5 mb-2" />
+        <h2>Dependents</h2>
+        <parent-dependents-form></parent-dependents-form>
+      </v-tab-item>
+      <v-tab-item key="9">
+        <spouse-form></spouse-form>
+      </v-tab-item>
+      <v-tab-item key="10">
+        <csl-restriction></csl-restriction>
       </v-tab-item>
     </v-tabs-items>
   </div>

@@ -110,17 +110,6 @@
               v-model="permanent_disability"
             ></v-switch>
           </div>
-
-          <div class="col-md-12">
-            <v-textarea
-              outlined
-              dense
-              background-color="white"
-              hide-details
-              label="Comments"
-              v-model="comments"
-            ></v-textarea>
-          </div>
         </div>
       </v-card-text>
     </v-card>
@@ -142,7 +131,6 @@ export default {
     equipment_required: "",
     previous_amount: 0,
     permanent_disability: false,
-    comments: "",
   }),
   async created() {},
   methods: {

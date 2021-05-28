@@ -100,17 +100,6 @@
               v-model="yukon_id"
             ></v-text-field>
           </div>
-
-          <div class="col-md-12">
-            <v-textarea
-              outlined
-              dense
-              background-color="white"
-              hide-details
-              label="Comment"
-              v-model="comments"
-            ></v-textarea>
-          </div>
         </div>
       </v-card-text>
     </v-card>
@@ -201,7 +190,6 @@ export default {
     yea_balance: 0,
     yea_expiry_date: null,
     yukon_id: "",
-    comments: "",
 
     earned: [],
   }),

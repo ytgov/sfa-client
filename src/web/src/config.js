@@ -26,24 +26,9 @@ export const sections = [
         icon: "mdi-school"
     },
     {
-        name: "Other Agencies Funding",
-        url: "/application/1234/other-agencies-funding",
-        icon: "mdi-currency-usd"
-    },
-    {
         name: "SFA Funding Requests",
         url: "/application/1234/sfa-funding-requests",
         icon: "mdi-currency-usd"
-    },
-    {
-        name: "Education History",
-        url: "/application/1234/education-history",
-        icon: "mdi-school"
-    },
-    {
-        name: "Student Dependents",
-        url: "/application/1234/student-dependents",
-        icon: "mdi-baby"
     },
     {
         name: "Scholarship Applications",
@@ -53,31 +38,6 @@ export const sections = [
     {
         name: "CSL Funding Requests",
         url: "/application/1234/csl-funding-requests",
-        icon: "mdi-baby"
-    },
-    {
-        name: "Accommodation",
-        url: "/application/1234/accommodation",
-        icon: "mdi-baby"
-    },
-    {
-        name: "Expenses",
-        url: "/application/1234/expenses",
-        icon: "mdi-baby"
-    },
-    {
-        name: "Income",
-        url: "/application/1234/income",
-        icon: "mdi-baby"
-    },
-    {
-        name: "Parent Information",
-        url: "/application/1234/parent-information",
-        icon: "mdi-account-child"
-    },
-    {
-        name: "Spouse",
-        url: "/application/1234/spouse",
         icon: "mdi-baby"
     },
     {
