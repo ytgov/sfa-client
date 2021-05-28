@@ -22,6 +22,7 @@ import ContactForm from "./components/ContactForm";
 import BasicDemographicsForm from "./components/BasicDemographicsForm";
 import StatisticalForm from "./components/StatisticalForm";
 import ConsentForm from "./components/ConsentForm";
+import ResidenceHistoryForm from "./components/ResidenceHistoryForm";
 
 
 import ProgramInformationForm from "./components/ProgramInformationForm";
@@ -52,6 +53,7 @@ Vue.component("contact-form", ContactForm);
 Vue.component("basic-demographics-form", BasicDemographicsForm);
 Vue.component("statistical-form", StatisticalForm);
 Vue.component("consent-form", ConsentForm);
+Vue.component("residence-history-form", ResidenceHistoryForm);
 
 Vue.component("program-information", ProgramInformationForm);
 Vue.component("credit-check", CreditCheckForm);

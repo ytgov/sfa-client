@@ -14,7 +14,6 @@ import Search from "../views/Search";
 
 import Personal from "../views/Personal";
 import Status from "../views/Status";
-import ResidenceHistory from "../views/ResidenceHistory";
 import AcademicYear from "../views/AcademicYear";
 import OtherAgencyFunding from "../views/OtherAgencyFunding";
 import SFAFundingRequests from "../views/SFAFundingRequests";
@@ -56,12 +55,6 @@ const routes = [
     name: "Status",
     component: Status
   },
-  {
-    path: "/application/:id/residence-history",
-    name: "ResidenceHistory",
-    component: ResidenceHistory
-  },
-
   {
     path: "/application/:id/academic-year",
     name: "AcademicYear",

@@ -71,17 +71,6 @@
               :items="firstNationOptions"
             ></v-select>
           </div>
-          <div class="col-md-12">
-            <v-textarea
-              outlined
-              dense
-              background-color="white"
-              hide-details
-              label="Comment"
-              v-model="comment"
-            ></v-textarea>
-          </div>
-
 
         </div>
       </v-card-text>
@@ -103,7 +92,6 @@ export default {
     yukon_first_nation: "",
     disabled: false,
     visible_minority: false,
-    comment: "",
   }),
   async created() {},
   methods: {},

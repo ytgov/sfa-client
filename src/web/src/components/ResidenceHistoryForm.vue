@@ -1,17 +1,11 @@
 <template>
   <div class="home">
-    <h1>Residence History</h1>
-
     <div class="row">
       <div class="col-md-12">
         <v-card class="default">
           <v-card-title>Residences</v-card-title>
           <v-card-text>
-            <div
-              class="mb-5"
-              v-for="(item, i) of residences"
-              :key="i"
-            >
+            <div class="mb-5" v-for="(item, i) of residences" :key="i">
               <div class="row pb-3">
                 <div class="col-md-3">
                   <v-select
@@ -103,12 +97,12 @@
                   ></v-select>
                 </div>
               </div>
-              <hr v-if="i < residences.length-1" />
+              <hr v-if="i < residences.length - 1" />
             </div>
 
             <v-btn color="info" @click="addResidence()">Add residence</v-btn>
 
-            <hr class="mt-5 mb-2">
+            <hr class="mt-5 mb-2" />
 
             <div class="row">
               <div class="col-md-6">
@@ -167,16 +161,6 @@
                     ></v-select>
                   </div>
                 </div>
-              </div>
-              <div class="col-md-12">
-                <v-textarea
-                  outlined
-                  dense
-                  background-color="white"
-                  hide-details
-                  label="Comments"
-                  v-model="comments"
-                ></v-textarea>
               </div>
             </div>
           </v-card-text>
@@ -294,7 +278,6 @@ export default {
       where_filed: "",
       taxes_not_filed: false,
     },
-    comments: "",
   }),
   async created() {
     this.monthOptions = [];
@@ -314,7 +297,6 @@ export default {
   },
   methods: {
     addResidence() {
-      console.log("THsiTE");
       this.residences.push({});
     },
     removeResidence(index) {

@@ -21,11 +21,6 @@ export const sections = [
         icon: "mdi-account"
     },
     {
-        name: "Residence History",
-        url: "/application/1234/residence-history",
-        icon: "mdi-home"
-    },
-    {
         name: "Academic Year",
         url: "/application/1234/academic-year",
         icon: "mdi-school"

@@ -57,15 +57,24 @@
               ></v-date-picker>
             </v-menu>
           </div>
-          
           <div class="col-md-3">
             <v-text-field
               outlined
               dense
               background-color="white"
               hide-details
-              label="Birth city"
-              v-model="birth_city"
+              label="SFA number"
+              v-model="sfa_number"
+            ></v-text-field>
+          </div>
+          <div class="col-md-3">
+            <v-text-field
+              outlined
+              dense
+              background-color="white"
+              hide-details
+              label="Records locator number"
+              v-model="records_locator"
             ></v-text-field>
           </div>
           <div class="col-md-3">
@@ -74,24 +83,11 @@
               dense
               background-color="white"
               hide-details
-              label="Birth province"
-              v-model="birth_province"
-              :items="provinceOptions"
+              label="Funded since"
+              v-model="funded_since"
+              :items="yearOptions"
             ></v-select>
           </div>
-
-          <div class="col-md-3">
-            <v-select
-              outlined
-              dense
-              background-color="white"
-              hide-details
-              label="Birth country"
-              v-model="birth_country"
-              :items="countryOptions"
-            ></v-select>
-          </div>
-
         </div>
       </v-card-text>
     </v-card>
@@ -105,19 +101,27 @@ export default {
   data: () => ({
     languageOptions: ["English", "French"],
     sexOptions: ["Male", "Female", "Unknown"],
-    countryOptions: ["Canada", "United States"],
-    provinceOptions: ["Yukon", "British Columbia"],
+    yearOptions: [],
     maxDate: moment().format("YYYY-MM-DD"),
     birth_date_menu: null,
 
     language: "English",
     sex: "Male",
     birth_date: null,
-    birth_city: "",
-    birth_province: "",
-    birth_country: "",
+    sfa_number: "",
+    records_locator: "",
+    funded_since: "",
   }),
-  async created() {},
+  async created() {
+    this.yearOptions = [];
+
+    let startYear = 1990;
+    let currentYear = moment().year();
+
+    for (let i = currentYear; i >= startYear; i--) {
+      this.yearOptions.push(`${i}`);
+    }
+  },
   methods: {
     addConsent() {
       this.consents.push({});

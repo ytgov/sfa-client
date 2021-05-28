@@ -195,7 +195,8 @@ export default {
 
     for (let i = currentYear; i >= startYear; i--) {
       this.yearOptions.push(`${i}`);
-    }},
+    }
+  },
   methods: {},
 };
 </script>
