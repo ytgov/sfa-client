@@ -13,6 +13,7 @@ axios.defaults.withCredentials = true;
 Vue.use(VueCurrencyInput, { globalOptions: { currency: 'USD' } });
 
 import ConfirmDialog from "./components/ConfirmDialog";
+import SelectedAppHeader from "./components/SelectedAppHeader";
 
 import ParentInfoForm from "./components/ParentInfoForm";
 import ParentDependentsForm from "./components/ParentDependentsForm";
@@ -45,6 +46,7 @@ import PreStudyIncomeForm from "./components/PreStudyIncomeForm";
 import StudyIncomeForm from "./components/StudyIncomeForm";
 
 Vue.component("confirm-dialog", ConfirmDialog);
+Vue.component("selected-app-header", SelectedAppHeader);
 
 Vue.component("contact-form", ContactForm);
 Vue.component("basic-demographics-form", BasicDemographicsForm);

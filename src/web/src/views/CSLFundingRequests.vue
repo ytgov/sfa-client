@@ -1,7 +1,6 @@
 <template>
   <div class="home">
     <h1>CSL Funding Requests</h1>
-    <hr />
 
     <v-tabs v-model="tab" background-color="#fff2d5" color="primary">
       <v-tab key="0">CSL Full-Time</v-tab>

@@ -1,7 +1,6 @@
 <template>
   <div class="home">
     <h1>SFA Funding Requests</h1>
-    <hr />
 
     <v-tabs v-model="tab" background-color="#fff2d5" color="primary">
       <v-tab key="0">Training Allowance</v-tab>
@@ -24,20 +23,12 @@
 </template>
 
 <script>
-import router from "../router";
-import store from "../store";
-
 export default {
   name: "Home",
   data: () => ({
     tab: 0,
   }),
-  async created() {
-    await store.dispatch("checkAuthentication");
-    var isAuth = store.getters.isAuthenticated;
-
-    if (isAuth) router.push("/dashboard");
-  },
+  async created() {},
   methods: {},
 };
 </script>

@@ -7,13 +7,13 @@ const state = {
 };
 const getters = {
     isAuthenticated: state => !!state.user,
-    fullName: state => { return state.fullName },
+    fullName: state => state.fullName,
 };
 const actions = {
     async checkAuthentication({ commit }) {
         await axios.get(AUTH_CHECK_URL)
             .then(resp => {
-                commit("setUser", resp.data);
+                commit("setUser", resp.data.data);
             }).catch(() => {
                 commit("clearUser");
             });

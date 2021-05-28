@@ -105,6 +105,7 @@
       <v-container fluid>
         <v-row>
           <v-col>
+            <selected-app-header v-if="showAppSidebar"></selected-app-header>
             <router-view></router-view>
           </v-col>
         </v-row>
@@ -115,10 +116,10 @@
 
 <script>
 import router from "./router";
-//import { mapState } from "vuex";
 import store from "./store";
 import * as config from "./config";
 import { mapState } from "vuex";
+import { LOGOUT_URL } from "./urls";
 
 export default {
   name: "App",
@@ -160,7 +161,7 @@ export default {
   watch: {
     isAuthenticated: function (val) {
       if (!val) this.hasSidebar = false;
-      else store.getters.showAppSidebar;
+      else this.hasSidebar = store.getters.showAppSidebar;
     },
     showAppSidebar: function (val) {
       this.hasSidebar = val; // && this.isAuthenticated;
@@ -177,8 +178,9 @@ export default {
       this.menuShow = !this.menuShow;
     },
     signOut: function () {
-      store.dispatch("signOut");
-      router.push("/");
+      //store.dispatch("signOut");
+      //router.push("/");
+      window.location = LOGOUT_URL;
     },
   },
 };

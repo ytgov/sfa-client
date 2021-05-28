@@ -23,14 +23,14 @@
     <div class="row">
       <div class="col-md-6">
         <v-card class="mt-5" color="#fff2d5">
-          <v-card-title>Another card</v-card-title>
-          <v-card-text>This is the body of the text</v-card-text>
+          <v-card-title>Recently Viewed Applications</v-card-title>
+          <v-card-text>This will be a list of students/applications you recently viewed</v-card-text>
         </v-card>
       </div>
       <div class="col-md-6">
         <v-card class="mt-5" color="#fff2d5">
-          <v-card-title>Yet another</v-card-title>
-          <v-card-text>This is the body of the text</v-card-text>
+          <v-card-title>New Applications</v-card-title>
+          <v-card-text>Maybe use STATUS=ONLINE to filter and find items that may require action</v-card-text>
         </v-card>
       </div>
     </div>

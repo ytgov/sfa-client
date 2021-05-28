@@ -1,5 +1,7 @@
 import * as dotenv from "dotenv";
 
+export const NODE_ENV = process.env.NODE_ENV || "development";
+
 let path;
 switch (process.env.NODE_ENV) {
   case "test":
@@ -13,10 +15,11 @@ switch (process.env.NODE_ENV) {
 }
 dotenv.config({ path: path });
 
+console.log (`LOADING ${NODE_ENV} CONFIG FROM ${path}`)
+
 export const API_PORT = parseInt(process.env.API_PORT || "3000");
 export const FRONTEND_URL = process.env.FRONTEND_URL || "";
 export const AUTH_REDIRECT = process.env.AUTH_REDIRECT || process.env.FRONTEND_URL || "";
-export const NODE_ENV = process.env.NODE_ENV;
 
 export const DB_NAME = process.env.DB_NAME || "postgres";
 export const DB_USER = process.env.DB_USER || "postgres";

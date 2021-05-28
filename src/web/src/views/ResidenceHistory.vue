@@ -1,11 +1,10 @@
 <template>
   <div class="home">
     <h1>Residence History</h1>
-    <hr />
 
     <div class="row">
       <div class="col-md-12">
-        <v-card class="default mt-5">
+        <v-card class="default">
           <v-card-title>Residences</v-card-title>
           <v-card-text>
             <div

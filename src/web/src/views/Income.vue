@@ -1,7 +1,6 @@
 <template>
   <div class="home">
     <h1>Income</h1>
-    <hr />
 
     <v-tabs v-model="tab" background-color="#fff2d5" color="primary">
       <v-tab key="0">Pre-Study Income</v-tab>

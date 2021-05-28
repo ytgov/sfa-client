@@ -1,7 +1,7 @@
 import { Express, NextFunction, Request, Response } from "express"
 import * as ExpressSession from "express-session";
 import { AuthUser } from "../models";
-import { AUTH_REDIRECT } from "../config";
+import { AUTH_REDIRECT, FRONTEND_URL } from "../config";
 
 import { auth } from "express-openid-connect";
 
@@ -23,7 +23,7 @@ export function configureAuthentication(app: Express) {
         routes: {
             login: "/api/auth/login",
             //logout: "/api/auth/logout",
-            postLogoutRedirect: "/custom-logout"
+            postLogoutRedirect: FRONTEND_URL
         }
     }));
 
@@ -36,14 +36,14 @@ export function configureAuthentication(app: Express) {
         next();
     });
 
-    /* app.get("/", async (req: Request, res: Response) => {
+     app.get("/", async (req: Request, res: Response) => {
         if (req.oidc.isAuthenticated()) {
             let user = AuthUser.fromOpenId(req.oidc.user) as AuthUser;
             req.user = user;
 
             res.redirect(AUTH_REDIRECT);
         }
-    }); */
+    });
 
     app.get("/api/auth/isAuthenticated", (req: Request, res: Response) => {
         if (req.oidc.isAuthenticated()) {
@@ -54,8 +54,9 @@ export function configureAuthentication(app: Express) {
     });
 
     app.get('/api/auth/logout', async (req: any, res) => {
-        req.session.destroy();
-        (res as any).oidc.logout({ returnTo: "/" });
+        req.session.destroy(); 
+        res.status(401)
+        await(res as any).oidc.logout();
     });
 }
 
