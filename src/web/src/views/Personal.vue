@@ -36,8 +36,8 @@
       <v-tab-item key="5">
         <student-dependents-form></student-dependents-form>
       </v-tab-item>
-      <v-tab-item key="6"> </v-tab-item>
-      <v-tab-item key="7"> </v-tab-item>
+      <v-tab-item key="6"><yea-info-form></yea-info-form></v-tab-item>
+      <v-tab-item key="7"><yg-sta-info-form></yg-sta-info-form></v-tab-item>
       <v-tab-item key="8">
         <parent-info-form></parent-info-form>
         <hr class="mt-5 mb-2" />

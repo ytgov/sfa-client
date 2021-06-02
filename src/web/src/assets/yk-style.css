@@ -116,3 +116,7 @@ ul.v-breadcrumbs {
     font-size: 1.0rem;
     line-height: 1.4rem;
 }
+
+.text-error {
+    color: #9b1b27 !important;
+}

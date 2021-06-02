@@ -26,6 +26,8 @@ import ResidenceHistoryForm from "./components/ResidenceHistoryForm";
 import EducationHistoryForm from "./components/EducationHistoryForm";
 import StudentDependentsForm from "./components/StudentDependentsForm";
 import SpouseForm from "./components/SpouseForm";
+import YEAInfoForm from "./components/YEAInfoForm";
+import YGSTAInfoForm from "./components/YGSTAInfoForm";
 
 import ProgramInformationForm from "./components/ProgramInformationForm";
 import CreditCheckForm from "./components/CreditCheckForm";
@@ -59,6 +61,8 @@ Vue.component("residence-history-form", ResidenceHistoryForm);
 Vue.component("education-history-form", EducationHistoryForm);
 Vue.component("student-dependents-form", StudentDependentsForm);
 Vue.component("spouse-form", SpouseForm);
+Vue.component("yea-info-form", YEAInfoForm);
+Vue.component("yg-sta-info-form", YGSTAInfoForm);
 
 Vue.component("program-information", ProgramInformationForm);
 Vue.component("credit-check", CreditCheckForm);
@@ -83,6 +87,10 @@ Vue.component("study-income", StudyIncomeForm);
 
 Vue.component("parent-info-form", ParentInfoForm);
 Vue.component("parent-dependents-form", ParentDependentsForm);
+
+import VueEditableGrid from 'vue-editable-grid';
+import 'vue-editable-grid/dist/VueEditableGrid.css';
+Vue.component('vue-editable-grid', VueEditableGrid);
 
 new Vue({
   router,
