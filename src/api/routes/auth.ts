@@ -36,12 +36,17 @@ export function configureAuthentication(app: Express) {
         next();
     });
 
-     app.get("/", async (req: Request, res: Response) => {
+    app.get("/", async (req: Request, res: Response) => {
         if (req.oidc.isAuthenticated()) {
             let user = AuthUser.fromOpenId(req.oidc.user) as AuthUser;
             req.user = user;
 
             res.redirect(AUTH_REDIRECT);
+        }
+        else {
+            // this is hard-coded to accomodate strage behaving in sendFile not allowing `../` in the path.
+            // this won't hit in development because web access is served by the Vue CLI - only an issue in Docker
+            res.sendFile("/home/node/app/dist/web/index.html")
         }
     });
 
@@ -54,9 +59,9 @@ export function configureAuthentication(app: Express) {
     });
 
     app.get('/api/auth/logout', async (req: any, res) => {
-        req.session.destroy(); 
+        req.session.destroy();
         res.status(401)
-        await(res as any).oidc.logout();
+        await (res as any).oidc.logout();
     });
 }
 
