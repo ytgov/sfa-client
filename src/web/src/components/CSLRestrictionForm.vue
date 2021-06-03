@@ -104,6 +104,72 @@
               v-model="clearance_comment"
             ></v-textarea>
           </div>
+
+          <div class="col-md-12">
+            <hr />
+            <h4 class="mt-2">Over awards</h4>
+          </div>
+
+          <div class="col-md-6">
+            <v-text-field
+              outlined
+              dense
+              background-color="white"
+              hide-details
+              label="CSL Over awards"
+              v-model="over_awards"
+              v-currency="{ currency: 'USD', locale: 'en' }"
+            ></v-text-field>
+          </div>
+
+          <div class="col-md-12">
+            <hr />
+            <h4 class="mt-2">
+              Canada Student Loan Scholastic Standard Warning
+            </h4>
+          </div>
+
+          <div class="col-md-6">
+            <v-select
+              outlined
+              dense
+              background-color="white"
+              hide-details
+              label="Shcolastic warning code"
+              v-model="scholastic_warning_code"
+              :items="scholasticWarningOptions"
+            ></v-select>
+          </div>
+          <div class="col-md-6">
+            <v-menu
+              v-model="scholastic_letter_menu"
+              :close-on-content-click="false"
+              transition="scale-transition"
+              left
+              nudge-top="26"
+              offset-y
+              min-width="auto"
+            >
+              <template v-slot:activator="{ on, attrs }">
+                <v-text-field
+                  v-model="scholastic_letter_date"
+                  label="Letter required date"
+                  append-icon="mdi-calendar"
+                  hide-details
+                  readonly
+                  outlined
+                  dense
+                  background-color="white"
+                  v-bind="attrs"
+                  v-on="on"
+                ></v-text-field>
+              </template>
+              <v-date-picker
+                v-model="scholastic_letter_date"
+                @input="scholastic_letter_menu = false"
+              ></v-date-picker>
+            </v-menu>
+          </div>
         </div>
       </v-card-text>
     </v-card>
@@ -114,6 +180,8 @@
 export default {
   data: () => ({
     clearance_received_menu: null,
+    scholastic_letter_menu: null,
+    scholasticWarningOptions: ["Missing class", "No homework"],
 
     restrict_code: "",
     restrict_type: "",
@@ -123,6 +191,9 @@ export default {
     reason_definition: "",
     clearance_received_date: null,
     clearance_comment: "",
+    over_awards: 0,
+    scholastic_warning_code: "",
+    scholastic_letter_date: null,
   }),
   async created() {},
   methods: {},
