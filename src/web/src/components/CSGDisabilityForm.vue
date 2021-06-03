@@ -255,6 +255,11 @@ export default {
     disabilities: [],
     services: [],
 
+    service_amount_requested: 0,
+    service_max_amount: 0,
+    service_amount_approved: 0,
+    service_receipts_received: false,
+    
     is_applying: true,
     equipment_required: "",
     previous_amount: 0,

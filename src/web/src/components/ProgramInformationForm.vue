@@ -70,7 +70,6 @@
             ></v-text-field>
           </div>
 
-
           <div class="col-md-3">
             <v-select
               outlined
@@ -82,7 +81,6 @@
               :items="categoryOptions"
             ></v-select>
           </div>
-
 
           <div class="col-md-4">
             <v-menu
@@ -144,7 +142,7 @@
               ></v-date-picker>
             </v-menu>
           </div>
-          
+
           <div class="col-md-4">
             <v-select
               outlined
@@ -175,8 +173,6 @@
               v-model="sharing_consent"
             ></v-switch>
           </div>
-
-
         </div>
       </v-card-text>
     </v-card>
@@ -214,7 +210,7 @@
               readonly
               background-color="white"
               hide-details
-              label="Fall classes start"
+              label="Fall classes start date"
               v-model="institution.classes_start"
             ></v-text-field>
           </div>
@@ -225,7 +221,7 @@
               readonly
               background-color="white"
               hide-details
-              label="Winter classes end"
+              label="Winter classes end date"
               v-model="institution.classes_end"
             ></v-text-field>
           </div>
@@ -356,7 +352,7 @@ export default {
     programTypeOptions: ["Diploma", "Degree"],
     programDivisionOptions: ["Quarters", "Semesters"],
     categoryOptions: ["Option 1", "Option 2"],
-    attendanceOptions: ["Full time","Part time"],
+    attendanceOptions: ["Full time", "Part time"],
 
     classes_start_menu: null,
     classes_end_menu: null,

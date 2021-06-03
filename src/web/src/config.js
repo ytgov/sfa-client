@@ -18,7 +18,7 @@ export const sections = [
     {
         name: "Assessment & Status",
         url: "/application/1234/status",
-        icon: "mdi-account"
+        icon: "mdi-clipboard-check-outline"
     },
     {
         name: "Academic Year",
@@ -33,17 +33,17 @@ export const sections = [
     {
         name: "Scholarship Applications",
         url: "/application/1234/scholarship-applications",
-        icon: "mdi-baby"
+        icon: "mdi-book"
     },
     {
         name: "CSL Funding Requests",
         url: "/application/1234/csl-funding-requests",
-        icon: "mdi-baby"
+        icon: "mdi-account-cash"
     },
     {
         name: "Documentation",
         url: "/application/1234/documentation",
-        icon: "mdi-account-child"
+        icon: "mdi-bookshelf"
     },
 ];
 export const environment = process.env.NODE_ENV;

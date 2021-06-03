@@ -164,14 +164,14 @@
 <script>
 export default {
   data: () => ({
-    pre_system_funding_year: 1,
-    pre_leg_funding_year: 2,
-    pre_leg_funding_weeks: 3,
-    pre_leg_upgrading_weeks: 4,
-    pre_leg_travel_count: 5,
-    adjust_funding_weeks: 6,
-    adjust_upgrading_weeks: 7,
-    adjust_travel_count: 8,
+    pre_system_funding_year: 0,
+    pre_leg_funding_year: 0,
+    pre_leg_funding_weeks: 0,
+    pre_leg_upgrading_weeks: 0,
+    pre_leg_travel_count: 0,
+    adjust_funding_weeks: 0,
+    adjust_upgrading_weeks: 0,
+    adjust_travel_count: 0,
   }),
   computed: {
     total_funding_weeks: function () {

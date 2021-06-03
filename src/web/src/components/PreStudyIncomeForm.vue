@@ -60,14 +60,19 @@
 <script>
 export default {
   data: () => ({
-    incomeTypeOptions: ["Alimony Support", "Child Support", "Computer Hardware/Software/Supplies", "Day Care Costs - Monthly"],
+    incomeTypeOptions: [
+      "Alimony Support",
+      "Child Support",
+      "Computer Hardware/Software/Supplies",
+      "Day Care Costs - Monthly",
+    ],
 
     incomes: [],
   }),
   async created() {},
   methods: {
     addIncome() {
-      this.incomes.push({amount: 0});
+      this.incomes.push({ amount: 0 });
     },
     removeIncome(index) {
       this.$refs.confirm.show(
