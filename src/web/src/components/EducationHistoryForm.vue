@@ -1,6 +1,5 @@
 <template>
   <div class="home">
-
     <v-card class="default">
       <v-card-title>Secondary Education History</v-card-title>
       <v-card-text>
@@ -111,8 +110,7 @@
               v-model="last_grade_completed"
               :items="educationLevelOptions"
             ></v-select>
-          </div>         
-
+          </div>
 
           <div class="col-md-4">
             <v-text-field
@@ -127,11 +125,12 @@
             ></v-text-field>
           </div>
 
-
+          <div class="col-md-8 pt-0 text-right">
+            <v-btn color="primary">View transcipt</v-btn>
+          </div>
         </div>
       </v-card-text>
     </v-card>
-
   </div>
 </template>
 
@@ -160,7 +159,6 @@ export default {
     last_grade_completed: "",
     eduction_level: "",
     high_school_12_mark: "",
-
   }),
   async created() {
     this.monthOptions = [];
@@ -178,8 +176,6 @@ export default {
       this.yearOptions.push(`${i}`);
     }
   },
-  methods: {
-   
-  },
+  methods: {},
 };
 </script>
