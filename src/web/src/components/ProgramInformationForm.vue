@@ -169,7 +169,7 @@
               outlined
               dense
               hide-details
-              label="STEP and GRAD Corp data shaing consent"
+              label="STEP and GRAD Corp data sharing consent"
               v-model="sharing_consent"
             ></v-switch>
           </div>
