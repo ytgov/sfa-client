@@ -47,7 +47,9 @@ export default {
   data: () => ({
     tab: 0,
   }),
-  async created() {},
+  async created() {
+    this.studentId = this.$route.params.id;
+    this.loadStudent(this.studentId);},
   methods: {},
 };
 </script>

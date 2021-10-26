@@ -13,37 +13,44 @@ export const sections = [
     {
         name: "Personal",
         url: "/application/1234/personal",
-        icon: "mdi-account"
+        icon: "mdi-account",
+        makeUrl: function(id) { return `/application/${id}/personal` }
     },
     {
         name: "Assessment & Status",
         url: "/application/1234/status",
-        icon: "mdi-clipboard-check-outline"
+        icon: "mdi-clipboard-check-outline",
+        makeUrl: function(id) { return `/application/${id}/status` }
     },
     {
         name: "Academic Year",
-        url: "/application/1234/academic-year",
-        icon: "mdi-school"
+        url: "/application/1234/acdeamic-year",
+        icon: "mdi-school",
+        makeUrl: function(id) { return `/application/${id}/academic-year` }
     },
     {
         name: "SFA Funding Requests",
         url: "/application/1234/sfa-funding-requests",
-        icon: "mdi-currency-usd"
+        icon: "mdi-currency-usd",
+        makeUrl: function(id) { return `/application/${id}/sfa-funding-requests` }
     },
     {
         name: "Scholarship Applications",
         url: "/application/1234/scholarship-applications",
-        icon: "mdi-book"
+        icon: "mdi-book",
+        makeUrl: function(id) { return `/application/${id}/scholarship-applications` }
     },
     {
         name: "CSL Funding Requests",
         url: "/application/1234/csl-funding-requests",
-        icon: "mdi-account-cash"
+        icon: "mdi-account-cash",
+        makeUrl: function(id) { return `/application/${id}/csl-funding-requests` }
     },
     {
         name: "Documentation",
         url: "/application/1234/documentation",
-        icon: "mdi-bookshelf"
+        icon: "mdi-bookshelf",
+        makeUrl: function(id) { return `/application/${id}/documentation` }
     },
 ];
 export const environment = process.env.NODE_ENV;

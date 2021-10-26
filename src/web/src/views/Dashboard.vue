@@ -24,13 +24,19 @@
       <div class="col-md-6">
         <v-card class="mt-5" color="#fff2d5">
           <v-card-title>Recently Viewed Applications</v-card-title>
-          <v-card-text>This will be a list of students/applications you recently viewed</v-card-text>
+          <v-card-text
+            >This will be a list of students/applications you recently
+            viewed</v-card-text
+          >
         </v-card>
       </div>
       <div class="col-md-6">
         <v-card class="mt-5" color="#fff2d5">
           <v-card-title>New Applications</v-card-title>
-          <v-card-text>Maybe use STATUS=ONLINE to filter and find items that may require action</v-card-text>
+          <v-card-text
+            >Maybe use STATUS=ONLINE to filter and find items that may require
+            action</v-card-text
+          >
         </v-card>
       </div>
     </div>
@@ -45,50 +51,63 @@
     >
       <v-list-item loading>
         <v-list-item-content>
-          <v-list-item-title>Students</v-list-item-title>
+          <v-list-item-title>
+            <div class="float-right">
+              <v-btn
+                x-small
+                color="primary"
+                text
+                :to="'/search?text=' + search"
+                class="my-0"
+                style="font-size: 12px !important"
+              >
+                Advanced search</v-btn
+              >
+            </div>
+            <div class="float-left">Students ({{ resultCount }} matches)</div>
+          </v-list-item-title>
         </v-list-item-content>
       </v-list-item>
 
       <v-divider></v-divider>
 
-      <v-data-table
-        hide-default-footer
-        :headers="[
-          { text: 'SIN', value: 'sin' },
-          { text: 'Name', value: 'name' },
-          { text: 'Locator', value: 'locator' },
-        ]"
-        :items="[
-          { sin: '111-111-111', name: 'Frodo Baggins', locator: '2014-0379' },
-          { sin: '222-222-222', name: 'Harry Potter', locator: '2014-1123' },
-        ]"
-        @click:row="selectStudent"
-      ></v-data-table>
+      <div style="max-height: 400px; overflow-y: scroll">
+        <v-data-table
+          hide-default-footer
+          :headers="[
+            { text: 'SIN', value: 'sin' },
+            { text: 'Name', value: 'name' },
+            { text: 'Locator', value: 'locator_number' },
+          ]"
+          :items="searchResults"
+          :items-per-page="-1"
+          @click:row="selectStudent"
+        ></v-data-table>
+      </div>
 
       <v-divider></v-divider>
 
       <v-card class="default my-4 mx-5" v-if="selectedStudent">
-        <v-card-title>Applications for {{ selectedStudent.name }}</v-card-title>
+        <v-card-title
+          >Applications for {{ selectedStudent.name }} ({{
+            selectedStudent.sin
+          }})</v-card-title
+        >
         <v-card-text>
-          <v-list-item two-line to="/application/1234/personal">
-            <v-list-item-content>
-              <v-list-item-title>2021: Okanogan College</v-list-item-title>
-              <v-list-item-subtitle
-                >Business Administration (Diploma)<br />Applications:
-                YG</v-list-item-subtitle
-              >
-            </v-list-item-content>
-          </v-list-item>
-          <v-divider></v-divider>
-          <v-list-item two-line to="/application/1234/personal">
-            <v-list-item-content>
-              <v-list-item-title>2020: Okanogan College</v-list-item-title>
-              <v-list-item-subtitle
-                >Business Administration (Diploma)<br />Applications: YG,
-                YEA</v-list-item-subtitle
-              >
-            </v-list-item-content>
-          </v-list-item>
+          <div v-for="(app, i) of studentApplications" :key="i">
+            <v-list-item two-line :to="'/application/' + app.HISTORY_DETAIL_ID + '/personal'">
+              <v-list-item-content>
+                <v-list-item-title
+                  >{{ app.ACADEMIC_YEAR }}: {{ app.institution_name }}</v-list-item-title
+                >
+                <v-list-item-subtitle
+                  >{{app.study_area_name}} ({{app.program_name}})<br />Applications:
+                  YG</v-list-item-subtitle
+                >
+              </v-list-item-content>
+            </v-list-item>
+            <v-divider v-if="i < studentApplications.length -1"></v-divider>
+          </div>
         </v-card-text>
       </v-card>
     </v-navigation-drawer>
@@ -96,22 +115,50 @@
 </template>
 
 <script>
+import axios from "axios";
+import { STUDENT_URL, STUDENT_SEARCH_URL } from "../urls";
+
 export default {
   name: "Home",
   data: () => ({
     search: "",
     drawer: null,
     selectedStudent: null,
+    studentApplications: [],
+    searchResults: [],
+    resultCount: 0,
   }),
   methods: {
     searchKeyUp(event) {
       if (event.key == "Enter") this.doSearch();
     },
     doSearch() {
-      this.drawer = true;
+      this.selectedStudent = null;
+      this.studentApplications = [];
+
+      let cleanSearch = this.search.trim().toLowerCase();
+      if (cleanSearch.length == 0) return;
+
+      axios
+        .post(`${STUDENT_SEARCH_URL}`, { terms: cleanSearch })
+        .then((resp) => {
+          this.searchResults = resp.data.data;
+          this.drawer = true;
+          this.resultCount = resp.data.meta.item_count;
+        })
+        .catch((err) => {
+          this.$emit("showError", err);
+        });
     },
     selectStudent(item) {
       this.selectedStudent = item;
+
+      axios
+        .get(`${STUDENT_URL}/${item.student_id}/applications`)
+        .then((resp) => {
+          this.studentApplications = resp.data.data;
+        })
+        .catch((err) => console.log(err));
     },
   },
 };

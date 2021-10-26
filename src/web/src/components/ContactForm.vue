@@ -83,25 +83,30 @@
             ></v-text-field>
           </div>
           <div class="col-md-3">
-            <v-text-field
+            <v-autocomplete
               outlined
               dense
               background-color="white"
               hide-details
               label="City"
+              item-value="CITY_ID"
+              item-text="DESCRIPTION"
+              :items="cityOptions"
               v-model="permanent_address.city"
-            ></v-text-field>
+            ></v-autocomplete>
           </div>
           <div class="col-md-3">
-            <v-select
+            <v-autocomplete
               outlined
               dense
               background-color="white"
               hide-details
               label="Province"
               :items="provinceOptions"
+              item-value="PROVINCE_ID"
+              item-text="DESCRIPTION"
               v-model="permanent_address.province"
-            ></v-select>
+            ></v-autocomplete>
           </div>
           <div class="col-md-3">
             <v-text-field
@@ -114,15 +119,17 @@
             ></v-text-field>
           </div>
           <div class="col-md-3">
-            <v-select
+            <v-autocomplete
               outlined
               dense
               background-color="white"
               hide-details
               label="Country"
               :items="countryOptions"
+              item-value="COUNTRY_ID"
+              item-text="DESCRIPTION"
               v-model="permanent_address.country"
-            ></v-select>
+            ></v-autocomplete>
           </div>
           <div class="col-md-6">
             <v-text-field
@@ -173,25 +180,30 @@
             ></v-text-field>
           </div>
           <div class="col-md-3">
-            <v-text-field
+            <v-autocomplete
               outlined
               dense
               background-color="white"
               hide-details
               label="City"
+              item-value="CITY_ID"
+              item-text="DESCRIPTION"
+              :items="cityOptions"
               v-model="school_address.city"
-            ></v-text-field>
+            ></v-autocomplete>
           </div>
           <div class="col-md-3">
-            <v-select
+            <v-autocomplete
               outlined
               dense
               background-color="white"
               hide-details
               label="Province"
               :items="provinceOptions"
+              item-value="PROVINCE_ID"
+              item-text="DESCRIPTION"
               v-model="school_address.province"
-            ></v-select>
+            ></v-autocomplete>
           </div>
           <div class="col-md-3">
             <v-text-field
@@ -204,15 +216,17 @@
             ></v-text-field>
           </div>
           <div class="col-md-3">
-            <v-select
+            <v-autocomplete
               outlined
               dense
               background-color="white"
               hide-details
               label="Country"
               :items="countryOptions"
+              item-value="COUNTRY_ID"
+              item-text="DESCRIPTION"
               v-model="school_address.country"
-            ></v-select>
+            ></v-autocomplete>
           </div>
           <div class="col-md-6">
             <v-text-field
@@ -241,10 +255,15 @@
 </template>
 
 <script>
+import axios from "axios";
+import { CITY_URL, COUNTRY_URL, PROVINCE_URL } from "../urls";
+
 export default {
+  props: ["student"],
   data: () => ({
-    countryOptions: ["Canada", "United States"],
-    provinceOptions: ["Yukon", "British Columbia"],
+    countryOptions: [],
+    provinceOptions: [],
+    cityOptions: [],
 
     contactInfo: {
       last_name: "",
@@ -274,7 +293,54 @@ export default {
       email: "",
     },
   }),
-  async created() {},
-  methods: {},
+  created() {
+    this.loadCountries();
+    this.loadProvinces();
+    this.loadCities();
+  },
+  watch: {
+    student: function (val) {
+      console.log("CONTACT", val);
+
+      if (val) this.updateView(val);
+    },
+  },
+  methods: {
+    loadCountries() {
+      axios.get(COUNTRY_URL).then((resp) => {
+        this.countryOptions = resp.data;
+      });
+    },
+    loadProvinces() {
+      axios.get(PROVINCE_URL).then((resp) => {
+        this.provinceOptions = resp.data;
+      });
+    },
+    loadCities() {
+      axios.get(CITY_URL).then((resp) => {
+        this.cityOptions = resp.data;
+      });
+    },
+
+    updateView(student) {
+      this.contactInfo.first_name = student.FIRST_NAME;
+      this.contactInfo.last_name = student.LAST_NAME;
+      this.contactInfo.initial = student.INITIALS;
+      this.contactInfo.sin = student.SIN;
+      this.contactInfo.previous_last_name = student.PREVIOUS_LAST_NAME;
+
+      this.permanent_address.address_line_1 = student.HOME_ADDRESS1;
+      this.permanent_address.address_line_2 = student.HOME_ADDRESS2;
+      this.permanent_address.city = student.HOME_CITY_ID;
+      this.permanent_address.province = student.HOME_PROVINCE_ID;
+      this.permanent_address.postal = student.HOME_POSTAL_CODE;
+      this.permanent_address.country = student.HOME_COUNTRY_ID;
+      this.permanent_address.phone = student.HOME_PHONE;
+      this.permanent_address.email = student.HOME_EMAIL;
+
+      this.school_address.email = student.SCHOOL_EMAIL;
+      this.school_address.phone = student.SCHOOL_PHONE;
+    },
+  },
 };
 </script>

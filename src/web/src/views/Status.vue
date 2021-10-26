@@ -219,7 +219,9 @@ export default {
     funding: [],
     requirements: [],
   }),
-  async created() {},
+  async created() {
+    this.studentId = this.$route.params.id;
+    this.loadStudent(this.studentId);},
   methods: {
     addDocumentation() {
       this.funding.push({ status_date: "" });

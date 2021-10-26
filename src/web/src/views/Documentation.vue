@@ -93,7 +93,9 @@ export default {
     ],
     documents: [],
   }),
-  async created() {},
+  async created() {
+    this.studentId = this.$route.params.id;
+    this.loadStudent(this.studentId);},
   methods: {
     addDocumentation() {
       this.documents.push({ birth_date: "" });

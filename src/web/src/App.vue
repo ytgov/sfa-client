@@ -13,7 +13,7 @@
           link
           nav
           v-bind:title="section.name"
-          v-bind:to="section.url"
+          v-bind:to="section.makeUrl(selectedStudentId)"
           v-for="section in sections"
           v-bind:key="section.name"
         >
@@ -106,7 +106,12 @@
         <v-row>
           <v-col>
             <selected-app-header v-if="showAppSidebar"></selected-app-header>
-            <router-view></router-view>
+            <router-view
+              v-on:showError="showError"
+              v-on:showSuccess="showSuccess"
+              v-on:showAPIMessages="showAPIMessages"
+            ></router-view>
+            <notifier ref="notifier"></notifier>
           </v-col>
         </v-row>
       </v-container>
@@ -125,7 +130,7 @@ export default {
   name: "App",
   components: {},
   computed: {
-    ...mapState(["isAuthenticated", "showAppSidebar"]),
+    ...mapState(["isAuthenticated", "showAppSidebar", "selectedStudentId"]),
     username() {
       return store.getters.fullName;
     },
@@ -178,9 +183,16 @@ export default {
       this.menuShow = !this.menuShow;
     },
     signOut: function () {
-      //store.dispatch("signOut");
-      //router.push("/");
       window.location = LOGOUT_URL;
+    },
+    showError: function (msg) {
+      this.$refs.notifier.showError(msg);
+    },
+    showSuccess: function (msg) {
+      this.$refs.notifier.showSuccess(msg);
+    },
+    showAPIMessages: function (msg) {
+      this.$refs.notifier.showAPIMessages(msg);
     },
   },
 };

@@ -254,7 +254,10 @@ export default {
       post_secondary_average: 0,
     },
   }),
-  async created() {},
+  async created() {
+    this.studentId = this.$route.params.id;
+    this.loadStudent(this.studentId);
+  },
   methods: {
     addApplication() {
       this.applications.push({ birth_date: "" });

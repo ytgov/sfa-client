@@ -95,11 +95,14 @@
 </template>
 
 <script>
+import axios from "axios";
 import moment from "moment";
+import { LANGUAGE_URL } from "../urls";
 
 export default {
+  props: ["student"],
   data: () => ({
-    languageOptions: ["English", "French"],
+    languageOptions: [],
     sexOptions: ["Male", "Female", "Unknown"],
     yearOptions: [],
     maxDate: moment().format("YYYY-MM-DD"),
@@ -113,6 +116,7 @@ export default {
     funded_since: "",
   }),
   async created() {
+    this.loadLanguages();
     this.yearOptions = [];
 
     let startYear = 1990;
@@ -123,6 +127,12 @@ export default {
     }
   },
   methods: {
+    loadLanguages() {
+      axios.get(LANGUAGE_URL).then((resp) => {
+        this.languageOptions = resp.data;
+      });
+    },
+
     addConsent() {
       this.consents.push({});
     },

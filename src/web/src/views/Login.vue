@@ -18,15 +18,16 @@
 </template>
 
 <script>
-import * as config from "../config";
+import { applicationName } from "../config";
+import { LOGIN_URL } from "../urls";
 import router from "../router";
 import store from "../store";
 
 export default {
   name: "Login",
   data: () => ({
-    loginLink: `${config.apiBaseUrl}/api/auth/login`,
-    title: `Sign in to ${config.applicationName}`
+    loginLink: `${LOGIN_URL}`,
+    title: `Sign in to ${applicationName}`,
   }),
   async created() {
     await store.dispatch("checkAuthentication");
@@ -35,8 +36,6 @@ export default {
     if (isAuthenticated) {
       router.push("/");
     }
-
-    console.log(config.apiBaseUrl);
-  }
+  },
 };
 </script>

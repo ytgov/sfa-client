@@ -18,49 +18,72 @@
 
     <v-tabs-items v-model="tab" style="padding: 20px">
       <v-tab-item key="0">
-        <contact-form></contact-form>
+        <contact-form :student="student"></contact-form>
       </v-tab-item>
       <v-tab-item key="1">
-        <basic-demographics-form></basic-demographics-form>
-        <statistical-form></statistical-form>
+        <basic-demographics-form :student="student"></basic-demographics-form>
+        <statistical-form :student="student"></statistical-form>
       </v-tab-item>
       <v-tab-item key="2">
-        <consent-form></consent-form>
+        <consent-form :student="student"></consent-form>
       </v-tab-item>
       <v-tab-item key="3">
-        <residence-history-form></residence-history-form>
+        <residence-history-form :student="student"></residence-history-form>
       </v-tab-item>
       <v-tab-item key="4">
-        <education-history-form></education-history-form>
+        <education-history-form :student="student"></education-history-form>
       </v-tab-item>
       <v-tab-item key="5">
-        <student-dependents-form></student-dependents-form>
+        <student-dependents-form :student="student"></student-dependents-form>
       </v-tab-item>
-      <v-tab-item key="6"><yea-info-form></yea-info-form></v-tab-item>
-      <v-tab-item key="7"><yg-sta-info-form></yg-sta-info-form></v-tab-item>
+      <v-tab-item key="6"
+        ><yea-info-form :student="student"></yea-info-form
+      ></v-tab-item>
+      <v-tab-item key="7"
+        ><yg-sta-info-form :student="student"></yg-sta-info-form
+      ></v-tab-item>
       <v-tab-item key="8">
-        <parent-info-form></parent-info-form>
+        <parent-info-form :student="student"></parent-info-form>
         <hr class="mt-5 mb-2" />
         <h2>Dependents</h2>
-        <parent-dependents-form></parent-dependents-form>
+        <parent-dependents-form :student="student"></parent-dependents-form>
       </v-tab-item>
       <v-tab-item key="9">
-        <spouse-form></spouse-form>
+        <spouse-form :student="student"></spouse-form>
       </v-tab-item>
       <v-tab-item key="10">
-        <csl-restriction></csl-restriction>
+        <csl-restriction :student="student"></csl-restriction>
       </v-tab-item>
     </v-tabs-items>
   </div>
 </template>
 
 <script>
+import axios from "axios";
+import store from "../store";
+import { APPLICATION_URL } from "../urls";
+
 export default {
   name: "Home",
   data: () => ({
     tab: 0,
+    studentId: -1,
+    student: {},
   }),
-  async created() {},
-  methods: {},
+  async created() {
+    this.studentId = this.$route.params.id;
+    this.loadStudent(this.studentId);
+  },
+  methods: {
+    loadStudent(id) {
+      axios
+        .get(`${APPLICATION_URL}/${id}`)
+        .then((resp) => {
+          this.student = resp.data.data.student;
+          store.dispatch("setStudent", this.student);
+        })
+        .catch((err) => console.log("ERROR LOADING STUDENT", err));
+    },
+  },
 };
 </script>
