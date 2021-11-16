@@ -13,7 +13,7 @@
           link
           nav
           v-bind:title="section.name"
-          v-bind:to="section.makeUrl(selectedStudentId)"
+          v-bind:to="section.makeUrl(selectedApplicationId)"
           v-for="section in sections"
           v-bind:key="section.name"
         >
@@ -58,16 +58,16 @@
         style="margin-left: 15px; max-width: 150px; margin-right: 20px"
         hide-details
       ></v-select> -->
-      <v-btn color="primary" text class="mr-1" to="/dashboard">Home</v-btn>
-
-      <v-btn color="primary" text class="mr-1" to="/reports">Reports</v-btn>
-      <v-btn color="primary" text class="mr-5" to="/administration"
-        >Administration</v-btn
-      >
-
-      <v-divider class="mr-5" vertical inset></v-divider>
-
       <div v-if="isAuthenticated">
+        <v-btn color="primary" text class="mr-1" to="/dashboard">Home</v-btn>
+
+        <v-btn color="primary" text class="mr-1" to="/reports">Reports</v-btn>
+        <v-btn color="primary" text class="mr-5" to="/administration"
+          >Administration</v-btn
+        >
+
+        <v-divider class="mr-5" vertical inset></v-divider>
+
         <span>{{ username }}</span>
         <v-menu bottom left class="ml-0">
           <template v-slot:activator="{ on, attrs }">
@@ -130,7 +130,7 @@ export default {
   name: "App",
   components: {},
   computed: {
-    ...mapState(["isAuthenticated", "showAppSidebar", "selectedStudentId"]),
+    ...mapState(["isAuthenticated", "showAppSidebar", "selectedApplicationId"]),
     username() {
       return store.getters.fullName;
     },

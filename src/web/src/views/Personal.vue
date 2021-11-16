@@ -18,72 +18,83 @@
 
     <v-tabs-items v-model="tab" style="padding: 20px">
       <v-tab-item key="0">
-        <contact-form :student="student"></contact-form>
+        <contact-form></contact-form>
       </v-tab-item>
       <v-tab-item key="1">
-        <basic-demographics-form :student="student"></basic-demographics-form>
-        <statistical-form :student="student"></statistical-form>
+        <basic-demographics-form></basic-demographics-form>
+        <statistical-form></statistical-form>
       </v-tab-item>
       <v-tab-item key="2">
-        <consent-form :student="student"></consent-form>
+        <consent-form></consent-form>
       </v-tab-item>
       <v-tab-item key="3">
-        <residence-history-form :student="student"></residence-history-form>
+        <residence-history-form></residence-history-form>
       </v-tab-item>
       <v-tab-item key="4">
-        <education-history-form :student="student"></education-history-form>
+        <education-history-form></education-history-form>
       </v-tab-item>
       <v-tab-item key="5">
-        <student-dependents-form :student="student"></student-dependents-form>
+        <student-dependents-form></student-dependents-form>
       </v-tab-item>
-      <v-tab-item key="6"
-        ><yea-info-form :student="student"></yea-info-form
-      ></v-tab-item>
-      <v-tab-item key="7"
-        ><yg-sta-info-form :student="student"></yg-sta-info-form
-      ></v-tab-item>
+      <v-tab-item key="6"><yea-info-form></yea-info-form></v-tab-item>
+      <v-tab-item key="7"><yg-sta-info-form></yg-sta-info-form></v-tab-item>
       <v-tab-item key="8">
-        <parent-info-form :student="student"></parent-info-form>
+        <parent-info-form></parent-info-form>
         <hr class="mt-5 mb-2" />
         <h2>Dependents</h2>
-        <parent-dependents-form :student="student"></parent-dependents-form>
+        <parent-dependents-form></parent-dependents-form>
       </v-tab-item>
       <v-tab-item key="9">
-        <spouse-form :student="student"></spouse-form>
+        <spouse-form></spouse-form>
       </v-tab-item>
       <v-tab-item key="10">
-        <csl-restriction :student="student"></csl-restriction>
+        <csl-restriction></csl-restriction>
       </v-tab-item>
     </v-tabs-items>
   </div>
 </template>
 
 <script>
-import axios from "axios";
+import { mapState } from "vuex";
 import store from "../store";
-import { APPLICATION_URL } from "../urls";
 
 export default {
   name: "Home",
+  computed: {
+    ...mapState(["selectedStudent"]),
+  },
   data: () => ({
     tab: 0,
-    studentId: -1,
-    student: {},
+    applicationId: -1,
   }),
   async created() {
-    this.studentId = this.$route.params.id;
-    this.loadStudent(this.studentId);
+    this.applicationId = this.$route.params.id;
+    let storeApp = store.getters.selectedApplication;
+
+    console.log(
+      "URL WANTS: ",
+      this.applicationId,
+      "HAS",
+      storeApp.HISTORY_DETAIL_ID
+    );
+
+    if (this.applicationId != storeApp.HISTORY_DETAIL_ID) {
+      console.log("LOADING APPLICTION BASED ON URL");
+      await store.dispatch("loadApplication", this.applicationId);
+    }
+
+    store.dispatch("setAppSidebar", true);
   },
-  methods: {
-    loadStudent(id) {
-      axios
-        .get(`${APPLICATION_URL}/${id}`)
-        .then((resp) => {
-          this.student = resp.data.data.student;
-          store.dispatch("setStudent", this.student);
-        })
-        .catch((err) => console.log("ERROR LOADING STUDENT", err));
+  watch: {
+    student: function (val) {
+      console.log("WATCH STUDENT", val);
+
+      if (val) this.updateView(val);
+    },
+    selectedStudent: function (val) {
+      console.log("WATCH selectedStudent", val);
     },
   },
+  methods: {},
 };
 </script>

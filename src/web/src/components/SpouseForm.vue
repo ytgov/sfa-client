@@ -11,7 +11,7 @@
               background-color="white"
               hide-details
               label="Last name"
-              v-model="last_name"
+              v-model="application.SPOUSE_LAST_NAME"
             ></v-text-field>
           </div>
           <div class="col-md-5">
@@ -21,7 +21,7 @@
               background-color="white"
               hide-details
               label="First name"
-              v-model="first_name"
+              v-model="application.SPOUSE_FIRST_NAME"
             ></v-text-field>
           </div>
           <div class="col-md-2">
@@ -31,7 +31,7 @@
               background-color="white"
               hide-details
               label="Initial"
-              v-model="initial"
+              v-model="application.SPOUSE_INITIALS"
             ></v-text-field>
           </div>
           <div class="col-md-5">
@@ -41,7 +41,7 @@
               background-color="white"
               hide-details
               label="SIN"
-              v-model="sin"
+              v-model="application.SPOUSE_SIN"
             ></v-text-field>
           </div>
           <div class="col-md-5">
@@ -51,7 +51,7 @@
               background-color="white"
               hide-details
               label="Income (line 150)"
-              v-model="income_150"
+              v-model="application.SPOUSE_LN150_INCOME"
               v-currency="{ currency: 'USD', locale: 'en' }"
             ></v-text-field>
           </div>
@@ -144,8 +144,15 @@
 </template>
 
 <script>
+import store from "../store";
+
 export default {
   name: "Home",
+  computed: {
+    application: function () {
+      return store.getters.selectedApplication;
+    },
+  },
   data: () => ({
     employmentStatusOptions: ["Status 1", "Status 2"],
 

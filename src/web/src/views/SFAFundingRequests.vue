@@ -30,7 +30,7 @@ export default {
   }),
   async created() {
     this.studentId = this.$route.params.id;
-    this.loadStudent(this.studentId);},
+  },
   methods: {},
 };
 </script>

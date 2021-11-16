@@ -10,7 +10,7 @@
               ref="grid"
               id="mygrid"
               :column-defs="columnDefs"
-              :row-data="residences"
+              :row-data="application.residences"
               row-data-key="shipmentId"
               :enable-filters="false"
               :multiple-selection="false"
@@ -18,7 +18,9 @@
               @link-clicked="linkClicked"
             >
             </vue-editable-grid>
-            <v-subheader style="height: 28px">* Double-click cell to edit</v-subheader>
+            <v-subheader style="height: 28px"
+              >* Double-click cell to edit</v-subheader
+            >
 
             <v-btn color="info" @click="addResidence()">Add residence</v-btn>
 
@@ -98,19 +100,22 @@
                   background-color="white"
                   hide-details
                   label="Year"
-                  :items="yearOptions"
-                  v-model="tax_year_1.year"
+                  :items="yearOptionNums"
+                  v-model="application.TAXES_FILED_YEAR1"
                 ></v-select>
               </div>
               <div class="col-md-6">
-                <v-text-field
+                <v-select
                   outlined
                   dense
                   background-color="white"
                   hide-details
                   label="Where taxes filed"
-                  v-model="tax_year_1.where_filed"
-                ></v-text-field>
+                  v-model="application.TAXES_FILED1_PROVINCE_ID"
+                  :items="provinceOptions"
+                  item-text="DESCRIPTION"
+                  item-value="PROVINCE_ID"
+                ></v-select>
               </div>
               <div class="col-md-6 pt-0">
                 <v-switch
@@ -118,7 +123,7 @@
                   dense
                   hide-details
                   label="Taxes not filed"
-                  v-model="tax_year_1.taxes_not_filed"
+                  v-model="application.TAXES_NOT_FILED_YR1_FLG"
                 ></v-switch>
               </div>
             </div>
@@ -137,19 +142,22 @@
                   background-color="white"
                   hide-details
                   label="Year"
-                  :items="yearOptions"
-                  v-model="tax_year_2.year"
+                  :items="yearOptionNums"
+                  v-model="application.TAXES_FILED_YEAR2"
                 ></v-select>
               </div>
               <div class="col-md-6">
-                <v-text-field
+                <v-select
                   outlined
                   dense
                   background-color="white"
                   hide-details
                   label="Where taxes filed"
-                  v-model="tax_year_2.where_filed"
-                ></v-text-field>
+                  v-model="application.TAXES_FILED2_PROVINCE_ID"
+                  :items="provinceOptions"
+                  item-text="DESCRIPTION"
+                  item-value="PROVINCE_ID"
+                ></v-select>
               </div>
               <div class="col-md-6 pt-0">
                 <v-switch
@@ -157,7 +165,7 @@
                   dense
                   hide-details
                   label="Taxes not filed"
-                  v-model="tax_year_2.taxes_not_filed"
+                  v-model="application.TAXES_NOT_FILED_YR2_FLG"
                 ></v-switch>
               </div>
             </div>
@@ -186,28 +194,25 @@
 </style>
 <script>
 import moment from "moment";
+import store from "../store";
+import axios from "axios";
+import { CITY_URL, PROVINCE_URL } from "../urls";
 
 export default {
   name: "Home",
+  computed: {
+    application: function () {
+      return store.getters.selectedApplication;
+    },
+  },
   data: () => ({
+    cityOptions: [],
     countryOptions: ["Canada", "United States"],
-    provinceOptions: ["Yukon", "British Columbia"],
+    provinceOptions: [],
     inSchoolOptions: ["Not in School", "Full Time", "Part Time"],
     monthOptions: [],
     yearOptions: [],
-
-    residences: [
-      {
-        from_year: "2020",
-        from_month: "06",
-        to_year: "2021",
-        to_month: "12",
-        city: "Vancouver",
-        province: "British Columbia",
-        in_school: "Full Time",
-        remove: "Remove",
-      },
-    ],
+    yearOptionNums: [],
 
     canadian_from_year: null,
     canadian_from_month: null,
@@ -227,7 +232,7 @@ export default {
       {
         sortable: true,
         filter: true,
-        field: "from_year",
+        field: "FROM_YEAR",
         headerName: "From year",
         type: "select",
         editable: true,
@@ -235,7 +240,7 @@ export default {
       {
         sortable: true,
         filter: true,
-        field: "from_month",
+        field: "FROM_MONTH",
         headerName: "From month",
         editable: true,
         type: "select",
@@ -243,7 +248,7 @@ export default {
       {
         sortable: true,
         filter: true,
-        field: "to_year",
+        field: "TO_YEAR",
         headerName: "To year",
         type: "select",
         editable: true,
@@ -251,7 +256,7 @@ export default {
       {
         sortable: true,
         filter: true,
-        field: "to_month",
+        field: "TO_MONTH",
         headerName: "To month",
         editable: true,
         type: "select",
@@ -260,14 +265,15 @@ export default {
       {
         sortable: true,
         filter: true,
-        field: "city",
+        field: "CITY_ID",
         headerName: "City",
+        type: "select",
         editable: true,
       },
       {
         sortable: true,
         filter: true,
-        field: "province",
+        field: "PROVINCE_ID",
         headerName: "Province",
         editable: true,
         type: "select",
@@ -275,7 +281,7 @@ export default {
       {
         sortable: true,
         filter: true,
-        field: "in_school",
+        field: "IN_SCHOOL",
         headerName: "In school",
         editable: true,
         type: "select",
@@ -292,8 +298,11 @@ export default {
     ],
   }),
   async created() {
+    this.loadCities();
+    this.loadProvinces();
     this.monthOptions = [];
     this.yearOptions = [];
+    this.yearOptionNums = [];
 
     for (let i = 1; i <= 12; i++) {
       let m = `0${i}`;
@@ -305,37 +314,53 @@ export default {
 
     for (let i = currentYear; i >= startYear; i--) {
       this.yearOptions.push(`${i}`);
+      this.yearOptionNums.push(i);
     }
 
-    this.columnDefs[0].selectOptions = this.columnDefs[2].selectOptions = this.yearOptions.map(
-      (y) => {
+    this.columnDefs[0].selectOptions = this.columnDefs[2].selectOptions =
+      this.yearOptions.map((y) => {
         return { value: y, text: y };
-      }
-    );
+      });
 
-    this.columnDefs[1].selectOptions = this.columnDefs[3].selectOptions = this.monthOptions.map(
-      (y) => {
+    this.columnDefs[1].selectOptions = this.columnDefs[3].selectOptions =
+      this.monthOptions.map((y) => {
         return { value: y, text: y };
-      }
-    );
+      });
 
     this.columnDefs[5].selectOptions = this.provinceOptions.map((y) => {
       return { value: y, text: y };
     });
+
     this.columnDefs[6].selectOptions = this.inSchoolOptions.map((y) => {
       return { value: y, text: y };
     });
   },
   methods: {
+    loadCities() {
+      axios.get(CITY_URL).then((resp) => {
+        this.cityOptions = resp.data;
+
+        console.log(this.cityOptions.length, this.columnDefs[4]);
+
+        this.columnDefs[4].selectOptions = this.cityOptions.map((y) => {
+          return { value: y.CITY_ID, text: y.DESCRIPTION };
+        });
+      });
+    },
+    loadProvinces() {
+      axios.get(PROVINCE_URL).then((resp) => {
+        this.provinceOptions = resp.data;
+      });
+    },
     addResidence() {
-      this.residences.push({ remove: "Remove" });
+      this.application.residences.push({ remove: "Remove" });
     },
     removeResidence(index) {
       this.$refs.confirm.show(
         "Are you sure?",
         "Click 'Confirm' below to permanently remove this residence.",
         () => {
-          this.residences.splice(index, 1);
+          this.application.residences.splice(index, 1);
         },
         () => {}
       );

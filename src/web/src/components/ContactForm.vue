@@ -11,7 +11,7 @@
               background-color="white"
               hide-details
               label="Last name"
-              v-model="contactInfo.last_name"
+              v-model="student.LAST_NAME"
             ></v-text-field>
           </div>
           <div class="col-md-5">
@@ -21,7 +21,7 @@
               background-color="white"
               hide-details
               label="First name"
-              v-model="contactInfo.first_name"
+              v-model="student.FIRST_NAME"
             ></v-text-field>
           </div>
           <div class="col-md-2">
@@ -31,7 +31,7 @@
               background-color="white"
               hide-details
               label="Initial"
-              v-model="contactInfo.initial"
+              v-model="student.INITIAL"
             ></v-text-field>
           </div>
           <div class="col-md-5">
@@ -41,7 +41,7 @@
               background-color="white"
               hide-details
               label="Previous last name"
-              v-model="contactInfo.previous_last_name"
+              v-model="student.PREVIOUS_LAST_NAME"
             ></v-text-field>
           </div>
           <div class="col-md-5">
@@ -51,7 +51,7 @@
               background-color="white"
               hide-details
               label="SIN"
-              v-model="contactInfo.sin"
+              v-model="student.SIN"
             ></v-text-field>
           </div>
         </div>
@@ -69,7 +69,7 @@
               background-color="white"
               hide-details
               label="Address line 1"
-              v-model="permanent_address.address_line_1"
+              v-model="student.HOME_ADDRESS1"
             ></v-text-field>
           </div>
           <div class="col-md-6">
@@ -79,7 +79,7 @@
               background-color="white"
               hide-details
               label="Address line 2"
-              v-model="permanent_address.address_line_2"
+              v-model="student.HOME_ADDRESS2"
             ></v-text-field>
           </div>
           <div class="col-md-3">
@@ -92,7 +92,7 @@
               item-value="CITY_ID"
               item-text="DESCRIPTION"
               :items="cityOptions"
-              v-model="permanent_address.city"
+              v-model="student.HOME_CITY_ID"
             ></v-autocomplete>
           </div>
           <div class="col-md-3">
@@ -105,7 +105,7 @@
               :items="provinceOptions"
               item-value="PROVINCE_ID"
               item-text="DESCRIPTION"
-              v-model="permanent_address.province"
+              v-model="student.HOME_PROVINCE_ID"
             ></v-autocomplete>
           </div>
           <div class="col-md-3">
@@ -115,7 +115,7 @@
               background-color="white"
               hide-details
               label="Postal code"
-              v-model="permanent_address.postal"
+              v-model="student.HOME_POSTAL_CODE"
             ></v-text-field>
           </div>
           <div class="col-md-3">
@@ -128,7 +128,7 @@
               :items="countryOptions"
               item-value="COUNTRY_ID"
               item-text="DESCRIPTION"
-              v-model="permanent_address.country"
+              v-model="student.HOME_COUNTRY_ID"
             ></v-autocomplete>
           </div>
           <div class="col-md-6">
@@ -138,7 +138,7 @@
               background-color="white"
               hide-details
               label="Phone"
-              v-model="permanent_address.phone"
+              v-model="student.HOME_PHONE"
             ></v-text-field>
           </div>
           <div class="col-md-6">
@@ -148,7 +148,7 @@
               background-color="white"
               hide-details
               label="E-mail"
-              v-model="permanent_address.email"
+              v-model="student.HOME_EMAIL"
             ></v-text-field>
           </div>
         </div>
@@ -166,7 +166,7 @@
               background-color="white"
               hide-details
               label="Address line 1"
-              v-model="school_address.address_line_1"
+              v-model="student.address_line_1"
             ></v-text-field>
           </div>
           <div class="col-md-6">
@@ -176,7 +176,7 @@
               background-color="white"
               hide-details
               label="Address line 2"
-              v-model="school_address.address_line_2"
+              v-model="student.address_line_2"
             ></v-text-field>
           </div>
           <div class="col-md-3">
@@ -189,7 +189,7 @@
               item-value="CITY_ID"
               item-text="DESCRIPTION"
               :items="cityOptions"
-              v-model="school_address.city"
+              v-model="student.city"
             ></v-autocomplete>
           </div>
           <div class="col-md-3">
@@ -202,7 +202,7 @@
               :items="provinceOptions"
               item-value="PROVINCE_ID"
               item-text="DESCRIPTION"
-              v-model="school_address.province"
+              v-model="student.province"
             ></v-autocomplete>
           </div>
           <div class="col-md-3">
@@ -212,7 +212,7 @@
               background-color="white"
               hide-details
               label="Postal code"
-              v-model="school_address.postal"
+              v-model="student.postal"
             ></v-text-field>
           </div>
           <div class="col-md-3">
@@ -225,7 +225,7 @@
               :items="countryOptions"
               item-value="COUNTRY_ID"
               item-text="DESCRIPTION"
-              v-model="school_address.country"
+              v-model="student.country"
             ></v-autocomplete>
           </div>
           <div class="col-md-6">
@@ -235,7 +235,7 @@
               background-color="white"
               hide-details
               label="Phone"
-              v-model="school_address.phone"
+              v-model="student.SCHOOL_PHONE"
             ></v-text-field>
           </div>
           <div class="col-md-6">
@@ -245,7 +245,7 @@
               background-color="white"
               hide-details
               label="E-mail"
-              v-model="school_address.email"
+              v-model="student.SCHOOL_EMAIL"
             ></v-text-field>
           </div>
         </div>
@@ -256,54 +256,29 @@
 
 <script>
 import axios from "axios";
+import store from "../store";
 import { CITY_URL, COUNTRY_URL, PROVINCE_URL } from "../urls";
+import { mapState } from "vuex";
 
 export default {
-  props: ["student"],
+  computed: {
+    ...mapState(["selectedStudent"]),
+    student: function () {
+      return store.getters.selectedStudent;
+    },
+    application: function () {
+      return store.getters.selectedApplication;
+    },
+  },
   data: () => ({
     countryOptions: [],
     provinceOptions: [],
     cityOptions: [],
-
-    contactInfo: {
-      last_name: "",
-      first_name: "",
-      initial: "",
-      previous_last_name: "",
-      sin: "",
-    },
-    permanent_address: {
-      address_line_1: "",
-      address_line_2: "",
-      city: "",
-      province: "",
-      postal: "",
-      country: "",
-      phone: "",
-      email: "",
-    },
-    school_address: {
-      address_line_1: "",
-      address_line_2: "",
-      city: "",
-      province: "",
-      postal: "",
-      country: "",
-      phone: "",
-      email: "",
-    },
   }),
   created() {
     this.loadCountries();
     this.loadProvinces();
     this.loadCities();
-  },
-  watch: {
-    student: function (val) {
-      console.log("CONTACT", val);
-
-      if (val) this.updateView(val);
-    },
   },
   methods: {
     loadCountries() {
@@ -320,26 +295,6 @@ export default {
       axios.get(CITY_URL).then((resp) => {
         this.cityOptions = resp.data;
       });
-    },
-
-    updateView(student) {
-      this.contactInfo.first_name = student.FIRST_NAME;
-      this.contactInfo.last_name = student.LAST_NAME;
-      this.contactInfo.initial = student.INITIALS;
-      this.contactInfo.sin = student.SIN;
-      this.contactInfo.previous_last_name = student.PREVIOUS_LAST_NAME;
-
-      this.permanent_address.address_line_1 = student.HOME_ADDRESS1;
-      this.permanent_address.address_line_2 = student.HOME_ADDRESS2;
-      this.permanent_address.city = student.HOME_CITY_ID;
-      this.permanent_address.province = student.HOME_PROVINCE_ID;
-      this.permanent_address.postal = student.HOME_POSTAL_CODE;
-      this.permanent_address.country = student.HOME_COUNTRY_ID;
-      this.permanent_address.phone = student.HOME_PHONE;
-      this.permanent_address.email = student.HOME_EMAIL;
-
-      this.school_address.email = student.SCHOOL_EMAIL;
-      this.school_address.phone = student.SCHOOL_PHONE;
     },
   },
 };

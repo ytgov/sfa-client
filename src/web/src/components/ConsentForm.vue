@@ -1,9 +1,12 @@
 <template>
   <div>
-      <h2 class="mb-0">Consent</h2>
-    <p>People that the student is giving consent to view their funding information.</p>
+    <h2 class="mb-0">Consent</h2>
+    <p>
+      People that the student is giving consent to view their funding
+      information.
+    </p>
 
-    <div v-for="(item, i) of consents" :key="i">
+    <div v-for="(item, i) of application.consents" :key="i">
       <v-card class="default mb-5">
         <v-card-title
           >Consent {{ 1 + i }}
@@ -26,26 +29,30 @@
                 background-color="white"
                 hide-details
                 label="Consent person"
-                v-model="item.person"
+                v-model="item.CONSENT_PERSON"
               ></v-text-field>
             </div>
             <div class="col-md-2">
-              <v-switch
+              <v-select
                 outlined
                 dense
                 hide-details
                 label="SFA"
-                v-model="item.sfa"
-              ></v-switch>
+                background-color="white"
+                v-model="item.CONSENT_SFA_FLG"
+                :items="['Yes', 'No']"
+              ></v-select>
             </div>
             <div class="col-md-2">
-              <v-switch
+              <v-select
                 outlined
                 dense
                 hide-details
                 label="CSL"
-                v-model="item.csl"
-              ></v-switch>
+                background-color="white"
+                v-model="item.CONSENT_CSL_FLG"
+                :items="['Yes', 'No']"
+              ></v-select>
             </div>
 
             <div class="col-md-4">
@@ -55,7 +62,7 @@
                 background-color="white"
                 hide-details
                 label="Academic year start"
-                v-model="item.year_start"
+                v-model="item.ACADEMIC_YEAR_START"
               ></v-text-field>
             </div>
             <div class="col-md-4">
@@ -65,7 +72,7 @@
                 background-color="white"
                 hide-details
                 label="Academic year end"
-                v-model="item.year_end"
+                v-model="item.ACADEMIC_YEAR_END"
               ></v-text-field>
             </div>
           </div>
@@ -79,21 +86,27 @@
 </template>
 
 <script>
+import store from "../store";
 export default {
   data: () => ({
-    consents: [],
   }),
-  async created() {},
+  computed: {
+    application: function () {
+      return store.getters.selectedApplication;
+    },
+  },
+  async created() {
+  },
   methods: {
     addConsent() {
-      this.consents.push({});
+      this.application.consents.push({});
     },
     removeConsent(index) {
       this.$refs.confirm.show(
         "Are you sure?",
         "Click 'Confirm' below to permanently remove this consent.",
         () => {
-          this.consents.splice(index, 1);
+          this.application.consents.splice(index, 1);
         },
         () => {}
       );

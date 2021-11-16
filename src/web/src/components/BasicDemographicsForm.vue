@@ -11,7 +11,9 @@
               background-color="white"
               hide-details
               label="Language"
-              v-model="language"
+              v-model="student.LANGUAGE_ID"
+              item-text="DESCRIPTION"
+              item-value="LANGUAGE_ID"
               :items="languageOptions"
             ></v-select>
           </div>
@@ -22,7 +24,7 @@
               background-color="white"
               hide-details
               label="Sex"
-              v-model="sex"
+              v-model="student.SEX"
               :items="sexOptions"
             ></v-select>
           </div>
@@ -64,7 +66,7 @@
               background-color="white"
               hide-details
               label="SFA number"
-              v-model="sfa_number"
+              v-model="student.YUKON_ID"
             ></v-text-field>
           </div>
           <div class="col-md-3">
@@ -74,7 +76,7 @@
               background-color="white"
               hide-details
               label="Records locator number"
-              v-model="records_locator"
+              v-model="student.LOCATOR_NUMBER"
             ></v-text-field>
           </div>
           <div class="col-md-3">
@@ -84,7 +86,7 @@
               background-color="white"
               hide-details
               label="Funded since"
-              v-model="funded_since"
+              v-model="student.FUNDED_SINCE"
               :items="yearOptions"
             ></v-select>
           </div>
@@ -97,19 +99,33 @@
 <script>
 import axios from "axios";
 import moment from "moment";
+import store from "../store";
+import { mapState } from "vuex";
 import { LANGUAGE_URL } from "../urls";
 
 export default {
-  props: ["student"],
+  computed: {
+    ...mapState(["selectedStudent"]),
+    student: function () {
+      return store.getters.selectedStudent;
+    },
+    application: function () {
+      return store.getters.selectedApplication;
+    },
+  },
   data: () => ({
     languageOptions: [],
-    sexOptions: ["Male", "Female", "Unknown"],
+    sexOptions: [
+      { value: 1, text: "Male" },
+      { value: 2, text: "Female" },
+      { value: 3, text: "Unknown" },
+    ],
     yearOptions: [],
     maxDate: moment().format("YYYY-MM-DD"),
     birth_date_menu: null,
 
-    language: "English",
-    sex: "Male",
+    language: 0,
+    sex: 0,
     birth_date: null,
     sfa_number: "",
     records_locator: "",
@@ -125,12 +141,30 @@ export default {
     for (let i = currentYear; i >= startYear; i--) {
       this.yearOptions.push(`${i}`);
     }
+
+    this.updateView(this.application);
   },
   methods: {
     loadLanguages() {
       axios.get(LANGUAGE_URL).then((resp) => {
         this.languageOptions = resp.data;
       });
+    },
+
+    updateView(application) {
+      this.language = application.student.LANGUAGE_ID;
+      this.sex = application.student.SEX;
+
+      let bd = application.student.BIRTH_DATE;
+
+      if (bd) {
+      this.birth_date = moment(application.student.BIRTH_DATE).add(7, 'hours').format("YYYY-MM-DD");
+
+      }
+
+      this.sfa_number = application.student.STUDENT_ID;
+      this.records_locator = application.student.LOCATOR_NUMBER;
+      //this.funded_since = application
     },
 
     addConsent() {

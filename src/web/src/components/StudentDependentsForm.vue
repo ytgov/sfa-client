@@ -1,6 +1,10 @@
 <template>
   <div>
-    <v-card class="default mb-5" v-for="(item, i) of dependents" :key="i">
+    <v-card
+      class="default mb-5"
+      v-for="(item, i) of application.dependents"
+      :key="i"
+    >
       <v-card-title
         >Dependent {{ 1 + i }}
         <v-spacer></v-spacer>
@@ -22,7 +26,7 @@
               background-color="white"
               hide-details
               label="Last name"
-              v-model="item.last_name"
+              v-model="item.LAST_NAME"
             ></v-text-field>
           </div>
           <div class="col-md-4">
@@ -32,7 +36,7 @@
               background-color="white"
               hide-details
               label="First name"
-              v-model="item.first_name"
+              v-model="item.FIRST_NAME"
             ></v-text-field>
           </div>
           <div class="col-md-4">
@@ -47,11 +51,12 @@
             >
               <template v-slot:activator="{ on, attrs }">
                 <v-text-field
-                  v-model="item.birth_date"
+                  v-model="item.BIRTH_DATE"
                   label="Birth date"
                   append-icon="mdi-calendar"
                   readonly
                   outlined
+                  hide-details
                   dense
                   background-color="white"
                   v-bind="attrs"
@@ -59,7 +64,7 @@
                 ></v-text-field>
               </template>
               <v-date-picker
-                v-model="item.birth_date"
+                v-model="item.BIRTH_DATE"
                 :max="maxDate"
                 @input="item.birth_date_menu = false"
                 @change="birthChanged(item)"
@@ -75,7 +80,9 @@
               hide-details
               label="Relationship"
               :items="relationshipOptions"
-              v-model="item.relationship"
+              v-model="item.RELATIONSHIP_ID"
+              item-text="DESCRIPTION"
+              item-value="RELATIONSHIP_ID"
             ></v-select>
           </div>
           <div class="col-md-4">
@@ -86,17 +93,21 @@
               hide-details
               readonly
               label="Age"
-              v-model="item.age"
+              :value="getAge(item)"
+              append-icon="mdi-lock"
             ></v-text-field>
           </div>
 
-          <div class="col-md-4 py-0">
-            <v-switch
+          <div class="col-md-4">
+            <v-select
               dense
               hide-details
+              outlined
+              background-color="white"
               label="Resides with"
-              v-model="item.resides_with"
-            ></v-switch>
+              v-model="item.eligibility.RESIDES_WITH"
+              :items="residesOptions"
+            ></v-select>
           </div>
 
           <div class="col-md-4 py-0">
@@ -104,7 +115,7 @@
               dense
               hide-details
               label="Shared custody"
-              v-model="item.shared_custody"
+              v-model="item.eligibility.SHARES_CUSTODY"
             ></v-switch>
           </div>
 
@@ -113,7 +124,7 @@
               dense
               hide-details
               label="In post-secondary"
-              v-model="item.post_secondary"
+              v-model="item.POST_SECONDARY"
             ></v-switch>
           </div>
 
@@ -122,7 +133,7 @@
               dense
               hide-details
               label="STA eligible dependent"
-              v-model="item.sta_eligible_dependent"
+              v-model="item.ELIGIBLE"
             ></v-switch>
           </div>
 
@@ -131,7 +142,7 @@
               dense
               hide-details
               label="CSL eligible dependent"
-              v-model="item.csl_eligible_dependent"
+              v-model="item.CSL_ELIGIBLE"
             ></v-switch>
           </div>
           <div class="col-md-4 py-0">
@@ -139,7 +150,7 @@
               dense
               hide-details
               label="CSG eligible dependent"
-              v-model="item.csg_eligible_dependent"
+              v-model="item.CSG_ELIGIBLE"
             ></v-switch>
           </div>
 
@@ -150,7 +161,7 @@
               background-color="white"
               hide-details
               label="Comments"
-              v-model="item.comments"
+              v-model="item.COMMENTS"
             ></v-textarea>
           </div>
           <div class="col-md-6 mt-3">
@@ -160,7 +171,7 @@
               background-color="white"
               hide-details
               label="Shared custody info"
-              v-model="item.shared_custody_info"
+              v-model="item.SHARES_CUSTODY_DETAILS"
             ></v-textarea>
           </div>
         </div>
@@ -174,30 +185,50 @@
 
 <script>
 import moment from "moment";
+import store from "../store";
+import axios from "axios";
+import { RELATIONSHIP_URL } from "../urls";
 
 export default {
   data: () => ({
-    relationshipOptions: ["Child", "Grandchild"],
-    dependents: [],
+    relationshipOptions: [],
+    residesOptions: [],
     maxDate: moment().format("YYYY-MM-DD"),
   }),
-  async created() {},
+  computed: {
+    application: function () {
+      return store.getters.selectedApplication;
+    },
+  },
+  async created() {
+    this.loadRelationships();
+  },
   methods: {
+    loadRelationships() {
+      axios.get(RELATIONSHIP_URL).then((resp) => {
+        this.relationshipOptions = resp.data;
+      });
+    },
     addDependent() {
-      this.dependents.push({ birth_date: "" });
+      this.application.dependents.push({ BIRTH_DATE: "", eligibility: {} });
     },
     removeDependent(index) {
       this.$refs.confirm.show(
         "Are you sure?",
         "Click 'Confirm' below to permanently remove this dependent.",
         () => {
-          this.dependents.splice(index, 1);
+          this.application.dependents.splice(index, 1);
         },
         () => {}
       );
     },
     birthChanged(item) {
-      item.age = moment().diff(item.birth_date, "years");
+      item.age = moment().diff(item.BIRTH_DATE, "years");
+    },
+    getAge(item) {
+      if (item.BIRTH_DATE)
+      return moment().diff(item.BIRTH_DATE, "years");
+      return "";
     },
   },
 };

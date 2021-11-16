@@ -92,7 +92,7 @@
               background-color="white"
               hide-details
               label="Last name"
-              v-model="parent1.last_name"
+              v-model="application.PARENT1_LAST_NAME"
             ></v-text-field>
           </div>
           <div class="col-md-6">
@@ -102,7 +102,7 @@
               background-color="white"
               hide-details
               label="First name"
-              v-model="parent1.first_name"
+              v-model="application.PARENT1_FIRST_NAME"
             ></v-text-field>
           </div>
           <div class="col-md-6">
@@ -113,7 +113,9 @@
               hide-details
               label="Relationship"
               :items="relationshipOptions"
-              v-model="parent1.relationship"
+              v-model="application.PARENT1_RELATIONSHIP_ID"
+              item-text="DESCRIPTION"
+              item-value="RELATIONSHIP_ID"
             ></v-select>
           </div>
           <div class="col-md-6">
@@ -123,7 +125,7 @@
               background-color="white"
               hide-details
               label="SIN"
-              v-model="parent1.sin"
+              v-model="application.PARENT1_SIN"
             ></v-text-field>
           </div>
           <div class="col-md-12">
@@ -134,7 +136,7 @@
               hide-details
               label="Citizenship"
               :items="citizenshipOptions"
-              v-model="parent1.citizenship"
+              v-model="application.PARENT1_CITIZENSHIP_CODE"
             ></v-select>
           </div>
           <div class="col-md-4">
@@ -144,7 +146,7 @@
               background-color="white"
               hide-details
               label="Income (Ln 150)"
-              v-model="parent1.income150"
+              v-model="application.PARENT1_INCOME"
               v-currency="{ currency: 'USD', locale: 'en' }"
             ></v-text-field>
           </div>
@@ -155,7 +157,7 @@
               background-color="white"
               hide-details
               label="Income (Ln 236)"
-              v-model="parent1.income236"
+              v-model="application.PARENT1_NET_INCOME"
               v-currency="{ currency: 'USD', locale: 'en' }"
             ></v-text-field>
           </div>
@@ -166,7 +168,7 @@
               background-color="white"
               hide-details
               label="Tax paid (Ln 435)"
-              v-model="parent1.taxPaid"
+              v-model="application.PARENT1_TAX_PAID"
               v-currency="{ currency: 'USD', locale: 'en' }"
             ></v-text-field>
           </div>
@@ -185,7 +187,7 @@
               background-color="white"
               hide-details
               label="Last name"
-              v-model="parent2.last_name"
+              v-model="application.PARENT2_LAST_NAME"
             ></v-text-field>
           </div>
           <div class="col-md-6">
@@ -195,7 +197,7 @@
               background-color="white"
               hide-details
               label="First name"
-              v-model="parent2.first_name"
+              v-model="application.PARENT2_FIRST_NAME"
             ></v-text-field>
           </div>
           <div class="col-md-6">
@@ -206,7 +208,9 @@
               hide-details
               label="Relationship"
               :items="relationshipOptions"
-              v-model="parent2.relationship"
+              v-model="application.PARENT2_RELATIONSHIP_ID"
+              item-text="DESCRIPTION"
+              item-value="RELATIONSHIP_ID"
             ></v-select>
           </div>
           <div class="col-md-6">
@@ -216,7 +220,7 @@
               background-color="white"
               hide-details
               label="SIN"
-              v-model="parent2.sin"
+              v-model="application.PARENT2_SIN"
             ></v-text-field>
           </div>
           <div class="col-md-12">
@@ -237,7 +241,7 @@
               background-color="white"
               hide-details
               label="Income (Ln 150)"
-              v-model="parent2.income150"
+              v-model="application.PARENT2_INCOME"
               v-currency="{ currency: 'USD', locale: 'en' }"
             ></v-text-field>
           </div>
@@ -248,7 +252,7 @@
               background-color="white"
               hide-details
               label="Income (Ln 236)"
-              v-model="parent2.income236"
+              v-model="application.PARENT2_NET_INCOME"
               v-currency="{ currency: 'USD', locale: 'en' }"
             ></v-text-field>
           </div>
@@ -259,7 +263,7 @@
               background-color="white"
               hide-details
               label="Tax paid (Ln 435)"
-              v-model="parent2.taxPaid"
+              v-model="application.PARENT2_TAX_PAID"
               v-currency="{ currency: 'USD', locale: 'en' }"
             ></v-text-field>
           </div>
@@ -270,9 +274,18 @@
 </template>
 
 <script>
+import store from "../store";
+import axios from "axios";
+import { RELATIONSHIP_URL } from "../urls";
+
 export default {
+  computed: {
+    application: function () {
+      return store.getters.selectedApplication;
+    },
+  },
   data: () => ({
-    relationshipOptions: ["Mother", "Father"],
+    relationshipOptions: [],
     citizenshipOptions: ["Canada", "United States"],
     provinceOptions: ["Yukon", "British Columbia"],
     countryOptions: ["Canada", "United States"],
@@ -305,7 +318,15 @@ export default {
       taxPaid: 0,
     },
   }),
-  async created() {},
-  methods: {},
+  async created() {
+    this.loadRelationships();
+  },
+  methods: {
+    loadRelationships() {
+      axios.get(RELATIONSHIP_URL).then((resp) => {
+        this.relationshipOptions = resp.data;
+      });
+    },
+  },
 };
 </script>

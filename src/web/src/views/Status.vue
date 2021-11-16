@@ -7,7 +7,11 @@
         <div class="row">
           <div class="col-md-12">
             <h3>Funding</h3>
-            <div v-for="(item, i) of funding" :key="i" class="row">
+            <div
+              v-for="(item, i) of application.funding_requests"
+              :key="i"
+              class="row"
+            >
               <div class="col-md-6">
                 <v-select
                   outlined
@@ -15,8 +19,10 @@
                   background-color="white"
                   hide-details
                   label="Funding Type"
-                  v-model="item.funding_type"
+                  v-model="item.REQUEST_TYPE_ID"
                   :items="fundingTypeOptions"
+                  item-text="DESCRIPTION"
+                  item-value="REQUEST_TYPE_ID"
                 ></v-select>
               </div>
               <div class="col-md-3">
@@ -31,7 +37,7 @@
                 >
                   <template v-slot:activator="{ on, attrs }">
                     <v-text-field
-                      v-model="item.received_date"
+                      v-model="item.RECEIVED_DATE"
                       label="Date app received"
                       append-icon="mdi-calendar"
                       hide-details
@@ -44,7 +50,7 @@
                     ></v-text-field>
                   </template>
                   <v-date-picker
-                    v-model="item.received_date"
+                    v-model="item.RECEIVED_DATE"
                     @input="item.received_date_menu = false"
                   ></v-date-picker>
                 </v-menu>
@@ -57,20 +63,24 @@
                   background-color="white"
                   hide-details
                   label="Status"
-                  v-model="item.status"
+                  v-model="item.STATUS_ID"
                   :items="statusOptions"
+                  item-text="DESCRIPTION"
+                  item-value="STATUS_ID"
                 ></v-select>
               </div>
               <div class="col-md-6">
-                <v-select
+                <v-autocomplete
                   outlined
                   dense
                   background-color="white"
                   hide-details
                   label="Reason"
-                  v-model="item.reason"
+                  v-model="item.STATUS_REASON_ID"
                   :items="reasonOptions"
-                ></v-select>
+                  item-text="DESCRIPTION"
+                  item-value="STATUS_REASON_ID"
+                ></v-autocomplete>
               </div>
               <div class="col-md-3">
                 <v-menu
@@ -84,7 +94,7 @@
                 >
                   <template v-slot:activator="{ on, attrs }">
                     <v-text-field
-                      v-model="item.status_date"
+                      v-model="item.STATUS_DATE"
                       label="Status date"
                       append-icon="mdi-calendar"
                       hide-details
@@ -97,7 +107,7 @@
                     ></v-text-field>
                   </template>
                   <v-date-picker
-                    v-model="item.status_date"
+                    v-model="item.STATUS_DATE"
                     @input="item.status_date_menu = false"
                   ></v-date-picker>
                 </v-menu>
@@ -114,7 +124,12 @@
                   ><v-icon>mdi-close</v-icon></v-btn
                 >
               </div>
-              <div v-if="i < funding.length - 1" class="col-md-12"><hr /></div>
+              <div
+                v-if="i < application.funding_requests.length - 1"
+                class="col-md-12"
+              >
+                <hr />
+              </div>
             </div>
           </div>
         </div>
@@ -130,16 +145,24 @@
         <div class="row">
           <div class="col-md-12">
             <h3>Requirements</h3>
-            <div v-for="(item, i) of requirements" :key="i" class="row">
+            <div
+              v-for="(item, i) of application.requirements"
+              :key="i"
+              class="row"
+            >
               <div class="col-md-6">
-                <v-text-field
+                <v-autocomplete
                   outlined
                   dense
                   background-color="white"
                   hide-details
                   label="Requirement Type"
-                  v-model="item.requirement_type"
-                ></v-text-field>
+                  v-model="item.REQUIREMENT_TYPE_ID"
+                  :items="requirementTypeOptions"
+                  item-value="REQUIREMENT_TYPE_ID"
+                  item-text="DESCRIPTION"
+                  required
+                ></v-autocomplete>
               </div>
               <div class="col-md-3">
                 <v-menu
@@ -153,7 +176,7 @@
                 >
                   <template v-slot:activator="{ on, attrs }">
                     <v-text-field
-                      v-model="item.completed_date"
+                      v-model="item.COMPLETED_DATE"
                       label="Completed date"
                       append-icon="mdi-calendar"
                       hide-details
@@ -166,7 +189,7 @@
                     ></v-text-field>
                   </template>
                   <v-date-picker
-                    v-model="item.completed_date"
+                    v-model="item.COMPLETED_DATE"
                     @input="item.completed_date_menu = false"
                   ></v-date-picker>
                 </v-menu>
@@ -183,7 +206,10 @@
                   ><v-icon>mdi-close</v-icon></v-btn
                 >
               </div>
-              <div v-if="i < requirements.length - 1" class="col-md-12">
+              <div
+                v-if="i < application.requirements.length - 1"
+                class="col-md-12"
+              >
                 <hr />
               </div>
             </div>
@@ -199,53 +225,93 @@
 </template>
 
 <script>
+import store from "../store";
+import axios from "axios";
+import moment from "moment";
+import {
+  REQUIREMENT_TYPE_URL,
+  FUNDING_TYPE_URL,
+  FUNDING_STATUS_URL,
+  FUNDING_REASON_URL,
+} from "../urls";
+
 export default {
   name: "Home",
+  computed: {
+    application: function () {
+      return store.getters.selectedApplication;
+    },
+  },
   data: () => ({
-    fundingTypeOptions: ["Yukon Grant", "CSL Full-time"],
-    reasonOptions: ["Reason 1", "Reason 2"],
-    statusOptions: [
-      "Awarded",
-      "CGS Only",
-      "Cancelled",
-      "Check",
-      "Expired - o",
-      "Online",
-      "Online - in",
-      "Pending",
-      "Qualified",
-      "Recommended",
-    ],
-    funding: [],
-    requirements: [],
+    applicationId: -1,
+    fundingTypeOptions: [],
+    reasonOptions: [],
+    requirementTypeOptions: [],
+    statusOptions: [],
   }),
   async created() {
-    this.studentId = this.$route.params.id;
-    this.loadStudent(this.studentId);},
+    this.loadRequirementTypes();
+    this.loadFundingTypes();
+    this.loadStatus();
+    this.loadReasons();
+
+    this.applicationId = this.$route.params.id;
+    let storeApp = store.getters.selectedApplication;
+
+    if (this.applicationId != storeApp.HISTORY_DETAIL_ID) {
+      console.log("LOADING APPLICTION BASED ON URL");
+      await store.dispatch("loadApplication", this.applicationId);
+    }
+
+    store.dispatch("setAppSidebar", true);
+  },
   methods: {
+    loadRequirementTypes() {
+      axios.get(REQUIREMENT_TYPE_URL).then((resp) => {
+        this.requirementTypeOptions = resp.data;
+      });
+    },
+    loadFundingTypes() {
+      axios.get(FUNDING_TYPE_URL).then((resp) => {
+        this.fundingTypeOptions = resp.data;
+      });
+    },
+    loadStatus() {
+      axios.get(FUNDING_STATUS_URL).then((resp) => {
+        this.statusOptions = resp.data;
+      });
+    },
+    loadReasons() {
+      axios.get(FUNDING_REASON_URL).then((resp) => {
+        this.reasonOptions = resp.data;
+      });
+    },
+
     addDocumentation() {
-      this.funding.push({ status_date: "" });
+      this.application.funding_requests.push({ status_date: "" });
     },
     removeDocumentation(index) {
       this.$refs.confirm.show(
         "Are you sure?",
         "Click 'Confirm' below to permanently remove this funding record.",
         () => {
-          this.funding.splice(index, 1);
+          this.application.funding_requests.splice(index, 1);
         },
         () => {}
       );
     },
 
     addRequirement() {
-      this.requirements.push({ birth_date: "" });
+      this.application.requirements.push({
+        COMPLETED_DATE: moment().format("YYYY-MM-DD"),
+      });
     },
     removeRequirement(index) {
       this.$refs.confirm.show(
         "Are you sure?",
         "Click 'Confirm' below to permanently remove this funding requirement.",
         () => {
-          this.requirements.splice(index, 1);
+          this.application.requirements.splice(index, 1);
         },
         () => {}
       );

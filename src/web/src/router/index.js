@@ -42,54 +42,81 @@ const routes = [
     name: "Personal",
     component: Personal,
     meta: {
-      //requiresAuth: true
+      requiresAuth: true
     }
   },
   {
     path: "/application/:id/status",
     name: "Status",
-    component: Status
+    component: Status,
+    meta: {
+      requiresAuth: true
+    }
   },
   {
     path: "/application/:id/academic-year",
     name: "AcademicYear",
-    component: AcademicYear
+    component: AcademicYear,
+    meta: {
+      requiresAuth: true
+    }
   },
   {
     path: "/application/:id/sfa-funding-requests",
     name: "SFAFundingRequests",
-    component: SFAFundingRequests
+    component: SFAFundingRequests,
+    meta: {
+      requiresAuth: true
+    }
   },
   {
     path: "/application/:id/scholarship-applications",
     name: "ScholarshipApplications",
-    component: ScholarshipApplications
+    component: ScholarshipApplications,
+    meta: {
+      requiresAuth: true
+    }
   },
   {
     path: "/application/:id/csl-funding-requests",
     name: "CSLFundingRequests",
-    component: CSLFundingRequests
+    component: CSLFundingRequests,
+    meta: {
+      requiresAuth: true
+    }
   },
   {
     path: "/application/:id/documentation",
     name: "Documentation",
-    component: Documentation
+    component: Documentation,
+    meta: {
+      requiresAuth: true
+    }
   },
 
   {
     path: "/reports",
     name: "Reports",
-    component: Reports
+    component: Reports,
+    meta: {
+      requiresAuth: true
+    }
   },
   {
     path: "/administration",
     name: "Administration",
-    component: Administration
+    component: Administration,
+    meta: {
+      requiresAuth: true
+    }
   },
   {
     path: "/search",
     name: "Search",
-    component: Search
+    component: Search,
+    meta: {
+      requiresAuth: true
+    }
   },
 
   {
