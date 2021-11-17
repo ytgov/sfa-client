@@ -16,7 +16,7 @@
               dense
               hide-details
               label="Moving to another community to attend program?"
-              v-model="is_moving"
+              v-model="application.MOVING_FLAG"
             ></v-switch>
           </div>
           <div class="col-md-12 pt-0">
@@ -25,7 +25,7 @@
               dense
               hide-details
               label="Maintaining two residences"
-              v-model="is_two_residences"
+              v-model="application.TWO_RESIDENCE_FLAG"
             ></v-switch>
           </div>
         </div>
@@ -35,13 +35,31 @@
 </template>
 
 <script>
+import store from "../store";
+
 export default {
+  computed: {
+    application: function () {
+      return store.getters.selectedApplication;
+    },
+  },
   data: () => ({
     is_applying: false,
-    is_moving: false,
-    is_two_residences: false,
   }),
-  async created() {},
+  watch: {
+    application: function () {
+      let mv = this.application.MOVING_FLAG || 0;
+      let tr = this.application.TWO_RESIDENCE_FLAG || 0;
+
+      this.is_applying = mv == 1 || tr == 1;
+    },
+  },
+  async created() {
+    let mv = this.application.MOVING_FLAG || 0;
+    let tr = this.application.TWO_RESIDENCE_FLAG || 0;
+
+    this.is_applying = mv == 1 || tr == 1;
+  },
   methods: {},
 };
 </script>

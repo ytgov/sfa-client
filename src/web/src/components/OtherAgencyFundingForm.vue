@@ -1,6 +1,5 @@
 <template>
   <div class="home">
-
     <v-switch
       dense
       hide-details
@@ -9,7 +8,11 @@
     ></v-switch>
 
     <div v-if="applied_other_funding" class="mt-5">
-      <v-card class="default mb-5" v-for="(item, i) of other_fundings" :key="i">
+      <v-card
+        class="default mb-5"
+        v-for="(item, i) of application.other_funding"
+        :key="i"
+      >
         <v-card-title>
           Agency {{ 1 + i }}
           <v-spacer></v-spacer>
@@ -25,15 +28,17 @@
         <v-card-text>
           <div class="row">
             <div class="col-md-8">
-              <v-select
+              <v-autocomplete
                 outlined
                 dense
                 background-color="white"
                 hide-details
                 label="Agency name"
                 :items="agencyOptions"
-                v-model="item.agency"
-              ></v-select>
+                v-model="item.AGENCY_ID"
+                item-text="DESCRIPTION"
+                item-value="AGENCY_ID"
+              ></v-autocomplete>
             </div>
             <div class="col-md-4">
               <v-text-field
@@ -42,7 +47,7 @@
                 background-color="white"
                 hide-details
                 label="Amount"
-                v-model="item.amount"
+                v-model="item.AMOUNT"
                 v-currency="{ currency: 'USD', locale: 'en' }"
               ></v-text-field>
             </div>
@@ -52,7 +57,7 @@
                 dense
                 hide-details
                 label="Tuition"
-                v-model="item.tuition"
+                v-model="item.TUITION_FLAG"
               ></v-switch>
             </div>
             <div class="col-md-2 py-0">
@@ -60,7 +65,7 @@
                 dense
                 hide-details
                 label="Books"
-                v-model="item.books"
+                v-model="item.BOOKS_FLAG"
               ></v-switch>
             </div>
             <div class="col-md-2 py-0">
@@ -68,7 +73,7 @@
                 dense
                 hide-details
                 label="Living expenses"
-                v-model="item.living_expenses"
+                v-model="item.LIVING_EXPENSE_FLAG"
               ></v-switch>
             </div>
             <div class="col-md-2 py-0">
@@ -76,7 +81,7 @@
                 dense
                 hide-details
                 label="Transportation"
-                v-model="item.transportation"
+                v-model="item.TRANSPORTATION_FLAG"
               ></v-switch>
             </div>
 
@@ -87,7 +92,7 @@
                 background-color="white"
                 hide-details
                 label="Other purposes"
-                v-model="item.other_purposes"
+                v-model="item.OTHER_PURPOSE"
               ></v-text-field>
             </div>
 
@@ -98,10 +103,9 @@
                 background-color="white"
                 hide-details
                 label="Comments"
-                v-model="item.comments"
+                v-model="item.AGENCY_COMMENT"
               ></v-textarea>
             </div>
-
           </div>
         </v-card-text>
       </v-card>
@@ -113,18 +117,33 @@
 </template>
 
 <script>
+import store from "../store";
+import axios from "axios";
+import { AGENCY_URL } from "../urls";
+
 export default {
   name: "Home",
+  computed: {
+    application: function () {
+      return store.getters.selectedApplication;
+    },
+  },
   data: () => ({
-    agencyOptions: ["Mom", "Dad"],
-
+    agencyOptions: [],
     applied_other_funding: false,
-    other_fundings: [],
   }),
-  async created() {},
+  async created() {
+    this.applied_other_funding = this.application.other_funding.length > 0;
+    this.loadAgencies();
+  },
   methods: {
+    loadAgencies() {
+      axios.get(AGENCY_URL).then((resp) => {
+        this.agencyOptions = resp.data;
+      });
+    },
     addOtherFunding() {
-      this.other_fundings.push({ amount: 0 });
+      this.application.other_funding.push({ amount: 0 });
     },
     removeOtherFunding(index) {
       this.$refs.confirm.show(
@@ -132,7 +151,7 @@ export default {
         "Click 'Confirm' below to permanently remove this other funding.",
         () => {
           console.log("DID CONFIR%M");
-          this.other_fundings.splice(index, 1);
+          this.application.other_funding.splice(index, 1);
         },
         () => {}
       );

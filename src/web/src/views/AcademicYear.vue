@@ -19,14 +19,25 @@
 </template>
 
 <script>
+import store from "../store";
+
 export default {
   name: "Home",
   data: () => ({
     tab: 0,
+    applicationId: -1,
   }),
   async created() {
-    this.studentId = this.$route.params.id;
-    this.loadStudent(this.studentId);},
+    this.applicationId = this.$route.params.id;
+    let storeApp = store.getters.selectedApplication;
+
+    if (this.applicationId != storeApp.HISTORY_DETAIL_ID) {
+      await store.dispatch("loadApplication", this.applicationId);
+    }
+
+    store.dispatch("setAppSidebar", true);
+  },
+
   methods: {},
 };
 </script>

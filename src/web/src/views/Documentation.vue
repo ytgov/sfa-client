@@ -84,9 +84,12 @@
 </template>
 
 <script>
+import store from "../store";
+
 export default {
   name: "Home",
   data: () => ({
+    applicationId: -1,
     documentationOptions: [
       "YG Application",
       "Official Transcript - Original document (must be mailed)",
@@ -94,8 +97,15 @@ export default {
     documents: [],
   }),
   async created() {
-    this.studentId = this.$route.params.id;
-    this.loadStudent(this.studentId);},
+    this.applicationId = this.$route.params.id;
+    let storeApp = store.getters.selectedApplication;
+
+    if (this.applicationId != storeApp.HISTORY_DETAIL_ID) {
+      await store.dispatch("loadApplication", this.applicationId);
+    }
+
+    store.dispatch("setAppSidebar", true);
+  },
   methods: {
     addDocumentation() {
       this.documents.push({ birth_date: "" });

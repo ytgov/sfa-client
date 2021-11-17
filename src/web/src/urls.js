@@ -21,6 +21,14 @@ export const REQUIREMENT_TYPE_URL =`${STATIC_URL}/requirementtypes`;
 export const FUNDING_TYPE_URL =`${STATIC_URL}/requesttypes`;
 export const FUNDING_STATUS_URL =`${STATIC_URL}/status`;
 export const FUNDING_REASON_URL =`${STATIC_URL}/statusreasons`;
+export const INSTITUTION_URL=`${STATIC_URL}/institutions`;
+export const INSTITUTION_LEVEL_URL=`${STATIC_URL}/institutionlevels`;
+export const CATEGORY_URL=`${STATIC_URL}/studentcategory`;
+export const AGENCY_URL=`${STATIC_URL}/agency`;
+
+export const PROGRAM_AREA_URL=`${STATIC_URL}/studyareas`;
+export const PROGRAM_TYPE_URL=`${STATIC_URL}/programs`;
+export const PROGRAM_DIVISION_URL=`${STATIC_URL}/programdivisions`;
 
 export const APPLICATION_URL = `${config.apiBaseUrl}/api/v1/admin/application`;
 export const STUDENT_URL = `${config.apiBaseUrl}/api/v1/admin/student`;

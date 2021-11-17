@@ -227,9 +227,11 @@
 
 <script>
 import moment from "moment";
+import store from "../store";
 
 export default {
   data: () => ({
+    applicationId: -1,
     scholarshipOptions: ["Scholarship AAA", "Scholarship BBB"],
 
     transcript_percentage: "4.0",
@@ -255,8 +257,14 @@ export default {
     },
   }),
   async created() {
-    this.studentId = this.$route.params.id;
-    this.loadStudent(this.studentId);
+    this.applicationId = this.$route.params.id;
+    let storeApp = store.getters.selectedApplication;
+
+    if (this.applicationId != storeApp.HISTORY_DETAIL_ID) {
+      await store.dispatch("loadApplication", this.applicationId);
+    }
+
+    store.dispatch("setAppSidebar", true);
   },
   methods: {
     addApplication() {
