@@ -124,7 +124,7 @@
               dense
               hide-details
               label="In post-secondary"
-              v-model="item.POST_SECONDARY"
+              v-model="item.eligibility.POST_SECONDARY"
             ></v-switch>
           </div>
 
@@ -133,7 +133,7 @@
               dense
               hide-details
               label="STA eligible dependent"
-              v-model="item.ELIGIBLE"
+              v-model="item.eligibility.ELIGIBLE"
             ></v-switch>
           </div>
 
@@ -142,7 +142,7 @@
               dense
               hide-details
               label="CSL eligible dependent"
-              v-model="item.CSL_ELIGIBLE"
+              v-model="item.eligibility.CSL_ELIGIBLE"
             ></v-switch>
           </div>
           <div class="col-md-4 py-0">
@@ -150,7 +150,7 @@
               dense
               hide-details
               label="CSG eligible dependent"
-              v-model="item.CSG_ELIGIBLE"
+              v-model="item.eligibility.CSG_ELIGIBLE"
             ></v-switch>
           </div>
 
@@ -171,7 +171,7 @@
               background-color="white"
               hide-details
               label="Shared custody info"
-              v-model="item.SHARES_CUSTODY_DETAILS"
+              v-model="item.eligibility.SHARES_CUSTODY_DETAILS"
             ></v-textarea>
           </div>
         </div>

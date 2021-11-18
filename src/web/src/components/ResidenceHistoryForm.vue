@@ -340,11 +340,11 @@ export default {
       axios.get(CITY_URL).then((resp) => {
         this.cityOptions = resp.data;
 
-        console.log(this.cityOptions.length, this.columnDefs[4]);
 
         this.columnDefs[4].selectOptions = this.cityOptions.map((y) => {
           return { value: y.CITY_ID, text: y.DESCRIPTION };
         });
+        console.log(this.cityOptions.length, this.columnDefs[4]);
       });
     },
     loadProvinces() {

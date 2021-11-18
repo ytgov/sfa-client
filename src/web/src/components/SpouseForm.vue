@@ -70,7 +70,7 @@
               background-color="white"
               hide-details
               label="Study employment status"
-              v-model="study_employment_status"
+              v-model="application.SPOUSE_PRESTUDY_EMP_STATUS_ID"
               :items="employmentStatusOptions"
             ></v-select>
           </div>
@@ -85,7 +85,7 @@
               background-color="white"
               hide-details
               label="In school from"
-              v-model="study_post_secondary_from"
+              v-model="application.SPOUSE_STUDY_SCHOOL_FROM"
             ></v-text-field>
           </div>
           <div class="col-md-5">
@@ -95,7 +95,7 @@
               background-color="white"
               hide-details
               label="In school to"
-              v-model="study_post_secondary_to"
+              v-model="application.SPOUSE_STUDY_SCHOOL_TO"
             ></v-text-field>
           </div>
           <div class="col-md-12 pt-0">
@@ -115,7 +115,7 @@
               dense
               hide-details
               label="Living with spouse"
-              v-model="living_with_spouse"
+              v-model="application.STUDY_LIVING_W_SPOUSE_FLAG"
             ></v-switch>
           </div>
           <div class="col-md-3 pt-0">
@@ -124,7 +124,7 @@
               dense
               hide-details
               label="Bus service available"
-              v-model="bus_service_available"
+              v-model="application.STUDY_BUS_FLAG"
             ></v-switch>
           </div>
           <div class="col-md-4">
@@ -134,7 +134,7 @@
               background-color="white"
               hide-details
               label="In no, distance from school/work (km)"
-              v-model="distance_from_school"
+              v-model="application.STUDY_DISTANCE"
             ></v-text-field>
           </div>
         </div>
@@ -156,21 +156,10 @@ export default {
   data: () => ({
     employmentStatusOptions: ["Status 1", "Status 2"],
 
-    last_name: "",
-    first_name: "",
-    initial: "",
-    sin: "",
-    income_150: 0,
-    pre_study_employment_status: "",
-    pre_study_post_secondary_from: "",
-    pre_study_post_secondary_to: "",
     study_employment_status: "",
     study_post_secondary_from: "",
     study_post_secondary_to: "",
     study_applying_for_csl: false,
-    living_with_spouse: false,
-    bus_service_available: false,
-    distance_from_school: null,
   }),
   async created() {},
   methods: {},
