@@ -15,6 +15,7 @@ Vue.use(VueCurrencyInput, { globalOptions: { currency: 'USD' } });
 import ConfirmDialog from "./components/ConfirmDialog";
 import SelectedAppHeader from "./components/SelectedAppHeader";
 import Notifications from "./components/Notifications";
+import ApplicationList from "./components/ApplicationList";
 
 import ParentInfoForm from "./components/ParentInfoForm";
 import ParentDependentsForm from "./components/ParentDependentsForm";
@@ -54,6 +55,7 @@ import StudyIncomeForm from "./components/StudyIncomeForm";
 Vue.component("confirm-dialog", ConfirmDialog);
 Vue.component("selected-app-header", SelectedAppHeader);
 Vue.component("notifier", Notifications);
+Vue.component("application-list", ApplicationList);
 
 Vue.component("contact-form", ContactForm);
 Vue.component("basic-demographics-form", BasicDemographicsForm);
