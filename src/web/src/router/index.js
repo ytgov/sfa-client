@@ -9,10 +9,12 @@ import Profile from "../views/Profile";
 import store from "../store";
 
 import Reports from "../views/Reports";
-import Administration from "../views/Administration";
+import AdministrationHome from "../views/Administration/AdministrationHome";
+import AdminInstitution from "../views/Administration/Institutions";
 import Search from "../views/Search";
 
-import Personal from "../views/Personal";
+import ApplicationDetails from "../views/ApplicationDetails";
+import StudentDetails from "../views/StudentDetails";
 import Status from "../views/Status";
 import AcademicYear from "../views/AcademicYear";
 import SFAFundingRequests from "../views/SFAFundingRequests";
@@ -39,8 +41,8 @@ const routes = [
 
   {
     path: "/application/:id/personal",
-    name: "Personal",
-    component: Personal,
+    name: "ApplicationDetails",
+    component: ApplicationDetails,
     meta: {
       requiresAuth: true
     }
@@ -93,6 +95,14 @@ const routes = [
       requiresAuth: true
     }
   },
+  {
+    path: "/student/:id",
+    name: "StudentDetails",
+    component: StudentDetails,
+    meta: {
+      requiresAuth: true
+    }
+  },
 
   {
     path: "/reports",
@@ -104,8 +114,16 @@ const routes = [
   },
   {
     path: "/administration",
-    name: "Administration",
-    component: Administration,
+    name: "AdministrationHome",
+    component: AdministrationHome,
+    meta: {
+      requiresAuth: true
+    }
+  },
+  {
+    path: "/administration/institutions",
+    name: "AdminInstitution",
+    component: AdminInstitution,
     meta: {
       requiresAuth: true
     }
@@ -153,7 +171,7 @@ const router = new VueRouter({
 router.beforeEach(async (to, from, next) => {
   var requiresAuth = to.meta.requiresAuth || false;
 
-  store.dispatch("setAppSidebar", to.path.startsWith("/application"))
+  store.dispatch("setAppSidebar", to.path.startsWith("/application") || to.path.startsWith("/student"))
 
   if (!requiresAuth) {
     return next();

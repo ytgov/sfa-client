@@ -88,15 +88,13 @@
 <script>
 import store from "../store";
 export default {
-  data: () => ({
-  }),
+  data: () => ({}),
   computed: {
     application: function () {
       return store.getters.selectedApplication;
     },
   },
-  async created() {
-  },
+  async created() {},
   methods: {
     addConsent() {
       this.application.consents.push({});
@@ -110,6 +108,9 @@ export default {
         },
         () => {}
       );
+    },
+    doSaveStudent(field, value) {
+      store.dispatch("updateStudent", [field, value, this]);
     },
   },
 };

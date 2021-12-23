@@ -162,6 +162,8 @@
 </template>
 
 <script>
+import store from "../store";
+
 export default {
   data: () => ({
     pre_system_funding_year: 0,
@@ -192,6 +194,10 @@ export default {
     },
   },
   async created() {},
-  methods: {},
+  methods: {
+    doSaveStudent(field, value) {
+      store.dispatch("updateStudent", [field, value, this]);
+    },
+  },
 };
 </script>

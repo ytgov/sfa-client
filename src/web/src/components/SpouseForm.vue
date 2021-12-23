@@ -162,6 +162,10 @@ export default {
     study_applying_for_csl: false,
   }),
   async created() {},
-  methods: {},
+  methods: {
+    doSaveStudent(field, value) {
+      store.dispatch("updateStudent", [field, value, this]);
+    },
+  },
 };
 </script>

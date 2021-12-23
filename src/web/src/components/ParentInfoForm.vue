@@ -327,6 +327,9 @@ export default {
         this.relationshipOptions = resp.data;
       });
     },
+    doSaveStudent(field, value) {
+      store.dispatch("updateStudent", [field, value, this]);
+    },
   },
 };
 </script>

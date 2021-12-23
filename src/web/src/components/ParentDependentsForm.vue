@@ -1,6 +1,10 @@
 <template>
   <div>
-    <v-card class="default mb-5" v-for="(item, i) of application.parent_dependents" :key="i">
+    <v-card
+      class="default mb-5"
+      v-for="(item, i) of application.parent_dependents"
+      :key="i"
+    >
       <v-card-title
         >Dependent {{ 1 + i }}
         <v-spacer></v-spacer>
@@ -161,7 +165,7 @@ import store from "../store";
 export default {
   data: () => ({
     relationshipOptions: ["Mother", "Father"],
-    maxDate: moment().format("YYYY-MM-DD")
+    maxDate: moment().format("YYYY-MM-DD"),
   }),
   computed: {
     application: function () {
@@ -185,6 +189,9 @@ export default {
     },
     birthChanged(item) {
       item.age = moment().diff(item.birth_date, "years");
+    },
+    doSaveStudent(field, value) {
+      store.dispatch("updateStudent", [field, value, this]);
     },
   },
 };

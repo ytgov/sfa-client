@@ -177,6 +177,8 @@
 </template>
 
 <script>
+import store from "../store";
+
 export default {
   data: () => ({
     clearance_received_menu: null,
@@ -196,6 +198,10 @@ export default {
     scholastic_letter_date: null,
   }),
   async created() {},
-  methods: {},
+  methods: {
+    doSaveStudent(field, value) {
+      store.dispatch("updateStudent", [field, value, this]);
+    },
+  },
 };
 </script>

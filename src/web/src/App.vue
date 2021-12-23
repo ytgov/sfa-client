@@ -12,18 +12,52 @@
         <v-list-item
           link
           nav
-          v-bind:title="section.name"
-          v-bind:to="section.makeUrl(selectedApplicationId)"
-          v-for="section in sections"
-          v-bind:key="section.name"
+          title="Student Basics"
+          :to="`/student/${selectedStudentId}`"
         >
           <v-list-item-icon>
-            <v-icon>{{ section.icon }}</v-icon>
+            <v-icon>mdi-school</v-icon>
           </v-list-item-icon>
           <v-list-item-content>
-            <v-list-item-title>{{ section.name }}</v-list-item-title>
+            <v-list-item-title>Student Details</v-list-item-title>
           </v-list-item-content>
         </v-list-item>
+
+        <v-list-item class="px-0" >
+          <v-select
+            dense
+            outlined
+            x-small
+            label="Selected application"
+            background-color="white"
+            class="my-3"
+            hide-details
+            :items="applicationOptions"
+            @change="changeApplication"
+            v-model="chosenApplication"
+            item-text="title"
+            item-value="HISTORY_DETAIL_ID"
+          ></v-select>
+        </v-list-item>
+        <v-divider class="mb-3"></v-divider>
+
+        <div v-if="selectedApplicationId > 0">
+          <v-list-item
+            link
+            nav
+            v-bind:title="section.name"
+            v-bind:to="section.makeUrl(selectedApplicationId)"
+            v-for="section in sections"
+            v-bind:key="section.name"
+          >
+            <v-list-item-icon>
+              <v-icon>{{ section.icon }}</v-icon>
+            </v-list-item-icon>
+            <v-list-item-content>
+              <v-list-item-title>{{ section.name }}</v-list-item-title>
+            </v-list-item-content>
+          </v-list-item>
+        </div>
       </v-list>
     </v-navigation-drawer>
 
@@ -130,7 +164,13 @@ export default {
   name: "App",
   components: {},
   computed: {
-    ...mapState(["isAuthenticated", "showAppSidebar", "selectedApplicationId"]),
+    ...mapState([
+      "isAuthenticated",
+      "showAppSidebar",
+      "selectedApplicationId",
+      "selectedStudentId",
+      "selectedStudent",
+    ]),
     username() {
       return store.getters.fullName;
     },
@@ -140,6 +180,9 @@ export default {
     showAppSidebar() {
       return store.getters.showAppSidebar;
     },
+    applicationOptions() {
+      return this.selectedStudent.history_details
+    }
   },
   data: () => ({
     dialog: false,
@@ -153,13 +196,18 @@ export default {
     sections: config.sections,
     hasSidebar: false, //config.hasSidebar,
     hasSidebarClosable: config.hasSidebarClosable,
+
+    chosenApplication: -1
   }),
   created: async function () {
     store.dispatch(
       "setAppSidebar",
-      this.$route.path.startsWith("/application")
+      this.$route.path.startsWith("/application") ||
+        this.$route.path.startsWith("/student")
     );
-    this.hasSidebar = this.$route.path.startsWith("/application");
+    this.hasSidebar =
+      this.$route.path.startsWith("/application") ||
+      this.$route.path.startsWith("/student");
 
     await store.dispatch("checkAuthentication");
   },
@@ -171,6 +219,10 @@ export default {
     showAppSidebar: function (val) {
       this.hasSidebar = val; // && this.isAuthenticated;
     },
+    selectedApplicationId: function(val) {
+      console.log("APPCHG", val)
+      this.chosenApplication = val
+    }
   },
   methods: {
     nav: function (location) {
@@ -194,6 +246,10 @@ export default {
     showAPIMessages: function (msg) {
       this.$refs.notifier.showAPIMessages(msg);
     },
+    changeApplication: function() {
+      store.dispatch("loadApplication", this.chosenApplication)
+      this.$router.push(`/application/${this.chosenApplication}/personal`)
+    }
   },
 };
 </script>

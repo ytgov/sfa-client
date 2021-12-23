@@ -340,7 +340,6 @@ export default {
       axios.get(CITY_URL).then((resp) => {
         this.cityOptions = resp.data;
 
-
         this.columnDefs[4].selectOptions = this.cityOptions.map((y) => {
           return { value: y.CITY_ID, text: y.DESCRIPTION };
         });
@@ -374,6 +373,9 @@ export default {
     },
     linkClicked(item) {
       this.removeResidence(item.rowIndex);
+    },
+    doSaveStudent(field, value) {
+      store.dispatch("updateStudent", [field, value, this]);
     },
   },
 };

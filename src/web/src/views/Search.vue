@@ -1,6 +1,8 @@
 <template>
   <div>
-    <h1>Search <small>: {{ searchResults.length }} matches</small></h1>
+    <h1>
+      Search <small>: {{ searchResults.length }} matches</small>
+    </h1>
 
     <v-row>
       <v-col cols="4">
@@ -37,7 +39,11 @@
       </v-col>
 
       <v-col></v-col>
-      <v-col><v-btn color="primary" class="float-right" @click="createStudent">Create student</v-btn></v-col>
+      <v-col
+        ><v-btn color="primary" class="float-right" @click="createStudentClick"
+          >Create student</v-btn
+        ></v-col
+      >
     </v-row>
 
     <v-data-table
@@ -48,7 +54,6 @@
         { text: 'Locator', value: 'locator_number' },
         { text: 'Birth date', value: 'birth_date' },
         { text: 'Vendor', value: 'vendor_id' },
-        { text: 'Email', value: 'home_email' },
         { text: 'Applications', value: 'application_count' },
       ]"
       @click:row="selectStudent"
@@ -82,16 +87,21 @@
         :studentApplications="studentApplications"
       ></application-list>
 
-      <v-btn color="primary" class="mx-5" @click="createApplication">Create application</v-btn>
+      <v-btn color="primary" class="mx-5" @click="createApplication"
+        >Create application</v-btn
+      >
     </v-navigation-drawer>
+    <create-student-dialog ref="createStudentDialog"></create-student-dialog>
   </div>
 </template>
 
 <script>
 import axios from "axios";
 import { STUDENT_URL, STUDENT_SEARCH_URL } from "../urls";
+import CreateStudentDialog from '../components/CreateStudentDialog.vue';
 
 export default {
+  components: { CreateStudentDialog },
   data: () => ({
     search: "",
     searchResults: [],
@@ -139,13 +149,23 @@ export default {
         })
         .catch((err) => console.log(err));
     },
-    createStudent() {
-      console.log("CREATEING STUDENT")
-
+    createStudentClick() {
+      this.$refs.createStudentDialog.show();
     },
+
+    createStudent() {
+      console.log("CREATEING STUDENT");
+
+      let body = {};
+
+      axios.post(`${STUDENT_URL}`, body).then((resp) => {
+        console.log(resp.data);
+      });
+    },
+
     createApplication() {
-      console.log("CREATEING App for " + this.selectedStudent.student_id)
-    }
+      console.log("CREATEING App for " + this.selectedStudent.student_id);
+    },
   },
 };
 </script>

@@ -75,6 +75,7 @@
         <v-data-table
           hide-default-footer
           :headers="[
+            { text: '', value: 'action', width: '40px' },
             { text: 'SIN', value: 'sin' },
             { text: 'Name', value: 'name' },
             { text: 'Locator', value: 'locator_number' },
@@ -82,7 +83,12 @@
           :items="searchResults"
           :items-per-page="-1"
           @click:row="selectStudent"
-        ></v-data-table>
+        >
+          <template v-slot:item.action="{ item }">
+            <v-btn outlined icon color="primary" :to="`/student/${item.student_id}`" title="View student record"><v-icon>mdi-school</v-icon></v-btn>            
+          </template>
+        
+        </v-data-table>
       </div>
 
       <v-divider></v-divider>

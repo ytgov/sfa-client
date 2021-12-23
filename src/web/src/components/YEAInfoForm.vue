@@ -43,6 +43,8 @@
 </template>
 
 <script>
+import store from "../store";
+
 export default {
   data: () => ({
     yea_awarded: 0,
@@ -50,6 +52,10 @@ export default {
     yea_remaining: 0,
   }),
   async created() {},
-  methods: {},
+  methods: {
+    doSaveStudent(field, value) {
+      store.dispatch("updateStudent", [field, value, this]);
+    },
+  },
 };
 </script>

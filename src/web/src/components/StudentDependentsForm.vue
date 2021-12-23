@@ -230,6 +230,9 @@ export default {
       return moment().diff(item.BIRTH_DATE, "years");
       return "";
     },
+    doSaveStudent(field, value) {
+      store.dispatch("updateStudent", [field, value, this]);
+    },
   },
 };
 </script>

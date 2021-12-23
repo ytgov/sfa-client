@@ -249,6 +249,9 @@ export default {
         this.cityOptions = resp.data;
       });
     },
+    doSaveStudent(field, value) {
+      store.dispatch("updateStudent", [field, value, this]);
+    },
   },
 };
 </script>
