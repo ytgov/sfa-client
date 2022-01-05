@@ -23,7 +23,7 @@
           </v-list-item-content>
         </v-list-item>
 
-        <v-list-item class="px-0" >
+        <v-list-item class="px-0">
           <v-select
             dense
             outlined
@@ -39,6 +39,18 @@
             item-value="HISTORY_DETAIL_ID"
           ></v-select>
         </v-list-item>
+
+        <v-btn
+          color="primary"
+          small
+          dark
+          style="width: 100%"
+          class="mb-3"
+          @click="createApplication"
+        >
+          <v-icon>mdi-plus</v-icon> Create application</v-btn
+        >
+
         <v-divider class="mb-3"></v-divider>
 
         <div v-if="selectedApplicationId > 0">
@@ -60,6 +72,13 @@
         </div>
       </v-list>
     </v-navigation-drawer>
+
+    <application-create
+      ref="createApplicationForm"
+      v-on:showError="showError"
+      v-on:showSuccess="showSuccess"
+      v-on:showAPIMessages="showAPIMessages"
+    ></application-create>
 
     <v-app-bar
       app
@@ -181,8 +200,8 @@ export default {
       return store.getters.showAppSidebar;
     },
     applicationOptions() {
-      return this.selectedStudent.history_details
-    }
+      return this.selectedStudent.history_details;
+    },
   },
   data: () => ({
     dialog: false,
@@ -197,7 +216,7 @@ export default {
     hasSidebar: false, //config.hasSidebar,
     hasSidebarClosable: config.hasSidebarClosable,
 
-    chosenApplication: -1
+    chosenApplication: -1,
   }),
   created: async function () {
     store.dispatch(
@@ -219,10 +238,10 @@ export default {
     showAppSidebar: function (val) {
       this.hasSidebar = val; // && this.isAuthenticated;
     },
-    selectedApplicationId: function(val) {
-      console.log("APPCHG", val)
-      this.chosenApplication = val
-    }
+    selectedApplicationId: function (val) {
+      console.log("APPCHG", val);
+      this.chosenApplication = val;
+    },
   },
   methods: {
     nav: function (location) {
@@ -246,10 +265,13 @@ export default {
     showAPIMessages: function (msg) {
       this.$refs.notifier.showAPIMessages(msg);
     },
-    changeApplication: function() {
-      store.dispatch("loadApplication", this.chosenApplication)
-      this.$router.push(`/application/${this.chosenApplication}/personal`)
-    }
+    changeApplication: function () {
+      store.dispatch("loadApplication", this.chosenApplication);
+      this.$router.push(`/application/${this.chosenApplication}/personal`);
+    },
+    createApplication: function () {
+      this.$refs.createApplicationForm.show(this.selectedStudent);
+    },
   },
 };
 </script>

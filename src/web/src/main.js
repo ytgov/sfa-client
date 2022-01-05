@@ -16,6 +16,7 @@ import ConfirmDialog from "./components/ConfirmDialog";
 import SelectedAppHeader from "./components/SelectedAppHeader";
 import Notifications from "./components/Notifications";
 import ApplicationList from "./components/ApplicationList";
+import ApplicationCreateForm from "./components/ApplicationCreateForm";
 
 import ParentInfoForm from "./components/ParentInfoForm";
 import ParentDependentsForm from "./components/ParentDependentsForm";
@@ -56,6 +57,7 @@ Vue.component("confirm-dialog", ConfirmDialog);
 Vue.component("selected-app-header", SelectedAppHeader);
 Vue.component("notifier", Notifications);
 Vue.component("application-list", ApplicationList);
+Vue.component("application-create", ApplicationCreateForm);
 
 Vue.component("contact-form", ContactForm);
 Vue.component("basic-demographics-form", BasicDemographicsForm);
