@@ -17,6 +17,8 @@ import SelectedAppHeader from "./components/SelectedAppHeader";
 import Notifications from "./components/Notifications";
 import ApplicationList from "./components/ApplicationList";
 import ApplicationCreateForm from "./components/ApplicationCreateForm";
+import ApplicationDuplicateForm from "./components/ApplicationDuplicateForm";
+import ApplicationDeleteForm from "./components/ApplicationDeleteForm";
 
 import ParentInfoForm from "./components/ParentInfoForm";
 import ParentDependentsForm from "./components/ParentDependentsForm";
@@ -58,6 +60,8 @@ Vue.component("selected-app-header", SelectedAppHeader);
 Vue.component("notifier", Notifications);
 Vue.component("application-list", ApplicationList);
 Vue.component("application-create", ApplicationCreateForm);
+Vue.component("application-duplicate", ApplicationDuplicateForm);
+Vue.component("application-delete", ApplicationDeleteForm);
 
 Vue.component("contact-form", ContactForm);
 Vue.component("basic-demographics-form", BasicDemographicsForm);

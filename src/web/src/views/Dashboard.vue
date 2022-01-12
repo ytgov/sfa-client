@@ -24,10 +24,17 @@
       <div class="col-md-6">
         <v-card class="mt-5" color="#fff2d5">
           <v-card-title>Recently Viewed Applications</v-card-title>
-          <v-card-text
-            >This will be a list of students/applications you recently
-            viewed</v-card-text
-          >
+          <v-card-text>
+            This will be a list of students/applications you recently viewed
+
+            <div v-for="(item, idx) of recentStudents" :key="idx">
+              <router-link :to="`/student/${item.STUDENT_ID}`"
+                >{{ item.FIRST_NAME }} {{ item.INITIALS }}
+                {{ item.LAST_NAME }} ({{item.SIN}})
+                </router-link
+              >
+            </div>
+          </v-card-text>
         </v-card>
       </div>
       <div class="col-md-6">
@@ -85,9 +92,15 @@
           @click:row="selectStudent"
         >
           <template v-slot:item.action="{ item }">
-            <v-btn outlined icon color="primary" :to="`/student/${item.student_id}`" title="View student record"><v-icon>mdi-school</v-icon></v-btn>            
+            <v-btn
+              outlined
+              icon
+              color="primary"
+              :to="`/student/${item.student_id}`"
+              title="View student record"
+              ><v-icon>mdi-school</v-icon></v-btn
+            >
           </template>
-        
         </v-data-table>
       </div>
 
@@ -101,18 +114,23 @@
         >
         <v-card-text>
           <div v-for="(app, i) of studentApplications" :key="i">
-            <v-list-item two-line :to="'/application/' + app.HISTORY_DETAIL_ID + '/personal'">
+            <v-list-item
+              two-line
+              :to="'/application/' + app.HISTORY_DETAIL_ID + '/personal'"
+            >
               <v-list-item-content>
                 <v-list-item-title
-                  >{{ app.ACADEMIC_YEAR }}: {{ app.institution_name }}</v-list-item-title
+                  >{{ app.ACADEMIC_YEAR }}:
+                  {{ app.institution_name }}</v-list-item-title
                 >
                 <v-list-item-subtitle
-                  >{{app.study_area_name}} ({{app.program_name}})<br />Applications:
-                  YG</v-list-item-subtitle
+                  >{{ app.study_area_name }} ({{
+                    app.program_name
+                  }})<br />Applications: YG</v-list-item-subtitle
                 >
               </v-list-item-content>
             </v-list-item>
-            <v-divider v-if="i < studentApplications.length -1"></v-divider>
+            <v-divider v-if="i < studentApplications.length - 1"></v-divider>
           </div>
         </v-card-text>
       </v-card>
@@ -122,10 +140,14 @@
 
 <script>
 import axios from "axios";
+import { mapState } from "vuex";
 import { STUDENT_URL, STUDENT_SEARCH_URL } from "../urls";
 
 export default {
   name: "Home",
+  computed: {
+    ...mapState(["recentStudents"]),
+  },
   data: () => ({
     search: "",
     drawer: null,

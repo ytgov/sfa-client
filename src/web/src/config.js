@@ -1,5 +1,5 @@
 
-export const applicationName = "SFA Client";
+export const applicationName = "SFA Admin";
 export const applicationIcon = "mdi-cash-register";
 export const hasSidebar = true;
 export const hasSidebarClosable = false;

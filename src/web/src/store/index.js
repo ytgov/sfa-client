@@ -17,11 +17,13 @@ export default new Vuex.Store({
     selectedStudentId: 0,
     selectedApplication: {},
     selectedApplicationId: 0,
+    recentStudents: [],
   },
   getters: {
     showAppSidebar: state => state.showAppSidebar,
     selectedStudent: state => state.selectedStudent,
     selectedApplication: state => state.selectedApplication,
+    recentStudents: state => state.recentStudents,
   },
   mutations: {
     SET_SIDEBAR(state, value) {
@@ -41,6 +43,12 @@ export default new Vuex.Store({
       state.selectedStudentLocator = value.LOCATOR_NUMBER;
       state.selectedStudentId = value.STUDENT_ID;
       state.selectedStudent = value;
+
+      let isRecent = state.recentStudents.filter(r => r.STUDENT_ID == value.STUDENT_ID);
+
+      if (isRecent.length == 0) {
+        state.recentStudents.unshift(value);
+      }
     },
     CLEAR_STUDENT(state) {
       state.selectedStudentFullName = "";

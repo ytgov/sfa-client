@@ -69,6 +69,29 @@
               <v-list-item-title>{{ section.name }}</v-list-item-title>
             </v-list-item-content>
           </v-list-item>
+
+          <v-divider class="mb-3"></v-divider>
+
+          <v-row>
+            <v-col
+              ><v-btn
+                small
+                color="warning"
+                style="width: 100%"
+                @click="duplicateApplication"
+                >Duplicate</v-btn
+              ></v-col
+            >
+            <v-col
+              ><v-btn
+                small
+                color="error"
+                style="width: 100%"
+                @click="deleteApplication"
+                >Delete</v-btn
+              ></v-col
+            >
+          </v-row>
         </div>
       </v-list>
     </v-navigation-drawer>
@@ -79,6 +102,19 @@
       v-on:showSuccess="showSuccess"
       v-on:showAPIMessages="showAPIMessages"
     ></application-create>
+    
+    <application-duplicate
+      ref="duplicateApplicationForm"
+      v-on:showError="showError"
+      v-on:showSuccess="showSuccess"
+      v-on:showAPIMessages="showAPIMessages"
+    ></application-duplicate>
+    <application-delete
+      ref="deleteApplicationForm"
+      v-on:showError="showError"
+      v-on:showSuccess="showSuccess"
+      v-on:showAPIMessages="showAPIMessages"
+    ></application-delete>
 
     <v-app-bar
       app
@@ -114,10 +150,7 @@
       <div v-if="isAuthenticated">
         <v-btn color="primary" text class="mr-1" to="/dashboard">Home</v-btn>
 
-        <v-btn color="primary" text class="mr-1" to="/reports">Reports</v-btn>
-        <v-btn color="primary" text class="mr-5" to="/administration"
-          >Administration</v-btn
-        >
+        <!-- <v-btn color="primary" text class="mr-1" to="/reports">Reports</v-btn> -->
 
         <v-divider class="mr-5" vertical inset></v-divider>
 
@@ -136,6 +169,14 @@
               </v-list-item-icon>
               <v-list-item-title>My profile</v-list-item-title>
             </v-list-item>
+
+            <v-list-item to="/administration">
+              <v-list-item-icon>
+                <v-icon>mdi-cogs</v-icon>
+              </v-list-item-icon>
+              <v-list-item-title>Administration</v-list-item-title>
+            </v-list-item>
+
             <v-divider />
             <v-list-item @click="signOut">
               <v-list-item-icon>
@@ -187,6 +228,7 @@ export default {
       "isAuthenticated",
       "showAppSidebar",
       "selectedApplicationId",
+      "selectedApplication",
       "selectedStudentId",
       "selectedStudent",
     ]),
@@ -229,6 +271,8 @@ export default {
       this.$route.path.startsWith("/student");
 
     await store.dispatch("checkAuthentication");
+
+    this.chosenApplication = this.selectedApplicationId;
   },
   watch: {
     isAuthenticated: function (val) {
@@ -271,6 +315,12 @@ export default {
     },
     createApplication: function () {
       this.$refs.createApplicationForm.show(this.selectedStudent);
+    },
+    duplicateApplication: function () {
+      this.$refs.duplicateApplicationForm.show(this.selectedApplication);
+    },
+    deleteApplication: function () {
+      this.$refs.deleteApplicationForm.show(this.selectedApplication);
     },
   },
 };

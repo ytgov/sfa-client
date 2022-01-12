@@ -1,13 +1,13 @@
 import express, { Request, Response } from "express";
-import cors from "cors";
-import helmet from "helmet";
-import { userRouter, dataRouter } from "./routes";
+//import cors from "cors";
+//import helmet from "helmet";
+//import { userRouter, dataRouter } from "./routes";
 import * as config from './config';
-import { doHealthCheck } from "./utils/healthCheck";
-import { configureAuthentication } from "./routes/auth"
+//import { doHealthCheck } from "./utils/healthCheck";
+//import { configureAuthentication } from "./routes/auth"
 
 const app = express();
-
+/*
 app.use(express.json()) // for parsing application/json
 app.use(express.urlencoded({ extended: true })) // for parsing application/x-www-form-urlencoded
 //app.use(helmet());
@@ -43,7 +43,7 @@ app.get("/api/healthCheck", (req: Request, res: Response) => {
 
 app.use("/api/user", userRouter);
 app.use("/api/data", dataRouter);
-
+*/
 let baseWebPath = "/web";
 
 if (config.NODE_ENV == "development")
