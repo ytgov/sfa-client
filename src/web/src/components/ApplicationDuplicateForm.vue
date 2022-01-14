@@ -18,7 +18,7 @@
             outlined
             dense
             :items="yearOptions"
-            background-color="white"
+            background-color="#ffaaaa"
             v-model="academicYear"
             :rules="requiredRule"
           ></v-autocomplete>
@@ -26,7 +26,7 @@
             label="Institution"
             outlined
             dense
-            background-color="white"
+            background-color="#ffaaaa"
             :items="institutionOptions"
             item-text="NAME"
             item-value="INSTITUTION_ID"

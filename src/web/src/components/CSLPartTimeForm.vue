@@ -26,7 +26,7 @@
             <v-text-field
               outlined
               dense
-              background-color="white"
+              background-color="#ffaaaa"
               hide-details
               label="Requested loan amount"
               v-model="requested_loan_amount"
@@ -58,7 +58,7 @@
             <v-text-field
               outlined
               dense
-              background-color="white"
+              background-color="#ffaaaa"
               hide-details
               label="Outstanding principal from previous CSL loans"
               v-model="outstanding_previous"
@@ -69,7 +69,7 @@
             <v-text-field
               outlined
               dense
-              background-color="white"
+              background-color="#ffaaaa"
               hide-details
               label="Amount of grant for part-time studies received this academic year"
               v-model="outstanding_previous"
@@ -81,7 +81,7 @@
             <v-textarea
               outlined
               dense
-              background-color="white"
+              background-color="#ffaaaa"
               hide-details
               label="Comments"
               v-model="comments"

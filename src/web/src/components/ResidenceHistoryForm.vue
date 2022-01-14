@@ -10,7 +10,7 @@
               ref="grid"
               id="mygrid"
               :column-defs="columnDefs"
-              :row-data="application.residences"
+              :row-data="student.residences"
               row-data-key="shipmentId"
               :enable-filters="false"
               :multiple-selection="false"
@@ -34,7 +34,7 @@
                     <v-select
                       outlined
                       dense
-                      background-color="white"
+                      background-color="#ffaaaa"
                       hide-details
                       label="Year"
                       :items="yearOptions"
@@ -46,7 +46,7 @@
                     <v-select
                       outlined
                       dense
-                      background-color="white"
+                      background-color="#ffaaaa"
                       hide-details
                       label="Month"
                       :items="monthOptions"
@@ -63,7 +63,7 @@
                     <v-select
                       outlined
                       dense
-                      background-color="white"
+                      background-color="#ffaaaa"
                       hide-details
                       label="Year"
                       :items="yearOptions"
@@ -75,7 +75,7 @@
                     <v-select
                       outlined
                       dense
-                      background-color="white"
+                      background-color="#ffaaaa"
                       hide-details
                       label="Month"
                       :items="monthOptions"
@@ -97,7 +97,7 @@
                 <v-select
                   outlined
                   dense
-                  background-color="white"
+                  background-color="#ffaaaa"
                   hide-details
                   label="Year"
                   :items="yearOptionNums"
@@ -108,7 +108,7 @@
                 <v-select
                   outlined
                   dense
-                  background-color="white"
+                  background-color="#ffaaaa"
                   hide-details
                   label="Where taxes filed"
                   v-model="application.TAXES_FILED1_PROVINCE_ID"
@@ -139,7 +139,7 @@
                 <v-select
                   outlined
                   dense
-                  background-color="white"
+                  background-color="#ffaaaa"
                   hide-details
                   label="Year"
                   :items="yearOptionNums"
@@ -150,7 +150,7 @@
                 <v-select
                   outlined
                   dense
-                  background-color="white"
+                  background-color="#ffaaaa"
                   hide-details
                   label="Where taxes filed"
                   v-model="application.TAXES_FILED2_PROVINCE_ID"
@@ -201,6 +201,9 @@ import { CITY_URL, PROVINCE_URL } from "../urls";
 export default {
   name: "Home",
   computed: {
+    student: function () {
+      return store.getters.selectedStudent;
+    },
     application: function () {
       return store.getters.selectedApplication;
     },

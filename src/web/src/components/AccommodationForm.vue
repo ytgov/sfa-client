@@ -8,7 +8,7 @@
             <v-select
               outlined
               dense
-              background-color="white"
+              background-color="#ffaaaa"
               hide-details
               label="Accommodation type"
               v-model="study.housing"
@@ -19,7 +19,7 @@
             <v-text-field
               outlined
               dense
-              background-color="white"
+              background-color="#ffaaaa"
               hide-details
               label="Amount of rent paid to parents (receipts may be requested)"
               v-model="study.rent"
@@ -40,7 +40,7 @@
             <v-text-field
               outlined
               dense
-              background-color="white"
+              background-color="#ffaaaa"
               hide-details
               label="City"
               v-model="study.city"
@@ -50,7 +50,7 @@
             <v-select
               outlined
               dense
-              background-color="white"
+              background-color="#ffaaaa"
               hide-details
               label="Province"
               v-model="study.province"
@@ -79,7 +79,7 @@
             <v-text-field
               outlined
               dense
-              background-color="white"
+              background-color="#ffaaaa"
               hide-details
               label="If no, distance from school/work (km)"
               v-model="study.distance_from_school"

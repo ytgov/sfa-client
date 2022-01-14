@@ -15,7 +15,7 @@
             <v-select
               outlined
               dense
-              background-color="white"
+              background-color="#ffaaaa"
               hide-details
               label="Category"
               v-model="category"
@@ -26,7 +26,7 @@
             <v-text-field
               outlined
               dense
-              background-color="white"
+              background-color="#ffaaaa"
               hide-details
               label="Estimated tuition fees"
               v-model="estimated_fees"

@@ -7,7 +7,7 @@
             <v-text-field
               outlined
               dense
-              background-color="white"
+              background-color="#ffaaaa"
               hide-details
               label="YEA awarded"
               v-model="yea_awarded"
@@ -18,7 +18,7 @@
             <v-text-field
               outlined
               dense
-              background-color="white"
+              background-color="#ffaaaa"
               hide-details
               label="YEA total used"
               v-model="yea_used"
@@ -29,7 +29,7 @@
             <v-text-field
               outlined
               dense
-              background-color="white"
+              background-color="#ffaaaa"
               hide-details
               label="YEA remaining"
               v-model="yea_remaining"

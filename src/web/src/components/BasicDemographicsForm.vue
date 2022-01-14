@@ -90,7 +90,7 @@
             <v-select
               outlined
               dense
-              background-color="white"
+              background-color="#ffaaaa"
               hide-details
               label="Funded since"
               v-model="student.FUNDED_SINCE"

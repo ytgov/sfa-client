@@ -23,7 +23,7 @@
             <v-text-field
               outlined
               dense
-              background-color="white"
+              background-color="#ffaaaa"
               hide-details
               label="Last name"
               v-model="item.LAST_NAME"
@@ -33,7 +33,7 @@
             <v-text-field
               outlined
               dense
-              background-color="white"
+              background-color="#ffaaaa"
               hide-details
               label="First name"
               v-model="item.FIRST_NAME"
@@ -58,7 +58,7 @@
                   outlined
                   hide-details
                   dense
-                  background-color="white"
+                  background-color="#ffaaaa"
                   v-bind="attrs"
                   v-on="on"
                 ></v-text-field>
@@ -76,7 +76,7 @@
             <v-select
               outlined
               dense
-              background-color="white"
+              background-color="#ffaaaa"
               hide-details
               label="Relationship"
               :items="relationshipOptions"
@@ -89,7 +89,7 @@
             <v-text-field
               outlined
               dense
-              background-color="white"
+              background-color="#ffaaaa"
               hide-details
               readonly
               label="Age"
@@ -103,7 +103,7 @@
               dense
               hide-details
               outlined
-              background-color="white"
+              background-color="#ffaaaa"
               label="Resides with"
               v-model="item.eligibility.RESIDES_WITH"
               :items="residesOptions"
@@ -158,7 +158,7 @@
             <v-textarea
               outlined
               dense
-              background-color="white"
+              background-color="#ffaaaa"
               hide-details
               label="Comments"
               v-model="item.COMMENTS"
@@ -168,7 +168,7 @@
             <v-textarea
               outlined
               dense
-              background-color="white"
+              background-color="#ffaaaa"
               hide-details
               label="Shared custody info"
               v-model="item.eligibility.SHARES_CUSTODY_DETAILS"

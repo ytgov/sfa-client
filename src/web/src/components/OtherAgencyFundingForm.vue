@@ -31,7 +31,7 @@
               <v-autocomplete
                 outlined
                 dense
-                background-color="white"
+                background-color="#ffaaaa"
                 hide-details
                 label="Agency name"
                 :items="agencyOptions"
@@ -44,7 +44,7 @@
               <v-text-field
                 outlined
                 dense
-                background-color="white"
+                background-color="#ffaaaa"
                 hide-details
                 label="Amount"
                 v-model="item.AMOUNT"
@@ -89,7 +89,7 @@
               <v-text-field
                 outlined
                 dense
-                background-color="white"
+                background-color="#ffaaaa"
                 hide-details
                 label="Other purposes"
                 v-model="item.OTHER_PURPOSE"
@@ -100,7 +100,7 @@
               <v-textarea
                 outlined
                 dense
-                background-color="white"
+                background-color="#ffaaaa"
                 hide-details
                 label="Comments"
                 v-model="item.AGENCY_COMMENT"

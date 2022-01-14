@@ -8,7 +8,7 @@
             <v-text-field
               outlined
               dense
-              background-color="white"
+              background-color="#ffaaaa"
               hide-details
               label="Address line 1"
               v-model="mailingAddress.address1"
@@ -18,7 +18,7 @@
             <v-text-field
               outlined
               dense
-              background-color="white"
+              background-color="#ffaaaa"
               hide-details
               label="Address line 2"
               v-model="mailingAddress.address2"
@@ -29,7 +29,7 @@
             <v-text-field
               outlined
               dense
-              background-color="white"
+              background-color="#ffaaaa"
               hide-details
               label="City"
               v-model="mailingAddress.city"
@@ -39,7 +39,7 @@
             <v-select
               outlined
               dense
-              background-color="white"
+              background-color="#ffaaaa"
               hide-details
               label="Province"
               :items="provinceOptions"
@@ -50,7 +50,7 @@
             <v-text-field
               outlined
               dense
-              background-color="white"
+              background-color="#ffaaaa"
               hide-details
               label="Postal code"
               v-model="mailingAddress.postal"
@@ -60,7 +60,7 @@
             <v-select
               outlined
               dense
-              background-color="white"
+              background-color="#ffaaaa"
               hide-details
               label="Country"
               :items="countryOptions"
@@ -71,7 +71,7 @@
             <v-text-field
               outlined
               dense
-              background-color="white"
+              background-color="#ffaaaa"
               hide-details
               label="Telephone"
               v-model="mailingAddress.telephone"
@@ -89,7 +89,7 @@
             <v-text-field
               outlined
               dense
-              background-color="white"
+              background-color="#ffaaaa"
               hide-details
               label="Last name"
               v-model="application.PARENT1_LAST_NAME"
@@ -99,7 +99,7 @@
             <v-text-field
               outlined
               dense
-              background-color="white"
+              background-color="#ffaaaa"
               hide-details
               label="First name"
               v-model="application.PARENT1_FIRST_NAME"
@@ -109,7 +109,7 @@
             <v-select
               outlined
               dense
-              background-color="white"
+              background-color="#ffaaaa"
               hide-details
               label="Relationship"
               :items="relationshipOptions"
@@ -122,7 +122,7 @@
             <v-text-field
               outlined
               dense
-              background-color="white"
+              background-color="#ffaaaa"
               hide-details
               label="SIN"
               v-model="application.PARENT1_SIN"
@@ -132,7 +132,7 @@
             <v-select
               outlined
               dense
-              background-color="white"
+              background-color="#ffaaaa"
               hide-details
               label="Citizenship"
               :items="citizenshipOptions"
@@ -143,7 +143,7 @@
             <v-text-field
               outlined
               dense
-              background-color="white"
+              background-color="#ffaaaa"
               hide-details
               label="Income (Ln 150)"
               v-model="application.PARENT1_INCOME"
@@ -154,7 +154,7 @@
             <v-text-field
               outlined
               dense
-              background-color="white"
+              background-color="#ffaaaa"
               hide-details
               label="Income (Ln 236)"
               v-model="application.PARENT1_NET_INCOME"
@@ -165,7 +165,7 @@
             <v-text-field
               outlined
               dense
-              background-color="white"
+              background-color="#ffaaaa"
               hide-details
               label="Tax paid (Ln 435)"
               v-model="application.PARENT1_TAX_PAID"
@@ -184,7 +184,7 @@
             <v-text-field
               outlined
               dense
-              background-color="white"
+              background-color="#ffaaaa"
               hide-details
               label="Last name"
               v-model="application.PARENT2_LAST_NAME"
@@ -194,7 +194,7 @@
             <v-text-field
               outlined
               dense
-              background-color="white"
+              background-color="#ffaaaa"
               hide-details
               label="First name"
               v-model="application.PARENT2_FIRST_NAME"
@@ -204,7 +204,7 @@
             <v-select
               outlined
               dense
-              background-color="white"
+              background-color="#ffaaaa"
               hide-details
               label="Relationship"
               :items="relationshipOptions"
@@ -217,7 +217,7 @@
             <v-text-field
               outlined
               dense
-              background-color="white"
+              background-color="#ffaaaa"
               hide-details
               label="SIN"
               v-model="application.PARENT2_SIN"
@@ -227,7 +227,7 @@
             <v-select
               outlined
               dense
-              background-color="white"
+              background-color="#ffaaaa"
               hide-details
               label="Citizenship"
               :items="citizenshipOptions"
@@ -238,7 +238,7 @@
             <v-text-field
               outlined
               dense
-              background-color="white"
+              background-color="#ffaaaa"
               hide-details
               label="Income (Ln 150)"
               v-model="application.PARENT2_INCOME"
@@ -249,7 +249,7 @@
             <v-text-field
               outlined
               dense
-              background-color="white"
+              background-color="#ffaaaa"
               hide-details
               label="Income (Ln 236)"
               v-model="application.PARENT2_NET_INCOME"
@@ -260,7 +260,7 @@
             <v-text-field
               outlined
               dense
-              background-color="white"
+              background-color="#ffaaaa"
               hide-details
               label="Tax paid (Ln 435)"
               v-model="application.PARENT2_TAX_PAID"

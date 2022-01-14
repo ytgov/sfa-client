@@ -19,7 +19,7 @@
                   <v-select
                     outlined
                     dense
-                    background-color="white"
+                    background-color="#ffaaaa"
                     hide-details
                     label="Nature of disability"
                     v-model="item.nature_of_disability"
@@ -30,7 +30,7 @@
                   <v-text-field
                     outlined
                     dense
-                    background-color="white"
+                    background-color="#ffaaaa"
                     hide-details
                     label="Comment"
                     v-model="item.comment"
@@ -62,7 +62,7 @@
               <v-select
                 outlined
                 dense
-                background-color="white"
+                background-color="#ffaaaa"
                 hide-details
                 label="Service required"
                 v-model="item.service_required"
@@ -90,7 +90,7 @@
               <v-text-field
                 outlined
                 dense
-                background-color="white"
+                background-color="#ffaaaa"
                 hide-details
                 label="Amount requested"
                 v-model="service_amount_requested"
@@ -101,7 +101,7 @@
               <v-text-field
                 outlined
                 dense
-                background-color="white"
+                background-color="#ffaaaa"
                 hide-details
                 label="Maximum amount"
                 v-model="service_max_amount"
@@ -112,7 +112,7 @@
               <v-text-field
                 outlined
                 dense
-                background-color="white"
+                background-color="#ffaaaa"
                 hide-details
                 label="Amount approved"
                 v-model="service_amount_approved"
@@ -135,7 +135,7 @@
                 truncate-length="15"
                 outlined
                 dense
-                background-color="white"
+                background-color="#ffaaaa"
                 hide-details
                 label="Upload receipts"
               ></v-file-input>
@@ -155,7 +155,7 @@
               <v-text-field
                 outlined
                 dense
-                background-color="white"
+                background-color="#ffaaaa"
                 hide-details
                 label="Equipment required"
                 v-model="equipment_required"
@@ -165,7 +165,7 @@
               <v-text-field
                 outlined
                 dense
-                background-color="white"
+                background-color="#ffaaaa"
                 hide-details
                 label="Previous CSG-disability amount received this loan year"
                 v-model="previous_amount"
@@ -185,7 +185,7 @@
               <v-text-field
                 outlined
                 dense
-                background-color="white"
+                background-color="#ffaaaa"
                 hide-details
                 label="Amount requested"
                 v-model="equipment_amount_requested"
@@ -196,7 +196,7 @@
               <v-text-field
                 outlined
                 dense
-                background-color="white"
+                background-color="#ffaaaa"
                 hide-details
                 label="Maximum amount"
                 v-model="equipment_max_amount"
@@ -207,7 +207,7 @@
               <v-text-field
                 outlined
                 dense
-                background-color="white"
+                background-color="#ffaaaa"
                 hide-details
                 label="Amount approved"
                 v-model="equipment_amount_approved"
@@ -230,7 +230,7 @@
                 truncate-length="15"
                 outlined
                 dense
-                background-color="white"
+                background-color="#ffaaaa"
                 hide-details
                 label="Upload receipts"
               ></v-file-input>

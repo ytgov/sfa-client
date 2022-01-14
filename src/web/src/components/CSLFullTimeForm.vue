@@ -16,7 +16,7 @@
             <v-select
               outlined
               dense
-              background-color="white"
+              background-color="#ffaaaa"
               hide-details
               label="Last CSL Province"
               v-model="province"
@@ -28,7 +28,7 @@
             <v-select
               outlined
               dense
-              background-color="white"
+              background-color="#ffaaaa"
               hide-details
               label="Study classification"
               v-model="study_classification"
@@ -40,7 +40,7 @@
             <v-text-field
               outlined
               dense
-              background-color="white"
+              background-color="#ffaaaa"
               hide-details
               label="Requested amount"
               v-model="requested_amount"
@@ -70,7 +70,7 @@
             <v-text-field
               outlined
               dense
-              background-color="white"
+              background-color="#ffaaaa"
               hide-details
               label="Student gross income (Ln 150)"
               v-model="student_income"
@@ -92,7 +92,7 @@
             <v-select
               outlined
               dense
-              background-color="white"
+              background-color="#ffaaaa"
               hide-details
               label="Indigenous learner"
               v-model="indigenous_learner"
@@ -104,7 +104,7 @@
             <v-select
               outlined
               dense
-              background-color="white"
+              background-color="#ffaaaa"
               hide-details
               label="Left high school year"
               v-model="left_high_year"
@@ -115,7 +115,7 @@
             <v-select
               outlined
               dense
-              background-color="white"
+              background-color="#ffaaaa"
               hide-details
               label="Left high school month"
               v-model="left_high_month"

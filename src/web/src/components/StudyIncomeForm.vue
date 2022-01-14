@@ -9,7 +9,7 @@
             <v-select
               outlined
               dense
-              background-color="white"
+              background-color="#ffaaaa"
               hide-details
               label="Income type"
               v-model="item.expense_type"
@@ -20,7 +20,7 @@
             <v-text-field
               outlined
               dense
-              background-color="white"
+              background-color="#ffaaaa"
               hide-details
               label="Amount"
               v-model="item.amount"
@@ -31,7 +31,7 @@
             <v-text-field
               outlined
               dense
-              background-color="white"
+              background-color="#ffaaaa"
               hide-details
               label="Comment"
               v-model="item.comment"

@@ -9,7 +9,7 @@
             <v-text-field
               outlined
               dense
-              background-color="white"
+              background-color="#ffaaaa"
               hide-details
               label="High school/official transcript percentage"
               v-model="transcript_percentage"
@@ -31,7 +31,7 @@
             <v-select
               outlined
               dense
-              background-color="white"
+              background-color="#ffaaaa"
               hide-details
               label="Scholarship"
               v-model="item.scholarship"
@@ -87,7 +87,7 @@
                 truncate-length="15"
                 outlined
                 dense
-                background-color="white"
+                background-color="#ffaaaa"
                 hide-details
                 label="Upload personal essay"
               ></v-file-input>
@@ -101,7 +101,7 @@
                 truncate-length="15"
                 outlined
                 dense
-                background-color="white"
+                background-color="#ffaaaa"
                 hide-details
                 label="Upload recommendation letter"
               ></v-file-input>
@@ -139,7 +139,7 @@
                   truncate-length="15"
                   outlined
                   dense
-                  background-color="white"
+                  background-color="#ffaaaa"
                   hide-details
                   label="Upload post-secondary transcript"
                 ></v-file-input>
@@ -153,7 +153,7 @@
                   class="mt-1"
                   outlined
                   dense
-                  background-color="white"
+                  background-color="#ffaaaa"
                   hide-details
                   label="Post-secondary average"
                   v-model="harach.post_secondary_average"
@@ -191,7 +191,7 @@
                   truncate-length="15"
                   outlined
                   dense
-                  background-color="white"
+                  background-color="#ffaaaa"
                   hide-details
                   label="Upload post-secondary transcript"
                 ></v-file-input>
@@ -205,7 +205,7 @@
                   class="mt-1"
                   outlined
                   dense
-                  background-color="white"
+                  background-color="#ffaaaa"
                   hide-details
                   label="Post-secondary average"
                   v-model="radio_club.post_secondary_average"

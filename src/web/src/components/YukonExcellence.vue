@@ -18,7 +18,7 @@
             <v-select
               outlined
               dense
-              background-color="white"
+              background-color="#ffaaaa"
               hide-details
               label="Left high school year"
               v-model="high_school_year"
@@ -29,7 +29,7 @@
             <v-select
               outlined
               dense
-              background-color="white"
+              background-color="#ffaaaa"
               hide-details
               label="Left high school month"
               v-model="high_school_month"
@@ -40,7 +40,7 @@
             <v-text-field
               outlined
               dense
-              background-color="white"
+              background-color="#ffaaaa"
               hide-details
               label="YEA request amount"
               v-model="yea_request_amount"
@@ -52,7 +52,7 @@
               outlined
               dense
               disabled
-              background-color="white"
+              background-color="#ffaaaa"
               hide-details
               label="Current YEA balance"
               v-model="yea_balance"
@@ -79,7 +79,7 @@
                   outlined
                   hide-details
                   dense
-                  background-color="white"
+                  background-color="#ffaaaa"
                   v-bind="attrs"
                   v-on="on"
                 ></v-text-field>
@@ -94,7 +94,7 @@
             <v-text-field
               outlined
               dense
-              background-color="white"
+              background-color="#ffaaaa"
               hide-details
               label="Yukon ID"
               v-model="yukon_id"
@@ -119,7 +119,7 @@
             <v-text-field
               outlined
               dense
-              background-color="white"
+              background-color="#ffaaaa"
               hide-details
               label="First name"
               v-model="item.first_name"
@@ -129,7 +129,7 @@
             <v-text-field
               outlined
               dense
-              background-color="white"
+              background-color="#ffaaaa"
               hide-details
               label="Last name"
               v-model="item.last_name"
@@ -139,7 +139,7 @@
             <v-text-field
               outlined
               dense
-              background-color="white"
+              background-color="#ffaaaa"
               hide-details
               label="Course"
               v-model="item.course"
@@ -149,7 +149,7 @@
             <v-text-field
               outlined
               dense
-              background-color="white"
+              background-color="#ffaaaa"
               hide-details
               label="Amount"
               v-model="item.amount"
@@ -160,7 +160,7 @@
             <v-text-field
               outlined
               dense
-              background-color="white"
+              background-color="#ffaaaa"
               hide-details
               label="Year"
               v-model="item.year"

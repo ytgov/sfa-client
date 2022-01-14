@@ -8,7 +8,7 @@
             <v-autocomplete
               outlined
               dense
-              background-color="white"
+              background-color="#ffaaaa"
               hide-details
               label="High school"
               v-model="selectedHighSchool"
@@ -21,7 +21,7 @@
             <v-text-field
               outlined
               dense
-              background-color="white"
+              background-color="#ffaaaa"
               hide-details
               label="High school student number"
               v-model="application.student.YUKON_ID"
@@ -32,7 +32,7 @@
               outlined
               dense
               hide-details
-              background-color="white"
+              background-color="#ffaaaa"
               label="Checked for high school student number"
               v-model="application.student.CHECKED_FOR_YTID_FLG"
               :items="['Yes','No']"
@@ -42,7 +42,7 @@
             <v-select
               outlined
               dense
-              background-color="white"
+              background-color="#ffaaaa"
               hide-details
               label="High school city"
               v-model="high_school_city"
@@ -55,7 +55,7 @@
             <v-select
               outlined
               dense
-              background-color="white"
+              background-color="#ffaaaa"
               hide-details
               label="High school province"
               v-model="high_school_province"
@@ -68,7 +68,7 @@
             <v-select
               outlined
               dense
-              background-color="white"
+              background-color="#ffaaaa"
               hide-details
               label="High school country"
               v-model="high_school_country"
@@ -82,7 +82,7 @@
             <v-select
               outlined
               dense
-              background-color="white"
+              background-color="#ffaaaa"
               hide-details
               label="Left high school year"
               v-model="application.student.HIGH_SCHOOL_LEFT_YEAR"
@@ -93,7 +93,7 @@
             <v-select
               outlined
               dense
-              background-color="white"
+              background-color="#ffaaaa"
               hide-details
               label="Left high school month"
               v-model="application.student.HIGH_SCHOOL_LEFT_MONTH"
@@ -104,7 +104,7 @@
             <v-select
               outlined
               dense
-              background-color="white"
+              background-color="#ffaaaa"
               hide-details
               label="Last grade completed"
               v-model="application.student.HIGH_SCHOOL_FINAL_GRADE"
@@ -115,7 +115,7 @@
             <v-select
               outlined
               dense
-              background-color="white"
+              background-color="#ffaaaa"
               hide-details
               label="Highest education level"
               v-model="application.student.EDUCATION_LEVEL_ID"
@@ -129,7 +129,7 @@
             <v-text-field
               outlined
               dense
-              background-color="white"
+              background-color="#ffaaaa"
               hide-details
               label="Average 12th grade mark"
               type="number"

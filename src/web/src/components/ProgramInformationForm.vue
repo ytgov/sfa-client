@@ -8,7 +8,7 @@
             <v-select
               outlined
               dense
-              background-color="white"
+              background-color="#ffaaaa"
               hide-details
               label="Academic year"
               :items="yearOptions"
@@ -20,7 +20,7 @@
             <v-autocomplete
               outlined
               dense
-              background-color="white"
+              background-color="#ffaaaa"
               hide-details
               label="Institution"
               v-model="application.INSTITUTION_ID"
@@ -34,7 +34,7 @@
             <v-text-field
               outlined
               dense
-              background-color="white"
+              background-color="#ffaaaa"
               hide-details
               label="Entering year #"
               v-model="application.PROGRAM_YEAR"
@@ -46,7 +46,7 @@
               outlined
               dense
               readonly
-              background-color="white"
+              background-color="#ffaaaa"
               hide-details
               label="Fall classes start date"
               v-model="selectedInstitution.CLASSES_START_DATE"
@@ -57,7 +57,7 @@
               outlined
               dense
               readonly
-              background-color="white"
+              background-color="#ffaaaa"
               hide-details
               label="Winter classes end date"
               v-model="selectedInstitution.CLASSES_END_DATE"
@@ -68,7 +68,7 @@
             <v-text-field
               outlined
               dense
-              background-color="white"
+              background-color="#ffaaaa"
               hide-details
               label="Student number"
               v-model="application.STUDENT_NUMBER"
@@ -88,7 +88,7 @@
                       <v-text-field
                         outlined
                         dense
-                        background-color="white"
+                        background-color="#ffaaaa"
                         hide-details
                         label="Address"
                         v-model="selectedInstitution.ADDRESS"
@@ -99,7 +99,7 @@
                       <v-select
                         outlined
                         dense
-                        background-color="white"
+                        background-color="#ffaaaa"
                         hide-details
                         label="City"
                         v-model="selectedInstitution.CITY_ID"
@@ -113,7 +113,7 @@
                       <v-select
                         outlined
                         dense
-                        background-color="white"
+                        background-color="#ffaaaa"
                         hide-details
                         label="Province"
                         v-model="selectedInstitution.PROVINCE_ID"
@@ -127,7 +127,7 @@
                       <v-text-field
                         outlined
                         dense
-                        background-color="white"
+                        background-color="#ffaaaa"
                         hide-details
                         label="Postal code"
                         v-model="selectedInstitution.POSTAL_CODE"
@@ -138,7 +138,7 @@
                       <v-select
                         outlined
                         dense
-                        background-color="white"
+                        background-color="#ffaaaa"
                         hide-details
                         label="Country"
                         :items="countryOptions"
@@ -152,7 +152,7 @@
                       <v-text-field
                         outlined
                         dense
-                        background-color="white"
+                        background-color="#ffaaaa"
                         hide-details
                         label="Care of"
                         v-model="selectedInstitution.CARE_OF"
@@ -165,7 +165,7 @@
                         outlined
                         dense
                         readonly
-                        background-color="white"
+                        background-color="#ffaaaa"
                         hide-details
                         label="Inst. code"
                         v-model="selectedInstitution.INSTITUTION_CODE"
@@ -177,7 +177,7 @@
                         outlined
                         dense
                         readonly
-                        background-color="white"
+                        background-color="#ffaaaa"
                         hide-details
                         label="Inst. level"
                         v-model="selectedInstitution.INSTITUTION_LEVEL_ID"
@@ -191,7 +191,7 @@
                         outlined
                         dense
                         readonly
-                        background-color="white"
+                        background-color="#ffaaaa"
                         hide-details
                         label="FOS"
                         v-model="selectedInstitution.fos"
@@ -214,7 +214,7 @@
             <v-autocomplete
               outlined
               dense
-              background-color="white"
+              background-color="#ffaaaa"
               hide-details
               label="Program study area"
               v-model="application.STUDY_AREA_ID"
@@ -227,7 +227,7 @@
             <v-select
               outlined
               dense
-              background-color="white"
+              background-color="#ffaaaa"
               hide-details
               label="Program type"
               v-model="application.PROGRAM_ID"
@@ -240,7 +240,7 @@
             <v-text-field
               outlined
               dense
-              background-color="white"
+              background-color="#ffaaaa"
               hide-details
               label="Duration"
               v-model="application.PROGRAM_YEAR_TOTAL"
@@ -250,7 +250,7 @@
             <v-select
               outlined
               dense
-              background-color="white"
+              background-color="#ffaaaa"
               hide-details
               label="Program division"
               v-model="application.PROGRAM_DIVISION"
@@ -262,7 +262,7 @@
             <v-select
               outlined
               dense
-              background-color="white"
+              background-color="#ffaaaa"
               hide-details
               label="Student category"
               v-model="application.CATEGORY_ID"
@@ -276,7 +276,7 @@
             <v-select
               outlined
               dense
-              background-color="white"
+              background-color="#ffaaaa"
               hide-details
               label="Attendance"
               v-model="application.attendance"
@@ -303,7 +303,7 @@
                   outlined
                   hide-details
                   dense
-                  background-color="white"
+                  background-color="#ffaaaa"
                   v-bind="attrs"
                   v-on="on"
                 ></v-text-field>
@@ -333,7 +333,7 @@
                   readonly
                   outlined
                   dense
-                  background-color="white"
+                  background-color="#ffaaaa"
                   v-bind="attrs"
                   v-on="on"
                 ></v-text-field>

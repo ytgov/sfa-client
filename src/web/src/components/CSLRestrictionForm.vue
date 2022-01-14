@@ -9,7 +9,7 @@
               class="mb-5"
               outlined
               dense
-              background-color="white"
+              background-color="#ffaaaa"
               hide-details
               label="Restrict / Warning Code"
               v-model="restrict_code"
@@ -17,7 +17,7 @@
             <v-text-field
               outlined
               dense
-              background-color="white"
+              background-color="#ffaaaa"
               hide-details
               label="Type"
               v-model="restrict_type"
@@ -27,7 +27,7 @@
             <v-textarea
               outlined
               dense
-              background-color="white"
+              background-color="#ffaaaa"
               hide-details
               label="Definition"
               v-model="restrict_definition"
@@ -39,7 +39,7 @@
               class="mb-5"
               outlined
               dense
-              background-color="white"
+              background-color="#ffaaaa"
               hide-details
               label="Reason Code"
               v-model="reason_code"
@@ -47,7 +47,7 @@
             <v-text-field
               outlined
               dense
-              background-color="white"
+              background-color="#ffaaaa"
               hide-details
               label="Type"
               v-model="reason_type"
@@ -57,7 +57,7 @@
             <v-textarea
               outlined
               dense
-              background-color="white"
+              background-color="#ffaaaa"
               hide-details
               label="Definition"
               v-model="reason_definition"
@@ -83,7 +83,7 @@
                   readonly
                   outlined
                   dense
-                  background-color="white"
+                  background-color="#ffaaaa"
                   v-bind="attrs"
                   v-on="on"
                 ></v-text-field>
@@ -98,7 +98,7 @@
             <v-textarea
               outlined
               dense
-              background-color="white"
+              background-color="#ffaaaa"
               hide-details
               label="Comment"
               v-model="clearance_comment"
@@ -114,7 +114,7 @@
             <v-text-field
               outlined
               dense
-              background-color="white"
+              background-color="#ffaaaa"
               hide-details
               label="CSL Over awards"
               v-model="over_awards"
@@ -133,7 +133,7 @@
             <v-select
               outlined
               dense
-              background-color="white"
+              background-color="#ffaaaa"
               hide-details
               label="Shcolastic warning code"
               v-model="scholastic_warning_code"
@@ -159,7 +159,7 @@
                   readonly
                   outlined
                   dense
-                  background-color="white"
+                  background-color="#ffaaaa"
                   v-bind="attrs"
                   v-on="on"
                 ></v-text-field>

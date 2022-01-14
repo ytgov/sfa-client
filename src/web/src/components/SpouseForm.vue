@@ -8,7 +8,7 @@
             <v-text-field
               outlined
               dense
-              background-color="white"
+              background-color="#ffaaaa"
               hide-details
               label="Last name"
               v-model="application.SPOUSE_LAST_NAME"
@@ -18,7 +18,7 @@
             <v-text-field
               outlined
               dense
-              background-color="white"
+              background-color="#ffaaaa"
               hide-details
               label="First name"
               v-model="application.SPOUSE_FIRST_NAME"
@@ -28,7 +28,7 @@
             <v-text-field
               outlined
               dense
-              background-color="white"
+              background-color="#ffaaaa"
               hide-details
               label="Initial"
               v-model="application.SPOUSE_INITIALS"
@@ -38,7 +38,7 @@
             <v-text-field
               outlined
               dense
-              background-color="white"
+              background-color="#ffaaaa"
               hide-details
               label="SIN"
               v-model="application.SPOUSE_SIN"
@@ -48,7 +48,7 @@
             <v-text-field
               outlined
               dense
-              background-color="white"
+              background-color="#ffaaaa"
               hide-details
               label="Income (line 150)"
               v-model="application.SPOUSE_LN150_INCOME"
@@ -67,7 +67,7 @@
             <v-select
               outlined
               dense
-              background-color="white"
+              background-color="#ffaaaa"
               hide-details
               label="Study employment status"
               v-model="application.SPOUSE_PRESTUDY_EMP_STATUS_ID"
@@ -82,7 +82,7 @@
             <v-text-field
               outlined
               dense
-              background-color="white"
+              background-color="#ffaaaa"
               hide-details
               label="In school from"
               v-model="application.SPOUSE_STUDY_SCHOOL_FROM"
@@ -92,7 +92,7 @@
             <v-text-field
               outlined
               dense
-              background-color="white"
+              background-color="#ffaaaa"
               hide-details
               label="In school to"
               v-model="application.SPOUSE_STUDY_SCHOOL_TO"
@@ -131,7 +131,7 @@
             <v-text-field
               outlined
               dense
-              background-color="white"
+              background-color="#ffaaaa"
               hide-details
               label="In no, distance from school/work (km)"
               v-model="application.STUDY_DISTANCE"

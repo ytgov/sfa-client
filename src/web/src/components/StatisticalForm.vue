@@ -9,7 +9,7 @@
             <v-select
               outlined
               dense
-              background-color="white"
+              background-color="#ffaaaa"
               hide-details
               label="Marital status"
               v-model="application.MARITAL_STATUS_ID"
@@ -26,7 +26,7 @@
               outlined
               dense
               hide-details
-              background-color="white"
+              background-color="#ffaaaa"
               label="Disabled"
               v-model="application.DISABLED_FLAG"
               :items="[
@@ -43,7 +43,7 @@
               outlined
               dense
               hide-details
-              background-color="white"
+              background-color="#ffaaaa"
               label="Visible minority"
               v-model="application.MINORITY_FLAG"
               :items="[
@@ -60,7 +60,7 @@
             <v-select
               outlined
               dense
-              background-color="white"
+              background-color="#ffaaaa"
               hide-details
               label="Citizenship"
               v-model="application.CITIZENSHIP_STATUS"
@@ -74,7 +74,7 @@
             <v-select
               outlined
               dense
-              background-color="white"
+              background-color="#ffaaaa"
               hide-details
               label="Aboriginal status"
               v-model="application.ABORIGINAL_STATUS_ID"
@@ -94,7 +94,7 @@
             <v-select
               outlined
               dense
-              background-color="white"
+              background-color="#ffaaaa"
               hide-details
               label="Yukon First Nation"
               v-model="application.FIRST_NATION_ID"

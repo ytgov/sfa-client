@@ -16,7 +16,7 @@
                 <v-select
                   outlined
                   dense
-                  background-color="white"
+                  background-color="#ffaaaa"
                   hide-details
                   label="Funding Type"
                   v-model="item.REQUEST_TYPE_ID"
@@ -44,7 +44,7 @@
                       readonly
                       outlined
                       dense
-                      background-color="white"
+                      background-color="#ffaaaa"
                       v-bind="attrs"
                       v-on="on"
                     ></v-text-field>
@@ -60,7 +60,7 @@
                 <v-select
                   outlined
                   dense
-                  background-color="white"
+                  background-color="#ffaaaa"
                   hide-details
                   label="Status"
                   v-model="item.STATUS_ID"
@@ -73,7 +73,7 @@
                 <v-autocomplete
                   outlined
                   dense
-                  background-color="white"
+                  background-color="#ffaaaa"
                   hide-details
                   label="Reason"
                   v-model="item.STATUS_REASON_ID"
@@ -101,7 +101,7 @@
                       readonly
                       outlined
                       dense
-                      background-color="white"
+                      background-color="#ffaaaa"
                       v-bind="attrs"
                       v-on="on"
                     ></v-text-field>
@@ -154,7 +154,7 @@
                 <v-autocomplete
                   outlined
                   dense
-                  background-color="white"
+                  background-color="#ffaaaa"
                   hide-details
                   label="Requirement Type"
                   v-model="item.REQUIREMENT_TYPE_ID"
@@ -183,7 +183,7 @@
                       readonly
                       outlined
                       dense
-                      background-color="white"
+                      background-color="#ffaaaa"
                       v-bind="attrs"
                       v-on="on"
                     ></v-text-field>

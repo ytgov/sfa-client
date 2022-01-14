@@ -6,7 +6,7 @@
       information.
     </p>
 
-    <div v-for="(item, i) of application.consents" :key="i">
+    <div v-for="(item, i) of student.consents" :key="i">
       <v-card class="default mb-5">
         <v-card-title
           >Consent {{ 1 + i }}
@@ -26,7 +26,7 @@
               <v-text-field
                 outlined
                 dense
-                background-color="white"
+                background-color="#ffaaaa"
                 hide-details
                 label="Consent person"
                 v-model="item.CONSENT_PERSON"
@@ -38,7 +38,7 @@
                 dense
                 hide-details
                 label="SFA"
-                background-color="white"
+                background-color="#ffaaaa"
                 v-model="item.CONSENT_SFA_FLG"
                 :items="['Yes', 'No']"
               ></v-select>
@@ -49,7 +49,7 @@
                 dense
                 hide-details
                 label="CSL"
-                background-color="white"
+                background-color="#ffaaaa"
                 v-model="item.CONSENT_CSL_FLG"
                 :items="['Yes', 'No']"
               ></v-select>
@@ -59,7 +59,7 @@
               <v-text-field
                 outlined
                 dense
-                background-color="white"
+                background-color="#ffaaaa"
                 hide-details
                 label="Academic year start"
                 v-model="item.ACADEMIC_YEAR_START"
@@ -69,10 +69,13 @@
               <v-text-field
                 outlined
                 dense
-                background-color="white"
+                background-color="#ffaaaa"
                 hide-details
                 label="Academic year end"
                 v-model="item.ACADEMIC_YEAR_END"
+                @change="
+                  doSaveConsent('ACADEMIC_YEAR_END', student.SCHOOL_EMAIL)
+                "
               ></v-text-field>
             </div>
           </div>
@@ -87,9 +90,14 @@
 
 <script>
 import store from "../store";
+import moment from "moment";
+
 export default {
   data: () => ({}),
   computed: {
+    student: function () {
+      return store.getters.selectedStudent;
+    },
     application: function () {
       return store.getters.selectedApplication;
     },
@@ -97,20 +105,31 @@ export default {
   async created() {},
   methods: {
     addConsent() {
-      this.application.consents.push({});
+      let newConsent = {
+        STUDENT_ID: this.student.STUDENT_ID,
+        CONSENT_SFA_FLG: "Yes",
+        CONSENT_CSL_FLG: "Yes",
+        ACADEMIC_YEAR_START: moment().year(),
+        CONSENT_PERSON: "New Person"
+      };
+
+      this.doSaveConsent(newConsent);
+
+      this.student.consents.push(newConsent);
+
     },
     removeConsent(index) {
       this.$refs.confirm.show(
         "Are you sure?",
         "Click 'Confirm' below to permanently remove this consent.",
         () => {
-          this.application.consents.splice(index, 1);
+          this.student.consents.splice(index, 1);
         },
         () => {}
       );
     },
-    doSaveStudent(field, value) {
-      store.dispatch("updateStudent", [field, value, this]);
+    doSaveConsent(value) {
+      store.dispatch("updateConsent", [value, this]);
     },
   },
 };

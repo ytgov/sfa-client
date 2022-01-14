@@ -8,7 +8,7 @@
             <v-text-field
               outlined
               dense
-              background-color="white"
+              background-color="#ffaaaa"
               hide-details
               label="Funding years used"
               v-model="pre_system_funding_year"
@@ -22,7 +22,7 @@
               class="mb-5"
               outlined
               dense
-              background-color="white"
+              background-color="#ffaaaa"
               hide-details
               label="Funding years used"
               v-model="pre_leg_funding_year"
@@ -33,7 +33,7 @@
               class="mb-5"
               outlined
               dense
-              background-color="white"
+              background-color="#ffaaaa"
               hide-details
               label="YG/STA funding weeks"
               v-model="pre_leg_funding_weeks"
@@ -43,7 +43,7 @@
               class="mb-5"
               outlined
               dense
-              background-color="white"
+              background-color="#ffaaaa"
               hide-details
               label="STA upgrading weeks"
               v-model="pre_leg_upgrading_weeks"
@@ -53,7 +53,7 @@
             <v-text-field
               outlined
               dense
-              background-color="white"
+              background-color="#ffaaaa"
               hide-details
               label="YG outside travel count"
               v-model="pre_leg_travel_count"
@@ -68,7 +68,7 @@
               class="mb-5"
               outlined
               dense
-              background-color="white"
+              background-color="#ffaaaa"
               hide-details
               label="YG/STA funding weeks"
               v-model="adjust_funding_weeks"
@@ -78,7 +78,7 @@
               class="mb-5"
               outlined
               dense
-              background-color="white"
+              background-color="#ffaaaa"
               hide-details
               label="STA upgrading weeks"
               v-model="adjust_upgrading_weeks"
@@ -88,7 +88,7 @@
             <v-text-field
               outlined
               dense
-              background-color="white"
+              background-color="#ffaaaa"
               hide-details
               label="YG outside travel count"
               v-model="adjust_travel_count"
@@ -103,7 +103,7 @@
               class="mb-5"
               outlined
               dense
-              background-color="white"
+              background-color="#ffaaaa"
               hide-details
               readonly
               label="Total funding weeks"
@@ -114,7 +114,7 @@
               class="mb-5"
               outlined
               dense
-              background-color="white"
+              background-color="#ffaaaa"
               hide-details
               readonly
               label="Total upgrading weeks"
@@ -125,7 +125,7 @@
             <v-text-field
               outlined
               dense
-              background-color="white"
+              background-color="#ffaaaa"
               hide-details
               readonly
               label="Total travel count"

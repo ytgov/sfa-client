@@ -102,7 +102,7 @@
       v-on:showSuccess="showSuccess"
       v-on:showAPIMessages="showAPIMessages"
     ></application-create>
-    
+
     <application-duplicate
       ref="duplicateApplicationForm"
       v-on:showError="showError"
@@ -148,7 +148,7 @@
         hide-details
       ></v-select> -->
       <div v-if="isAuthenticated">
-        <v-btn color="primary" text class="mr-1" to="/dashboard">Home</v-btn>
+        <v-btn color="primary" text class="mr-1" to="/dashboard"><v-icon>mdi-home</v-icon></v-btn>
 
         <!-- <v-btn color="primary" text class="mr-1" to="/reports">Reports</v-btn> -->
 

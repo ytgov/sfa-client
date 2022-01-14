@@ -23,28 +23,28 @@
             label="First name"
             dense
             outlined
-            background-color="white"
+            background-color="#ffaaaa"
             v-model="student.first_name"
           ></v-text-field>
           <v-text-field
             label="Last name"
             dense
             outlined
-            background-color="white"
+            background-color="#ffaaaa"
             v-model="student.last_name"
           ></v-text-field>
           <v-text-field
             label="SIN"
             dense
             outlined
-            background-color="white"
+            background-color="#ffaaaa"
             v-model="student.sin"
           ></v-text-field>
           <v-text-field
             label="SIN"
             dense
             outlined
-            background-color="white"
+            background-color="#ffaaaa"
             v-model="student.sin"
           ></v-text-field>
 

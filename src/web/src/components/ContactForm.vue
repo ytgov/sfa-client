@@ -202,9 +202,9 @@
               background-color="white"
               hide-details
               label="Address line 1"
-              v-model="student.SCHOOL_ADDR1"
+              v-model="student.MAILING_ADDRESS1"
               @change="
-                doSaveStudent('SCHOOL_ADDR1', student.SCHOOL_ADDR1)
+                doSaveStudent('MAILING_ADDRESS1', student.MAILING_ADDRESS1)
               "
             ></v-text-field>
           </div>
@@ -215,9 +215,9 @@
               background-color="white"
               hide-details
               label="Address line 2"
-              v-model="student.SCHOOL_ADDR2"
+              v-model="student.MAILING_ADDRESS2"
               @change="
-                doSaveStudent('SCHOOL_ADDR2', student.SCHOOL_ADDR2)
+                doSaveStudent('MAILING_ADDRESS2', student.MAILING_ADDRESS2)
               "
             ></v-text-field>
           </div>
@@ -231,9 +231,9 @@
               item-value="CITY_ID"
               item-text="DESCRIPTION"
               :items="cityOptions"
-              v-model="student.SCHOOL_CITY"
+              v-model="student.MAILING_CITY_ID"
               @change="
-                doSaveStudent('SCHOOL_CITY', student.SCHOOL_CITY)
+                doSaveStudent('MAILING_CITY_ID', student.MAILING_CITY_ID)
               "
             ></v-autocomplete>
           </div>
@@ -247,9 +247,9 @@
               :items="provinceOptions"
               item-value="PROVINCE_ID"
               item-text="DESCRIPTION"
-              v-model="student.SCHOOL_PROVINCE"
+              v-model="student.MAILING_PROVINCE_ID"
               @change="
-                doSaveStudent('SCHOOL_PROVINCE', student.SCHOOL_PROVINCE)
+                doSaveStudent('MAILING_PROVINCE_ID', student.MAILING_PROVINCE_ID)
               "
             ></v-autocomplete>
           </div>
@@ -260,9 +260,9 @@
               background-color="white"
               hide-details
               label="Postal code"
-              v-model="student.SCHOOL_POSTAL"
+              v-model="student.MAILING_POSTAL_CODE"
               @change="
-                doSaveStudent('SCHOOL_POSTAL', student.SCHOOL_POSTAL)
+                doSaveStudent('MAILING_POSTAL_CODE', student.MAILING_POSTAL_CODE)
               "
             ></v-text-field>
           </div>
@@ -276,9 +276,9 @@
               :items="countryOptions"
               item-value="COUNTRY_ID"
               item-text="DESCRIPTION"
-              v-model="student.SCHOOL_COUNTRY"
+              v-model="student.MAILING_COUNTRY_ID"
               @change="
-                doSaveStudent('SCHOOL_COUNTRY', student.SCHOOL_COUNTRY)
+                doSaveStudent('MAILING_COUNTRY_ID', student.MAILING_COUNTRY_ID)
               "
             ></v-autocomplete>
           </div>

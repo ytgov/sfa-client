@@ -23,7 +23,7 @@
             <v-text-field
               outlined
               dense
-              background-color="white"
+              background-color="#ffaaaa"
               hide-details
               label="Last name"
               v-model="item.DEPENDENT_LAST_NAME"
@@ -33,7 +33,7 @@
             <v-text-field
               outlined
               dense
-              background-color="white"
+              background-color="#ffaaaa"
               hide-details
               label="First name"
               v-model="item.DEPENDENT_FIRST_NAME"
@@ -57,7 +57,7 @@
                   readonly
                   outlined
                   dense
-                  background-color="white"
+                  background-color="#ffaaaa"
                   v-bind="attrs"
                   v-on="on"
                 ></v-text-field>
@@ -75,7 +75,7 @@
             <v-select
               outlined
               dense
-              background-color="white"
+              background-color="#ffaaaa"
               hide-details
               label="Relationship"
               :items="relationshipOptions"
@@ -86,7 +86,7 @@
             <v-text-field
               outlined
               dense
-              background-color="white"
+              background-color="#ffaaaa"
               hide-details
               readonly
               label="Age"
@@ -143,7 +143,7 @@
             <v-textarea
               outlined
               dense
-              background-color="white"
+              background-color="#ffaaaa"
               hide-details
               label="Comments/Shared custody info"
               v-model="item.COMMENTS"

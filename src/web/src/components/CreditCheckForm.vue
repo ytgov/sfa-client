@@ -25,7 +25,7 @@
                   readonly
                   outlined
                   dense
-                  background-color="white"
+                  background-color="#ffaaaa"
                   v-bind="attrs"
                   v-on="on"
                 ></v-text-field>

@@ -122,6 +122,57 @@ export default new Vuex.Store({
           console.log("ERROR HAPPENED", err);
           emitter.$emit("showError", err.data.messages[0].text);
         })
+    },
+    updateConsent(state, vals) {
+      console.log(vals[0])
+
+
+      //let body = JSON.parse(`{"data": ${vals[0]}}`);
+
+      //if (vals[1] == null) {
+      //  body = JSON.parse(`{"${vals[0]}": ${vals[1]}}`);
+      // }
+      //let body = vals[0];
+
+      //console.log(body);
+
+      let emitter = vals[1];
+      let consent = vals[0];
+
+      if (consent.STUDENT_CONSENT_ID) {
+        delete consent.STUDENT_CONSENT_ID;
+
+        axios.put(`${STUDENT_URL}/${state.state.selectedStudentId}/consent/${consent.STUDENT_CONSENT_ID}`, vals[0])
+          .then(resp => {
+            let message = resp.data.messages[0];
+            if (message.variant == "success")
+              emitter.$emit("showSuccess", message.text);
+            else
+              emitter.$emit("showError", message.text);
+          })
+          .catch(err => {
+            console.log("ERROR HAPPENED", err);
+            emitter.$emit("showError", err.data.messages[0].text);
+          })
+      }
+      else {
+
+        axios.post(`${STUDENT_URL}/${state.state.selectedStudentId}/consent`, vals[0])
+          .then(resp => {
+            let message = resp.data.messages[0];
+            if (message.variant == "success")
+              emitter.$emit("showSuccess", message.text);
+            else
+              emitter.$emit("showError", message.text);
+          })
+          .catch(err => {
+            console.log("ERROR HAPPENED", err);
+            emitter.$emit("showError", err.data.messages[0].text);
+          })
+      }
+
+
+
     }
   },
   modules: { auth, profile }
