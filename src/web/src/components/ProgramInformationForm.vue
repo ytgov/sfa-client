@@ -88,7 +88,7 @@
                       <v-text-field
                         outlined
                         dense
-                        background-color="#ffaaaa"
+                        background-color="white"
                         hide-details
                         label="Address"
                         v-model="selectedInstitution.ADDRESS"
@@ -99,7 +99,7 @@
                       <v-select
                         outlined
                         dense
-                        background-color="#ffaaaa"
+                        background-color="white"
                         hide-details
                         label="City"
                         v-model="selectedInstitution.CITY_ID"
@@ -113,7 +113,7 @@
                       <v-select
                         outlined
                         dense
-                        background-color="#ffaaaa"
+                        background-color="white"
                         hide-details
                         label="Province"
                         v-model="selectedInstitution.PROVINCE_ID"
@@ -127,7 +127,7 @@
                       <v-text-field
                         outlined
                         dense
-                        background-color="#ffaaaa"
+                        background-color="white"
                         hide-details
                         label="Postal code"
                         v-model="selectedInstitution.POSTAL_CODE"
@@ -138,7 +138,7 @@
                       <v-select
                         outlined
                         dense
-                        background-color="#ffaaaa"
+                        background-color="white"
                         hide-details
                         label="Country"
                         :items="countryOptions"
@@ -152,7 +152,7 @@
                       <v-text-field
                         outlined
                         dense
-                        background-color="#ffaaaa"
+                        background-color="white"
                         hide-details
                         label="Care of"
                         v-model="selectedInstitution.CARE_OF"
@@ -165,7 +165,7 @@
                         outlined
                         dense
                         readonly
-                        background-color="#ffaaaa"
+                        background-color="white"
                         hide-details
                         label="Inst. code"
                         v-model="selectedInstitution.INSTITUTION_CODE"
@@ -177,7 +177,7 @@
                         outlined
                         dense
                         readonly
-                        background-color="#ffaaaa"
+                        background-color="white"
                         hide-details
                         label="Inst. level"
                         v-model="selectedInstitution.INSTITUTION_LEVEL_ID"
@@ -191,7 +191,7 @@
                         outlined
                         dense
                         readonly
-                        background-color="#ffaaaa"
+                        background-color="white"
                         hide-details
                         label="FOS"
                         v-model="selectedInstitution.fos"

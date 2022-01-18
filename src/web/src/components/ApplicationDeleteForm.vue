@@ -5,43 +5,18 @@
       <v-card-text>
         <v-divider class="mb-5"></v-divider>
         <v-form v-model="valid">
-          <v-text-field
-            :value="studentName"
-            dense
-            outlined
-            label="Student"
-            readonly
-          ></v-text-field>
+         
 
-          <v-autocomplete
-            label="Academic year"
-            outlined
-            dense
-            :items="yearOptions"
-            background-color="#ffaaaa"
-            v-model="academicYear"
-            :rules="requiredRule"
-          ></v-autocomplete>
-          <v-autocomplete
-            label="Institution"
-            outlined
-            dense
-            background-color="#ffaaaa"
-            :items="institutionOptions"
-            item-text="NAME"
-            item-value="INSTITUTION_ID"
-            v-model="institutionId"
-            :rules="requiredRule"
-          ></v-autocomplete>
+          <p>This form does not work yet.</p>
 
           <v-btn color="secondary" @click="hide">Cancel</v-btn>
-          <v-btn
+          <!-- <v-btn
             color="primary"
             class="float-right"
             @click="create"
             :disabled="!valid"
             >Create</v-btn
-          >
+          > -->
         </v-form>
       </v-card-text>
     </v-card></v-dialog

@@ -5,7 +5,7 @@
     </h1>
 
     <v-row>
-      <v-col cols="4">
+      <v-col cols="10">
         <v-text-field
           label="Search"
           outlined
@@ -17,46 +17,24 @@
           hint="Name, SIN, Locator, Vendor, Email"
         ></v-text-field>
       </v-col>
-      <v-col cols="4">
-        <v-text-field
-          label="SIN"
-          outlined
-          dense
-          v-model="search"
-          @click:append="doSearch"
-          @keydown="searchKeyUp"
-        ></v-text-field>
-      </v-col>
-      <v-col cols="4">
-        <v-text-field
-          label="Search"
-          outlined
-          dense
-          v-model="search"
-          @click:append="doSearch"
-          @keydown="searchKeyUp"
-        ></v-text-field>
-      </v-col>
-
-      <v-col></v-col>
       <v-col
-        ><v-btn color="primary" class="float-right" @click="createStudentClick"
+        ><v-btn color="primary" class="my-0" @click="createStudentClick"
           >Create student</v-btn
-        ></v-col
-      >
+        >
+      </v-col>
     </v-row>
 
     <v-data-table
       :items="searchResults"
       :headers="[
-        { text: 'Name', value: 'name' },
+      { value: 'action', width: '40px'},
         { text: 'Sin', value: 'sin' },
+        { text: 'Name', value: 'name' },
         { text: 'Locator', value: 'locator_number' },
         { text: 'Birth date', value: 'birth_date' },
         { text: 'Vendor', value: 'vendor_id' },
         { text: 'Applications', value: 'application_count' },
       ]"
-      @click:row="selectStudent"
       show-expand
       :single-expand="singleExpand"
       :expanded.sync="expanded"
@@ -73,6 +51,16 @@
           ><br />
         </td>
       </template>
+      <template v-slot:item.action="{ item }">
+            <v-btn
+              outlined
+              icon
+              color="primary"
+              :to="`/student/${item.student_id}`"
+              title="View student record"
+              ><v-icon>mdi-school</v-icon></v-btn
+            >
+          </template>
     </v-data-table>
 
     <v-navigation-drawer
@@ -86,10 +74,6 @@
         :selectedStudent="selectedStudent"
         :studentApplications="studentApplications"
       ></application-list>
-
-      <v-btn color="primary" class="mx-5" @click="createApplication"
-        >Create application</v-btn
-      >
     </v-navigation-drawer>
     <create-student-dialog ref="createStudentDialog"></create-student-dialog>
   </div>
@@ -98,7 +82,7 @@
 <script>
 import axios from "axios";
 import { STUDENT_URL, STUDENT_SEARCH_URL } from "../urls";
-import CreateStudentDialog from '../components/CreateStudentDialog.vue';
+import CreateStudentDialog from "../components/CreateStudentDialog.vue";
 
 export default {
   components: { CreateStudentDialog },
@@ -161,10 +145,6 @@ export default {
       axios.post(`${STUDENT_URL}`, body).then((resp) => {
         console.log(resp.data);
       });
-    },
-
-    createApplication() {
-      console.log("CREATEING App for " + this.selectedStudent.student_id);
     },
   },
 };

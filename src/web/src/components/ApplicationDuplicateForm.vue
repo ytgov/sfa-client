@@ -18,7 +18,7 @@
             outlined
             dense
             :items="yearOptions"
-            background-color="#ffaaaa"
+            background-color="white"
             v-model="academicYear"
             :rules="requiredRule"
           ></v-autocomplete>
@@ -26,7 +26,7 @@
             label="Institution"
             outlined
             dense
-            background-color="#ffaaaa"
+            background-color="white"
             :items="institutionOptions"
             item-text="NAME"
             item-value="INSTITUTION_ID"
@@ -34,14 +34,16 @@
             :rules="requiredRule"
           ></v-autocomplete>
 
+          <p>This form does not work yet</p>
+
           <v-btn color="secondary" @click="hide">Cancel</v-btn>
-          <v-btn
+          <!-- <v-btn
             color="primary"
             class="float-right"
             @click="create"
             :disabled="!valid"
             >Create</v-btn
-          >
+          > -->
         </v-form>
       </v-card-text>
     </v-card></v-dialog
@@ -55,6 +57,11 @@ import store from "../store";
 import { APPLICATION_URL, INSTITUTION_URL } from "../urls";
 
 export default {
+  computed: {
+    student: function () {
+      return store.getters.selectedStudent;
+    },
+  },
   data: () => ({
     visible: false,
     valid: false,
@@ -71,9 +78,9 @@ export default {
     show(student) {
       this.studentId = student.STUDENT_ID;
       this.institutionId = null;
-      this.studentName = `${student.FIRST_NAME} ${student.INITIALS} ${student.LAST_NAME}`;
+      this.studentName = `${this.student.FIRST_NAME} ${this.student.INITIALS} ${this.student.LAST_NAME}`;
 
-      if (student.SIN) this.studentName += ` (${student.SIN})`;
+      if (this.student.SIN) this.studentName += ` (${this.student.SIN})`;
 
       this.loadInstitutions();
 

@@ -26,10 +26,11 @@
               <v-text-field
                 outlined
                 dense
-                background-color="#ffaaaa"
+                background-color="white"
                 hide-details
                 label="Consent person"
                 v-model="item.CONSENT_PERSON"
+                @change="doSaveConsent(item)"
               ></v-text-field>
             </div>
             <div class="col-md-2">
@@ -38,9 +39,10 @@
                 dense
                 hide-details
                 label="SFA"
-                background-color="#ffaaaa"
+                background-color="white"
                 v-model="item.CONSENT_SFA_FLG"
                 :items="['Yes', 'No']"
+                @change="doSaveConsent(item)"
               ></v-select>
             </div>
             <div class="col-md-2">
@@ -49,9 +51,10 @@
                 dense
                 hide-details
                 label="CSL"
-                background-color="#ffaaaa"
+                background-color="white"
                 v-model="item.CONSENT_CSL_FLG"
                 :items="['Yes', 'No']"
+                @change="doSaveConsent(item)"
               ></v-select>
             </div>
 
@@ -59,24 +62,25 @@
               <v-text-field
                 outlined
                 dense
-                background-color="#ffaaaa"
+                background-color="white"
                 hide-details
                 label="Academic year start"
                 v-model="item.ACADEMIC_YEAR_START"
+                type="number"
+                @change="doSaveConsent(item)"
               ></v-text-field>
             </div>
             <div class="col-md-4">
               <v-text-field
                 outlined
                 dense
-                background-color="#ffaaaa"
+                background-color="white"
                 hide-details
                 label="Academic year end"
                 v-model="item.ACADEMIC_YEAR_END"
-                @change="
-                  doSaveConsent('ACADEMIC_YEAR_END', student.SCHOOL_EMAIL)
-                "
-              ></v-text-field>
+                type="number"
+                @change="doSaveConsent(item)"
+              ></v-text-field> {{item.STUDENT_CONSENT_ID}}
             </div>
           </div>
         </v-card-text>
@@ -91,6 +95,7 @@
 <script>
 import store from "../store";
 import moment from "moment";
+import _ from "lodash";
 
 export default {
   data: () => ({}),
@@ -110,26 +115,27 @@ export default {
         CONSENT_SFA_FLG: "Yes",
         CONSENT_CSL_FLG: "Yes",
         ACADEMIC_YEAR_START: moment().year(),
-        CONSENT_PERSON: "New Person"
+        CONSENT_PERSON: "New Person",
       };
 
       this.doSaveConsent(newConsent);
 
       this.student.consents.push(newConsent);
-
     },
     removeConsent(index) {
       this.$refs.confirm.show(
         "Are you sure?",
         "Click 'Confirm' below to permanently remove this consent.",
         () => {
-          this.student.consents.splice(index, 1);
+          let item = this.student.consents.splice(index, 1);
+          store.dispatch("deleteConsent", [item[0], this]);
         },
         () => {}
       );
     },
     doSaveConsent(value) {
-      store.dispatch("updateConsent", [value, this]);
+      let body = _.clone(value);
+      store.dispatch("updateConsent", [body, this]);
     },
   },
 };

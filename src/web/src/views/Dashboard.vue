@@ -30,9 +30,8 @@
             <div v-for="(item, idx) of recentStudents" :key="idx">
               <router-link :to="`/student/${item.STUDENT_ID}`"
                 >{{ item.FIRST_NAME }} {{ item.INITIALS }}
-                {{ item.LAST_NAME }} ({{item.SIN}})
-                </router-link
-              >
+                {{ item.LAST_NAME }} ({{ item.SIN }})
+              </router-link>
             </div>
           </v-card-text>
         </v-card>
@@ -78,7 +77,7 @@
 
       <v-divider></v-divider>
 
-      <div style="max-height: 400px; overflow-y: scroll">
+      <div style="max-height: 90%; overflow-y: scroll">
         <v-data-table
           hide-default-footer
           :headers="[
@@ -89,7 +88,9 @@
           ]"
           :items="searchResults"
           :items-per-page="-1"
+          :loading="isSearching"
           @click:row="selectStudent"
+          loading-text="Searching for students"
         >
           <template v-slot:item.action="{ item }">
             <v-btn
@@ -103,37 +104,6 @@
           </template>
         </v-data-table>
       </div>
-
-      <v-divider></v-divider>
-
-      <v-card class="default my-4 mx-5" v-if="selectedStudent">
-        <v-card-title
-          >Applications for {{ selectedStudent.name }} ({{
-            selectedStudent.sin
-          }})</v-card-title
-        >
-        <v-card-text>
-          <div v-for="(app, i) of studentApplications" :key="i">
-            <v-list-item
-              two-line
-              :to="'/application/' + app.HISTORY_DETAIL_ID + '/personal'"
-            >
-              <v-list-item-content>
-                <v-list-item-title
-                  >{{ app.ACADEMIC_YEAR }}:
-                  {{ app.institution_name }}</v-list-item-title
-                >
-                <v-list-item-subtitle
-                  >{{ app.study_area_name }} ({{
-                    app.program_name
-                  }})<br />Applications: YG</v-list-item-subtitle
-                >
-              </v-list-item-content>
-            </v-list-item>
-            <v-divider v-if="i < studentApplications.length - 1"></v-divider>
-          </div>
-        </v-card-text>
-      </v-card>
     </v-navigation-drawer>
   </div>
 </template>
@@ -141,7 +111,7 @@
 <script>
 import axios from "axios";
 import { mapState } from "vuex";
-import { STUDENT_URL, STUDENT_SEARCH_URL } from "../urls";
+import { STUDENT_SEARCH_URL } from "../urls";
 
 export default {
   name: "Home",
@@ -152,41 +122,42 @@ export default {
     search: "",
     drawer: null,
     selectedStudent: null,
-    studentApplications: [],
     searchResults: [],
     resultCount: 0,
+    isSearching: false,
   }),
   methods: {
     searchKeyUp(event) {
       if (event.key == "Enter") this.doSearch();
     },
     doSearch() {
+      this.drawer = true;
       this.selectedStudent = null;
-      this.studentApplications = [];
+      this.searchResults = [];
+      this.resultCount = 0;
 
       let cleanSearch = this.search.trim().toLowerCase();
       if (cleanSearch.length == 0) return;
+
+      this.isSearching = true;
 
       axios
         .post(`${STUDENT_SEARCH_URL}`, { terms: cleanSearch })
         .then((resp) => {
           this.searchResults = resp.data.data;
-          this.drawer = true;
           this.resultCount = resp.data.meta.item_count;
         })
         .catch((err) => {
           this.$emit("showError", err);
+        })
+        .finally(() => {
+          this.isSearching = false;
         });
     },
     selectStudent(item) {
       this.selectedStudent = item;
 
-      axios
-        .get(`${STUDENT_URL}/${item.student_id}/applications`)
-        .then((resp) => {
-          this.studentApplications = resp.data.data;
-        })
-        .catch((err) => console.log(err));
+      this.$router.push(`/student/${item.student_id}`);
     },
   },
 };
