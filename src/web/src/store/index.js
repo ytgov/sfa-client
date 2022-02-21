@@ -3,6 +3,7 @@ import Vuex from "vuex";
 
 import auth from "./auth";
 import profile from "./profile";
+import institution from "./institution";
 import axios from "axios";
 import { APPLICATION_URL, STUDENT_URL } from "../urls"
 
@@ -108,8 +109,6 @@ export default new Vuex.Store({
         body = JSON.parse(`{"${vals[0]}": ${vals[1]}}`);
       }
 
-      console.log(body);
-
       let emitter = vals[2];
 
       axios.put(`${APPLICATION_URL}/${state.state.selectedApplicationId}`, body)
@@ -189,7 +188,7 @@ export default new Vuex.Store({
           console.log("ERROR HAPPENED", err);
           emitter.$emit("showError", err.data.messages[0].text);
         })
-    }
+    },
   },
-  modules: { auth, profile }
+  modules: { auth, profile, institution }
 });

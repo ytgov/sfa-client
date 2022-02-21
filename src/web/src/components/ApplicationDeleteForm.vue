@@ -5,8 +5,6 @@
       <v-card-text>
         <v-divider class="mb-5"></v-divider>
         <v-form v-model="valid">
-         
-
           <p>This form does not work yet.</p>
 
           <v-btn color="secondary" @click="hide">Cancel</v-btn>
@@ -19,8 +17,8 @@
           > -->
         </v-form>
       </v-card-text>
-    </v-card></v-dialog
-  >
+    </v-card>
+  </v-dialog>
 </template>
 
 <script>

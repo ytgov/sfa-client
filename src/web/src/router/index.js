@@ -10,7 +10,10 @@ import store from "../store";
 
 import Reports from "../views/Reports";
 import AdministrationHome from "../views/Administration/AdministrationHome";
-import AdminInstitution from "../views/Administration/Institutions";
+import AdminInstitution from "../views/Administration/Institutions/List";
+import AdminInstitutionCreate from "../views/Administration/Institutions/InstitutionCreate";
+import AdminInstitutionEdit from "../views/Administration/Institutions/InstitutionEdit";
+import AdminCampusEdit from "../views/Administration/Institutions/CampusEdit";
 import Search from "../views/Search";
 
 import ApplicationDetails from "../views/ApplicationDetails";
@@ -124,6 +127,30 @@ const routes = [
     path: "/administration/institutions",
     name: "AdminInstitution",
     component: AdminInstitution,
+    meta: {
+      requiresAuth: true
+    }
+  },
+  {
+    path: "/administration/institutions/create",
+    name: "AdminInstitutionCreate",
+    component: AdminInstitutionCreate,
+    meta: {
+      requiresAuth: true
+    }
+  },
+  {
+    path: "/administration/institutions/:id",
+    name: "AdminInstitutionEdit",
+    component: AdminInstitutionEdit,
+    meta: {
+      requiresAuth: true
+    }
+  },
+  {
+    path: "/administration/institutions/:id/campus/:campus_id",
+    name: "AdminCampusEdit",
+    component: AdminCampusEdit,
     meta: {
       requiresAuth: true
     }
