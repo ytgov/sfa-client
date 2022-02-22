@@ -1,3 +1,9 @@
+-- this is the schema for the new data models
+IF NOT EXISTS ( SELECT  *
+                FROM    sys.schemas
+                WHERE   name = N'sfa' )
+    EXEC('CREATE SCHEMA [sfa]');
+GO
 
 -- COUNTRY
 CREATE TABLE sfa.country(
