@@ -46,7 +46,7 @@
       :search="search"
       :headers="[
         { text: 'Name', value: 'name' },
-        { text: 'Federal Code', value: 'federal_institution_code' },
+        { text: 'Federal Code (Campus Codes)', value: 'federal_institution_code' },
         { text: 'Campuses', value: 'campuses.length' },
         { text: 'Level', value: 'level.description' },
         { text: 'Active', value: 'is_active_text' },
