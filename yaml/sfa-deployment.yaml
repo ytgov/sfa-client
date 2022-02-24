@@ -24,7 +24,7 @@ spec:
         io.kompose.service: sfa
     spec:
       containers:
-        - image: 10.230.5.2/eserv-tst-ns/sfa:latest 
+        - image: 10.230.7.2/eserv-tst-ns/sfa:latest 
           name: sfa-deployment
           ports:
             - containerPort: 3000
