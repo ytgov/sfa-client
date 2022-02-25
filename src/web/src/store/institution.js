@@ -2,8 +2,12 @@ import axios from "axios";
 import { INSTITUTION_URL } from "../urls";
 
 const state = {
+    searchText: "",
+    activeOnly: true,
 };
 const getters = {
+    searchText: state => state.searchText,
+    activeOnly: state => state.activeOnly,
 };
 const actions = {
     updateInstitution(state, vals) {
@@ -86,9 +90,21 @@ const actions = {
                 console.log("ERROR HAPPENED", err);
                 emitter.$emit("showError", err.data.messages[0].text);
             })
+    },
+    setInstitutionSearch(state, val) {
+        state.commit("SET_INSTITUTION_SEARCH", val)
+    },
+    setInstitutionActiveOnly(state, val) {
+        state.commit("SET_INSTITUTION_ACTIVE_ONLY", val)
     }
 };
 const mutations = {
+    SET_INSTITUTION_SEARCH(state, value) {
+      state.searchText = value;
+    },
+    SET_INSTITUTION_ACTIVE_ONLY(state, value) {
+      state.activeOnly = value;
+    },
 };
 
 export default {

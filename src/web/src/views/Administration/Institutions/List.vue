@@ -46,7 +46,10 @@
       :search="search"
       :headers="[
         { text: 'Name', value: 'name' },
-        { text: 'Federal Code (Campus Codes)', value: 'federal_institution_code' },
+        {
+          text: 'Federal Code (Campus Codes)',
+          value: 'federal_institution_code',
+        },
         { text: 'Campuses', value: 'campuses.length' },
         { text: 'Level', value: 'level.description' },
         { text: 'Active', value: 'is_active_text' },
@@ -62,6 +65,7 @@
 import axios from "axios";
 import _ from "lodash";
 import { INSTITUTION_URL } from "../../../urls";
+import store from "../../../store";
 
 export default {
   data: () => ({
@@ -78,9 +82,27 @@ export default {
 
       return l;
     },
+    storedSearch: function () {
+      return store.getters.searchText;
+    },
+    storedActive: function () {
+      return store.getters.activeOnly;
+    },
+  },
+  watch: {
+    search: function (val) {
+      console.log(val);
+      store.dispatch("setInstitutionSearch", val);
+    },
+    activeOnly: function (val) {
+      console.log(val);
+      store.dispatch("setInstitutionActiveOnly", val);
+    },
   },
   created() {
     this.loadInstitutions();
+    this.search = this.storedSearch;
+    this.activeOnly = this.storedActive;
   },
   methods: {
     loadInstitutions() {

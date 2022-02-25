@@ -64,8 +64,8 @@
             ></v-text-field>
 
             <v-row>
-              <v-col cols="7"
-                ><v-select
+              <v-col cols="7">
+                <v-select
                   :items="levelOptions"
                   item-text="description"
                   item-value="id"
@@ -73,6 +73,7 @@
                   label="Level"
                   dense
                   outlined
+                  hide-details
                   background-color="white"
                   @change="
                     doSave(
@@ -82,32 +83,35 @@
                   "
                 ></v-select
               ></v-col>
-              <v-col cols="5"
-                ><v-switch
+              <v-col cols="5">
+                <v-switch
                   v-model="institution.is_active"
                   label="Active"
                   class="mt-1"
                   dense
                   outlined
+                  hide-details
                   @change="doSave('is_active', institution.is_active)"
                 ></v-switch
               ></v-col>
-            </v-row>
 
-            <v-text-field
-              v-model="institution.federal_institution_code"
-              dense
-              outlined
-              label="Federal code"
-              background-color="white"
-              hide-details
-              @change="
-                doSave(
-                  'federal_institution_code',
-                  institution.federal_institution_code
-                )
-              "
-            ></v-text-field>
+              <v-col cols="7">
+                <v-text-field
+                  v-model="institution.federal_institution_code"
+                  dense
+                  outlined
+                  label="Federal code"
+                  background-color="white"
+                  hide-details
+                  @change="
+                    doSave(
+                      'federal_institution_code',
+                      institution.federal_institution_code
+                    )
+                  "
+                ></v-text-field>
+              </v-col>
+            </v-row>
           </v-card-text>
         </v-card>
 
@@ -134,7 +138,11 @@
           </v-card-text>
 
           <v-card-text>
-            <div class="text-h5">Students - last {{ stats.length }} years</div>
+            <div class="text-h5">
+              Applications - last {{ stats.length }} years <br /><small
+                >{{ institution.total_connections }} in Total</small
+              >
+            </div>
           </v-card-text>
         </v-card>
         <v-btn
@@ -149,10 +157,11 @@
           <v-card class="default mb-5">
             <v-card-title
               ><strong class="mr-2">{{ item.name }}</strong> Campus -
-              <strong class="ml-2">{{
-                item.federal_institution_code
-              }}</strong></v-card-title
-            >
+              <strong class="ml-2">{{ item.federal_institution_code }}</strong>
+            </v-card-title>
+            <v-card-subtitle>
+              <span>{{ item.total_connections }} Applications in Total</span>
+            </v-card-subtitle>
             <v-card-text>
               <p v-if="item.email_address">
                 <a :href="`mailto:item.email_address`">{{
@@ -177,7 +186,7 @@
                 </span>
                 {{ item.address_postal_code }}
                 <span v-if="item.address_country">
-                  <br>
+                  <br />
                   {{ item.address_country.description }}
                 </span>
               </p>
@@ -197,6 +206,7 @@
                 <v-icon class="mr-2">mdi-star-outline</v-icon>
                 Primary
               </v-chip>
+
               <v-spacer></v-spacer>
 
               <v-chip
