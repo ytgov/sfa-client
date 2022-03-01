@@ -29,9 +29,9 @@ export const PROGRAM_AREA_URL=`${STATIC_URL}/studyareas`;
 export const PROGRAM_TYPE_URL=`${STATIC_URL}/programs`;
 export const PROGRAM_DIVISION_URL=`${STATIC_URL}/programdivisions`;
 
-export const APPLICATION_URL = `${config.apiBaseUrl}/api/v1/admin/application`;
-export const STUDENT_URL = `${config.apiBaseUrl}/api/v1/admin/student`;
-export const STUDENT_SEARCH_URL = `${config.apiBaseUrl}/api/v1/admin/student/search`;
-export const INSTITUTION_URL=`${config.apiBaseUrl}/api/v1/admin/institution`;
+export const APPLICATION_URL = `${config.apiBaseUrl}/api/v2/admin/application`;
+export const STUDENT_URL = `${config.apiBaseUrl}/api/v2/admin/student`;
+export const STUDENT_SEARCH_URL = `${config.apiBaseUrl}/api/v2/admin/student/search`;
+export const INSTITUTION_URL=`${config.apiBaseUrl}/api/v2/admin/institution`;
 
-export const ACADEMIC_YEAR_URL=`${config.apiBaseUrl}/api/v1/admin/academic-year`;
+export const ACADEMIC_YEAR_URL=`${config.apiBaseUrl}/api/v2/admin/academic-year`;
