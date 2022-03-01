@@ -54,4 +54,4 @@ export const sections = [
     },
 ];
 export const environment = process.env.NODE_ENV;
-export const apiBaseUrl = (process.env.NODE_ENV == "test" || process.env.NODE_ENV == "production") ? "https://api.gov.yk.ca/sfa" : "http://localhost:3000";
+export const apiBaseUrl = (process.env.NODE_ENV == "test" || process.env.NODE_ENV == "production") ? "http://inf-docker-tst:4120" : "http://localhost:3000";
