@@ -20,17 +20,22 @@ const actions = {
         let emitter = vals[2];
         let id = vals[3];
 
-        axios.put(`${INSTITUTION_URL}/${id}`, body)
+        return axios.put(`${INSTITUTION_URL}/${id}`, body)
             .then(resp => {
                 let message = resp.data.messages[0];
                 if (message.variant == "success")
                     emitter.$emit("showSuccess", message.text);
-                else
+                else {
                     emitter.$emit("showError", message.text);
+                    return true
+                }
+
+                return false;
             })
             .catch(err => {
                 console.log("ERROR HAPPENED", err);
                 emitter.$emit("showError", err.data.messages[0].text);
+                return true
             })
     },
     async deleteInstitution(state, vals) {
@@ -62,17 +67,22 @@ const actions = {
         let id = vals[3];
         let campusId = vals[4];
 
-        axios.put(`${INSTITUTION_URL}/${id}/campus/${campusId}`, body) 
+        return axios.put(`${INSTITUTION_URL}/${id}/campus/${campusId}`, body)
             .then(resp => {
                 let message = resp.data.messages[0];
                 if (message.variant == "success")
                     emitter.$emit("showSuccess", message.text);
-                else
+                else {
                     emitter.$emit("showError", message.text);
+                    return true;
+                }
+
+                return false;
             })
             .catch(err => {
                 console.log("ERROR HAPPENED", err);
                 emitter.$emit("showError", err.data.messages[0].text);
+                return true;
             })
     },
 
@@ -100,10 +110,10 @@ const actions = {
 };
 const mutations = {
     SET_INSTITUTION_SEARCH(state, value) {
-      state.searchText = value;
+        state.searchText = value;
     },
     SET_INSTITUTION_ACTIVE_ONLY(state, value) {
-      state.activeOnly = value;
+        state.activeOnly = value;
     },
 };
 

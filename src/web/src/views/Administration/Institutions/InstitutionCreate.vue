@@ -39,7 +39,7 @@
             <span style="color: red">{{ nameError }}</span>
 
             <v-row class="mt-3">
-              <v-col cols="7"
+              <v-col cols="12"
                 ><v-select
                   :items="levelOptions"
                   item-text="description"
@@ -50,15 +50,6 @@
                   outlined
                   background-color="white"
                 ></v-select
-              ></v-col>
-              <v-col cols="5"
-                ><v-switch
-                  v-model="institution.is_active"
-                  label="Active"
-                  class="mt-1"
-                  dense
-                  outlined
-                ></v-switch
               ></v-col>
             </v-row>
 
@@ -107,7 +98,6 @@ export default {
       institution_level_id: 1,
       name: "",
       federal_institution_code: "",
-      is_active: false,
     },
     levelOptions: [],
     nameError: "",
@@ -181,7 +171,6 @@ export default {
         name: this.institution.name,
         institution_level_id: this.institution.institution_level_id,
         federal_institution_code: this.institution.federal_institution_code,
-        is_active: this.institution.is_active,
       };
 
       axios
@@ -189,7 +178,7 @@ export default {
         .then((resp) => {
           console.log(resp.data);
 
-          this.$emit("showSuccess", resp.data.messages[0].text);
+          this.$emit("showAPIMessages", resp.data);
           this.$router.push(
             `/administration/institutions/${resp.data.data.id}`
           );

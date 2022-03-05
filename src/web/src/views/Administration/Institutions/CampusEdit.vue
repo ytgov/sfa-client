@@ -17,7 +17,7 @@
         },
         {
           text: campus.name,
-          to: `/administration/institutions/${institutionId}/${campus.id}`,
+          to: `/administration/institutions/${institutionId}/campus/${campus.id}`,
           exact: true,
         },
       ]"
@@ -435,14 +435,16 @@ export default {
     loadCampus(id) {
       this.campus = this.institution.campuses.filter((c) => c.id == id)[0];
     },
-    doSave(field, value) {
-      store.dispatch("updateCampus", [
+    async doSave(field, value) {
+      let isError = await store.dispatch("updateCampus", [
         field,
         value,
         this,
         this.institutionId,
         this.campusId,
       ]);
+
+      if (isError) this.loadInstitution(this.institutionId);
     },
 
     addNote() {

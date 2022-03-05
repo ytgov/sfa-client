@@ -91,11 +91,9 @@ export default {
   },
   watch: {
     search: function (val) {
-      console.log(val);
       store.dispatch("setInstitutionSearch", val);
     },
     activeOnly: function (val) {
-      console.log(val);
       store.dispatch("setInstitutionActiveOnly", val);
     },
   },

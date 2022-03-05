@@ -291,13 +291,17 @@ export default {
         this.stats = resp.data.data;
       });
     },
-    doSave(field, value) {
-      store.dispatch("updateInstitution", [
+    async doSave(field, value) {
+      let isError = await store.dispatch("updateInstitution", [
         field,
         value,
         this,
         this.institutionId,
       ]);
+
+      if (isError) {
+        this.loadInstitution(this.institutionId);
+      }
     },
     removeInstitution() {
       this.$refs.confirm.show(
