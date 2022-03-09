@@ -366,12 +366,86 @@ FROM SFAADMIN.disability_type
 
 SET IDENTITY_INSERT sfa.disability_type OFF
 
+-- SFAADMIN.DISBURSEMENT_TYPE
+CREATE TABLE sfa.disbursement_type (
+	id INT IDENTITY(1,1) PRIMARY KEY,
+	description NVARCHAR(200) NOT NULL,
+	is_active BIT NOT NULL DEFAULT 1
+)
+
+SET IDENTITY_INSERT sfa.disbursement_type ON
+
+INSERT INTO sfa.disbursement_type (id,description, is_active)
+SELECT DISBURSEMENT_TYPE_ID, DESCRIPTION, CASE WHEN IS_ACTIVE_FLG = 'Y' THEN 1 ELSE 0 END
+FROM SFAADMIN.disbursement_type
+
+SET IDENTITY_INSERT sfa.disbursement_type OFF
+
+-- SFAADMIN.EDUCATION_LEVEL
+CREATE TABLE sfa.education_level (
+	id INT IDENTITY(1,1) PRIMARY KEY,
+	description NVARCHAR(200) NOT NULL,
+	rank INT NOT NULL,
+	is_active BIT NOT NULL DEFAULT 1
+)
+
+SET IDENTITY_INSERT sfa.education_level ON
+
+INSERT INTO sfa.education_level (id,description, rank, is_active)
+SELECT EDUCATION_LEVEL_ID, DESCRIPTION, RANK, CASE WHEN IS_ACTIVE_FLG = 'Y' THEN 1 ELSE 0 END
+FROM SFAADMIN.education_level
+
+SET IDENTITY_INSERT sfa.education_level OFF
+
+-- SFAADMIN.ENTITLEMENT_ERROR_CODES
+CREATE TABLE sfa.entitlement_error_codes (
+	id INT IDENTITY(1,1) PRIMARY KEY,
+	code NVARCHAR(50) NOT NULL UNIQUE,
+	description NVARCHAR(200) NOT NULL,
+	is_confirmed BIT NOT NULL DEFAULT 1,
+	is_in_feedback BIT NOT NULL DEFAULT 1,
+	is_resend BIT NOT NULL DEFAULT 1
+)
+
+INSERT INTO sfa.entitlement_error_codes ( code, description, is_confirmed, is_in_feedback, is_resend)
+SELECT ERROR_CODE, ERROR_DESC, CASE WHEN CONFIRMED_UNCONFIRMED = 'C' THEN 1 ELSE 0 END, CASE WHEN IS_IN_FEEDBACK_FLG = 'Yes' THEN 1 ELSE 0 END,CASE WHEN IS_RESEND_FLG = 'Yes' THEN 1 ELSE 0 END
+FROM SFAADMIN.entitlement_error_codes
+
+-- SFAADMIN.FIRST_NATION
+CREATE TABLE sfa.first_nation (
+	id INT IDENTITY(1,1) PRIMARY KEY,
+	description NVARCHAR(200) NOT NULL,
+	city_id INT NULL REFERENCES sfa.city (id),
+	is_active BIT NOT NULL DEFAULT 1
+)
+
+SET IDENTITY_INSERT sfa.first_nation ON
+
+INSERT INTO sfa.first_nation ( id, description, city_id, is_active)
+SELECT FIRST_NATION_ID, FIRST_NATION_DESC, CITY_ID, CASE WHEN IS_ACTIVE_FLG = 'Y' THEN 1 ELSE 0 END
+FROM SFAADMIN.first_nation
+
+SET IDENTITY_INSERT sfa.first_nation OFF
+
+-- SFAADMIN.FUNDING_GROUP
+CREATE TABLE sfa.funding_group (
+	id INT IDENTITY(1,1) PRIMARY KEY,
+	description NVARCHAR(200) NOT NULL,
+	sort_order INT NOT NULL DEFAULT 99,
+	is_active BIT NOT NULL DEFAULT 1
+)
+
+SET IDENTITY_INSERT sfa.funding_group ON
+
+INSERT INTO sfa.funding_group ( id, description, sort_order, is_active)
+SELECT FUNDING_GROUP_ID, DESCRIPTION, SORT_ORDER, CASE WHEN IS_ACTIVE_FLG = 'Y' THEN 1 ELSE 0 END
+FROM SFAADMIN.funding_group
+
+SET IDENTITY_INSERT sfa.funding_group OFF
 
 
 
 
-
-
-select * from sfa.disability_type
-select * from sfaadmin.disability_type
+select * from sfa.funding_group
+select * from sfaadmin.funding_group
 
