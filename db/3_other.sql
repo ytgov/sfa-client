@@ -253,10 +253,125 @@ INSERT INTO sfa.csl_lookup (academic_year_id,return_transport_max_amount,allowab
 SELECT [ACADEMIC_YEAR],[MAX_RETURN_TRANSPORT],[MAX_WEEKLY_ALLOWABLE],[STUDENT_EXEMPT_AMT],[VEHICLE_DEDUCTION],[RRSP_YEARLY_DEDUCTION],[MAX_RELOCATION],[MILEAGE_RATE],[DISCRETIONARY_COSTS_MAX],[MERIT_EXEMPT_AMT],[MAX_BOOKS],[STUDENT_CONTRIB_PCT],[SPOUSE_CONTRIB_PCT],[CSG_8_MONTH_AMT],[CSG_PT_YEARLY_AMT],[LOW_INCOME_STUDENT_CONTRIB],[MAX_STUDENT_CONTRIB],[CSL_PT_MAX_AMOUNT],[CSL_PT_WK_MISC_AMT]
 FROM SFAADMIN.csl_lookup
 
+-- SFAADMIN.CSL_NSLSC_ADDRESS
+CREATE TABLE sfa.csl_nslsc_address (
+	id INT IDENTITY(1,1) PRIMARY KEY,	
+	institution_type NVARCHAR(100) NOT NULL,
+	name NVARCHAR(150) NOT NULL,
+	address_line_1 NVARCHAR(200) NOT NULL,
+	address_line_2 NVARCHAR(200) NULL,
+	city_id INT REFERENCES sfa.city (id) NOT NULL,
+	province_id INT REFERENCES sfa.province (id) NOT NULL,
+	postal_code NVARCHAR(50) NOT NULL,
+	phone_number NVARCHAR(50) NOT NULL,
+	effective_date DATETIME2  NOT NULL DEFAULT GETDATE(),
+	expiry_date DATETIME2 NULL
+)
+
+SET IDENTITY_INSERT sfa.csl_nslsc_address ON
+
+INSERT INTO sfa.csl_nslsc_address (id, institution_type,name,address_line_1,address_line_2,city_id,province_id,postal_code,phone_number,effective_date,expiry_date)
+SELECT [CSL_NSLSC_ADDRESS_ID], CASE WHEN [INSTITUTION_TYPE_ID] = 1 THEN 'Public' ELSE 'Private' END,[NAME],[ADDRESS_LINE_1],[ADDRESS_LINE_2],[CITY_ID],[PROVINCE_ID],[POSTAL_CODE],[PHONE_NUMBER],[EFFECTIVE_DATE],[EXPIRY_DATE]
+FROM SFAADMIN.csl_nslsc_address
+
+SET IDENTITY_INSERT sfa.csl_nslsc_address OFF
+
+-- SFAADMIN.CSL_REASON
+CREATE TABLE sfa.csl_reason (
+	id INT IDENTITY(1,1) PRIMARY KEY,
+	type NVARCHAR(50) NOT NULL,
+	name NVARCHAR(50) NOT NULL,
+	description TEXT NULL
+)
+
+SET IDENTITY_INSERT sfa.csl_reason ON
+
+INSERT INTO sfa.csl_reason (id, type, name, description)
+SELECT CSL_REASON_ID, CSL_REASON_TYPE, CSL_REASON_NAME, CSL_REASON
+FROM SFAADMIN.csl_reason
+
+SET IDENTITY_INSERT sfa.csl_reason OFF
+
+-- SFAADMIN.CSL_RESTRICTED
+CREATE TABLE sfa.csl_restricted (
+	id INT IDENTITY(1,1) PRIMARY KEY,	
+	amount_disbursed NUMERIC(10, 2) NULL,
+	birth_date DATETIME2 NULL,
+	first_name NVARCHAR(100) NULL,
+	last_name NVARCHAR(100) NULL,
+	over_award NUMERIC(10, 2) NULL,
+	restriction_reason_id NVARCHAR(1) NULL,
+	restriction_warn_id NVARCHAR(1) NULL,
+	weeks_accumulated FLOAT NULL,
+	nslsc_restrict1 NVARCHAR(1) NULL,
+	nslsc_restrict2 NVARCHAR(1) NULL,
+	nslsc_restrict3 NVARCHAR(1) NULL,
+	calsc_restrict1 NVARCHAR(1) NULL,
+	calsc_restrict2 NVARCHAR(1) NULL,
+	calsc_restrict3 NVARCHAR(1) NULL,
+	fi_restrict1 NVARCHAR(1) NULL
+)
+
+SET IDENTITY_INSERT sfa.csl_restricted ON
+
+INSERT INTO sfa.csl_restricted (id,amount_disbursed,birth_date,first_name,last_name,over_award,restriction_reason_id,restriction_warn_id,weeks_accumulated,nslsc_restrict1,nslsc_restrict2,nslsc_restrict3,calsc_restrict1,calsc_restrict2,calsc_restrict3,fi_restrict1)
+SELECT CSL_RESTRICTED_ID, [AMOUNT_DISBURSED],[BIRTH_DATE],[FIRST_NAME],[LAST_NAME],[OVER_AWARD],[RESTRICTION_REASON_ID],[RESTRICTION_WARN_ID],[WEEKS_ACCUMULATED],[NSLSC_RESTRICT1],[NSLSC_RESTRICT2],[NSLSC_RESTRICT3],[CALSC_RESTRICT1],[CALSC_RESTRICT2],[CALSC_RESTRICT3],[FI_RESTRICT1]
+FROM SFAADMIN.csl_restricted
+
+SET IDENTITY_INSERT sfa.csl_restricted OFF
+
+-- SFAADMIN.DISAB_SERVICE_TYPE
+CREATE TABLE sfa.disability_service (
+	id INT IDENTITY(1,1) PRIMARY KEY,
+	description NVARCHAR(200) NOT NULL,
+	is_active BIT NOT NULL DEFAULT 1
+)
+
+SET IDENTITY_INSERT sfa.disability_service ON
+
+INSERT INTO sfa.disability_service (id,description, is_active)
+SELECT DISAB_SERVICE_TYPE_ID, DESCRIPTION, CASE WHEN IS_ACTIVE_FLG = 'Y' THEN 1 ELSE 0 END
+FROM SFAADMIN.DISAB_SERVICE_TYPE
+
+SET IDENTITY_INSERT sfa.disability_service OFF
+
+-- SFAADMIN.DISAB_SERVICE_TYPE
+CREATE TABLE sfa.disability_service (
+	id INT IDENTITY(1,1) PRIMARY KEY,
+	description NVARCHAR(200) NOT NULL,
+	is_active BIT NOT NULL DEFAULT 1
+)
+
+SET IDENTITY_INSERT sfa.disability_service ON
+
+INSERT INTO sfa.disability_service (id,description, is_active)
+SELECT DISAB_SERVICE_TYPE_ID, DESCRIPTION, CASE WHEN IS_ACTIVE_FLG = 'Y' THEN 1 ELSE 0 END
+FROM SFAADMIN.DISAB_SERVICE_TYPE
+
+SET IDENTITY_INSERT sfa.disability_service OFF
+
+-- SFAADMIN.DISABILITY_TYPE
+CREATE TABLE sfa.disability_type (
+	id INT IDENTITY(1,1) PRIMARY KEY,
+	description NVARCHAR(200) NOT NULL,
+	csl_code NVARCHAR(5) NOT NULL,
+	is_active BIT NOT NULL DEFAULT 1
+)
+
+SET IDENTITY_INSERT sfa.disability_type ON
+
+INSERT INTO sfa.disability_type (id,description, csl_code, is_active)
+SELECT DISABILITY_TYPE_ID, DESCRIPTION, CSL_CODE, CASE WHEN IS_ACTIVE_FLG = 'Y' THEN 1 ELSE 0 END
+FROM SFAADMIN.disability_type
+
+SET IDENTITY_INSERT sfa.disability_type OFF
 
 
 
 
 
-select * from sfa.csl_lookup
-select * from sfaadmin.csl_lookup
+
+
+select * from sfa.disability_type
+select * from sfaadmin.disability_type
+
