@@ -67,8 +67,6 @@ CREATE TABLE sfa.institution_campus_notes (
     last_modified_date DATETIME2
 )
 
-
-
 SET IDENTITY_INSERT sfa.institution ON
 
 INSERT INTO sfa.institution (id, name, is_active, federal_institution_code,  institution_level_id)
