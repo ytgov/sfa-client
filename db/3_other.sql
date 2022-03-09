@@ -146,28 +146,117 @@ CREATE TABLE sfa.child_care_ceiling (
 	max_amount NUMERIC(7,2) NOT NULL
 )
 
-
 INSERT INTO sfa.child_care_ceiling (academic_year_id, province_id, max_amount)
 SELECT academic_year.id, PROVINCE_ID, MAX_AMT
 FROM SFAADMIN.child_care_ceiling
  INNER JOIN sfa.academic_year ON (CHILD_CARE_CEILING.ACADEMIC_YEAR = academic_year.id)
  
--- SFAADMIN.CHILD_CARE_CEILING
-CREATE TABLE sfa.child_care_ceiling (
+-- SFAADMIN.COMUNICATION_TYPE
+CREATE TABLE sfa.communication_type (
 	id INT IDENTITY(1,1) PRIMARY KEY,
-	academic_year_id INT NOT NULL REFERENCES sfa.academic_year (id),
-	province_id INT NOT NULL REFERENCES sfa.province (id), 
-	max_amount NUMERIC(7,2) NOT NULL
+	description NVARCHAR(200) NOT NULL,
+	is_active BIT NOT NULL DEFAULT 1
 )
 
+SET IDENTITY_INSERT sfa.communication_type ON
 
-INSERT INTO sfa.child_care_ceiling (academic_year_id, province_id, max_amount)
-SELECT academic_year.id, PROVINCE_ID, MAX_AMT
-FROM SFAADMIN.child_care_ceiling
- INNER JOIN sfa.academic_year ON (CHILD_CARE_CEILING.ACADEMIC_YEAR = academic_year.id)
+INSERT INTO sfa.communication_type (id, description, is_active)
+SELECT COMMUNICATION_TYPE_ID, DESCRIPTION, CASE WHEN IS_ACTIVE_FLG = 'Y' THEN 1 ELSE 0 END
+FROM SFAADMIN.communication_type
+
+SET IDENTITY_INSERT sfa.communication_type OFF
+
+-- SFAADMIN.CSG_LOOKUP
+CREATE TABLE sfa.csg_lookup (
+	id INT IDENTITY(1,1) PRIMARY KEY,
+	academic_year_id INT NOT NULL REFERENCES sfa.academic_year (id) UNIQUE,
+	csg_8_month_amount NUMERIC(7,2) NOT NULL,
+	csg_dep_monthly_amount NUMERIC(7,2) NOT NULL,
+	csg_pd_yearly_amount NUMERIC(7,2) NOT NULL,
+	csg_pdse_yearly_amount NUMERIC(7,2) NOT NULL,
+	csgpt_yearly_amount NUMERIC(7,2) NOT NULL,
+	csgpt_dep_max_amount NUMERIC(7,2) NOT NULL,
+	csgpt_dep_1_2_weekly_amount NUMERIC(7,2) NOT NULL,
+	csgpt_dep_3_weekly_amount NUMERIC(7,2) NOT NULL
+)
+
+INSERT INTO sfa.csg_lookup (academic_year_id,csg_8_month_amount,csg_dep_monthly_amount,csg_pd_yearly_amount,csg_pdse_yearly_amount,csgpt_yearly_amount,csgpt_dep_max_amount,csgpt_dep_1_2_weekly_amount,csgpt_dep_3_weekly_amount)
+SELECT academic_year, CSG_8_MONTH_AMT, CSG_DEP_MONTHLY_AMT, CSG_PD_YEARLY_AMT, CSG_PDSE_YEARLY_AMT, CSGPT_YEARLY_AMT, CSGPT_DEP_MAX_AMT, CSGPT_DEP_1_2_WEEKLY_AMT, CSGPT_DEP_3_WEEKLY_AMT
+FROM SFAADMIN.csg_lookup
+
+-- SFAADMIN.CSG_THRESHOLD
+CREATE TABLE sfa.csg_threshold (
+	id INT IDENTITY(1,1) PRIMARY KEY,
+	academic_year_id INT NOT NULL REFERENCES sfa.academic_year (id),
+	family_size INT NOT NULL,
+	income_threshold NUMERIC(10,2) NOT NULL,
+	income_cutoff NUMERIC(10,2) NOT NULL,
+	phase_out_rate FLOAT NOT NULL,
+	low_income_threshold NUMERIC(10,2) NOT NULL,
+	middle_income_threshold NUMERIC(10,2) NOT NULL,
+	csgpt_phase_out_rate FLOAT NULL,
+	csgpt_dep2_phase_out_rate FLOAT NULL,
+	csgpt_dep3_phase_out_rate FLOAT NULL,
+	csgft_dep_phase_out_rate FLOAT NULL,
+	UNIQUE (academic_year_id, family_size)
+)
+
+INSERT INTO sfa.csg_threshold (academic_year_id, family_size, income_threshold, income_cutoff, phase_out_rate, low_income_threshold, middle_income_threshold, csgpt_phase_out_rate, csgpt_dep2_phase_out_rate , csgpt_dep3_phase_out_rate, csgft_dep_phase_out_rate)
+SELECT academic_year, FAMILY_SIZE , INCOME_THRESHOLD, INCOME_CUTOFF, PHASE_OUT_RATE, LOW_INCOME_THRESHOLD, MIDDLE_INCOME_THRESHOLD, CSGPT_PHASE_OUT_RATE, CSG_PTDEP2_PHASE_OUT_RATE, CSG_PTDEP3_PHASE_OUT_RATE, CSG_FTDEP_PHASE_OUT_RATE
+FROM SFAADMIN.csg_threshold
+
+-- SFAADMIN.CSL_CODE
+CREATE TABLE sfa.csl_code (
+	id INT IDENTITY(1,1) PRIMARY KEY,
+	warning_code NVARCHAR(10) NULL,
+	reason_code NVARCHAR(10) NULL,
+	code_type NVARCHAR(10) NOT NULL,
+	definition NVARCHAR(1000) NOT NULL,
+	is_active BIT NOT NULL DEFAULT 1
+)
+
+SET IDENTITY_INSERT sfa.csl_code ON
+
+INSERT INTO sfa.csl_code (id, warning_code, reason_code, code_type, definition, is_active)
+SELECT CSL_CODE_ID, WARNING_CODE, REASON_CODE, CODE_TYPE, DEFINITION, CASE WHEN IS_ACTIVE_FLG = 'Yes' THEN 1 ELSE 0 END
+FROM SFAADMIN.csl_code
+
+SET IDENTITY_INSERT sfa.csl_code OFF
+
+
+
+-- SFAADMIN.CSL_LOOKUP
+CREATE TABLE sfa.csl_lookup (
+	id INT IDENTITY(1,1) PRIMARY KEY,
+	academic_year_id INT NOT NULL REFERENCES sfa.academic_year (id) UNIQUE,
+	return_transport_max_amount NUMERIC (10, 2) NULL,
+	allowable_weekly_amount NUMERIC(10, 2) NULL,
+	student_exempt_amount NUMERIC(10, 2) NULL,
+	vehicle_deduction_amount NUMERIC(10, 2) NULL,
+	rrsp_deduction_yearly_amount NUMERIC(10, 2) NULL,
+	relocation_max_amount NUMERIC(10, 2) NULL,
+	mileage_rate FLOAT NULL,
+	discretionary_costs_max_amount NUMERIC(10, 2) NULL,
+	merit_exempt_amount NUMERIC(10, 2) NULL,
+	books_max_amount NUMERIC(10, 2) NULL,
+	student_contrib_percent FLOAT NULL,
+	spouse_contrib_percent FLOAT NULL,
+	csg_8_month_amount NUMERIC(10,2) NULL,
+	csg_pt_yearly_amount NUMERIC(10,2) NULL,
+	low_income_student_contrib_amount NUMERIC(10,2) NULL,
+	student_contrib_max_amount NUMERIC(10,2) NULL,
+	csl_pt_max_amount NUMERIC(10,2) NULL,
+	csl_pt_wk_misc_amount NUMERIC(10,2) NULL
+)
+
+INSERT INTO sfa.csl_lookup (academic_year_id,return_transport_max_amount,allowable_weekly_amount,student_exempt_amount,vehicle_deduction_amount,rrsp_deduction_yearly_amount,relocation_max_amount,mileage_rate,discretionary_costs_max_amount,merit_exempt_amount,books_max_amount,student_contrib_percent,spouse_contrib_percent,csg_8_month_amount,csg_pt_yearly_amount,low_income_student_contrib_amount,student_contrib_max_amount,csl_pt_max_amount,csl_pt_wk_misc_amount)
+SELECT [ACADEMIC_YEAR],[MAX_RETURN_TRANSPORT],[MAX_WEEKLY_ALLOWABLE],[STUDENT_EXEMPT_AMT],[VEHICLE_DEDUCTION],[RRSP_YEARLY_DEDUCTION],[MAX_RELOCATION],[MILEAGE_RATE],[DISCRETIONARY_COSTS_MAX],[MERIT_EXEMPT_AMT],[MAX_BOOKS],[STUDENT_CONTRIB_PCT],[SPOUSE_CONTRIB_PCT],[CSG_8_MONTH_AMT],[CSG_PT_YEARLY_AMT],[LOW_INCOME_STUDENT_CONTRIB],[MAX_STUDENT_CONTRIB],[CSL_PT_MAX_AMOUNT],[CSL_PT_WK_MISC_AMT]
+FROM SFAADMIN.csl_lookup
 
 
 
 
-select * from sfa.child_care_ceiling
-select * from sfaadmin.child_care_ceiling
+
+
+select * from sfa.csl_lookup
+select * from sfaadmin.csl_lookup
