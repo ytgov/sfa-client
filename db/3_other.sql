@@ -944,8 +944,102 @@ FROM SFAADMIN.system_parameter
 
 SET IDENTITY_INSERT sfa.system_parameter OFF
 
+-- SFAADMIN.TRANSPORTATION
+CREATE TABLE sfa.transportation (
+	id INT IDENTITY(1,1) PRIMARY KEY,
+	home_city_id INT NOT NULL REFERENCES sfa.city (id),
+	institution_city_id INT NOT NULL REFERENCES sfa.city(id),
+	travel_allowance_amount NUMERIC(10,2) NOT NULL,
+	airfare_amount NUMERIC(10,2) NOT NULL,
+	UNIQUE (home_city_id, institution_city_id)
+)
+
+SET IDENTITY_INSERT sfa.transportation ON
+
+INSERT INTO sfa.transportation ( id, home_city_id, institution_city_id, travel_allowance_amount, airfare_amount)
+SELECT TRANSPORTATION_ID, HOME_CITY_ID, INSTITUTION_CITY_ID, TRAVEL_ALLOWANCE, AIRFARE
+FROM SFAADMIN.transportation 
+
+SET IDENTITY_INSERT sfa.transportation OFF
+
+-- SFAADMIN.VERIFICATION_LOG
+CREATE TABLE sfa.verification_log (
+	id INT IDENTITY(1,1) PRIMARY KEY,
+	institution_campus_id INT NOT NULL REFERENCES sfa.institution_campus (id),
+	is_emailed BIT NOT NULL DEFAULT 1,
+	student_count INT NOT NULL
+)
+
+SET IDENTITY_INSERT sfa.verification_log ON
+
+INSERT INTO sfa.verification_log ( id, institution_campus_id, is_emailed, student_count)
+SELECT VERIFICATION_LOG_ID, INSTITUTION_ID, CASE WHEN EMAILED_FLG = 'Yes' THEN 1 ELSE 0 END, STUDENT_COUNT
+FROM SFAADMIN.verification_log 
+
+SET IDENTITY_INSERT sfa.verification_log OFF
+
+-- SFAADMIN.YEA
+CREATE TABLE sfa.yea (
+	id INT IDENTITY(1,1) PRIMARY KEY,
+	first_name NVARCHAR(100) NOT NULL,
+	last_name NVARCHAR(100) NOT NULL,
+	birth_date DATETIME2 NULL,
+	yukon_id NVARCHAR(25) NULL,
+	yukon_id_old NVARCHAR(25) NULL,
+	school_year INT NULL,
+	school_month INT NULL,
+	course NVARCHAR(100) NULL,
+	yea_amount NUMERIC(10,2) NULL
+)
+
+INSERT INTO sfa.yea ( first_name, last_name, birth_date, yukon_id, yukon_id_old, school_year, school_month, course, yea_amount)
+SELECT FNAME, LNAME, BIRTH_DT, YTID, OLD_YTID, SCHOOLYR, SCHOOLMN, COURSE, YEA_AMNT
+FROM SFAADMIN.yea 
+
+-- SFAADMIN.YEA_UPDATE
+CREATE TABLE sfa.yea_update (
+	id INT IDENTITY(1,1) PRIMARY KEY,
+	first_name NVARCHAR(100) NOT NULL,
+	last_name NVARCHAR(100) NOT NULL,
+	birth_date DATETIME2 NULL,
+	yukon_id NVARCHAR(25) NULL,
+	school_year INT NULL,
+	school_month INT NULL,
+	course NVARCHAR(100) NULL,
+	yea_amount NUMERIC(10,2) NULL,
+	orig_yea_amount NUMERIC(10,2) NULL
+)
+
+INSERT INTO sfa.yea_update ( first_name, last_name, birth_date, yukon_id, school_year, school_month, course, yea_amount, orig_yea_amount)
+SELECT FNAME, LNAME, BIRTH_DT, YTID, SCHOOLYR, SCHOOLMN, COURSE, YEA_AMNT, ORIG_YEA_AMNT
+FROM SFAADMIN.yea_update 
+
+-- SFAADMIN.YG_COST
+CREATE TABLE sfa.yg_cost (
+	id INT IDENTITY(1,1) PRIMARY KEY,
+	academic_year_id INT NOT NULL REFERENCES sfa.academic_year (id),
+	effective_date DATETIME2 NULL,
+	expiry_date DATETIME2 NULL,
+	semester_living_amount NUMERIC(10,2) NOT NULL,
+	semester_tuition_amount NUMERIC(10,2) NOT NULL,
+	semester_book_amount NUMERIC(10,2) NOT NULL,
+	quarter_living_amount NUMERIC(10,2) NOT NULL,
+	quarter_tuition_amount NUMERIC(10,2) NOT NULL,
+	quarter_book_amount NUMERIC(10,2) NOT NULL,
+	weekly_amount NUMERIC(10,2) NULL,
+	allowed_percent FLOAT NOT NULL
+)
+
+SET IDENTITY_INSERT sfa.yg_cost ON
+
+INSERT INTO sfa.yg_cost (id, academic_year_id, effective_date, expiry_date, semester_living_amount, semester_tuition_amount, semester_book_amount, quarter_living_amount, quarter_tuition_amount, quarter_book_amount, weekly_amount, allowed_percent)
+SELECT YG_COST_ID, ACADEMIC_YEAR, EFFECTIVE_DATE, EXPIRY_DATE,SEMESTER_LIVING_AMT, SEMESTER_TUITION_AMT, SEMESTER_BOOK_AMT, QUARTER_LIVING_AMT, QUARTER_TUITION_AMT, QUARTER_BOOK_AMT, WEEKLY_AMOUNT, ALLOWED_PERCENT
+FROM SFAADMIN.yg_cost 
+
+SET IDENTITY_INSERT sfa.yg_cost OFF
 
 
-select * from sfa.system_parameter
-select * from sfaadmin.system_parameter
 
+
+select * from sfa.yg_cost
+select * from sfaadmin.yg_cost
