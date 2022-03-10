@@ -443,9 +443,509 @@ FROM SFAADMIN.funding_group
 
 SET IDENTITY_INSERT sfa.funding_group OFF
 
+-- SFAADMIN.HIGH_SCHOOL
+CREATE TABLE sfa.high_school (
+	id INT IDENTITY(1,1) PRIMARY KEY,
+	name NVARCHAR(200) NOT NULL,
+	city_id INT NOT NULL REFERENCES sfa.city (id),
+	province_id INT NOT NULL REFERENCES sfa.province (id),
+	country_id INT NOT NULL REFERENCES sfa.country (id),
+	is_active BIT NOT NULL DEFAULT 1
+)
+
+SET IDENTITY_INSERT sfa.high_school ON
+
+INSERT INTO sfa.high_school ( id, name, city_id, province_id, country_id, is_active)
+SELECT HIGH_SCHOOL_ID, NAME, CITY_ID, PROVINCE_ID, COUNTRY_ID, CASE WHEN IS_ACTIVE_FLG = 'Y' THEN 1 ELSE 0 END
+FROM SFAADMIN.high_school
+
+SET IDENTITY_INSERT sfa.high_school OFF
+
+-- SFAADMIN.INFO_CATEGORY
+CREATE TABLE sfa.info_category (
+	id INT IDENTITY(1,1) PRIMARY KEY,
+	canvas_name NVARCHAR(200) NOT NULL,
+	category_name NVARCHAR(200) NOT NULL,
+	sort_order INT NOT NULL DEFAULT 99,
+	first_item NVARCHAR(200) NOT NULL,
+	is_active BIT NOT NULL DEFAULT 1
+)
+
+SET IDENTITY_INSERT sfa.info_category ON
+
+INSERT INTO sfa.info_category ( id, canvas_name, category_name, sort_order, first_item, is_active)
+SELECT INFO_CATEGORY_ID, CANVAS_NAME, CATEGORY_NAME, SORT_ORDER, FIRST_ITEM, 1
+FROM SFAADMIN.info_category
+
+SET IDENTITY_INSERT sfa.info_category OFF
+
+-- SFAADMIN.INSTRUCTION_TYPE
+CREATE TABLE sfa.instruction_type (
+	id INT IDENTITY(1,1) PRIMARY KEY,
+	description NVARCHAR(200) NOT NULL,
+	is_active BIT NOT NULL DEFAULT 1
+)
+
+SET IDENTITY_INSERT sfa.instruction_type ON
+
+INSERT INTO sfa.instruction_type ( id, description, is_active)
+SELECT INSTRUCTION_TYPE_ID, DESCRIPTION, CASE WHEN IS_ACTIVE_FLG = 'Y' THEN 1 ELSE 0 END
+FROM SFAADMIN.instruction_type
+
+SET IDENTITY_INSERT sfa.instruction_type OFF
+
+-- SFAADMIN.INVESTMENT_TYPE
+CREATE TABLE sfa.investment_type (
+	id INT IDENTITY(1,1) PRIMARY KEY,
+	description NVARCHAR(200) NOT NULL,
+	is_active BIT NOT NULL DEFAULT 1
+)
+
+SET IDENTITY_INSERT sfa.investment_type ON
+
+INSERT INTO sfa.investment_type ( id, description, is_active)
+SELECT INVESTMENT_TYPE_ID, DESCRIPTION, CASE WHEN IS_ACTIVE_FLG = 'Y' THEN 1 ELSE 0 END
+FROM SFAADMIN.investment_type
+
+SET IDENTITY_INSERT sfa.investment_type OFF
+
+-- SFAADMIN.LANGUAGE
+CREATE TABLE sfa.language (
+	id INT IDENTITY(1,1) PRIMARY KEY,
+	description NVARCHAR(200) NOT NULL,
+	is_active BIT NOT NULL DEFAULT 1
+)
+
+SET IDENTITY_INSERT sfa.language ON
+
+INSERT INTO sfa.language ( id, description, is_active)
+SELECT LANGUAGE_ID, DESCRIPTION, CASE WHEN IS_ACTIVE_FLG = 'Y' THEN 1 ELSE 0 END
+FROM SFAADMIN.language
+
+SET IDENTITY_INSERT sfa.language OFF
+
+-- SFAADMIN.MARITAL_STATUS
+CREATE TABLE sfa.marital_status (
+	id INT IDENTITY(1,1) PRIMARY KEY,
+	description NVARCHAR(200) NOT NULL,
+	is_active BIT NOT NULL DEFAULT 1
+)
+
+SET IDENTITY_INSERT sfa.marital_status ON
+
+INSERT INTO sfa.marital_status ( id, description, is_active)
+SELECT MARITAL_STATUS_ID, DESCRIPTION, CASE WHEN IS_ACTIVE_FLG = 'Y' THEN 1 ELSE 0 END
+FROM SFAADMIN.marital_status
+
+SET IDENTITY_INSERT sfa.marital_status OFF
+
+-- SFAADMIN.OWNERSHIP
+CREATE TABLE sfa.ownership (
+	id INT IDENTITY(1,1) PRIMARY KEY,
+	description NVARCHAR(200) NOT NULL,
+	is_active BIT NOT NULL DEFAULT 1
+)
+
+SET IDENTITY_INSERT sfa.ownership ON
+
+INSERT INTO sfa.ownership ( id, description, is_active)
+SELECT OWNERSHIP_ID, DESCRIPTION, CASE WHEN IS_ACTIVE_FLG = 'Y' THEN 1 ELSE 0 END
+FROM SFAADMIN.ownership
+
+SET IDENTITY_INSERT sfa.ownership OFF
+
+-- SFAADMIN.PARENT_CONTRIBUTION_FORMULA
+CREATE TABLE sfa.parent_contribution_formula (
+	id INT IDENTITY(1,1) PRIMARY KEY,
+	academic_year_id INT NOT NULL REFERENCES sfa.academic_year (id),
+	income_from_amount NUMERIC(10,2) NOT NULL,
+	income_to_amount NUMERIC(10,2) NOT NULL,
+	add_amount NUMERIC(10,2) NOT NULL,
+	percentage FLOAT NOT NULL,
+	subtract_amount NUMERIC(10,2),
+	divide_by INT NOT NULL
+)
+
+INSERT INTO sfa.parent_contribution_formula ( academic_year_id, income_from_amount, income_to_amount, add_amount, percentage, subtract_amount, divide_by)
+SELECT ACADEMIC_YEAR, D_INCOME_FROM, D_INCOME_TO, ADD_AMT, [PERCENT], SUBTRACT_AMT, DIVIDE_BY
+FROM SFAADMIN.parent_contribution_formula
+
+-- SFAADMIN.PART_TIME_REASON
+CREATE TABLE sfa.part_time_reason (
+	id INT IDENTITY(1,1) PRIMARY KEY,
+	description NVARCHAR(200) NOT NULL,
+	is_active BIT NOT NULL DEFAULT 1
+)
+
+SET IDENTITY_INSERT sfa.part_time_reason ON
+
+INSERT INTO sfa.part_time_reason ( id, description, is_active)
+SELECT PART_TIME_REASON_ID, DESCRIPTION, CASE WHEN IS_ACTIVE_FLG = 'Y' THEN 1 ELSE 0 END
+FROM SFAADMIN.part_time_reason
+
+SET IDENTITY_INSERT sfa.part_time_reason OFF
+
+-- SFAADMIN.PERIOD
+CREATE TABLE sfa.period (
+	id INT IDENTITY(1,1) PRIMARY KEY,
+	description NVARCHAR(200) NOT NULL,
+	is_active BIT NOT NULL DEFAULT 1
+)
+
+SET IDENTITY_INSERT sfa.period ON
+
+INSERT INTO sfa.period ( id, description, is_active)
+SELECT PERIOD_ID, DESCRIPTION, CASE WHEN IS_ACTIVE_FLG = 'Y' THEN 1 ELSE 0 END
+FROM SFAADMIN.period
+
+SET IDENTITY_INSERT sfa.period OFF
+
+-- SFAADMIN.PORTAL_STATUS
+CREATE TABLE sfa.portal_status (
+	id INT IDENTITY(1,1) PRIMARY KEY,
+	description NVARCHAR(200) NOT NULL,
+	is_active BIT NOT NULL DEFAULT 1
+)
+
+SET IDENTITY_INSERT sfa.portal_status ON
+
+INSERT INTO sfa.portal_status ( id, description, is_active)
+SELECT PORTAL_STATUS_ID, STATUS_DESC, CASE WHEN IS_ACTIVE_FLG = 'Y' THEN 1 ELSE 0 END
+FROM SFAADMIN.portal_status
+
+SET IDENTITY_INSERT sfa.portal_status OFF
+
+-- SFAADMIN.PRESTUDY_EMPLOY_STATUS
+CREATE TABLE sfa.prestudy_employment_status (
+	id INT IDENTITY(1,1) PRIMARY KEY,
+	description NVARCHAR(200) NOT NULL,
+	is_active BIT NOT NULL DEFAULT 1
+)
+
+SET IDENTITY_INSERT sfa.prestudy_employment_status ON
+
+INSERT INTO sfa.prestudy_employment_status ( id, description, is_active)
+SELECT PRESTUDY_EMPLOY_STATUS_ID, DESCRIPTION, CASE WHEN IS_ACTIVE_FLG = 'Y' THEN 1 ELSE 0 END
+FROM SFAADMIN.PRESTUDY_EMPLOY_STATUS 
+
+SET IDENTITY_INSERT sfa.prestudy_employment_status OFF
+
+-- SFAADMIN.PRESTUDY_TAX_RATE
+CREATE TABLE sfa.prestudy_tax_rate (
+	id INT IDENTITY(1,1) PRIMARY KEY,
+	academic_year INT NOT NULL REFERENCES sfa.academic_year (id),
+	from_income_amount NUMERIC(10,2) NOT NULL,
+	to_income_amount NUMERIC(10,2) NOT NULL,
+	prestudy_tax_rate FLOAT NOT NULL
+)
+
+INSERT INTO sfa.prestudy_tax_rate ( academic_year, from_income_amount, to_income_amount, prestudy_tax_rate)
+SELECT ACADEMIC_YEAR, INCOME_FROM, INCOME_TO, PRESTUDY_TAX_RATE
+FROM SFAADMIN.prestudy_tax_rate 
+
+-- SFAADMIN.PROGRAM
+CREATE TABLE sfa.program (
+	id INT IDENTITY(1,1) PRIMARY KEY,
+	description NVARCHAR(200) NOT NULL,
+	education_level_id INT NOT NULL REFERENCES sfa.education_level (id),
+	is_active BIT NOT NULL DEFAULT 1
+)
+
+SET IDENTITY_INSERT sfa.program ON
+
+INSERT INTO sfa.program ( id, description, education_level_id, is_active)
+SELECT PROGRAM_ID, DESCRIPTION,EDUCATION_LEVEL, CASE WHEN IS_ACTIVE_FLG = 'Y' THEN 1 ELSE 0 END
+FROM SFAADMIN.program 
+
+SET IDENTITY_INSERT sfa.program OFF
+
+-- SFAADMIN.RELATIONSHIP
+CREATE TABLE sfa.relationship (
+	id INT IDENTITY(1,1) PRIMARY KEY,
+	description NVARCHAR(200) NOT NULL,
+	is_active BIT NOT NULL DEFAULT 1
+)
+
+SET IDENTITY_INSERT sfa.relationship ON
+
+INSERT INTO sfa.relationship ( id, description, is_active)
+SELECT RELATIONSHIP_ID, DESCRIPTION, CASE WHEN IS_ACTIVE_FLG = 'Y' THEN 1 ELSE 0 END
+FROM SFAADMIN.relationship 
+
+SET IDENTITY_INSERT sfa.relationship OFF
+
+-- SFAADMIN.REPORT_EXPENSE_CATEGORY
+CREATE TABLE sfa.report_expense_category (
+	id INT IDENTITY(1,1) PRIMARY KEY,
+	description NVARCHAR(200) NOT NULL,
+	is_active BIT NOT NULL DEFAULT 1
+)
+
+SET IDENTITY_INSERT sfa.report_expense_category ON
+
+INSERT INTO sfa.report_expense_category ( id, description, is_active)
+SELECT REPORT_EXPENSE_CATEGORY_ID, DESCRIPTION, CASE WHEN IS_ACTIVE_FLG = 'Y' THEN 1 ELSE 0 END
+FROM SFAADMIN.report_expense_category 
+
+SET IDENTITY_INSERT sfa.report_expense_category OFF
+
+-- SFAADMIN.REQUIREMENT_TYPE
+CREATE TABLE sfa.requirement_type (
+	id INT IDENTITY(1,1) PRIMARY KEY,
+	description NVARCHAR(200) NOT NULL,
+	document_location NVARCHAR(2000) NULL,
+	show_online BIT NOT NULL DEFAULT 1,
+	is_active BIT NOT NULL DEFAULT 1
+)
+
+SET IDENTITY_INSERT sfa.requirement_type ON
+
+INSERT INTO sfa.requirement_type ( id, description, is_active, document_location, show_online)
+SELECT REQUIREMENT_TYPE_ID, DESCRIPTION, CASE WHEN IS_ACTIVE_FLG = 'Y' THEN 1 ELSE 0 END, DOCUMENT_LOCATION, CASE WHEN SHOW_ONLINE = 'Y' THEN 1 ELSE 0 END
+FROM SFAADMIN.requirement_type 
+
+SET IDENTITY_INSERT sfa.requirement_type OFF
+
+-- SFAADMIN.SFA_DOCUMENT_LINK
+CREATE TABLE sfa.sfa_document_link (
+	id INT IDENTITY(1,1) PRIMARY KEY,
+	description NVARCHAR(200) NOT NULL,
+	document_location NVARCHAR(2000) NULL,
+	sort_order INT NOT NULL DEFAULT 99,
+	is_active BIT NOT NULL DEFAULT 1
+)
+
+SET IDENTITY_INSERT sfa.sfa_document_link ON
+
+INSERT INTO sfa.sfa_document_link ( id, description, is_active, document_location, sort_order)
+SELECT SFA_DOCUMENT_LINK_ID, DESCRIPTION, CASE WHEN IS_ACTIVE_FLG = 'Y' THEN 1 ELSE 0 END, DOCUMENT_LOCATION, SORT_ORDER
+FROM SFAADMIN.sfa_document_link 
+WHERE IS_ACTIVE_FLG = 'Y'
+
+SET IDENTITY_INSERT sfa.sfa_document_link OFF
+
+-- SFAADMIN.SPOUSE_TAX_RATE
+CREATE TABLE sfa.spouse_tax_rate (
+	id INT IDENTITY(1,1) PRIMARY KEY,
+	academic_year_id INT NOT NULL REFERENCES sfa.academic_year (id), 
+	province_id INT NOT NULL REFERENCES sfa.province (id), 
+	from_income_amount NUMERIC(10,2) NOT NULL,
+	to_income_amount NUMERIC(10,2) NOT NULL,
+	tax_rate FLOAT NOT NULL
+)
+
+INSERT INTO sfa.spouse_tax_rate (academic_year_id, province_id, from_income_amount, to_income_amount, tax_rate)
+SELECT ACADEMIC_YEAR, PROVINCE_ID, INCOME_FROM, INCOME_TO, SPOUSE_TAX_RATE
+FROM SFAADMIN.spouse_tax_rate 
+
+-- SFAADMIN.STA_LOOKUP
+CREATE TABLE sfa.sta_lookup (
+	id INT IDENTITY(1,1) PRIMARY KEY,
+	academic_year_id INT NOT NULL REFERENCES sfa.academic_year (id) UNIQUE, 
+	dependent_0_amount NUMERIC(10,2) NOT NULL,
+	dependent_1_amount NUMERIC(10,2) NOT NULL,
+	dependent_2_amount NUMERIC(10,2) NOT NULL,
+	dependent_3_amount NUMERIC(10,2) NOT NULL,
+	dependent_4_amount NUMERIC(10,2) NOT NULL,
+	second_residence_amount NUMERIC(10,2) NOT NULL
+)
+
+INSERT INTO sfa.sta_lookup (academic_year_id, dependent_0_amount, dependent_1_amount, dependent_2_amount, dependent_3_amount, dependent_4_amount, second_residence_amount)
+SELECT ACADEMIC_YEAR, DEPENDENT_ZERO, DEPENDENT_ONE, DEPENDENT_TWO, DEPENDENT_THREE, DEPENDENT_FOUR, SECOND_RESIDENCE
+FROM SFAADMIN.sta_lookup 
+
+-- SFAADMIN.STANDARD_OF_LIVING
+CREATE TABLE sfa.standard_of_living(
+	id INT IDENTITY(1,1) PRIMARY KEY,
+	academic_year_id INT NOT NULL REFERENCES sfa.academic_year (id), 
+	province_id INT NOT NULL REFERENCES sfa.province (id),
+	family_size INT NOT NULL,
+	standard_living_amount NUMERIC(10,2) NOT NULL,
+	UNIQUE (academic_year_id, province_id, family_size)
+)
+
+INSERT INTO sfa.standard_of_living (academic_year_id, province_id, family_size, standard_living_amount)
+SELECT ACADEMIC_YEAR, PROVINCE_ID, FAMILY_SIZE, STANDARD_LIVING_AMT
+FROM SFAADMIN.standard_of_living
+ORDER BY 1,2,3
+
+-- SFAADMIN.STATUS
+CREATE TABLE sfa.status(
+	id INT IDENTITY(1,1) PRIMARY KEY,
+	description NVARCHAR(200) NOT NULL,
+	online_description NVARCHAR(200) NULL,
+	sort_order INT NOT NULL DEFAULT 99,
+	is_active BIT NOT NULL DEFAULT 1
+)
+
+SET IDENTITY_INSERT sfa.status ON
+
+INSERT INTO sfa.status (id, description, is_active, sort_order, online_description)
+SELECT STATUS_ID, DESCRIPTION, CASE WHEN IS_ACTIVE_FLG = 'Y' THEN 1 ELSE 0 END, SORT, ONLINE_DESCRIPTION
+FROM SFAADMIN.status
+
+SET IDENTITY_INSERT sfa.status OFF
+
+-- SFAADMIN.STATUS_REASON
+CREATE TABLE sfa.status_reason (
+	id INT IDENTITY(1,1) PRIMARY KEY,
+	status_id INT NULL REFERENCES sfa.status (id),
+	description NVARCHAR(200) NOT NULL,
+	is_active BIT NOT NULL DEFAULT 1
+)
+
+SET IDENTITY_INSERT sfa.status_reason ON
+
+INSERT INTO sfa.status_reason (id, status_id, description, is_active)
+SELECT STATUS_REASON_ID, STATUS_ID, DESCRIPTION, CASE WHEN IS_ACTIVE_FLG = 'Y' THEN 1 ELSE 0 END
+FROM SFAADMIN.status_reason
+
+SET IDENTITY_INSERT sfa.status_reason OFF
+
+-- SFAADMIN.STUDENT_CATEGORY
+CREATE TABLE sfa.student_category (
+	id INT IDENTITY(1,1) PRIMARY KEY,
+	code NVARCHAR(10) NOT NULL UNIQUE,
+	description NVARCHAR(200) NOT NULL,
+	is_active BIT NOT NULL DEFAULT 1
+)
+
+INSERT INTO sfa.student_category ( code, description, is_active)
+SELECT STUDENT_CATEGORY_CODE, DESCRIPTION, CASE WHEN IS_ACTIVE_FLG = 'Y' THEN 1 ELSE 0 END
+FROM SFAADMIN.student_category
+
+-- SFAADMIN.STUDENT_CONTRIBUTION
+CREATE TABLE sfa.student_contribution (
+	id INT IDENTITY(1,1) PRIMARY KEY,
+	academic_year_id INT NOT NULL REFERENCES sfa.academic_year (id),
+	province_id INT NOT NULL REFERENCES sfa.province (id),
+	period_id INT NOT NULL REFERENCES sfa.period (id),
+	student_category_id INT NOT NULL REFERENCES sfa.student_category (id),
+	contribution_amount NUMERIC(10,2) NOT NULL,
+	UNIQUE (academic_year_id, province_id, period_id, student_category_id)
+)
+
+INSERT INTO sfa.student_contribution ( academic_year_id,province_id, period_id, student_category_id, contribution_amount)
+SELECT ACADEMIC_YEAR,  PROVINCE_ID,PERIOD_ID, student_category.id, CONTRIBUTION_AMOUNT
+FROM SFAADMIN.student_contribution
+INNER JOIN sfa.student_category on STUDENT_CONTRIBUTION.STUDENT_CATEGORY_CODE = student_category.code
+
+-- SFAADMIN.STUDENT_LIVING_ALLOWANCE
+CREATE TABLE sfa.student_living_allowance (
+	id INT IDENTITY(1,1) PRIMARY KEY,
+	academic_year_id INT NOT NULL REFERENCES sfa.academic_year (id),
+	province_id INT NOT NULL REFERENCES sfa.province (id),
+	student_category_id INT NOT NULL REFERENCES sfa.student_category (id),
+	shelter_amount NUMERIC(10,2) NOT NULL,
+	food_amount NUMERIC(10,2) NOT NULL,
+	misc_amount NUMERIC(10,2) NOT NULL,
+	public_tranport_amount NUMERIC(10,2) NOT NULL,
+	UNIQUE (academic_year_id, province_id, student_category_id)
+)
+
+INSERT INTO sfa.student_living_allowance ( academic_year_id,province_id, student_category_id, shelter_amount, food_amount, misc_amount, public_tranport_amount)
+SELECT ACADEMIC_YEAR,  PROVINCE_ID, student_category.id, SHELTER_AMOUNT, FOOD_AMOUNT, MISC_AMOUNT, PUBLIC_TRANS_AMOUNT
+FROM SFAADMIN.student_living_allowance
+INNER JOIN sfa.student_category on student_living_allowance.STUDENT_CATEGORY_CODE = student_category.code
+
+-- SFAADMIN.STUDY_FIELD
+CREATE TABLE sfa.study_field (
+	id INT IDENTITY(1,1) PRIMARY KEY,
+	description NVARCHAR(200) NOT NULL,
+	is_active BIT NOT NULL DEFAULT 1
+)
+
+SET IDENTITY_INSERT sfa.study_field ON
+
+INSERT INTO sfa.study_field ( id, description, is_active)
+SELECT STUDY_FIELD_ID, DESCRIPTION, CASE WHEN IS_ACTIVE_FLG = 'Y' THEN 1 ELSE 0 END
+FROM SFAADMIN.study_field 
+
+SET IDENTITY_INSERT sfa.study_field OFF
+
+-- SFAADMIN.STUDY_AREA
+CREATE TABLE sfa.study_area (
+	id INT IDENTITY(1,1) PRIMARY KEY,
+	study_field_id INT NOT NULL REFERENCES sfa.study_field (id),
+	description NVARCHAR(200) NOT NULL,
+	show_online BIT NOT NULL DEFAULT 1,
+	is_active BIT NOT NULL DEFAULT 1
+)
+
+SET IDENTITY_INSERT sfa.study_area ON
+
+INSERT INTO sfa.study_area ( id, study_field_id, description, show_online, is_active)
+SELECT  STUDY_AREA_ID, STUDY_FIELD_ID, DESCRIPTION, CASE WHEN SHOW_ONLINE = 'Y' THEN 1 ELSE 0 END, CASE WHEN IS_ACTIVE_FLG = 'Y' THEN 1 ELSE 0 END
+FROM SFAADMIN.study_area 
+
+SET IDENTITY_INSERT sfa.study_area OFF
+
+-- SFAADMIN.STUDY_TAX_RATE
+CREATE TABLE sfa.study_tax_rate (
+	id INT IDENTITY(1,1) PRIMARY KEY,
+	academic_year_id INT NOT NULL REFERENCES sfa.academic_year (id),
+	from_income_amount NUMERIC(10,2) NOT NULL,
+	to_income_amount NUMERIC(10,2) NOT NULL,
+	study_tax_rate FLOAT NOT NULL
+)
+
+INSERT INTO sfa.study_tax_rate ( academic_year_id, from_income_amount, to_income_amount, study_tax_rate)
+SELECT ACADEMIC_YEAR, INCOME_FROM, INCOME_TO, STUDY_TAX_RATE
+FROM SFAADMIN.study_tax_rate 
+
+-- SFAADMIN.SYSTEM_DEP_PARAMS
+CREATE TABLE sfa.system_dep_params (
+	id INT IDENTITY(1,1) PRIMARY KEY,
+	dependent_count INT NOT NULL UNIQUE,
+	weekly_amount NUMERIC(10,2) NOT NULL
+)
+
+INSERT INTO sfa.system_dep_params ( dependent_count, weekly_amount)
+SELECT DEPENDENT_COUNT, WEEKLY_RATE
+FROM SFAADMIN.system_dep_params 
+
+-- SFAADMIN.SYSTEM_PARAMETER
+CREATE TABLE sfa.system_parameter (
+	id INT IDENTITY(1,1) PRIMARY KEY,
+	second_residence_rate FLOAT NULL,
+	weekly_rate FLOAT NULL,
+	academic_start_year NUMERIC(4, 0) NULL,
+	csl_max_weekly_amount NUMERIC(4, 0) NULL,
+	minister_name NVARCHAR(100) NULL,
+	financial_batch_id_start NUMERIC(7, 0) NULL,
+	financial_batch_id_end NUMERIC(7, 0) NULL,
+	financial_batch_id_year NUMERIC(4, 0) NULL,
+	previous_fin_batch_id_start NUMERIC(7, 0) NULL,
+	previous_fin_batch_id_end NUMERIC(7, 0) NULL,
+	previous_fin_batch_id_year NUMERIC(4, 0) NULL,
+	last_online_expire_date DATETIME2 NULL,
+	last_msfaa_sent_date DATETIME2 NULL,
+	last_msfaa_sent_seq_num FLOAT NULL,
+	msfaa_enclosed_approval_text NVARCHAR(2000) NULL,
+	msfaa_NOT_encl_approval_text NVARCHAR(2000) NULL,
+	monthly_board_change_date DATETIME2 NULL,
+	arial_ttf_directory NVARCHAR(150) NULL,
+	letterhead_tray NVARCHAR(100) NULL,
+	yg_quarter_weeks FLOAT NULL,
+	yg_semester_weeks FLOAT NULL,
+	yg_approval_text NVARCHAR(1000) NULL,
+	director_name_position NVARCHAR(100) NULL,
+	director_email NVARCHAR(100) NULL,
+	director_phone NVARCHAR(24) NULL,
+	environment NVARCHAR(10) NULL,
+	cslft_msfaa_text NVARCHAR(100) NULL
+)
+
+SET IDENTITY_INSERT sfa.system_parameter ON
+
+INSERT INTO sfa.system_parameter ( id, second_residence_rate,weekly_rate,academic_start_year,csl_max_weekly_amount,minister_name,financial_batch_id_start,financial_batch_id_end,financial_batch_id_year,previous_fin_batch_id_start,previous_fin_batch_id_end,previous_fin_batch_id_year,last_online_expire_date,last_msfaa_sent_date,last_msfaa_sent_seq_num,msfaa_enclosed_approval_text,msfaa_not_encl_approval_text,monthly_board_change_date,arial_ttf_directory,letterhead_tray,yg_quarter_weeks,yg_semester_weeks,yg_approval_text,director_name_position,director_email,director_phone,environment,cslft_msfaa_text)
+SELECT SYSTEM_PARAMETER_ID, second_residence_rate,weekly_rate,academic_start_year,csl_max_weekly_amount,minister_name,financial_batch_id_start,financial_batch_id_end,financial_batch_id_year,previous_fin_batch_id_start,previous_fin_batch_id_end,previous_fin_batch_id_year,last_online_expire_date,last_msfaa_sent_date,last_msfaa_sent_seq_num,msfaa_enclosed_approval_text,msfaa_not_encl_approval_text,monthly_board_change_date,arial_ttf_directory,letterhead_tray,yg_quarter_weeks,yg_semester_weeks,yg_approval_text,director_name_position,director_email,director_phone,environment,cslft_msfaa_text
+FROM SFAADMIN.system_parameter 
+
+SET IDENTITY_INSERT sfa.system_parameter OFF
 
 
 
-select * from sfa.funding_group
-select * from sfaadmin.funding_group
+select * from sfa.system_parameter
+select * from sfaadmin.system_parameter
 
