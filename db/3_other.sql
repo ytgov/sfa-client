@@ -633,13 +633,13 @@ SET IDENTITY_INSERT sfa.prestudy_employment_status OFF
 -- SFAADMIN.PRESTUDY_TAX_RATE
 CREATE TABLE sfa.prestudy_tax_rate (
 	id INT IDENTITY(1,1) PRIMARY KEY,
-	academic_year INT NOT NULL REFERENCES sfa.academic_year (id),
+	academic_year_id INT NOT NULL REFERENCES sfa.academic_year (id),
 	from_income_amount NUMERIC(10,2) NOT NULL,
 	to_income_amount NUMERIC(10,2) NOT NULL,
 	prestudy_tax_rate FLOAT NOT NULL
 )
 
-INSERT INTO sfa.prestudy_tax_rate ( academic_year, from_income_amount, to_income_amount, prestudy_tax_rate)
+INSERT INTO sfa.prestudy_tax_rate ( academic_year_id, from_income_amount, to_income_amount, prestudy_tax_rate)
 SELECT ACADEMIC_YEAR, INCOME_FROM, INCOME_TO, PRESTUDY_TAX_RATE
 FROM SFAADMIN.prestudy_tax_rate 
 
@@ -851,8 +851,7 @@ INNER JOIN sfa.student_category on student_living_allowance.STUDENT_CATEGORY_COD
 -- SFAADMIN.STUDY_FIELD
 CREATE TABLE sfa.study_field (
 	id INT IDENTITY(1,1) PRIMARY KEY,
-	description NVARCHAR(200) NOT NULL,
-	is_active BIT NOT NULL DEFAULT 1
+	description NVARCHAR(200) NOT NULL,is_active BIT NOT NULL DEFAULT 1
 )
 
 SET IDENTITY_INSERT sfa.study_field ON
@@ -1039,7 +1038,219 @@ FROM SFAADMIN.yg_cost
 SET IDENTITY_INSERT sfa.yg_cost OFF
 
 
+-- SFAADMIN.STUDENT
 
 
-select * from sfa.yg_cost
-select * from sfaadmin.yg_cost
+create table sfa.student (
+	id int identity(1,1) primary key,
+	high_school_id int null references sfa.high_school (id),
+	education_level_id int null references sfa.education_level (id),
+	language_id int null references sfa.language (id),
+	birth_city_id int null references sfa.city (id),
+	birth_province_id int null references sfa.province(id),
+	birth_country_id int null references sfa.country(id),
+	sex_id int null references sfa.sex(id),
+	indigenous_learner_id int null references sfa.indigenous_learner,
+	first_name nvarchar(100) null,
+	last_name nvarchar(100) null,
+	previous_last_name nvarchar(100) null,
+	initials nvarchar(20) null,
+	sin nvarchar(15) null,
+	birth_date date null,
+	vendor_id nvarchar(25) null,
+	yukon_id nvarchar(20) null,
+	checked_for_yukon_id bit not null default 0,
+	national_id nvarchar(50) null,
+	locator_number nvarchar(15) null,
+	is_crown_ward bit not null default 0,
+	high_school_final_grade nvarchar(15) null,
+	high_school_left_year int null,
+	high_school_left_month int null,
+	home_address1 nvarchar(100) null,
+	home_address2 nvarchar(100) null,
+	home_city_id int null references sfa.city,
+	home_province_id int null references sfa.province,
+	home_country_id int null references sfa.country,
+	home_postal_code nvarchar(50) null,
+	home_phone nvarchar(24) null,
+	home_email nvarchar(100) null,
+	mailing_address1 nvarchar(100) null,
+	mailing_address2 nvarchar(100) null,
+	mailing_city_id int null references sfa.city,
+	mailing_province_id int null references sfa.province,
+	mailing_country_id int null references sfa.country,
+	mailing_postal_code nvarchar(50) null,
+	pre_funded_year int null,
+	pre_funding_years_used float null,
+	school_email nvarchar(100) null,
+	school_phone nvarchar(24) null,
+	parent_mailing_address1 nvarchar(100) null,
+	parent_mailing_address2 nvarchar(100) null,
+	parent_mailing_city_id int null references sfa.city,
+	parent_mailing_province_id int null references sfa.province,
+	parent_mailing_country_id int null references sfa.country,
+	parent_mailing_postal_code nvarchar(50) null,
+	parent_telephone nvarchar(24) null,
+	csl_letter_date date null,
+	csl_warn_code nvarchar(10) null,
+	pre_over_award_amount numeric(10, 2) null,
+	pre_yea_awards_used_amount numeric(10, 2) null,
+	user_name nvarchar(100) null,
+	user_password nvarchar(1000) null,
+	is_active bit not null default 1,
+	is_first_logon_flg nvarchar(1) null,
+	last_logon_date datetime2(0) null,
+	last_pw_change_date datetime2(0) null,
+	yea_expiry_date date null,
+	adj_yg_funding_weeks int null,
+	adj_sta_upgrading_weeks int null,
+	adj_outside_travel_cnt int null
+)
+
+SET IDENTITY_INSERT sfa.student ON
+INSERT INTO sfa.student (id, high_school_id, education_level_id, language_id, birth_city_id, birth_province_id,
+                         birth_country_id,
+                         sex_id, indigenous_learner_id, first_name, last_name, previous_last_name, initials, sin,
+                         birth_date, vendor_id,
+                         yukon_id, checked_for_yukon_id, national_id, locator_number, is_crown_ward,
+                         high_school_final_grade, high_school_left_year, high_school_left_month,
+                         home_address1, home_address2, home_city_id, home_province_id, home_country_id,
+                         home_postal_code, home_phone,
+                         home_email, mailing_address1, mailing_address2, mailing_city_id, mailing_province_id,
+                         mailing_country_id, mailing_postal_code,
+                         pre_funded_year, pre_funding_years_used, school_email, school_phone,
+                         parent_mailing_address1, parent_mailing_address2, parent_mailing_city_id,
+                         parent_mailing_province_id, parent_mailing_country_id, parent_mailing_postal_code,
+                         parent_telephone, csl_letter_date, csl_warn_code, pre_over_award_amount, pre_yea_awards_used_amount, user_name, user_password,
+                         is_active, is_first_logon_flg, 
+                         last_logon_date, last_pw_change_date,
+                         yea_expiry_date, adj_yg_funding_weeks, adj_sta_upgrading_weeks, adj_outside_travel_cnt)
+SELECT STUDENT_ID,
+       HIGH_SCHOOL_ID,
+       EDUCATION_LEVEL_ID,
+       LANGUAGE_ID,
+       BIRTH_CITY_ID,
+       BIRTH_PROVINCE_ID,
+       BIRTH_COUNTRY_ID,
+       SEX,
+       CASE
+           WHEN INDIGENOUS_LEARNER = 'Yes' THEN 1
+           WHEN INDIGENOUS_LEARNER = 'No' THEN 2
+           WHEN INDIGENOUS_LEARNER = 'Prefer Not to Say' THEN 3
+           ELSE -1 END,
+       FIRST_NAME,
+       LAST_NAME,
+       PREVIOUS_LAST_NAME,
+       INITIALS,
+       SIN,
+       BIRTH_DATE,
+       VENDOR_ID,
+       YUKON_ID,
+       CASE WHEN CHECKED_FOR_YTID_FLG = 'Yes' THEN 1 ELSE 0 END,
+       NATIONAL_ID,
+       LOCATOR_NUMBER,
+       CASE WHEN CROWN_WARD_FLG = 'Yes' THEN 1 ELSE 0 END,
+       HIGH_SCHOOL_FINAL_GRADE,
+       HIGH_SCHOOL_LEFT_YEAR,
+       HIGH_SCHOOL_LEFT_MONTH,
+       HOME_ADDRESS1,
+       HOME_ADDRESS2,
+       HOME_CITY_ID,
+       HOME_PROVINCE_ID,
+       HOME_COUNTRY_ID,
+       HOME_POSTAL_CODE,
+       HOME_PHONE,
+       HOME_EMAIL,
+       MAILING_ADDRESS1,
+       MAILING_ADDRESS2,
+       MAILING_CITY_ID,
+       MAILING_PROVINCE_ID,
+       MAILING_COUNTRY_ID,
+       MAILING_POSTAL_CODE,       
+       PRE_FUNDED_YEAR,
+       PRE_FUNDING_YEARS_USED,
+       SCHOOL_EMAIL,
+       SCHOOL_PHONE,
+       PARENT_MAILING_ADDRESS1,
+       PARENT_MAILING_ADDRESS2,
+       PARENT_MAILING_CITY_ID,
+       PARENT_MAILING_PROVINCE_ID,
+       PARENT_MAILING_COUNTRY_ID,
+       PARENT_MAILING_POSTAL_CODE,
+       PARENT_TELEPHONE,       
+       CSL_LETTER_DATE,
+       CSL_WARN_CODE,
+       PRE_OVER_AWARD,
+       PRE_YEA_AWARDS_USED,
+       USER_NAME,
+       USER_PASSWORD,
+       CASE WHEN IS_ACTIVE_FLG = 'Y' THEN 1 ELSE 0 END,
+       CASE WHEN IS_FIRST_LOGON_FLG = 'Y' THEN 1 ELSE 0 END,
+       LAST_LOGON_DATE,
+       LAST_PW_CHG_DATE,
+       YEA_EXPIRY_DATE,
+       ADJ_YG_FUNDING_WEEKS,
+       ADJ_STA_UPGRADING_WEEKS,
+       ADJ_OUTSIDE_TRAVEL_CNT
+FROM SFAADMIN.student
+
+SET IDENTITY_INSERT sfa.student OFF
+
+-- SFAADMIN.STUDENT_CONSENT
+CREATE TABLE sfa.student_consent (
+	id INT IDENTITY(1,1) PRIMARY KEY,
+	student_id INT NOT NULL REFERENCES sfa.student,
+	start_academic_year_id INT NOT NULL REFERENCES sfa.academic_year (id),
+	end_academic_year_id INT NULL REFERENCES sfa.academic_year (id),
+	consent_person NVARCHAR (200) NOT NULL,
+	consent_sfa BIT NOT NULL DEFAULT 0,
+	consent_csl BIT NOT NULL DEFAULT 0
+)
+
+SET IDENTITY_INSERT sfa.student_consent ON
+
+INSERT INTO sfa.student_consent (id, student_id, start_academic_year_id, end_academic_year_id, consent_person, consent_sfa, consent_csl)
+SELECT STUDENT_CONSENT_ID, STUDENT_ID, ACADEMIC_YEAR_START,ACADEMIC_YEAR_END, CONSENT_PERSON, 
+CASE WHEN CONSENT_SFA_FLG = 'Yes' THEN 1 ELSE 0 END, CASE WHEN CONSENT_CSL_FLG = 'Yes' THEN 1 ELSE 0 END
+FROM SFAADMIN.student_consent
+WHERE ACADEMIC_YEAR_START != 0
+
+SET IDENTITY_INSERT sfa.student_consent OFF
+
+
+-- SFAADMIN.RESIDENCE
+CREATE TABLE sfa.residence (
+	id INT IDENTITY(1,1) PRIMARY KEY,
+	student_id INT NOT NULL REFERENCES sfa.student,
+	address NVARCHAR(200) NULL,
+	city_id INT NULL REFERENCES sfa.city,
+	province_id INT NULL REFERENCES sfa.province,
+	country_id INT NULL REFERENCES sfa.country,
+	postal_code NVARCHAR(50),
+	in_school INT NULL,
+	from_year INT NULL,
+	from_month INT NULL,
+	to_year INT null,
+	to_month int null,
+	is_in_progress BIT NOT NULL DEFAULT 1
+)
+
+SET IDENTITY_INSERT sfa.residence ON
+
+INSERT INTO sfa.residence (id, student_id, address, city_id, province_id, country_id, postal_code, in_school, from_year, from_month, to_year, to_month, is_in_progress)
+SELECT RESIDENCE_ID, STUDENT_ID, ADDRESS, CITY_ID, PROVINCE_ID, COUNTRY_ID, POSTAL_CODE, 
+IN_SCHOOL, FROM_YEAR, FROM_MONTH, TO_YEAR, TO_MONTH, 
+CASE WHEN IS_IN_PROGRESS_FLG = 'Y' THEN 1 ELSE 0 END
+FROM SFAADMIN.residence
+
+SET IDENTITY_INSERT sfa.residence OFF
+
+
+
+select * from sfa.residence
+select * from sfaadmin.residence
+
+
+
+select count(*) from sfaadmin.residence
+where from_month is null

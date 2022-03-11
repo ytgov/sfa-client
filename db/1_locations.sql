@@ -106,3 +106,27 @@ FROM sfaadmin.officer
 
 SET IDENTITY_INSERT sfa.[user] OFF
 
+-- SFAADMIN.SEX
+CREATE TABLE sfa.sex (
+	id INT IDENTITY(1,1) PRIMARY KEY,
+	description NVARCHAR(50) NOT NULL UNIQUE,
+	is_active BIT NOT NULL DEFAULT 1
+)
+
+SET IDENTITY_INSERT sfa.sex ON
+INSERT INTO sfa.sex (id, description) VALUES (1, 'Male'), (2, 'Female'), (0, 'Prefer Not to Say'), (-1, 'Unknown')
+SET IDENTITY_INSERT sfa.sex OFF
+
+UPDATE SFAADMIN.STUDENT SET SEX = -1 where SEX IS NULL
+
+create table sfa.indigenous_learner (
+	id int identity primary key,
+	description nvarchar(50) not null unique,
+	is_active bit not null default 0
+)
+
+SET IDENTITY_INSERT sfa.indigenous_learner ON
+INSERT INTO sfa.indigenous_learner (id,description) VALUES (-1, 'Unknown'), (1, 'Yes'), (2, 'No'), (3, 'Prefer Not to Say')
+SET IDENTITY_INSERT sfa.indigenous_learner OFF
+
+UPDATE SFAADMIN.STUDENT_CONSENT SET ACADEMIC_YEAR_END = 2021 WHERE ACADEMIC_YEAR_END = 20201
