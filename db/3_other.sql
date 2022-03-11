@@ -1217,7 +1217,6 @@ WHERE ACADEMIC_YEAR_START != 0
 
 SET IDENTITY_INSERT sfa.student_consent OFF
 
-
 -- SFAADMIN.RESIDENCE
 CREATE TABLE sfa.residence (
 	id INT IDENTITY(1,1) PRIMARY KEY,
@@ -1245,10 +1244,213 @@ FROM SFAADMIN.residence
 
 SET IDENTITY_INSERT sfa.residence OFF
 
+-- SFAADMIN.REQUEST_TYPE
+CREATE TABLE sfa.request_type (
+	id INT IDENTITY(1,1) PRIMARY KEY,
+	application_type_id INT NULL REFERENCES sfa.application_type,
+	funding_group_id INT NULL REFERENCES sfa.funding_group,
+	batch_group_id INT NULL REFERENCES sfa.batch_group,
+	description NVARCHAR(200) NULL,
+	scholarship_flag INT NOT NULL,
+	application_deadline NVARCHAR(500) NULL,
+	regulation NVARCHAR(200) NULL,
+	program_type NVARCHAR(100) NULL,
+	static_description_flag INT NULL,
+	financial_coding NVARCHAR(50) NULL,
+	t4a_required BIT NOT NULL DEFAULT 0,
+	csg_other_flag INT NULL,
+	gl_budget FLOAT NULL,
+	auto_appear NVARCHAR(50),
+	show_online BIT NOT NULL DEFAULT 0,
+	short_name NVARCHAR(15) NULL,
+	help_url NVARCHAR(1000) NULL,
+	help_text TEXT NULL
+)
+
+SET IDENTITY_INSERT sfa.request_type ON
+
+INSERT INTO sfa.request_type ( id, application_type_id, funding_group_id, batch_group_id, description, scholarship_flag, application_deadline, regulation, program_type, static_description_flag, financial_coding, t4a_required, csg_other_flag, gl_budget, auto_appear, show_online, short_name, help_url, help_text)
+SELECT REQUEST_TYPE_ID, APPLICATION_TYPE_ID, FUNDING_GROUP_ID, BATCH_GROUP_ID, APPLICATION_REQ_TYPE_ID
+	DESCRIPTION, SCHOLARSHIP_FLAG, APPLICATION_DEADLINE, REGULATION, PROGRAM_TYPE, STATIC_DESCRIPTION_FLAG, FINANCIAL_CODING,
+	CASE WHEN T4A_REQUIRED_FLAG = 1 THEN 1 ELSE 0 END, 	CSG_OTHER_FLAG, GL_BUDGET, AUTO_APPEAR, 
+	CASE WHEN SHOW_ONLINE = 'Y' THEN 1 ELSE 0 END, SHORT_NAME, HELP_URL,HELP_TEXT
+FROM SFAADMIN.request_type 
+
+SET IDENTITY_INSERT sfa.request_type OFF
+
+-- SFAADMIN.REQUEST_REQUIREMENT
+CREATE TABLE sfa.request_requirement (
+	id INT IDENTITY(1,1) PRIMARY KEY,
+	request_type_id INT NOT NULL REFERENCES sfa.request_type,
+	requirement_type_id INT NOT NULL REFERENCES sfa.requirement_type,
+	condition NVARCHAR(200) NULL,
+	UNIQUE(request_type_id, requirement_type_id)
+)
+
+INSERT INTO sfa.request_requirement (request_type_id, requirement_type_id, condition)
+SELECT REQUEST_TYPE_ID, REQUIREMENT_TYPE_ID, CONDITION
+FROM SFAADMIN.request_requirement 
+
+-- SFAADMIN.INSTITUTION_REQUEST_TYPE
+CREATE TABLE sfa.institution_request_type (
+	id INT IDENTITY(1,1) PRIMARY KEY,
+	institution_campus_id INT NOT NULL REFERENCES sfa.institution_campus,
+	request_type_id INT NOT NULL REFERENCES sfa.request_type,
+	UNIQUE (institution_campus_id, request_type_id)
+)
+
+INSERT INTO sfa.institution_request_type (institution_campus_id, request_type_id)
+SELECT INSTITUTION_ID, REQUEST_TYPE_ID
+FROM SFAADMIN.institution_request_type
+
+-- SFAADMIN.EXPENESE_CATEGORY
+CREATE TABLE sfa.expense_category (
+	id INT IDENTITY(1,1) PRIMARY KEY,
+	report_expense_category_id INT NULL REFERENCES sfa.report_expense_category,
+	description NVARCHAR(200) NOT NULL,
+	is_active BIT NOT NULL DEFAULT 1
+)
+
+SET IDENTITY_INSERT sfa.expense_category ON
+
+INSERT INTO sfa.expense_category (id, report_expense_category_id, description, is_active)
+SELECT EXPENSE_CATEGORY_ID, REPORT_EXPENSE_CATEGORY_ID, DESCRIPTION,CASE WHEN IS_ACTIVE_FLG = 'Y' THEN 1 ELSE 0 END
+FROM SFAADMIN.expense_category
+
+SET IDENTITY_INSERT sfa.expense_category OFF
+
+-- SFAADMIN.EDUCATION
+CREATE TABLE sfa.education (
+	id INT IDENTITY(1,1) PRIMARY KEY,
+	student_id INT NOT NULL REFERENCES sfa.student,
+	institution_campus_id INT NULL REFERENCES sfa.institution_campus,
+	study_area_id INT NULL REFERENCES sfa.study_area,
+	from_year INT NULL,
+	from_month INT NULL,
+	to_year INT NULL,
+	to_month INT NULL,
+	is_in_progress BIT NOT NULL DEFAULT 1
+)
+
+SET IDENTITY_INSERT sfa.education ON
+
+INSERT INTO sfa.education (id, student_id, institution_campus_id, study_area_id, from_year, from_month, to_year, to_month, is_in_progress)
+SELECT EDUCATION_ID, STUDENT_ID, INSTITUTION_ID, STUDY_AREA_ID, FROM_YEAR, FROM_MONTH, TO_YEAR, TO_MONTH, CASE WHEN IS_IN_PROGRESS_FLG = 'Y' THEN 1 ELSE 0 END
+FROM SFAADMIN.education
+
+SET IDENTITY_INSERT sfa.education OFF
+
+-- SFAADMIN.DEPENDENT
+CREATE TABLE sfa.dependent (
+	id INT IDENTITY(1,1) PRIMARY KEY,
+	student_id INT NOT NULL REFERENCES sfa.student,
+	relationship_id INT NULL REFERENCES sfa.relationship,
+	first_name NVARCHAR(100) NULL,
+	last_name NVARCHAR(100) NULL,
+	comments TEXT NULL,
+	birth_date DATE NULL,
+	is_in_progress BIT NOT NULL DEFAULT 1,
+	is_conversion BIT NOT NULL DEFAULT 0,
+	is_disability BIT NOT NULL DEFAULT 0
+)
+
+SET IDENTITY_INSERT sfa.dependent ON
+
+INSERT INTO sfa.dependent (id, student_id, relationship_id, first_name, last_name, comments, birth_date, is_in_progress, is_conversion, is_disability)
+SELECT DEPENDENT_ID, STUDENT_ID, RELATIONSHIP_ID, FIRST_NAME, LAST_NAME, COMMENTS, BIRTH_DATE,
+	CASE WHEN IS_IN_PROGRESS_FLG = 'Y' THEN 1 ELSE 0 END, CASE WHEN CONVERSION_FLG = 'Y' THEN 1 ELSE 0 END, CASE WHEN DISABILITY_FLG = 'Y' THEN 1 ELSE 0 END
+FROM SFAADMIN.dependent
+
+SET IDENTITY_INSERT sfa.dependent OFF
+
+-- SFAADMIN.CORRESPONDENCE_TYPE
+CREATE TABLE sfa.correspondence_type (
+	id INT IDENTITY(1,1) PRIMARY KEY,
+	description NVARCHAR(200) NOT NULL,
+	is_active BIT NOT NULL DEFAULT 1
+)
+
+SET IDENTITY_INSERT sfa.correspondence_type ON
+
+INSERT INTO sfa.correspondence_type ( id, description, is_active)
+SELECT CORRESPONDENCE_TYPE_ID, DESCRIPTION, CASE WHEN IS_ACTIVE_FLG = 'Y' THEN 1 ELSE 0 END
+FROM SFAADMIN.correspondence_type 
+
+SET IDENTITY_INSERT sfa.correspondence_type OFF
+
+-- SFAADMIN.CORRESPONDENCE
+CREATE TABLE sfa.correspondence (
+	id INT IDENTITY(1,1) PRIMARY KEY,
+	officer_id INT NOT NULL REFERENCES sfa.[user],
+	student_id INT  NOT NULL REFERENCES sfa.student,
+	request_type_id INT NULL REFERENCES sfa.request_type,
+	correspondence_type_id INT NOT NULL REFERENCES sfa.correspondence_type,
+	comments TEXT NULL,
+	correspondence_date DATETIME2(0) NOT NULL, 
+	sent_date DATETIME2(0) NULL,
+	is_complete BIT NOT NULL DEFAULT 0
+)
+
+SET IDENTITY_INSERT sfa.correspondence ON
+
+INSERT INTO sfa.correspondence ( id, officer_id, student_id, request_type_id, correspondence_type_id, comments, correspondence_date, sent_date, is_complete)
+SELECT CORRESPONDENCE_ID,OFFICER_ID,STUDENT_ID,REQUEST_TYPE_ID,CORRESPONDENCE_TYPE_ID,COMMENTS,CORRESPONDENCE_DATE,SENT_DATE,
+	CASE WHEN COMPLETED_FLAG = 1 THEN 1 ELSE 0 END
+FROM SFAADMIN.correspondence
+
+SET IDENTITY_INSERT sfa.correspondence OFF
+
+-- SFAADMIN.corres_batch_param
+CREATE TABLE sfa.correspondence_batch_param (
+	id INT IDENTITY(1,1) PRIMARY KEY,
+	correspondence_id INT NOT NULL REFERENCES sfa.correspondence,
+	batch_parameter_id INT  NOT NULL REFERENCES sfa.batch_parameter,
+	parameter_value TEXT NULL,
+	UNIQUE (correspondence_id, batch_parameter_id)
+)
+
+INSERT INTO sfa.correspondence_batch_param ( correspondence_id, batch_parameter_id, parameter_value)
+SELECT CORRESPONDENCE_ID, BATCH_PARAMETER_ID, PARAMETER_VALUE
+FROM SFAADMIN.corres_batch_param
+
+-- SFAADMIN.corr_type_batch_param
+CREATE TABLE sfa.correspondence_type_batch_param (
+	id INT IDENTITY(1,1) PRIMARY KEY,
+	correspondence_type_id INT NOT NULL REFERENCES sfa.correspondence_type,
+	batch_parameter_id INT NOT NULL REFERENCES sfa.batch_parameter,
+	source NVARCHAR(200) NULL
+)
+
+INSERT INTO sfa.correspondence_type_batch_param ( correspondence_type_id, batch_parameter_id, source)
+SELECT CORRESPONDENCE_TYPE_ID, BATCH_PARAMETER_ID, SOURCE
+FROM SFAADMIN.corr_type_batch_param
+
+-- SFAADMIN.COMMUNICATION
+drop TABLE sfa.communication
+CREATE TABLE sfa.communication (
+	id INT IDENTITY(1,1) PRIMARY KEY,
+	officer_id INT NOT NULL REFERENCES sfa.[user],
+	student_id INT  NOT NULL REFERENCES sfa.student,
+	request_type_id INT NULL REFERENCES sfa.request_type,
+	communication_type_id INT NULL REFERENCES sfa.communication_type,
+	comments TEXT NULL,
+	communication_date DATETIME2(0) NULL, 
+	show_alert BIT NOT NULL DEFAULT 0
+)
+
+SET IDENTITY_INSERT sfa.communication ON
+
+INSERT INTO sfa.communication ( id, communication_type_id, officer_id, student_id, request_type_id, communication_date, comments, show_alert)
+SELECT COMMUNICATION_ID, COMMUNICATION_TYPE_ID, OFFICER_ID, STUDENT_ID, REQUEST_TYPE_ID, COMMUNICATION_DATE, COMMENTS, 
+	CASE WHEN SHOW_ALERT_FLG = 'Y' THEN 1 ELSE 0 END
+FROM SFAADMIN.communication
+
+SET IDENTITY_INSERT sfa.communication OFF
 
 
-select * from sfa.residence
-select * from sfaadmin.residence
+
+select * from sfa.communication
+select * from sfaadmin.communication
 
 
 
