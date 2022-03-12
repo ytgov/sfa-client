@@ -130,3 +130,68 @@ INSERT INTO sfa.indigenous_learner (id,description) VALUES (-1, 'Unknown'), (1, 
 SET IDENTITY_INSERT sfa.indigenous_learner OFF
 
 UPDATE SFAADMIN.STUDENT_CONSENT SET ACADEMIC_YEAR_END = 2021 WHERE ACADEMIC_YEAR_END = 20201
+
+
+
+CREATE TABLE sfa.address_type (
+    id INT IDENTITY(1,1) PRIMARY KEY,
+    description NVARCHAR(100) NOT NULL UNIQUE,
+    is_active BIT NOT NULL DEFAULT 1
+)
+SET IDENTITY INSERT sfa.address_type ON 
+INSERT INTO sfa.address_type (id, description) VALUES (1, 'Home'), (2, 'Mailing'), (3, 'School')
+SET IDENTITY INSERT sfa.address_type OFF
+
+
+CREATE TABLE person_address (
+    id INT IDENTITY(1,1) PRIMARY KEY,
+    address_type_id INT NOT NULL REFERENCES sfa.address_type,
+	address1 nvarchar(100) null,
+	address2 nvarchar(100) null,
+	city_id int null references sfa.city,
+	province_id int null references sfa.province,
+	country_id int null references sfa.country,
+	postal_code nvarchar(50) null,
+    notes TEXT NULL,
+    is_active BIT NOT NULL DEFAULT 1
+)
+
+
+
+CREATE TABLE person (
+    id INT IDENTITY(1,1) PRIMARY KEY,
+    first_name NVARCHAR(100) NULL,
+    last_name NVARCHAR(100) NULL,
+	initials nvarchar(20) null,
+	previous_last_name nvarchar(100) null,
+    sin NVARCHAR(15) NULL,
+    citizenship_code INT NULL,
+
+	birth_date date null,
+	birth_city_id int null references sfa.city (id),
+	birth_province_id int null references sfa.province(id),
+	birth_country_id int null references sfa.country(id),
+
+	language_id int null references sfa.language (id),
+	sex_id int null references sfa.sex(id),
+
+    home_address_id INT NULL REFERENCES sfa.address,
+    mailing_address_id INT NULL REFERENCES sfa.address,
+
+	telephone nvarchar(24) null,
+    email NVARCHAR(100) NULL
+)
+
+
+
+CREATE TABLE parent (
+    id INT IDENTITY(1,1) PRIMARY KEY,
+    student_id INT NOT NULL REFERENCES sfa.student,
+    relationship_id INT NOT NULL REFERENCES sfa.relationship
+   
+
+)
+
+[PARENT1_NET_INCOME] [numeric](8, 2) NULL,
+[PARENT1_INCOME] [numeric](8, 2) NULL,
+[PARENT1_TAX_PAID] [numeric](8, 2) NULL,
