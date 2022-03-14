@@ -1,6 +1,11 @@
 -- DROPS
 
 
+DROP TABLE IF EXISTS sfa.disability_requirement
+DROP TABLE IF EXISTS sfa.disability
+DROP TABLE IF EXISTS sfa.dependent_eligibility
+DROP TABLE IF EXISTS sfa.course_enrolled
+DROP TABLE IF EXISTS sfa.agency_assistance
 DROP TABLE if exists sfa.application
 DROP TABLE if exists sfa.communication
 DROP TABLE if exists sfa.correspondence_type_batch_param

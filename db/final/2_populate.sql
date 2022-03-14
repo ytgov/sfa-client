@@ -1006,7 +1006,6 @@ SET IDENTITY_INSERT sfa.communication OFF
 
 
 -- SFA.APPLICATION
-
 DECLARE 
 	@HISTORY_DETAIL_ID float,
 	@STUDENT_ID float,
@@ -1357,6 +1356,8 @@ BEGIN
             @TAXES_FILED_YEAR1,@TAXES_FILED_YEAR2,@TAXES_FILED1_PROVINCE_ID,@TAXES_FILED2_PROVINCE_ID, CASE WHEN @TAXES_NOT_FILED_YR1_FLG = 'Y' THEN 1 ELSE 0 END,
             CASE WHEN @TAXES_NOT_FILED_YR2_FLG = 'Y' THEN 1 ELSE 0 END, CASE WHEN @APPLIED_OTHER_FUNDING_FLG = 'Y' THEN 1 ELSE 0 END,@CSL_RESTRICTION_WARN_ID,@CSL_RESTRICTION_REASON_ID,@COURSES_PER_WEEK,
             @PRESTUDY_START_DATE,@PRESTUDY_END_DATE)
+			
+		SET IDENTITY_INSERT sfa.application OFF
 
 	FETCH NEXT FROM app_cursor INTO 
 		@HISTORY_DETAIL_ID,
@@ -1496,3 +1497,38 @@ END;
 
 CLOSE app_cursor;
 DEALLOCATE app_cursor;
+
+-- SFA.AGENCY_ASSISTANCE
+INSERT INTO sfa.agency_assistance (agency_id, application_id, amount, is_tuition, is_living_expenses, is_books, is_transportation, other_purpose, agency_comment)
+SELECT AGENCY_id, HISTORY_DETAIL_ID, AMOUNT, COALESCE(TUITION_FLAG, 0), COALESCE(LIVING_EXPENSE_FLAG, 0), COALESCE(BOOKS_FLAG, 0), COALESCE(TRANSPORTATION_FLAG, 0), OTHER_PURPOSE, AGENCY_COMMENT
+FROM SFAADMIN.agency_assistance
+
+-- SFA.COUSE_ENROLLED
+SET IDENTITY_INSERT sfa.course_enrolled ON
+INSERT INTO sfa.course_enrolled (id, application_id, instruction_type_id, description, course_code)
+SELECT COURSE_ENROLLED_ID, HISTORY_DETAIL_ID, COALESCE (INSTRUCTION_TYPE_ID, 1), COURSE_DESCRIPTION, COURSE_CODE
+FROM SFAADMIN.COURSE_ENROLLED
+SET IDENTITY_INSERT sfa.course_enrolled OFF
+
+-- SFA.dependent_eligibility
+SET IDENTITY_INSERT sfa.dependent_eligibility ON
+INSERT INTO sfa.dependent_eligibility (id, application_id, dependent_id, is_eligible, is_post_secondary,resides_with_student, is_shares_custody, shares_custody_details, is_csl_eligible, is_csg_eligible, is_in_progress)
+SELECT DEPENDENT_ELIGIBILITY_ID, HISTORY_DETAIL_ID, DEPENDENT_ID, COALESCE(ELIGIBLE, 0),
+	COALESCE(POST_SECONDARY, 0), COALESCE(RESIDES_WITH, 0), COALESCE(SHARES_CUSTODY, 0),
+	SHARES_CUSTODY_DETAILS, COALESCE(CSL_ELIGIBLE, 0), COALESCE(CSG_ELIGIBLE, 0), CASE WHEN IS_IN_PROGRESS_FLG = 'Y' THEN 1 ELSE 0 END
+FROM SFAADMIN.dependent_eligibility
+SET IDENTITY_INSERT sfa.dependent_eligibility OFF
+
+-- SFA.disability
+SET IDENTITY_INSERT sfa.disability ON
+INSERT INTO sfa.disability (id, application_id, disability_type_id,description)
+SELECT DISABILITY_ID, HISTORY_DETAIL_ID, DISABILITY_TYPE_ID,DESCRIPTION
+FROM SFAADMIN.disability
+SET IDENTITY_INSERT sfa.disability OFF
+
+-- SFA.disability_requirement
+SET IDENTITY_INSERT sfa.disability_requirement ON
+INSERT INTO sfa.disability_requirement (id, application_id, disability_service_id)
+SELECT DISABILITY_REQUIREMENT_ID, HISTORY_DETAIL_ID, DISAB_SERVICE_TYPE_ID
+FROM SFAADMIN.disability_requirement
+SET IDENTITY_INSERT sfa.disability_requirement OFF

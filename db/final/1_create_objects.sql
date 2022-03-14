@@ -1107,3 +1107,41 @@ CREATE TABLE sfa.application (
     prestudy_start_date DATE null,
     prestudy_end_date DATE null
 )
+
+CREATE TABLE sfa.agency_assistance (
+	id INT IDENTITY PRIMARY KEY,
+	agency_id INT NOT NULL  REFERENCES sfa.agency,
+	application_id INT NOT NULL REFERENCES sfa.application,
+	amount NUMERIC(10,2) not null,
+	is_tuition BIT NOT NULL DEFAULT 0,
+	is_living_expenses BIT NOT NULL DEFAULT 0,
+	is_books BIT NOT NULL DEFAULT 0,
+	is_transportation BIT NOT NULL DEFAULT 0,
+	other_purpose NVARCHAR(500) NULL,
+	agency_comment NVARCHAR(500) NULL,
+	UNIQUE (agency_id, application_id)
+)
+
+CREATE TABLE sfa.course_enrolled (
+	id INT IDENTITY PRIMARY KEY,
+	application_id INT NOT NULL REFERENCES sfa.application,
+	instruction_type_id INT NOT NULL REFERENCES sfa.instruction_type,
+	description NVARCHAR(500) NOT NULL,
+	course_code NVARCHAR(100) NULL
+)
+
+CREATE TABLE sfa.dependent_eligibility (
+	id INT IDENTITY PRIMARY KEY,
+	application_id INT NOT NULL REFERENCES sfa.application,
+	dependent_id INT NOT NULL REFERENCES sfa.dependent,
+	is_eligible BIT NOT NULL DEFAULT 0,
+	is_post_secondary  BIT NOT NULL DEFAULT 0,
+	resides_with_student BIT NOT NULL DEFAULT 0,
+	is_shares_custody BIT NOT NULL DEFAULT 0,
+	shares_custody_details TEXT NULL,
+	is_csl_eligible BIT NOT NULL DEFAULT 0,
+	is_csg_eligible BIT NOT NULL DEFAULT 0,
+	is_in_progress BIT NOT NULL DEFAULT 0	
+)
+
+	select * from sfaadmin.dependent_eligibility

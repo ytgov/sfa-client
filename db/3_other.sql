@@ -1,6 +1,7 @@
 
+
+
 -- SFAADMIN.ABORIGINAL_STATUS
-DROP TABLE if exists sfa.aboriginal_status
 CREATE TABLE sfa.aboriginal_status (
 	id INT IDENTITY(1,1) PRIMARY KEY,
 	description NVARCHAR(200) NOT NULL UNIQUE,
@@ -18,7 +19,6 @@ FROM SFAADMIN.ABORIGINAL_STATUS
 SET IDENTITY_INSERT sfa.aboriginal_status OFF
 
 -- SFAADMIN.AGE_DISTRIBUTION
-DROP TABLE if exists sfa.age_distribution
 CREATE TABLE sfa.age_distribution (
 	id INT IDENTITY(1,1) PRIMARY KEY,
 	start_age INT NOT NULL,
@@ -34,7 +34,6 @@ FROM SFAADMIN.AGE_DISTRIBUTION
 SET IDENTITY_INSERT sfa.age_distribution OFF
 
 -- SFAADMIN.AGENCY
-DROP TABLE if exists sfa.agency
 CREATE TABLE sfa.agency (
 	id INT IDENTITY(1,1) PRIMARY KEY,
 	description NVARCHAR(200) NOT NULL,
@@ -50,7 +49,6 @@ FROM SFAADMIN.agency
 SET IDENTITY_INSERT sfa.agency OFF
 
 -- SFAADMIN.APPLICATION_TYPE
-DROP TABLE if exists sfa.application_type
 CREATE TABLE sfa.application_type (
 	id INT IDENTITY(1,1) PRIMARY KEY,
 	description NVARCHAR(200) NOT NULL,
@@ -66,7 +64,6 @@ FROM SFAADMIN.application_type
 SET IDENTITY_INSERT sfa.application_type OFF
 
 -- SFAADMIN.ASSESSMENT_TYPE
-DROP TABLE if exists sfa.assessment_type
 CREATE TABLE sfa.assessment_type (
 	id INT IDENTITY(1,1) PRIMARY KEY,
 	description NVARCHAR(200) NOT NULL,
@@ -82,7 +79,6 @@ FROM SFAADMIN.assessment_type
 SET IDENTITY_INSERT sfa.assessment_type OFF
 
 -- SFAADMIN.BATCH_GROUP
-DROP TABLE if exists sfa.batch_group
 CREATE TABLE sfa.batch_group (
 	id INT IDENTITY(1,1) PRIMARY KEY,
 	description NVARCHAR(200) NOT NULL,
@@ -99,7 +95,6 @@ FROM SFAADMIN.batch_group
 SET IDENTITY_INSERT sfa.batch_group OFF
 
 -- SFAADMIN.BATCH_PARAMETER
-DROP TABLE if exists sfa.batch_parameter
 CREATE TABLE sfa.batch_parameter (
 	id INT IDENTITY(1,1) PRIMARY KEY,
 	description NVARCHAR(200) NOT NULL,
@@ -116,7 +111,6 @@ FROM SFAADMIN.batch_parameter
 SET IDENTITY_INSERT sfa.batch_parameter OFF
 
 -- SFAADMIN.CATEGORY
-DROP TABLE if exists sfa.category
 CREATE TABLE sfa.category (
 	id INT IDENTITY(1,1) PRIMARY KEY,
 	description NVARCHAR(200) NOT NULL,
@@ -132,7 +126,6 @@ FROM SFAADMIN.category
 SET IDENTITY_INSERT sfa.category OFF
 
 -- SFAADMIN.CHANGE_REASON
-DROP TABLE if exists sfa.change_reason
 CREATE TABLE sfa.change_reason (
 	id INT IDENTITY(1,1) PRIMARY KEY,
 	description NVARCHAR(200) NOT NULL,
@@ -148,7 +141,6 @@ FROM SFAADMIN.change_reason
 SET IDENTITY_INSERT sfa.change_reason OFF
 
 -- SFAADMIN.CHILD_CARE_CEILING
-DROP TABLE if exists sfa.child_care_ceiling
 CREATE TABLE sfa.child_care_ceiling (
 	id INT IDENTITY(1,1) PRIMARY KEY,
 	academic_year_id INT NOT NULL REFERENCES sfa.academic_year (id),
@@ -162,7 +154,6 @@ FROM SFAADMIN.child_care_ceiling
  INNER JOIN sfa.academic_year ON (CHILD_CARE_CEILING.ACADEMIC_YEAR = academic_year.id)
  
 -- SFAADMIN.COMUNICATION_TYPE
-DROP TABLE if exists sfa.communication_type
 CREATE TABLE sfa.communication_type (
 	id INT IDENTITY(1,1) PRIMARY KEY,
 	description NVARCHAR(200) NOT NULL,
@@ -178,7 +169,6 @@ FROM SFAADMIN.communication_type
 SET IDENTITY_INSERT sfa.communication_type OFF
 
 -- SFAADMIN.CSG_LOOKUP
-DROP TABLE if exists sfa.csg_lookup
 CREATE TABLE sfa.csg_lookup (
 	id INT IDENTITY(1,1) PRIMARY KEY,
 	academic_year_id INT NOT NULL REFERENCES sfa.academic_year (id) UNIQUE,
@@ -197,7 +187,6 @@ SELECT academic_year, CSG_8_MONTH_AMT, CSG_DEP_MONTHLY_AMT, CSG_PD_YEARLY_AMT, C
 FROM SFAADMIN.csg_lookup
 
 -- SFAADMIN.CSG_THRESHOLD
-DROP TABLE if exists sfa.csg_threshold
 CREATE TABLE sfa.csg_threshold (
 	id INT IDENTITY(1,1) PRIMARY KEY,
 	academic_year_id INT NOT NULL REFERENCES sfa.academic_year (id),
@@ -219,7 +208,6 @@ SELECT academic_year, FAMILY_SIZE , INCOME_THRESHOLD, INCOME_CUTOFF, PHASE_OUT_R
 FROM SFAADMIN.csg_threshold
 
 -- SFAADMIN.CSL_CODE
-DROP TABLE if exists sfa.csl_code
 CREATE TABLE sfa.csl_code (
 	id INT IDENTITY(1,1) PRIMARY KEY,
 	warning_code NVARCHAR(10) NULL,
@@ -238,7 +226,6 @@ FROM SFAADMIN.csl_code
 SET IDENTITY_INSERT sfa.csl_code OFF
 
 -- SFAADMIN.CSL_LOOKUP
-DROP TABLE if exists sfa.csl_lookup
 CREATE TABLE sfa.csl_lookup (
 	id INT IDENTITY(1,1) PRIMARY KEY,
 	academic_year_id INT NOT NULL REFERENCES sfa.academic_year (id) UNIQUE,
@@ -267,7 +254,6 @@ SELECT [ACADEMIC_YEAR],[MAX_RETURN_TRANSPORT],[MAX_WEEKLY_ALLOWABLE],[STUDENT_EX
 FROM SFAADMIN.csl_lookup
 
 -- SFAADMIN.CSL_NSLSC_ADDRESS
-DROP TABLE if exists sfa.csl_nslsc_address
 CREATE TABLE sfa.csl_nslsc_address (
 	id INT IDENTITY(1,1) PRIMARY KEY,	
 	institution_type NVARCHAR(100) NOT NULL,
@@ -291,7 +277,6 @@ FROM SFAADMIN.csl_nslsc_address
 SET IDENTITY_INSERT sfa.csl_nslsc_address OFF
 
 -- SFAADMIN.CSL_REASON
-DROP TABLE if exists sfa.csl_reason
 CREATE TABLE sfa.csl_reason (
 	id INT IDENTITY(1,1) PRIMARY KEY,
 	type NVARCHAR(50) NOT NULL,
@@ -308,7 +293,6 @@ FROM SFAADMIN.csl_reason
 SET IDENTITY_INSERT sfa.csl_reason OFF
 
 -- SFAADMIN.CSL_RESTRICTED
-DROP TABLE if exists sfa.csl_restricted
 CREATE TABLE sfa.csl_restricted (
 	id INT IDENTITY(1,1) PRIMARY KEY,	
 	amount_disbursed NUMERIC(10, 2) NULL,
@@ -337,7 +321,6 @@ FROM SFAADMIN.csl_restricted
 SET IDENTITY_INSERT sfa.csl_restricted OFF
 
 -- SFAADMIN.DISAB_SERVICE_TYPE
-DROP TABLE if exists sfa.disability_service
 CREATE TABLE sfa.disability_service (
 	id INT IDENTITY(1,1) PRIMARY KEY,
 	description NVARCHAR(200) NOT NULL,
@@ -353,7 +336,6 @@ FROM SFAADMIN.DISAB_SERVICE_TYPE
 SET IDENTITY_INSERT sfa.disability_service OFF
 
 -- SFAADMIN.DISABILITY_TYPE
-DROP TABLE if exists sfa.disability_type
 CREATE TABLE sfa.disability_type (
 	id INT IDENTITY(1,1) PRIMARY KEY,
 	description NVARCHAR(200) NOT NULL,
@@ -370,7 +352,6 @@ FROM SFAADMIN.disability_type
 SET IDENTITY_INSERT sfa.disability_type OFF
 
 -- SFAADMIN.DISBURSEMENT_TYPE
-DROP TABLE if exists sfa.disbursement_type
 CREATE TABLE sfa.disbursement_type (
 	id INT IDENTITY(1,1) PRIMARY KEY,
 	description NVARCHAR(200) NOT NULL,
@@ -386,7 +367,6 @@ FROM SFAADMIN.disbursement_type
 SET IDENTITY_INSERT sfa.disbursement_type OFF
 
 -- SFAADMIN.EDUCATION_LEVEL
-DROP TABLE if exists sfa.education_level
 CREATE TABLE sfa.education_level (
 	id INT IDENTITY(1,1) PRIMARY KEY,
 	description NVARCHAR(200) NOT NULL,
@@ -403,7 +383,6 @@ FROM SFAADMIN.education_level
 SET IDENTITY_INSERT sfa.education_level OFF
 
 -- SFAADMIN.ENTITLEMENT_ERROR_CODES
-DROP TABLE if exists sfa.entitlement_error_codes
 CREATE TABLE sfa.entitlement_error_codes (
 	id INT IDENTITY(1,1) PRIMARY KEY,
 	code NVARCHAR(50) NOT NULL UNIQUE,
@@ -418,7 +397,6 @@ SELECT ERROR_CODE, ERROR_DESC, CASE WHEN CONFIRMED_UNCONFIRMED = 'C' THEN 1 ELSE
 FROM SFAADMIN.entitlement_error_codes
 
 -- SFAADMIN.FIRST_NATION
-DROP TABLE if exists sfa.first_nation
 CREATE TABLE sfa.first_nation (
 	id INT IDENTITY(1,1) PRIMARY KEY,
 	description NVARCHAR(200) NOT NULL,
@@ -435,7 +413,6 @@ FROM SFAADMIN.first_nation
 SET IDENTITY_INSERT sfa.first_nation OFF
 
 -- SFAADMIN.FUNDING_GROUP
-DROP TABLE if exists sfa.funding_group
 CREATE TABLE sfa.funding_group (
 	id INT IDENTITY(1,1) PRIMARY KEY,
 	description NVARCHAR(200) NOT NULL,
@@ -452,7 +429,6 @@ FROM SFAADMIN.funding_group
 SET IDENTITY_INSERT sfa.funding_group OFF
 
 -- SFAADMIN.HIGH_SCHOOL
-DROP TABLE if exists sfa.high_school
 CREATE TABLE sfa.high_school (
 	id INT IDENTITY(1,1) PRIMARY KEY,
 	name NVARCHAR(200) NOT NULL,
@@ -471,7 +447,6 @@ FROM SFAADMIN.high_school
 SET IDENTITY_INSERT sfa.high_school OFF
 
 -- SFAADMIN.INFO_CATEGORY
-DROP TABLE if exists sfa.info_category
 CREATE TABLE sfa.info_category (
 	id INT IDENTITY(1,1) PRIMARY KEY,
 	canvas_name NVARCHAR(200) NOT NULL,
@@ -490,7 +465,6 @@ FROM SFAADMIN.info_category
 SET IDENTITY_INSERT sfa.info_category OFF
 
 -- SFAADMIN.INSTRUCTION_TYPE
-DROP TABLE if exists sfa.instruction_type
 CREATE TABLE sfa.instruction_type (
 	id INT IDENTITY(1,1) PRIMARY KEY,
 	description NVARCHAR(200) NOT NULL,
@@ -506,7 +480,6 @@ FROM SFAADMIN.instruction_type
 SET IDENTITY_INSERT sfa.instruction_type OFF
 
 -- SFAADMIN.INVESTMENT_TYPE
-DROP TABLE if exists sfa.investment_type
 CREATE TABLE sfa.investment_type (
 	id INT IDENTITY(1,1) PRIMARY KEY,
 	description NVARCHAR(200) NOT NULL,
@@ -522,7 +495,6 @@ FROM SFAADMIN.investment_type
 SET IDENTITY_INSERT sfa.investment_type OFF
 
 -- SFAADMIN.LANGUAGE
-DROP TABLE if exists sfa.language
 CREATE TABLE sfa.language (
 	id INT IDENTITY(1,1) PRIMARY KEY,
 	description NVARCHAR(200) NOT NULL,
@@ -538,7 +510,6 @@ FROM SFAADMIN.language
 SET IDENTITY_INSERT sfa.language OFF
 
 -- SFAADMIN.MARITAL_STATUS
-DROP TABLE if exists sfa.marital_status
 CREATE TABLE sfa.marital_status (
 	id INT IDENTITY(1,1) PRIMARY KEY,
 	description NVARCHAR(200) NOT NULL,
@@ -554,7 +525,6 @@ FROM SFAADMIN.marital_status
 SET IDENTITY_INSERT sfa.marital_status OFF
 
 -- SFAADMIN.OWNERSHIP
-DROP TABLE if exists sfa.ownership
 CREATE TABLE sfa.ownership (
 	id INT IDENTITY(1,1) PRIMARY KEY,
 	description NVARCHAR(200) NOT NULL,
@@ -570,7 +540,6 @@ FROM SFAADMIN.ownership
 SET IDENTITY_INSERT sfa.ownership OFF
 
 -- SFAADMIN.PARENT_CONTRIBUTION_FORMULA
-DROP TABLE if exists sfa.parent_contribution_formula
 CREATE TABLE sfa.parent_contribution_formula (
 	id INT IDENTITY(1,1) PRIMARY KEY,
 	academic_year_id INT NOT NULL REFERENCES sfa.academic_year (id),
@@ -587,7 +556,6 @@ SELECT ACADEMIC_YEAR, D_INCOME_FROM, D_INCOME_TO, ADD_AMT, [PERCENT], SUBTRACT_A
 FROM SFAADMIN.parent_contribution_formula
 
 -- SFAADMIN.PART_TIME_REASON
-DROP TABLE if exists sfa.part_time_reason
 CREATE TABLE sfa.part_time_reason (
 	id INT IDENTITY(1,1) PRIMARY KEY,
 	description NVARCHAR(200) NOT NULL,
@@ -603,7 +571,6 @@ FROM SFAADMIN.part_time_reason
 SET IDENTITY_INSERT sfa.part_time_reason OFF
 
 -- SFAADMIN.PERIOD
-DROP TABLE if exists sfa.period
 CREATE TABLE sfa.period (
 	id INT IDENTITY(1,1) PRIMARY KEY,
 	description NVARCHAR(200) NOT NULL,
@@ -619,7 +586,6 @@ FROM SFAADMIN.period
 SET IDENTITY_INSERT sfa.period OFF
 
 -- SFAADMIN.PORTAL_STATUS
-DROP TABLE if exists sfa.portal_status
 CREATE TABLE sfa.portal_status (
 	id INT IDENTITY(1,1) PRIMARY KEY,
 	description NVARCHAR(200) NOT NULL,
@@ -635,7 +601,6 @@ FROM SFAADMIN.portal_status
 SET IDENTITY_INSERT sfa.portal_status OFF
 
 -- SFAADMIN.PRESTUDY_EMPLOY_STATUS
-DROP TABLE if exists sfa.prestudy_employment_status
 CREATE TABLE sfa.prestudy_employment_status (
 	id INT IDENTITY(1,1) PRIMARY KEY,
 	description NVARCHAR(200) NOT NULL,
@@ -651,7 +616,6 @@ FROM SFAADMIN.PRESTUDY_EMPLOY_STATUS
 SET IDENTITY_INSERT sfa.prestudy_employment_status OFF
 
 -- SFAADMIN.PRESTUDY_TAX_RATE
-DROP TABLE if exists sfa.prestudy_tax_rate
 CREATE TABLE sfa.prestudy_tax_rate (
 	id INT IDENTITY(1,1) PRIMARY KEY,
 	academic_year_id INT NOT NULL REFERENCES sfa.academic_year (id),
@@ -665,7 +629,6 @@ SELECT ACADEMIC_YEAR, INCOME_FROM, INCOME_TO, PRESTUDY_TAX_RATE
 FROM SFAADMIN.prestudy_tax_rate 
 
 -- SFAADMIN.PROGRAM
-DROP TABLE if exists sfa.program
 CREATE TABLE sfa.program (
 	id INT IDENTITY(1,1) PRIMARY KEY,
 	description NVARCHAR(200) NOT NULL,
@@ -682,7 +645,6 @@ FROM SFAADMIN.program
 SET IDENTITY_INSERT sfa.program OFF
 
 -- SFAADMIN.RELATIONSHIP
-DROP TABLE if exists sfa.relationship
 CREATE TABLE sfa.relationship (
 	id INT IDENTITY(1,1) PRIMARY KEY,
 	description NVARCHAR(200) NOT NULL,
@@ -698,7 +660,6 @@ FROM SFAADMIN.relationship
 SET IDENTITY_INSERT sfa.relationship OFF
 
 -- SFAADMIN.REPORT_EXPENSE_CATEGORY
-DROP TABLE if exists sfa.report_expense_category
 CREATE TABLE sfa.report_expense_category (
 	id INT IDENTITY(1,1) PRIMARY KEY,
 	description NVARCHAR(200) NOT NULL,
@@ -714,7 +675,6 @@ FROM SFAADMIN.report_expense_category
 SET IDENTITY_INSERT sfa.report_expense_category OFF
 
 -- SFAADMIN.REQUIREMENT_TYPE
-DROP TABLE if exists sfa.requirement_type
 CREATE TABLE sfa.requirement_type (
 	id INT IDENTITY(1,1) PRIMARY KEY,
 	description NVARCHAR(200) NOT NULL,
@@ -732,7 +692,6 @@ FROM SFAADMIN.requirement_type
 SET IDENTITY_INSERT sfa.requirement_type OFF
 
 -- SFAADMIN.SFA_DOCUMENT_LINK
-DROP TABLE if exists sfa.sfa_document_link
 CREATE TABLE sfa.sfa_document_link (
 	id INT IDENTITY(1,1) PRIMARY KEY,
 	description NVARCHAR(200) NOT NULL,
@@ -751,7 +710,6 @@ WHERE IS_ACTIVE_FLG = 'Y'
 SET IDENTITY_INSERT sfa.sfa_document_link OFF
 
 -- SFAADMIN.SPOUSE_TAX_RATE
-DROP TABLE if exists sfa.spouse_tax_rate
 CREATE TABLE sfa.spouse_tax_rate (
 	id INT IDENTITY(1,1) PRIMARY KEY,
 	academic_year_id INT NOT NULL REFERENCES sfa.academic_year (id), 
@@ -766,7 +724,6 @@ SELECT ACADEMIC_YEAR, PROVINCE_ID, INCOME_FROM, INCOME_TO, SPOUSE_TAX_RATE
 FROM SFAADMIN.spouse_tax_rate 
 
 -- SFAADMIN.STA_LOOKUP
-DROP TABLE if exists sfa.sta_lookup
 CREATE TABLE sfa.sta_lookup (
 	id INT IDENTITY(1,1) PRIMARY KEY,
 	academic_year_id INT NOT NULL REFERENCES sfa.academic_year (id) UNIQUE, 
@@ -783,7 +740,6 @@ SELECT ACADEMIC_YEAR, DEPENDENT_ZERO, DEPENDENT_ONE, DEPENDENT_TWO, DEPENDENT_TH
 FROM SFAADMIN.sta_lookup 
 
 -- SFAADMIN.STANDARD_OF_LIVING
-DROP TABLE if exists sfa.standard_of_living
 CREATE TABLE sfa.standard_of_living(
 	id INT IDENTITY(1,1) PRIMARY KEY,
 	academic_year_id INT NOT NULL REFERENCES sfa.academic_year (id), 
@@ -799,7 +755,6 @@ FROM SFAADMIN.standard_of_living
 ORDER BY 1,2,3
 
 -- SFAADMIN.STATUS
-DROP TABLE if exists sfa.status
 CREATE TABLE sfa.status(
 	id INT IDENTITY(1,1) PRIMARY KEY,
 	description NVARCHAR(200) NOT NULL,
@@ -817,7 +772,6 @@ FROM SFAADMIN.status
 SET IDENTITY_INSERT sfa.status OFF
 
 -- SFAADMIN.STATUS_REASON
-DROP TABLE if exists sfa.status_reason
 CREATE TABLE sfa.status_reason (
 	id INT IDENTITY(1,1) PRIMARY KEY,
 	status_id INT NULL REFERENCES sfa.status (id),
@@ -834,7 +788,6 @@ FROM SFAADMIN.status_reason
 SET IDENTITY_INSERT sfa.status_reason OFF
 
 -- SFAADMIN.STUDENT_CATEGORY
-DROP TABLE if exists sfa.student_category
 CREATE TABLE sfa.student_category (
 	id INT IDENTITY(1,1) PRIMARY KEY,
 	code NVARCHAR(10) NOT NULL UNIQUE,
@@ -847,7 +800,6 @@ SELECT STUDENT_CATEGORY_CODE, DESCRIPTION, CASE WHEN IS_ACTIVE_FLG = 'Y' THEN 1 
 FROM SFAADMIN.student_category
 
 -- SFAADMIN.STUDENT_CONTRIBUTION
-DROP TABLE if exists sfa.student_contribution
 CREATE TABLE sfa.student_contribution (
 	id INT IDENTITY(1,1) PRIMARY KEY,
 	academic_year_id INT NOT NULL REFERENCES sfa.academic_year (id),
@@ -864,7 +816,6 @@ FROM SFAADMIN.student_contribution
 INNER JOIN sfa.student_category on STUDENT_CONTRIBUTION.STUDENT_CATEGORY_CODE = student_category.code
 
 -- SFAADMIN.STUDENT_LIVING_ALLOWANCE
-DROP TABLE if exists sfa.student_living_allowance
 CREATE TABLE sfa.student_living_allowance (
 	id INT IDENTITY(1,1) PRIMARY KEY,
 	academic_year_id INT NOT NULL REFERENCES sfa.academic_year (id),
@@ -883,7 +834,6 @@ FROM SFAADMIN.student_living_allowance
 INNER JOIN sfa.student_category on student_living_allowance.STUDENT_CATEGORY_CODE = student_category.code
 
 -- SFAADMIN.STUDY_FIELD
-DROP TABLE if exists sfa.study_field
 CREATE TABLE sfa.study_field (
 	id INT IDENTITY(1,1) PRIMARY KEY,
 	description NVARCHAR(200) NOT NULL,is_active BIT NOT NULL DEFAULT 1
@@ -898,7 +848,6 @@ FROM SFAADMIN.study_field
 SET IDENTITY_INSERT sfa.study_field OFF
 
 -- SFAADMIN.STUDY_AREA
-DROP TABLE if exists sfa.study_area
 CREATE TABLE sfa.study_area (
 	id INT IDENTITY(1,1) PRIMARY KEY,
 	study_field_id INT NOT NULL REFERENCES sfa.study_field (id),
@@ -916,7 +865,6 @@ FROM SFAADMIN.study_area
 SET IDENTITY_INSERT sfa.study_area OFF
 
 -- SFAADMIN.STUDY_TAX_RATE
-DROP TABLE if exists sfa.study_tax_rate
 CREATE TABLE sfa.study_tax_rate (
 	id INT IDENTITY(1,1) PRIMARY KEY,
 	academic_year_id INT NOT NULL REFERENCES sfa.academic_year (id),
@@ -930,7 +878,6 @@ SELECT ACADEMIC_YEAR, INCOME_FROM, INCOME_TO, STUDY_TAX_RATE
 FROM SFAADMIN.study_tax_rate 
 
 -- SFAADMIN.SYSTEM_DEP_PARAMS
-DROP TABLE if exists sfa.system_dep_params
 CREATE TABLE sfa.system_dep_params (
 	id INT IDENTITY(1,1) PRIMARY KEY,
 	dependent_count INT NOT NULL UNIQUE,
@@ -942,7 +889,6 @@ SELECT DEPENDENT_COUNT, WEEKLY_RATE
 FROM SFAADMIN.system_dep_params 
 
 -- SFAADMIN.SYSTEM_PARAMETER
-DROP TABLE if exists sfa.system_parameter
 CREATE TABLE sfa.system_parameter (
 	id INT IDENTITY(1,1) PRIMARY KEY,
 	second_residence_rate FLOAT NULL,
@@ -983,7 +929,6 @@ FROM SFAADMIN.system_parameter
 SET IDENTITY_INSERT sfa.system_parameter OFF
 
 -- SFAADMIN.TRANSPORTATION
-DROP TABLE if exists sfa.transportation
 CREATE TABLE sfa.transportation (
 	id INT IDENTITY(1,1) PRIMARY KEY,
 	home_city_id INT NOT NULL REFERENCES sfa.city (id),
@@ -1002,7 +947,6 @@ FROM SFAADMIN.transportation
 SET IDENTITY_INSERT sfa.transportation OFF
 
 -- SFAADMIN.VERIFICATION_LOG
-DROP TABLE if exists sfa.verification_log
 CREATE TABLE sfa.verification_log (
 	id INT IDENTITY(1,1) PRIMARY KEY,
 	institution_campus_id INT NOT NULL REFERENCES sfa.institution_campus (id),
@@ -1019,7 +963,6 @@ FROM SFAADMIN.verification_log
 SET IDENTITY_INSERT sfa.verification_log OFF
 
 -- SFAADMIN.YEA
-DROP TABLE if exists sfa.yea
 CREATE TABLE sfa.yea (
 	id INT IDENTITY(1,1) PRIMARY KEY,
 	first_name NVARCHAR(100) NOT NULL,
@@ -1038,7 +981,6 @@ SELECT FNAME, LNAME, BIRTH_DT, YTID, OLD_YTID, SCHOOLYR, SCHOOLMN, COURSE, YEA_A
 FROM SFAADMIN.yea 
 
 -- SFAADMIN.YEA_UPDATE
-DROP TABLE if exists sfa.yea_update
 CREATE TABLE sfa.yea_update (
 	id INT IDENTITY(1,1) PRIMARY KEY,
 	first_name NVARCHAR(100) NOT NULL,
@@ -1057,7 +999,6 @@ SELECT FNAME, LNAME, BIRTH_DT, YTID, SCHOOLYR, SCHOOLMN, COURSE, YEA_AMNT, ORIG_
 FROM SFAADMIN.yea_update 
 
 -- SFAADMIN.YG_COST
-DROP TABLE if exists sfa.yg_cost
 CREATE TABLE sfa.yg_cost (
 	id INT IDENTITY(1,1) PRIMARY KEY,
 	academic_year_id INT NOT NULL REFERENCES sfa.academic_year (id),
@@ -1082,7 +1023,6 @@ FROM SFAADMIN.yg_cost
 SET IDENTITY_INSERT sfa.yg_cost OFF
 
 -- SFA.ADDRESS_TYPE
-DROP TABLE if exists sfa.address_type
 CREATE TABLE sfa.address_type (
     id INT IDENTITY(1,1) PRIMARY KEY,
     description NVARCHAR(100) NOT NULL UNIQUE,
@@ -1094,7 +1034,6 @@ INSERT INTO sfa.address_type (id, description) VALUES (1, 'Home'), (2, 'Mailing'
 SET IDENTITY_INSERT sfa.address_type OFF
 
 -- SFA.PERSON_ADDRESS
-DROP TABLE if exists sfa.person_address
 CREATE TABLE sfa.person_address (
     id INT IDENTITY(1,1) PRIMARY KEY,
     address_type_id INT NOT NULL REFERENCES sfa.address_type,
@@ -1108,7 +1047,6 @@ CREATE TABLE sfa.person_address (
     is_active BIT NOT NULL DEFAULT 1
 )
 
-DROP TABLE if exists sfa.person
 CREATE TABLE sfa.person (
     id INT IDENTITY(1,1) PRIMARY KEY,
 	language_id int null references sfa.language (id),
@@ -1137,7 +1075,6 @@ CREATE TABLE sfa.person (
 
 
 -- SFAADMIN.STUDENT
-DROP TABLE if exists sfa.student
 create table sfa.student (
 	id int identity(1,1) primary key,
     person_id INT NOT NULL REFERENCES sfa.person,
@@ -1271,7 +1208,6 @@ FROM SFAADMIN.student
 SET IDENTITY_INSERT sfa.student OFF
 
 -- SFAADMIN.STUDENT_CONSENT
-DROP TABLE if exists sfa.student_consent
 CREATE TABLE sfa.student_consent (
 	id INT IDENTITY(1,1) PRIMARY KEY,
 	student_id INT NOT NULL REFERENCES sfa.student,
@@ -1293,7 +1229,6 @@ WHERE ACADEMIC_YEAR_START != 0
 SET IDENTITY_INSERT sfa.student_consent OFF
 
 -- SFAADMIN.RESIDENCE
-DROP TABLE if exists sfa.residence
 CREATE TABLE sfa.residence (
 	id INT IDENTITY(1,1) PRIMARY KEY,
 	student_id INT NOT NULL REFERENCES sfa.student,
@@ -1321,7 +1256,6 @@ FROM SFAADMIN.residence
 SET IDENTITY_INSERT sfa.residence OFF
 
 -- SFAADMIN.REQUEST_TYPE
-DROP TABLE if exists sfa.request_type
 CREATE TABLE sfa.request_type (
 	id INT IDENTITY(1,1) PRIMARY KEY,
 	application_type_id INT NULL REFERENCES sfa.application_type,
@@ -1356,7 +1290,6 @@ FROM SFAADMIN.request_type
 SET IDENTITY_INSERT sfa.request_type OFF
 
 -- SFAADMIN.REQUEST_REQUIREMENT
-DROP TABLE if exists sfa.request_requirement
 CREATE TABLE sfa.request_requirement (
 	id INT IDENTITY(1,1) PRIMARY KEY,
 	request_type_id INT NOT NULL REFERENCES sfa.request_type,
@@ -1370,7 +1303,6 @@ SELECT REQUEST_TYPE_ID, REQUIREMENT_TYPE_ID, CONDITION
 FROM SFAADMIN.request_requirement 
 
 -- SFAADMIN.INSTITUTION_REQUEST_TYPE
-DROP TABLE if exists sfa.institution_request_type
 CREATE TABLE sfa.institution_request_type (
 	id INT IDENTITY(1,1) PRIMARY KEY,
 	institution_campus_id INT NOT NULL REFERENCES sfa.institution_campus,
@@ -1383,7 +1315,6 @@ SELECT INSTITUTION_ID, REQUEST_TYPE_ID
 FROM SFAADMIN.institution_request_type
 
 -- SFAADMIN.EXPENESE_CATEGORY
-DROP TABLE if exists sfa.expense_category
 CREATE TABLE sfa.expense_category (
 	id INT IDENTITY(1,1) PRIMARY KEY,
 	report_expense_category_id INT NULL REFERENCES sfa.report_expense_category,
@@ -1400,7 +1331,6 @@ FROM SFAADMIN.expense_category
 SET IDENTITY_INSERT sfa.expense_category OFF
 
 -- SFAADMIN.EDUCATION
-DROP TABLE if exists sfa.education
 CREATE TABLE sfa.education (
 	id INT IDENTITY(1,1) PRIMARY KEY,
 	student_id INT NOT NULL REFERENCES sfa.student,
@@ -1422,7 +1352,6 @@ FROM SFAADMIN.education
 SET IDENTITY_INSERT sfa.education OFF
 
 -- SFAADMIN.DEPENDENT
-DROP TABLE if exists sfa.dependent
 CREATE TABLE sfa.dependent (
 	id INT IDENTITY(1,1) PRIMARY KEY,
 	student_id INT NOT NULL REFERENCES sfa.student,
@@ -1446,7 +1375,6 @@ FROM SFAADMIN.dependent
 SET IDENTITY_INSERT sfa.dependent OFF
 
 -- SFAADMIN.CORRESPONDENCE_TYPE
-DROP TABLE if exists sfa.correspondence_type
 CREATE TABLE sfa.correspondence_type (
 	id INT IDENTITY(1,1) PRIMARY KEY,
 	description NVARCHAR(200) NOT NULL,
@@ -1462,7 +1390,6 @@ FROM SFAADMIN.correspondence_type
 SET IDENTITY_INSERT sfa.correspondence_type OFF
 
 -- SFAADMIN.CORRESPONDENCE
-DROP TABLE if exists sfa.correspondence
 CREATE TABLE sfa.correspondence (
 	id INT IDENTITY(1,1) PRIMARY KEY,
 	officer_id INT NOT NULL REFERENCES sfa.[user],
@@ -1485,7 +1412,6 @@ FROM SFAADMIN.correspondence
 SET IDENTITY_INSERT sfa.correspondence OFF
 
 -- SFAADMIN.corres_batch_param
-DROP TABLE if exists sfa.correspondence_batch_param
 CREATE TABLE sfa.correspondence_batch_param (
 	id INT IDENTITY(1,1) PRIMARY KEY,
 	correspondence_id INT NOT NULL REFERENCES sfa.correspondence,
@@ -1499,7 +1425,6 @@ SELECT CORRESPONDENCE_ID, BATCH_PARAMETER_ID, PARAMETER_VALUE
 FROM SFAADMIN.corres_batch_param
 
 -- SFAADMIN.corr_type_batch_param
-DROP TABLE if exists sfa.correspondence_type_batch_param
 CREATE TABLE sfa.correspondence_type_batch_param (
 	id INT IDENTITY(1,1) PRIMARY KEY,
 	correspondence_type_id INT NOT NULL REFERENCES sfa.correspondence_type,
@@ -1512,7 +1437,6 @@ SELECT CORRESPONDENCE_TYPE_ID, BATCH_PARAMETER_ID, SOURCE
 FROM SFAADMIN.corr_type_batch_param
 
 -- SFAADMIN.COMMUNICATION
-DROP TABLE if exists sfa.communication
 CREATE TABLE sfa.communication (
 	id INT IDENTITY(1,1) PRIMARY KEY,
 	officer_id INT NOT NULL REFERENCES sfa.[user],
