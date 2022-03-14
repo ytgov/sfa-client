@@ -1,4 +1,7 @@
 -- DROPS
+
+
+DROP TABLE if exists sfa.application
 DROP TABLE if exists sfa.communication
 DROP TABLE if exists sfa.correspondence_type_batch_param
 DROP TABLE if exists sfa.correspondence_batch_param
