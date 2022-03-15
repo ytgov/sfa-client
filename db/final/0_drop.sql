@@ -1,6 +1,20 @@
 -- DROPS
 
-
+DROP TABLE IF EXISTS sfa.entitlement_error
+DROP TABLE IF EXISTS  sfa.disbursement
+DROP TABLE IF EXISTS  sfa.cls_nars_history
+DROP TABLE IF EXISTS sfa.assessment
+DROP TABLE IF EXISTS sfa.communication_log
+DROP TABLE IF EXISTS sfa.requirement_met
+DROP TABLE IF EXISTS sfa.correspondence_request_status
+DROP TABLE IF EXISTS sfa.parent_resident
+DROP TABLE IF EXISTS sfa.parent_dependent
+DROP TABLE IF EXISTS sfa.msfaa_email_log
+DROP TABLE IF EXISTS sfa.msfaa
+DROP TABLE IF EXISTS sfa.investment
+DROP TABLE IF EXISTS sfa.application_part_time_reason
+DROP TABLE IF EXISTS sfa.funding_request
+DROP TABLE IF EXISTS sfa.expense
 DROP TABLE IF EXISTS sfa.disability_requirement
 DROP TABLE IF EXISTS sfa.disability
 DROP TABLE IF EXISTS sfa.dependent_eligibility

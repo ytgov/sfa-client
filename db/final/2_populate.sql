@@ -1,11 +1,9 @@
 
-
 SET IDENTITY_INSERT sfa.country ON 
 INSERT INTO sfa.country (id, description, created_by, created_date, last_modified_by, last_modified_date, is_active)
 SELECT country_id, trim(description), trim(created_by), created_date, updated_by, updated_date, CASE WHEN is_active_flg = 'Y' THEN 1 ELSE 0 END
 FROM sfaadmin.country
 SET IDENTITY_INSERT sfa.country OFF
-
 
 SET IDENTITY_INSERT sfa.province ON 
 INSERT INTO sfa.province (id, description, created_by, created_date, last_modified_by, last_modified_date, is_active)
@@ -18,8 +16,6 @@ INSERT INTO sfa.city (id, description, created_by, created_date, last_modified_b
 SELECT city_id, trim(description), trim(created_by), created_date, updated_by, updated_date, CASE WHEN is_active_flg = 'Y' THEN 1 ELSE 0 END
 FROM sfaadmin.city
 SET IDENTITY_INSERT sfa.city OFF
-
-
 
 INSERT INTO sfa.academic_year ([year], status) VALUES ('1965', 'Closed'),('1966', 'Closed'),('1967', 'Closed'),('1968', 'Closed'),('1969', 'Closed')
 INSERT INTO sfa.academic_year (year, status) VALUES ('1970', 'Closed'),('1971', 'Closed'),('1972', 'Closed'),('1973', 'Closed'),('1974', 'Closed')
@@ -35,7 +31,6 @@ INSERT INTO sfa.academic_year (year, status) VALUES ('2015', 'Closed'),('2016', 
 INSERT INTO sfa.academic_year (year, status) VALUES ('2020', 'Closed'),('2021', 'Open'),('2022', 'Open')
 
 UPDATE sfa.academic_year SET status = 'Archived' WHERE id < 1990
-
 
 /*
 UPDATE sfaadmin.officer SET FIRST_NAME = 'Shawn1' WHERE officer_id = 50
@@ -624,271 +619,273 @@ SET IDENTITY_INSERT sfa.address_type ON
 INSERT INTO sfa.address_type (id, description) VALUES (1, 'Home'), (2, 'Mailing'), (3, 'School'), (4, 'Parent')
 SET IDENTITY_INSERT sfa.address_type OFF
 
+SET NOCOUNT ON
 
 DECLARE 
-    @STUDENT_ID float,
-    @FIRST_NAME varchar(30),
-    @LAST_NAME varchar(30),
-    @INITIALS varchar(5),
-    @VENDOR_ID varchar(25),
-    @YUKON_ID varchar(15),
-    @SIN float,
-    @NATIONAL_ID varchar(50),
-    @CSL_LETTER_DATE datetime2(0),
-    @CSL_WARN_CODE varchar(1),
-    @LANGUAGE_ID float,
-    @BIRTH_DATE datetime2(0),
-    @HOME_ADDRESS1 varchar(100),
-    @HOME_ADDRESS2 varchar(100),
-    @BIRTH_CITY_ID float,
-    @BIRTH_COUNTRY_ID float,
-    @HOME_CITY_ID float,
-    @BIRTH_PROVINCE_ID float,
-    @HOME_PROVINCE_ID float,
-    @HOME_COUNTRY_ID float,
-    @HOME_PHONE varchar(24),
-    @HOME_POSTAL_CODE varchar(15),
-    @HOME_EMAIL varchar(50),
-    @LOCATOR_NUMBER varchar(15),
-    @MAILING_ADDRESS1 varchar(100),
-    @MAILING_ADDRESS2 varchar(100),
-    @MAILING_CITY_ID float,
-    @MAILING_PROVINCE_ID float,
-    @MAILING_COUNTRY_ID float,
-    @MAILING_POSTAL_CODE varchar(15),
-    @PRE_FUNDED_YEAR numeric(4, 0),
-    @PRE_FUNDING_YEARS_USED float,
-    @SCHOOL_EMAIL varchar(50),
-    @SCHOOL_PHONE varchar(24),
-    @CREATED_BY varchar(30),
-    @CREATED_DATE datetime2(0),
-    @UPDATED_BY varchar(30),
-    @UPDATED_DATE datetime2(0),
-    @HIGH_SCHOOL_FINAL_GRADE varchar(15),
-    @PARENT_MAILING_ADDRESS1 varchar(100),
-    @ARENT_MAILING_ADDRESS2 varchar(100),
-    @PARENT_MAILING_CITY_ID float,
-    @PARENT_MAILING_PROVINCE_ID float,
-    @PARENT_MAILING_COUNTRY_ID float,
-    @PARENT_MAILING_POSTAL_CODE varchar(15),
-    @PARENT_TELEPHONE varchar(24),
-    @PRE_OVER_AWARD numeric(8, 2),
-    @PRE_YEA_AWARDS_USED numeric(8, 2),
-    @EDUCATION_LEVEL_ID float,
-    @HIGH_SCHOOL_ID float,
-    @HIGH_SCHOOL_LEFT_YEAR numeric(4, 0),
-    @HIGH_SCHOOL_LEFT_MONTH numeric(2, 0),
-    @SEX float,
-    @SPOUSE_HS_END_MONTH numeric(2, 0),
-    @SPOUSE_HS_END_YEAR numeric(4, 0),
-    @USER_NAME varchar(100),
-    @USER_PASSWORD varchar(255),
-    @IS_ACTIVE_FLG varchar(1),
-    @IS_FIRST_LOGON_FLG varchar(1),
-    @LAST_PW_CHG_DATE datetime2(0),
-    @LAST_LOGON_DATE datetime2(0),
-    @PREVIOUS_LAST_NAME varchar(30),
-    @YEA_EXPIRY_DATE datetime2(0),
-    @ADJ_YG_FUNDING_WEEKS float,
-    @ADJ_STA_UPGRADING_WEEKS float,
-    @ADJ_OUTSIDE_TRAVEL_CNT float,
-    @CHECKED_FOR_YTID_FLG varchar(3),
-    @INDIGENOUS_LEARNER varchar(25),
-    @CROWN_WARD_FLG varchar(3);
+    @S_STUDENT_ID float,
+    @S_FIRST_NAME varchar(30),
+    @S_LAST_NAME varchar(30),
+    @S_INITIALS varchar(5),
+    @S_VENDOR_ID varchar(25),
+    @S_YUKON_ID varchar(15),
+    @S_SIN float,
+    @S_NATIONAL_ID varchar(50),
+    @S_CSL_LETTER_DATE datetime2(0),
+    @S_CSL_WARN_CODE varchar(1),
+    @S_LANGUAGE_ID float,
+    @S_BIRTH_DATE datetime2(0),
+    @S_HOME_ADDRESS1 varchar(100),
+    @S_HOME_ADDRESS2 varchar(100),
+    @S_BIRTH_CITY_ID float,
+    @S_BIRTH_COUNTRY_ID float,
+    @S_HOME_CITY_ID float,
+    @S_BIRTH_PROVINCE_ID float,
+    @S_HOME_PROVINCE_ID float,
+    @S_HOME_COUNTRY_ID float,
+    @S_HOME_PHONE varchar(24),
+    @S_HOME_POSTAL_CODE varchar(15),
+    @S_HOME_EMAIL varchar(50),
+    @S_LOCATOR_NUMBER varchar(15),
+    @S_MAILING_ADDRESS1 varchar(100),
+    @S_MAILING_ADDRESS2 varchar(100),
+    @S_MAILING_CITY_ID float,
+    @S_MAILING_PROVINCE_ID float,
+    @S_MAILING_COUNTRY_ID float,
+    @S_MAILING_POSTAL_CODE varchar(15),
+    @S_PRE_FUNDED_YEAR numeric(4, 0),
+    @S_PRE_FUNDING_YEARS_USED float,
+    @S_SCHOOL_EMAIL varchar(50),
+    @S_SCHOOL_PHONE varchar(24),
+    @S_CREATED_BY varchar(30),
+    @S_CREATED_DATE datetime2(0),
+    @S_UPDATED_BY varchar(30),
+    @S_UPDATED_DATE datetime2(0),
+    @S_HIGH_SCHOOL_FINAL_GRADE varchar(15),
+    @S_PARENT_MAILING_ADDRESS1 varchar(100),
+    @S_ARENT_MAILING_ADDRESS2 varchar(100),
+    @S_PARENT_MAILING_CITY_ID float,
+    @S_PARENT_MAILING_PROVINCE_ID float,
+    @S_PARENT_MAILING_COUNTRY_ID float,
+    @S_PARENT_MAILING_POSTAL_CODE varchar(15),
+    @S_PARENT_TELEPHONE varchar(24),
+    @S_PRE_OVER_AWARD numeric(8, 2),
+    @S_PRE_YEA_AWARDS_USED numeric(8, 2),
+    @S_EDUCATION_LEVEL_ID float,
+    @S_HIGH_SCHOOL_ID float,
+    @S_HIGH_SCHOOL_LEFT_YEAR numeric(4, 0),
+    @S_HIGH_SCHOOL_LEFT_MONTH numeric(2, 0),
+    @S_SEX float,
+    @S_SPOUSE_HS_END_MONTH numeric(2, 0),
+    @S_SPOUSE_HS_END_YEAR numeric(4, 0),
+    @S_USER_NAME varchar(100),
+    @S_USER_PASSWORD varchar(255),
+    @S_IS_ACTIVE_FLG varchar(1),
+    @S_IS_FIRST_LOGON_FLG varchar(1),
+    @S_LAST_PW_CHG_DATE datetime2(0),
+    @S_LAST_LOGON_DATE datetime2(0),
+    @S_PREVIOUS_LAST_NAME varchar(30),
+    @S_YEA_EXPIRY_DATE datetime2(0),
+    @S_ADJ_YG_FUNDING_WEEKS float,
+    @S_ADJ_STA_UPGRADING_WEEKS float,
+    @S_ADJ_OUTSIDE_TRAVEL_CNT float,
+    @S_CHECKED_FOR_YTID_FLG varchar(3),
+    @S_INDIGENOUS_LEARNER varchar(25),
+    @S_CROWN_WARD_FLG varchar(3);
 
-DECLARE @home_address_id INT, @mail_address_id INT, @person_id INT, @parent1_id INT, @parent2_id INT, @parent_address_id INT;
-
+DECLARE @S_home_address_id INT, @S_mail_address_id INT, @S_person_id INT, @S_parent1_id INT, @S_parent2_id INT, @S_parent_address_id INT;
 
 DECLARE student_cursor CURSOR FOR SELECT * FROM SFAADMIN.STUDENT
 OPEN student_cursor;
 
 FETCH NEXT FROM student_cursor INTO 
-	@STUDENT_ID,
-	@FIRST_NAME,
-	@LAST_NAME,
-	@INITIALS,
-	@VENDOR_ID,
-	@YUKON_ID,
-	@SIN ,
-	@NATIONAL_ID,
-	@CSL_LETTER_DATE,
-	@CSL_WARN_CODE,
-	@LANGUAGE_ID,
-	@BIRTH_DATE,
-	@HOME_ADDRESS1,
-	@HOME_ADDRESS2,
-	@BIRTH_CITY_ID,
-	@BIRTH_COUNTRY_ID,
-	@HOME_CITY_ID,
-	@BIRTH_PROVINCE_ID,
-	@HOME_PROVINCE_ID,
-	@HOME_COUNTRY_ID,
-	@HOME_PHONE,
-	@HOME_POSTAL_CODE,
-	@HOME_EMAIL,
-	@LOCATOR_NUMBER,
-	@MAILING_ADDRESS1,
-	@MAILING_ADDRESS2,
-	@MAILING_CITY_ID,
-	@MAILING_PROVINCE_ID,
-	@MAILING_COUNTRY_ID,
-	@MAILING_POSTAL_CODE,
-	@PRE_FUNDED_YEAR,
-	@PRE_FUNDING_YEARS_USED,
-	@SCHOOL_EMAIL,
-	@SCHOOL_PHONE,
-	@CREATED_BY,
-	@CREATED_DATE,
-	@UPDATED_BY,
-	@UPDATED_DATE,
-	@HIGH_SCHOOL_FINAL_GRADE,
-	@PARENT_MAILING_ADDRESS1,
-	@ARENT_MAILING_ADDRESS2,
-	@PARENT_MAILING_CITY_ID,
-	@PARENT_MAILING_PROVINCE_ID,
-	@PARENT_MAILING_COUNTRY_ID,
-	@PARENT_MAILING_POSTAL_CODE,
-	@PARENT_TELEPHONE,
-	@PRE_OVER_AWARD,
-	@PRE_YEA_AWARDS_USED,
-	@EDUCATION_LEVEL_ID,
-	@HIGH_SCHOOL_ID,
-	@HIGH_SCHOOL_LEFT_YEAR,
-	@HIGH_SCHOOL_LEFT_MONTH,
-	@SEX,
-	@SPOUSE_HS_END_MONTH,
-	@SPOUSE_HS_END_YEAR,
-	@USER_NAME,
-	@USER_PASSWORD,
-	@IS_ACTIVE_FLG,
-	@IS_FIRST_LOGON_FLG,
-	@LAST_PW_CHG_DATE,
-	@LAST_LOGON_DATE,
-	@PREVIOUS_LAST_NAME,
-	@YEA_EXPIRY_DATE,
-	@ADJ_YG_FUNDING_WEEKS,
-	@ADJ_STA_UPGRADING_WEEKS,
-	@ADJ_OUTSIDE_TRAVEL_CNT,
-	@CHECKED_FOR_YTID_FLG,
-	@INDIGENOUS_LEARNER,
-	@CROWN_WARD_FLG;
+	@S_STUDENT_ID,
+	@S_FIRST_NAME,
+	@S_LAST_NAME,
+	@S_INITIALS,
+	@S_VENDOR_ID,
+	@S_YUKON_ID,
+	@S_SIN ,
+	@S_NATIONAL_ID,
+	@S_CSL_LETTER_DATE,
+	@S_CSL_WARN_CODE,
+	@S_LANGUAGE_ID,
+	@S_BIRTH_DATE,
+	@S_HOME_ADDRESS1,
+	@S_HOME_ADDRESS2,
+	@S_BIRTH_CITY_ID,
+	@S_BIRTH_COUNTRY_ID,
+	@S_HOME_CITY_ID,
+	@S_BIRTH_PROVINCE_ID,
+	@S_HOME_PROVINCE_ID,
+	@S_HOME_COUNTRY_ID,
+	@S_HOME_PHONE,
+	@S_HOME_POSTAL_CODE,
+	@S_HOME_EMAIL,
+	@S_LOCATOR_NUMBER,
+	@S_MAILING_ADDRESS1,
+	@S_MAILING_ADDRESS2,
+	@S_MAILING_CITY_ID,
+	@S_MAILING_PROVINCE_ID,
+	@S_MAILING_COUNTRY_ID,
+	@S_MAILING_POSTAL_CODE,
+	@S_PRE_FUNDED_YEAR,
+	@S_PRE_FUNDING_YEARS_USED,
+	@S_SCHOOL_EMAIL,
+	@S_SCHOOL_PHONE,
+	@S_CREATED_BY,
+	@S_CREATED_DATE,
+	@S_UPDATED_BY,
+	@S_UPDATED_DATE,
+	@S_HIGH_SCHOOL_FINAL_GRADE,
+	@S_PARENT_MAILING_ADDRESS1,
+	@S_ARENT_MAILING_ADDRESS2,
+	@S_PARENT_MAILING_CITY_ID,
+	@S_PARENT_MAILING_PROVINCE_ID,
+	@S_PARENT_MAILING_COUNTRY_ID,
+	@S_PARENT_MAILING_POSTAL_CODE,
+	@S_PARENT_TELEPHONE,
+	@S_PRE_OVER_AWARD,
+	@S_PRE_YEA_AWARDS_USED,
+	@S_EDUCATION_LEVEL_ID,
+	@S_HIGH_SCHOOL_ID,
+	@S_HIGH_SCHOOL_LEFT_YEAR,
+	@S_HIGH_SCHOOL_LEFT_MONTH,
+	@S_SEX,
+	@S_SPOUSE_HS_END_MONTH,
+	@S_SPOUSE_HS_END_YEAR,
+	@S_USER_NAME,
+	@S_USER_PASSWORD,
+	@S_IS_ACTIVE_FLG,
+	@S_IS_FIRST_LOGON_FLG,
+	@S_LAST_PW_CHG_DATE,
+	@S_LAST_LOGON_DATE,
+	@S_PREVIOUS_LAST_NAME,
+	@S_YEA_EXPIRY_DATE,
+	@S_ADJ_YG_FUNDING_WEEKS,
+	@S_ADJ_STA_UPGRADING_WEEKS,
+	@S_ADJ_OUTSIDE_TRAVEL_CNT,
+	@S_CHECKED_FOR_YTID_FLG,
+	@S_INDIGENOUS_LEARNER,
+	@S_CROWN_WARD_FLG;
 		
 WHILE @@FETCH_STATUS = 0
 BEGIN
 	-- create the student person
 	INSERT INTO sfa.person (language_id, sex_id, birth_city_id, birth_province_id, birth_country_id, 
 		first_name, last_name, initials, previous_last_name, sin, birth_date, telephone, email)
-	VALUES (@LANGUAGE_ID, @SEX, @BIRTH_CITY_ID, @BIRTH_PROVINCE_ID, @BIRTH_COUNTRY_ID,
-		@FIRST_NAME, @LAST_NAME, @INITIALS, @PREVIOUS_LAST_NAME, @SIN, @BIRTH_DATE, @HOME_PHONE, @HOME_EMAIL)
+	VALUES (@S_LANGUAGE_ID, @S_SEX, @S_BIRTH_CITY_ID, @S_BIRTH_PROVINCE_ID, @S_BIRTH_COUNTRY_ID,
+		@S_FIRST_NAME, @S_LAST_NAME, @S_INITIALS, @S_PREVIOUS_LAST_NAME, @S_SIN, @S_BIRTH_DATE, @S_HOME_PHONE, @S_HOME_EMAIL)
 
-	SELECT @person_id = SCOPE_IDENTITY();
+	SELECT @S_person_id = SCOPE_IDENTITY();
 
 	-- create the home address
 	INSERT INTO sfa.person_address (person_id, address_type_id, address1, address2, city_id, province_id, country_id, postal_code)
-	VALUES (@person_id, 1, @HOME_ADDRESS1, @HOME_ADDRESS2, @HOME_CITY_ID, @HOME_PROVINCE_ID, @HOME_COUNTRY_ID, @HOME_POSTAL_CODE)
+	VALUES (@S_person_id, 1, @S_HOME_ADDRESS1, @S_HOME_ADDRESS2, @S_HOME_CITY_ID, @S_HOME_PROVINCE_ID, @S_HOME_COUNTRY_ID, @S_HOME_POSTAL_CODE)
 
-	SELECT @home_address_id = SCOPE_IDENTITY();
+	SELECT @S_home_address_id = SCOPE_IDENTITY();
 		
 	-- create the mailing address
 	INSERT INTO sfa.person_address (person_id, address_type_id, address1, address2, city_id, province_id, country_id, postal_code)
-	VALUES (@person_id, 2, @MAILING_ADDRESS1 , @MAILING_ADDRESS2, @MAILING_CITY_ID, @MAILING_PROVINCE_ID, @MAILING_COUNTRY_ID, @MAILING_POSTAL_CODE)
+	VALUES (@S_person_id, 2, @S_MAILING_ADDRESS1 , @S_MAILING_ADDRESS2, @S_MAILING_CITY_ID, @S_MAILING_PROVINCE_ID, @S_MAILING_COUNTRY_ID, @S_MAILING_POSTAL_CODE)
 		
-	SELECT @mail_address_id = SCOPE_IDENTITY();
+	SELECT @S_mail_address_id = SCOPE_IDENTITY();
 
 	-- create the parent address
 	INSERT INTO sfa.person_address (person_id, address_type_id, address1, city_id, province_id, country_id, postal_code)
-	VALUES (@person_id, 4, @PARENT_MAILING_ADDRESS1, @PARENT_MAILING_CITY_ID,@PARENT_MAILING_PROVINCE_ID, @PARENT_MAILING_COUNTRY_ID, @PARENT_MAILING_POSTAL_CODE)
+	VALUES (@S_person_id, 4, @S_PARENT_MAILING_ADDRESS1, @S_PARENT_MAILING_CITY_ID,@S_PARENT_MAILING_PROVINCE_ID, @S_PARENT_MAILING_COUNTRY_ID, @S_PARENT_MAILING_POSTAL_CODE)
 		
-	SELECT @parent_address_id = SCOPE_IDENTITY();
+	SELECT @S_parent_address_id = SCOPE_IDENTITY();
 
 	SET IDENTITY_INSERT sfa.student ON 
 	INSERT INTO sfa.student(id, person_id, high_school_id, education_level_id, indigenous_learner_id, vendor_id, yukon_id, checked_for_yukon_id,
 		national_id, locator_number, is_crown_ward, high_school_final_grade, high_school_left_year, high_school_left_month, pre_funded_year, 
 		pre_funding_years_used, csl_letter_date, csl_warn_code, pre_over_award_amount, pre_yea_awards_used_amount, user_name, user_password, is_active, 
 		is_first_logon_flg, last_logon_date, last_pw_change_date, yea_expiry_date, adj_yg_funding_weeks, adj_sta_upgrading_weeks, adj_outside_travel_cnt)
-	VALUES (@STUDENT_ID, @person_id, @HIGH_SCHOOL_ID, @EDUCATION_LEVEL_ID, 
-		CASE WHEN @INDIGENOUS_LEARNER = 'Yes' THEN 1 WHEN @INDIGENOUS_LEARNER = 'No' THEN 2 WHEN @INDIGENOUS_LEARNER = 'Prefer Not to Say' THEN 3 ELSE -1 END, @VENDOR_ID, 
-		@YUKON_ID, CASE WHEN @CHECKED_FOR_YTID_FLG = 'Yes' THEN 1 ELSE 0 END,
-		@NATIONAL_ID, @LOCATOR_NUMBER, CASE WHEN @CROWN_WARD_FLG = 'Y' THEN 1 ELSE 0 END, @HIGH_SCHOOL_FINAL_GRADE, @HIGH_SCHOOL_LEFT_YEAR, @HIGH_SCHOOL_LEFT_MONTH, @PRE_FUNDED_YEAR,
-		@PRE_FUNDING_YEARS_USED, @CSL_LETTER_DATE, @CSL_WARN_CODE, @PRE_OVER_AWARD, @PRE_YEA_AWARDS_USED, @USER_NAME, @USER_PASSWORD, CASE WHEN @IS_ACTIVE_FLG = 'Y' THEN 1 ELSE 0 END,
-		@IS_FIRST_LOGON_FLG, @LAST_LOGON_DATE, @LAST_PW_CHG_DATE, @YEA_EXPIRY_DATE, @ADJ_YG_FUNDING_WEEKS, @ADJ_STA_UPGRADING_WEEKS, @ADJ_OUTSIDE_TRAVEL_CNT)
+	VALUES (@S_STUDENT_ID, @S_person_id, @S_HIGH_SCHOOL_ID, @S_EDUCATION_LEVEL_ID, 
+		CASE WHEN @S_INDIGENOUS_LEARNER = 'Yes' THEN 1 WHEN @S_INDIGENOUS_LEARNER = 'No' THEN 2 WHEN @S_INDIGENOUS_LEARNER = 'Prefer Not to Say' THEN 3 ELSE -1 END, @S_VENDOR_ID, 
+		@S_YUKON_ID, CASE WHEN @S_CHECKED_FOR_YTID_FLG = 'Yes' THEN 1 ELSE 0 END,
+		@S_NATIONAL_ID, @S_LOCATOR_NUMBER, CASE WHEN @S_CROWN_WARD_FLG = 'Y' THEN 1 ELSE 0 END, @S_HIGH_SCHOOL_FINAL_GRADE, @S_HIGH_SCHOOL_LEFT_YEAR, @S_HIGH_SCHOOL_LEFT_MONTH, @S_PRE_FUNDED_YEAR,
+		@S_PRE_FUNDING_YEARS_USED, @S_CSL_LETTER_DATE, @S_CSL_WARN_CODE, @S_PRE_OVER_AWARD, @S_PRE_YEA_AWARDS_USED, @S_USER_NAME, @S_USER_PASSWORD, CASE WHEN @S_IS_ACTIVE_FLG = 'Y' THEN 1 ELSE 0 END,
+		@S_IS_FIRST_LOGON_FLG, @S_LAST_LOGON_DATE, @S_LAST_PW_CHG_DATE, @S_YEA_EXPIRY_DATE, @S_ADJ_YG_FUNDING_WEEKS, @S_ADJ_STA_UPGRADING_WEEKS, @S_ADJ_OUTSIDE_TRAVEL_CNT)
 			
 	SET IDENTITY_INSERT sfa.student OFF
 			
 	FETCH NEXT FROM student_cursor INTO 
-		@STUDENT_ID,
-		@FIRST_NAME,
-		@LAST_NAME,
-		@INITIALS,
-		@VENDOR_ID,
-		@YUKON_ID,
-		@SIN ,
-		@NATIONAL_ID,
-		@CSL_LETTER_DATE,
-		@CSL_WARN_CODE,
-		@LANGUAGE_ID,
-		@BIRTH_DATE,
-		@HOME_ADDRESS1,
-		@HOME_ADDRESS2,
-		@BIRTH_CITY_ID,
-		@BIRTH_COUNTRY_ID,
-		@HOME_CITY_ID,
-		@BIRTH_PROVINCE_ID,
-		@HOME_PROVINCE_ID,
-		@HOME_COUNTRY_ID,
-		@HOME_PHONE,
-		@HOME_POSTAL_CODE,
-		@HOME_EMAIL,
-		@LOCATOR_NUMBER,
-		@MAILING_ADDRESS1,
-		@MAILING_ADDRESS2,
-		@MAILING_CITY_ID,
-		@MAILING_PROVINCE_ID,
-		@MAILING_COUNTRY_ID,
-		@MAILING_POSTAL_CODE,
-		@PRE_FUNDED_YEAR,
-		@PRE_FUNDING_YEARS_USED,
-		@SCHOOL_EMAIL,
-		@SCHOOL_PHONE,
-		@CREATED_BY,
-		@CREATED_DATE,
-		@UPDATED_BY,
-		@UPDATED_DATE,
-		@HIGH_SCHOOL_FINAL_GRADE,
-		@PARENT_MAILING_ADDRESS1,
-		@ARENT_MAILING_ADDRESS2,
-		@PARENT_MAILING_CITY_ID,
-		@PARENT_MAILING_PROVINCE_ID,
-		@PARENT_MAILING_COUNTRY_ID,
-		@PARENT_MAILING_POSTAL_CODE,
-		@PARENT_TELEPHONE,
-		@PRE_OVER_AWARD,
-		@PRE_YEA_AWARDS_USED,
-		@EDUCATION_LEVEL_ID,
-		@HIGH_SCHOOL_ID,
-		@HIGH_SCHOOL_LEFT_YEAR,
-		@HIGH_SCHOOL_LEFT_MONTH,
-		@SEX,
-		@SPOUSE_HS_END_MONTH,
-		@SPOUSE_HS_END_YEAR,
-		@USER_NAME,
-		@USER_PASSWORD,
-		@IS_ACTIVE_FLG,
-		@IS_FIRST_LOGON_FLG,
-		@LAST_PW_CHG_DATE,
-		@LAST_LOGON_DATE,
-		@PREVIOUS_LAST_NAME,
-		@YEA_EXPIRY_DATE,
-		@ADJ_YG_FUNDING_WEEKS,
-		@ADJ_STA_UPGRADING_WEEKS,
-		@ADJ_OUTSIDE_TRAVEL_CNT,
-		@CHECKED_FOR_YTID_FLG,
-		@INDIGENOUS_LEARNER,
-		@CROWN_WARD_FLG;
+		@S_STUDENT_ID,
+		@S_FIRST_NAME,
+		@S_LAST_NAME,
+		@S_INITIALS,
+		@S_VENDOR_ID,
+		@S_YUKON_ID,
+		@S_SIN ,
+		@S_NATIONAL_ID,
+		@S_CSL_LETTER_DATE,
+		@S_CSL_WARN_CODE,
+		@S_LANGUAGE_ID,
+		@S_BIRTH_DATE,
+		@S_HOME_ADDRESS1,
+		@S_HOME_ADDRESS2,
+		@S_BIRTH_CITY_ID,
+		@S_BIRTH_COUNTRY_ID,
+		@S_HOME_CITY_ID,
+		@S_BIRTH_PROVINCE_ID,
+		@S_HOME_PROVINCE_ID,
+		@S_HOME_COUNTRY_ID,
+		@S_HOME_PHONE,
+		@S_HOME_POSTAL_CODE,
+		@S_HOME_EMAIL,
+		@S_LOCATOR_NUMBER,
+		@S_MAILING_ADDRESS1,
+		@S_MAILING_ADDRESS2,
+		@S_MAILING_CITY_ID,
+		@S_MAILING_PROVINCE_ID,
+		@S_MAILING_COUNTRY_ID,
+		@S_MAILING_POSTAL_CODE,
+		@S_PRE_FUNDED_YEAR,
+		@S_PRE_FUNDING_YEARS_USED,
+		@S_SCHOOL_EMAIL,
+		@S_SCHOOL_PHONE,
+		@S_CREATED_BY,
+		@S_CREATED_DATE,
+		@S_UPDATED_BY,
+		@S_UPDATED_DATE,
+		@S_HIGH_SCHOOL_FINAL_GRADE,
+		@S_PARENT_MAILING_ADDRESS1,
+		@S_ARENT_MAILING_ADDRESS2,
+		@S_PARENT_MAILING_CITY_ID,
+		@S_PARENT_MAILING_PROVINCE_ID,
+		@S_PARENT_MAILING_COUNTRY_ID,
+		@S_PARENT_MAILING_POSTAL_CODE,
+		@S_PARENT_TELEPHONE,
+		@S_PRE_OVER_AWARD,
+		@S_PRE_YEA_AWARDS_USED,
+		@S_EDUCATION_LEVEL_ID,
+		@S_HIGH_SCHOOL_ID,
+		@S_HIGH_SCHOOL_LEFT_YEAR,
+		@S_HIGH_SCHOOL_LEFT_MONTH,
+		@S_SEX,
+		@S_SPOUSE_HS_END_MONTH,
+		@S_SPOUSE_HS_END_YEAR,
+		@S_USER_NAME,
+		@S_USER_PASSWORD,
+		@S_IS_ACTIVE_FLG,
+		@S_IS_FIRST_LOGON_FLG,
+		@S_LAST_PW_CHG_DATE,
+		@S_LAST_LOGON_DATE,
+		@S_PREVIOUS_LAST_NAME,
+		@S_YEA_EXPIRY_DATE,
+		@S_ADJ_YG_FUNDING_WEEKS,
+		@S_ADJ_STA_UPGRADING_WEEKS,
+		@S_ADJ_OUTSIDE_TRAVEL_CNT,
+		@S_CHECKED_FOR_YTID_FLG,
+		@S_INDIGENOUS_LEARNER,
+		@S_CROWN_WARD_FLG;
 END;
 
 CLOSE student_cursor;
 DEALLOCATE student_cursor;
+
+SET NOCOUNT OFF
 
 -- SFAADMIN.STUDENT_CONSENT
 SET IDENTITY_INSERT sfa.student_consent ON
@@ -1001,11 +998,10 @@ FROM SFAADMIN.communication
 
 SET IDENTITY_INSERT sfa.communication OFF
 
-
-
-
-
 -- SFA.APPLICATION
+
+SET NOCOUNT ON
+
 DECLARE 
 	@HISTORY_DETAIL_ID float,
 	@STUDENT_ID float,
@@ -1141,9 +1137,9 @@ DECLARE
     @SCHOOL_PHONE varchar(24),
 	@ROWID uniqueidentifier;
 
-DECLARE @parent1_id INT, @parent2_id INT, @spouse_id INT;
+DECLARE @spouse_id INT, @parent1_id INT, @parent2_id INT;
 
-DECLARE app_cursor CURSOR FOR SELECT H.*, S.SCHOOL_EMAIL, S.SCHOOL_PHONE FROM SFAADMIN.HISTORY_DETAIL H INNER JOIN SFAADMIN.STUDENT S ON H.STUDENT_ID = S.STUDENT_ID
+DECLARE app_cursor CURSOR FOR SELECT H.*, S.SCHOOL_EMAIL, S.SCHOOL_PHONE FROM SFAADMIN.HISTORY_DETAIL H INNER JOIN SFAADMIN.STUDENT S ON H.STUDENT_ID = S.STUDENT_ID where HISTORY_DETAIL_ID NOT IN (2348,3202,2288,16170)
 OPEN app_cursor;
 
 FETCH NEXT FROM app_cursor INTO 
@@ -1498,6 +1494,9 @@ END;
 CLOSE app_cursor;
 DEALLOCATE app_cursor;
 
+SET NOCOUNT OFF
+PRINT 'Application Cursor Complete'
+
 -- SFA.AGENCY_ASSISTANCE
 INSERT INTO sfa.agency_assistance (agency_id, application_id, amount, is_tuition, is_living_expenses, is_books, is_transportation, other_purpose, agency_comment)
 SELECT AGENCY_id, HISTORY_DETAIL_ID, AMOUNT, COALESCE(TUITION_FLAG, 0), COALESCE(LIVING_EXPENSE_FLAG, 0), COALESCE(BOOKS_FLAG, 0), COALESCE(TRANSPORTATION_FLAG, 0), OTHER_PURPOSE, AGENCY_COMMENT
@@ -1532,3 +1531,193 @@ INSERT INTO sfa.disability_requirement (id, application_id, disability_service_i
 SELECT DISABILITY_REQUIREMENT_ID, HISTORY_DETAIL_ID, DISAB_SERVICE_TYPE_ID
 FROM SFAADMIN.disability_requirement
 SET IDENTITY_INSERT sfa.disability_requirement OFF
+
+-- sfa.expense
+SET IDENTITY_INSERT sfa.expense ON
+INSERT INTO sfa.expense (id, application_id, category_id, period_id, description, amount)
+SELECT EXPENSE_ID, HISTORY_DETAIL_ID, CATEGORY_ID, PERIOD_ID, DESCRIPTION, AMOUNT
+FROM SFAADMIN.expense
+SET IDENTITY_INSERT sfa.expense OFF
+
+-- sfa.funding_request
+SET IDENTITY_INSERT sfa.funding_request ON
+INSERT INTO sfa.funding_request (id, application_id, request_type_id, status_id, status_reason_id, comments, custom_status, received_date, status_date, yea_request_amount, yea_request_type, csl_request_amount, is_csl_full_amount, is_csg_only)
+SELECT FUNDING_REQUEST_ID, HISTORY_DETAIL_ID, REQUEST_TYPE_ID, STATUS_ID, STATUS_REASON_ID, COMMENTS, CUSTOM_STATUS, RECEIVED_DATE, STATUS_DATE, YEA_REQUEST_AMOUNT, YEA_REQUEST_TYPE_FLAG, CSL_REQUEST_AMOUNT, 
+	COALESCE(CSL_FULL_AMT_FLAG, 0), CASE WHEN CSG_ONLY_FLG = 'Y' THEN 1 ELSE 0 END
+FROM SFAADMIN.funding_request WHERE HISTORY_DETAIL_ID IN (select id from sfa.application)
+SET IDENTITY_INSERT sfa.funding_request OFF
+
+-- sfa
+INSERT INTO sfa.application_part_time_reason (application_id, part_time_reason_id)
+SELECT HISTORY_DETAIL_ID, PART_TIME_REASON_ID
+FROM SFAADMIN.HIDE_PART_TIME_REASON
+
+-- sfa.funding_request
+SET IDENTITY_INSERT sfa.funding_request ON
+INSERT INTO sfa.funding_request (id, application_id, request_type_id, status_id, status_reason_id, comments, custom_status, received_date, status_date, yea_request_amount, yea_request_type, csl_request_amount, is_csl_full_amount, is_csg_only)
+SELECT FUNDING_REQUEST_ID, HISTORY_DETAIL_ID, REQUEST_TYPE_ID, STATUS_ID, STATUS_REASON_ID, COMMENTS, CUSTOM_STATUS, RECEIVED_DATE, STATUS_DATE, YEA_REQUEST_AMOUNT, YEA_REQUEST_TYPE_FLAG, CSL_REQUEST_AMOUNT, 
+	COALESCE(CSL_FULL_AMT_FLAG, 0), CASE WHEN CSG_ONLY_FLG = 'Y' THEN 1 ELSE 0 END
+FROM SFAADMIN.funding_request WHERE HISTORY_DETAIL_ID IN (select id from sfa.application)
+SET IDENTITY_INSERT sfa.funding_request OFF
+
+-- sfa.investment
+SET IDENTITY_INSERT sfa.investment ON
+INSERT INTO sfa.investment (id, application_id, ownership_id, investment_type_id, market_value, is_rrsp, is_joint)
+SELECT INVESTMENT_ID, HISTORY_DETAIL_ID, OWNERSHIP_ID, INVESTMENT_TYPE_ID, MARKET_VALUE,
+	COALESCE(RRSP_FLAG, 0), CASE WHEN IS_JOINT_FLG= 'Y' THEN 1 ELSE 0 END
+FROM SFAADMIN.investment WHERE HISTORY_DETAIL_ID IN (select id from sfa.application)
+SET IDENTITY_INSERT sfa.investment OFF
+
+-- sfa.msfaa
+SET IDENTITY_INSERT sfa.msfaa ON
+INSERT INTO sfa.msfaa (id, application_id, student_id, sent_date, signed_date, received_date, cancel_date, msfaa_status, cancel_reason, sent_seq_number, last_reminder_sent, is_full_time)
+SELECT MSFAA_ID, HISTORY_DETAIL_ID, STUDENT_ID, SENT_DATE, SIGNED_DATE, RECEIVED_DATE, CANCEL_DATE, MSFAA_STATUS, CANCEL_REASON, SENT_SEQ_NUMBER, LAsT_REMINDER_SENT,
+	CASE WHEN PT_OR_FT= 'FT' THEN 1 ELSE 0 END
+FROM SFAADMIN.msfaa WHERE HISTORY_DETAIL_ID IN (select id from sfa.application)
+SET IDENTITY_INSERT sfa.msfaa OFF
+
+-- sfa.msfaa_email_log
+SET IDENTITY_INSERT sfa.msfaa_email_log ON
+INSERT INTO sfa.msfaa_email_log (id, msfaa_id, is_emailed, reminder_sent, email)
+SELECT MSFAA_EMAIL_LOG_ID, MSFAA_ID, CASE WHEN EMAILED_FLG= 'Yes' THEN 1 ELSE 0 END, REMINDER_SENT, EMAIL_ADDRESS
+FROM SFAADMIN.msfaa_email_log
+SET IDENTITY_INSERT sfa.msfaa_email_log OFF
+
+-- sfa.parent_dependent
+SET IDENTITY_INSERT sfa.parent_dependent ON
+INSERT INTO sfa.parent_dependent (id, application_id, relationship_id, first_name, last_name, birth_date, age, is_residing, is_shared_custody, is_attend_post_secondary, comments, is_eligible, is_disabled, conversion)
+SELECT PARENT_DEPENDENT_ID, HISTORY_DETAIL_ID, RELATIONSHIP_ID, DEPENDENT_FIRST_NAME, DEPENDENT_LAST_NAME, BIRTH_DATE, DEPENDENT_AGE,
+	COALESCE(RESIDING, 0), COALESCE(SHARED_CUSTODY, 0), COALESCE(ATTEND_POST_SECOND, 0), COMMENTS, COALESCE(ELIGIBLE, 0), CASE WHEN DISABILITY_FLG = 'Y' THEN 1 ELSE 0 END, CASE WHEN CONVERSION_FLG = 'Y' THEN 1 ELSE 0 END
+FROM SFAADMIN.parent_dependent
+SET IDENTITY_INSERT sfa.parent_dependent OFF
+
+-- sfa.parent_resident
+SET IDENTITY_INSERT sfa.parent_resident ON
+INSERT INTO sfa.parent_resident (id, application_id, city_id, province_id, country_id, from_year, from_month, to_year, to_month)
+SELECT PARENT_RESIDENT_ID, HISTORY_DETAIL_ID, CITY_ID, PROVINCE_ID, COUNTRY_ID, FROM_YEAR, FROM_MONTH, TO_YEAR, TO_MONTH
+FROM SFAADMIN.parent_resident
+SET IDENTITY_INSERT sfa.parent_resident OFF
+
+-- sfa.correspondence_request_status
+INSERT INTO sfa.correspondence_request_status (request_type_id, status_id, correspondence_type_id)
+SELECT REQUEST_TYPE_ID, STATUS_ID, CORRESPONDENCE_TYPE_ID
+FROM SFAADMIN.REQUEST_STATUS_CORR
+
+-- sfa.requirement_met
+SET IDENTITY_INSERT sfa.requirement_met ON
+INSERT INTO sfa.requirement_met (id, application_id, requirement_type_id, completed_date)
+SELECT REQUIREMENT_MET_ID, HISTORY_DETAIL_ID, REQUIREMENT_TYPE_ID, COMPLETED_DATE
+FROM SFAADMIN.requirement_met WHERE HISTORY_DETAIL_ID IN (select id from sfa.application)
+SET IDENTITY_INSERT sfa.requirement_met OFF
+
+-- sfa.communication_log
+SET IDENTITY_INSERT sfa.communication_log ON
+INSERT INTO sfa.communication_log (id, msfaa_id, sent_from_email, sent_to_email, sent_to_cc, subject, reminder_sent, is_emailed)
+SELECT COMMUNICATION_LOG_ID, MSFAA_ID, SENT_FROM_EMAIL, SENT_TO_EMAIL, SENT_TO_CC, SUBJECT, REMINDER_SENT, CASE WHEN EMAILED_FLG = 'Yes' THEN 1 ELSE 0 END
+FROM SFAADMIN.communication_log
+SET IDENTITY_INSERT sfa.communication_log OFF
+
+-- sfa.assessment
+SET IDENTITY_INSERT sfa.assessment ON
+INSERT INTO sfa.assessment (id,allowed_books,allowed_months,allowed_percent,allowed_tuition,assessed_amount,assessed_date,change_reason_comment,dependent_count,
+effective_rate_date,home_city_id,living_costs,travel_allowance,weekly_amount,assessment_type_id,destination_city_id,funding_request_id,disbursements_required,
+weeks_allowed,second_residence_rate,classes_end_date,prestudy_accom_code,prestudy_province_id,classes_start_date,airfare_amount,air_travel_disbursement_period,
+shelter_month,p_trans_month,r_trans_16wk,day_care_allowable,depend_food_allowable,depend_tran_allowable,pstudy_shelter_month,pstudy_p_trans_month,pstudy_day_care_allow,
+pstudy_depend_food_allow,pstudy_depend_tran_allow,pstudy_start_date,pstudy_end_date,csl_assessed_need,study_province_id,csl_over_reason_id,csl_non_reason_id,
+over_award,student_tax_rate,spouse_tax_rate,spouse_pstudy_tax_rate,stud_pstudy_tax_rate,parent1_income,parent2_income,parent1_tax_paid,parent2_tax_paid,books_supplies_cost,
+tuition_estimate,uncapped_costs_total,uncapped_pstudy_total,day_care_actual,stud_pstudy_gross,spouse_pstudy_gross,pstudy_day_care_actual,student_gross_income,
+spouse_gross_income,prestudy_csl_classification,marital_status_id,spouse_province_id,study_accom_code,csl_classification,family_size,parent_ps_depend_count,
+parent_province,discretionary_cost,discretionary_cost_actual,study_distance,prestudy_distance,prestudy_bus_flag,study_bus_flag,study_living_w_spouse_flag,
+csl_full_amt_flag,study_area_id,program_id,period,csl_request_amount,return_uncashable_cert,years_funded_equivalent,study_weeks,study_months,pstudy_expected_contrib,
+spouse_expected_income,asset_tax_rate,x_trans_total,relocation_total,pstudy_x_trans_total,married_pstudy,married_study,married_assets,entitlement_days,parent_contribution_override,
+total_grant_awarded,over_award_disbursement_period,over_award_applied_flg,pre_leg_amount,assessment_adj_amount,student_ln150_income,student_contribution,
+student_contrib_exempt,spouse_contrib_exempt,spouse_contribution,spouse_ln150_income,student_contribution_review,spouse_contribution_review,parent_contribution_review,
+student_family_size,student_expected_contribution,student_previous_contribution,spouse_expected_contribution,spouse_previous_contribution,student_contribution_override,
+spouse_contribution_override)
+SELECT [ASSESSMENT_ID],[ALLOWED_BOOKS],[ALLOWED_MONTHS],[ALLOWED_PERCENT],[ALLOWED_TUITION],[ASSESSED_AMOUNT],[ASSESSED_DATE],[CHANGE_REASON_COMMENT],[DEPENDENT_COUNT]
+,[EFFECTIVE_RATE_DATE],[HOME_CITY_ID],[LIVING_COSTS],[TRAVEL_ALLOWANCE],[WEEKLY_AMOUNT],[ASSESSMENT_TYPE_ID],[DESTINATION_CITY],[FUNDING_QUEST_ID],[DISBURSEMENTS_REQUIRED]
+,[WEEKS_ALLOWED],[SECOND_RESIDENCE_RATE],[CLASSES_END_DATE],[PRESTUDY_ACCOM_CODE],[PRESTUDY_PROVINCE_ID],[CLASSES_START_DATE],[AIRFARE_AMOUNT],[AIR_TRAVEL_DISBURSEMENT_PERIOD]
+,[SHELTER_MONTH],[P_TRANS_MONTH],[R_TRANS_16WK],[DAY_CARE_ALLOWABLE],[DEPEND_FOOD_ALLOWABLE],[DEPEND_TRAN_ALLOWABLE],[PSTUDY_SHELTER_MONTH],[PSTUDY_P_TRANS_MONTH]
+,[PSTUDY_DAY_CARE_ALLOW],[PSTUDY_DEPEND_FOOD_ALLOW],[PSTUDY_DEPEND_TRAN_ALLOW],[PSTUDY_START_DATE],[PSTUDY_END_DATE],[CSL_ASSESSED_NEED],[STUDY_PROVINCE_ID],[CSL_OVER_REASON_ID]
+,[CSL_NON_REASON_ID],[OVER_AWARD],[STUDENT_TAX_RATE],[SPOUSE_TAX_RATE],[SPOUSE_PSTUDY_TAX_RATE],[STUD_PSTUDY_TAX_RATE],[PARENT1_INCOME],[PARENT2_INCOME],[PARENT1_TAX_PAID]
+,[PARENT2_TAX_PAID],[BOOKS_SUPPLIES_COST],[TUITION_ESTIMATE],[UNCAPPED_COSTS_TOTAL],[UNCAPPED_PSTUDY_TOTAL],[DAY_CARE_ACTUAL],[STUD_PSTUDY_GROSS],[SPOUSE_PSTUDY_GROSS]
+,[PSTUDY_DAY_CARE_ACTUAL],[STUDENT_GROSS_INCOME],[SPOUSE_GROSS_INCOME],[PRESTUDY_CSL_CLASSIFICATION],[MARITAL_STATUS_ID],[SPOUSE_PROVINCE_ID],[STUDY_ACCOM_CODE],[CSL_CLASSIFICATION]
+,[FAMILY_SIZE],[PARENT_PS_DEPEND_COUNT],[PARENT_PROVINCE],[DISCRETIONARY_COST],[DISCRETIONARY_COST_ACTUAL],[STUDY_DISTANCE],[PRESTUDY_DISTANCE],[PRESTUDY_BUS_FLAG]
+,[STUDY_BUS_FLAG],[STUDY_LIVING_W_SPOUSE_FLAG],[CSL_FULL_AMT_FLAG],[STUDY_AREA_ID],[PROGRAM_ID],[PERIOD],[CSL_REQUEST_AMOUNT],[RETURN_UNCASHABLE_CERT],[YEARS_FUNDED_EQUIVALENT]
+,[STUDY_WEEKS],[STUDY_MONTHS],[PSTUDY_EXPECTED_CONTRIB],[SPOUSE_EXPECTED_INCOME],[ASSET_TAX_RATE],[X_TRANS_TOTAL],[RELOCATION_TOTAL],[PSTUDY_X_TRANS_TOTAL],[MARRIED_PSTUDY]
+,[MARRIED_STUDY],[MARRIED_ASSETS],[ENTITLEMENT_DAYS],[PARENT_CONTRIBUTION_OVERRIDE],[TOTAL_GRANT_AWARDED],[OVER_AWARD_DISBURSEMENT_PERIOD],[OVER_AWARD_APPLIED_FLG]
+,[PRE_LEG_AMOUNT],[ASSESSMENT_ADJ_AMOUNT],[STUDENT_LN150_INCOME],[STUDENT_CONTRIBUTION],[STUDENT_CONTRIB_EXEMPT],[SPOUSE_CONTRIB_EXEMPT],[SPOUSE_CONTRIBUTION]
+,[SPOUSE_LN150_INCOME],[STUDENT_CONTRIBUTION_REVIEW],[SPOUSE_CONTRIBUTION_REVIEW],[PARENT_CONTRIBUTION_REVIEW],[STUDENT_FAMILY_SIZE],[STUDENT_EXPECTED_CONTRIBUTION]
+,[STUDENT_PREVIOUS_CONTRIBUTION],[SPOUSE_EXPECTED_CONTRIBUTION],[SPOUSE_PREVIOUS_CONTRIBUTION],[STUDENT_CONTRIBUTION_OVERRIDE],[SPOUSE_CONTRIBUTION_OVERRIDE]
+FROM SFAADMIN.assessment
+SET IDENTITY_INSERT sfa.assessment OFF
+
+
+SET IDENTITY_INSERT sfa.cls_nars_history ON
+INSERT INTO sfa.cls_nars_history 
+(id,application_id,student_id,assessment_id,academic_year,sin,loan_year,postal_prefix,birth_date,gender,marital_status,institution_code
+,field_of_study,year_study,study_weeks,study_start_date,study_end_date,loan_type,course_percentage,credit_check_flg,credit_check_status
+,disabled_flg,disabled_type,minority_flg,aboriginal_status_flg,aboriginal_category,assessment_date,csl_classification,family_size,post_secondary_children
+,spouse_student_flg,spouse_csl_flg,spouse_sin,children_to_11,children_over_12_not_dis,children_over_12_dis,pstudy_student_income,study_income_gov
+,study_income_gov_tot,study_income_priv,study_income_gov_ei,study_income_cpp,study_income_wc,study_income_gov_soc,study_income_nont_gov
+,study_income_nont_gov_tot,study_income_merit,study_income_priv_merit,study_income_employ,study_income_cs,study_income_alimony,study_income_other
+,study_income_other_tot,study_student_income,parent1_income,parent2_income,student_rrsp,student_vehicle,student_asset,spouse_rrsp,spouse_vehicle
+,spouse_asset,student_years_since_hs,spouse_years_since_hs,student_study_contribution,student_pstudy_contribution,spouse_study_contribution
+,parental_contribution,assessed_resources,tuition_estimate,assessed_need,unmet_need,request_need,csl_before_overaward,psl_before_overaward
+,csl_recovered_overaward,psl_recovered_overaward,csl_auth_ft,csl_auth_pt,csl_auth_loan_amnt,csl_auth_loan_date,psl_auth_loan_amnt,psl_auth_loan_date
+,assistance_total,assessment_review_flg,csg_doctoral_amount,csg_disability_amount,cag_perm_disability_amnt,csg_dependent_amount,csg_date,cms_amount
+,cms_date,prov_grant_unmet_amnt,prov_grant_amnt,prov_grant_date,assessment_code,version_num,app_status,reassess_indicator,cat_code,single_ind_stat_reas
+,social_assist_flg,parent1_sin,parent1_postal_code,parent2_sin,parent2_postal_code,postal_suffix,pstudy_weeks,pstudy_home_away,study_home_away,program_type
+,academic_year_study,year_in_program,program_duration,early_withdrawal_ind,date_left_hs,spouse_date_left_hs,pstudy_income_other,pstudy_income_employ
+,spouse_income_annual,spouse_pstudy_income,spouse_study_income,parent1_income_taxable,parent1_income_taxpaid,parent2_income_taxable,parent2_income_taxpaid
+,joint_asset_flg,student_resp,parental_asset,joint_contrib_flg,spouse_pstudy_contrib,student_asset_contrib,spouse_asset_contrib
+,parental_asset_contrib,other_resources,pstudy_cost_living,pstudy_cost_loan,pstudy_pt_cost_tuitn,study_cost_living,study_cost_books
+,study_cost_childcare_allw,study_cost_childcare_actl,study_cost_return_trans,study_cost_other_trans,study_cost_relocation,study_cost_other
+,study_cost_total,aboriginal_cat,stud_gross_annual_income,spouse_gross_annual_income,csg_li,csg_mi,csg_pd,csg_ftdep,csg_pdse,transition_grant_amt,tgrant_yrs_remaining
+,pstudy_dep_cost_living,previous_disbursement,study_income_gov_grant,pstudy_x_trans_total,study_directed_income,financial_investments,married_adjustment,study_cost_computers)
+SELECT [CSL_NARS_HISTORY_ID],[HISTORY_DETAIL_ID],[STUDENT_ID],[ASSESSMENT_ID],[ACADEMIC_YEAR],[SIN],[LOAN_YEAR],[POSTAL_PREFIX],[BIRTH_DATE],[GENDER]
+,[MARITAL_STATUS],[INSTITUTION_CODE],[FIELD_OF_STUDY],[YEAR_STUDY],[STUDY_WEEKS],[STUDY_START_DATE],[STUDY_END_DATE],[LOAN_TYPE],[COURSE_PERCENTAGE]
+,[CREDIT_CHECK_FLG],[CREDIT_CHECK_STATUS],[DISABLED_FLG],[DISABLED_TYPE],[MINORITY_FLG],[ABORIGINAL_STATUS_FLG],[ABORIGINAL_CATEGORY],[ASSESSMENT_DATE]
+,[CSL_CLASSIFICATION],[FAMILY_SIZE],[POST_SECONDARY_CHILDREN],[SPOUSE_STUDENT_FLG],[SPOUSE_CSL_FLG],[SPOUSE_SIN],[CHILDREN_TO_11],[CHILDREN_OVER_12_NOT_DIS]
+,[CHILDREN_OVER_12_DIS],[PSTUDY_STUDENT_INCOME],[STUDY_INCOME_GOV],[STUDY_INCOME_GOV_TOT],[STUDY_INCOME_PRIV],[STUDY_INCOME_GOV_EI],[STUDY_INCOME_CPP]
+,[STUDY_INCOME_WC],[STUDY_INCOME_GOV_SOC],[STUDY_INCOME_NONT_GOV],[STUDY_INCOME_NONT_GOV_TOT],[STUDY_INCOME_MERIT],[STUDY_INCOME_PRIV_MERIT]
+,[STUDY_INCOME_EMPLOY],[STUDY_INCOME_CS],[STUDY_INCOME_ALIMONY],[STUDY_INCOME_OTHER],[STUDY_INCOME_OTHER_TOT],[STUDY_STUDENT_INCOME],[PARENT1_INCOME]
+,[PARENT2_INCOME],[STUDENT_RRSP],[STUDENT_VEHICLE],[STUDENT_ASSET],[SPOUSE_RRSP],[SPOUSE_VEHICLE],[SPOUSE_ASSET],[STUDENT_YEARS_SINCE_HS],[SPOUSE_YEARS_SINCE_HS]
+,[STUDENT_STUDY_CONTRIBUTION],[STUDENT_PSTUDY_CONTRIBUTION],[SPOUSE_STUDY_CONTRIBUTION],[PARENTAL_CONTRIBUTION],[ASSESSED_RESOURCES],[TUITION_ESTIMATE]
+,[ASSESSED_NEED],[UNMET_NEED],[REQUEST_NEED],[CSL_BEFORE_OVERAWARD],[PSL_BEFORE_OVERAWARD],[CSL_RECOVERED_OVERAWARD],[PSL_RECOVERED_OVERAWARD]
+,[CSL_AUTH_FT],[CSL_AUTH_PT],[CSL_AUTH_LOAN_AMNT],[CSL_AUTH_LOAN_DATE],[PSL_AUTH_LOAN_AMNT],[PSL_AUTH_LOAN_DATE],[ASSISTANCE_TOTAL],[ASSESSMENT_REVIEW_FLG]
+,[CSG_DOCTORAL_AMOUNT],[CSG_DISABILITY_AMOUNT],[CAG_PERM_DISABILITY_AMNT],[CSG_DEPENDENT_AMOUNT],[CSG_DATE],[CMS_AMOUNT],[CMS_DATE],[PROV_GRANT_UNMET_AMNT]
+,[PROV_GRANT_AMNT],[PROV_GRANT_DATE],[ASSESSMENT_CODE],[VERSION_NUM],[APP_STATUS],[REASSESS_INDICATOR],[CAT_CODE],[SINGLE_IND_STAT_REAS],[SOCIAL_ASSIST_FLG]
+,[PARENT1_SIN],[PARENT1_POSTAL_CODE],[PARENT2_SIN],[PARENT2_POSTAL_CODE],[POSTAL_SUFFIX],[PSTUDY_WEEKS],[PSTUDY_HOME_AWAY],[STUDY_HOME_AWAY]
+,[PROGRAM_TYPE],[ACADEMIC_YEAR_STUDY],[YEAR_IN_PROGRAM],[PROGRAM_DURATION],[EARLY_WITHDRAWAL_IND],[DATE_LEFT_HS],[SPOUSE_DATE_LEFT_HS],[PSTUDY_INCOME_OTHER]
+,[PSTUDY_INCOME_EMPLOY],[SPOUSE_INCOME_ANNUAL],[SPOUSE_PSTUDY_INCOME],[SPOUSE_STUDY_INCOME],[PARENT1_INCOME_TAXABLE],[PARENT1_INCOME_TAXPAID]
+,[PARENT2_INCOME_TAXABLE],[PARENT2_INCOME_TAXPAID],[JOINT_ASSET_FLG],[STUDENT_RESP],[PARENTAL_ASSET],[JOINT_CONTRIB_FLG],[SPOUSE_PSTUDY_CONTRIB]
+,[STUDENT_ASSET_CONTRIB],[SPOUSE_ASSET_CONTRIB],[PARENTAL_ASSET_CONTRIB],[OTHER_RESOURCES],[PSTUDY_COST_LIVING],[PSTUDY_COST_LOAN],[PSTUDY_PT_COST_TUITN]
+,[STUDY_COST_LIVING],[STUDY_COST_BOOKS],[STUDY_COST_CHILDCARE_ALLW],[STUDY_COST_CHILDCARE_ACTL],[STUDY_COST_RETURN_TRANS],[STUDY_COST_OTHER_TRANS]
+,[STUDY_COST_RELOCATION],[STUDY_COST_OTHER],[STUDY_COST_TOTAL],[ABORIGINAL_CAT],[STUD_GROSS_ANNUAL_INCOME],[SPOUSE_GROSS_ANNUAL_INCOME],[CSG_LI]
+,[CSG_MI],[CSG_PD],[CSG_FTDEP],[CSG_PDSE],[TRANSITION_GRANT_AMT],[TGRANT_YRS_REMAINING],[PSTUDY_DEP_COST_LIVING],[PREVIOUS_DISBURSEMENT]
+,[STUDY_INCOME_GOV_GRANT],[PSTUDY_X_TRANS_TOTAL],[STUDY_DIRECTED_INCOME],[FINANCIAL_INVESTMENTS],[MARRIED_ADJUSTMENT],[STUDY_COST_COMPUTERS]
+FROM SFAADMIN.CSL_NARS_HISTORY
+WHERE HISTORY_DETAIL_ID IN (select id from sfa.application)
+	AND ASSESSMENT_ID IN (select id from sfa.assessment)
+SET IDENTITY_INSERT sfa.cls_nars_history OFF
+
+SET IDENTITY_INSERT sfa.disbursement ON
+INSERT INTO sfa.disbursement 
+(id, disbursement_type_id,assessment_id,funding_request_id,disbursed_amount,due_date,tax_year,issue_date,paid_amount,change_reason_id
+,financial_batch_id,financial_batch_id_year,financial_batch_run_date,financial_batch_serial_no,transaction_number,csl_cert_seq_number
+,ecert_sent_date,ecert_response_date,ecert_status,ecert_portal_status_id)
+SELECT DISBURSEMENT_ID,DISBURSEMENT_TYPE_ID,ASSESSMENT_ID,FUNDING_REQUEST_ID,DISBURSED_AMOUNT,DUE_DATE,TAX_YEAR
+,ISSUE_DATE,PAID_AMOUNT,CHANGE_REASON_ID,FINANCIAL_BATCH_ID,FINANCIAL_BATCH_ID_YEAR,FINANCIAL_BATCH_RUN_DATE,FINANCIAL_BATCH_SERIAL_NO
+,TRANSACTION_NUMBER,CSL_CERT_SEQ_NUMBER,ECERT_SENT_DATE,ECERT_RESPONSE_DATE,ECERT_STATUS,ECERT_PORTAL_STATUS_ID
+FROM SFAADMIN.DISBURSEMENT
+WHERE assessment_id IN (select id from sfa.assessment)
+SET IDENTITY_INSERT sfa.disbursement OFF
+
+SET IDENTITY_INSERT sfa.entitlement_error ON
+INSERT INTO sfa.entitlement_error (id, disbursement_id, entitlement_error_code_id, is_resend)
+SELECT [ENTITLEMENT_ERROR_ID],[DISBURSEMENT_ID],entitlement_error_codes.id, CASE WHEN [IS_RESEND_FLG] = 'Yes' THEN 1 ELSE 0 END
+FROM [SFAADMIN].[ENTITLEMENT_ERROR]
+	INNER JOIN sfa.entitlement_error_codes ON ENTITLEMENT_ERROR.ERROR_CODE = entitlement_error_codes.code
+	INNER JOIN sfa.disbursement ON [ENTITLEMENT_ERROR].DISBURSEMENT_ID = disbursement.id
+SET IDENTITY_INSERT sfa.entitlement_error OFF
