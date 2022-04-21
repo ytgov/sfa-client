@@ -15,8 +15,30 @@ switch (process.env.NODE_ENV) {
 }
 dotenv.config({ path: path });
 
-console.log (`LOADING ${NODE_ENV} CONFIG FROM ${path}`)
+console.log(`LOADING ${NODE_ENV} CONFIG FROM ${path}`)
 
 export const API_PORT = parseInt(process.env.API_PORT || "3000");
-//export const FRONTEND_URL = process.env.FRONTEND_URL || "";
-//export const AUTH_REDIRECT = process.env.AUTH_REDIRECT || process.env.FRONTEND_URL || "";
+export const FRONTEND_URL = process.env.FRONTEND_URL || "";
+export const AUTH_REDIRECT = process.env.AUTH_REDIRECT || process.env.FRONTEND_URL || "";
+
+export const DB_NAME = process.env.DB_NAME || '';
+export const DB_USER = process.env.DB_USER || '';
+export const DB_PASS = process.env.DB_PASS || '';
+export const DB_HOST = process.env.DB_HOST || '';
+export const DB_PORT = process.env.DB_PORT || '';
+
+export const BASE_URL = process.env.BASE_URL || "";
+export const CLIENT_ID = process.env.CLIENT_ID || "";
+export const ISSUER_BASE_URL = process.env.ISSUER_BASE_URL || "";
+export const CLIENT_SECRET = process.env.CLIENT_SECRET || "";
+
+export const DB_CONFIG = {
+  client: 'mssql',
+  connection: {
+    host: DB_HOST,
+    user: DB_USER,
+    password: DB_PASS,
+    database: DB_NAME,
+    port: parseInt(DB_PORT),
+  },
+};

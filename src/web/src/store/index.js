@@ -14,7 +14,7 @@ export default new Vuex.Store({
     showAppSidebar: false,
     selectedStudentFullName: "",
     selectedStudentLocator: "",
-    selectedStudent: { history_details: [] },
+    selectedStudent: { applications: [] },
     selectedStudentId: 0,
     selectedApplication: {},
     selectedApplicationId: 0,
@@ -33,7 +33,7 @@ export default new Vuex.Store({
     SET_APPLICATION(state, value) {
       console.log("SET APPLICATION");
       state.selectedApplication = value;
-      state.selectedApplicationId = value.HISTORY_DETAIL_ID;
+      state.selectedApplicationId = value.id;
     },
     CLEAR_APPLICATION(state) {
       console.log("CLEARING APPLICATION");
@@ -42,12 +42,12 @@ export default new Vuex.Store({
     },
     SET_STUDENT(state, value) {
       console.log("SET STUDENT");
-      state.selectedStudentFullName = `${value.FIRST_NAME} ${value.LAST_NAME}`;
-      state.selectedStudentLocator = value.LOCATOR_NUMBER;
-      state.selectedStudentId = value.STUDENT_ID;
+      state.selectedStudentFullName = `${value.first_name} ${value.last_name}`;
+      state.selectedStudentLocator = value.locator_number;
+      state.selectedStudentId = value.id;
       state.selectedStudent = value;
 
-      let isRecent = state.recentStudents.filter(r => r.STUDENT_ID == value.STUDENT_ID);
+      let isRecent = state.recentStudents.filter(r => r.id == value.id);
 
       if (isRecent.length == 0) {
         state.recentStudents.unshift(value);
@@ -73,7 +73,7 @@ export default new Vuex.Store({
     async loadApplication(state, id) {
       let resp = await axios.get(`${APPLICATION_URL}/${id}`);
 
-      if (!state.state.selectedStudent.STUDENT_ID)
+      if (!state.state.selectedStudent.id)
         state.commit("SET_STUDENT", resp.data.data.student);
 
       state.commit("SET_APPLICATION", resp.data.data);
@@ -128,10 +128,10 @@ export default new Vuex.Store({
       let emitter = vals[1];
       let consent = vals[0];
 
-      if (consent.STUDENT_CONSENT_ID) {
+      if (consent.id) {
         //console.log("DOING PUT", consent)
-        let id = consent.STUDENT_CONSENT_ID;
-        delete consent.STUDENT_CONSENT_ID;
+        let id = consent.id;
+        delete consent.id;
 
         axios.put(`${STUDENT_URL}/${state.state.selectedStudentId}/consent/${id}`, consent)
           .then(resp => {
@@ -174,7 +174,7 @@ export default new Vuex.Store({
     deleteConsent(state, vals) {
       let emitter = vals[1];
       let consent = vals[0];
-      let id = consent.STUDENT_CONSENT_ID;
+      let id = consent.id;
 
       axios.delete(`${STUDENT_URL}/${state.state.selectedStudentId}/consent/${id}`)
         .then(resp => {

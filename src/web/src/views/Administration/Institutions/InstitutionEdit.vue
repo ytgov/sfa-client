@@ -234,7 +234,7 @@
 <script>
 import axios from "axios";
 import store from "../../../store";
-import { INSTITUTION_URL } from "../../../urls";
+import { INSTITUTION_LEVEL_URL, INSTITUTION_URL } from "../../../urls";
 import MergeCampusDialog from "./MergeCampusDialog.vue";
 
 export default {
@@ -269,7 +269,7 @@ export default {
   },
   methods: {
     loadLevels() {
-      axios.get(`${INSTITUTION_URL}/levels`).then((resp) => {
+      axios.get(`${INSTITUTION_LEVEL_URL}`).then((resp) => {
         this.levelOptions = resp.data.data;
       });
     },

@@ -56,7 +56,7 @@ WHERE name = 'user'
                        phone          NVARCHAR(25)  NULL,
                        phone_tollfree NVARCHAR(25)  NULL,
                        fax            NVARCHAR(25)  NULL,
-                       create_date    DATETIME2     NOT NULL DEFAULT GETDATE()
+                       create_date    DATETIME2(0)     NOT NULL DEFAULT GETDATE()
                    )
 
 
@@ -99,15 +99,17 @@ CREATE TABLE sfa.institution_campus_dates
     id                    INT IDENTITY (1,1) PRIMARY KEY,
     institution_campus_id INT       NOT NULL REFERENCES sfa.institution_campus (id),
     academic_year_id      INT       NOT NULL REFERENCES sfa.academic_year (id),
-    class_start_date      DATETIME2 NULL,
-    class_end_date        DATETIME2 NULL
+    class_start_date      DATETIME2(0) NULL,
+    class_end_date        DATETIME2(0) NULL
 )
 
 CREATE TABLE sfa.institution_campus_notes
 (
     id                    INT IDENTITY (1,1) PRIMARY KEY,
-    institution_campus_id INT  NOT NULL REFERENCES sfa.institution_campus (id),
-    note                  TEXT NOT NULL
+    institution_campus_id INT          NOT NULL REFERENCES sfa.institution_campus (id),
+    note                  TEXT         NOT NULL,
+    create_date           DATETIME2(0) NOT NULL DEFAULT GETDATE(),
+    create_user_id        INT          NOT NULL REFERENCES sfa.[user]
 )
 
 
@@ -302,8 +304,8 @@ CREATE TABLE sfa.csl_nslsc_address
     province_id      INT           NOT NULL REFERENCES sfa.province (id),
     postal_code      NVARCHAR(50)  NOT NULL,
     phone_number     NVARCHAR(50)  NOT NULL,
-    effective_date   DATETIME2     NOT NULL DEFAULT GETDATE(),
-    expiry_date      DATETIME2     NULL
+    effective_date   DATETIME2(0)  NOT NULL DEFAULT GETDATE(),
+    expiry_date      DATETIME2(0)  NULL
 )
 
 -- SFAADMIN.CSL_REASON
@@ -320,7 +322,7 @@ CREATE TABLE sfa.csl_restricted
 (
     id                    INT IDENTITY (1,1) PRIMARY KEY,
     amount_disbursed      NUMERIC(10, 2) NULL,
-    birth_date            DATETIME2      NULL,
+    birth_date            DATETIME2(0)   NULL,
     first_name            NVARCHAR(100)  NULL,
     last_name             NVARCHAR(100)  NULL,
     over_award            NUMERIC(10, 2) NULL,
@@ -701,12 +703,12 @@ CREATE TABLE sfa.system_parameter
     previous_fin_batch_id_start  NUMERIC(7, 0)  NULL,
     previous_fin_batch_id_end    NUMERIC(7, 0)  NULL,
     previous_fin_batch_id_year   NUMERIC(4, 0)  NULL,
-    last_online_expire_date      DATETIME2      NULL,
-    last_msfaa_sent_date         DATETIME2      NULL,
+    last_online_expire_date      DATETIME2(0)   NULL,
+    last_msfaa_sent_date         DATETIME2(0)   NULL,
     last_msfaa_sent_seq_num      FLOAT          NULL,
     msfaa_enclosed_approval_text NVARCHAR(2000) NULL,
     msfaa_not_encl_approval_text NVARCHAR(2000) NULL,
-    monthly_board_change_date    DATETIME2      NULL,
+    monthly_board_change_date    DATETIME2(0)   NULL,
     arial_ttf_directory          NVARCHAR(150)  NULL,
     letterhead_tray              NVARCHAR(100)  NULL,
     yg_quarter_weeks             FLOAT          NULL,
@@ -745,7 +747,7 @@ CREATE TABLE sfa.yea
     id           INT IDENTITY (1,1) PRIMARY KEY,
     first_name   NVARCHAR(100)  NOT NULL,
     last_name    NVARCHAR(100)  NOT NULL,
-    birth_date   DATETIME2      NULL,
+    birth_date   DATETIME2(0)   NULL,
     yukon_id     NVARCHAR(25)   NULL,
     yukon_id_old NVARCHAR(25)   NULL,
     school_year  INT            NULL,
@@ -760,7 +762,7 @@ CREATE TABLE sfa.yea_update
     id              INT IDENTITY (1,1) PRIMARY KEY,
     first_name      NVARCHAR(100)  NOT NULL,
     last_name       NVARCHAR(100)  NOT NULL,
-    birth_date      DATETIME2      NULL,
+    birth_date      DATETIME(0)    NULL,
     yukon_id        NVARCHAR(25)   NULL,
     school_year     INT            NULL,
     school_month    INT            NULL,
@@ -774,8 +776,8 @@ CREATE TABLE sfa.yg_cost
 (
     id                      INT IDENTITY (1,1) PRIMARY KEY,
     academic_year_id        INT            NOT NULL REFERENCES sfa.academic_year (id),
-    effective_date          DATETIME2      NULL,
-    expiry_date             DATETIME2      NULL,
+    effective_date          DATETIME2(0)   NULL,
+    expiry_date             DATETIME2(0)   NULL,
     semester_living_amount  NUMERIC(10, 2) NOT NULL,
     semester_tuition_amount NUMERIC(10, 2) NOT NULL,
     semester_book_amount    NUMERIC(10, 2) NOT NULL,

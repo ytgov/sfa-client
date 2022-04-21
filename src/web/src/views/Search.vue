@@ -82,7 +82,7 @@
 <script>
 import axios from "axios";
 import { STUDENT_URL, STUDENT_SEARCH_URL } from "../urls";
-import CreateStudentDialog from "../components/CreateStudentDialog.vue";
+import CreateStudentDialog from "../components/student/CreateStudentDialog.vue";
 
 export default {
   components: { CreateStudentDialog },

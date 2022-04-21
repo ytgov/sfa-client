@@ -120,8 +120,8 @@
             >
               <v-expansion-panel v-for="(note, idx) of campus.notes" :key="idx">
                 <v-expansion-panel-header>
-                  {{ note.created_user.first_name }}
-                  {{ note.created_user.last_name }} - {{ note.created_date }}
+                  {{ note.create_user.first_name }}
+                  {{ note.create_user.last_name }} - {{ note.create_date }}
                 </v-expansion-panel-header>
                 <v-expansion-panel-content>
                   <v-textarea
@@ -139,25 +139,6 @@
                 </v-expansion-panel-content>
               </v-expansion-panel>
             </v-expansion-panels>
-
-            <!-- <div v-for="(note, idx) of campus.notes" :key="idx">
-              {{ note.created_date }} by {{ note.created_user.first_name }}
-              {{ note.created_user.last_name }}
-              <v-textarea
-                v-model="note.note"
-                label="Note text"
-                outlined
-                dense
-                background-color="white"
-                rows="3"
-                hide-details
-                @change="saveNote(note)"
-              ></v-textarea>
-              <v-divider
-                v-if="idx < campus.notes.length - 1"
-                class="my-4"
-              ></v-divider>
-            </div> -->
           </v-card-text>
         </v-card>
       </v-col>
@@ -190,8 +171,8 @@
                   outlined
                   background-color="white"
                   label="City"
-                  item-value="CITY_ID"
-                  item-text="DESCRIPTION"
+                  item-value="id"
+                  item-text="description"
                   hide-details
                   :items="cityOptions"
                   @change="doSave('address_city_id', campus.address_city_id)"
@@ -205,8 +186,8 @@
                   background-color="white"
                   label="Province"
                   :items="provinceOptions"
-                  item-value="PROVINCE_ID"
-                  item-text="DESCRIPTION"
+                  item-value="id"
+                  item-text="description"
                   hide-details
                   @change="
                     doSave('address_province_id', campus.address_province_id)
@@ -234,8 +215,8 @@
                   background-color="white"
                   label="Country"
                   :items="countryOptions"
-                  item-value="COUNTRY_ID"
-                  item-text="DESCRIPTION"
+                  item-value="id"
+                  item-text="description"
                   hide-details
                   @change="
                     doSave('address_country_id', campus.address_country_id)
@@ -401,17 +382,17 @@ export default {
   methods: {
     loadCountries() {
       axios.get(COUNTRY_URL).then((resp) => {
-        this.countryOptions = resp.data;
+        this.countryOptions = resp.data.data;
       });
     },
     loadProvinces() {
       axios.get(PROVINCE_URL).then((resp) => {
-        this.provinceOptions = resp.data;
+        this.provinceOptions = resp.data.data;
       });
     },
     loadCities() {
       axios.get(CITY_URL).then((resp) => {
-        this.cityOptions = resp.data;
+        this.cityOptions = resp.data.data;
       });
     },
     loadYears() {
@@ -510,8 +491,6 @@ export default {
         class_start_date: baseStart,
         class_end_date: baseEnd,
       };
-
-      console.log(body);
 
       axios
         .post(

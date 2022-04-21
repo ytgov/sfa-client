@@ -36,7 +36,7 @@
             @change="changeApplication"
             v-model="chosenApplication"
             item-text="title"
-            item-value="HISTORY_DETAIL_ID"
+            item-value="id"
           ></v-select>
         </v-list-item>
 
@@ -242,7 +242,7 @@ export default {
       return store.getters.showAppSidebar;
     },
     applicationOptions() {
-      return this.selectedStudent.history_details;
+      return this.selectedStudent.applications;
     },
   },
   data: () => ({

@@ -16,14 +16,14 @@ import AdminInstitutionEdit from "../views/Administration/Institutions/Instituti
 import AdminCampusEdit from "../views/Administration/Institutions/CampusEdit";
 import Search from "../views/Search";
 
-import ApplicationDetails from "../views/ApplicationDetails";
-import StudentDetails from "../views/StudentDetails";
-import Status from "../views/Status";
-import AcademicYear from "../views/AcademicYear";
-import SFAFundingRequests from "../views/SFAFundingRequests";
-import ScholarshipApplications from "../views/ScholarshipApplications";
-import CSLFundingRequests from "../views/CSLFundingRequests";
-import Documentation from "../views/Documentation";
+import ApplicationDetails from "../components/application/ApplicationDetails";
+import StudentDetails from "../components/student/StudentDetails";
+import Status from "../components/application/Status";
+import AcademicYear from "../components/application/AcademicYear";
+import SFAFundingRequests from "../components/application/SFAFundingRequests";
+import ScholarshipApplications from "../components/application/ScholarshipApplications";
+import CSLFundingRequests from "../components/application/CSLFundingRequests";
+import Documentation from "../components/application/Documentation";
 
 Vue.use(VueRouter);
 
