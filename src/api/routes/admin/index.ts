@@ -1,8 +1,8 @@
 import express from "express";
-import { acadecicYearRouter } from "./academic-year";
-import { applicationRouter } from "./application";
-import { institutionRouter } from "./institution";
-import { studentRouter } from "./student";
+import { acadecicYearRouter } from "./academic-year-router";
+import { applicationRouter } from "./application-router";
+import { institutionRouter } from "./institution-router";
+import { studentRouter } from "./student-router";
 import { RequireServerAuth, RequireAdmin } from "../auth";
 
 export const adminRouter = express.Router();
