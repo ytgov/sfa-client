@@ -25,6 +25,8 @@ import ScholarshipApplications from "../components/application/ScholarshipApplic
 import CSLFundingRequests from "../components/application/CSLFundingRequests";
 import Documentation from "../components/application/Documentation";
 
+import StudentModuleRoutes from "@/modules/student/router";
+
 Vue.use(VueRouter);
 
 const routes = [
@@ -182,6 +184,9 @@ const routes = [
       requiresAuth: true
     }
   },
+  
+	...StudentModuleRoutes,
+
   {
     path: "*",
     name: "Not Found",

@@ -10,8 +10,11 @@
     </v-breadcrumbs>
     <h1>Administration Home</h1>
 
-
-    <p><router-link to="/administration/institutions">Institutions</router-link>
+    <p>
+      <router-link to="/administration/institutions">Institutions</router-link>
+    </p>
+    <p>
+      <router-link to="/administration/students">Students</router-link>
     </p>
   </div>
 </template>

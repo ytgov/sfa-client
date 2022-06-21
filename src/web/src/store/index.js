@@ -4,6 +4,7 @@ import Vuex from "vuex";
 import auth from "./auth";
 import profile from "./profile";
 import institution from "./institution";
+import student from "@/modules/student/store";
 import axios from "axios";
 import { APPLICATION_URL, STUDENT_URL } from "../urls"
 
@@ -190,5 +191,5 @@ export default new Vuex.Store({
         })
     },
   },
-  modules: { auth, profile, institution }
+  modules: { auth, profile, institution, student }
 });
