@@ -762,7 +762,7 @@ CREATE TABLE sfa.yea_update
     id              INT IDENTITY (1,1) PRIMARY KEY,
     first_name      NVARCHAR(100)  NOT NULL,
     last_name       NVARCHAR(100)  NOT NULL,
-    birth_date      DATETIME(0)    NULL,
+    birth_date      DATETIME2(0)    NULL,
     yukon_id        NVARCHAR(25)   NULL,
     school_year     INT            NULL,
     school_month    INT            NULL,

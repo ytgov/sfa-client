@@ -839,7 +839,7 @@ WHILE @@FETCH_STATUS = 0 BEGIN
     INTO sfa.person (language_id, sex_id, birth_city_id, birth_province_id, birth_country_id,
                      first_name, last_name, initials, previous_last_name, sin, birth_date, telephone, email)
     VALUES (@s_language_id, @s_sex, @s_birth_city_id, @s_birth_province_id, @s_birth_country_id,
-            @s_first_name, @s_last_name, @s_initials, @s_previous_last_name, @s_sin, @s_birth_date, @s_home_phone,
+            @s_first_name, @s_last_name, @s_initials, @s_previous_last_name, LTRIM(STR(@s_sin, 15, 0)), @s_birth_date, @s_home_phone,
             @s_home_email)
 
     SELECT @s_person_id = SCOPE_IDENTITY();
@@ -1063,7 +1063,7 @@ WHILE @@FETCH_STATUS = 0 BEGIN
         BEGIN
             INSERT
             INTO sfa.person (first_name, last_name, sin)
-            VALUES (@parent1_first_name, @parent1_last_name, @parent1_sin)
+            VALUES (@parent1_first_name, @parent1_last_name, LTRIM(STR(@parent1_sin, 15, 0)))
             SELECT @parent1_id = SCOPE_IDENTITY();
 
         END
@@ -1072,7 +1072,7 @@ WHILE @@FETCH_STATUS = 0 BEGIN
         BEGIN
             INSERT
             INTO sfa.person (first_name, last_name, sin)
-            VALUES (@parent2_first_name, @parent2_last_name, @parent2_sin)
+            VALUES (@parent2_first_name, @parent2_last_name, LTRIM(STR(@parent2_sin, 15, 0)))
             SELECT @parent2_id = SCOPE_IDENTITY();
         END
 
@@ -1080,7 +1080,7 @@ WHILE @@FETCH_STATUS = 0 BEGIN
         BEGIN
             INSERT
             INTO sfa.person (first_name, last_name, initials, sin)
-            VALUES (@spouse_first_name, @spouse_last_name, @spouse_initials, @spouse_sin)
+            VALUES (@spouse_first_name, @spouse_last_name, @spouse_initials, LTRIM(STR(@spouse_sin, 15, 0)))
             SELECT @spouse_id = SCOPE_IDENTITY();
         END
 
