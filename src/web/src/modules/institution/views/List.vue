@@ -64,8 +64,8 @@
 <script>
 import axios from "axios";
 import _ from "lodash";
-import { INSTITUTION_URL } from "../../../urls";
-import store from "../../../store";
+import { INSTITUTION_URL } from "@/urls";
+import store from "@/store";
 
 export default {
   data: () => ({

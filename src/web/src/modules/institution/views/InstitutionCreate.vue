@@ -89,7 +89,7 @@
 
 <script>
 import axios from "axios";
-import { INSTITUTION_URL } from "../../../urls";
+import { INSTITUTION_URL } from "@/urls";
 
 export default {
   data: () => ({

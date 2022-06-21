@@ -56,6 +56,7 @@ studentRouter.post("/search",
         termParts = termParts.filter((t: string) => t.trim().length > 0);
 
         let kq = db('sfa.student').join("sfa.person", "student.person_id", "person.id");
+        kq.select("student.id as student_id", "person.id as person_id", "*")
 
         for (let part of termParts) {
             kq.whereRaw(`(LTRIM(STR(sin,20,0)) like ? OR lower(first_name) like ? OR lower(locator_number) like ?
@@ -65,9 +66,10 @@ studentRouter.post("/search",
 
         let results = await kq.orderBy("first_name").orderBy("last_name");
 
-        console.log(results);
-
         for (let r of results) {
+            delete r.id;
+            r.id = r.student_id;
+
             let history = await db("sfa.application").where({ student_id: r.student_id }).count("* as counter").first();
             r.application_count = history?.counter;
 

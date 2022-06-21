@@ -233,9 +233,9 @@
 
 <script>
 import axios from "axios";
-import store from "../../../store";
-import { INSTITUTION_LEVEL_URL, INSTITUTION_URL } from "../../../urls";
-import MergeCampusDialog from "./MergeCampusDialog.vue";
+import store from "@/store";
+import { INSTITUTION_LEVEL_URL, INSTITUTION_URL } from "@/urls";
+import MergeCampusDialog from "../components/MergeCampusDialog.vue";
 
 export default {
   components: { MergeCampusDialog },
