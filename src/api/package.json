@@ -22,7 +22,7 @@
     "jwks-rsa": "^2.0.5",
     "knex": "^1.0.4",
     "lodash": "^4.17.21",
-    "moment": "^2.29.1",
+    "moment": "^2.29.4",
     "mssql": "^8.0.2"
   },
   "devDependencies": {
