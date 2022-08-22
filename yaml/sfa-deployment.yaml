@@ -29,8 +29,17 @@ spec:
           ports:
             - containerPort: 3000
           resources: {}
+          volumeMounts:
+            - mountPath: "/home/node/app/.env.production"
+              subPath: env.production
+              name: env-configmap-volume
+              
       restartPolicy: Always
       imagePullSecrets:
         - name: eserv-tst-ns-sfa-image-pull-secret
+      volumes:
+        - name: env-configmap-volume
+          configMap:
+            name: sfa-env-configmap
     #Test change for cd test
 status: {}
