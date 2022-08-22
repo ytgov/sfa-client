@@ -11,8 +11,6 @@ import { InstitutionRules } from "./rules/institution-rules";
 export const institutionRouter = express.Router();
 const db = knex(DB_CONFIG);
 
-console.log("DB_CONFIG:", DB_CONFIG);
-
 const rulesEngine = new InstitutionRules(DB_CONFIG);
 
 institutionRouter.get("/", async (req: Request, res: Response) => {
