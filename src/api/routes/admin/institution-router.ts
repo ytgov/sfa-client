@@ -6,10 +6,12 @@ import { DB_CONFIG } from "../../config";
 import knex from "knex";
 
 let { ReturnValidationErrors } = require("../../middleware");
-import { InstitutionRules } from "./rules/institution-rules"
+import { InstitutionRules } from "./rules/institution-rules";
 
 export const institutionRouter = express.Router();
 const db = knex(DB_CONFIG);
+
+console.log("DB_CONFIG:", DB_CONFIG);
 
 const rulesEngine = new InstitutionRules(DB_CONFIG);
 
@@ -34,7 +36,7 @@ institutionRouter.get("/", async (req: Request, res: Response) => {
         item.campuses = campuses.filter((c: any) => c.institution_id == item.id);
         item.is_active_text = item.is_active ? "Active" : "Inactive";
 
-        let coded = item.campuses.filter((c: any) => c.federal_institution_code && c.federal_institution_code.length > 0)
+        let coded = item.campuses.filter((c: any) => c.federal_institution_code && c.federal_institution_code.length > 0);
 
         let campusCodes = _.uniq(coded.map((i: any) => i.federal_institution_code)) as string[];
 
@@ -49,7 +51,7 @@ institutionRouter.get("/", async (req: Request, res: Response) => {
         }
     }
 
-    res.json({ data: list })
+    res.json({ data: list });
 });
 
 institutionRouter.post("/",
@@ -62,7 +64,7 @@ institutionRouter.post("/",
 
         if (error) {
             console.log(error);
-            return res.json({ messages: [{ variant: "error", text: error }] })
+            return res.json({ messages: [{ variant: "error", text: error }] });
         }
 
         db("sfa.institution").insert(item).returning("*")
@@ -95,13 +97,13 @@ institutionRouter.get("/:id",
             campus.dates = await db("sfa.institution_campus_dates").where({ institution_campus_id: campus.id }).orderBy("id", "asc");
 
             for (let note of campus.notes) {
-                note.create_date = moment(note.create_date).format("yyyy/MM/DD @ h:mm A")
+                note.create_date = moment(note.create_date).format("yyyy/MM/DD @ h:mm A");
                 note.create_user = await db("sfa.user").where({ id: note.create_user_id }).first();
             }
 
             for (let dt of campus.dates) {
-                dt.class_start_date = moment(dt.class_start_date).utc(false).format("yyyy-MM-DD")
-                dt.class_end_date = moment(dt.class_end_date).utc(false).format("yyyy-MM-DD")
+                dt.class_start_date = moment(dt.class_start_date).utc(false).format("yyyy-MM-DD");
+                dt.class_end_date = moment(dt.class_end_date).utc(false).format("yyyy-MM-DD");
             }
 
             let apps = await db("sfa.application").where({ institution_campus_id: campus.id }).count("* as counter");
@@ -113,7 +115,7 @@ institutionRouter.get("/:id",
 
         }
 
-        res.json({ data: item })
+        res.json({ data: item });
     });
 
 institutionRouter.get("/:id/stats",
@@ -141,13 +143,13 @@ institutionRouter.get("/:id/stats",
                 if (item.length == 1)
                     results.unshift({ academic_year_id: current, application_count: item[0].counter });
                 else
-                    results.unshift({ academic_year_id: current, application_count: 0 })
+                    results.unshift({ academic_year_id: current, application_count: 0 });
 
                 current--;
                 limit--;
             }
 
-            return res.json({ data: results })
+            return res.json({ data: results });
         }
 
         res.status(404).send();
@@ -181,7 +183,7 @@ institutionRouter.post("/:id/merge-campuses",
 
                 await db("sfa.institution_campus").where({ id: sourceId }).delete();
 
-                return res.json({ messages: [{ variant: "success", text: "Campuses merged" }] })
+                return res.json({ messages: [{ variant: "success", text: "Campuses merged" }] });
             }
         }
 
@@ -196,16 +198,16 @@ institutionRouter.put("/:id",
 
         if (error) {
             console.log(error);
-            return res.json({ messages: [{ variant: "error", text: error }] })
+            return res.json({ messages: [{ variant: "error", text: error }] });
         }
 
         db("sfa.institution").where({ id }).update(req.body)
             .then((result: any) => {
-                res.json({ messages: [{ variant: "success", text: "Institution saved" }] })
+                res.json({ messages: [{ variant: "success", text: "Institution saved" }] });
             })
             .catch((err: any) => {
-                console.log("FAILED", err)
-                res.json({ messages: [{ variant: "error", text: "Save failed" }] })
+                console.log("FAILED", err);
+                res.json({ messages: [{ variant: "error", text: "Save failed" }] });
             });
     });
 
@@ -222,7 +224,7 @@ institutionRouter.post("/:id/campus",
             };
 
             let campusResult = await db("sfa.institution_campus").insert(campus).returning("*");
-            res.json({ data: campusResult[0], messages: [{ variant: "success", text: "Campus created" }] })
+            res.json({ data: campusResult[0], messages: [{ variant: "success", text: "Campus created" }] });
         }
 
         res.status(404).send();
@@ -242,7 +244,7 @@ institutionRouter.put("/:id/campus/:campusId",
                 message += " and new primary set";
             }
             else {
-                return res.json({ messages: [{ variant: "error", text: "You have to make another campus primary" }] })
+                return res.json({ messages: [{ variant: "error", text: "You have to make another campus primary" }] });
             }
         }
 
@@ -250,16 +252,16 @@ institutionRouter.put("/:id/campus/:campusId",
 
         if (error) {
             console.log(error);
-            return res.json({ messages: [{ variant: "error", text: error }] })
+            return res.json({ messages: [{ variant: "error", text: error }] });
         }
 
         db("sfa.institution_campus").where({ id: campusId, institution_id: id }).update(req.body)
             .then((result: any) => {
-                res.json({ messages: [{ variant: "success", text: message }] })
+                res.json({ messages: [{ variant: "success", text: message }] });
             })
             .catch((err: any) => {
-                console.log("FAILED", err)
-                res.json({ messages: [{ variant: "error", text: "Save failed" }] })
+                console.log("FAILED", err);
+                res.json({ messages: [{ variant: "error", text: "Save failed" }] });
             });
     });
 
@@ -345,7 +347,7 @@ institutionRouter.delete("/:id",
         let connections = await db("sfa.application").whereIn("institution_campus_id", campusIds).count("* as count").first();
 
         if ((connections as any).count > 0) {
-            return res.json({ messages: [{ text: "This institutions has applications connected", variant: "error" }] })
+            return res.json({ messages: [{ text: "This institutions has applications connected", variant: "error" }] });
         }
 
         // remove campus, notes, dates
@@ -359,5 +361,5 @@ institutionRouter.delete("/:id",
 
         await db("sfa.institution").where({ id }).delete();
 
-        res.json({ messages: [{ text: "Institution removed", variant: "success" }] })
+        res.json({ messages: [{ text: "Institution removed", variant: "success" }] });
     });
