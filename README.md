@@ -65,10 +65,9 @@ Steps:
 
  - In your browser, open https://github.com/ytgov/sfa-client/fork
  - Fork the repo into your own namespace
- - Create a new branch for your work
  - Do your work!
  - Ensure the app builds: `docker-compose build`
- - Create a pull request from your branch to ytgov/sfa-client:main (upstream)
+ - Create a pull request from your branch to ytgov/sfa-client:test (upstream)
  - The pull request will be reviewed and approved or rejected
    - If conflicts exist, the PR will be rejected
    - You then need to rebase from upstream and resolve conflicts then resubmit your PR
