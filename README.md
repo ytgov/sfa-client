@@ -67,6 +67,7 @@ Steps:
  - Fork the repo into your own namespace
  - Do your work!
  - Ensure the app builds: `docker-compose build`
+ - Before a pull request is created, sync your branch with upstream using the GitHub sync function
  - Create a pull request from your branch to ytgov/sfa-client:test (upstream)
  - The pull request will be reviewed and approved or rejected
    - If conflicts exist, the PR will be rejected
