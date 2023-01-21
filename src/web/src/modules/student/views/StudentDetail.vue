@@ -24,16 +24,25 @@
 
 
 <script>
-import { mapActions } from "vuex";
+import { mapActions, mapState } from "vuex";
+import store from "@/store";
+
 export default {
   data: () => ({
     studentId: 0,
     student: {},
     isLoading: false,
   }),
-  computed: {},
+  computed: {
+    ...mapState(["showSideBarAdmin"]),
+  },
   methods: {
     ...mapActions("student", ["loadStudent"]),
+  },
+  async created() {
+    await store.dispatch(
+      "setAppSideBarAdmin",
+      this.$route.path.startsWith("/administration"));
   },
   async mounted() {
     this.studentId = this.$route.params.id;

@@ -335,7 +335,8 @@ import {
   PROVINCE_URL,
   ACADEMIC_YEAR_URL,
 } from "../../../urls";
-import store from "../../../store";
+import store from "@/store";
+import { mapState } from "vuex";
 
 export default {
   data: () => ({
@@ -373,11 +374,14 @@ export default {
       immediate: true,
     },
   },
-  created() {
+  async created() {
     this.loadCountries();
     this.loadProvinces();
     this.loadCities();
     this.loadYears();
+    await store.dispatch(
+      "setAppSideBarAdmin",
+      this.$route.path.startsWith("/administration"));
   },
   methods: {
     loadCountries() {
@@ -533,6 +537,9 @@ export default {
           this.loadInstitution(this.institutionId);
         });
     },
+  },
+  computed: {
+    ...mapState(["showSideBarAdmin"]),
   },
 };
 </script>

@@ -23,6 +23,12 @@ import Documentation from "../components/application/Documentation";
 
 import StudentModuleRoutes from "@/modules/student/router";
 import InstitutionModuleRoutes from "@/modules/institution/router";
+import ProvinceModuleRoutes from "@/modules/province/router";
+import CountriesModuleRoutes from "@/modules/countries/router";
+import CitiesModuleRoutes from "@/modules/cities/router";
+import AddressTypeModuleRoutes from "@/modules/address-type/router";
+import IndigenousLearnerModuleRoutes from "@/modules/indigenous-learner/router";
+
 
 Vue.use(VueRouter);
 
@@ -152,6 +158,11 @@ const routes = [
   
 	...StudentModuleRoutes,
   ...InstitutionModuleRoutes,
+  ...ProvinceModuleRoutes,
+  ...CountriesModuleRoutes,
+  ...CitiesModuleRoutes,
+  ...AddressTypeModuleRoutes,
+  ...IndigenousLearnerModuleRoutes,
 
   {
     path: "*",
@@ -170,6 +181,7 @@ router.beforeEach(async (to, from, next) => {
   var requiresAuth = to.meta.requiresAuth || false;
 
   store.dispatch("setAppSidebar", to.path.startsWith("/application") || to.path.startsWith("/student"))
+  store.dispatch("setAppSideBarAdmin", to.path.startsWith("/administration"))
 
   if (!requiresAuth) {
     return next();

@@ -5,6 +5,12 @@ import auth from "./auth";
 import profile from "./profile";
 import institution from "./institution";
 import student from "@/modules/student/store";
+import province from "@/modules/province/store";
+import countries from "@/modules/countries/store";
+import cities from "@/modules/cities/store";
+import addressType from "@/modules/address-type/store";
+import indigenousLearner from "@/modules/indigenous-learner/store";
+import adminCrud from "./adminCrud";
 import axios from "axios";
 import { APPLICATION_URL, STUDENT_URL } from "../urls"
 
@@ -13,6 +19,7 @@ Vue.use(Vuex);
 export default new Vuex.Store({
   state: {
     showAppSidebar: false,
+    showSideBarAdmin: false,
     selectedStudentFullName: "",
     selectedStudentLocator: "",
     selectedStudent: { applications: [] },
@@ -23,6 +30,7 @@ export default new Vuex.Store({
   },
   getters: {
     showAppSidebar: state => state.showAppSidebar,
+    showSideBarAdmin: state => state.showSideBarAdmin,
     selectedStudent: state => state.selectedStudent,
     selectedApplication: state => state.selectedApplication,
     recentStudents: state => state.recentStudents,
@@ -30,6 +38,9 @@ export default new Vuex.Store({
   mutations: {
     SET_SIDEBAR(state, value) {
       state.showAppSidebar = value;
+    },
+    SET_SIDEBAR_ADMIN(state, value) {
+      state.showSideBarAdmin = value;
     },
     SET_APPLICATION(state, value) {
       console.log("SET APPLICATION");
@@ -64,6 +75,9 @@ export default new Vuex.Store({
   actions: {
     setAppSidebar(state, value) {
       state.commit("SET_SIDEBAR", value);
+    },
+    setAppSideBarAdmin(state, value) {
+      state.commit("SET_SIDEBAR_ADMIN", value);
     },
     setStudent(state, value) {
       state.commit("SET_STUDENT", value);
@@ -191,5 +205,5 @@ export default new Vuex.Store({
         })
     },
   },
-  modules: { auth, profile, institution, student }
+  modules: { auth, profile, institution, student, province, countries, cities, addressType, indigenousLearner, adminCrud, }
 });
