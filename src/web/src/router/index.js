@@ -28,6 +28,9 @@ import CountriesModuleRoutes from "@/modules/countries/router";
 import CitiesModuleRoutes from "@/modules/cities/router";
 import AddressTypeModuleRoutes from "@/modules/address-type/router";
 import IndigenousLearnerModuleRoutes from "@/modules/indigenous-learner/router";
+import languageModuleRoutes from "@/modules/language/router";
+import maritalStatusModuleRoutes from "@/modules/marital-status/router";
+import studyFieldModuleRoutes from "@/modules/study-field/router";
 
 
 Vue.use(VueRouter);
@@ -163,6 +166,9 @@ const routes = [
   ...CitiesModuleRoutes,
   ...AddressTypeModuleRoutes,
   ...IndigenousLearnerModuleRoutes,
+  ...languageModuleRoutes,
+  ...maritalStatusModuleRoutes,
+  ...studyFieldModuleRoutes,
 
   {
     path: "*",

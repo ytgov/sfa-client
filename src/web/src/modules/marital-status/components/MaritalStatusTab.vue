@@ -2,11 +2,11 @@
   <div>
     <!-- TABLE -->
     <v-data-table :search="search" :headers="[
-      { text: 'Indigenous Learner', value: 'description', filterable: true, },
+      { text: 'Marital Status', value: 'description', filterable: true, },
       { text: 'Status', value: 'is_active', sortable: false, filterable: false },
       { text: 'Delete', value: 'id', sortable: false, filterable: false },
     ]" :items="filteredList" class="mt-8">
-      <!-- INDIGENOUS_LERNER -->
+      <!-- MARITAL_STATUS -->
       <template v-slot:item.description="props">
         <v-edit-dialog :return-value.sync="props.item.description" large
           @save="save(props.item.id, descriptionToChange)" @cancel="cancel" @open="openEdit(props.item.description)" @close="close">
@@ -40,8 +40,8 @@
     </v-data-table>
     <!-- TABLE -->
 
-    <ModalAddIndigenousLearner :messageStatus="messageStatus" :dialog="isHide" :setDialog="showModalDelete"
-      :deleteFunction="deleteIndigenousLearner"></ModalAddIndigenousLearner>
+    <modalConfirmMaritalStatus :messageStatus="messageStatus" :dialog="isHide" :setDialog="showModalDelete"
+      :deleteFunction="deleteRecord"></modalConfirmMaritalStatus>
   </div>
 </template>
 
@@ -49,12 +49,12 @@
 import store from "@/store";
 import { mapGetters, mapActions } from "vuex";
 import _ from "lodash";
-import { INDIGENOUS_LERNER } from '@/urls';
+import { MARITAL_STATUS } from '@/urls';
 import axios from "axios";
-import ModalAddIndigenousLearner from "@/components/commonCatalog/ConfirmDelete.vue";
+import modalConfirmMaritalStatus from "@/components/commonCatalog/ConfirmDelete.vue";
 
 export default {
-  name: "IndigenousLearnerTab",
+  name: "MaritalStatusTab",
   data() {
     return {
       descriptionToChange: '',
@@ -75,7 +75,7 @@ export default {
     close() {
     },
     changeStatus(id, isActive) {
-      axios.patch(INDIGENOUS_LERNER + `/status/${id}`, { is_active: isActive })
+      axios.patch(MARITAL_STATUS + `/status/${id}`, { is_active: isActive })
         .then((resp) => {
 
           resp?.data?.wasUpdated ?
@@ -89,11 +89,11 @@ export default {
           this.messageStatus("Error!", "error");
         })
         .finally(() => {
-          store.dispatch("setIndigenousLearners", false);
+          store.dispatch("setMaritalStatusList", false);
         });
     },
     changeDescription(id, description) {
-      axios.patch(INDIGENOUS_LERNER + `/description/${id}`, { description: description })
+      axios.patch(MARITAL_STATUS + `/description/${id}`, { description: description })
         .then((resp) => {
           resp?.data?.wasUpdated ?
             this.messageStatus({ message: "Updated!", status: "success" })
@@ -110,17 +110,17 @@ export default {
           this.messageStatus({ message, status: "error" });
         })
         .finally(() => {
-          store.dispatch("setIndigenousLearners", false);
+          store.dispatch("setMaritalStatusList", false);
         });
     },
     showModalDelete(id) {
       this.isHide = !this.isHide;
       this.idToDelete = id;
     },
-    deleteIndigenousLearner() {
-      axios.delete(INDIGENOUS_LERNER + `/${this.idToDelete}`)
+    deleteRecord() {
+      axios.delete(MARITAL_STATUS + `/${this.idToDelete}`)
         .then((resp) => {
-          resp?.data?.wasDelete && store.dispatch("setIndigenousLearners", false);;
+          resp?.data?.wasDelete && store.dispatch("setMaritalStatusList", false);;
           this.messageStatus({ message: "success!", status: "success" });
         })
         .catch((err) => {
@@ -133,9 +133,9 @@ export default {
     },
   },
   computed: {
-    ...mapGetters(["search", "activeOnlyFilter", "indigenousLearners"]),
+    ...mapGetters(["search", "activeOnlyFilter", "maritalStatusList"]),
     filteredList: function () {
-      let l = _.clone(this.indigenousLearners);
+      let l = _.clone(this.maritalStatusList);
 
       if (this.activeOnlyFilter) l = l.filter((i) => i.is_active);
 
@@ -143,10 +143,10 @@ export default {
     },
   },
   async created() {
-    await store.dispatch("setIndigenousLearners", false);
+    await store.dispatch("setMaritalStatusList", false);
   },
   components: {
-    ModalAddIndigenousLearner,
+    modalConfirmMaritalStatus,
   }
 };
 </script>

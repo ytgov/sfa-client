@@ -8,6 +8,9 @@ import { countriesRouter } from "./countries-router";
 import { citiesRouter } from "./cities-router";
 import { addressTypeRouter } from "./address-type-router";
 import { indigenousLearnerRouter } from "./indigenous-learner-router";
+import { languageRouter } from "./language-router";
+import { maritalStatusRouter } from "./marital-status-router";
+import { studyFieldRouter } from "./study-field-router";
 import { RequireServerAuth, RequireAdmin } from "../auth";
 
 export const adminRouter = express.Router();
@@ -22,3 +25,6 @@ adminRouter.use("/countries", countriesRouter);
 adminRouter.use("/cities", citiesRouter);
 adminRouter.use("/address-type", addressTypeRouter);
 adminRouter.use("/indigenous-learner", indigenousLearnerRouter);
+adminRouter.use("/language", languageRouter);
+adminRouter.use("/marital-status", maritalStatusRouter);
+adminRouter.use("/study-field", studyFieldRouter);
