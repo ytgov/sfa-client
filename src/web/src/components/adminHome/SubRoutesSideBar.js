@@ -8,6 +8,7 @@ export default {
         {title:"First Nation", path: "/administration/first-nation"},
         {title:"Portal Status", path: "/administration/portal-status"},
         {title:"Sex", path: "/administration/sex"},
+        {title:"Student Category", path: "/administration/student-category"},
     ],
     location: [
         {title:"Province", path: "/administration/province"},

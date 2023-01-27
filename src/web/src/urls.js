@@ -48,3 +48,4 @@ export const PARENTAL_RELATIONSHIP =`${config.apiBaseUrl}/api/v2/admin/parental-
 export const FIRST_NATION =`${config.apiBaseUrl}/api/v2/admin/first-nation`;
 export const PORTAL_STATUS =`${config.apiBaseUrl}/api/v2/admin/portal-status`;
 export const SEX =`${config.apiBaseUrl}/api/v2/admin/sex`;
+export const STUDENT_CATEGORY =`${config.apiBaseUrl}/api/v2/admin/student-category`;
