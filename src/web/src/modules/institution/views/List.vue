@@ -66,6 +66,7 @@ import axios from "axios";
 import _ from "lodash";
 import { INSTITUTION_URL } from "@/urls";
 import store from "@/store";
+import { mapState } from "vuex";
 
 export default {
   data: () => ({
@@ -88,6 +89,7 @@ export default {
     storedActive: function () {
       return store.getters.activeOnly;
     },
+    ...mapState(["showSideBarAdmin"]),
   },
   watch: {
     search: function (val) {
@@ -97,10 +99,13 @@ export default {
       store.dispatch("setInstitutionActiveOnly", val);
     },
   },
-  created() {
+  async created() {
     this.loadInstitutions();
     this.search = this.storedSearch;
     this.activeOnly = this.storedActive;
+    await store.dispatch(
+      "setAppSideBarAdmin",
+      this.$route.path.startsWith("/administration"));
   },
   methods: {
     loadInstitutions() {

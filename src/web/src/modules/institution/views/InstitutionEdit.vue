@@ -234,6 +234,7 @@
 <script>
 import axios from "axios";
 import store from "@/store";
+import { mapState } from "vuex";
 import { INSTITUTION_LEVEL_URL, INSTITUTION_URL } from "@/urls";
 import MergeCampusDialog from "../components/MergeCampusDialog.vue";
 
@@ -263,9 +264,13 @@ export default {
     statLabels: function () {
       return this.stats.map((s) => s.academic_year);
     },
+    ...mapState(["showSideBarAdmin"]),
   },
-  created() {
+  async created() {
     this.loadLevels();
+    await store.dispatch(
+      "setAppSideBarAdmin",
+      this.$route.path.startsWith("/administration"));
   },
   methods: {
     loadLevels() {

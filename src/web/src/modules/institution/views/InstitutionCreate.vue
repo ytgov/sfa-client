@@ -90,6 +90,8 @@
 <script>
 import axios from "axios";
 import { INSTITUTION_URL } from "@/urls";
+import store from "@/store";
+import { mapState } from "vuex";
 
 export default {
   data: () => ({
@@ -104,8 +106,11 @@ export default {
     codeError: "",
     codeIsGood: false,
   }),
-  created() {
+  async created() {
     this.loadLevels();
+    await store.dispatch(
+      "setAppSideBarAdmin",
+      this.$route.path.startsWith("/administration"));
   },
   computed: {
     isValid: function () {
@@ -120,6 +125,7 @@ export default {
 
       return true;
     },
+    ...mapState(["showSideBarAdmin"]),
   },
   methods: {
     loadLevels() {
