@@ -31,6 +31,9 @@ import IndigenousLearnerModuleRoutes from "@/modules/indigenous-learner/router";
 import languageModuleRoutes from "@/modules/language/router";
 import maritalStatusModuleRoutes from "@/modules/marital-status/router";
 import studyFieldModuleRoutes from "@/modules/study-field/router";
+import parentalRelationshipModuleRoutes from "@/modules/parental-relationship/router";
+import firstNationModuleRoutes from "@/modules/first-nation/router";
+import portalStatusModuleRoutes from "@/modules/portal-status/router";
 
 
 Vue.use(VueRouter);
@@ -169,6 +172,9 @@ const routes = [
   ...languageModuleRoutes,
   ...maritalStatusModuleRoutes,
   ...studyFieldModuleRoutes,
+  ...parentalRelationshipModuleRoutes,
+  ...firstNationModuleRoutes,
+  ...portalStatusModuleRoutes,
 
   {
     path: "*",

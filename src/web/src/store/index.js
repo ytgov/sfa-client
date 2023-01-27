@@ -13,6 +13,9 @@ import indigenousLearner from "@/modules/indigenous-learner/store";
 import Language from "@/modules/language/store";
 import maritalStatus from "@/modules/marital-status/store";
 import studyField from "@/modules/study-field/store";
+import parentalRelationship from "@/modules/parental-relationship/store";
+import firstNation from "@/modules/first-nation/store";
+import portalStatus from "@/modules/portal-status/store";
 import adminCrud from "./adminCrud";
 import axios from "axios";
 import { APPLICATION_URL, STUDENT_URL } from "../urls"
@@ -208,5 +211,5 @@ export default new Vuex.Store({
         })
     },
   },
-  modules: { auth, profile, institution, student, province, countries, cities, addressType, indigenousLearner, Language, maritalStatus, studyField, adminCrud, }
+  modules: { auth, profile, institution, student, province, countries, cities, addressType, indigenousLearner, Language, maritalStatus, studyField, parentalRelationship, firstNation, portalStatus, adminCrud, }
 });

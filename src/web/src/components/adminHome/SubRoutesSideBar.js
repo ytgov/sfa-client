@@ -4,6 +4,9 @@ export default {
         {title:"Indigenous Learner", path: "/administration/indigenous-learner"},
         {title:"Language", path: "/administration/language"},
         {title:"Marital Status", path: "/administration/marital-status"},
+        {title:"Parental Relationship", path: "/administration/parental-relationship"},
+        {title:"First Nation", path: "/administration/first-nation"},
+        {title:"Portal Status", path: "/administration/portal-status"},
     ],
     location: [
         {title:"Province", path: "/administration/province"},

@@ -11,6 +11,9 @@ import { indigenousLearnerRouter } from "./indigenous-learner-router";
 import { languageRouter } from "./language-router";
 import { maritalStatusRouter } from "./marital-status-router";
 import { studyFieldRouter } from "./study-field-router";
+import { parentalRelationshipRouter } from "./parental-relationship-router";
+import { firstNationRouter } from "./first-nation-router";
+import { portalStatusRouter } from "./portal-status-router";
 import { RequireServerAuth, RequireAdmin } from "../auth";
 
 export const adminRouter = express.Router();
@@ -28,3 +31,6 @@ adminRouter.use("/indigenous-learner", indigenousLearnerRouter);
 adminRouter.use("/language", languageRouter);
 adminRouter.use("/marital-status", maritalStatusRouter);
 adminRouter.use("/study-field", studyFieldRouter);
+adminRouter.use("/parental-relationship", parentalRelationshipRouter);
+adminRouter.use("/first-nation", firstNationRouter);
+adminRouter.use("/portal-status", portalStatusRouter);
