@@ -7,6 +7,7 @@ export default {
         {title:"Parental Relationship", path: "/administration/parental-relationship"},
         {title:"First Nation", path: "/administration/first-nation"},
         {title:"Portal Status", path: "/administration/portal-status"},
+        {title:"Sex", path: "/administration/sex"},
     ],
     location: [
         {title:"Province", path: "/administration/province"},

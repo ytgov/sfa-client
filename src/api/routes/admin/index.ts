@@ -14,6 +14,7 @@ import { studyFieldRouter } from "./study-field-router";
 import { parentalRelationshipRouter } from "./parental-relationship-router";
 import { firstNationRouter } from "./first-nation-router";
 import { portalStatusRouter } from "./portal-status-router";
+import { sexRouter } from "./sex-router";
 import { RequireServerAuth, RequireAdmin } from "../auth";
 
 export const adminRouter = express.Router();
@@ -34,3 +35,4 @@ adminRouter.use("/study-field", studyFieldRouter);
 adminRouter.use("/parental-relationship", parentalRelationshipRouter);
 adminRouter.use("/first-nation", firstNationRouter);
 adminRouter.use("/portal-status", portalStatusRouter);
+adminRouter.use("/sex", sexRouter);

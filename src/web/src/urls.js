@@ -47,3 +47,4 @@ export const STUDY_FIELD =`${config.apiBaseUrl}/api/v2/admin/study-field`;
 export const PARENTAL_RELATIONSHIP =`${config.apiBaseUrl}/api/v2/admin/parental-relationship`;
 export const FIRST_NATION =`${config.apiBaseUrl}/api/v2/admin/first-nation`;
 export const PORTAL_STATUS =`${config.apiBaseUrl}/api/v2/admin/portal-status`;
+export const SEX =`${config.apiBaseUrl}/api/v2/admin/sex`;

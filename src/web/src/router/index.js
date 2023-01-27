@@ -34,6 +34,7 @@ import studyFieldModuleRoutes from "@/modules/study-field/router";
 import parentalRelationshipModuleRoutes from "@/modules/parental-relationship/router";
 import firstNationModuleRoutes from "@/modules/first-nation/router";
 import portalStatusModuleRoutes from "@/modules/portal-status/router";
+import sexModuleRoutes from "@/modules/sex/router";
 
 
 Vue.use(VueRouter);
@@ -175,6 +176,7 @@ const routes = [
   ...parentalRelationshipModuleRoutes,
   ...firstNationModuleRoutes,
   ...portalStatusModuleRoutes,
+  ...sexModuleRoutes,
 
   {
     path: "*",
