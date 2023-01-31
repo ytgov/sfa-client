@@ -22,6 +22,7 @@ import CSLFundingRequests from "../components/application/CSLFundingRequests";
 import Documentation from "../components/application/Documentation";
 
 import StudentModuleRoutes from "@/modules/student/router";
+import ApplicationTypeModuleRooutes from "@/modules/application-type/router";
 import InstitutionModuleRoutes from "@/modules/institution/router";
 import ProvinceModuleRoutes from "@/modules/province/router";
 import CountriesModuleRoutes from "@/modules/countries/router";
@@ -35,6 +36,9 @@ import parentalRelationshipModuleRoutes from "@/modules/parental-relationship/ro
 import firstNationModuleRoutes from "@/modules/first-nation/router";
 import portalStatusModuleRoutes from "@/modules/portal-status/router";
 import sexModuleRoutes from "@/modules/sex/router";
+import institutionLevelModuleRoutes from "@/modules/institution-level/router";
+import ageDistributionModuleRoutes from "@/modules/age-distribution/router";
+import highSchoolModuleRoutes from "@/modules/high-school/router";
 import studentCategoryModuleRoutes from "@/modules/student-category/router";
 
 
@@ -164,6 +168,7 @@ const routes = [
     }
   },
   
+	...ApplicationTypeModuleRooutes,
 	...StudentModuleRoutes,
   ...InstitutionModuleRoutes,
   ...ProvinceModuleRoutes,
@@ -179,6 +184,9 @@ const routes = [
   ...portalStatusModuleRoutes,
   ...sexModuleRoutes,
   ...studentCategoryModuleRoutes,
+  ...institutionLevelModuleRoutes,
+  ...ageDistributionModuleRoutes,
+  ...highSchoolModuleRoutes,
 
   {
     path: "*",
