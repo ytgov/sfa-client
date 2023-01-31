@@ -6,30 +6,30 @@ import { DB_CONFIG } from "../../config";
 
 const db = knex(DB_CONFIG)
 
-export const citiesRouter = express.Router();
+export const firstNationRouter = express.Router();
 
-citiesRouter.get("/", async (req: Request, res: Response) => {
+firstNationRouter.get("/", async (req: Request, res: Response) => {
 
     const { filter = true } = req.query;
 
     try {
-        const cities = await db("sfa.city")
-            .leftJoin('sfa.province', { 'sfa.city.province_id': 'sfa.province.id' })
+        const results = await db("sfa.first_nation")
+            .leftJoin('sfa.city', { 'sfa.first_nation.city_id': 'sfa.city.id' })
             .select(
-                'sfa.city.id',
-                'sfa.city.description',
-                'sfa.city.province_id',
-                'sfa.province.description as province_name',
-                'sfa.city.is_active',
+                'sfa.first_nation.id',
+                'sfa.first_nation.description',
+                'sfa.first_nation.city_id',
+                'sfa.city.description as city_name',
+                'sfa.first_nation.is_active',
             )
-            .orderBy('sfa.city.description');
+            .orderBy('sfa.first_nation.description');
 
-        if (cities) {
+        if (results) {
 
             if (filter !== 'false') {
-                return res.status(200).json({ success: true, data: cities.filter(c => c.is_active), })
+                return res.status(200).json({ success: true, data: results.filter(c => c.is_active), })
             } else {
-                return res.status(200).json({ success: true, data: [...cities], });
+                return res.status(200).json({ success: true, data: [...results], });
             }
 
         } else {
@@ -41,10 +41,10 @@ citiesRouter.get("/", async (req: Request, res: Response) => {
     }
 });
 
-citiesRouter.post("/", body('is_active').isBoolean(), body('description').isString(),
+firstNationRouter.post("/", body('is_active').isBoolean(), body('description').isString(),
 
     async (req: Request, res: Response) => {
-        const { is_active, description, province_id } = req.body;
+        const { is_active, description, city_id } = req.body;
 
         const trimDescription = description?.trim();
 
@@ -57,25 +57,24 @@ citiesRouter.post("/", body('is_active').isBoolean(), body('description').isStri
                 });
             }
 
-            const verify = await db("sfa.city")
+            const verify = await db("sfa.first_nation")
                 .select(
-                    'sfa.city.description',
-                    'sfa.city.province_id',
+                    'sfa.first_nation.description',
+                    'sfa.first_nation.city_id',
                 )
-                .where({ description });
+                .where({ description: trimDescription });
 
-            const hasSomeProvince = verify?.some((city) => {
-                return city.province_id === Number(province_id) ||
-                    city.province_id === null;
+            const hasSameDescription = verify?.some((first_nation) => {
+                return first_nation.description?.toLowerCase() === trimDescription?.toLowerCase();
             });
-            if (hasSomeProvince) return res.status(400).send({ wasInserted: false, message: "A record with the same province already exists" });
+            if (hasSameDescription) return res.status(400).send({ wasInserted: false, message: "A record with the same description already exists" });
 
-            const resInsertCity = await db("sfa.city")
-                .insert({ description, is_active, province_id })
+            const resInsert = await db("sfa.first_nation")
+                .insert({ description: trimDescription, is_active, city_id })
                 .returning("*");
 
-            if (resInsertCity) {
-                return res.status(201).json({ success: true, data: resInsertCity, });
+            if (resInsert) {
+                return res.status(201).json({ success: true, data: resInsert, });
             } else {
                 return res.status(400).send();
             }
@@ -86,13 +85,13 @@ citiesRouter.post("/", body('is_active').isBoolean(), body('description').isStri
         }
     });
 
-citiesRouter.patch("/status/:id", [param("id").isInt().notEmpty()], ReturnValidationErrors,
+firstNationRouter.patch("/status/:id", [param("id").isInt().notEmpty()], ReturnValidationErrors,
     (req: Request, res: Response) => {
 
         const { id = null } = req.params;
         const { is_active = false } = req.body;
 
-        db("sfa.city")
+        db("sfa.first_nation")
             .update({ is_active })
             .where({ id })
             .returning("*")
@@ -110,29 +109,29 @@ citiesRouter.patch("/status/:id", [param("id").isInt().notEmpty()], ReturnValida
             });
     });
 
-citiesRouter.patch("/province/:id", [param("id").isInt().notEmpty()], ReturnValidationErrors,
+firstNationRouter.patch("/city/:id", [param("id").isInt().notEmpty()], ReturnValidationErrors,
     async (req: Request, res: Response) => {
 
         const { id = null } = req.params;
-        const { province_id = null, description = "" } = req.body;
+        const { city_id = null, description = "" } = req.body;
 
         try {
-            if (province_id !== null && description.length) {
+            if (city_id !== null && description.length) {
 
-                const verify = await db("sfa.city")
+                const verify = await db("sfa.first_nation")
                     .select(
-                        'sfa.city.id',
-                        'sfa.city.description',
-                        'sfa.city.province_id',
+                        'sfa.first_nation.id',
+                        'sfa.first_nation.description',
+                        'sfa.first_nation.city_id',
                     )
                     .where({ description });
 
-                const hasSameProvince = verify?.some((city) =>
-                    (city.province_id === Number(province_id) && Number(id) !== city.id));
+                const hasSameCity = verify?.some((first_nation) =>
+                    (first_nation.city_id === Number(city_id) && Number(id) !== first_nation.id));
 
-                if (hasSameProvince) return res.status(400).send({
+                if (hasSameCity) return res.status(400).send({
                     wasInserted: false,
-                    message: "A record with the same province already exists"
+                    message: "A record with the same city already exists"
                 });
 
             }
@@ -141,8 +140,8 @@ citiesRouter.patch("/province/:id", [param("id").isInt().notEmpty()], ReturnVali
             return res.status(400).send({ wasInserted: false, message: "Error", });
         }
 
-        db("sfa.city")
-            .update({ province_id })
+        db("sfa.first_nation")
+            .update({ city_id })
             .where({ id })
             .returning("*")
             .then((resp) => {
@@ -159,7 +158,7 @@ citiesRouter.patch("/province/:id", [param("id").isInt().notEmpty()], ReturnVali
             });
     });
 
-citiesRouter.patch("/description/:id", [param("id").isInt().notEmpty()], ReturnValidationErrors,
+firstNationRouter.patch("/description/:id", [param("id").isInt().notEmpty()], ReturnValidationErrors,
     async (req: Request, res: Response) => {
 
         const { id = null } = req.params;
@@ -176,38 +175,22 @@ citiesRouter.patch("/description/:id", [param("id").isInt().notEmpty()], ReturnV
                 });
             }
 
-            const verifyDescriptionId = await db("sfa.city")
+            const verify = await db("sfa.first_nation")
                 .select(
-                    'sfa.city.description',
-                    'sfa.city.province_id',
+                    'sfa.first_nation.description',
+                    'sfa.first_nation.id',
                 )
-                .where({ id: id });
+                .where({ description: trimDescription });
 
-            const provinceIdCurrentDescription = verifyDescriptionId?.[0]?.province_id;
+            const hasSameDescription = verify?.some((first_nation) => {
+                return (first_nation.description.toLowerCase() === trimDescription.toLowerCase() && first_nation.id !== Number(id));
+            });
+            if (hasSameDescription) return res.status(400).send({ wasInserted: false, message: "A record with the same description already exists" });
 
-            if (provinceIdCurrentDescription === null || provinceIdCurrentDescription >= 0) {
-                const verifyAvailable = await db("sfa.city")
-                    .select(
-                        'sfa.city.id',
-                        'sfa.city.description',
-                        'sfa.city.province_id',
-                    )
-                    .where({ description: trimDescription });
-
-                const hasSomeProvince = verifyAvailable?.some((city) => {
-                    return (city.province_id === Number(provinceIdCurrentDescription)
-                        || city.province_id === null) && Number(id) !== city.id;
-                });
-
-                if (hasSomeProvince) return res.status(400).send({
-                    wasInserted: false,
-                    message: "A record with the same city and province already exists"
-                });
-            }
         } catch (error) {
             res.status(400).send({ wasInserted: false, message: "Error!" });
         }
-        db("sfa.city")
+        db("sfa.first_nation")
             .update({ description: trimDescription })
             .where({ id })
             .returning("*")
@@ -225,12 +208,12 @@ citiesRouter.patch("/description/:id", [param("id").isInt().notEmpty()], ReturnV
             });
     });
 
-citiesRouter.delete("/:id", [param("id").isInt().notEmpty()], ReturnValidationErrors,
+firstNationRouter.delete("/:id", [param("id").isInt().notEmpty()], ReturnValidationErrors,
     (req: Request, res: Response) => {
 
         const { id = null } = req.params;
 
-        db("sfa.city")
+        db("sfa.first_nation")
             .where({ id: id })
             .del()
             .then((resp) => {

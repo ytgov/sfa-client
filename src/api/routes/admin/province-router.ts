@@ -176,7 +176,7 @@ provinceRouter.patch("/country/:id", [param("id").isInt().notEmpty()], ReturnVal
                     .where({ description });
 
                 const hasSameCountry = verify?.some((province) => (province.country_id === Number(country_id)
-                    && id !== province.id));
+                    && Number(id) !== province.id));
 
                 if (hasSameCountry) return res.status(400).send({ wasInserted: false, message: "A record with the same country already exists" });
 
