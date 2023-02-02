@@ -3,6 +3,13 @@ import Vuetify from "vuetify";
 import "vuetify/dist/vuetify.min.css";
 import "../assets/yk-style.css";
 
+import { library } from '@fortawesome/fontawesome-svg-core'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import { fas } from '@fortawesome/free-solid-svg-icons'
+
+Vue.component('font-awesome-icon', FontAwesomeIcon) // Register component globally
+library.add(fas) // Include needed icons
+
 Vue.use(Vuetify);
 export default new Vuetify({
     theme: {
@@ -11,9 +18,13 @@ export default new Vuetify({
                 primary: "#0097a9",
                 secondary: "#fff",
                 anchor: "#00818f",
+                bgAdminBar: "#FFF2D5",
             }
         }
-    }
+    },
+    icons: {
+        iconfont: 'faSvg',
+    },
 });
 
 /* --blue:#007bff;

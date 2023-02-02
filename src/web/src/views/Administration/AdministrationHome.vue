@@ -10,7 +10,7 @@
     </v-breadcrumbs>
     <h1>Administration Home</h1>
 
-    <p>
+    <p> 
       <router-link to="/administration/institutions">Institutions</router-link>
     </p>
     <p>
@@ -20,9 +20,19 @@
 </template>
 
 <script>
+import { mapState } from "vuex";
+import store from "../../store";
+
 export default {
   data: () => ({}),
   created() {},
-  methods: {},
+  computed: {
+    ...mapState(["showSideBarAdmin"]),
+  },
+  async created() {
+    await store.dispatch(
+      "setAppSideBarAdmin",
+      this.$route.path.startsWith("/administration"));
+  }
 };
 </script>
