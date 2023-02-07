@@ -16,6 +16,9 @@
     <p>
       <router-link to="/administration/students">Students</router-link>
     </p>
+    <p>
+      <router-link to="/administration/application-type">Application-Type</router-link>
+    </p>
   </div>
 </template>
 

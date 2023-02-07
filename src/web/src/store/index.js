@@ -22,6 +22,15 @@ import institutionLevel from "@/modules/institution-level/store";
 import ageDistribution from "@/modules/age-distribution/store";
 import applicationType from "@/modules/application-type/store";
 import highSchool from "@/modules/high-school/store";
+import assessmentType from "@/modules/assessment-type/store";
+import batchGroup from "@/modules/batch-group/store";
+import educationLevel from "@/modules/education-level/store";
+import reasonsForChange from "@/modules/reasons-for-change/store";
+import disbursementType from "@/modules/disbursement-type/store";
+import status from "@/modules/status/store";
+import statusReason from "@/modules/status-reason/store";
+import yukonGrantEligibility from "@/modules/yukon-grant-eligibility/store";
+import fundingGroup from "@/modules/funding-group/store";
 import adminCrud from "./adminCrud";
 import axios from "axios";
 import { APPLICATION_URL, STUDENT_URL } from "../urls"
@@ -218,5 +227,6 @@ export default new Vuex.Store({
     },
   },
 
-  modules: { auth, profile, institution, student, province, countries, cities, addressType, indigenousLearner, Language, maritalStatus, studyField, parentalRelationship, firstNation, portalStatus, sex, studentCategory, applicationType, highSchool, ageDistribution, institutionLevel, adminCrud, }
+  modules: { auth, profile, institution, student, province, countries, cities, addressType, indigenousLearner, Language, maritalStatus, studyField, parentalRelationship, firstNation, portalStatus, sex, studentCategory, applicationType, highSchool, ageDistribution, institutionLevel, assessmentType, batchGroup, educationLevel, status, statusReason, yukonGrantEligibility, disbursementType, reasonsForChange, fundingGroup, adminCrud, }
+
 });
