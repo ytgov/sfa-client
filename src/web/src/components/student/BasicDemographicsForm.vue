@@ -11,11 +11,11 @@
               background-color="white"
               hide-details
               label="Language"
-              v-model="student.LANGUAGE_ID"
+              v-model="student.language_id"
               item-text="DESCRIPTION"
               item-value="LANGUAGE_ID"
               :items="languageOptions"
-              @change="doSaveStudent('LANGUAGE_ID', student.LANGUAGE_ID)"
+              @change="doSaveStudent('language_id', student.language_id)"
             ></v-select>
           </div>
           <div class="col-md-6">
@@ -25,9 +25,9 @@
               background-color="white"
               hide-details
               label="Sex"
-              v-model="student.SEX"
+              v-model="student.sex_id"
               :items="sexOptions"
-              @change="doSaveStudent('SEX', student.SEX)"
+              @change="doSaveStudent('sex_id', student.sex_id)"
             ></v-select>
           </div>
 
@@ -43,7 +43,7 @@
             >
               <template v-slot:activator="{ on, attrs }">
                 <v-text-field
-                  v-model="student.BIRTH_DATE"
+                  v-model="student.birth_date"
                   label="Birth date"
                   append-icon="mdi-calendar"
                   readonly
@@ -55,10 +55,10 @@
                 ></v-text-field>
               </template>
               <v-date-picker
-                v-model="student.BIRTH_DATE"
+                v-model="student.birth_date"
                 :max="maxDate"
                 @input="birth_date_menu = false"
-                @change="doSaveStudent('BIRTH_DATE', student.BIRTH_DATE)"
+                @change="doSaveStudent('birth_date', student.birth_date)"
               ></v-date-picker>
             </v-menu>
           </div>
@@ -69,8 +69,8 @@
               background-color="white"
               hide-details
               label="SFA number"
-              v-model="student.YUKON_ID"
-              @change="doSaveStudent('YUKON_ID', student.YUKON_ID)"
+              v-model="student.yukon_id"
+              @change="doSaveStudent('yukon_id', student.yukon_id)"
             ></v-text-field>
           </div>
           <div class="col-md-3">
@@ -80,9 +80,9 @@
               background-color="white"
               hide-details
               label="Records locator number"
-              v-model="student.LOCATOR_NUMBER"
+              v-model="student.locator_number"
               @change="
-                doSaveStudent('LOCATOR_NUMBER', student.LOCATOR_NUMBER)
+                doSaveStudent('locator_number', student.locator_number)
               "
             ></v-text-field>
           </div>
