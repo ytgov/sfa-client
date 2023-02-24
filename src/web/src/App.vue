@@ -1,5 +1,9 @@
 <template>
   <v-app>
+    
+    <SideBarAdmin :show="hasSideBarAdmin"/>
+    <SnackBarAdmin />
+
     <v-navigation-drawer
       v-bind:app="hasSidebar"
       permanent
@@ -219,14 +223,17 @@ import store from "./store";
 import * as config from "./config";
 import { mapState } from "vuex";
 import { LOGOUT_URL } from "./urls";
+import SideBarAdmin from "@/components/adminHome/SideBarAdmin.vue";
+import SnackBarAdmin from "@/components/commonCatalog/SnackBarAdmin.vue";
 
 export default {
   name: "App",
-  components: {},
+  components: { SideBarAdmin,SnackBarAdmin },
   computed: {
     ...mapState([
       "isAuthenticated",
       "showAppSidebar",
+      "showSideBarAdmin",
       "selectedApplicationId",
       "selectedApplication",
       "selectedStudentId",
@@ -256,6 +263,7 @@ export default {
     applicationIcon: config.applicationIcon,
     sections: config.sections,
     hasSidebar: false, //config.hasSidebar,
+    hasSideBarAdmin: false,
     hasSidebarClosable: config.hasSidebarClosable,
 
     chosenApplication: -1,
@@ -266,9 +274,11 @@ export default {
       this.$route.path.startsWith("/application") ||
         this.$route.path.startsWith("/student")
     );
-    this.hasSidebar =
-      this.$route.path.startsWith("/application") ||
-      this.$route.path.startsWith("/student");
+    store.dispatch(
+      "setAppSideBarAdmin",
+      this.$route.path.startsWith("/administration"));
+
+    this.hasSideBarAdmin = this.$route.path.startsWith("/administration");
 
     await store.dispatch("checkAuthentication");
 
@@ -276,11 +286,22 @@ export default {
   },
   watch: {
     isAuthenticated: function (val) {
-      if (!val) this.hasSidebar = false;
-      else this.hasSidebar = store.getters.showAppSidebar;
+      if (!val) {
+        this.hasSidebar = false;
+        this.hasSideBarAdmin = false;
+      }
+        
+      else {
+        this.hasSideBarAdmin = store.getters.showSideBarAdmin;
+        this.hasSidebar = store.getters.showAppSidebar;
+      }
+        
     },
     showAppSidebar: function (val) {
       this.hasSidebar = val; // && this.isAuthenticated;
+    },
+    showSideBarAdmin: function (val) {
+      this.hasSideBarAdmin = val;
     },
     selectedApplicationId: function (val) {
       console.log("APPCHG", val);

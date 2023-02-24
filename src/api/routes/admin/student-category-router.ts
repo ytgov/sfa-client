@@ -1,0 +1,210 @@
+import express, { Request, Response } from "express";
+import { param, body } from "express-validator";
+import knex from "knex";
+import { ReturnValidationErrors } from "../../middleware";
+import { DB_CONFIG } from "../../config";
+
+const db = knex(DB_CONFIG)
+
+export const studentCategoryRouter = express.Router();
+
+studentCategoryRouter.get("/", async (req: Request, res: Response) => {
+
+    const { filter = true } = req.query;
+
+    try {
+        const results = await db("sfa.student_category")
+            .select(
+                'sfa.student_category.id',
+                'sfa.student_category.code',
+                'sfa.student_category.description',
+                'sfa.student_category.is_active',
+            )
+            .orderBy('sfa.student_category.description');
+
+        if (results) {
+
+            if (filter !== 'false') {
+                return res.status(200).json({ success: true, data: results.filter(c => c.is_active), })
+            } else {
+                return res.status(200).json({ success: true, data: [...results], });
+            }
+
+        } else {
+            return res.status(404).send();
+        }
+
+    } catch (error: any) {
+        console.log(error);
+        return res.status(404).send();
+    }
+});
+
+studentCategoryRouter.post("/", body('is_active').isBoolean(), body('description').isString(),
+
+    async (req: Request, res: Response) => {
+        const { is_active, description = "", code = "" } = req.body;
+        const trimDescription = description?.trim();
+        const trimCode = code?.trim();
+
+        try {
+            if (!trimCode.length) return res.status(400).json({ success: false, message: "Code must be required", });
+
+            if (!trimDescription.length) return res.status(400).json({ success: false, message: "Description must be required", });
+
+            let verify = await db("sfa.student_category")
+                .select('code')
+                .where({ code: trimCode });
+
+            if (verify?.length) return res.status(400).send({ success: false, message: "Code already exists", });
+
+            verify = await db("sfa.student_category")
+                .select('description')
+                .where({ description: trimDescription });
+
+            if (verify?.length) return res.status(400).send({ success: false, message: "Description already exists", });
+
+            const resInsert = await db("sfa.student_category")
+                .insert({ description: trimDescription, is_active, code: trimCode })
+                .returning("*");
+
+            if (resInsert) {
+                return res.status(201).json({ success: true, data: resInsert, });
+            } else {
+                return res.status(400).send();
+            }
+
+        } catch (err) {
+            console.log(err);
+            return res.status(400).send(err);
+        }
+    }
+);
+
+studentCategoryRouter.patch("/status/:id", [param("id").isInt().notEmpty()], ReturnValidationErrors,
+    (req: Request, res: Response) => {
+
+        const { id = null } = req.params;
+        const { is_active = false } = req.body;
+
+        db("sfa.student_category")
+            .update({ is_active })
+            .where({ id })
+            .returning("*")
+            .then((resp: any) => {
+                if (resp[0]?.is_active === is_active && resp[0]?.id === Number(id)) {
+                    res.status(202).send({ wasUpdated: true, ...resp[0] });
+                } else {
+                    res.status(409).send({ wasUpdated: false, message: "Could Not Updated" });
+                }
+            })
+            .catch(function (e: any) {
+                console.log(e);
+                res.status(409).send({ wasUpdated: false, message: "Could Not Updated" });
+            });
+    }
+);
+
+
+studentCategoryRouter.patch("/code/:id", [param("id").isInt().notEmpty()], ReturnValidationErrors,
+    async (req: Request, res: Response) => {
+
+        const { id = null } = req.params;
+        const { code = "" } = req.body;
+
+        const trimCode = code?.trim();
+
+        try {
+            if (!trimCode.length) return res.status(400).json({ success: false, message: "Code must be required", });
+            
+            const verify = await db("sfa.student_category")
+                .select('id', 'code')
+                .where({ code: trimCode });
+
+            if (verify?.[0]?.code.toLowerCase() === code.toLowerCase() &&
+                verify?.[0]?.id !== Number(id))
+                return res.status(400).send({ success: false, message: "Code already exists", });
+
+        } catch (error) {
+            console.log(error);
+            return res.status(400).send({ success: false, message: "Error!", });
+        }
+
+        db("sfa.student_category")
+            .update({ code: trimCode })
+            .where({ id })
+            .returning("*")
+            .then((resp: any) => {
+                if (resp[0]?.id === Number(id)) {
+                    res.status(202).send({ wasUpdated: true, ...resp[0] });
+                } else {
+                    res.status(409).send({ wasUpdated: false, message: "Could Not Updated" });
+                }
+            })
+            .catch(function (e: any) {
+                res.status(409).send({ wasUpdated: false, message: "Could Not Updated" });
+                console.log(e);
+            });
+    }
+);
+
+studentCategoryRouter.patch("/description/:id", [param("id").isInt().notEmpty()], ReturnValidationErrors,
+    async (req: Request, res: Response) => {
+
+        const { id = null } = req.params;
+        const { description = "" } = req.body;
+
+        const trimDescription = description?.trim();
+
+        try {
+
+            if (!trimDescription.length) return res.status(400).json({ success: false, message: "Description must be required", });
+
+            const verify = await db("sfa.student_category")
+                .select('id', 'description')
+                .where({ description: trimDescription });
+
+            if (verify?.[0]?.description.toLowerCase() === trimDescription.toLowerCase() &&
+                verify?.[0]?.id !== Number(id))
+                return res.status(400).send({ success: false, message: "Description already exists", });
+
+        } catch (error) {
+            console.log(error);
+            return res.status(400).send({ success: false, message: "Error!", });
+        }
+
+        db("sfa.student_category")
+            .update({ description: trimDescription })
+            .where({ id })
+            .returning("*")
+            .then((resp: any) => {
+                if (resp[0]?.id === Number(id)) {
+                    res.status(202).send({ wasUpdated: true, ...resp[0] });
+                } else {
+                    res.status(409).send({ wasUpdated: false, message: "Could Not Updated" });
+                }
+            })
+            .catch(function (e: any) {
+                res.status(409).send({ wasUpdated: false, message: "Could Not Updated" });
+                console.log(e);
+            });
+    }
+);
+
+studentCategoryRouter.delete("/:id", [param("id").isInt().notEmpty()], ReturnValidationErrors,
+    (req: Request, res: Response) => {
+
+        const { id = null } = req.params;
+
+        db("sfa.student_category")
+            .where({ id: id })
+            .del()
+            .then((resp: any) => {
+                res.status(202).send({ wasDelete: true });
+            })
+            .catch(function (e: any) {
+                console.log({ ...e });
+                res.status(409).send({ wasDelete: false, message: "Could Not Delete" });
+            });
+    }
+);

@@ -58,9 +58,19 @@
 </template>
 
 <script>
+import { mapState } from "vuex";
+import store from "../../store";
+
 export default {
-    data: () => ({}),
-    created() {},
-    methods: {},
+  data: () => ({}),
+  created() {},
+  computed: {
+    ...mapState(["showSideBarAdmin"]),
+  },
+  async created() {
+    await store.dispatch(
+      "setAppSideBarAdmin",
+      this.$route.path.startsWith("/administration"));
+  }
 };
 </script>
