@@ -119,12 +119,12 @@ export default {
           resp?.data?.wasUpdated ?
             this.messageStatus("Switched!", "success")
             :
-            this.messageStatus("Error!", "error");
+            this.messageStatus({ message: "Error!", status: "error" });
 
         })
         .catch((err) => {
           console.log(err);
-          this.messageStatus("Error!", "error");
+          this.messageStatus({ message: "Error!", status: "error" });
         })
         .finally(() => {
           store.dispatch("setCountries");
@@ -137,7 +137,7 @@ export default {
           resp?.data?.wasUpdated ?
             this.messageStatus("Updated!", "success")
             :
-            this.messageStatus("Error!", "error");
+            this.messageStatus({ message: "Error!", status: "error" });
         })
         .catch((err) => {
           console.log(err);
@@ -159,7 +159,7 @@ export default {
           resp?.data?.wasUpdated ?
             this.messageStatus("Updated!", "success")
             :
-            this.messageStatus("Error!", "error");
+            this.messageStatus({ message: "Error!", status: "error" });
         })
         .catch((err) => {
           console.log(err);

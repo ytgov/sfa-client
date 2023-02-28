@@ -112,6 +112,9 @@ export default {
     applicationId: -1,
   }),
   async created() {
+    store.dispatch("setMonthOptions");
+    store.dispatch("setYearOptions");
+
     this.applicationId = this.$route.params.id;
     let storeApp = store.getters.selectedApplication;
 

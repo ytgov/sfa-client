@@ -23,6 +23,8 @@
         <v-card-actions>
           <v-spacer></v-spacer>
           <v-btn color="blue darken-1" text @click="(e) => {
+            this.is_active = true;
+            this.describe = '';
             setDialog();
           }">
             Close
@@ -49,7 +51,7 @@ export default {
   name: "ModalAddLanguage",
   data() {
     return {
-      is_active: false,
+      is_active: true,
       describe: '',
       DESCRIBE_LENGTH: 3,
     }
@@ -80,11 +82,10 @@ export default {
           "Error!"
         this.messageStatus({ message, status: "error" });
       } finally {
+        this.is_active = true;
+        this.describe = '';
         store.dispatch("setLanguages", false);
       }
-
-      this.is_active = false;
-      this.describe = '';
 
     },
     ...mapActions(["messageStatus"]),

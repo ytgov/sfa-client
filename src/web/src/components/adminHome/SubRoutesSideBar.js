@@ -11,6 +11,9 @@ export default {
         {title:"Sex", path: "/administration/sex"},
         {title:"Student Category", path: "/administration/student-category"},
         {title:"Age Distribution", path: "/administration/age-distribution"},
+        {title:"Education Level", path: "/administration/education-level"},
+        {title:"Yukon Grant Eligibility", path: "/administration/yukon-grant-eligibility"},
+        {title:"Aboriginal Status", path: "/administration/aboriginal-status"},
     ],
     location: [
         {title:"Province", path: "/administration/province"},
@@ -27,5 +30,17 @@ export default {
     application: [
         {title:"Study Field", path: "/administration/study-field"},
         {title:"Application Type", path: "/administration/application-type"},
+        {title:"Disbursement Type", path: "/administration/disbursement-type"},
+        {title:"Disability Type with CSL Code", path: "/administration/disability-type"},
+        {title:"Disability Type without CSL Code", path: "/administration/disability-type-without-csl"},
+        {title:"Disability Services Required", path: "/administration/disability-service"},
+    ],
+    assessment: [
+        {title:"Assessment Type", path: "/administration/assessment-type"},
+        {title:"Batch group", path: "/administration/batch-group"},
+        {title:"Reasons for Change", path: "/administration/reasons-for-change"},
+        {title:"Funding Group", path: "/administration/funding-group"},
+        {title:"Status", path: "/administration/status"},
+        {title:"Status Reason", path: "/administration/status-reason"},
     ],
 };
