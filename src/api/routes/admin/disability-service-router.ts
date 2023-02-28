@@ -6,27 +6,27 @@ import { DB_CONFIG } from "../../config";
 
 const db = knex(DB_CONFIG)
 
-export const maritalStatusRouter = express.Router();
+export const disabilityServiceRouter = express.Router();
 
-maritalStatusRouter.get("/", async (req: Request, res: Response) => {
+disabilityServiceRouter.get("/", async (req: Request, res: Response) => {
 
     const { filter = true } = req.query;
 
     try {
-        const maritalStatusList = await db("sfa.marital_status")
+        const results = await db("sfa.disability_service")
             .select(
-                'sfa.marital_status.id',
-                'sfa.marital_status.description',
-                'sfa.marital_status.is_active',
+                'sfa.disability_service.id',
+                'sfa.disability_service.description',
+                'sfa.disability_service.is_active',
             )
-            .orderBy('sfa.marital_status.description');
+            .orderBy('sfa.disability_service.description');
 
-        if (maritalStatusList) {
+        if (results) {
 
             if (filter !== 'false') {
-                return res.status(200).json({ success: true, data: maritalStatusList.filter(c => c.is_active), })
+                return res.status(200).json({ success: true, data: results.filter(c => c.is_active), })
             } else {
-                return res.status(200).json({ success: true, data: [...maritalStatusList], });
+                return res.status(200).json({ success: true, data: [...results], });
             }
 
         } else {
@@ -39,7 +39,7 @@ maritalStatusRouter.get("/", async (req: Request, res: Response) => {
     }
 });
 
-maritalStatusRouter.post("/", body('is_active').isBoolean(), body('description').isString(),
+disabilityServiceRouter.post("/", body('is_active').isBoolean(), body('description').isString(),
 
     async (req: Request, res: Response) => {
         const { is_active, description = "", } = req.body;
@@ -49,13 +49,13 @@ maritalStatusRouter.post("/", body('is_active').isBoolean(), body('description')
 
             if (!trimDescription.length) return res.status(400).json({ success: false, message: "Description must be required", });
 
-            const verify = await db("sfa.marital_status")
+            const verify = await db("sfa.disability_service")
                 .select('description')
                 .where({ description: trimDescription });
 
             if (verify?.length) return res.status(400).send({ success: false, message: `"${trimDescription}" already exists`, });
 
-            const resInsert = await db("sfa.marital_status")
+            const resInsert = await db("sfa.disability_service")
                 .insert({ description: trimDescription, is_active })
                 .returning("*");
 
@@ -71,13 +71,13 @@ maritalStatusRouter.post("/", body('is_active').isBoolean(), body('description')
         }
     });
 
-maritalStatusRouter.patch("/status/:id", [param("id").isInt().notEmpty()], ReturnValidationErrors,
+disabilityServiceRouter.patch("/status/:id", [param("id").isInt().notEmpty()], ReturnValidationErrors,
     (req: Request, res: Response) => {
 
         const { id = null } = req.params;
         const { is_active = false } = req.body;
 
-        db("sfa.marital_status")
+        db("sfa.disability_service")
             .update({ is_active })
             .where({ id })
             .returning("*")
@@ -94,7 +94,7 @@ maritalStatusRouter.patch("/status/:id", [param("id").isInt().notEmpty()], Retur
             });
     });
 
-maritalStatusRouter.patch("/description/:id", [param("id").isInt().notEmpty()], ReturnValidationErrors,
+disabilityServiceRouter.patch("/description/:id", [param("id").isInt().notEmpty()], ReturnValidationErrors,
     async (req: Request, res: Response) => {
 
         const { id = null } = req.params;
@@ -106,7 +106,7 @@ maritalStatusRouter.patch("/description/:id", [param("id").isInt().notEmpty()], 
 
             if (!trimDescription.length) return res.status(400).json({ success: false, message: "Description must be required", });
 
-            const verify = await db("sfa.marital_status")
+            const verify = await db("sfa.disability_service")
                 .select('id', 'description')
                 .where({ description: trimDescription });
 
@@ -119,7 +119,7 @@ maritalStatusRouter.patch("/description/:id", [param("id").isInt().notEmpty()], 
             return res.status(400).send({ success: false, message: "Error!", });
         }
 
-        db("sfa.marital_status")
+        db("sfa.disability_service")
             .update({ description: trimDescription })
             .where({ id })
             .returning("*")
@@ -136,14 +136,14 @@ maritalStatusRouter.patch("/description/:id", [param("id").isInt().notEmpty()], 
             });
     });
 
-maritalStatusRouter.delete("/:id", [param("id").isInt().notEmpty()], ReturnValidationErrors,
+disabilityServiceRouter.delete("/:id", [param("id").isInt().notEmpty()], ReturnValidationErrors,
     async (req: Request, res: Response) => {
 
         const { id = null } = req.params;
         let description = "";
         try {
 
-            const verifyRecord: any = await db("sfa.marital_status")
+            const verifyRecord: any = await db("sfa.disability_service")
                 .where({ id: id })
                 .first();
 
@@ -153,7 +153,7 @@ maritalStatusRouter.delete("/:id", [param("id").isInt().notEmpty()], ReturnValid
 
             description = verifyRecord?.description;
 
-            const deleteRecord: any = await db("sfa.marital_status")
+            const deleteRecord: any = await db("sfa.disability_service")
                 .where({ id: id })
                 .del();
 

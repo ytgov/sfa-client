@@ -6,9 +6,9 @@ import { DB_CONFIG } from "../../config";
 
 const db = knex(DB_CONFIG)
 
-export const aassessmentTypeRouter = express.Router();
+export const assessmentTypeRouter = express.Router();
 
-aassessmentTypeRouter.get("/", async (req: Request, res: Response) => {
+assessmentTypeRouter.get("/", async (req: Request, res: Response) => {
 
     const { filter = true } = req.query;
 
@@ -39,7 +39,7 @@ aassessmentTypeRouter.get("/", async (req: Request, res: Response) => {
     }
 });
 
-aassessmentTypeRouter.post("/", body('is_active').isBoolean(), body('description').isString(),
+assessmentTypeRouter.post("/", body('is_active').isBoolean(), body('description').isString(),
 
     async (req: Request, res: Response) => {
         const { is_active, description = "", } = req.body;
@@ -53,7 +53,7 @@ aassessmentTypeRouter.post("/", body('is_active').isBoolean(), body('description
                 .select('description')
                 .where({ description: trimDescription });
 
-            if (verify?.length) return res.status(400).send({ success: false, message: "Description already exists", });
+            if (verify?.length) return res.status(400).send({ success: false, message: `"${trimDescription}" already exists`, });
 
             const resInsert = await db("sfa.assessment_type")
                 .insert({ description: trimDescription, is_active })
@@ -71,7 +71,7 @@ aassessmentTypeRouter.post("/", body('is_active').isBoolean(), body('description
         }
     });
 
-aassessmentTypeRouter.patch("/status/:id", [param("id").isInt().notEmpty()], ReturnValidationErrors,
+assessmentTypeRouter.patch("/status/:id", [param("id").isInt().notEmpty()], ReturnValidationErrors,
     (req: Request, res: Response) => {
 
         const { id = null } = req.params;
@@ -94,7 +94,7 @@ aassessmentTypeRouter.patch("/status/:id", [param("id").isInt().notEmpty()], Ret
             });
     });
 
-aassessmentTypeRouter.patch("/description/:id", [param("id").isInt().notEmpty()], ReturnValidationErrors,
+assessmentTypeRouter.patch("/description/:id", [param("id").isInt().notEmpty()], ReturnValidationErrors,
     async (req: Request, res: Response) => {
 
         const { id = null } = req.params;
@@ -112,7 +112,7 @@ aassessmentTypeRouter.patch("/description/:id", [param("id").isInt().notEmpty()]
 
             if (verify?.[0]?.description.toLowerCase() === trimDescription.toLowerCase() &&
                 verify?.[0]?.id !== Number(id))
-                return res.status(400).send({ success: false, message: "Description already exists", });
+                return res.status(400).send({ success: false, message: `"${trimDescription}" already exists`, });
 
         } catch (error) {
             console.log(error);
@@ -136,19 +136,41 @@ aassessmentTypeRouter.patch("/description/:id", [param("id").isInt().notEmpty()]
             });
     });
 
-aassessmentTypeRouter.delete("/:id", [param("id").isInt().notEmpty()], ReturnValidationErrors,
-    (req: Request, res: Response) => {
+assessmentTypeRouter.delete("/:id", [param("id").isInt().notEmpty()], ReturnValidationErrors,
+    async (req: Request, res: Response) => {
 
         const { id = null } = req.params;
+        let description = "";
+        try {
 
-        db("sfa.assessment_type")
-            .where({ id: id })
-            .del()
-            .then((resp: any) => {
-                res.status(202).send({ wasDelete: true });
-            })
-            .catch(function (e: any) {
-                console.log({ ...e });
-                res.status(409).send({ wasDelete: false, message: "Could Not Delete" });
-            });
-    });
+            const verifyRecord: any = await db("sfa.assessment_type")
+                .where({ id: id })
+                .first();
+
+            if (!verifyRecord) {
+                return res.status(404).send({ wasDelete: false, message: "The record does not exits" });
+            }
+
+            description = verifyRecord?.description;
+
+            const deleteRecord: any = await db("sfa.assessment_type")
+                .where({ id: id })
+                .del();
+
+            return (deleteRecord > 0) ?
+                res.status(202).send({ wasDelete: true })
+                :
+                res.status(404).send({ wasDelete: false, message: `The record "${verifyRecord.description}" does not exits` });
+
+        } catch (error: any) {
+
+            console.log(error);
+
+            if (error?.number === 547) {
+                return res.status(409).send({ wasDelete: false, message: `"${description}" cannot be deleted because it is in use.` });
+            }
+
+            return res.status(409).send({ wasDelete: false, message: "Error to Delete" });
+        }
+    }
+);

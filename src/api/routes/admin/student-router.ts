@@ -1,9 +1,10 @@
-import express, { Request, Response } from "express";
+import express, { NextFunction, Request, Response } from "express";
 import { body, param } from "express-validator";
 import moment from "moment";
 import knex from "knex";
-import { ReturnValidationErrors } from "../../middleware";
+import { ReturnValidationErrors, ReturnValidationErrorsCustomMessage } from "../../middleware";
 import { DB_CONFIG } from "../../config";
+import { first, orderBy } from "lodash";
 
 let { RequireServerAuth, RequireAdmin } = require("../auth")
 
@@ -15,7 +16,6 @@ export const studentRouter = express.Router();
 studentRouter.post("/",
     [body("first_name").notEmpty(), body("last_name").notEmpty()], ReturnValidationErrors,
     async (req: Request, res: Response) => {
-        console.log(req.body)
         let { first_name, last_name, initials, locator_number, sin } = req.body;
 
         let student = {
@@ -30,19 +30,106 @@ studentRouter.post("/",
 studentRouter.put("/:student_id",
     [param("student_id").isInt().notEmpty()], ReturnValidationErrors,
     async (req: Request, res: Response) => {
-        let { student_id } = req.params;
 
-        console.log("STUDENT SAVE:", req.body);
+        try {
+            const { student_id } = req.params;
+            const { type, extraId, data, addressType } = req.body;
+            
+            const student: any = await db("sfa.student").where({ id: student_id }).first();
 
-        db("sfaadmin.student").where({ student_id }).update(req.body)
-            .then((result: any) => {
-                res.json({ messages: [{ variant: "success", text: "Student saved" }] })
-            })
-            .catch((err: any) => {
-                console.log("FAILED", err)
-                res.json({ messages: [{ variant: "error", text: "Save failed" }] })
-            });
-    });
+            if (student) {
+
+                const person_id = student.person_id;
+
+                const types: any = {
+                    personInfo: "sfa.person",
+                    addressInfo: "sfa.person_address",
+                    studentInfo: "sfa.student",
+                    educationInfo: "sfa.education",
+                };
+
+                const addresTypes: any = {
+                    permanent: 1,
+                    temporal: 2,
+                };
+
+                if (!Object.keys(types).some(value => value === type)) {
+                    return res.json({ messages: [{ variant: "error", text: "type valid is required" }] });
+                }
+
+                const getPerson = await db("sfa.person")
+                    .where({ id: person_id })
+                    .first();
+
+                if (getPerson) {
+                    if (type === "addressInfo") {
+
+                        const table = types[type];
+
+                        if (extraId !== null && isNaN(extraId)) {
+                            const resUpdate = await db(table)
+                                .insert({ ...data, person_id, address_type_id: addresTypes[addressType] });
+                            return resUpdate ?
+                                res.json({ messages: [{ variant: "success", text: "Student saved" }] })
+                                :
+                                res.json({ messages: [{ variant: "error", text: "Save failed" }] });
+                        }
+
+                        const getAddress: any = await await db(table)
+                            .where({ id: extraId })
+                            .first();
+
+                        delete getAddress.id;
+                        
+                        
+                        const resUpdate = await db(table)
+                            .where({ id: extraId })
+                            .update({ ...data });
+
+                        return resUpdate > 0 ?
+                            res.json({ messages: [{ variant: "success", text: "Student saved" }] })
+                            :
+                            res.json({ messages: [{ variant: "error", text: "Save failed" }] });
+                    }
+
+                    if (type === "personInfo" || type === "studentInfo") {
+
+                        if (data.hasOwnProperty('first_name') && !data.first_name?.trim().length) {
+                            return res.json({ messages: [{ variant: "error", text: "Student information record requires a first name." }] });
+                        }
+
+                        if (data.hasOwnProperty('last_name') && !data.last_name?.trim().length) {
+                            return res.json({ messages: [{ variant: "error", text: "Student information record requires a last name." }] });
+                        }
+
+                        const table = types[type];
+
+                        const typeId = type === "studentInfo" ?
+                            { person_id: person_id }
+                            :
+                            { id: person_id };;
+
+                        const resUpdate = await db(table)
+                            .where({ ...typeId })
+                            .update({ ...data });
+
+                        return resUpdate > 0 ?
+                            res.json({ messages: [{ variant: "success", text: "Student saved" }] })
+                            :
+                            res.json({ messages: [{ variant: "error", text: "Save failed" }] });
+                    }
+
+                    return res.json({ messages: [{ variant: "error", text: "Save failed" }] });
+
+                }
+            }
+
+        } catch (error) {
+            console.log(error)
+            res.json({ messages: [{ variant: "error", text: "Save failed" }] });
+        }
+    }
+);
 
 studentRouter.post("/search",
     async (req: Request, res: Response) => {
@@ -82,97 +169,335 @@ studentRouter.post("/search",
         res.json({ data: results, meta: { item_count: results.length, page: 1, page_count: 1, page_size: results.length } })
     });
 
+studentRouter.post("/:student_id/education", [param("student_id").isInt().notEmpty(),],
+    ReturnValidationErrors, async (req: Request, res: Response) => {
+        try {
+            const { student_id } = req.params;
+            const { data } = req.body;
+
+            const student: any = await db("sfa.student").where({ id: student_id }).first();
+
+            if (student) {
+
+                const resInsert = await db("sfa.education")
+                    .insert({ ...data, student_id });
+
+                return resInsert ?
+                    res.json({ messages: [{ variant: "success", text: "Saved" }] })
+                    :
+                    res.json({ messages: [{ variant: "error", text: "Failed" }] });
+
+            }
+
+            return res.status(404).send({ messages: [{ variant: "error", text: "Failed" }] });
+
+        } catch (error) {
+            console.error(error);
+            return res.status(400).send({ messages: [{ variant: "error", text: "Failed", error }] });
+        }
+    }
+);
+
+studentRouter.put("/:student_id/education",
+    [param("student_id").notEmpty()], ReturnValidationErrors, async (req: Request, res: Response) => {
+        try {
+            const { student_id } = req.params;
+            const { type, extraId, data, addressType } = req.body;
+
+            const types: any = {
+                educationInfo: "sfa.education",
+            };
+
+            if (!Object.keys(types).some(value => value === type)) {
+                return res.json({ messages: [{ variant: "error", text: "type valid is required" }] });
+            }
+
+            const student: any = await db("sfa.student").where({ id: student_id }).first();
+
+            if (student) {
+
+                if (!Object.keys(data).some(value => value === "sin")) {
+                    const table = types[type];
+                    const sinList: any = await db(table).where({ sin: data.sin });
+                    //.whereNot({ student_id })
+                    if (sinList.length > 0) {
+                        return res.json({ messages: [{ variant: "error", text: "SIN is in use." }] });
+                    }
+                }
+                const table = types[type];
+
+                const resUpdate = await db(table)
+                    .where({ id: extraId })
+                    .update({ ...data });
+
+                return resUpdate > 0 ?
+                    res.json({ messages: [{ variant: "success", text: "Saved" }] })
+                    :
+                    res.json({ messages: [{ variant: "error", text: "Save failed" }] });
+
+            }
+
+            return res.status(404).send();
+
+        } catch (error) {
+            console.error(error);
+            return res.status(400).send(error);
+        }
+    }
+);
+
+studentRouter.delete("/:id/education", [param("id").isInt().notEmpty()], ReturnValidationErrors,
+    async (req: Request, res: Response) => {
+
+        const { id = null } = req.params;
+        let description = "";
+        try {
+
+            const verifyRecord: any = await db("sfa.education")
+                .where({ id: id })
+                .first();
+
+            if (!verifyRecord) {
+                return res.status(404).send({ wasDelete: false, message: "The record does not exits" });
+            }
+
+            description = verifyRecord?.description;
+
+            const deleteRecord: any = await db("sfa.education")
+                .where({ id: id })
+                .del();
+
+            return (deleteRecord > 0) ?
+                res.status(202).send({ messages: [{ variant: "success", text: "Removed" }] })
+                :
+                res.status(404).send({ messages: [{ variant: "error", text: "Record does not exits" }] });
+
+        } catch (error: any) {
+
+            console.log(error);
+
+            if (error?.number === 547) {
+                return res.status(409).send({ messages: [{ variant: "error", text: "Cannot be deleted because it is in use." }] });
+            }
+
+            return res.status(409).send({ messages: [{ variant: "error", text: "Error To Delete" }] });
+        }
+    }
+);
+
 studentRouter.get("/:id",
     [param("id").notEmpty()], ReturnValidationErrors, async (req: Request, res: Response) => {
-        let { id } = req.params;
+        try {
+            const { id } = req.params;
 
-        let student = await db("sfa.student").where({ id }).first();
+            const student: any = await db("sfa.student").where({ id }).first();
 
-        if (student) {
-            let person = await db("sfa.person").where({ id: student.person_id }).first();
-            student = { ...person, ...student, };
+            if (student) {
 
-            student.applications = await db("sfa.application")
-                .innerJoin("sfa.institution_campus", "application.institution_campus_id", "institution_campus.id")
-                .innerJoin("sfa.institution", "institution.id", "institution_campus.institution_id")
-                .select("application.*").select("institution.name as institution_name")
-                .where({ student_id: id }).orderBy("academic_year_id", "desc");
+                const person = await db("sfa.person").where({ id: student.person_id }).first();
 
-            for (let item of student.applications) {
-                item.title = `${item.academic_year_id}: ${item.institution_name}`;
+                if (person) {
+
+                    const consentInfo = await db("sfa.student_consent")
+                        .where({ student_id: id });
+
+                    const temporalAddress = await db("sfa.person_address")
+                        .where({ person_id: student.person_id })
+                        .where({ address_type_id: 2 })
+                        .orderBy("id", "DESC")
+                        .first();
+
+                    const permanentAddress = await db("sfa.person_address")
+                        .where({ person_id: student.person_id })
+                        .where({ address_type_id: 1 })
+                        .orderBy("id", "DESC")
+                        .first();
+
+                    const educationInfo = await db("sfa.education")
+                        .leftJoin(
+                            "sfa.institution_campus",
+                            "sfa.education.institution_campus_id",
+                            "sfa.institution_campus.id"
+                        )
+                        .select(
+                            "sfa.education.id",
+                            "sfa.education.from_year",
+                            "sfa.education.from_month",
+                            "sfa.education.to_year",
+                            "sfa.education.to_month",
+                            "sfa.education.study_area_id",
+                            "sfa.education.institution_campus_id",
+                            "sfa.institution_campus.institution_id",
+                        )
+                        .where(
+                            "sfa.education.student_id",
+                            student.id
+                        );
+
+                    let highSchoolInfo = {
+                        city_id: null,
+                        province_id: null,
+                        country_id: null,
+                    };
+
+                    if (student?.high_school_id !== null && !isNaN(student?.high_school_id)) {
+
+                        const resultsHighSchoolInfo = await db("sfa.high_school")
+                            .where({ id: student.high_school_id })
+                            .first();
+
+                        if (resultsHighSchoolInfo) {
+                            highSchoolInfo = { ...resultsHighSchoolInfo };
+                        }
+
+                    }
+
+                    const data = {
+                        ...person,
+                        temporalAddress: { ...temporalAddress },
+                        permanentAddress: { ...permanentAddress },
+                        locator_number: student.locator_number,
+                        yukon_id: student.yukon_id,
+                        pre_funded_year: student.pre_funded_year,
+                        high_school_final_grade: student.high_school_final_grade,
+                        high_school_left_year: student.high_school_left_year,
+                        high_school_left_month: student.high_school_left_month,
+                        education_level_id: student.education_level_id,
+                        high_school_id: student.high_school_id,
+                        high_school_info: highSchoolInfo,
+                        education_info: educationInfo,
+                        consent_info: consentInfo,
+                        id: student.id
+                    };
+
+                    return res.status(200).json({ data });
+                }
             }
 
-            if (student.birth_date) {
-                student.birth_date = moment(student.birth_date).utc(false).format("YYYY-MM-DD");
-            }
+            return res.status(404).send();
 
-            student.consents = await db("sfa.student_consent").where({ student_id: id }).orderBy("start_academic_year_Id");
-            student.residences = await db("sfa.residence").where({ student_id: id }).orderBy("from_year").orderBy("from_month");
-            student.dependents = await db("sfa.dependent").where({ student_id: id }).orderBy("birth_date");
-
-            return res.json({ data: student });
+        } catch (error) {
+            console.error(error);
+            return res.status(400).send(error);
         }
-
-        res.status(404).send();
     });
+
+studentRouter.put("/:student_id/consent",
+    [param("student_id").isInt().notEmpty(), body("extraId").notEmpty()],
+    ReturnValidationErrors,
+    async (req: Request, res: Response) => {
+        try {
+            const { student_id } = req.params;
+            const { type, extraId, data } = req.body;
+
+            if (!("consentInfo" === type)) {
+                return res.json({ messages: [{ variant: "error", text: "type valid is required" }] });
+            }
+
+            if (Object.keys(data).some(k => k === 'consent_person') &&
+                !(data.consent_person?.trim().length > 2)) {
+                return res.json({ messages: [{ variant: "error", text: "Consent Person is required" }] });
+            }
+
+            const student: any = await db("sfa.student").where({ id: student_id }).first();
+
+            if (student) {
+
+                const resUpdate = await db("sfa.student_consent")
+                    .where({ id: extraId })
+                    .update({ ...data });
+
+                return resUpdate > 0 ?
+                    res.json({ messages: [{ variant: "success", text: "Saved" }] })
+                    :
+                    res.json({ messages: [{ variant: "error", text: "Save failed" }] });
+
+            }
+
+            return res.status(404).send();
+
+        } catch (error) {
+            console.error(error);
+            return res.status(400).send(error);
+        }
+    }
+);
 
 studentRouter.post("/:student_id/consent",
+    [
+        param("student_id").isInt().notEmpty(),
+        body('data.start_academic_year_id').notEmpty().withMessage("Start academic year is required"),
+        body('data.end_academic_year_id').notEmpty().withMessage("End academic year is required"),
+        body('data.consent_person').isString().isLength({ min: 3 }).withMessage("Consent person is required")
+    ],
+    ReturnValidationErrorsCustomMessage,
     async (req: Request, res: Response) => {
-        let { student_id } = req.params;
-        let { ACADEMIC_YEAR_START, ACADEMIC_YEAR_END, CONSENT_PERSON, CONSENT_SFA_FLG, CONSENT_CSL_FLG } = req.body;
+        try {
+            const { student_id } = req.params;
+            const { data } = req.body;
 
-        let consent = {
-            student_id, ACADEMIC_YEAR_START, ACADEMIC_YEAR_END, CONSENT_PERSON, CONSENT_SFA_FLG, CONSENT_CSL_FLG,
-            rec_create_date: new Date(), rec_create_user: cleanUser(req.user.email)
-        };
+            const student: any = await db("sfa.student").where({ id: student_id }).first();
 
-        let returning = await knex('sfaadmin.student_consent').insert(consent).returning("*");
-        return returning[0];
+            if (student) {
 
-        let data = await db("sfaadmin.student_consent").where({ student_id }).orderBy("academic_year_start");
+                const resInsert = await db("sfa.student_consent")
+                    .insert({ ...data, student_id });
 
-        res.json({ data, messages: [{ variant: "success", text: "Conent saved" }] });
-    });
+                return resInsert ?
+                    res.json({ messages: [{ variant: "success", text: "Saved" }] })
+                    :
+                    res.json({ messages: [{ variant: "error", text: "Failed" }] });
 
-studentRouter.put("/:student_id/consent/:student_consent_id",
-    [param("student_id").isInt().notEmpty(), param("student_consent_id").isInt().notEmpty()], ReturnValidationErrors,
-    async (req: Request, res: Response) => {
-        let { student_id, student_consent_id } = req.params;
-        let { ACADEMIC_YEAR_START, ACADEMIC_YEAR_END, CONSENT_PERSON, CONSENT_SFA_FLG, CONSENT_CSL_FLG } = req.body;
+            }
 
-        let existing = await db("sfaadmin.student_consent").where({ student_id, student_consent_id }).first();
+            return res.status(404).send({ messages: [{ variant: "error", text: "Failed" }] });
 
-        if (existing) {
-            delete existing.STUDENT_ID;
-            delete existing.STUDENT_CONSENT_ID;
-
-            if (ACADEMIC_YEAR_END == "")
-                ACADEMIC_YEAR_END = null;
-
-            existing.ACADEMIC_YEAR_START = ACADEMIC_YEAR_START;
-            existing.ACADEMIC_YEAR_END = ACADEMIC_YEAR_END;
-            existing.CONSENT_PERSON = CONSENT_PERSON;
-            existing.CONSENT_SFA_FLG = CONSENT_SFA_FLG;
-            existing.CONSENT_CSL_FLG = CONSENT_CSL_FLG;
-            existing.REC_LAST_MOD_DATE = new Date();
-            existing.REC_LAST_MOD_USER = cleanUser(req.user.email);
-
-            await db("sfaadmin.student_consent").where({ student_id, student_consent_id }).update(existing);
+        } catch (error) {
+            console.error(error);
+            return res.status(400).send({ messages: [{ variant: "error", text: "Failed", error }] });
         }
+    }
+);
 
-        let data = await db("sfaadmin.student_consent").where({ student_id }).orderBy("academic_year_start");
-
-        res.json({ data, messages: [{ variant: "success", text: "Consent saved" }] })
-    });
-
-studentRouter.delete("/:student_id/consent/:student_consent_id",
-    [param("student_id").isInt().notEmpty(), param("student_consent_id").isInt().notEmpty()], ReturnValidationErrors,
+studentRouter.delete("/:id/consent", [param("id").isInt().notEmpty()], ReturnValidationErrors,
     async (req: Request, res: Response) => {
-        let { student_id, student_consent_id } = req.params;
-        let existing = await db("sfaadmin.student_consent").where({ student_id, student_consent_id }).delete();
 
-        res.json({ messages: [{ variant: "success", text: "Consent removed" }] })
-    });
+        const { id = null } = req.params;
+        let description = "";
+        try {
+
+            const verifyRecord: any = await db("sfa.student_consent")
+                .where({ id: id })
+                .first();
+
+            if (!verifyRecord) {
+                return res.status(404).send({ wasDelete: false, message: "The record does not exits" });
+            }
+
+            description = verifyRecord?.description;
+
+            const deleteRecord: any = await db("sfa.student_consent")
+                .where({ id: id })
+                .del();
+
+            return (deleteRecord > 0) ?
+                res.status(202).send({ messages: [{ variant: "success", text: "Removed" }] })
+                :
+                res.status(404).send({ messages: [{ variant: "error", text: "Record does not exits" }] });
+
+        } catch (error: any) {
+
+            console.log(error);
+
+            if (error?.number === 547) {
+                return res.status(409).send({ messages: [{ variant: "error", text: "Cannot be deleted because it is in use." }] });
+            }
+
+            return res.status(409).send({ messages: [{ variant: "error", text: "Error To Delete" }] });
+        }
+    }
+);
+
 
 studentRouter.get("/:student_id/applications",
     [param("student_id").notEmpty()], ReturnValidationErrors, async (req: Request, res: Response) => {

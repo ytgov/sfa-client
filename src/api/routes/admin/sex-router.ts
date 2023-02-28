@@ -53,7 +53,7 @@ sexRouter.post("/", body('is_active').isBoolean(), body('description').isString(
                 .select('description')
                 .where({ description: trimDescription });
 
-            if (verify?.length) return res.status(400).send({ success: false, message: "Description already exists", });
+            if (verify?.length) return res.status(400).send({ success: false, message: `"${trimDescription}" already exists`, });
 
             const resInsert = await db("sfa.sex")
                 .insert({ description: trimDescription, is_active })
@@ -112,7 +112,7 @@ sexRouter.patch("/description/:id", [param("id").isInt().notEmpty()], ReturnVali
 
             if (verify?.[0]?.description.toLowerCase() === trimDescription.toLowerCase() &&
                 verify?.[0]?.id !== Number(id))
-                return res.status(400).send({ success: false, message: "Description already exists", });
+                return res.status(400).send({ success: false, message: `"${trimDescription}" already exists`, });
 
         } catch (error) {
             console.log(error);
@@ -137,18 +137,40 @@ sexRouter.patch("/description/:id", [param("id").isInt().notEmpty()], ReturnVali
     });
 
 sexRouter.delete("/:id", [param("id").isInt().notEmpty()], ReturnValidationErrors,
-    (req: Request, res: Response) => {
+    async (req: Request, res: Response) => {
 
         const { id = null } = req.params;
+        let description = "";
+        try {
 
-        db("sfa.sex")
-            .where({ id: id })
-            .del()
-            .then((resp: any) => {
-                res.status(202).send({ wasDelete: true });
-            })
-            .catch(function (e: any) {
-                console.log({ ...e });
-                res.status(409).send({ wasDelete: false, message: "Could Not Delete" });
-            });
-    });
+            const verifyRecord: any = await db("sfa.sex")
+                .where({ id: id })
+                .first();
+
+            if (!verifyRecord) {
+                return res.status(404).send({ wasDelete: false, message: "The record does not exits" });
+            }
+
+            description = verifyRecord?.description;
+
+            const deleteRecord: any = await db("sfa.sex")
+                .where({ id: id })
+                .del();
+
+            return (deleteRecord > 0) ?
+                res.status(202).send({ wasDelete: true })
+                :
+                res.status(404).send({ wasDelete: false, message: `The record "${verifyRecord.description}" does not exits` });
+
+        } catch (error: any) {
+
+            console.log(error);
+
+            if (error?.number === 547) {
+                return res.status(409).send({ wasDelete: false, message: `"${description}" cannot be deleted because it is in use.` });
+            }
+
+            return res.status(409).send({ wasDelete: false, message: "Error to Delete" });
+        }
+    }
+);

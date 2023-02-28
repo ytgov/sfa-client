@@ -6,27 +6,28 @@ import { DB_CONFIG } from "../../config";
 
 const db = knex(DB_CONFIG)
 
-export const maritalStatusRouter = express.Router();
+export const disabilityTypeRouter = express.Router();
 
-maritalStatusRouter.get("/", async (req: Request, res: Response) => {
+disabilityTypeRouter.get("/", async (req: Request, res: Response) => {
 
     const { filter = true } = req.query;
 
     try {
-        const maritalStatusList = await db("sfa.marital_status")
+        const results = await db("sfa.disability_type")
             .select(
-                'sfa.marital_status.id',
-                'sfa.marital_status.description',
-                'sfa.marital_status.is_active',
+                'sfa.disability_type.id',
+                'sfa.disability_type.description',
+                'sfa.disability_type.csl_code',
+                'sfa.disability_type.is_active',
             )
-            .orderBy('sfa.marital_status.description');
+            .orderBy('sfa.disability_type.description');
 
-        if (maritalStatusList) {
+        if (results) {
 
             if (filter !== 'false') {
-                return res.status(200).json({ success: true, data: maritalStatusList.filter(c => c.is_active), })
+                return res.status(200).json({ success: true, data: results.filter(c => c.is_active), })
             } else {
-                return res.status(200).json({ success: true, data: [...maritalStatusList], });
+                return res.status(200).json({ success: true, data: [...results], });
             }
 
         } else {
@@ -39,24 +40,29 @@ maritalStatusRouter.get("/", async (req: Request, res: Response) => {
     }
 });
 
-maritalStatusRouter.post("/", body('is_active').isBoolean(), body('description').isString(),
+disabilityTypeRouter.post("/", body('is_active').isBoolean(), body('description').isString(),
 
     async (req: Request, res: Response) => {
-        const { is_active, description = "", } = req.body;
+        const { is_active, description = "", csl_code = "" } = req.body;
         const trimDescription = description?.trim();
+        const trimCode = csl_code?.trim();
+            
+            
 
         try {
 
             if (!trimDescription.length) return res.status(400).json({ success: false, message: "Description must be required", });
 
-            const verify = await db("sfa.marital_status")
+            const verify = await db("sfa.disability_type")
                 .select('description')
                 .where({ description: trimDescription });
 
             if (verify?.length) return res.status(400).send({ success: false, message: `"${trimDescription}" already exists`, });
 
-            const resInsert = await db("sfa.marital_status")
-                .insert({ description: trimDescription, is_active })
+            if (trimCode?.length > 5) return res.status(400).json({ success: false, message: "CSL Code is to long.", });
+
+            const resInsert = await db("sfa.disability_type")
+                .insert({ description: trimDescription, is_active, csl_code: trimCode })
                 .returning("*");
 
             if (resInsert) {
@@ -71,13 +77,13 @@ maritalStatusRouter.post("/", body('is_active').isBoolean(), body('description')
         }
     });
 
-maritalStatusRouter.patch("/status/:id", [param("id").isInt().notEmpty()], ReturnValidationErrors,
+disabilityTypeRouter.patch("/status/:id", [param("id").isInt().notEmpty()], ReturnValidationErrors,
     (req: Request, res: Response) => {
 
         const { id = null } = req.params;
         const { is_active = false } = req.body;
 
-        db("sfa.marital_status")
+        db("sfa.disability_type")
             .update({ is_active })
             .where({ id })
             .returning("*")
@@ -94,7 +100,7 @@ maritalStatusRouter.patch("/status/:id", [param("id").isInt().notEmpty()], Retur
             });
     });
 
-maritalStatusRouter.patch("/description/:id", [param("id").isInt().notEmpty()], ReturnValidationErrors,
+disabilityTypeRouter.patch("/description/:id", [param("id").isInt().notEmpty()], ReturnValidationErrors,
     async (req: Request, res: Response) => {
 
         const { id = null } = req.params;
@@ -106,7 +112,7 @@ maritalStatusRouter.patch("/description/:id", [param("id").isInt().notEmpty()], 
 
             if (!trimDescription.length) return res.status(400).json({ success: false, message: "Description must be required", });
 
-            const verify = await db("sfa.marital_status")
+            const verify = await db("sfa.disability_type")
                 .select('id', 'description')
                 .where({ description: trimDescription });
 
@@ -119,7 +125,7 @@ maritalStatusRouter.patch("/description/:id", [param("id").isInt().notEmpty()], 
             return res.status(400).send({ success: false, message: "Error!", });
         }
 
-        db("sfa.marital_status")
+        db("sfa.disability_type")
             .update({ description: trimDescription })
             .where({ id })
             .returning("*")
@@ -136,14 +142,43 @@ maritalStatusRouter.patch("/description/:id", [param("id").isInt().notEmpty()], 
             });
     });
 
-maritalStatusRouter.delete("/:id", [param("id").isInt().notEmpty()], ReturnValidationErrors,
+disabilityTypeRouter.patch("/csl-code/:id", [param("id").isInt().notEmpty(), body('csl_code').isString()], ReturnValidationErrors,
+    async (req: Request, res: Response) => {
+
+        const { id = null } = req.params;
+        const { csl_code = "" } = req.body;
+
+        try {
+            const trimCode = csl_code?.trim();
+
+            if (trimCode?.length > 5) return res.status(400).json({ success: false, message: "CSL Code is to long.", });
+
+            const resUpdate = await db("sfa.disability_type")
+                .update({ csl_code: trimCode })
+                .where({ id })
+                .returning("*");
+
+            if (resUpdate[0]?.id === Number(id)) {
+                return res.status(202).send({ wasUpdated: true, ...resUpdate[0] });
+            } else {
+                return res.status(409).send({ wasUpdated: false, message: "Could Not Updated" });
+            }
+
+
+        } catch (error) {
+            console.log(error);
+            return res.status(400).send({ success: false, message: "Error!", });
+        }
+    });
+
+disabilityTypeRouter.delete("/:id", [param("id").isInt().notEmpty()], ReturnValidationErrors,
     async (req: Request, res: Response) => {
 
         const { id = null } = req.params;
         let description = "";
         try {
 
-            const verifyRecord: any = await db("sfa.marital_status")
+            const verifyRecord: any = await db("sfa.disability_type")
                 .where({ id: id })
                 .first();
 
@@ -153,7 +188,7 @@ maritalStatusRouter.delete("/:id", [param("id").isInt().notEmpty()], ReturnValid
 
             description = verifyRecord?.description;
 
-            const deleteRecord: any = await db("sfa.marital_status")
+            const deleteRecord: any = await db("sfa.disability_type")
                 .where({ id: id })
                 .del();
 
@@ -172,5 +207,4 @@ maritalStatusRouter.delete("/:id", [param("id").isInt().notEmpty()], ReturnValid
 
             return res.status(409).send({ wasDelete: false, message: "Error to Delete" });
         }
-    }
-);
+    });

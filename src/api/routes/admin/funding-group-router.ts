@@ -54,7 +54,7 @@ fundingGroupRouter.post("/", body('is_active').isBoolean(), body('description').
                 .select('description')
                 .where({ description: trimDescription });
 
-            if (verify?.length) return res.status(400).send({ success: false, message: "Description already exists", });
+            if (verify?.length) return res.status(400).send({ success: false, message: `"${trimDescription}" already exists`, });
 
             await db.transaction(async (trx) => {
                 const [resInsert, getMaxRank] = await Promise.all(
@@ -205,7 +205,7 @@ fundingGroupRouter.patch("/description/:id", [param("id").isInt().notEmpty()], R
 
             if (verify?.[0]?.description.toLowerCase() === trimDescription.toLowerCase() &&
                 verify?.[0]?.id !== Number(id))
-                return res.status(400).send({ success: false, message: "Description already exists", });
+                return res.status(400).send({ success: false, message: `"${trimDescription}" already exists`, });
 
         } catch (error) {
             console.log(error);
@@ -234,8 +234,19 @@ fundingGroupRouter.delete("/:id", [param("id").isInt().notEmpty()], ReturnValida
     async (req: Request, res: Response) => {
 
         const { id = null } = req.params;
+        let description = "";
 
         try {
+            const verifyRecord: any = await db("sfa.funding_group")
+                .where({ id: id })
+                .first();
+
+            if (!verifyRecord) {
+                return res.status(404).send({ wasDelete: false, message: "The record does not exits" });
+            }
+
+            description = verifyRecord?.description;
+            
             await db.transaction(async (trx) => {
                 const [resDelete] = await Promise.all(
                     [
@@ -245,14 +256,14 @@ fundingGroupRouter.delete("/:id", [param("id").isInt().notEmpty()], ReturnValida
                     ]
                 )
 
-                if (resDelete) {
+                if (resDelete > 0) {
                     const resList = await trx("sfa.funding_group");
                     const verifyResults = [];
                     for (let index = 0; index < resList.length; index++) {
                         const item = resList[index];
 
                         const result = await db("sfa.funding_group")
-                            .update({ sort_order: index+1 })
+                            .update({ sort_order: index + 1 })
                             .where({ id: item.id })
                             .returning("*");
 
@@ -263,13 +274,18 @@ fundingGroupRouter.delete("/:id", [param("id").isInt().notEmpty()], ReturnValida
                         :
                         res.status(400).send();
                 } else {
-                    return res.status(400).send();
+                    return res.status(404).send({ wasDelete: false, message: `The record does not exits` });
                 }
             });
 
         } catch (error: any) {
             console.log(error);
-            return res.status(409).send({ wasDelete: false, message: "Could Not Delete" });
+
+            if (error?.number === 547) {
+                return res.status(409).send({ wasDelete: false, message: `"${description}" cannot be deleted because it is in use.` });
+            }
+
+            return res.status(409).send({ wasDelete: false, message: "Error to Delete" });
         }
     }
 );

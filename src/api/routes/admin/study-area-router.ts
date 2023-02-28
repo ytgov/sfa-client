@@ -6,27 +6,27 @@ import { DB_CONFIG } from "../../config";
 
 const db = knex(DB_CONFIG)
 
-export const maritalStatusRouter = express.Router();
+export const studyAreaRouter = express.Router();
 
-maritalStatusRouter.get("/", async (req: Request, res: Response) => {
+studyAreaRouter.get("/", async (req: Request, res: Response) => {
 
     const { filter = true } = req.query;
 
     try {
-        const maritalStatusList = await db("sfa.marital_status")
+        const results = await db("sfa.study_area")
             .select(
-                'sfa.marital_status.id',
-                'sfa.marital_status.description',
-                'sfa.marital_status.is_active',
+                'sfa.study_area.id',
+                'sfa.study_area.description',
+                'sfa.study_area.is_active',
             )
-            .orderBy('sfa.marital_status.description');
+            .orderBy('sfa.study_area.description');
 
-        if (maritalStatusList) {
+        if (results) {
 
             if (filter !== 'false') {
-                return res.status(200).json({ success: true, data: maritalStatusList.filter(c => c.is_active), })
+                return res.status(200).json({ success: true, data: results.filter(c => c.is_active), })
             } else {
-                return res.status(200).json({ success: true, data: [...maritalStatusList], });
+                return res.status(200).json({ success: true, data: [...results], });
             }
 
         } else {
@@ -39,7 +39,7 @@ maritalStatusRouter.get("/", async (req: Request, res: Response) => {
     }
 });
 
-maritalStatusRouter.post("/", body('is_active').isBoolean(), body('description').isString(),
+studyAreaRouter.post("/", body('is_active').isBoolean(), body('description').isString(),
 
     async (req: Request, res: Response) => {
         const { is_active, description = "", } = req.body;
@@ -49,13 +49,13 @@ maritalStatusRouter.post("/", body('is_active').isBoolean(), body('description')
 
             if (!trimDescription.length) return res.status(400).json({ success: false, message: "Description must be required", });
 
-            const verify = await db("sfa.marital_status")
+            const verify = await db("sfa.study_area")
                 .select('description')
                 .where({ description: trimDescription });
 
             if (verify?.length) return res.status(400).send({ success: false, message: `"${trimDescription}" already exists`, });
 
-            const resInsert = await db("sfa.marital_status")
+            const resInsert = await db("sfa.study_area")
                 .insert({ description: trimDescription, is_active })
                 .returning("*");
 
@@ -71,13 +71,36 @@ maritalStatusRouter.post("/", body('is_active').isBoolean(), body('description')
         }
     });
 
-maritalStatusRouter.patch("/status/:id", [param("id").isInt().notEmpty()], ReturnValidationErrors,
+studyAreaRouter.patch("/show-online/:id", [param("id").isInt().notEmpty()], ReturnValidationErrors,
+    (req: Request, res: Response) => {
+
+        const { id = null } = req.params;
+        const { show_online = false } = req.body;
+
+        db("sfa.study_area")
+            .update({ show_online })
+            .where({ id })
+            .returning("*")
+            .then((resp: any) => {
+                if (resp[0]?.show_online === show_online && resp[0]?.id === Number(id)) {
+                    res.status(202).send({ wasUpdated: true, ...resp[0] });
+                } else {
+                    res.status(409).send({ wasUpdated: false, message: "Could Not Updated" });
+                }
+            })
+            .catch(function (e: any) {
+                console.log(e);
+                res.status(409).send({ wasUpdated: false, message: "Could Not Updated" });
+            });
+    });
+
+studyAreaRouter.patch("/status/:id", [param("id").isInt().notEmpty()], ReturnValidationErrors,
     (req: Request, res: Response) => {
 
         const { id = null } = req.params;
         const { is_active = false } = req.body;
 
-        db("sfa.marital_status")
+        db("sfa.study_area")
             .update({ is_active })
             .where({ id })
             .returning("*")
@@ -94,7 +117,7 @@ maritalStatusRouter.patch("/status/:id", [param("id").isInt().notEmpty()], Retur
             });
     });
 
-maritalStatusRouter.patch("/description/:id", [param("id").isInt().notEmpty()], ReturnValidationErrors,
+studyAreaRouter.patch("/description/:id", [param("id").isInt().notEmpty()], ReturnValidationErrors,
     async (req: Request, res: Response) => {
 
         const { id = null } = req.params;
@@ -106,7 +129,7 @@ maritalStatusRouter.patch("/description/:id", [param("id").isInt().notEmpty()], 
 
             if (!trimDescription.length) return res.status(400).json({ success: false, message: "Description must be required", });
 
-            const verify = await db("sfa.marital_status")
+            const verify = await db("sfa.study_area")
                 .select('id', 'description')
                 .where({ description: trimDescription });
 
@@ -119,7 +142,7 @@ maritalStatusRouter.patch("/description/:id", [param("id").isInt().notEmpty()], 
             return res.status(400).send({ success: false, message: "Error!", });
         }
 
-        db("sfa.marital_status")
+        db("sfa.study_area")
             .update({ description: trimDescription })
             .where({ id })
             .returning("*")
@@ -136,14 +159,37 @@ maritalStatusRouter.patch("/description/:id", [param("id").isInt().notEmpty()], 
             });
     });
 
-maritalStatusRouter.delete("/:id", [param("id").isInt().notEmpty()], ReturnValidationErrors,
+studyAreaRouter.patch("/study-field/:id", [param("id").isInt().notEmpty(), body("study_field_id").isInt().notEmpty()], ReturnValidationErrors,
+    async (req: Request, res: Response) => {
+
+        const { id = null } = req.params;
+        const { study_field_id = null } = req.body;
+
+        db("sfa.study_area")
+            .update({ study_field_id })
+            .where({ id })
+            .returning("*")
+            .then((resp: any) => {
+                if (resp[0]?.id === Number(id)) {
+                    res.status(202).send({ wasUpdated: true, ...resp[0] });
+                } else {
+                    res.status(409).send({ wasUpdated: false, message: "Could Not Updated" });
+                }
+            })
+            .catch(function (e: any) {
+                res.status(409).send({ wasUpdated: false, message: "Could Not Updated" });
+                console.log(e);
+            });
+    });
+
+studyAreaRouter.delete("/:id", [param("id").isInt().notEmpty()], ReturnValidationErrors,
     async (req: Request, res: Response) => {
 
         const { id = null } = req.params;
         let description = "";
         try {
 
-            const verifyRecord: any = await db("sfa.marital_status")
+            const verifyRecord: any = await db("sfa.study_area")
                 .where({ id: id })
                 .first();
 
@@ -153,7 +199,7 @@ maritalStatusRouter.delete("/:id", [param("id").isInt().notEmpty()], ReturnValid
 
             description = verifyRecord?.description;
 
-            const deleteRecord: any = await db("sfa.marital_status")
+            const deleteRecord: any = await db("sfa.study_area")
                 .where({ id: id })
                 .del();
 

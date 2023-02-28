@@ -6,21 +6,22 @@ import { DB_CONFIG } from "../../config";
 
 const db = knex(DB_CONFIG)
 
-export const educationLevelRouter = express.Router();
+export const aboriginalStatusRouter = express.Router();
 
-educationLevelRouter.get("/", async (req: Request, res: Response) => {
+aboriginalStatusRouter.get("/", async (req: Request, res: Response) => {
 
     const { filter = true } = req.query;
 
     try {
-        const results = await db("sfa.education_level")
+        const results = await db("sfa.aboriginal_status")
             .select(
-                'sfa.education_level.id',
-                'sfa.education_level.description',
-                'sfa.education_level.rank',
-                'sfa.education_level.is_active',
+                'sfa.aboriginal_status.id',
+                'sfa.aboriginal_status.description',
+                'sfa.aboriginal_status.nars_status_id',
+                'sfa.aboriginal_status.sort_order',
+                'sfa.aboriginal_status.is_active',
             )
-            .orderBy('sfa.education_level.rank');
+            .orderBy('sfa.aboriginal_status.sort_order');
 
         if (results) {
 
@@ -40,40 +41,47 @@ educationLevelRouter.get("/", async (req: Request, res: Response) => {
     }
 });
 
-educationLevelRouter.post("/", body('is_active').isBoolean(), body('description').isString(),
+aboriginalStatusRouter.post("/", body('is_active').isBoolean(),
+    body('description').isString(), body('nars_status_id').isInt().notEmpty(),
 
     async (req: Request, res: Response) => {
-        const { is_active, description = "", } = req.body;
+        const { is_active, description = "", nars_status_id = null } = req.body;
         const trimDescription = description?.trim();
+        console.log(is_active, description, nars_status_id);
 
         try {
 
             if (!trimDescription.length) return res.status(400).json({ success: false, message: "Description must be required", });
 
-            const verify = await db("sfa.education_level")
+            const verify = await db("sfa.aboriginal_status")
                 .select('description')
                 .where({ description: trimDescription });
 
             if (verify?.length) return res.status(400).send({ success: false, message: `"${trimDescription}" already exists`, });
 
-            const resInsert = await db("sfa.education_level")
-                .insert({ description: trimDescription, is_active, rank: 0 })
-                .returning("*");
+            await db.transaction(async (trx) => {
+                const [resInsert, getMaxRank] = await Promise.all(
+                    [
+                        trx('sfa.aboriginal_status')
+                            .insert({ description: trimDescription, is_active, nars_status_id, sort_order: 0 })
+                            .returning("*"),
+                        trx('sfa.aboriginal_status')
+                            .max('sort_order as topSortOrder')
+                            .first(),
+                    ]
+                )
 
-            const getMaxRank = await db("sfa.education_level")
-                .max('rank as topRank')
-                .first();
+                if (resInsert && getMaxRank) {
+                    const resUpdate = await trx("sfa.aboriginal_status")
+                        .update({ sort_order: getMaxRank.topSortOrder + 1 })
+                        .where({ id: resInsert[0].id })
+                        .returning("*");
 
-            if (resInsert && getMaxRank) {
-                const resUpdate = await db("sfa.education_level")
-                    .update({ rank: getMaxRank.topRank + 1 })
-                    .where({ id: resInsert[0].id })
-                    .returning("*");
-
-                return res.status(201).json({ success: true, data: resUpdate, });
-            } else {
-                return res.status(400).send();
-            }
+                    return res.status(201).json({ success: true, data: resUpdate, });
+                } else {
+                    return res.status(400).send();
+                }
+            });
 
         } catch (err) {
             console.log(err);
@@ -82,13 +90,13 @@ educationLevelRouter.post("/", body('is_active').isBoolean(), body('description'
     }
 );
 
-educationLevelRouter.patch("/status/:id", [param("id").isInt().notEmpty()], ReturnValidationErrors,
+aboriginalStatusRouter.patch("/status/:id", [param("id").isInt().notEmpty()], ReturnValidationErrors,
     (req: Request, res: Response) => {
 
         const { id = null } = req.params;
         const { is_active = false } = req.body;
 
-        db("sfa.education_level")
+        db("sfa.aboriginal_status")
             .update({ is_active })
             .where({ id })
             .returning("*")
@@ -106,12 +114,11 @@ educationLevelRouter.patch("/status/:id", [param("id").isInt().notEmpty()], Retu
     }
 );
 
-educationLevelRouter.patch("/rank", [body('newRankList').isArray(), body('newIndex').isInt().notEmpty(), body('oldIndex').isInt().notEmpty()], ReturnValidationErrors,
+aboriginalStatusRouter.patch("/sort-order", [body('list').isArray(), body('newIndex').isInt().notEmpty(), body('oldIndex').isInt().notEmpty()], ReturnValidationErrors,
     async (req: Request, res: Response) => {
 
-        const { id = null } = req.params;
-        const { newRankList = [], newIndex = 0, oldIndex = 0 } = req.body;
-        const verifyResults = [];
+        const { list = [], newIndex = 0, oldIndex = 0 } = req.body;
+        const verifyResults: any = [];
         try {
             if (newIndex === oldIndex) {
                 return res.status(400).send({
@@ -119,55 +126,61 @@ educationLevelRouter.patch("/rank", [body('newRankList').isArray(), body('newInd
                     message: "The positions are equal",
                 });
             }
-            if (!newRankList.length) {
+            if (!list.length) {
                 return res.status(400).send({
                     success: false,
-                    message: "Rank List is required",
+                    message: "Sort Order List is required",
                 });
             }
-
             if (oldIndex < newIndex) {
-                newRankList.forEach(async (item: any, index: Number) => {
-                    if (oldIndex + 1 === item.rank) {
-                        const result = await db("sfa.education_level")
-                            .update({ rank: newIndex + 1 })
+
+                for (let index = 0; index < list.length; index++) {
+                    const item = list[index];
+
+                    if (oldIndex + 1 === item.sort_order) {
+                        const result = await db("sfa.aboriginal_status")
+                            .update({ sort_order: newIndex + 1 })
                             .where({ id: item.id })
                             .returning("*");
 
-                        verifyResults.push(result);
+                        verifyResults.push({ ...result });
 
-                        return;
+                        continue;
                     }
 
-                    const result = await db("sfa.education_level")
-                        .update({ rank: item.rank - 1 })
+                    const result = await db("sfa.aboriginal_status")
+                        .update({ sort_order: item.sort_order - 1 })
                         .where({ id: item.id })
                         .returning("*");
 
-                    verifyResults.push(result);
-                });
+                    verifyResults.push({ ...result });
+                }
             } else {
-                newRankList.forEach(async (item: any, index: Number) => {
-                    if (oldIndex + 1 === item.rank) {
-                        const result = await db("sfa.education_level")
-                            .update({ rank: newIndex + 1 })
+                for (let index = 0; index < list.length; index++) {
+                    const item = list[index];
+                    if (oldIndex + 1 === item.sort_order) {
+                        const result = await db("sfa.aboriginal_status")
+                            .update({ sort_order: newIndex + 1 })
                             .where({ id: item.id })
                             .returning("*");
 
-                        verifyResults.push(result);
+                        verifyResults.push({ ...result });
 
-                        return;
+                        continue;
                     }
 
-                    const result = await db("sfa.education_level")
-                        .update({ rank: item.rank + 1 })
+                    const result = await db("sfa.aboriginal_status")
+                        .update({ sort_order: item.sort_order + 1 })
                         .where({ id: item.id })
                         .returning("*");
-                    verifyResults.push(result);
-                });
+                    verifyResults.push({ ...result });
+                }
             }
 
-            res.status(202).send({ wasUpdated: true, message: "Updated!" });
+            verifyResults?.length === list?.length ?
+                res.status(202).send({ wasUpdated: true, message: "Updated!" })
+                :
+                res.status(409).send({ wasUpdated: false, message: "Could Not Updated" });
 
         } catch (error) {
             console.log(error);
@@ -177,7 +190,7 @@ educationLevelRouter.patch("/rank", [body('newRankList').isArray(), body('newInd
     }
 );
 
-educationLevelRouter.patch("/description/:id", [param("id").isInt().notEmpty()], ReturnValidationErrors,
+aboriginalStatusRouter.patch("/description/:id", [param("id").isInt().notEmpty()], ReturnValidationErrors,
     async (req: Request, res: Response) => {
 
         const { id = null } = req.params;
@@ -189,7 +202,7 @@ educationLevelRouter.patch("/description/:id", [param("id").isInt().notEmpty()],
 
             if (!trimDescription.length) return res.status(400).json({ success: false, message: "Description must be required", });
 
-            const verify = await db("sfa.education_level")
+            const verify = await db("sfa.aboriginal_status")
                 .select('id', 'description')
                 .where({ description: trimDescription });
 
@@ -202,7 +215,7 @@ educationLevelRouter.patch("/description/:id", [param("id").isInt().notEmpty()],
             return res.status(400).send({ success: false, message: "Error!", });
         }
 
-        db("sfa.education_level")
+        db("sfa.aboriginal_status")
             .update({ description: trimDescription })
             .where({ id })
             .returning("*")
@@ -220,14 +233,38 @@ educationLevelRouter.patch("/description/:id", [param("id").isInt().notEmpty()],
     }
 );
 
-educationLevelRouter.delete("/:id", [param("id").isInt().notEmpty()], ReturnValidationErrors,
+aboriginalStatusRouter.patch("/nars/:id", [param("id").isInt().notEmpty()], ReturnValidationErrors,
+    async (req: Request, res: Response) => {
+
+        const { id = null } = req.params;
+        const { nars = null } = req.body;
+
+        db("sfa.aboriginal_status")
+            .update({ nars_status_id: nars === "" ? null : nars })
+            .where({ id })
+            .returning("*")
+            .then((resp: any) => {
+                if (resp[0]?.id === Number(id)) {
+                    res.status(202).send({ wasUpdated: true, ...resp[0] });
+                } else {
+                    res.status(409).send({ wasUpdated: false, message: "Could Not Updated" });
+                }
+            })
+            .catch(function (e: any) {
+                res.status(409).send({ wasUpdated: false, message: "Could Not Updated" });
+                console.log(e);
+            });
+    }
+);
+
+aboriginalStatusRouter.delete("/:id", [param("id").isInt().notEmpty()], ReturnValidationErrors,
     async (req: Request, res: Response) => {
 
         const { id = null } = req.params;
         let description = "";
 
         try {
-            const verifyRecord: any = await db("sfa.education_level")
+            const verifyRecord: any = await db("sfa.aboriginal_status")
                 .where({ id: id })
                 .first();
 
@@ -240,21 +277,21 @@ educationLevelRouter.delete("/:id", [param("id").isInt().notEmpty()], ReturnVali
             await db.transaction(async (trx) => {
                 const [resDelete] = await Promise.all(
                     [
-                        trx('sfa.education_level')
+                        trx('sfa.aboriginal_status')
                             .where({ id: id })
                             .del(),
                     ]
                 )
 
                 if (resDelete) {
-                    const resList = await trx("sfa.education_level")
-                        .orderBy('sfa.education_level.rank');
+                    const resList = await trx("sfa.aboriginal_status")
+                        .orderBy('sfa.aboriginal_status.sort_order');
                     const verifyResults = [];
                     for (let index = 0; index < resList.length; index++) {
                         const item = resList[index];
 
-                        const result = await db("sfa.education_level")
-                            .update({ rank: index + 1 })
+                        const result = await db("sfa.aboriginal_status")
+                            .update({ sort_order: index + 1 })
                             .where({ id: item.id })
                             .returning("*");
 
