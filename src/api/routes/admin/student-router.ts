@@ -27,8 +27,8 @@ studentRouter.post("/",
         res.json({ data: result })
     });
 
-studentRouter.put("/:student_id",
-    [param("student_id").isInt().notEmpty()], ReturnValidationErrors,
+studentRouter.put("/:id",
+    [param("id").isInt().notEmpty()], ReturnValidationErrors,
     async (req: Request, res: Response) => {
 
         try {
@@ -123,7 +123,6 @@ studentRouter.put("/:student_id",
 
                 }
             }
-
         } catch (error) {
             console.log(error)
             res.json({ messages: [{ variant: "error", text: "Save failed" }] });
@@ -398,7 +397,6 @@ studentRouter.put("/:student_id/consent",
                 !(data.consent_person?.trim().length > 2)) {
                 return res.json({ messages: [{ variant: "error", text: "Consent Person is required" }] });
             }
-
             const student: any = await db("sfa.student").where({ id: student_id }).first();
 
             if (student) {
@@ -411,7 +409,6 @@ studentRouter.put("/:student_id/consent",
                     res.json({ messages: [{ variant: "success", text: "Saved" }] })
                     :
                     res.json({ messages: [{ variant: "error", text: "Save failed" }] });
-
             }
 
             return res.status(404).send();
@@ -419,9 +416,11 @@ studentRouter.put("/:student_id/consent",
         } catch (error) {
             console.error(error);
             return res.status(400).send(error);
+
         }
     }
 );
+
 
 studentRouter.post("/:student_id/consent",
     [
@@ -503,10 +502,10 @@ studentRouter.get("/:student_id/applications",
     [param("student_id").notEmpty()], ReturnValidationErrors, async (req: Request, res: Response) => {
         let { student_id } = req.params;
 
-        let history_details = await db("sfaadmin.history_detail")
-            .innerJoin("sfaadmin.institution", "history_detail.institution_id", "institution.institution_id")
-            .innerJoin("sfaadmin.study_area", "history_detail.study_area_id", "study_area.study_area_id")
-            .innerJoin("sfaadmin.program", "history_detail.program_id", "program.program_id")
+        let history_details = await db("sfa.history_detail")
+            .innerJoin("sfa.institution", "history_detail.institution_id", "institution.institution_id")
+            .innerJoin("sfa.study_area", "history_detail.study_area_id", "study_area.study_area_id")
+            .innerJoin("sfa.program", "history_detail.program_id", "program.program_id")
             .select("history_detail.*")
             .select("institution.name as institution_name")
             .select("study_area.description as study_area_name")
@@ -515,8 +514,8 @@ studentRouter.get("/:student_id/applications",
 
 
         for (let h of history_details) {
-            let fundingRequests = await db("sfaadmin.funding_request")
-                .innerJoin("sfaadmin.request_type", "funding_request.request_type_id", "request_type.request_type_id")
+            let fundingRequests = await db("sfa.funding_request")
+                .innerJoin("sfa.request_type", "funding_request.request_type_id", "request_type.request_type_id")
                 .where({ "funding_request.history_detail_id": h.HISTORY_DETAIL_ID })
                 .select("funding_request.*")
                 .select("request_type.short_name");
@@ -535,14 +534,14 @@ studentRouter.get("/:studentId/applications/:applicationId",
     });
 
 async function insertStudent(student: any) {
-    let max = (await db("SFAADMIN.STUDENT").max("student_id as smax").first())?.smax;
+    let max = (await db("sfa.STUDENT").max("student_id as smax").first())?.smax;
     let limit = 5;
 
     while (limit > 0) {
         let next = max //+ 1;
         try {
             student.student_id = next;
-            let returning = await knex('SFAADMIN.STUDENT').insert(student).returning("*");
+            let returning = await knex('sfa.STUDENT').insert(student).returning("*");
             return returning[0];
         }
         catch (err) {
