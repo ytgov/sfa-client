@@ -13,6 +13,7 @@ export default {
         {title:"Age Distribution", path: "/administration/age-distribution"},
         {title:"Education Level", path: "/administration/education-level"},
         {title:"Yukon Grant Eligibility", path: "/administration/yukon-grant-eligibility"},
+        {title:"Aboriginal Status", path: "/administration/aboriginal-status"},
     ],
     location: [
         {title:"Province", path: "/administration/province"},
@@ -21,13 +22,18 @@ export default {
     ],
     
     institutions: [
-        {title:"Institution Search", path: "/administration/institutions"},
+        {title:"Institutions", path: "/administration/institutions"},
+        {title:"CSL NSLSC Address Table", path: "/administration/csl-nslsc-address-table"},
+        {title:"Institution Search", path: "/administration/institution-search"},
         {title:"Institution Level", path: "/administration/institution-level"},
     ],
     application: [
         {title:"Study Field", path: "/administration/study-field"},
         {title:"Application Type", path: "/administration/application-type"},
         {title:"Disbursement Type", path: "/administration/disbursement-type"},
+        {title:"Disability Type with CSL Code", path: "/administration/disability-type"},
+        {title:"Disability Type without CSL Code", path: "/administration/disability-type-without-csl"},
+        {title:"Disability Services Required", path: "/administration/disability-service"},
     ],
     assessment: [
         {title:"Assessment Type", path: "/administration/assessment-type"},

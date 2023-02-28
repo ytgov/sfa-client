@@ -49,6 +49,10 @@ import statusModuleRoutes from "@/modules/status/router";
 import statusReasonModuleRoutes from "@/modules/status-reason/router";
 import yukonGrantEligibilityRoutes from "@/modules/yukon-grant-eligibility/router";
 import fundingGroupRoutes from "@/modules/funding-group/router";
+import disabilityTypeRoutes from "@/modules/disability-type/router";
+import disabilityTypeWithoutCSLRoutes from "@/modules/disability-type-without-csl/router";
+import aboriginalStatusRoutes from "@/modules/aboriginal-status/router";
+import disabilityServiceRoutes from "@/modules/disability-service/router";
 
 Vue.use(VueRouter);
 
@@ -204,6 +208,10 @@ const routes = [
   ...statusReasonModuleRoutes,
   ...yukonGrantEligibilityRoutes,
   ...fundingGroupRoutes,
+  ...disabilityTypeRoutes,
+  ...disabilityTypeWithoutCSLRoutes,
+  ...aboriginalStatusRoutes,
+  ...disabilityServiceRoutes,
 
   {
     path: "*",

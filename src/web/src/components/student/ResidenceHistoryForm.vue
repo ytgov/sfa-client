@@ -355,7 +355,8 @@ export default {
       });
     },
     addResidence() {
-      this.application.residences.push({ remove: "Remove" });
+      console.log(this.application);
+      this.student.residences?.push({ remove: "Remove" });
     },
     removeResidence(index) {
       this.$refs.confirm.show(

@@ -23,6 +23,8 @@
         <v-card-actions>
           <v-spacer></v-spacer>
           <v-btn color="blue darken-1" text @click="(e) => {
+            describe = '';
+            is_active = true;
             setDialog();
           }">
             Close
@@ -49,7 +51,7 @@ export default {
   name: "ModalAddAddressType",
   data() {
     return {
-      is_active: false,
+      is_active: true,
       describe: '',
       DESCRIBE_LENGTH: 3,
     }
@@ -80,12 +82,10 @@ export default {
           "Error!"
         this.messageStatus({ message, status: "error" });
       } finally {
+        this.is_active = true;
+        this.describe = '';
         store.dispatch("setAddressTypes", false);
       }
-
-      this.is_active = false;
-      this.describe = '';
-
     },
     ...mapActions(["messageStatus"]),
   },

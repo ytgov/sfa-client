@@ -62,3 +62,7 @@ export const STATUS =`${config.apiBaseUrl}/api/v2/admin/status`;
 export const STATUS_REASON =`${config.apiBaseUrl}/api/v2/admin/status-reason`;
 export const YUKON_GRANT_ELIGIBILITY =`${config.apiBaseUrl}/api/v2/admin/yukon-grant-eligibility`;
 export const FUNDING_GROUP =`${config.apiBaseUrl}/api/v2/admin/funding-group`;
+export const DISABILITY_TYPE =`${config.apiBaseUrl}/api/v2/admin/disability-type`;
+export const ABORIGINAL_STATUS =`${config.apiBaseUrl}/api/v2/admin/aboriginal-status`;
+export const DISABILITY_SERVICE =`${config.apiBaseUrl}/api/v2/admin/disability-service`;
+export const STUDY_AREA =`${config.apiBaseUrl}/api/v2/admin/study-area`;

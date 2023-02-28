@@ -94,7 +94,7 @@ export default {
         })
         .catch((err) => {
           console.log(err);
-          this.messageStatus("Error!", "error");
+          this.messageStatus({ message: "Error!", status: "error" });
         })
         .finally(() => {
           store.dispatch("setCities", false);
@@ -149,7 +149,12 @@ export default {
         })
         .catch((err) => {
           console.log(err);
-          this.messageStatus({ message: "Error to delete", status: "error" });
+          const res = { ...err };
+          const message = res?.response?.data?.message ?
+            res.response.data.message
+            :
+            "Error!"
+          this.messageStatus({ message, status: "error" });
         })
         .finally(() => {
           this.showModalDelete(null);
