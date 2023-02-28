@@ -373,8 +373,6 @@
 <script>
 import moment from "moment";
 import store from "../../store";
-import axios from "axios";
-import { RELATIONSHIP_URL } from "../../urls";
 import { mapGetters } from "vuex";
 
 export default {
@@ -403,8 +401,8 @@ export default {
     student: function () {
       const studentSelected = {
         ...store.getters.selectedStudent,
-        dependent_info: store.getters.selectedStudent.dependent_info?.map(element => {
-          return { ...element, birth_date: element.birth_date?.slice(0, 10) }
+        dependent_info: store.getters.selectedStudent?.dependent_info?.map(element => {
+          return { ...element, birth_date: element?.birth_date?.slice(0, 10) }
         }),
       }
 

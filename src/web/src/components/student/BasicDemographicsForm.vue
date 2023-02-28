@@ -70,8 +70,8 @@ export default {
     student: function () {
       const studentSelected = {
         ...store.getters.selectedStudent,
-        birth_date: store.getters.selectedStudent.birth_date.slice(0, 10),
-        pre_funded_year: store.getters.selectedStudent.pre_funded_year.toString(),
+        birth_date: store.getters.selectedStudent?.birth_date?.slice(0, 10),
+        pre_funded_year: store.getters.selectedStudent?.pre_funded_year?.toString(),
         
       }
 
