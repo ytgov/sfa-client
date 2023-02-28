@@ -34,6 +34,7 @@ import fundingGroup from "@/modules/funding-group/store";
 import disabilityType from "@/modules/disability-type/store";
 import aboriginalStatus from "@/modules/aboriginal-status/store";
 import disabilityService from "@/modules/disability-service/store";
+import relationships from "@/modules/relationship/store";
 import adminCrud from "./adminCrud";
 import axios from "axios";
 import { APPLICATION_URL, STUDENT_URL } from "../urls"
@@ -342,8 +343,29 @@ export default new Vuex.Store({
         });
          
     },
+    deleteDependent(state, vals) {
+      let emitter = vals[0];
+      let idToDelete = vals[1];
+
+      axios.delete(`${STUDENT_URL}/${idToDelete}/dependent`)
+        .then(resp => {
+          let message = resp.data.messages[0];
+          if (message.variant == "success")
+            emitter.$emit("showSuccess", message.text);
+          else
+            emitter.$emit("showError", message.text);
+        })
+        .catch(err => {
+          console.log("ERROR HAPPENED", err);
+          emitter.$emit("showError", err.data.messages[0].text);
+        })
+        .finally(() => {
+          state.dispatch("loadStudent", emitter.student.id);
+        });
+         
+    },
   },
 
-  modules: { auth, profile, institution, student, province, countries, cities, addressType, indigenousLearner, Language, maritalStatus, studyField, parentalRelationship, firstNation, portalStatus, sex, studentCategory, applicationType, highSchool, ageDistribution, institutionLevel, assessmentType, batchGroup, educationLevel, status, statusReason, yukonGrantEligibility, disbursementType, reasonsForChange, fundingGroup, disabilityType, aboriginalStatus, disabilityService, adminCrud, }
+  modules: { auth, profile, institution, student, province, countries, cities, addressType, indigenousLearner, Language, maritalStatus, studyField, parentalRelationship, firstNation, portalStatus, sex, studentCategory, applicationType, highSchool, ageDistribution, institutionLevel, assessmentType, batchGroup, educationLevel, status, statusReason, yukonGrantEligibility, disbursementType, reasonsForChange, fundingGroup, disabilityType, aboriginalStatus, disabilityService, relationships, adminCrud, }
 
 });

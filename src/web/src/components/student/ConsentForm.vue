@@ -159,10 +159,6 @@ export default {
       );
 
     },
-    doSaveConsentxxx(value) {
-      let body = _.clone(value);
-      store.dispatch("updateConsent", [body, this]);
-    },
     doSaveConsent(field, value, type, extraId = null, isInsertion = false) {
       if (isInsertion) {
 
