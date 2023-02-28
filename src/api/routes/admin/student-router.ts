@@ -27,8 +27,8 @@ studentRouter.post("/",
         res.json({ data: result })
     });
 
-studentRouter.put("/:id",
-    [param("id").isInt().notEmpty()], ReturnValidationErrors,
+studentRouter.put("/:student_id",
+    [param("student_id").isInt().notEmpty()], ReturnValidationErrors,
     async (req: Request, res: Response) => {
 
         try {
@@ -123,6 +123,7 @@ studentRouter.put("/:id",
 
                 }
             }
+
         } catch (error) {
             console.log(error)
             res.json({ messages: [{ variant: "error", text: "Save failed" }] });
@@ -300,6 +301,9 @@ studentRouter.get("/:id",
                     const consentInfo = await db("sfa.student_consent")
                         .where({ student_id: id });
 
+                    const dependentInfo = await db("sfa.dependent")
+                        .where({ student_id: id });
+
                     const temporalAddress = await db("sfa.person_address")
                         .where({ person_id: student.person_id })
                         .where({ address_type_id: 2 })
@@ -366,6 +370,7 @@ studentRouter.get("/:id",
                         high_school_info: highSchoolInfo,
                         education_info: educationInfo,
                         consent_info: consentInfo,
+                        dependent_info: dependentInfo,
                         id: student.id
                     };
 
@@ -397,6 +402,7 @@ studentRouter.put("/:student_id/consent",
                 !(data.consent_person?.trim().length > 2)) {
                 return res.json({ messages: [{ variant: "error", text: "Consent Person is required" }] });
             }
+
             const student: any = await db("sfa.student").where({ id: student_id }).first();
 
             if (student) {
@@ -409,6 +415,7 @@ studentRouter.put("/:student_id/consent",
                     res.json({ messages: [{ variant: "success", text: "Saved" }] })
                     :
                     res.json({ messages: [{ variant: "error", text: "Save failed" }] });
+
             }
 
             return res.status(404).send();
@@ -416,11 +423,9 @@ studentRouter.put("/:student_id/consent",
         } catch (error) {
             console.error(error);
             return res.status(400).send(error);
-
         }
     }
 );
-
 
 studentRouter.post("/:student_id/consent",
     [
@@ -497,6 +502,115 @@ studentRouter.delete("/:id/consent", [param("id").isInt().notEmpty()], ReturnVal
     }
 );
 
+studentRouter.put("/:student_id/dependent",
+    [param("student_id").isInt().notEmpty(), body("extraId").notEmpty()],
+    ReturnValidationErrors,
+    async (req: Request, res: Response) => {
+        try {
+            const { student_id } = req.params;
+            const { type, extraId, data } = req.body;
+
+            if (!("dependentInfo" === type)) {
+                return res.json({ messages: [{ variant: "error", text: "type valid is required" }] });
+            }
+
+            if (Object.keys(data).some(k => k === 'relation_id') &&
+                !(data.relation_id)) {
+                return res.json({ messages: [{ variant: "error", text: "Relationship Id is required" }] });
+            }
+
+            const student: any = await db("sfa.student").where({ id: student_id }).first();
+
+            if (student) {
+
+                const resUpdate = await db("sfa.dependent")
+                    .where({ id: extraId })
+                    .update({ ...data });
+
+                return resUpdate > 0 ?
+                    res.json({ messages: [{ variant: "success", text: "Saved" }] })
+                    :
+                    res.json({ messages: [{ variant: "error", text: "Save failed" }] });
+
+            }
+
+            return res.status(404).send();
+
+        } catch (error) {
+            console.error(error);
+            return res.status(400).send(error);
+        }
+    }
+);
+
+studentRouter.post("/:student_id/dependent", [ param("student_id").isInt().notEmpty(), ],
+    ReturnValidationErrorsCustomMessage,
+    async (req: Request, res: Response) => {
+        try {
+            const { student_id } = req.params;
+            const { data } = req.body;
+
+            const student: any = await db("sfa.student").where({ id: student_id }).first();
+
+            if (student) {
+
+                const resInsert = await db("sfa.dependent")
+                    .insert({ ...data, student_id });
+
+                return resInsert ?
+                    res.json({ messages: [{ variant: "success", text: "Saved" }] })
+                    :
+                    res.json({ messages: [{ variant: "error", text: "Failed" }] });
+
+            }
+
+            return res.status(404).send({ messages: [{ variant: "error", text: "Failed" }] });
+
+        } catch (error) {
+            console.error(error);
+            return res.status(400).send({ messages: [{ variant: "error", text: "Failed", error }] });
+        }
+    }
+);
+
+studentRouter.delete("/:id/dependent", [param("id").isInt().notEmpty()], ReturnValidationErrors,
+    async (req: Request, res: Response) => {
+
+        const { id = null } = req.params;
+        let description = "";
+        try {
+
+            const verifyRecord: any = await db("sfa.dependent")
+                .where({ id: id })
+                .first();
+
+            if (!verifyRecord) {
+                return res.status(404).send({ wasDelete: false, message: "The record does not exits" });
+            }
+
+            description = verifyRecord?.description;
+
+            const deleteRecord: any = await db("sfa.dependent")
+                .where({ id: id })
+                .del();
+
+            return (deleteRecord > 0) ?
+                res.status(202).send({ messages: [{ variant: "success", text: "Removed" }] })
+                :
+                res.status(404).send({ messages: [{ variant: "error", text: "Record does not exits" }] });
+
+        } catch (error: any) {
+
+            console.log(error);
+
+            if (error?.number === 547) {
+                return res.status(409).send({ messages: [{ variant: "error", text: "Cannot be deleted because it is in use." }] });
+            }
+
+            return res.status(409).send({ messages: [{ variant: "error", text: "Error To Delete" }] });
+        }
+    }
+);
 
 studentRouter.get("/:student_id/applications",
     [param("student_id").notEmpty()], ReturnValidationErrors, async (req: Request, res: Response) => {
