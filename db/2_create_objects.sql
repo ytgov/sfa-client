@@ -829,6 +829,8 @@ CREATE TABLE sfa.person_address
     country_id      INT           NULL REFERENCES sfa.country,
     postal_code     NVARCHAR(50)  NULL,
     notes           TEXT          NULL,
+    telephone       NVARCHAR(24)  NULL,
+    email           NVARCHAR(100) NULL,
     is_active       BIT           NOT NULL DEFAULT 1
 )
 
