@@ -53,7 +53,7 @@ countriesRouter.post("/", async (req: Request, res: Response) => {
             .select('description')
             .where({ description: trimDescription });
 
-        if (verify?.length) return res.status(400).send({ success: false, message: "Description already exists", });
+        if (verify?.length) return res.status(400).send({ success: false, message: `"${trimDescription}" already exists`, });
 
         const resInsertCountry = await db("sfa.country")
             .insert({ description: trimDescription, is_active })
@@ -102,16 +102,16 @@ countriesRouter.patch("/description/:id", [param("id").isInt().notEmpty()], Retu
         const { id = null } = req.params;
         const { description = "" } = req.body;
 
+        const trimDescription = description?.trim();
+        
         const verify = await db("sfa.country")
             .select('id', 'description')
             .where({ description });
 
-        const hasSameDescription = verify?.some((country) => (country?.description === description &&
+        const hasSameDescription = verify?.some((country) => (country?.description.toLowerCase() === description.toLowerCase() &&
             country?.id !== Number(id)));
 
-        if (hasSameDescription) return res.status(400).send({ success: false, message: "Description already exists", });
-
-        const trimDescription = description?.trim();
+        if (hasSameDescription) return res.status(400).send({ success: false, message: `"${trimDescription}" already exists`, });
 
         if (trimDescription.length) {
             db("sfa.country")
@@ -138,20 +138,40 @@ countriesRouter.patch("/description/:id", [param("id").isInt().notEmpty()], Retu
 );
 
 countriesRouter.delete("/:id", [param("id").isInt().notEmpty()], ReturnValidationErrors,
-    (req: Request, res: Response) => {
+    async (req: Request, res: Response) => {
 
         const { id = null } = req.params;
+        let description = "";
+        try {
 
-        db("sfa.country")
-            .where({ id: id })
-            .del()
-            .then((resp) => {
-                res.status(202).send({ wasDelete: true });
+            const verifyRecord: any = await db("sfa.country")
+                .where({ id: id })
+                .first();
+
+            if (!verifyRecord) {
+                return res.status(404).send({ wasDelete: false, message: "The record does not exits" });
             }
-            )
-            .catch(function (e: any) {
-                res.status(409).send({ wasDelete: false, message: "Could Not Delete" });
-                console.log(e);
-            });
+
+            description = verifyRecord?.description;
+
+            const deleteRecord: any = await db("sfa.country")
+                .where({ id: id })
+                .del();
+
+            return (deleteRecord > 0) ?
+                res.status(202).send({ wasDelete: true })
+                :
+                res.status(404).send({ wasDelete: false, message: `The record "${verifyRecord.description}" does not exits` });
+
+        } catch (error: any) {
+
+            console.log(error);
+
+            if (error?.number === 547) {
+                return res.status(409).send({ wasDelete: false, message: `"${description}" cannot be deleted because it is in use.` });
+            }
+
+            return res.status(409).send({ wasDelete: false, message: "Error to Delete" });
+        }
     }
 );

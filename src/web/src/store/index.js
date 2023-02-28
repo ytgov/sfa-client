@@ -22,6 +22,18 @@ import institutionLevel from "@/modules/institution-level/store";
 import ageDistribution from "@/modules/age-distribution/store";
 import applicationType from "@/modules/application-type/store";
 import highSchool from "@/modules/high-school/store";
+import assessmentType from "@/modules/assessment-type/store";
+import batchGroup from "@/modules/batch-group/store";
+import educationLevel from "@/modules/education-level/store";
+import reasonsForChange from "@/modules/reasons-for-change/store";
+import disbursementType from "@/modules/disbursement-type/store";
+import status from "@/modules/status/store";
+import statusReason from "@/modules/status-reason/store";
+import yukonGrantEligibility from "@/modules/yukon-grant-eligibility/store";
+import fundingGroup from "@/modules/funding-group/store";
+import disabilityType from "@/modules/disability-type/store";
+import aboriginalStatus from "@/modules/aboriginal-status/store";
+import disabilityService from "@/modules/disability-service/store";
 import adminCrud from "./adminCrud";
 import axios from "axios";
 import { APPLICATION_URL, STUDENT_URL } from "../urls"
@@ -39,6 +51,8 @@ export default new Vuex.Store({
     selectedApplication: {},
     selectedApplicationId: 0,
     recentStudents: [],
+    yearOptions: [],
+    monthOptions: [],
   },
   getters: {
     showAppSidebar: state => state.showAppSidebar,
@@ -46,8 +60,16 @@ export default new Vuex.Store({
     selectedStudent: state => state.selectedStudent,
     selectedApplication: state => state.selectedApplication,
     recentStudents: state => state.recentStudents,
+    yearOptions: state => state.yearOptions,
+    monthOptions: state => state.monthOptions,
   },
   mutations: {
+    SET_MONTH_OPTIONS(state, value) {
+      state.monthOptions = value;
+    },
+    SET_YEAR_OPTIONS(state, value) {
+      state.yearOptions = value;
+    },
     SET_SIDEBAR(state, value) {
       state.showAppSidebar = value;
     },
@@ -91,6 +113,29 @@ export default new Vuex.Store({
     setAppSideBarAdmin(state, value) {
       state.commit("SET_SIDEBAR_ADMIN", value);
     },
+    setYearOptions(state, value = 1950) {
+      const options = [];
+      const startYear = value;
+      const currentYear = new Date().getFullYear();
+    
+      for (let i = currentYear; i >= startYear; i--) {
+        options.push({ value: i,  text: i.toString(), });
+      }
+
+      state.commit("SET_YEAR_OPTIONS", options);
+
+    },
+    setMonthOptions(state) {
+      
+      const options = [];
+      
+      for (let i = 1; i <= 12; i++) {
+        options.push({ value: i,  text: i.toString(), });
+      }
+
+      state.commit("SET_MONTH_OPTIONS", options);
+
+    },
     setStudent(state, value) {
       state.commit("SET_STUDENT", value);
     },
@@ -112,22 +157,60 @@ export default new Vuex.Store({
       let resp = await axios.get(`${STUDENT_URL}/${id}`);
       state.commit("SET_STUDENT", resp.data.data);
     },
-    updateStudent(state, vals) {
-      let body = JSON.parse(`{"${vals[0]}": "${vals[1]}"}`);
-      let emitter = vals[2];
+    async updateStudent(state, vals) {
+      const url = vals[6] !== undefined ? vals[6] : "";
+      const isInsertion = vals[7] !== undefined ? vals[7] : false;
+      let body = JSON.parse(`{"data": { "${vals[0]}": "${vals[1]}" }, "type": "${vals[2]}", "extraId": "${vals[3]}"}`);
+      
+      if (vals[1] === null) {
+        body.data[vals[0]] = null;
+      }
 
-      axios.put(`${STUDENT_URL}/${state.state.selectedStudentId}`, body)
-        .then(resp => {
-          let message = resp.data.messages[0];
-          if (message.variant == "success")
+      if (isInsertion) {
+        body = { ...body, data: vals[1]};
+      }
+      
+      let emitter = vals[4];
+      
+      body = vals[5]?.length > 0 ?
+        { ...body, addressType: vals[5] }
+        :
+        { ...body, addressType: null };
+
+      try {
+        if (isInsertion) {
+          const resInsert = await axios
+            .post(`${STUDENT_URL}/${state.state.selectedStudentId}${url}`, body);
+
+          const message = resInsert?.data?.messages[0];
+
+          if (message?.variant === "success") {
             emitter.$emit("showSuccess", message.text);
-          else
+          } else {
             emitter.$emit("showError", message.text);
-        })
-        .catch(err => {
-          console.log("ERROR HAPPENED", err);
-          emitter.$emit("showError", err.data.messages[0].text);
-        })
+          }
+        } else {
+          const resUpdate = await axios
+            .put(`${STUDENT_URL}/${state.state.selectedStudentId}${url}`, body);
+
+          const message = resUpdate?.data?.messages[0];
+
+          if (message?.variant === "success") {
+            emitter.$emit("showSuccess", message.text);
+          } else {
+            emitter.$emit("showError", message.text);
+          }
+        }
+      } catch (error) {
+        const err = { ...error };
+        console.log("ERROR HAPPENED", err);
+        emitter.$emit("showError", err.response.data.messages[0].text);
+      } finally {
+        if (emitter?.isAdding) {
+          emitter.isAdding = false;
+        }
+        state.dispatch("loadStudent", emitter.student.id);
+      }
     },
     updateApplication(state, vals) {
       let body = JSON.parse(`{"${vals[0]}": "${vals[1]}"}`);
@@ -216,7 +299,51 @@ export default new Vuex.Store({
           emitter.$emit("showError", err.data.messages[0].text);
         })
     },
+
+    deleteEducation(state, vals) {
+      let emitter = vals[0];
+      let idToDelete = vals[1];
+
+      axios.delete(`${STUDENT_URL}/${idToDelete}/education`)
+        .then(resp => {
+          let message = resp.data.messages[0];
+          if (message.variant == "success")
+            emitter.$emit("showSuccess", message.text);
+          else
+            emitter.$emit("showError", message.text);
+        })
+        .catch(err => {
+          console.log("ERROR HAPPENED", err);
+          emitter.$emit("showError", err.data.messages[0].text);
+        })
+        .finally(() => {
+          state.dispatch("loadStudent", emitter.student.id);
+        });
+         
+    },
+    deleteConsent(state, vals) {
+      let emitter = vals[0];
+      let idToDelete = vals[1];
+
+      axios.delete(`${STUDENT_URL}/${idToDelete}/consent`)
+        .then(resp => {
+          let message = resp.data.messages[0];
+          if (message.variant == "success")
+            emitter.$emit("showSuccess", message.text);
+          else
+            emitter.$emit("showError", message.text);
+        })
+        .catch(err => {
+          console.log("ERROR HAPPENED", err);
+          emitter.$emit("showError", err.data.messages[0].text);
+        })
+        .finally(() => {
+          state.dispatch("loadStudent", emitter.student.id);
+        });
+         
+    },
   },
 
-  modules: { auth, profile, institution, student, province, countries, cities, addressType, indigenousLearner, Language, maritalStatus, studyField, parentalRelationship, firstNation, portalStatus, sex, studentCategory, applicationType, highSchool, ageDistribution, institutionLevel, adminCrud, }
+  modules: { auth, profile, institution, student, province, countries, cities, addressType, indigenousLearner, Language, maritalStatus, studyField, parentalRelationship, firstNation, portalStatus, sex, studentCategory, applicationType, highSchool, ageDistribution, institutionLevel, assessmentType, batchGroup, educationLevel, status, statusReason, yukonGrantEligibility, disbursementType, reasonsForChange, fundingGroup, disabilityType, aboriginalStatus, disabilityService, adminCrud, }
+
 });

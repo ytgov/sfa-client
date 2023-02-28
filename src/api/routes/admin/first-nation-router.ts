@@ -209,19 +209,40 @@ firstNationRouter.patch("/description/:id", [param("id").isInt().notEmpty()], Re
     });
 
 firstNationRouter.delete("/:id", [param("id").isInt().notEmpty()], ReturnValidationErrors,
-    (req: Request, res: Response) => {
+    async (req: Request, res: Response) => {
 
         const { id = null } = req.params;
+        let description = "";
+        try {
 
-        db("sfa.first_nation")
-            .where({ id: id })
-            .del()
-            .then((resp) => {
-                res.status(202).send({ wasDelete: true });
+            const verifyRecord: any = await db("sfa.first_nation")
+                .where({ id: id })
+                .first();
+
+            if (!verifyRecord) {
+                return res.status(404).send({ wasDelete: false, message: "The record does not exits" });
             }
-            )
-            .catch(function (e: any) {
-                console.log(e);
-                res.status(409).send({ wasDelete: false, message: "Could Not Delete" });
-            });
-    });
+
+            description = verifyRecord?.description;
+
+            const deleteRecord: any = await db("sfa.first_nation")
+                .where({ id: id })
+                .del();
+
+            return (deleteRecord > 0) ?
+                res.status(202).send({ wasDelete: true })
+                :
+                res.status(404).send({ wasDelete: false, message: `The record "${verifyRecord.description}" does not exits` });
+
+        } catch (error: any) {
+
+            console.log(error);
+
+            if (error?.number === 547) {
+                return res.status(409).send({ wasDelete: false, message: `"${description}" cannot be deleted because it is in use.` });
+            }
+
+            return res.status(409).send({ wasDelete: false, message: "Error to Delete" });
+        }
+    }
+);

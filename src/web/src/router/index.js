@@ -39,8 +39,20 @@ import sexModuleRoutes from "@/modules/sex/router";
 import institutionLevelModuleRoutes from "@/modules/institution-level/router";
 import ageDistributionModuleRoutes from "@/modules/age-distribution/router";
 import highSchoolModuleRoutes from "@/modules/high-school/router";
+import assessmentTypeModuleRoutes from "@/modules/assessment-type/router";
 import studentCategoryModuleRoutes from "@/modules/student-category/router";
-
+import batchGroupModuleRoutes from "@/modules/batch-group/router";
+import educationLevelModuleRoutes from "@/modules/education-level/router";
+import reasonsForChangeModuleRoutes from "@/modules/reasons-for-change/router";
+import disbursementTypeModuleRoutes from "@/modules/disbursement-type/router";
+import statusModuleRoutes from "@/modules/status/router";
+import statusReasonModuleRoutes from "@/modules/status-reason/router";
+import yukonGrantEligibilityRoutes from "@/modules/yukon-grant-eligibility/router";
+import fundingGroupRoutes from "@/modules/funding-group/router";
+import disabilityTypeRoutes from "@/modules/disability-type/router";
+import disabilityTypeWithoutCSLRoutes from "@/modules/disability-type-without-csl/router";
+import aboriginalStatusRoutes from "@/modules/aboriginal-status/router";
+import disabilityServiceRoutes from "@/modules/disability-service/router";
 
 Vue.use(VueRouter);
 
@@ -187,6 +199,19 @@ const routes = [
   ...institutionLevelModuleRoutes,
   ...ageDistributionModuleRoutes,
   ...highSchoolModuleRoutes,
+  ...assessmentTypeModuleRoutes,
+  ...batchGroupModuleRoutes,
+  ...educationLevelModuleRoutes,
+  ...reasonsForChangeModuleRoutes,
+  ...disbursementTypeModuleRoutes,
+  ...statusModuleRoutes,
+  ...statusReasonModuleRoutes,
+  ...yukonGrantEligibilityRoutes,
+  ...fundingGroupRoutes,
+  ...disabilityTypeRoutes,
+  ...disabilityTypeWithoutCSLRoutes,
+  ...aboriginalStatusRoutes,
+  ...disabilityServiceRoutes,
 
   {
     path: "*",
