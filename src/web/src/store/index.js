@@ -187,6 +187,9 @@ export default new Vuex.Store({
 
           if (message?.variant === "success") {
             emitter.$emit("showSuccess", message.text);
+            if (emitter?.setClose && emitter.showAdd) {
+              emitter.setClose();
+            }
           } else {
             emitter.$emit("showError", message.text);
           }
@@ -348,6 +351,27 @@ export default new Vuex.Store({
       let idToDelete = vals[1];
 
       axios.delete(`${STUDENT_URL}/${idToDelete}/dependent`)
+        .then(resp => {
+          let message = resp.data.messages[0];
+          if (message.variant == "success")
+            emitter.$emit("showSuccess", message.text);
+          else
+            emitter.$emit("showError", message.text);
+        })
+        .catch(err => {
+          console.log("ERROR HAPPENED", err);
+          emitter.$emit("showError", err.data.messages[0].text);
+        })
+        .finally(() => {
+          state.dispatch("loadStudent", emitter.student.id);
+        });
+         
+    },
+    deleteResidence(state, vals) {
+      let emitter = vals[0];
+      let idToDelete = vals[1];
+
+      axios.delete(`${STUDENT_URL}/${idToDelete}/residence`)
         .then(resp => {
           let message = resp.data.messages[0];
           if (message.variant == "success")
