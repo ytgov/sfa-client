@@ -2,7 +2,7 @@
   <div class="home">
     <div class="row">
       <div class="col-md-12">
-        <v-card class="default mb-5" v-for="item, index in student.residence_info" :key="index">
+        <v-card class="default mb-5" v-for="item, index in filterList" :key="index">
           <v-card-text>
             <v-card-title class="mb-5">Residence {{ index + 1 }}
               <v-spacer></v-spacer>
@@ -292,8 +292,40 @@
         <v-card class="default">
           <v-card-text>
             <div class="row">
-              <div class="col-md-6">
+              <div class="col-md-6" v-if="currentCanadianResident">
                 <h3>Canadian resident from</h3>
+                <div class="row">
+                  <div class="col-md-6">
+                    <v-select
+                      outlined
+                      dense
+                      background-color="white"
+                      hide-details
+                      label="Year"
+                      v-model="currentCanadianResident.from_year"
+                      @change="doSaveResidence('from_year', currentCanadianResident.from_year, 'residenceInfo', currentCanadianResident.id)"
+                      :disabled="showAdd"
+                      :items="yearOptions"
+                    ></v-select>
+                  </div>
+
+                  <div class="col-md-6">
+                    <v-select
+                      outlined
+                      dense
+                      background-color="white"
+                      hide-details
+                      label="Month"
+                      v-model="currentCanadianResident.from_month"
+                      @change="doSaveResidence('from_month', currentCanadianResident.from_month, 'residenceInfo', currentCanadianResident.id)"
+                      :disabled="showAdd"
+                      :items="monthOptions"
+                    ></v-select>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-6" v-else>
+                <h3>Add Canadian resident from</h3>
                 <div class="row">
                   <div class="col-md-6">
                     <v-select
@@ -325,8 +357,40 @@
                 </div>
               </div>
 
-              <div class="col-md-6">
+              <div class="col-md-6" v-if="currentYukonResident">
                 <h3>Yukon resident from</h3>
+                <div class="row">
+                  <div class="col-md-6">
+                    <v-select
+                      outlined
+                      dense
+                      background-color="white"
+                      hide-details
+                      label="Year"
+                      v-model="currentYukonResident.from_year"
+                      @change="doSaveResidence('from_year', currentYukonResident.from_year, 'residenceInfo', currentYukonResident.id)"
+                      :disabled="showAdd"
+                      :items="yearOptions"
+                    ></v-select>
+                  </div>
+
+                  <div class="col-md-6">
+                    <v-select
+                      outlined
+                      dense
+                      background-color="white"
+                      hide-details
+                      label="Month"
+                      v-model="currentYukonResident.from_month"
+                      @change="doSaveResidence('from_month', currentYukonResident.from_month, 'residenceInfo', currentYukonResident.id)"
+                      :disabled="showAdd"
+                      :items="monthOptions"
+                    ></v-select>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-6" v-else>
+                <h3>Add Yukon resident from</h3>
                 <div class="row">
                   <div class="col-md-6">
                     <v-select
@@ -475,6 +539,26 @@ export default {
     toYear() {
       return this.newRecord.to_year;
     },
+    filterList() {
+      const list = this.student?.residence_info
+      ?.filter((residence) => !(residence.country_id === 1 && residence.to_year === null 
+          && residence.to_month === null))
+      ?.filter((residence) => !(residence.country_id === 1 && residence.province_id === 3 
+        && residence.to_year === null && residence.to_month === null));
+      return list;
+    },
+    currentCanadianResident() {
+      const resident = this.student?.residence_info
+      ?.find((residence) => (residence.country_id === 1 && residence.to_year === null 
+          && residence.to_month === null));
+      return resident;
+    },
+    currentYukonResident() {
+      const resident = this.student?.residence_info
+      ?.find((residence) => (residence.country_id === 1 && residence.province_id === 3
+        && residence.to_year === null  && residence.to_month === null));
+      return resident;
+    },
   },
   watch: {
     fromYear() {
@@ -620,6 +704,24 @@ export default {
 
     },
     doSaveResidence(field, value, type, extraId = null, isInsertion = false) {
+
+      if (isInsertion) {
+        console.log(this.newRecord.from_year);
+        if (!this.newRecord.from_year || !this.newRecord.from_month) {
+          return this.newRecord.from_year ? this.$emit("showError", "from_month is required") :
+          this.$emit("showError", "from_year is required");
+        }
+        if (!this.newRecord.to_month || !this.newRecord.to_year) {
+          return this.newRecord.to_year ? this.$emit("showError", "to_month is required") :
+          this.$emit("showError", "to_year is required");
+        }
+        if (!this.newRecord.city_id || !this.newRecord.province_id || !this.newRecord.country_id) {
+          return this.newRecord.city_id ?
+          (this.newRecord.province_id ? this.$emit("showError", "country is required") : this.$emit("showError", "province is required"))
+          :
+          this.$emit("showError", "city is required");
+        }
+      }
 
       const url = type === "residenceInfo" ? "/residence" : "";
 

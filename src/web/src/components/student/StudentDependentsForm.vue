@@ -4,7 +4,7 @@
       <v-card-title>Dependent {{ 1 + i }}
         <v-spacer></v-spacer>
         <v-btn 
-          :disabled="addDependent" 
+          :disabled="showAdd" 
           color="warning" 
           x-small 
           fab class="my-0"
@@ -17,7 +17,7 @@
         <div class="row">
           <div class="col-md-4">
             <v-text-field 
-              :disabled="addDependent" 
+              :disabled="showAdd" 
               outlined 
               dense 
               background-color="white" 
@@ -40,7 +40,7 @@
           </div>
           <div class="col-md-4">
             <v-text-field 
-              :disabled="addDependent" 
+              :disabled="showAdd" 
               outlined 
               dense 
               background-color="white" 
@@ -65,7 +65,7 @@
           </div>
           <div class="col-md-2">
             <v-menu 
-              :disabled="addDependent" 
+              :disabled="showAdd" 
               v-model="birth_date_menu" 
               :close-on-content-click="false" 
               transition="scale-transition" 
@@ -75,7 +75,7 @@
             >
               <template v-slot:activator="{ on, attrs }">
                 <v-text-field 
-                  :disabled="addDependent"
+                  :disabled="showAdd"
                   v-model="item.birth_date"
                   label="Birth date"
                   append-icon="mdi-calendar"
@@ -96,7 +96,7 @@
                 </v-text-field>
               </template>
               <v-date-picker 
-                :disabled="addDependent" 
+                :disabled="showAdd" 
                 v-if="current_menu === item.id" 
                 @change="doSaveDependent('birth_date', item.birth_date, 'dependentInfo', item.id)"
                 v-model="item.birth_date" 
@@ -120,7 +120,7 @@
         <div class="row">
           <div class="col-md-3">
             <v-select
-              :disabled="addDependent" 
+              :disabled="showAdd" 
               outlined 
               dense 
               background-color="white" 
@@ -136,7 +136,7 @@
           </div>
           <div class="col-md-3">
             <v-textarea 
-              :disabled="addDependent" 
+              :disabled="showAdd" 
               v-model="item.comments" 
               row="1" 
               row-height="7" 
@@ -152,7 +152,7 @@
           </div>
           <div class="col-md-2 mt-0 pt-0">
             <v-switch 
-              :disabled="addDependent" 
+              :disabled="showAdd" 
               label="Disability" 
               @change="doSaveDependent('is_disability', item.is_disability, 'dependentInfo', item.id)"
               v-model="item.is_disability"
@@ -162,7 +162,7 @@
 
           <div class="col-md-2 mt-0 pt-0">
             <v-switch 
-              :disabled="addDependent" 
+              :disabled="showAdd" 
               label="Conversion" 
               @change="doSaveDependent('is_conversion', item.is_conversion, 'dependentInfo', item.id)"
               v-model="item.is_conversion"
@@ -172,7 +172,7 @@
 
           <div class="col-md-2 mt-0 pt-0">
             <v-switch
-              :disabled="addDependent" 
+              :disabled="showAdd" 
               label="In Progress" 
               @change="doSaveDependent('is_in_progress', item.is_in_progress, 'dependentInfo', item.id)"
               v-model="item.is_in_progress"
@@ -183,7 +183,7 @@
       </v-card-text>
     </v-card>
 
-    <v-card class="default mb-5" v-if="addDependent">
+    <v-card class="default mb-5" v-if="showAdd">
       <v-card-title>Add Dependents</v-card-title>
 
       <v-card-text>
@@ -336,7 +336,7 @@
         <v-btn 
           color="red" 
           class="my-0" 
-          @click="addDependent = !addDependent"
+          @click="showAdd = !showAdd"
         >
           <v-icon 
             color="white font-weight-thin" 
@@ -350,7 +350,6 @@
           class="my-0 ml-5" 
           @click="e => {
             doSaveDependent('data', { ...newRecord }, 'dependentInfo', null, true);
-            setAddDependent();
           }"
         >
           <v-icon 
@@ -363,8 +362,8 @@
       </v-card-title>
     </v-card>
 
-    <v-btn v-if="!addDependent" color="info" @click="setAddDependent">Add dependent</v-btn>
-    <v-btn v-else color="info" @click="setAddDependent">Cancel</v-btn>
+    <v-btn v-if="!showAdd" color="info" @click="setClose">Add dependent</v-btn>
+    <v-btn v-else color="info" @click="setClose">Cancel</v-btn>
 
     <confirm-dialog ref="confirm"></confirm-dialog>
   </div>
@@ -377,7 +376,7 @@ import { mapGetters } from "vuex";
 
 export default {
   data: () => ({
-    addDependent: false,
+    showAdd: false,
     birth_date_menu: false,
     birth_date_menu_add: false,
     current_menu: null,
@@ -432,7 +431,7 @@ export default {
     changeCurrentMenu(id) {
       this.current_menu = id;
     },
-    setAddDependent() {
+    setClose() {
       this.newRecord = {
         first_name: null,
         last_name: null,
@@ -445,7 +444,7 @@ export default {
       };
       this.picker = new Date().toISOString().slice(0, 10),
       this.birth_date_menu_add = false;
-      this.addDependent = !this.addDependent;
+      this.showAdd = !this.showAdd;
     },
     deleteRecord(idToDelete) {
 
