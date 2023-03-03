@@ -66,13 +66,13 @@
           </div>
           <div class="col-md-3">
             <v-autocomplete outlined dense background-color="white" hide-details label="City" item-value="id"
-              item-text="description" :items="[{id: null, description: 'No choice'}, ...cityOptions]" v-model="student.permanentAddress.city_id" @change="
+              item-text="description" :items="cityOptions" v-model="student.permanentAddress.city_id" @change="
                 doSaveStudent('city_id', student.permanentAddress.city_id, 'addressInfo', student.permanentAddress.id, 'permanent')
               "></v-autocomplete>
           </div>
           <div class="col-md-3">
             <v-autocomplete outlined dense background-color="white" hide-details label="Province"
-              :items="[{id: null, description: 'No choice'}, ...provinceOptions]" item-value="id" item-text="description"
+              :items="provinceOptions" item-value="id" item-text="description"
               v-model="student.permanentAddress.province_id" @change="
                 doSaveStudent(
                   'province_id',
@@ -92,7 +92,7 @@
               "></v-text-field>
           </div>
           <div class="col-md-3">
-            <v-autocomplete outlined dense background-color="white" hide-details label="Country" :items="[{id: null, description: 'No choice'}, ...countryOptions]"
+            <v-autocomplete outlined dense background-color="white" hide-details label="Country" :items="countryOptions"
               item-value="id" item-text="description" v-model="student.permanentAddress.country_id" @change="
                 doSaveStudent('country_id', student.permanentAddress.country_id, 'addressInfo', student.permanentAddress.id, 'permanent')
               "></v-autocomplete>
@@ -209,7 +209,6 @@
     </v-card>
   </div>
 </template>
-
 <script>
 import axios from "axios";
 import store from "../../store";
