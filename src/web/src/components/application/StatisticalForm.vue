@@ -5,19 +5,18 @@
       <v-card-text>
         <div class="row">
           <div class="col-md-6">
-            <!-- {{application}} -->
             <v-select
               outlined
               dense
-              background-color="#ffaaaa"
+              background-color="white"
               hide-details
               label="Marital status"
-              v-model="application.MARITAL_STATUS_ID"
-              item-text="DESCRIPTION"
-              item-value="MARITAL_STATUS_ID"
-              :items="maritalOptions"
+              v-model="application.marital_status_id"
+              item-text="description"
+              item-value="id"
+              :items="maritalStatusList"
               @change="
-                doSaveApp('MARITAL_STATUS_ID', application.MARITAL_STATUS_ID)
+                doSaveApp('marital_status_id', application.marital_status_id)
               "
             ></v-select>
           </div>
@@ -26,7 +25,7 @@
               outlined
               dense
               hide-details
-              background-color="#ffaaaa"
+              background-color="white"
               label="Disabled"
               v-model="application.DISABLED_FLAG"
               :items="[
@@ -43,7 +42,7 @@
               outlined
               dense
               hide-details
-              background-color="#ffaaaa"
+              background-color="white"
               label="Visible minority"
               v-model="application.MINORITY_FLAG"
               :items="[
@@ -60,7 +59,7 @@
             <v-select
               outlined
               dense
-              background-color="#ffaaaa"
+              background-color="white"
               hide-details
               label="Citizenship"
               v-model="application.CITIZENSHIP_STATUS"
@@ -71,20 +70,21 @@
             ></v-select>
           </div>
           <div class="col-md-6">
+            {{application.aborigal_status_id}}
             <v-select
               outlined
               dense
-              background-color="#ffaaaa"
+              background-color="white"
               hide-details
               label="Aboriginal status"
-              v-model="application.ABORIGINAL_STATUS_ID"
-              item-text="DESCRIPTION"
-              item-value="ABORIGINAL_STATUS_ID"
-              :items="aboriginalStatusOptions"
+              v-model="application.aboriginal_status_id"
+              item-text="description"
+              item-value="id"
+              :items="aboriginalStatusList"
               @change="
                 doSaveApp(
-                  'ABORIGINAL_STATUS_ID',
-                  application.ABORIGINAL_STATUS_ID
+                  'aboriginal_status_id',
+                  application.aboriginal_status_id
                 )
               "
             ></v-select>
@@ -94,16 +94,16 @@
             <v-select
               outlined
               dense
-              background-color="#ffaaaa"
+              background-color="white"
               hide-details
               label="Yukon First Nation"
-              v-model="application.FIRST_NATION_ID"
-              item-text="FIRST_NATION_DESC"
-              item-value="FIRST_NATION_ID"
-              :items="firstNationOptions"
+              v-model="application.first_nation_id"
+              item-text="description"
+              item-value="id"
+              :items="firstNations"
               clearable
               @change="
-                doSaveApp('FIRST_NATION_ID', application.FIRST_NATION_ID)
+                doSaveApp('first_nation_id', application.first_nation_id)
               "
             ></v-select>
           </div>
@@ -115,11 +115,11 @@
 
 <script>
 import store from "../../store";
-import axios from "axios";
-import { ABORIGINAL_STATUS_URL, FIRST_NATIONS_URL, MARITAL_URL } from "../../urls";
+import { mapGetters } from 'vuex';
 
 export default {
   computed: {
+    ...mapGetters(["maritalStatusList", "aboriginalStatusList", "firstNations"]),
     application: function () {
       return store.getters.selectedApplication;
     },
@@ -137,9 +137,9 @@ export default {
     ],
   }),
   async created() {
-    this.loadAboriginalStatus();
-    this.loadFirstNations();
-    this.loadMarital();
+    store.dispatch("setMaritalStatusList");
+    store.dispatch("setAboriginalStatusList");
+    store.dispatch("setFirstNations");
     //this.updateView(this.application);
   },
   methods: {
@@ -152,21 +152,6 @@ export default {
       this.visible_minority = application.MINORITY_FLAG;
     },
  */
-    loadAboriginalStatus() {
-      axios.get(ABORIGINAL_STATUS_URL).then((resp) => {
-        this.aboriginalStatusOptions = resp.data;
-      });
-    },
-    loadFirstNations() {
-      axios.get(FIRST_NATIONS_URL).then((resp) => {
-        this.firstNationOptions = resp.data;
-      });
-    },
-    loadMarital() {
-      axios.get(MARITAL_URL).then((resp) => {
-        this.maritalOptions = resp.data;
-      });
-    },
     doSaveStudent(field, value) {
       store.dispatch("updateStudent", [field, value, this]);
     },

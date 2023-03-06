@@ -67,3 +67,4 @@ export const ABORIGINAL_STATUS =`${config.apiBaseUrl}/api/v2/admin/aboriginal-st
 export const DISABILITY_SERVICE =`${config.apiBaseUrl}/api/v2/admin/disability-service`;
 export const STUDY_AREA =`${config.apiBaseUrl}/api/v2/admin/study-area`;
 export const RELATIONSHIP =`${config.apiBaseUrl}/api/v2/admin/relationship`;
+export const PROGRAM =`${config.apiBaseUrl}/api/v2/admin/program`;
