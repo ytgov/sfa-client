@@ -34,6 +34,7 @@ import { disabilityTypeRouter } from "./disability-type-router";
 import { disabilityServiceRouter } from "./disability-service-router";
 import { studyAreaRouter } from "./study-area-router";
 import { relationshipRouter } from "./relationship-router";
+import { programRouter } from "./program-router";
 import { RequireServerAuth, RequireAdmin } from "../auth";
 
 export const adminRouter = express.Router();
@@ -74,3 +75,4 @@ adminRouter.use("/aboriginal-status", aboriginalStatusRouter);
 adminRouter.use("/disability-service", disabilityServiceRouter);
 adminRouter.use("/study-area", studyAreaRouter);
 adminRouter.use("/relationship", relationshipRouter);
+adminRouter.use("/program", programRouter);
