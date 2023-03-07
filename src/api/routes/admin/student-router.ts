@@ -297,6 +297,15 @@ studentRouter.get("/:id",
                 const person = await db("sfa.person").where({ id: student.person_id }).first();
 
                 if (person) {
+                    const applicationInfo = await db("sfa.application")
+                        .innerJoin("sfa.institution_campus", "application.institution_campus_id", "institution_campus.id")
+                        .innerJoin("sfa.institution", "institution.id", "institution_campus.institution_id")
+                        .select("application.*").select("institution.name as institution_name")
+                        .where({ student_id: id }).orderBy("academic_year_id", "desc");
+
+                    for (let item of applicationInfo) {
+                        item.title = `${item.academic_year_id}: ${item.institution_name}`;
+                    }
 
                     const consentInfo = await db("sfa.student_consent")
                         .where({ student_id: id });
@@ -383,6 +392,7 @@ studentRouter.get("/:id",
                         consent_info: consentInfo,
                         dependent_info: dependentInfo,
                         residence_info: residenceInfo,
+                        applications: applicationInfo,
                         id: student.id
                     };
 

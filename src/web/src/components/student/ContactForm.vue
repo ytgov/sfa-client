@@ -216,11 +216,6 @@ import { CITY_URL, COUNTRY_URL, PROVINCE_URL } from "../../urls";
 import { mapState } from "vuex";
 import validator from "@/validator";
 
-function myFunc() {
-  console.log(this);
-  if (this.value.length > 12) this.value = this.value.slice(0, 12);
-}
-
 export default {
   computed: {
     ...mapState(["selectedStudent"]),
