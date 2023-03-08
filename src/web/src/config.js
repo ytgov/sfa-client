@@ -22,7 +22,7 @@ export const sections = [
         makeUrl: function(id) { return `/application/${id}/personal` }
     },
     {
-        name: "Assessment & Status",
+        name: "Funding Status",
         icon: "mdi-clipboard-check-outline",
         makeUrl: function(id) { return `/application/${id}/status` }
     },
