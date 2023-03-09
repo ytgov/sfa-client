@@ -24,8 +24,6 @@ export function ReturnValidationErrorsCustomMessage(req: Request, res: Response,
 	const errors: any = validationResult(req);
 	
 	if (!errors.isEmpty()) {
-		console.log(errors.errors);
-		
 		return res.status(400).json({ messages: [{ variant: "error", text: errors.errors[0].msg }] });
 	}
 

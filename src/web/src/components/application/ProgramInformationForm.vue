@@ -8,11 +8,12 @@
             <v-select
               outlined
               dense
-              background-color="#ffaaaa"
+              background-color="white"
               hide-details
               label="Academic year"
               :items="yearOptions"
-              v-model="application.ACADEMIC_YEAR"
+              v-model="application.academic_year_id"
+              @change="doSaveApp('academic_year_id', application.academic_year_id)"
             ></v-select>
           </div>
 
@@ -20,13 +21,14 @@
             <v-autocomplete
               outlined
               dense
-              background-color="#ffaaaa"
+              background-color="white"
               hide-details
               label="Institution"
-              v-model="application.INSTITUTION_ID"
+              v-model="application.institution_campus_id"
               :items="institutionOptions"
-              item-text="NAME"
-              item-value="INSTITUTION_ID"
+              item-text="name"
+              item-value="id"
+              @change="doSaveApp('institution_campus_id', application.institution_campus_id)"
             ></v-autocomplete>
           </div>
 
@@ -34,10 +36,12 @@
             <v-text-field
               outlined
               dense
-              background-color="#ffaaaa"
+              background-color="white"
               hide-details
               label="Entering year #"
-              v-model="application.PROGRAM_YEAR"
+              @keypress="validate.isNumber($event)"
+              @change="doSaveApp('program_year', application.program_year)"
+              v-model="application.program_year"
             ></v-text-field>
           </div>
 
@@ -46,10 +50,10 @@
               outlined
               dense
               readonly
-              background-color="#ffaaaa"
+              background-color="white"
               hide-details
               label="Fall classes start date"
-              v-model="selectedInstitution.CLASSES_START_DATE"
+              :value="application.classes_start_date?.slice(0, 10)"
             ></v-text-field>
           </div>
           <div class="col-md-4">
@@ -57,10 +61,10 @@
               outlined
               dense
               readonly
-              background-color="#ffaaaa"
+              background-color="white"
               hide-details
               label="Winter classes end date"
-              v-model="selectedInstitution.CLASSES_END_DATE"
+              :value="application.classes_end_date?.slice(0, 10)"
             ></v-text-field>
           </div>
 
@@ -68,10 +72,11 @@
             <v-text-field
               outlined
               dense
-              background-color="#ffaaaa"
+              background-color="white"
               hide-details
               label="Student number"
-              v-model="application.STUDENT_NUMBER"
+              @keypress="validate.isNumber($event)"
+              v-model="application.student_number"
             ></v-text-field>
           </div>
 
@@ -91,7 +96,7 @@
                         background-color="white"
                         hide-details
                         label="Address"
-                        v-model="selectedInstitution.ADDRESS"
+                        v-model="selectedInstitution.address_line_1"
                         readonly
                       ></v-text-field>
                     </div>
@@ -102,10 +107,10 @@
                         background-color="white"
                         hide-details
                         label="City"
-                        v-model="selectedInstitution.CITY_ID"
-                        :items="cityOptions"
-                        item-value="CITY_ID"
-                        item-text="DESCRIPTION"
+                        v-model="selectedInstitution.address_city_id"
+                        :items="cities"
+                        item-value="id"
+                        item-text="description"
                         readonly
                       ></v-select>
                     </div>
@@ -116,10 +121,10 @@
                         background-color="white"
                         hide-details
                         label="Province"
-                        v-model="selectedInstitution.PROVINCE_ID"
-                        :items="provinceOptions"
-                        item-value="PROVINCE_ID"
-                        item-text="DESCRIPTION"
+                        v-model="selectedInstitution.address_province_id"
+                        :items="provinces"
+                        item-value="id"
+                        item-text="description"
                         readonly
                       ></v-select>
                     </div>
@@ -130,7 +135,7 @@
                         background-color="white"
                         hide-details
                         label="Postal code"
-                        v-model="selectedInstitution.POSTAL_CODE"
+                        v-model="selectedInstitution.address_postal_code"
                         readonly
                       ></v-text-field>
                     </div>
@@ -141,11 +146,11 @@
                         background-color="white"
                         hide-details
                         label="Country"
-                        :items="countryOptions"
-                        v-model="selectedInstitution.COUNTRY_ID"
+                        :items="countries"
+                        v-model="selectedInstitution.address_country_id"
                         readonly
-                        item-value="COUNTRY_ID"
-                        item-text="DESCRIPTION"
+                        item-value="id"
+                        item-text="description"
                       ></v-select>
                     </div>
                     <div class="col-md-12">
@@ -155,7 +160,7 @@
                         background-color="white"
                         hide-details
                         label="Care of"
-                        v-model="selectedInstitution.CARE_OF"
+                        v-model="selectedInstitution.care_of"
                         readonly
                       ></v-text-field>
                     </div>
@@ -168,7 +173,7 @@
                         background-color="white"
                         hide-details
                         label="Inst. code"
-                        v-model="selectedInstitution.INSTITUTION_CODE"
+                        v-model="selectedInstitution.federal_institution_code"
                       ></v-text-field>
                     </div>
 
@@ -180,10 +185,10 @@
                         background-color="white"
                         hide-details
                         label="Inst. level"
-                        v-model="selectedInstitution.INSTITUTION_LEVEL_ID"
-                        :items="institutionLevelOptions"
-                        item-text="DESCRIPTION"
-                        item-value="INSTITUTION_LEVEL_ID"
+                        v-model="selectedInstitution.institution_level_id"
+                        :items="institutionLevels"
+                        item-text="description"
+                        item-value="id"
                       ></v-select>
                     </div>
                     <div class="col-md-4">
@@ -191,7 +196,7 @@
                         outlined
                         dense
                         readonly
-                        background-color="white"
+                        background-color="#ffaaaa"
                         hide-details
                         label="FOS"
                         v-model="selectedInstitution.fos"
@@ -214,36 +219,40 @@
             <v-autocomplete
               outlined
               dense
-              background-color="#ffaaaa"
+              background-color="white"
               hide-details
               label="Program study area"
-              v-model="application.STUDY_AREA_ID"
-              :items="programAreaOptions"
-              item-text="DESCRIPTION"
-              item-value="STUDY_AREA_ID"
+              v-model="application.study_area_id"
+              @change="doSaveApp('study_area_id', application.study_area_id)"
+              :items="studyAreas"
+              item-text="description"
+              item-value="id"
             ></v-autocomplete>
           </div>
           <div class="col-md-4">
             <v-select
               outlined
               dense
-              background-color="#ffaaaa"
+              background-color="white"
               hide-details
               label="Program type"
-              v-model="application.PROGRAM_ID"
-              :items="programTypeOptions"
-              item-text="DESCRIPTION"
-              item-value="PROGRAM_ID"
+              @change="doSaveApp('program_id', application.program_id)"
+              v-model="application.program_id"
+              :items="programs"
+              item-text="description"
+              item-value="id"
             ></v-select>
           </div>
           <div class="col-md-3">
             <v-text-field
               outlined
               dense
-              background-color="#ffaaaa"
+              background-color="white"
               hide-details
+              @change="doSaveApp('program_year_total', application.program_year_total)"
+              @keypress="validate.isNumber($event)"
               label="Duration"
-              v-model="application.PROGRAM_YEAR_TOTAL"
+              v-model="application.program_year_total"
             ></v-text-field>
           </div>
           <div class="col-md-5">
@@ -262,13 +271,14 @@
             <v-select
               outlined
               dense
-              background-color="#ffaaaa"
+              background-color="white"
               hide-details
               label="Student category"
-              v-model="application.CATEGORY_ID"
-              :items="categoryOptions"
-              item-text="DESCRIPTION"
-              item-value="STUDENT_CATEGORY_CODE"
+              @change="doSaveApp('category_id', application.category_id)"
+              v-model="application.category_id"
+              :items="yukonGrantEligibilityList"
+              item-text="description"
+              item-value="id"
             ></v-select>
           </div>
 
@@ -296,21 +306,25 @@
             >
               <template v-slot:activator="{ on, attrs }">
                 <v-text-field
-                  v-model="fall_classes_start"
+                  :value="application.classes_start_date?.slice(0, 10)"
                   label="Fall classes start date"
                   append-icon="mdi-calendar"
                   readonly
                   outlined
                   hide-details
                   dense
-                  background-color="#ffaaaa"
+                  background-color="white"
                   v-bind="attrs"
                   v-on="on"
                 ></v-text-field>
               </template>
               <v-date-picker
-                v-model="fall_classes_start"
-                @input="classes_start_menu = false"
+                :value="application.classes_start_date?.slice(0, 10)"
+                @input="e => {
+                  application.classes_start_date = e;
+                  classes_start_menu = false;
+                }"
+                @change="doSaveApp('classes_start_date', application.classes_start_date)"
               ></v-date-picker>
             </v-menu>
           </div>
@@ -326,21 +340,25 @@
             >
               <template v-slot:activator="{ on, attrs }">
                 <v-text-field
-                  v-model="winter_classes_end"
+                  :value="application.classes_end_date?.slice(0, 10)"
                   label="Winter classes end date"
                   append-icon="mdi-calendar"
                   hide-details
                   readonly
                   outlined
                   dense
-                  background-color="#ffaaaa"
+                  background-color="white"
                   v-bind="attrs"
                   v-on="on"
                 ></v-text-field>
               </template>
               <v-date-picker
-                v-model="winter_classes_end"
-                @input="classes_end_menu = false"
+                :value="application.classes_end_date?.slice(0, 10)"
+                @input="e => {
+                  application.classes_end_date = e;
+                  classes_end_menu = false;
+                }"
+                @change="doSaveApp('classes_end_date', application.classes_end_date)"
               ></v-date-picker>
             </v-menu>
           </div>
@@ -351,7 +369,7 @@
               dense
               hide-details
               label="By correspondence"
-              v-model="application.CORRESPONDENCE_FLAG"
+              v-model="application.is_correspondence"
             ></v-switch>
           </div>
           <div class="col-md-8 pt-0">
@@ -359,6 +377,7 @@
               outlined
               dense
               hide-details
+              background-color="#ffaaaa"
               label="STEP and GRAD Corp data sharing consent"
               v-model="sharing_consent"
             ></v-switch>
@@ -385,6 +404,7 @@
 import store from "../../store";
 import axios from "axios";
 import moment from "moment";
+import validator from "@/validator";
 import {
   INSTITUTION_URL,
   INSTITUTION_LEVEL_URL,
@@ -396,144 +416,73 @@ import {
   PROGRAM_DIVISION_URL,
   CATEGORY_URL,
 } from "../../urls";
+import { mapGetters } from 'vuex';
 
 export default {
   computed: {
+    ...mapGetters(["yearOptions", "countries", "cities", "provinces", "institutionLevels", "studyAreas", "yukonGrantEligibilityList", "programs"]),
     application: function () {
       return store.getters.selectedApplication;
     },
-  },
-  watch: {
-    "application.INSTITUTION_ID": function () {
-      this.selectInstitution();
+    selectedInstitution() {
+      const finded = this.institutionOptions.find(
+        (i) => i.id === this.application.institution_campus_id
+      );
+      return  finded ? finded : {};
     },
   },
   data: () => ({
-    countryOptions: [],
-    provinceOptions: [],
+    validate: {},
     institutionOptions: [],
-    institutionLevelOptions: [],
-    cityOptions: [],
-    yearOptions: [],
 
     programAreaOptions: [],
     programTypeOptions: [],
     programDivisionOptions: [],
-    categoryOptions: ["Option 1", "Option 2"],
     attendanceOptions: ["Full time", "Part time"],
-
-    selectedInstitution: {},
 
     classes_start_menu: null,
     classes_end_menu: null,
 
-    institution: {
-      student_number: "",
-      name: "",
-      address: "",
-      city: "",
-      province: "",
-      postal: "",
-      country: "",
-      care_of: "",
-
-      inst_code: "",
-      inst_level: "",
-      fos: "",
-      classes_start: "",
-      classes_end: "",
-    },
-    student_info: {
-      study_area: "",
-      program_type: "",
-      program_duration: "",
-      enter_year: "",
-      program_division: "",
-      student_category: "",
-      attendance: "",
-    },
-    academic_year: "",
     fall_classes_start: null,
     winter_classes_end: null,
-    by_correspondence: false,
     sharing_consent: false,
   }),
   async created() {
+    this.validate = validator;
     this.loadInstitutions();
-    this.loadCountries();
-    this.loadProvinces();
-    this.loadCities();
-    this.loadPrograms();
-    this.loadCategories();
+    store.dispatch("setYearOptions");
+    store.dispatch("setCountries");
+    store.dispatch("setProvinces");
+    store.dispatch("setCities");
+    store.dispatch("setInstitutionLevels");
+    store.dispatch("setStudyAreas");
+    store.dispatch("setYukonGrantEligibility");
+    store.dispatch("setPrograms");
 
-    this.yearOptions = [];
-
-    let startYear = 1990;
-    let currentYear = moment().year() + 1;
-
-    for (let i = currentYear; i >= startYear; i--) {
-      this.yearOptions.push(`${i}`);
-    }
   },
   methods: {
     loadInstitutions() {
-      axios.get(INSTITUTION_URL).then((resp) => {
-        this.institutionOptions = resp.data;
-        this.selectInstitution();
-      });
-      axios.get(INSTITUTION_LEVEL_URL).then((resp) => {
-        this.institutionLevelOptions = resp.data;
-      });
-    },
-    loadCountries() {
-      axios.get(COUNTRY_URL).then((resp) => {
-        this.countryOptions = resp.data;
-      });
-    },
-    loadProvinces() {
-      axios.get(PROVINCE_URL).then((resp) => {
-        this.provinceOptions = resp.data;
-      });
-    },
-    loadCities() {
-      axios.get(CITY_URL).then((resp) => {
-        this.cityOptions = resp.data;
-      });
+      axios
+        .get(`${INSTITUTION_URL}`)
+        .then((resp) => {
+          this.institutionOptions = resp.data.data
+            .map(data => {
+              const campuses = data.campuses?.map(c => ({ ...c, name: `${c.name} - ${data.name}`, institution_level_id: data.institution_level_id }));
+              return [...campuses];
+            })
+            .flat();
+        })
+        .catch((err) => {
+          console.log(err);
+        });
     },
     loadPrograms() {
-      axios.get(PROGRAM_AREA_URL).then((resp) => {
-        this.programAreaOptions = resp.data;
-      });
-      axios.get(PROGRAM_TYPE_URL).then((resp) => {
-        this.programTypeOptions = resp.data;
-      });
       axios.get(PROGRAM_DIVISION_URL).then((resp) => {
         this.programDivisionOptions = resp.data;
       });
     },
-    loadCategories() {
-      axios.get(CATEGORY_URL).then((resp) => {
-        this.categoryOptions = resp.data;
-      });
-    },
-    selectInstitution() {
-      let filtered = this.institutionOptions.filter(
-        (i) => i.INSTITUTION_ID == this.application.INSTITUTION_ID
-      );
-
-      if (filtered.length > 0) {
-        this.selectedInstitution = filtered[0];
-
-        if (this.selectedInstitution.CLASSES_START_DATE)
-          this.selectedInstitution.CLASSES_START_DATE = moment(
-            this.selectedInstitution.CLASSES_START_DATE
-          ).format("YYYY-MM-DD");
-
-        if (this.selectedInstitution.CLASSES_END_DATE)
-          this.selectedInstitution.CLASSES_END_DATE = moment(
-            this.selectedInstitution.CLASSES_END_DATE
-          ).format("YYYY-MM-DD");
-      } else this.selectedInstitution = {};
+    doSaveApp(field, value) {
+      store.dispatch("updateApplication", [field, value, this]);
     },
   },
 };

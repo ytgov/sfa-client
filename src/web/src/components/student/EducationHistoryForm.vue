@@ -77,19 +77,19 @@
         <template>
           <div class="row" v-for="education, index of student?.education_info" :key="index">
             <div class="col-md-3">
-              <v-autocomplete :disabled="isAdding" outlined dense background-color="white" hide-details
+              <v-autocomplete :disabled="showAdd" outlined dense background-color="white" hide-details
                 label="Institution" v-model="education.institution_campus_id"
                 @change="doSaveEducation('institution_campus_id', education.institution_campus_id, 'educationInfo', education.id)"
                 :items="filteredList" item-text="name" item-value="id"></v-autocomplete>
             </div>
             <div class="col-md-3">
-              <v-autocomplete :disabled="isAdding" outlined dense background-color="white" hide-details label="Study Area"
+              <v-autocomplete :disabled="showAdd" outlined dense background-color="white" hide-details label="Study Area"
                 v-model="education.study_area_id" :items="studyAreaOptions"
                 @change="doSaveEducation('study_area_id', education.study_area_id, 'educationInfo', education.id)"
                 item-text="description" item-value="id"></v-autocomplete>
             </div>
             <div class="col-md">
-              <v-select :disabled="isAdding" outlined dense background-color="white" hide-details label="From Year"
+              <v-select :disabled="showAdd" outlined dense background-color="white" hide-details label="From Year"
                 @change="e => {
                   if (validate.year(education.from_year)) {
                     return doSaveEducation('from_year', education.from_year, 'educationInfo', education.id);
@@ -103,7 +103,7 @@
               </v-select>
             </div>
             <div class="col-md">
-              <v-select :disabled="isAdding" outlined dense background-color="white" hide-details label="From Month"
+              <v-select :disabled="showAdd" outlined dense background-color="white" hide-details label="From Month"
                 @change="e => {
                   if (validate.month(education.from_month)) {
                     return doSaveEducation('from_month', education.from_month, 'educationInfo', education.id);
@@ -118,7 +118,7 @@
               </v-select>
             </div>
             <div class="col-md">
-              <v-select :disabled="isAdding" outlined dense background-color="white" hide-details label="To Year"
+              <v-select :disabled="showAdd" outlined dense background-color="white" hide-details label="To Year"
                 @change="e => {
                   if (validate.year(education.to_year)) {
                     return doSaveEducation('to_year', education.to_year, 'educationInfo', education.id);
@@ -133,7 +133,7 @@
               </v-select>
             </div>
             <div class="col-md">
-              <v-select :disabled="isAdding" outlined dense background-color="white" hide-details label="To Month"
+              <v-select :disabled="showAdd" outlined dense background-color="white" hide-details label="To Month"
                 @change="e => {
                   if (validate.month(education.to_month)) {
                     return doSaveEducation('to_month', education.to_month, 'educationInfo', education.id);
@@ -149,7 +149,7 @@
             </div>
 
             <div class="col-md">
-              <v-btn :disabled="isAdding" color="red" class="my-0" @click="deleteRecord(education.id)">
+              <v-btn :disabled="showAdd" color="red" class="my-0" @click="deleteRecord(education.id)">
                 <v-icon color="white font-weight-thin" size="21">
                   {{ 'mdi-trash-can-outline' }}
                 </v-icon>
@@ -160,7 +160,7 @@
         </template>
       </v-card-text>
 
-      <v-card-text v-if="isAdding">
+      <v-card-text v-if="showAdd">
         <div class="row">
           <div class="col-md-3">
             <v-autocomplete outlined dense background-color="white" hide-details label="Institution"
@@ -202,7 +202,7 @@
         </div>
         <div class="row justify-end">
           <div class="col-md-2">
-            <v-btn color="red" class="my-0" @click="showAddRegistry">
+            <v-btn color="red" class="my-0" @click="setClose">
               <v-icon color="white font-weight-thin" size="21">
                 {{ 'mdi-close' }}
               </v-icon>
@@ -210,7 +210,6 @@
             <v-btn color="success" class="my-0 ml-5"
               @click="e => {
                 doSaveEducation('data', { ...newRegister }, 'educationInfo', null, true);
-                showAddRegistry();
               }"
             >
               <v-icon color="white font-weight-thin" size="21">
@@ -222,8 +221,8 @@
       </v-card-text>
     </v-card>
 
-    <v-btn color="primary" class="my-0 float-left" @click="showAddRegistry">
-      <template v-if="!isAdding">
+    <v-btn color="primary" class="my-0 float-left" @click="setClose">
+      <template v-if="!showAdd">
         <v-icon>mdi-plus</v-icon> Add
       </template>
       <template v-else>
@@ -260,7 +259,7 @@ export default {
     },
   },
   data: () => ({
-    isAdding: false,
+    showAdd: false,
     validate: {},
     countryOptions: [],
     provinceOptions: [],
@@ -314,8 +313,8 @@ export default {
     },
   },
   methods: {
-    showAddRegistry() {
-      if (this.isAdding) {
+    setClose() {
+      if (this.showAdd) {
         this.newRegister = {
           institution_campus_id: null,
           study_area_id: null,
@@ -325,7 +324,7 @@ export default {
           to_month: null,
         };
       }
-      this.isAdding = !this.isAdding;
+      this.showAdd = !this.showAdd;
     },
     loadInstitutions() {
       this.isLoading = true;

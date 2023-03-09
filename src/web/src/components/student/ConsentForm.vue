@@ -45,7 +45,7 @@
       </v-card>
     </div>
 
-    <v-card class="default mb-5" v-if="showAddContent">
+    <v-card class="default mb-5" v-if="showAdd">
       <v-card-title>Add Consent</v-card-title>
       <v-card-text>
         <div class="row">
@@ -80,14 +80,13 @@
 
       <v-card-title>
         <v-spacer></v-spacer>
-        <v-btn color="red" class="my-0" @click="showAddConsent">
+        <v-btn color="red" class="my-0" @click="setClose">
           <v-icon color="white font-weight-thin" size="21">
             {{ 'mdi-close' }}
           </v-icon>
         </v-btn>
         <v-btn color="success" class="my-0 ml-5" @click="e => {
           doSaveConsent('data', { ...newRegister }, 'consentInfo', null, true);
-          showAddConsent();
         }">
           <v-icon color="white font-weight-thin" size="21">
             {{ 'mdi-content-save' }}
@@ -96,21 +95,19 @@
       </v-card-title>
     </v-card>
 
-    <v-btn color="info" @click="showAddConsent" v-if="!showAddContent">Add Consent Person</v-btn>
-    <v-btn color="info" @click="showAddConsent" v-else>Cancel</v-btn>
+    <v-btn color="info" @click="setClose" v-if="!showAdd">Add Consent Person</v-btn>
+    <v-btn color="info" @click="setClose" v-else>Cancel</v-btn>
     <confirm-dialog ref="confirm"></confirm-dialog>
   </div>
 </template>
-
 <script>
 import store from "../../store";
-import moment from "moment";
 import validator from "@/validator";
 import _ from "lodash";
 
 export default {
   data: () => ({
-    showAddContent: false,
+    showAdd: false,
     newRegister: {
       consent_sfa: null,
       consent_csl: null,
@@ -129,9 +126,9 @@ export default {
   },
   async created() { },
   methods: {
-    showAddConsent() {
+    setClose() {
 
-      if (this.showAddContent) {
+      if (this.showAdd) {
         this.newRegister = {
           consent_sfa: null,
           consent_csl: null,
@@ -141,7 +138,7 @@ export default {
         }
       }
 
-      this.showAddContent = !this.showAddContent;
+      this.showAdd = !this.showAdd;
 
     },
     deleteRecord(idToDelete) {
@@ -158,10 +155,6 @@ export default {
         () => { }
       );
 
-    },
-    doSaveConsentxxx(value) {
-      let body = _.clone(value);
-      store.dispatch("updateConsent", [body, this]);
     },
     doSaveConsent(field, value, type, extraId = null, isInsertion = false) {
       if (isInsertion) {
