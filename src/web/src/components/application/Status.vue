@@ -4,20 +4,8 @@
     <div class="col-md-12">
       <v-card class="default mb-5" v-for="item, index in application.funding_requests" :key="index">
         <v-card-text>
-          <v-card-title class="mb-5">Funding Request {{ index + 1 }}
-            <v-spacer></v-spacer>
-            <v-btn
-              :disabled="showAdd"
-              color="warning" 
-              x-small 
-              fab class="my-0"
-              @click="removeRecord(item.id)"
-            >
-              <v-icon>mdi-close</v-icon>
-            </v-btn>
-          </v-card-title>
           <div class="row">
-            <div class="col-md-6">
+            <div class="col-md-4">
               <v-select
                 :disabled="showAdd"
                 outlined
@@ -32,7 +20,7 @@
                 item-value="REQUEST_TYPE_ID"
               ></v-select>
             </div>
-            <div class="col-md-3">
+            <div class="col-md-2">
               <v-menu
                 :disabled="showAdd"
                 v-model="item.received_date_menu"
@@ -66,15 +54,51 @@
                 ></v-date-picker>
               </v-menu>
             </div>
-
-            <div class="col-md-3">
+            <div class="col-md-2">
+              <v-btn 
+                :disabled="showAdd"
+                dense
+                color="blue" 
+                class="my-0"
+                block
+              >
+                Assessment
+              </v-btn>
+          </div>
+            <div class="col-md-2">
+              <v-btn 
+                :disabled="showAdd"
+                dense
+                color="success" 
+                class="my-0"
+                block
+              >
+                  Print Letter
+              </v-btn>
+          </div>
+            <div class="col-md-2">
+              <v-btn 
+                :disabled="showAdd"
+                dense
+                color="error" 
+                class="my-0"
+                block
+                @click="removeRecord(item.id)"
+              >
+                  Remove
+              </v-btn>
+          </div>
+            
+          </div>
+          <div class="row">
+            <div class="col-md-4">
               <v-select
                 :disabled="showAdd"
                 outlined
                 dense
                 background-color="white"
                 hide-details
-                label="Status"
+                label="Funding Status"
                 @change="updateFundingRequest({ status_id: item.status_id }, item.id)"
                 v-model="item.status_id"
                 :items="statusOptions"
@@ -82,24 +106,7 @@
                 item-value="STATUS_ID"
               ></v-select>
             </div>
-          </div>
-          <div class="row">
-            <div class="col-md-3">
-              <v-autocomplete
-                :disabled="showAdd"
-                outlined
-                dense
-                background-color="white"
-                hide-details
-                label="Reason"
-                @change="updateFundingRequest({ status_reason_id: item.status_reason_id }, item.id)"
-                v-model="item.status_reason_id"
-                :items="reasonOptions"
-                item-text="DESCRIPTION"
-                item-value="STATUS_REASON_ID"
-              ></v-autocomplete>
-            </div>
-            <div class="col-md-3">
+            <div class="col-md-2">
               <v-menu
                 :disabled="showAdd"
                 v-model="item.status_date_menu"
@@ -134,17 +141,19 @@
               </v-menu>
             </div>
             <div class="col-md-6">
-              <v-textarea
+              <v-autocomplete
                 :disabled="showAdd"
                 outlined
                 dense
                 background-color="white"
                 hide-details
-                @change="updateFundingRequest({ comments: item.comments }, item.id)"
-                v-model="item.comments"
-                label="Custom reason"
-              >
-              </v-textarea>
+                label="Reason"
+                @change="updateFundingRequest({ status_reason_id: item.status_reason_id }, item.id)"
+                v-model="item.status_reason_id"
+                :items="reasonOptions"
+                item-text="DESCRIPTION"
+                item-value="STATUS_REASON_ID"
+              ></v-autocomplete>
             </div>
           </div>
 
@@ -152,9 +161,8 @@
       </v-card>
       <v-card class="default" v-if="showAdd">
         <v-card-text>
-          <v-card-title class="mb-2">Add Funding Request</v-card-title>
           <div class="row">
-            <div class="col-md-6">
+            <div class="col-md-4">
               <v-select
                 outlined
                 dense
@@ -167,7 +175,7 @@
                 item-value="REQUEST_TYPE_ID"
               ></v-select>
             </div>
-            <div class="col-md-3">
+            <div class="col-md-2">
               <v-menu
                 v-model="newRecord.received_date_menu"
                 :close-on-content-click="false"
@@ -197,36 +205,49 @@
                 ></v-date-picker>
               </v-menu>
             </div>
+            <div class="col-md-2">
 
-            <div class="col-md-3">
+            </div>
+            <div class="col-md-2">
+              <v-btn
+                dense
+                color="success" 
+                class="my-0"
+                block
+                @click="e => {
+                  addFundingRequest();
+                }"
+              >
+                  Save
+              </v-btn>
+            </div>
+            <div class="col-md-2">
+              <v-btn
+                dense
+                color="error" 
+                class="my-0"
+                block
+                @click="setClose"
+              >
+                  Cancel
+              </v-btn>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-4">
               <v-select
                 outlined
                 dense
                 background-color="white"
                 hide-details
-                label="Status"
+                label="Funding Status"
                 v-model="newRecord.status_id"
                 :items="statusOptions"
                 item-text="DESCRIPTION"
                 item-value="STATUS_ID"
               ></v-select>
             </div>
-          </div>
-          <div class="row">
-            <div class="col-md-3">
-              <v-autocomplete
-                outlined
-                dense
-                background-color="white"
-                hide-details
-                label="Reason"
-                v-model="newRecord.status_reason_id"
-                :items="reasonOptions"
-                item-text="DESCRIPTION"
-                item-value="STATUS_REASON_ID"
-              ></v-autocomplete>
-            </div>
-            <div class="col-md-3">
+            <div class="col-md-2">
               <v-menu
                 v-model="newRecord.status_date_menu"
                 :close-on-content-click="false"
@@ -257,33 +278,17 @@
               </v-menu>
             </div>
             <div class="col-md-6">
-              <v-textarea
+              <v-autocomplete
                 outlined
                 dense
                 background-color="white"
                 hide-details
-                label="Custom reason"
-                v-model="newRecord.comments"
-              >
-              </v-textarea>
-            </div>
-          </div>
-          <div class="row justify-end">
-            <div class="col-md-2">
-              <v-btn color="red" class="my-0" @click="setClose">
-                <v-icon color="white font-weight-thin" size="21">
-                  {{ 'mdi-close' }}
-                </v-icon>
-              </v-btn>
-              <v-btn color="success" class="my-0 ml-5"
-                @click="e => {
-                  addFundingRequest();
-                }"
-              >
-                <v-icon color="white font-weight-thin" size="21">
-                  {{ 'mdi-content-save' }}
-                </v-icon>
-              </v-btn>
+                label="Reason"
+                v-model="newRecord.status_reason_id"
+                :items="reasonOptions"
+                item-text="DESCRIPTION"
+                item-value="STATUS_REASON_ID"
+              ></v-autocomplete>
             </div>
           </div>
         </v-card-text>
@@ -342,7 +347,6 @@ export default {
       status_id: null,
       status_reason_id: null,
       status_date: null,
-      comments: null,
       status_date_menu: false,
       received_date_menu: false,
     },
@@ -370,7 +374,6 @@ export default {
       status_id: null,
       status_reason_id: null,
       status_date: null,
-      comments: null,
       status_date_menu: false,
       received_date_menu: false,
     };
