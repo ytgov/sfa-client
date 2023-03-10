@@ -3,16 +3,14 @@
     <h1>Application Basics</h1>
 
     <v-tabs v-model="tab" background-color="#fff2d5" color="primary">
-      <v-tab key="0">Academic Year</v-tab>
-      <v-tab key="1">Demographics</v-tab>
-      <v-tab key="5">YEA Info</v-tab>
-      <v-tab key="6">Yukon Grant/STA Info</v-tab>
-      <v-tab key="7">Parent Info</v-tab>
-      <v-tab key="8">Spouse</v-tab>
-      <v-tab key="9">CSL Info</v-tab>
+      <v-tab key="0">Program</v-tab>
+      <v-tab key="1">Residence History</v-tab>
+      <v-tab key="2">Education</v-tab>
+      <v-tab key="3">Demographics</v-tab>
     </v-tabs>
 
     <v-tabs-items v-model="tab" style="padding: 20px">
+
       <v-tab-item key="0">
         <academic-year></academic-year>
         <program-information-form
@@ -20,46 +18,34 @@
           v-on:showError="showError"
         ></program-information-form>
       </v-tab-item>
+
       <v-tab-item key="1">
-        <statistical-form
+        <ResidenceHistoryForm 
           v-on:showSuccess="showSuccess"
           v-on:showError="showError"
-        ></statistical-form>
+        >
+        </ResidenceHistoryForm>
       </v-tab-item>
-      <v-tab-item key="2"> </v-tab-item>
-      <v-tab-item key="3"> </v-tab-item>
-      <v-tab-item key="5"
-        ><yea-info-form
+
+      <v-tab-item key="2">
+        <EducationForm 
           v-on:showSuccess="showSuccess"
           v-on:showError="showError"
-        ></yea-info-form
-      ></v-tab-item>
-      <v-tab-item key="6"
-        ><yg-sta-info-form
-          v-on:showSuccess="showSuccess"
-          v-on:showError="showError"
-        ></yg-sta-info-form
-      ></v-tab-item>
-      <v-tab-item key="7">
-        <parent-info-form
-          v-on:showSuccess="showSuccess"
-          v-on:showError="showError"
-        ></parent-info-form>
-        <hr class="mt-5 mb-2" />
-        <h2>Dependents</h2>
-        <parent-dependents-form
-          v-on:showSuccess="showSuccess"
-          v-on:showError="showError"
-        ></parent-dependents-form>
+        >
+        </EducationForm>
       </v-tab-item>
-      <v-tab-item key="8">
+      
+      <v-tab-item key="3">
+        <StatisticalForm 
+          v-on:showSuccess="showSuccess"
+          v-on:showError="showError"
+        >
+        </StatisticalForm>
       </v-tab-item>
-      <v-tab-item key="9">
-      </v-tab-item>
+  
     </v-tabs-items>
   </div>
 </template>
-
 <script>
 import { mapState } from "vuex";
 import store from "../../store";
@@ -68,6 +54,8 @@ import ParentInfoForm from "./ParentInfoForm.vue";
 import ProgramInformationForm from "./ProgramInformationForm.vue";
 import StatisticalForm from "./StatisticalForm.vue";
 import AcademicYear from './AcademicYear.vue';
+import ResidenceHistoryForm from './ResidenceHistoryForm.vue';
+import EducationForm from './EducationForm.vue';
 
 export default {
   components: {
@@ -75,6 +63,8 @@ export default {
     StatisticalForm,
     ParentDependentsForm,
     ParentInfoForm,
+    ResidenceHistoryForm,
+    EducationForm,
   },
   name: "Home",
     AcademicYear,

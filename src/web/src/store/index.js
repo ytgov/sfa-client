@@ -192,6 +192,9 @@ export default new Vuex.Store({
             if (emitter?.setClose && emitter.showAdd) {
               emitter.setClose();
             }
+            if (!emitter?.filteredList) {
+              emitter.newRecord = {};
+            }
           } else {
             emitter.$emit("showError", message.text);
           }
