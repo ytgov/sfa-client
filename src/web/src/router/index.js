@@ -13,6 +13,7 @@ import AdministrationHome from "../views/Administration/AdministrationHome";
 import Search from "../views/Search";
 
 import ApplicationDetails from "../components/application/ApplicationDetails";
+import FamilyInfo from "../components/application/family-info/FamilyInfo";
 import StudentDetails from "../components/student/StudentDetails";
 import Status from "../components/application/Status";
 import AcademicYear from "../components/application/AcademicYear";
@@ -75,6 +76,14 @@ const routes = [
     path: "/application/:id/personal",
     name: "ApplicationDetails",
     component: ApplicationDetails,
+    meta: {
+      requiresAuth: true
+    }
+  },
+  {
+    path: "/application/:id/family-info",
+    name: "FamilyInfo",
+    component: FamilyInfo,
     meta: {
       requiresAuth: true
     }

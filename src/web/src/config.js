@@ -17,20 +17,25 @@ export const sections = [
         makeUrl: function(id) { return `/application/${id}/personal` }
     }, */
     {
-        name: "Application Basics",
-        icon: "mdi-clipboard-text",
-        makeUrl: function(id) { return `/application/${id}/personal` }
-    },
-    {
         name: "Funding Status",
         icon: "mdi-clipboard-check-outline",
         makeUrl: function(id) { return `/application/${id}/status` }
     },
     {
-        name: "Academic Year",
-        icon: "mdi-school",
-        makeUrl: function(id) { return `/application/${id}/academic-year` }
+        name: "Application Basics",
+        icon: "mdi-clipboard-text",
+        makeUrl: function(id) { return `/application/${id}/personal` }
     },
+    {
+        name: "Family Info",
+        icon: "",
+        makeUrl: function(id) { return `/application/${id}/family-info` }
+    },
+    // {
+    //     name: "Academic Year",
+    //     icon: "mdi-school",
+    //     makeUrl: function(id) { return `/application/${id}/academic-year` }
+    // },
     {
         name: "SFA Funding Requests",
         icon: "mdi-currency-usd",
