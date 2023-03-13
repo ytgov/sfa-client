@@ -17,8 +17,8 @@ import FamilyInfo from "../components/application/family-info/FamilyInfo";
 import StudentDetails from "../components/student/StudentDetails";
 import Status from "../components/application/Status";
 import AcademicYear from "../components/application/AcademicYear";
-import SFAFundingRequests from "../components/application/SFAFundingRequests";
-import ScholarshipApplications from "../components/application/ScholarshipApplications";
+import SFAFundingRequests from "../components/application/sfa-funding-requests/SFAFundingRequests";
+import ScholarshipApplications from "../components/application/sfa-funding-requests/scholarships/ScholarshipApplications";
 import CSLFundingRequests from "../components/application/CSLFundingRequests";
 import Documentation from "../components/application/Documentation";
 
