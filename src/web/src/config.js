@@ -28,7 +28,7 @@ export const sections = [
     },
     {
         name: "Family Info",
-        icon: "",
+        icon: "mdi-human-male-female",
         makeUrl: function(id) { return `/application/${id}/family-info` }
     },
     // {
@@ -48,9 +48,8 @@ export const sections = [
     },
     {
         name: "CSL Funding Requests",
-        url: "/application/1234/csl-funding-requests",
         icon: "mdi-account-cash",
-        makeUrl: function(id) { return `/application/${id}/csl-funding-requests` }
+        makeUrl: function(id) { return `/application/${id}/csfa-funding-requests` }
     },
     {
         name: "Documentation",

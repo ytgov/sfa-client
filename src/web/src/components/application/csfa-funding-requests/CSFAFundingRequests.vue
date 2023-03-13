@@ -3,49 +3,40 @@
     <h1>CSL Funding Requests</h1>
 
     <v-tabs v-model="tab" background-color="#fff2d5" color="primary">
-      <v-tab key="0">CSL Full-Time</v-tab>
-      <v-tab key="1">CSL Part-Time</v-tab>
+      <v-tab key="0">CSFA Full-Time</v-tab>
+      <v-tab key="1">CSFA Part-Time</v-tab>
       <v-tab key="2">CSG Disability</v-tab>
-      <v-tab key="3">Credit Check</v-tab>
-      <v-tab key="4">Accommodation</v-tab>
-      <v-tab key="5">Expenses</v-tab>
-      <v-tab key="6">Income</v-tab>
     </v-tabs>
 
     <v-tabs-items v-model="tab" style="padding: 20px">
+
       <v-tab-item key="0">
-        <csl-fulltime></csl-fulltime>
+        <CSFAFullTime></CSFAFullTime>
       </v-tab-item>
       <v-tab-item key="1">
-        <csl-parttime></csl-parttime>
+        <CSFAPartTime></CSFAPartTime>
       </v-tab-item>
       <v-tab-item key="2">
-        <csg-disability></csg-disability>
+        <CSGDisabilityForm></CSGDisabilityForm>
       </v-tab-item>
-      <v-tab-item key="3">
-        <credit-check></credit-check>
-      </v-tab-item>
-      <v-tab-item key="4">
-        <accommodation></accommodation>
-      </v-tab-item>
-      <v-tab-item key="5">
-        <h2>Pre-Study Expenses</h2>
-        <prestudy-expenses></prestudy-expenses>
-        <h2>Study Expenses</h2>
-        <study-expenses></study-expenses>
-      </v-tab-item>
-      <v-tab-item key="6">
-        <study-income></study-income>
-      </v-tab-item>
+     
     </v-tabs-items>
   </div>
 </template>
 
 <script>
-import store from "../../store";
+import store from "@/store";
+import CSFAFullTime from "./csfa-full-time/CSFAFullTime.vue";
+import CSFAPartTime from "./csfa-part-time/CSFAPartTime.vue";
+import CSGDisabilityForm from "./csg-disability/CSGDisabilityForm.vue";
 
 export default {
   name: "Home",
+  components: {
+    CSFAFullTime,
+    CSFAPartTime,
+    CSGDisabilityForm,
+  },
   data: () => ({
     tab: 0,
     applicationId: -1,

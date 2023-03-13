@@ -23,9 +23,7 @@ import ApplicationDeleteForm from "./components/application/ApplicationDeleteFor
 import CreditCheckForm from "./components/CreditCheckForm";
 import OtherAgencyFundingForm from "./components/OtherAgencyFundingForm";
 
-import CSLFullTimeForm from "./components/CSLFullTimeForm";
 import CSLPartTimeForm from "./components/CSLPartTimeForm";
-import CSGDisabilityForm from "./components/CSGDisabilityForm";
 
 import AccommodationForm from "./components/AccommodationForm";
 
@@ -47,10 +45,7 @@ Vue.component("application-delete", ApplicationDeleteForm);
 Vue.component("credit-check", CreditCheckForm);
 Vue.component("other-funding", OtherAgencyFundingForm);
 
-Vue.component("csl-fulltime", CSLFullTimeForm);
 Vue.component("csl-parttime", CSLPartTimeForm);
-Vue.component("csg-disability", CSGDisabilityForm);
-
 Vue.component("accommodation", AccommodationForm);
 
 Vue.component("prestudy-expenses", PreStudyExpensesForm);
