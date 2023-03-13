@@ -20,18 +20,11 @@ import ApplicationCreateForm from "./components/application/ApplicationCreateFor
 import ApplicationDuplicateForm from "./components/application/ApplicationDuplicateForm";
 import ApplicationDeleteForm from "./components/application/ApplicationDeleteForm";
 
-import CreditCheckForm from "./components/CreditCheckForm";
 import OtherAgencyFundingForm from "./components/OtherAgencyFundingForm";
 
 import CSLPartTimeForm from "./components/CSLPartTimeForm";
 
-import AccommodationForm from "./components/AccommodationForm";
-
-import PreStudyExpensesForm from "./components/PreStudyExpensesForm";
-import StudyExpensesForm from "./components/StudyExpensesForm";
-
 import PreStudyIncomeForm from "./components/PreStudyIncomeForm";
-import StudyIncomeForm from "./components/StudyIncomeForm";
 
 Vue.component("confirm-dialog", ConfirmDialog);
 Vue.component("selected-app-header", SelectedAppHeader);
@@ -42,17 +35,11 @@ Vue.component("application-create", ApplicationCreateForm);
 Vue.component("application-duplicate", ApplicationDuplicateForm);
 Vue.component("application-delete", ApplicationDeleteForm);
 
-Vue.component("credit-check", CreditCheckForm);
 Vue.component("other-funding", OtherAgencyFundingForm);
 
 Vue.component("csl-parttime", CSLPartTimeForm);
-Vue.component("accommodation", AccommodationForm);
-
-Vue.component("prestudy-expenses", PreStudyExpensesForm);
-Vue.component("study-expenses", StudyExpensesForm);
 
 Vue.component("prestudy-income", PreStudyIncomeForm);
-Vue.component("study-income", StudyIncomeForm);
 
 import VueEditableGrid from 'vue-editable-grid';
 import 'vue-editable-grid/dist/VueEditableGrid.css';

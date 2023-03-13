@@ -41,15 +41,20 @@ export const sections = [
         icon: "mdi-currency-usd",
         makeUrl: function(id) { return `/application/${id}/sfa-funding-requests` }
     },
+    // {
+    //     name: "Scholarship Applications",
+    //     icon: "mdi-book",
+    //     makeUrl: function(id) { return `/application/${id}/scholarship-applications` }
+    // },
     {
-        name: "Scholarship Applications",
-        icon: "mdi-book",
-        makeUrl: function(id) { return `/application/${id}/scholarship-applications` }
-    },
-    {
-        name: "CSL Funding Requests",
+        name: "CSFA Funding Requests",
         icon: "mdi-account-cash",
         makeUrl: function(id) { return `/application/${id}/csfa-funding-requests` }
+    },
+    {
+        name: "CSFA Needs Assessment",
+        icon: "mdi-briefcase-check",
+        makeUrl: function(id) { return `/application/${id}/csfa-needs-assessment`}
     },
     {
         name: "Documentation",

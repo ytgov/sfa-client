@@ -20,6 +20,7 @@ import AcademicYear from "../components/application/AcademicYear";
 import SFAFundingRequests from "../components/application/sfa-funding-requests/SFAFundingRequests";
 import ScholarshipApplications from "../components/application/sfa-funding-requests/scholarships/ScholarshipApplications";
 import CSFAFundingRequests from "../components/application/csfa-funding-requests/CSFAFundingRequests";
+import CSFANeedsAssessment from "../components/application/csfa-needs-assessment/CSFANeedsAssessment";
 import Documentation from "../components/application/Documentation";
 
 import StudentModuleRoutes from "@/modules/student/router";
@@ -124,6 +125,14 @@ const routes = [
     path: "/application/:id/csfa-funding-requests",
     name: "CSFAFundingRequests",
     component: CSFAFundingRequests,
+    meta: {
+      requiresAuth: true
+    }
+  },
+  {
+    path: "/application/:id/csfa-needs-assessment",
+    name: "CSFANeedsAssessment",
+    component: CSFANeedsAssessment,
     meta: {
       requiresAuth: true
     }

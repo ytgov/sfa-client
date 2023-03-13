@@ -1,7 +1,7 @@
 <template>
   <div>
     <v-card class="default">
-      <v-card-title>CSL Restriction</v-card-title>
+      <v-card-title>CSFA Restriction</v-card-title>
       <v-card-text>
         <div class="row">
           <div class="col-md-4">
@@ -9,7 +9,8 @@
               class="mb-5"
               outlined
               dense
-              background-color="#ffaaaa"
+              disabled
+              background-color="white"
               hide-details
               label="Restrict / Warning Code"
               v-model="restrict_code"
@@ -17,7 +18,8 @@
             <v-text-field
               outlined
               dense
-              background-color="#ffaaaa"
+              disabled
+              background-color="white"
               hide-details
               label="Type"
               v-model="restrict_type"
@@ -27,7 +29,8 @@
             <v-textarea
               outlined
               dense
-              background-color="#ffaaaa"
+              disabled
+              background-color="white"
               hide-details
               label="Definition"
               v-model="restrict_definition"
@@ -39,7 +42,8 @@
               class="mb-5"
               outlined
               dense
-              background-color="#ffaaaa"
+              disabled
+              background-color="white"
               hide-details
               label="Reason Code"
               v-model="reason_code"
@@ -47,7 +51,8 @@
             <v-text-field
               outlined
               dense
-              background-color="#ffaaaa"
+              disabled
+              background-color="white"
               hide-details
               label="Type"
               v-model="reason_type"
@@ -57,7 +62,8 @@
             <v-textarea
               outlined
               dense
-              background-color="#ffaaaa"
+              disabled
+              background-color="white"
               hide-details
               label="Definition"
               v-model="reason_definition"
@@ -83,7 +89,8 @@
                   readonly
                   outlined
                   dense
-                  background-color="#ffaaaa"
+              disabled
+                  background-color="white"
                   v-bind="attrs"
                   v-on="on"
                 ></v-text-field>
@@ -98,23 +105,20 @@
             <v-textarea
               outlined
               dense
-              background-color="#ffaaaa"
+              disabled
+              background-color="white"
               hide-details
               label="Comment"
               v-model="clearance_comment"
             ></v-textarea>
           </div>
 
-          <div class="col-md-12">
-            <hr />
-            <h4 class="mt-2">Over awards</h4>
-          </div>
-
           <div class="col-md-6">
             <v-text-field
               outlined
               dense
-              background-color="#ffaaaa"
+              disabled
+              background-color="white"
               hide-details
               label="CSL Over awards"
               v-model="over_awards"
@@ -133,7 +137,8 @@
             <v-select
               outlined
               dense
-              background-color="#ffaaaa"
+              disabled
+              background-color="white"
               hide-details
               label="Shcolastic warning code"
               v-model="scholastic_warning_code"
@@ -159,7 +164,8 @@
                   readonly
                   outlined
                   dense
-                  background-color="#ffaaaa"
+              disabled
+                  background-color="white"
                   v-bind="attrs"
                   v-on="on"
                 ></v-text-field>
@@ -177,7 +183,7 @@
 </template>
 
 <script>
-import store from "../../store";
+import store from "@/store";
 
 export default {
   data: () => ({

@@ -9,7 +9,7 @@
             <v-text-field
               outlined
               dense
-              background-color="#ffaaaa"
+              background-color="white"
               hide-details
               label="Estimated tuition fees"
               v-model="tuition_amount"
@@ -21,7 +21,7 @@
             <v-text-field
               outlined
               dense
-              background-color="#ffaaaa"
+              background-color="white"
               hide-details
               label="Books & supplies"
               v-model="book_supplies_amount"
@@ -43,7 +43,7 @@
             <v-select
               outlined
               dense
-              background-color="#ffaaaa"
+              background-color="white"
               hide-details
               label="Expense type"
               v-model="item.expense_type"
@@ -54,7 +54,7 @@
             <v-text-field
               outlined
               dense
-              background-color="#ffaaaa"
+              background-color="white"
               hide-details
               label="Amount"
               v-model="item.amount"
@@ -65,7 +65,7 @@
             <v-text-field
               outlined
               dense
-              background-color="#ffaaaa"
+              background-color="white"
               hide-details
               label="Comment"
               v-model="item.comment"

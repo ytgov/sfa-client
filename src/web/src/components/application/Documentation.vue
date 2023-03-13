@@ -12,7 +12,7 @@
                 <v-select
                   outlined
                   dense
-                  background-color="#ffaaaa"
+                  background-color="white"
                   hide-details
                   label="Documentation"
                   v-model="item.documentation"
@@ -38,7 +38,7 @@
                       readonly
                       outlined
                       dense
-                      background-color="#ffaaaa"
+                      background-color="white"
                       v-bind="attrs"
                       v-on="on"
                     ></v-text-field>
