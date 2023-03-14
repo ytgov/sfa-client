@@ -1,10 +1,62 @@
 <template>
   <div>
     <v-card class="default">
+      <v-card-title>Basic Demographics</v-card-title>
+      <v-card-text>
+        <div class="row">
+          <div class="col-md-3">
+            <v-select
+              outlined
+              dense
+              background-color="white"
+              hide-details
+              label="Language"
+            ></v-select>
+          </div>
+          <div class="col-md-3">
+            <v-select
+              outlined
+              dense
+              background-color="white"
+              hide-details
+              label="Gender"
+            ></v-select>
+          </div>
+          <div class="col-md-3">
+            <v-menu
+                :close-on-content-click="false"
+                transition="scale-transition"
+                left
+                nudge-top="26"
+                offset-y
+                min-width="auto"
+              >
+                <template v-slot:activator="{ on, attrs }">
+                  <v-text-field
+                    label="Date app received"
+                    append-icon="mdi-calendar"
+                    hide-details
+                    readonly
+                    outlined
+                    dense
+                    background-color="white"
+                    v-bind="attrs"
+                    v-on="on"
+                  ></v-text-field>
+                </template>
+                <v-date-picker
+                ></v-date-picker>
+              </v-menu>
+          </div>
+        </div>
+      </v-card-text>
+    </v-card>
+
+    <v-card class="default mt-5">
       <v-card-title>Statistical Demographics</v-card-title>
       <v-card-text>
         <div class="row">
-          <div class="col-md-6">
+          <div class="col-md-3">
             <v-select
               outlined
               dense
@@ -24,41 +76,6 @@
             <v-select
               outlined
               dense
-              hide-details
-              background-color="white"
-              label="Disabled"
-              v-model="application.DISABLED_FLAG"
-              :items="[
-                { text: 'Yes', value: 1 },
-                { text: 'No', value: 0 },
-                { text: 'Unknown', value: null },
-              ]"
-              @change="doSaveApp('DISABLED_FLAG', application.DISABLED_FLAG)"
-            >
-            </v-select>
-          </div>
-          <div class="col-md-3">
-            <v-select
-              outlined
-              dense
-              hide-details
-              background-color="white"
-              label="Visible minority"
-              v-model="application.MINORITY_FLAG"
-              :items="[
-                { text: 'Yes', value: 1 },
-                { text: 'No', value: 0 },
-                { text: 'Unknown', value: null },
-              ]"
-              @change="doSaveApp('MINORITY_FLAG', application.MINORITY_FLAG)"
-            >
-            </v-select>
-          </div>
-
-          <div class="col-md-6">
-            <v-select
-              outlined
-              dense
               background-color="white"
               hide-details
               label="Citizenship"
@@ -69,7 +86,28 @@
               "
             ></v-select>
           </div>
-          <div class="col-md-6">
+          <div class="col-md-2">
+            <v-switch 
+              class="my-0"
+              label="Disabled"
+            >
+            </v-switch>
+          </div>
+          <div class="col-md-2">
+            <v-switch 
+              class="my-0"
+              label="Visible Minority"
+            >
+            </v-switch>
+          </div>
+          <div class="col-md-2">
+            <v-switch 
+              class="my-0"
+              label="Crown Ward"
+            >
+            </v-switch>
+          </div>
+          <div class="col-md-3">
             {{application.aborigal_status_id}}
             <v-select
               outlined
@@ -90,7 +128,7 @@
             ></v-select>
           </div>
 
-          <div class="col-md-6 offset-md-6">
+          <div class="col-md-3">
             <v-select
               outlined
               dense
@@ -101,15 +139,33 @@
               item-text="description"
               item-value="id"
               :items="firstNations"
-              clearable
               @change="
                 doSaveApp('first_nation_id', application.first_nation_id)
               "
             ></v-select>
           </div>
+
+          <div class="col-md-6">
+            <v-textarea
+              rows="1"
+              outlined
+              dense
+              background-color="white"
+              hide-details
+              label="Notes"
+            >
+
+            </v-textarea>
+          </div>
         </div>
       </v-card-text>
     </v-card>
+
+    <v-switch
+      label="STEP and Grad CORP data sharing consent"
+    >
+
+    </v-switch>
   </div>
 </template>
 

@@ -13,29 +13,22 @@
             @click="deleteRecord(item.id)"><v-icon>mdi-close</v-icon></v-btn></v-card-title>
         <v-card-text>
           <div class="row">
-            <div class="col-md-8">
+            <div class="col-md-4">
               <v-text-field outlined dense background-color="white" hide-details label="Consent person"
                 v-model="item.consent_person" @change="doSaveConsent('consent_person', item.consent_person, 'consentInfo', item.id)"></v-text-field>
             </div>
-            <div class="col-md-2">
-              <v-select outlined dense hide-details label="SFA" background-color="white" v-model="item.consent_sfa"
-                :items="[{ value: true, text: 'Yes' }, { value: false, text: 'No' }]" @change="doSaveConsent('consent_sfa', item.consent_sfa, 'consentInfo', item.id)"></v-select>
-            </div>
-            <div class="col-md-2">
-              <v-select outlined dense hide-details label="CSL" background-color="white" v-model="item.consent_csl"
-                :items="[{ value: true, text: 'Yes' }, { value: false, text: 'No' }]" @change="doSaveConsent('consent_csl', item.consent_csl, 'consentInfo', item.id)"></v-select>
-            </div>
+
 
             <div class="col-md-4">
               
-              <v-select outlined dense hide-details label="CSL" background-color="white"  v-model="item.start_academic_year_id"
+              <v-select outlined dense hide-details label="Academic year start" background-color="white"  v-model="item.start_academic_year_id"
                 @change="doSaveConsent('start_academic_year_id', item.start_academic_year_id, 'consentInfo', item.id)"
                 :items="yearOptions"></v-select>
 
             </div>
             <div class="col-md-4">
 
-              <v-select outlined dense hide-details label="CSL" background-color="white"  v-model="item.end_academic_year_id"
+              <v-select outlined dense hide-details label="Academic year end" background-color="white"  v-model="item.end_academic_year_id"
                 @change="doSaveConsent('end_academic_year_id', item.end_academic_year_id, 'consentInfo', item.id)"
                 :items="yearOptions"></v-select>
 
@@ -49,20 +42,10 @@
       <v-card-title>Add Consent</v-card-title>
       <v-card-text>
         <div class="row">
-          <div class="col-md-8">
+          <div class="col-md-4">
             <v-text-field outlined dense background-color="white" hide-details label="Consent person"
             v-model="newRegister.consent_person"
             ></v-text-field>
-          </div>
-          <div class="col-md-2">
-            <v-select outlined dense hide-details label="SFA" background-color="white" :items="[{ value: true, text: 'Yes' }, { value: false, text: 'No' }]"
-            v-model="newRegister.consent_sfa"
-            ></v-select>
-          </div>
-          <div class="col-md-2">
-            <v-select outlined dense hide-details label="CSL" background-color="white" :items="[{ value: true, text: 'Yes' }, { value: false, text: 'No' }]"
-            v-model="newRegister.consent_csl"
-            ></v-select>
           </div>
 
           <div class="col-md-4">
@@ -163,12 +146,9 @@ export default {
         
         for (const property in validate) {
           
-          if (!validate[property] && !(property !== "end_academic_year_id" || property !== "consent_csl" || property !== "consent_sfa")) {
+          if (!validate[property] && !(property !== "end_academic_year_id")) {
               return this.$emit("showError", `${property} is required`);
-          }
-          if ((property === "consent_csl" || property === "consent_sfa") && validate[property] === null) {
-            return this.$emit("showError", `${property} is required`);
-          }          
+          }        
         }
 
 

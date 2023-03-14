@@ -1,55 +1,68 @@
 <template>
   <div class="home">
-    <h1>Student Details</h1>
+    <h1>Family Info</h1>
 
     <v-tabs v-model="tab" background-color="#fff2d5" color="primary">
-      <v-tab key="0">Contact</v-tab>
-      <v-tab key="1">SFA Info</v-tab>
-      <v-tab key="2">Vendor info</v-tab>
-      <v-tab key="3">Consent</v-tab>
+      <v-tab key="0">PARENT DETAILS</v-tab>
+      <v-tab key="1">SPOUSE DETAILS</v-tab>
+      <v-tab key="2">DEPENDENT DETAILS</v-tab>
     </v-tabs>
 
     <v-tabs-items v-model="tab" style="padding: 20px">
+
       <v-tab-item key="0">
-        <contact-form
+        <academic-year></academic-year>
+        <ParentDetails
           v-on:showSuccess="showSuccess"
           v-on:showError="showError"
-        ></contact-form>
+        ></ParentDetails>
       </v-tab-item>
+
       <v-tab-item key="1">
-        <sfa-info-form
+        <SpouseForm 
           v-on:showSuccess="showSuccess"
           v-on:showError="showError"
-        ></sfa-info-form>
+        >
+        </SpouseForm>
       </v-tab-item>
+
       <v-tab-item key="2">
-        <vendor-info-form
+        <StudentDependents 
           v-on:showSuccess="showSuccess"
           v-on:showError="showError"
-        ></vendor-info-form>
+        >
+        </StudentDependents>
       </v-tab-item>
-      <v-tab-item key="3">
-        <consent-form
-          v-on:showSuccess="showSuccess"
-          v-on:showError="showError"
-        ></consent-form>
-      </v-tab-item>
+  
     </v-tabs-items>
   </div>
 </template>
-
 <script>
 import { mapState } from "vuex";
-import store from "../../store";
-
-import ConsentForm from "./ConsentForm.vue";
-import ContactForm from "./ContactForm.vue";
-import SfaInfoForm from './SfaInfoForm.vue';
-import VendorInfoForm from './VendorInfoForm.vue';
+import store from "@/store";
+import ParentDetails from "./parent-details/Main.vue";
+import SpouseForm from "./spouse-details/SpouseForm.vue";
+import StudentDependents from "./dependents-details/StudentDependents";
+import ParentInfoForm from "../ParentInfoForm.vue";
+import ProgramInformationForm from "../ProgramInformationForm.vue";
+import StatisticalForm from "../StatisticalForm.vue";
+import AcademicYear from '../AcademicYear.vue';
+import ResidenceHistoryForm from '../ResidenceHistoryForm.vue';
+import EducationForm from '../EducationForm.vue';
 
 export default {
+  components: {
+    ProgramInformationForm,
+    StatisticalForm,
+    ParentDetails,
+    SpouseForm,
+    StudentDependents,
+    ParentInfoForm,
+    ResidenceHistoryForm,
+    EducationForm,
+  },
   name: "Home",
-  components: { ContactForm, ConsentForm, SfaInfoForm, VendorInfoForm },
+    AcademicYear,
   computed: {
     ...mapState(["selectedStudent"]),
   },
@@ -58,9 +71,6 @@ export default {
     applicationId: -1,
   }),
   async created() {
-    store.dispatch("setMonthOptions");
-    store.dispatch("setYearOptions");
-
     this.applicationId = this.$route.params.id;
     let storeApp = store.getters.selectedApplication;
 

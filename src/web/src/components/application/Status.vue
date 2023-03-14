@@ -1,225 +1,316 @@
 <template>
   <div class="home">
-    <h1>Assessment & Status</h1>
-
-    <v-card class="default mb-5">
-      <v-card-text>
-        <div class="row">
-          <div class="col-md-12">
-            <h3>Funding</h3>
-            <div
-              v-for="(item, i) of application.funding_requests"
-              :key="i"
-              class="row"
-            >
-              <div class="col-md-6">
-                <v-select
-                  outlined
-                  dense
-                  background-color="#ffaaaa"
-                  hide-details
-                  label="Funding Type"
-                  v-model="item.REQUEST_TYPE_ID"
-                  :items="fundingTypeOptions"
-                  item-text="DESCRIPTION"
-                  item-value="REQUEST_TYPE_ID"
-                ></v-select>
-              </div>
-              <div class="col-md-3">
-                <v-menu
-                  v-model="item.received_date_menu"
-                  :close-on-content-click="false"
-                  transition="scale-transition"
-                  left
-                  nudge-top="26"
-                  offset-y
-                  min-width="auto"
-                >
-                  <template v-slot:activator="{ on, attrs }">
-                    <v-text-field
-                      v-model="item.RECEIVED_DATE"
-                      label="Date app received"
-                      append-icon="mdi-calendar"
-                      hide-details
-                      readonly
-                      outlined
-                      dense
-                      background-color="#ffaaaa"
-                      v-bind="attrs"
-                      v-on="on"
-                    ></v-text-field>
-                  </template>
-                  <v-date-picker
-                    v-model="item.RECEIVED_DATE"
-                    @input="item.received_date_menu = false"
-                  ></v-date-picker>
-                </v-menu>
-              </div>
-
-              <div class="col-md-3">
-                <v-select
-                  outlined
-                  dense
-                  background-color="#ffaaaa"
-                  hide-details
-                  label="Status"
-                  v-model="item.STATUS_ID"
-                  :items="statusOptions"
-                  item-text="DESCRIPTION"
-                  item-value="STATUS_ID"
-                ></v-select>
-              </div>
-              <div class="col-md-6">
-                <v-autocomplete
-                  outlined
-                  dense
-                  background-color="#ffaaaa"
-                  hide-details
-                  label="Reason"
-                  v-model="item.STATUS_REASON_ID"
-                  :items="reasonOptions"
-                  item-text="DESCRIPTION"
-                  item-value="STATUS_REASON_ID"
-                ></v-autocomplete>
-              </div>
-              <div class="col-md-3">
-                <v-menu
-                  v-model="item.status_date_menu"
-                  :close-on-content-click="false"
-                  transition="scale-transition"
-                  left
-                  nudge-top="26"
-                  offset-y
-                  min-width="auto"
-                >
-                  <template v-slot:activator="{ on, attrs }">
-                    <v-text-field
-                      v-model="item.STATUS_DATE"
-                      label="Status date"
-                      append-icon="mdi-calendar"
-                      hide-details
-                      readonly
-                      outlined
-                      dense
-                      background-color="#ffaaaa"
-                      v-bind="attrs"
-                      v-on="on"
-                    ></v-text-field>
-                  </template>
-                  <v-date-picker
-                    v-model="item.STATUS_DATE"
-                    @input="item.status_date_menu = false"
-                  ></v-date-picker>
-                </v-menu>
-              </div>
-
-              <div class="col-md-3">
-                <v-btn
-                  color="warning"
-                  x-small
-                  fab
-                  title="Remove"
-                  class="my-0 float-right"
-                  @click="removeDocumentation(i)"
-                  ><v-icon>mdi-close</v-icon></v-btn
-                >
-              </div>
-              <div
-                v-if="i < application.funding_requests.length - 1"
-                class="col-md-12"
+    <h1>Funding Status</h1>
+    <div class="col-md-12">
+      <v-card class="default mb-5" v-for="item, index in application.funding_requests" :key="index">
+        <v-card-text>
+          <div class="row">
+            <div class="col-md-4">
+              <v-select
+                :disabled="showAdd"
+                outlined
+                dense
+                background-color="white"
+                hide-details
+                label="Funding Type"
+                @change="updateFundingRequest({ request_type_id: item.request_type_id }, item.id)"
+                v-model="item.request_type_id"
+                :items="fundingTypeOptions"
+                item-text="DESCRIPTION"
+                item-value="REQUEST_TYPE_ID"
+              ></v-select>
+            </div>
+            <div class="col-md-2">
+              <v-menu
+                :disabled="showAdd"
+                v-model="item.received_date_menu"
+                :close-on-content-click="false"
+                transition="scale-transition"
+                left
+                nudge-top="26"
+                offset-y
+                min-width="auto"
               >
-                <hr />
-              </div>
+                <template v-slot:activator="{ on, attrs }">
+                  <v-text-field
+                    :disabled="showAdd"
+                    v-model="item.received_date"
+                    label="Date app received"
+                    append-icon="mdi-calendar"
+                    hide-details
+                    readonly
+                    outlined
+                    dense
+                    background-color="white"
+                    v-bind="attrs"
+                    v-on="on"
+                  ></v-text-field>
+                </template>
+                <v-date-picker
+                  :disabled="showAdd"
+                  v-model="item.received_date"
+                  @change="updateFundingRequest({ received_date: item.received_date }, item.id)"
+                  @input="item.received_date_menu = false"
+                ></v-date-picker>
+              </v-menu>
+            </div>
+            <div class="col-md-2">
+              <v-btn 
+                :disabled="showAdd"
+                dense
+                color="blue" 
+                class="my-0"
+                block
+              >
+                Assessment
+              </v-btn>
+          </div>
+            <div class="col-md-2">
+              <v-btn 
+                :disabled="showAdd"
+                dense
+                color="success" 
+                class="my-0"
+                block
+              >
+                  Print Letter
+              </v-btn>
+          </div>
+            <div class="col-md-2">
+              <v-btn 
+                :disabled="showAdd"
+                dense
+                color="error" 
+                class="my-0"
+                block
+                @click="removeRecord(item.id)"
+              >
+                  Remove
+              </v-btn>
+          </div>
+            
+          </div>
+          <div class="row">
+            <div class="col-md-4">
+              <v-select
+                :disabled="showAdd"
+                outlined
+                dense
+                background-color="white"
+                hide-details
+                label="Funding Status"
+                @change="updateFundingRequest({ status_id: item.status_id }, item.id)"
+                v-model="item.status_id"
+                :items="statusOptions"
+                item-text="DESCRIPTION"
+                item-value="STATUS_ID"
+              ></v-select>
+            </div>
+            <div class="col-md-2">
+              <v-menu
+                :disabled="showAdd"
+                v-model="item.status_date_menu"
+                :close-on-content-click="false"
+                transition="scale-transition"
+                left
+                nudge-top="26"
+                offset-y
+                min-width="auto"
+              >
+                <template v-slot:activator="{ on, attrs }">
+                  <v-text-field
+                    :disabled="showAdd"
+                    v-model="item.status_date"
+                    label="Status date"
+                    append-icon="mdi-calendar"
+                    hide-details
+                    readonly
+                    outlined
+                    dense
+                    background-color="white"
+                    v-bind="attrs"
+                    v-on="on"
+                  ></v-text-field>
+                </template>
+                <v-date-picker
+                  :disabled="showAdd"
+                  @change="updateFundingRequest({ status_date: item.status_date }, item.id)"
+                  v-model="item.status_date"
+                  @input="item.status_date_menu = false"
+                ></v-date-picker>
+              </v-menu>
+            </div>
+            <div class="col-md-6">
+              <v-autocomplete
+                :disabled="showAdd"
+                outlined
+                dense
+                background-color="white"
+                hide-details
+                label="Reason"
+                @change="updateFundingRequest({ status_reason_id: item.status_reason_id }, item.id)"
+                v-model="item.status_reason_id"
+                :items="reasonOptions"
+                item-text="DESCRIPTION"
+                item-value="STATUS_REASON_ID"
+              ></v-autocomplete>
             </div>
           </div>
-        </div>
-      </v-card-text>
-    </v-card>
 
-    <v-btn color="info" @click="addDocumentation()" class="mb-5"
-      >Add funding record</v-btn
+        </v-card-text>
+      </v-card>
+      <v-card class="default" v-if="showAdd">
+        <v-card-text>
+          <div class="row">
+            <div class="col-md-4">
+              <v-select
+                outlined
+                dense
+                background-color="white"
+                hide-details
+                v-model="newRecord.request_type_id"
+                label="Funding Type"
+                :items="fundingTypeOptions"
+                item-text="DESCRIPTION"
+                item-value="REQUEST_TYPE_ID"
+              ></v-select>
+            </div>
+            <div class="col-md-2">
+              <v-menu
+                v-model="newRecord.received_date_menu"
+                :close-on-content-click="false"
+                transition="scale-transition"
+                left
+                nudge-top="26"
+                offset-y
+                min-width="auto"
+              >
+                <template v-slot:activator="{ on, attrs }">
+                  <v-text-field
+                    v-model="newRecord.received_date"
+                    label="Date app received"
+                    append-icon="mdi-calendar"
+                    hide-details
+                    readonly
+                    outlined
+                    dense
+                    background-color="white"
+                    v-bind="attrs"
+                    v-on="on"
+                  ></v-text-field>
+                </template>
+                <v-date-picker
+                  v-model="newRecord.received_date"
+                  @input="newRecord.received_date_menu = false"
+                ></v-date-picker>
+              </v-menu>
+            </div>
+            <div class="col-md-2">
+
+            </div>
+            <div class="col-md-2">
+              <v-btn
+                dense
+                color="success" 
+                class="my-0"
+                block
+                @click="e => {
+                  addFundingRequest();
+                }"
+              >
+                  Save
+              </v-btn>
+            </div>
+            <div class="col-md-2">
+              <v-btn
+                dense
+                color="error" 
+                class="my-0"
+                block
+                @click="setClose"
+              >
+                  Cancel
+              </v-btn>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-4">
+              <v-select
+                outlined
+                dense
+                background-color="white"
+                hide-details
+                label="Funding Status"
+                v-model="newRecord.status_id"
+                :items="statusOptions"
+                item-text="DESCRIPTION"
+                item-value="STATUS_ID"
+              ></v-select>
+            </div>
+            <div class="col-md-2">
+              <v-menu
+                v-model="newRecord.status_date_menu"
+                :close-on-content-click="false"
+                transition="scale-transition"
+                left
+                nudge-top="26"
+                offset-y
+                min-width="auto"
+              >
+                <template v-slot:activator="{ on, attrs }">
+                  <v-text-field
+                    v-model="newRecord.status_date"
+                    label="Status date"
+                    append-icon="mdi-calendar"
+                    hide-details
+                    readonly
+                    outlined
+                    dense
+                    background-color="white"
+                    v-bind="attrs"
+                    v-on="on"
+                  ></v-text-field>
+                </template>
+                <v-date-picker
+                  v-model="newRecord.status_date"
+                  @input="newRecord.status_date_menu = false"
+                ></v-date-picker>
+              </v-menu>
+            </div>
+            <div class="col-md-6">
+              <v-autocomplete
+                outlined
+                dense
+                background-color="white"
+                hide-details
+                label="Reason"
+                v-model="newRecord.status_reason_id"
+                :items="reasonOptions"
+                item-text="DESCRIPTION"
+                item-value="STATUS_REASON_ID"
+              ></v-autocomplete>
+            </div>
+          </div>
+        </v-card-text>
+      </v-card>
+    </div>
+
+    <div class="col-md-12 mt-n5">
+      <v-btn 
+      color="info" 
+      @click="setClose"
+      v-if="!showAdd"
     >
-
-    <v-card class="default mb-5">
-      <v-card-text>
-        <div class="row">
-          <div class="col-md-12">
-            <h3>Requirements</h3>
-            <div
-              v-for="(item, i) of application.requirements"
-              :key="i"
-              class="row"
-            >
-              <div class="col-md-6">
-                <v-autocomplete
-                  outlined
-                  dense
-                  background-color="#ffaaaa"
-                  hide-details
-                  label="Requirement Type"
-                  v-model="item.REQUIREMENT_TYPE_ID"
-                  :items="requirementTypeOptions"
-                  item-value="REQUIREMENT_TYPE_ID"
-                  item-text="DESCRIPTION"
-                  required
-                ></v-autocomplete>
-              </div>
-              <div class="col-md-3">
-                <v-menu
-                  v-model="item.completed_date_menu"
-                  :close-on-content-click="false"
-                  transition="scale-transition"
-                  left
-                  nudge-top="26"
-                  offset-y
-                  min-width="auto"
-                >
-                  <template v-slot:activator="{ on, attrs }">
-                    <v-text-field
-                      v-model="item.COMPLETED_DATE"
-                      label="Completed date"
-                      append-icon="mdi-calendar"
-                      hide-details
-                      readonly
-                      outlined
-                      dense
-                      background-color="#ffaaaa"
-                      v-bind="attrs"
-                      v-on="on"
-                    ></v-text-field>
-                  </template>
-                  <v-date-picker
-                    v-model="item.COMPLETED_DATE"
-                    @input="item.completed_date_menu = false"
-                  ></v-date-picker>
-                </v-menu>
-              </div>
-
-              <div class="col-md-3">
-                <v-btn
-                  color="warning"
-                  x-small
-                  fab
-                  title="Remove"
-                  class="my-0 float-right"
-                  @click="removeRequirement(i)"
-                  ><v-icon>mdi-close</v-icon></v-btn
-                >
-              </div>
-              <div
-                v-if="i < application.requirements.length - 1"
-                class="col-md-12"
-              >
-                <hr />
-              </div>
-            </div>
-          </div>
-        </div>
-      </v-card-text>
-    </v-card>
-
-    <v-btn color="info" @click="addRequirement()">Add requirement</v-btn>
-
+      Add funding record
+    </v-btn>
+    <v-btn 
+      color="info" 
+      @click="setClose"
+      v-else
+    >
+      Cancel
+    </v-btn>
+    </div>
     <confirm-dialog ref="confirm"></confirm-dialog>
   </div>
 </template>
@@ -233,6 +324,7 @@ import {
   FUNDING_TYPE_URL,
   FUNDING_STATUS_URL,
   FUNDING_REASON_URL,
+  APPLICATION_URL
 } from "../../urls";
 
 export default {
@@ -243,11 +335,21 @@ export default {
     },
   },
   data: () => ({
+    showAdd: false,
     applicationId: -1,
     fundingTypeOptions: [],
     reasonOptions: [],
     requirementTypeOptions: [],
     statusOptions: [],
+    newRecord: {
+      request_type_id: null,
+      received_date: null,
+      status_id: null,
+      status_reason_id: null,
+      status_date: null,
+      status_date_menu: false,
+      received_date_menu: false,
+    },
   }),
   async created() {
     this.loadRequirementTypes();
@@ -259,13 +361,24 @@ export default {
     let storeApp = store.getters.selectedApplication;
 
     if (this.applicationId != storeApp.HISTORY_DETAIL_ID) {
-      console.log("LOADING APPLICTION BASED ON URL");
       await store.dispatch("loadApplication", this.applicationId);
     }
 
     store.dispatch("setAppSidebar", true);
   },
   methods: {
+    setClose() {
+      this.newRecord = {
+      request_type_id: null,
+      received_date: null,
+      status_id: null,
+      status_reason_id: null,
+      status_date: null,
+      status_date_menu: false,
+      received_date_menu: false,
+    };
+      this.showAdd = !this.showAdd;
+    },
     loadRequirementTypes() {
       axios.get(REQUIREMENT_TYPE_URL).then((resp) => {
         this.requirementTypeOptions = resp.data;
@@ -287,34 +400,75 @@ export default {
       });
     },
 
-    addDocumentation() {
-      this.application.funding_requests.push({ status_date: "" });
+    async deleteRecord(id) {
+      try {
+        const resDelete = await axios.delete(
+          APPLICATION_URL+`/${id}/status`,
+        );
+
+        const message = resDelete.data.messages[0];
+
+        if (message.variant == "success") {
+          this.$emit("showSuccess", message.text);
+        } else {
+          this.$emit("showError", message.text);
+        }
+      } catch (error) {
+        this.$emit("showError", "Error to delete");
+      } finally {
+        store.dispatch("loadApplication", this.applicationId);
+      }
     },
-    removeDocumentation(index) {
+    removeRecord(id) {
       this.$refs.confirm.show(
         "Are you sure?",
         "Click 'Confirm' below to permanently remove this funding record.",
         () => {
-          this.application.funding_requests.splice(index, 1);
+          this.deleteRecord(id);
         },
         () => {}
       );
     },
+    async addFundingRequest() {
+      try {
+        const resInsert = await axios.post(
+            APPLICATION_URL+`/${this.applicationId}/status`,
+            { ...this.newRecord },
+          );
+          const message = resInsert?.data?.messages[0];
 
-    addRequirement() {
-      this.application.requirements.push({
-        COMPLETED_DATE: moment().format("YYYY-MM-DD"),
-      });
+          if (message?.variant === "success") {
+            this.$emit("showSuccess", message.text);
+            this.setClose();
+          } else {
+            this.$emit("showError", message.text);
+          }
+          
+      } catch (error) {
+        this.$emit("showError", "Error to insert");
+      } finally {
+        store.dispatch("loadApplication", this.applicationId);
+      }
     },
-    removeRequirement(index) {
-      this.$refs.confirm.show(
-        "Are you sure?",
-        "Click 'Confirm' below to permanently remove this funding requirement.",
-        () => {
-          this.application.requirements.splice(index, 1);
-        },
-        () => {}
-      );
+    async updateFundingRequest(itemToUpdate, id) {
+      try {
+        const resInsert = await axios.put(
+            APPLICATION_URL+`/${this.applicationId}/status/${id}`,
+            { data: { ...itemToUpdate } },
+          );
+          const message = resInsert?.data?.messages[0];
+
+          if (message?.variant === "success") {
+            this.$emit("showSuccess", message.text);
+          } else {
+            this.$emit("showError", message.text);
+          }
+          
+      } catch (error) {
+        this.$emit("showError", "Error to update");
+      } finally {
+        store.dispatch("loadApplication", this.applicationId);
+      }
     },
   },
 };

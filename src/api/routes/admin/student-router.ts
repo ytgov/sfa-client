@@ -465,6 +465,8 @@ studentRouter.post("/:student_id/consent",
             const student: any = await db("sfa.student").where({ id: student_id }).first();
 
             if (student) {
+                data.consent_csl = !!data.consent_csl;
+                data.consent_sfa = !!data.consent_sfa;
 
                 const resInsert = await db("sfa.student_consent")
                     .insert({ ...data, student_id });

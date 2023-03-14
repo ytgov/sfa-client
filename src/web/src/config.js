@@ -17,35 +17,44 @@ export const sections = [
         makeUrl: function(id) { return `/application/${id}/personal` }
     }, */
     {
+        name: "Funding Status",
+        icon: "mdi-clipboard-check-outline",
+        makeUrl: function(id) { return `/application/${id}/status` }
+    },
+    {
         name: "Application Basics",
         icon: "mdi-clipboard-text",
         makeUrl: function(id) { return `/application/${id}/personal` }
     },
     {
-        name: "Assessment & Status",
-        icon: "mdi-clipboard-check-outline",
-        makeUrl: function(id) { return `/application/${id}/status` }
+        name: "Family Info",
+        icon: "mdi-human-male-female",
+        makeUrl: function(id) { return `/application/${id}/family-info` }
     },
-    {
-        name: "Academic Year",
-        icon: "mdi-school",
-        makeUrl: function(id) { return `/application/${id}/academic-year` }
-    },
+    // {
+    //     name: "Academic Year",
+    //     icon: "mdi-school",
+    //     makeUrl: function(id) { return `/application/${id}/academic-year` }
+    // },
     {
         name: "SFA Funding Requests",
         icon: "mdi-currency-usd",
         makeUrl: function(id) { return `/application/${id}/sfa-funding-requests` }
     },
+    // {
+    //     name: "Scholarship Applications",
+    //     icon: "mdi-book",
+    //     makeUrl: function(id) { return `/application/${id}/scholarship-applications` }
+    // },
     {
-        name: "Scholarship Applications",
-        icon: "mdi-book",
-        makeUrl: function(id) { return `/application/${id}/scholarship-applications` }
+        name: "CSFA Funding Requests",
+        icon: "mdi-account-cash",
+        makeUrl: function(id) { return `/application/${id}/csfa-funding-requests` }
     },
     {
-        name: "CSL Funding Requests",
-        url: "/application/1234/csl-funding-requests",
-        icon: "mdi-account-cash",
-        makeUrl: function(id) { return `/application/${id}/csl-funding-requests` }
+        name: "CSFA Needs Assessment",
+        icon: "mdi-briefcase-check",
+        makeUrl: function(id) { return `/application/${id}/csfa-needs-assessment`}
     },
     {
         name: "Documentation",
