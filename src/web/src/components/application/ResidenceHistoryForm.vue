@@ -180,7 +180,7 @@
                   </div>
                   <div class="col-md-6">
                     <div class="col-md-12 text-center text-subtitle-1">
-                      From yr/mon 
+                      To yr/mon 
                     </div>
                     <div class="row">
                       <div class="col-md-6">
@@ -190,10 +190,10 @@
                           dense 
                           background-color="white" 
                           :disabled="showAdd"
-                          v-model="item.from_year"
+                          v-model="item.to_year"
                           :items="yearOptions"
-                          @change="doSaveResidence('from_year', item.from_year, 'residenceInfo', item.id)"
-                          hide-details label="From Year"
+                          @change="doSaveResidence('to_year', item.to_year, 'residenceInfo', item.id)"
+                          hide-details label="to Year"
                         ></v-select>
                       </div>
                       <div class="col-md-6">
@@ -204,9 +204,9 @@
                           background-color="white"
                           :disabled="showAdd"
                           :items="monthOptions"
-                          v-model="item.from_month"
-                          @change="doSaveResidence('from_month', item.from_month, 'residenceInfo', item.id)"
-                          hide-details label="From Month"
+                          v-model="item.to_month"
+                          @change="doSaveResidence('to_month', item.to_month, 'residenceInfo', item.id)"
+                          hide-details label="To Month"
                         ></v-select>
                       </div>
                     </div>
@@ -510,6 +510,16 @@
       </div>
 
       <div class="col-md-12">
+        <div class="col-md-12 mt-n5">
+          <div class="row">
+            <v-switch
+                label=""
+                class="my-0 mr-2"
+            >
+            </v-switch>
+            <h3 class="text-h6 font-weight-regular">Student has been away from Yukon for more than 4 months</h3>
+          </div>
+        </div>
         <v-card class="default mb-5">
           <v-card-text>
             <div class="row">
@@ -761,10 +771,13 @@ export default {
     },
   }),
   async created() {
+    
     this.validate = validator;
     store.dispatch("setCities");
     store.dispatch("setProvinces");
     store.dispatch("setCountries");
+    store.dispatch("setYearOptions");
+    store.dispatch("setMonthOptions");
   },
   methods: {
     setClose() {

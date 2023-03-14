@@ -65,7 +65,7 @@
             <div class="col-md-2 d-flex">
                 <h3 class="text-subtitle-1 mt-1 mr-2">Age</h3>
                 <v-text-field 
-                    :disabled="showAdd"
+                    disabled
                     outlined 
                     dense 
                     background-color="white" 
