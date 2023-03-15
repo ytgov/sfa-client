@@ -92,6 +92,7 @@
                 background-color="white"
                 hide-details
                 label="Address"
+                v-model="selectedInstitution.address_line_1"
               ></v-text-field>
             </div>
             <div class="col-md-3">
@@ -102,6 +103,7 @@
                 background-color="white"
                 hide-details
                 label="City"
+                :value="cities.find(c => c.id === selectedInstitution.address_city_id)?.description"
               ></v-text-field>
             </div>
             <div class="col-md-3">
@@ -112,6 +114,7 @@
                 background-color="white"
                 hide-details
                 label="Province"
+                :value="provinces.find(c => c.id === selectedInstitution.address_province_id)?.description"
               ></v-text-field>
             </div>
             <div class="col-md-2">
@@ -122,6 +125,7 @@
                 background-color="white"
                 hide-details
                 label="Postal Code"
+                :value="selectedInstitution.address_postal_code"
               ></v-text-field>
             </div>
             <div class="col-md-2">
@@ -132,6 +136,7 @@
                 background-color="white"
                 hide-details
                 label="Country"
+                :value="countries.find(c => c.id === selectedInstitution.address_country_id)?.description"
               ></v-text-field>
             </div>
             <div class="col-md-1"></div>
@@ -153,6 +158,7 @@
                 background-color="white"
                 hide-details
                 label="Institution Level"
+                :value="institutionLevels.find(i => i.id = selectedInstitution.institution_level_id)?.description"
               ></v-text-field>
             </div>
             <div class="col-md-2">
@@ -323,8 +329,7 @@
                 background-color="white"
                 hide-details
                 label="Study Weeks"
-                v-model="application.attendance"
-                :items="attendanceOptions"
+                :value="application.study_weeks_count"
               ></v-text-field>
             </div>
           </div>
