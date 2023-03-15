@@ -182,3 +182,114 @@ applicationRouter.put("/:id",
                 res.json({ messages: [{ variant: "error", text: "Save failed" }] })
             });
     });
+
+applicationRouter.post("/:application_id/status",
+    [param("application_id").isInt().notEmpty()], ReturnValidationErrors,
+    async (req: Request, res: Response) => {
+
+        const { application_id } = req.params;
+        const {
+            request_type_id = null,
+            received_date = null,
+            status_id = null,
+            status_reason_id = null,
+            status_date = null,
+            comments = null,
+        } = req.body;
+
+        try {
+            const application: any = await db("sfa.application").where({ id: application_id }).first();
+
+            if (application) {
+
+                const newRecord = {
+                    request_type_id,
+                    received_date,
+                    status_id,
+                    status_reason_id,
+                    status_date,
+                    comments,
+                };
+
+                const resInsert = await db("sfa.funding_request")
+                    .insert({ ...newRecord, is_csg_only: false, application_id });
+
+                return resInsert ?
+                    res.json({ messages: [{ variant: "success", text: "Saved" }] })
+                    :
+                    res.json({ messages: [{ variant: "error", text: "Failed" }] });
+
+            }
+
+            return res.json({ messages: [{ text: "Application does not exist", variant: "error" }] });
+
+        } catch (error) {
+            return res.json({ messages: [{ text: "Failed to insert Funding Request", variant: "error" }] });
+        }
+
+    }
+);
+
+applicationRouter.put("/:application_id/status/:id",
+    [param("application_id").isInt().notEmpty(), param("id").isInt().notEmpty()],
+    ReturnValidationErrors,
+    async (req: Request, res: Response) => {
+
+        const { application_id, id } = req.params;
+        const { data } = req.body;
+
+        try {
+            
+            const resUpdate = await db("sfa.funding_request")
+                .where({id, application_id})
+                .update({ ...data });
+
+            return resUpdate ?
+                res.json({ messages: [{ variant: "success", text: "Saved" }] })
+                :
+                res.json({ messages: [{ variant: "error", text: "Failed" }] });
+
+
+        } catch (error) {
+            return res.json({ messages: [{ text: "Failed to update Funding Request", variant: "error" }] });
+        }
+
+    }
+);
+
+applicationRouter.delete("/:id/status",
+    [param("id").isInt().notEmpty()], ReturnValidationErrors,
+    async (req: Request, res: Response) => {
+
+        const { id } = req.params;
+        try {
+
+            const verifyRecord: any = await db("sfa.funding_request")
+                .where({ id: id })
+                .first();
+
+            if (!verifyRecord) {
+                return res.status(404).send({ messages: [{ variant: "error", text: "The record does not exits" }] });
+            }
+
+            const deleteRecord: any = await db("sfa.funding_request")
+                .where({ id: id })
+                .del();
+
+            return (deleteRecord > 0) ?
+                res.status(202).send({ messages: [{ variant: "success", text: "Removed" }] })
+                :
+                res.status(404).send({ messages: [{ variant: "error", text: "Record does not exits" }] });
+
+        } catch (error: any) {
+
+            console.log(error);
+
+            if (error?.number === 547) {
+                return res.status(409).send({ messages: [{ variant: "error", text: "Cannot be deleted because it is in use." }] });
+            }
+
+            return res.status(409).send({ messages: [{ variant: "error", text: "Error To Delete" }] });
+        }
+    }
+);

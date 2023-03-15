@@ -148,8 +148,9 @@ export default new Vuex.Store({
     async loadApplication(state, id) {
       let resp = await axios.get(`${APPLICATION_URL}/${id}`);
 
-      if (!state.state.selectedStudent.id)
-        state.commit("SET_STUDENT", resp.data.data.student);
+      if (!state.state.selectedStudent.id) {
+        this.dispatch("loadStudent", resp.data.data.student_id);
+      }
 
       state.commit("SET_APPLICATION", resp.data.data);
     },
@@ -191,6 +192,9 @@ export default new Vuex.Store({
             emitter.$emit("showSuccess", message.text);
             if (emitter?.setClose && emitter.showAdd) {
               emitter.setClose();
+            }
+            if (!emitter?.filteredList) {
+              emitter.newRecord = {};
             }
           } else {
             emitter.$emit("showError", message.text);

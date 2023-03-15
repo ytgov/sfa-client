@@ -382,6 +382,12 @@ studentRouter.get("/:id",
                         locator_number: student.locator_number,
                         yukon_id: student.yukon_id,
                         pre_funded_year: student.pre_funded_year,
+                        adj_yg_funding_weeks: student.adj_yg_funding_weeks,
+                        pre_funding_years_used: student.pre_funding_years_used,
+                        adj_sta_upgrading_weeks: student.adj_sta_upgrading_weeks,
+                        adj_outside_travel_cnt: student.adj_outside_travel_cnt,
+                        vendor_id: student.vendor_id,
+                        is_crown_ward: student.is_crown_ward,
                         high_school_final_grade: student.high_school_final_grade,
                         high_school_left_year: student.high_school_left_year,
                         high_school_left_month: student.high_school_left_month,
@@ -465,6 +471,8 @@ studentRouter.post("/:student_id/consent",
             const student: any = await db("sfa.student").where({ id: student_id }).first();
 
             if (student) {
+                data.consent_csl = !!data.consent_csl;
+                data.consent_sfa = !!data.consent_sfa;
 
                 const resInsert = await db("sfa.student_consent")
                     .insert({ ...data, student_id });

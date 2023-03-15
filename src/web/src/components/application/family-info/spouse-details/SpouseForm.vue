@@ -1,24 +1,36 @@
 <template>
   <div class="home">
     <v-card class="default mb-5">
-      <v-card-title>Name and SIN</v-card-title>
       <v-card-text>
         <div class="row">
+          <div class="col-md-6">
+            <h3 class="text-h6 font-weight-regular">Name and SIN</h3>
+          </div>
+          <div class="col-md-6">
+            <v-row>
+                <div class="col-md-6">
+                    <v-btn block color="success" class="my-0">VIEW SPDEC</v-btn>
+                </div>
+                <div class="col-md-6">
+                    <v-btn block color="success" class="my-0">VIEW SPOUSE NOA</v-btn>
+                </div>
+            </v-row>
+        </div>
           <div class="col-md-5">
             <v-text-field
               outlined
               dense
-              background-color="#ffaaaa"
+              background-color="white"
               hide-details
               label="Last name"
-              v-model="application.SPOUSE_LAST_NAME"
+              v-model="application.spouse_last_name"
             ></v-text-field>
           </div>
           <div class="col-md-5">
             <v-text-field
               outlined
               dense
-              background-color="#ffaaaa"
+              background-color="white"
               hide-details
               label="First name"
               v-model="application.SPOUSE_FIRST_NAME"
@@ -28,7 +40,7 @@
             <v-text-field
               outlined
               dense
-              background-color="#ffaaaa"
+              background-color="white"
               hide-details
               label="Initial"
               v-model="application.SPOUSE_INITIALS"
@@ -38,7 +50,7 @@
             <v-text-field
               outlined
               dense
-              background-color="#ffaaaa"
+              background-color="white"
               hide-details
               label="SIN"
               v-model="application.SPOUSE_SIN"
@@ -48,7 +60,7 @@
             <v-text-field
               outlined
               dense
-              background-color="#ffaaaa"
+              background-color="white"
               hide-details
               label="Income (line 150)"
               v-model="application.SPOUSE_LN150_INCOME"
@@ -67,7 +79,7 @@
             <v-select
               outlined
               dense
-              background-color="#ffaaaa"
+              background-color="white"
               hide-details
               label="Study employment status"
               v-model="application.SPOUSE_PRESTUDY_EMP_STATUS_ID"
@@ -82,7 +94,7 @@
             <v-text-field
               outlined
               dense
-              background-color="#ffaaaa"
+              background-color="white"
               hide-details
               label="In school from"
               v-model="application.SPOUSE_STUDY_SCHOOL_FROM"
@@ -92,7 +104,7 @@
             <v-text-field
               outlined
               dense
-              background-color="#ffaaaa"
+              background-color="white"
               hide-details
               label="In school to"
               v-model="application.SPOUSE_STUDY_SCHOOL_TO"
@@ -131,7 +143,7 @@
             <v-text-field
               outlined
               dense
-              background-color="#ffaaaa"
+              background-color="white"
               hide-details
               label="In no, distance from school/work (km)"
               v-model="application.STUDY_DISTANCE"
@@ -144,7 +156,7 @@
 </template>
 
 <script>
-import store from "../../store";
+import store from "@/store";
 
 export default {
   name: "Home",
