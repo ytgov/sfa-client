@@ -46,6 +46,7 @@
                                 outlined dense 
                                 background-color="white" 
                                 hide-details label=""
+                                v-model="student.vendor_id"
                             >
                             </v-text-field>
                         </div>
@@ -366,6 +367,9 @@ export default {
   }),
   computed: {
     ...mapGetters(["cities", "provinces", "countries"]),
+    student: function () {
+      return store.getters.selectedStudent;
+    },
   },
   watch: {
 

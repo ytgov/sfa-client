@@ -90,6 +90,10 @@
             <v-switch 
               class="my-0"
               label="Disabled"
+              v-model="application.is_disabled"
+              @change="
+                doSaveApp('is_disabled', application.is_disabled)
+              "
             >
             </v-switch>
           </div>
@@ -97,6 +101,10 @@
             <v-switch 
               class="my-0"
               label="Visible Minority"
+              v-model="application.is_minority"
+              @change="
+                doSaveApp('is_minority', application.is_minority)
+              "
             >
             </v-switch>
           </div>
@@ -104,6 +112,8 @@
             <v-switch 
               class="my-0"
               label="Crown Ward"
+              v-model="student.is_crown_ward" @change="
+                doSaveStudent('is_crown_ward', student.is_crown_ward, 'studentInfo', student.id)"
             >
             </v-switch>
           </div>
@@ -179,6 +189,9 @@ export default {
     application: function () {
       return store.getters.selectedApplication;
     },
+    student: function () {
+      return store.getters.selectedStudent;
+    },
   },
   data: () => ({
     maritalOptions: [],
@@ -208,8 +221,8 @@ export default {
       this.visible_minority = application.MINORITY_FLAG;
     },
  */
-    doSaveStudent(field, value) {
-      store.dispatch("updateStudent", [field, value, this]);
+    doSaveStudent(field, value, type, extraId = null, addressType = "") {
+      store.dispatch("updateStudent", [field, value, type, extraId, this, addressType]);
     },
     doSaveApp(field, value) {
       store.dispatch("updateApplication", [field, value, this]);

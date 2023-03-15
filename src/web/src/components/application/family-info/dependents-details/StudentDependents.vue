@@ -1,9 +1,9 @@
 <template>
     <div>
         <h3 class="text-h5 font-weight-regular mb-5">Student’s Dependents</h3>
-        <v-card class="default row mb-5" v-for="index in 1" :key="index">
+        <v-card class="default row mb-5" v-for="dependent, index in application.parent_dependents" :key="index">
             <div class="col-md-6">
-                <h3 class="text-h6 font-weight-regular">Dependent {{index}}</h3>
+                <h3 class="text-h6 font-weight-regular">Dependent {{index + 1}}</h3>
             </div>
             <div class="col-md-6">
                 <v-row>
@@ -24,6 +24,20 @@
                     background-color="white" 
                     hide-details 
                     label="Last Name"
+                    oninput="
+                        if (this.value.length > 100) this.value = this.value.slice(0, 10);
+                        const arr = this.value.split(' ');
+
+
+                        for (var i = 0; i < arr.length; i++) {
+                            arr[i] = arr[i].charAt(0).toUpperCase() + arr[i].slice(1);
+
+                        }
+
+                        this.value = arr.join(' ');
+                    " 
+                    @change="doSaveDependent('last_name', dependent.last_name, 'dependentInfo', dependent.id)"
+                    v-model="dependent.last_name"
                 >
                 </v-text-field>
             </div>
@@ -35,6 +49,20 @@
                     background-color="white" 
                     hide-details 
                     label="First Name"
+                    oninput="
+                        if (this.value.length > 100) this.value = this.value.slice(0, 10);
+                        const arr = this.value.split(' ');
+
+
+                        for (var i = 0; i < arr.length; i++) {
+                            arr[i] = arr[i].charAt(0).toUpperCase() + arr[i].slice(1);
+
+                        }
+
+                        this.value = arr.join(' ');
+                    " 
+                    @change="doSaveDependent('first_name', dependent.first_name, 'dependentInfo', dependent.id)"
+                    v-model="dependent.first_name"
                 >
                 </v-text-field>
             </div>
@@ -52,6 +80,7 @@
                             label="Birth date" 
                             append-icon="mdi-calendar" 
                             readonly
+                            v-model="dependent.birth_date"
                             outlined dense background-color="white" 
                             v-bind="attrs" v-on="on"
                         ></v-text-field>
@@ -68,7 +97,8 @@
                     disabled
                     outlined 
                     dense 
-                    background-color="white" 
+                    background-color="white"
+                    v-model="dependent.age"
                     hide-details 
                     label="Age"
                 >
@@ -82,6 +112,10 @@
                     background-color="white" 
                     hide-details 
                     label="Relationship"
+                    v-model="dependent.relationship_id"
+                    :items="relationships"
+                    item-text="description"
+                    item-value="id"
                 >
                 </v-autocomplete>
             </div>
@@ -91,6 +125,7 @@
                     :disabled="showAdd"
                     class="my-n5"
                     label="Resides with"
+                    v-model="dependent.is_residing"
                 >
                 </v-switch>
             </div>
@@ -99,6 +134,7 @@
                     :disabled="showAdd"
                     class="my-n5"
                     label="Shared Custody"
+                    v-model="dependent.is_shared_custody"
                 >
                 </v-switch>
             </div>
@@ -107,6 +143,7 @@
                     :disabled="showAdd"
                     class="my-n5"
                     label="In Post-Secondary"
+                    v-model="dependent.is_attend_post_secondary"
                 >
                 </v-switch>
             </div>
@@ -145,6 +182,7 @@
                     background-color="white" 
                     hide-details 
                     label="Comment"
+                    v-model="dependent.comments"
                 >
                 </v-textarea>
             </div>   
@@ -313,11 +351,16 @@ export default {
 
     },
     computed: {
+        ...mapGetters(["relationships"]),
+        application: function () {
+            return store.getters.selectedApplication;
+        },
     },
     data: () => ({
         showAdd: false,
     }),
     async created() {
+        store.dispatch("setRelationships");
     },
     watch: {
 
@@ -325,6 +368,19 @@ export default {
     methods: {
         setClose() {
             this.showAdd = !this.showAdd;
+        },
+        doSaveDependent(field, value, type, extraId = null, isInsertion = false) {
+            if (isInsertion) {
+                const validate = { ...value };
+            }
+
+            const url = type === "dependentInfo" ? "/dependent" : "";
+
+            store.dispatch(
+                "updateStudent",
+                [field, value, type, extraId, this, null, url, isInsertion],
+            );
+
         },
     },
     props: {

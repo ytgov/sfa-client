@@ -515,12 +515,13 @@
             <v-switch
                 label=""
                 class="my-0 mr-2"
+                v-model="hasbeenAway"
             >
             </v-switch>
             <h3 class="text-h6 font-weight-regular">Student has been away from Yukon for more than 4 months</h3>
           </div>
         </div>
-        <v-card class="default mb-5">
+        <v-card class="default mb-5" v-if="hasbeenAway">
           <v-card-text>
             <div class="row">
               <div class="col-md-6">
@@ -537,6 +538,8 @@
                       label="Year"
                       :disabled="showAdd"
                       :items="yearOptions"
+                      v-model="application.taxes1_filed_year"
+                      @change="doSaveApp('taxes1_filed_year', application.taxes1_filed_year)"
                     ></v-select>
                   </div>
                   <div class="col-md-5">
@@ -550,6 +553,8 @@
                       :items="provinces"
                       item-text="description"
                       item-value="id"
+                      v-model="application.taxes1_filed_province_id"
+                      @change="doSaveApp('taxes1_filed_province_id', application.taxes1_filed_province_id)"
                     ></v-select>
                   </div>
                 </div>
@@ -566,6 +571,8 @@
                       label="Year"
                       :disabled="showAdd"
                       :items="yearOptions"
+                      v-model="application.taxes2_filed_year"
+                      @change="doSaveApp('taxes2_filed_year', application.taxes2_filed_year)"
                     ></v-select>
                   </div>
                   <div class="col-md-5">
@@ -579,6 +586,8 @@
                       :items="provinces"
                       item-text="description"
                       item-value="id"
+                      v-model="application.taxes2_filed_province_id"
+                      @change="doSaveApp('taxes2_filed_province_id', application.taxes2_filed_province_id)"
                     ></v-select>
                   </div>
                 </div>
@@ -592,6 +601,8 @@
                       hide-details
                       :disabled="showAdd"
                       label="Taxes not filed"
+                      v-model="application.taxes1_not_filed"
+                      @change="doSaveApp('taxes1_not_filed', application.taxes1_not_filed)"
                     ></v-switch>
                   </div>
                   <div class="col-md-6 pt-0 d-flex justify-end">
@@ -601,6 +612,8 @@
                       hide-details
                       :disabled="showAdd"
                       label="Veriﬁed"
+                      v-model="application.taxes1_verified"
+                      @change="doSaveApp('taxes1_verified', application.taxes1_verified)"
                     ></v-switch>
                   </div>
                 </div>
@@ -612,6 +625,8 @@
                       hide-details
                       :disabled="showAdd"
                       label="Taxes not filed"
+                      v-model="application.taxes2_not_filed"
+                      @change="doSaveApp('taxes2_not_filed', application.taxes2_not_filed)"
                     ></v-switch>
                   </div>
                   <div class="col-md-6 pt-0 d-flex justify-end">
@@ -621,6 +636,8 @@
                       hide-details
                       :disabled="showAdd"
                       label="Veriﬁed"
+                      v-model="application.taxes2_verified"
+                      @change="doSaveApp('taxes2_verified', application.taxes2_verified)"
                     ></v-switch>
                   </div>
                 </div>
@@ -629,13 +646,16 @@
             <div class="row">
               <div class="col-md-12">
                 <div class="row">
-                  <div class="col-md-2">
+                  <div class="col-md-2">        
                     <v-select
                       outlined
                       dense
                       hide-details
                       background-color="white"
                       :disabled="showAdd"
+                      :items="itemOptions"
+                      v-model="application.valid_driver_license"
+                      @change="doSaveApp('valid_driver_license', application.valid_driver_license)"
                     >
 
                     </v-select>
@@ -645,6 +665,7 @@
                   >
                     Student has Valid Yukon Driver’s License
                   </h3>
+                  
                   <div class="col-md-2">
                     <v-select
                       outlined
@@ -652,6 +673,9 @@
                       hide-details
                       background-color="white"
                       :disabled="showAdd"
+                      :items="itemOptions"
+                      v-model="application.valid_yhcip"
+                      @change="doSaveApp('valid_yhcip', application.valid_yhcip)"
                     >
 
                     </v-select>
@@ -733,6 +757,7 @@ export default {
   },
   data: () => ({
     showAdd: false,
+    hasbeenAway: true,
     newRecord: {
       from_year: null,
       from_month: null,
@@ -759,16 +784,12 @@ export default {
       country_id: 1,
     },
     validate: {},
-    tax_year_1: {
-      year: null,
-      where_filed: "",
-      taxes_not_filed: false,
-    },
-    tax_year_2: {
-      year: null,
-      where_filed: "",
-      taxes_not_filed: false,
-    },
+    itemOptions: [
+      {text: "Yes", value: true},
+      {text: "No", value: false},
+      {text: "Unknown", value: null},
+    ],
+    
   }),
   async created() {
     
@@ -891,6 +912,9 @@ export default {
         [field, value, type, extraId, this, null, url, isInsertion],
       );
 
+    },
+    doSaveApp(field, value) {
+      store.dispatch("updateApplication", [field, value, this]);
     },
   },
 };
