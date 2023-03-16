@@ -1,10 +1,23 @@
 <template>
   <div>
-    <v-card class="default">
+    <!-- TITLE AND SWITCH -->
+    <div class="col-md-12 mt-n5">
+      <div class="row  mt-2">
+        <v-switch
+            label=""
+            class="my-0 mr-2"
+            v-model="requiresCC"
+        >
+        </v-switch>
+        <h3 class="text-h6 font-weight-regular">Requires Credit Check</h3>
+      </div>
+    </div>
+    <!--  -->
+  
+    <v-card class="default mb-5" v-if="requiresCC">
       <v-card-title>Credit Check</v-card-title>
       <v-card-text>
         <div class="row">
-         
 
           <div class="col-md-4">
             <v-menu
@@ -25,7 +38,7 @@
                   readonly
                   outlined
                   dense
-                  background-color="#ffaaaa"
+                  background-color="white"
                   v-bind="attrs"
                   v-on="on"
                 ></v-text-field>
@@ -36,7 +49,7 @@
               ></v-date-picker>
             </v-menu>
           </div>
-          <div class="col-md-4 pt-0">
+          <div class="col-md-3 pt-0">
             <v-switch
               outlined
               dense
@@ -45,7 +58,16 @@
               v-model="credit_check_passed"
             ></v-switch>
           </div>
-          <div class="col-md-4 pt-0">
+          <div class="col-md-3">
+            <v-text-field
+              outlined
+              dense
+              hide-details
+              label="Last checked on"
+              background-color="white"
+            ></v-text-field>
+          </div>
+          <div class="col-md-2 pt-0">
             <v-btn color="info" class="float-right">Check credit</v-btn>
           </div>
 
@@ -58,6 +80,7 @@
 <script>
 export default {
   data: () => ({
+    requiresCC: true,
     check_completion_menu: null,
 
     check_completion_date: null,

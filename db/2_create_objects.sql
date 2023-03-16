@@ -1163,12 +1163,16 @@ CREATE TABLE sfa.application
     taxes2_filed_province_id       INT            NULL REFERENCES sfa.province,
     taxes1_not_filed               BIT            NOT NULL DEFAULT 0,
     taxes2_not_filed               BIT            NOT NULL DEFAULT 0,
+    taxes1_verified                BIT            NOT NULL DEFAULT 0,,
+    taxes2_verified                BIT            NOT NULL DEFAULT 0,,
     applied_other_funding          BIT            NOT NULL DEFAULT 0,
     csl_restriction_warn_id        INT            NULL REFERENCES sfa.csl_code,
     csl_restriction_reason_id      INT            NULL REFERENCES sfa.csl_code,
     courses_per_week               INT            NULL,
     prestudy_start_date            DATE           NULL,
-    prestudy_end_date              DATE           NULL
+    prestudy_end_date              DATE           NULL,
+    valid_driver_license           BIT            NULL,
+    valid_yhcip                    BIT            NULL,
 )
 
 CREATE TABLE sfa.agency_assistance

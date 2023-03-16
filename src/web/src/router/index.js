@@ -13,12 +13,14 @@ import AdministrationHome from "../views/Administration/AdministrationHome";
 import Search from "../views/Search";
 
 import ApplicationDetails from "../components/application/ApplicationDetails";
+import FamilyInfo from "../components/application/family-info/FamilyInfo";
 import StudentDetails from "../components/student/StudentDetails";
 import Status from "../components/application/Status";
 import AcademicYear from "../components/application/AcademicYear";
-import SFAFundingRequests from "../components/application/SFAFundingRequests";
-import ScholarshipApplications from "../components/application/ScholarshipApplications";
-import CSLFundingRequests from "../components/application/CSLFundingRequests";
+import SFAFundingRequests from "../components/application/sfa-funding-requests/SFAFundingRequests";
+import ScholarshipApplications from "../components/application/sfa-funding-requests/scholarships/ScholarshipApplications";
+import CSFAFundingRequests from "../components/application/csfa-funding-requests/CSFAFundingRequests";
+import CSFANeedsAssessment from "../components/application/csfa-needs-assessment/CSFANeedsAssessment";
 import Documentation from "../components/application/Documentation";
 
 import StudentModuleRoutes from "@/modules/student/router";
@@ -80,6 +82,14 @@ const routes = [
     }
   },
   {
+    path: "/application/:id/family-info",
+    name: "FamilyInfo",
+    component: FamilyInfo,
+    meta: {
+      requiresAuth: true
+    }
+  },
+  {
     path: "/application/:id/status",
     name: "Status",
     component: Status,
@@ -112,9 +122,17 @@ const routes = [
     }
   },
   {
-    path: "/application/:id/csl-funding-requests",
-    name: "CSLFundingRequests",
-    component: CSLFundingRequests,
+    path: "/application/:id/csfa-funding-requests",
+    name: "CSFAFundingRequests",
+    component: CSFAFundingRequests,
+    meta: {
+      requiresAuth: true
+    }
+  },
+  {
+    path: "/application/:id/csfa-needs-assessment",
+    name: "CSFANeedsAssessment",
+    component: CSFANeedsAssessment,
     meta: {
       requiresAuth: true
     }

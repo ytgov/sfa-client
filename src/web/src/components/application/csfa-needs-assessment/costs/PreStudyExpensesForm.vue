@@ -2,25 +2,25 @@
   <div>
     <v-card class="default mb-5">
       <v-card-text>
-        <h3>Study Income</h3>
+        <h3>Pre-Study Expenses</h3>
 
-        <div class="row" v-for="(item, i) of incomes" :key="i">
+        <div class="row" v-for="(item, i) of expenses" :key="i">
           <div class="col-md-4">
             <v-select
               outlined
               dense
-              background-color="#ffaaaa"
+              background-color="white"
               hide-details
-              label="Income type"
+              label="Expense type"
               v-model="item.expense_type"
-              :items="incomeTypeOptions"
+              :items="expenseTypeOptions"
             ></v-select>
           </div>
           <div class="col-md-2">
             <v-text-field
               outlined
               dense
-              background-color="#ffaaaa"
+              background-color="white"
               hide-details
               label="Amount"
               v-model="item.amount"
@@ -31,7 +31,7 @@
             <v-text-field
               outlined
               dense
-              background-color="#ffaaaa"
+              background-color="white"
               hide-details
               label="Comment"
               v-model="item.comment"
@@ -44,12 +44,12 @@
               fab
               class="my-0 float-right"
               title="Remove"
-              @click="removeIncome(i)"
+              @click="removeExpense(i)"
               ><v-icon>mdi-close</v-icon></v-btn
             >
           </div>
         </div>
-        <v-btn color="info" @click="addIncome()">Add income</v-btn>
+        <v-btn color="info" @click="addExpense()">Add expense</v-btn>
       </v-card-text>
     </v-card>
 
@@ -60,21 +60,21 @@
 <script>
 export default {
   data: () => ({
-    incomeTypeOptions: ["Alimony Support", "Child Support", "Computer Hardware/Software/Supplies", "Day Care Costs - Monthly"],
+    expenseTypeOptions: ["Alimony Support", "Child Support", "Computer Hardware/Software/Supplies", "Day Care Costs - Monthly"],
 
-    incomes: [],
+    expenses: [],
   }),
   async created() {},
   methods: {
-    addIncome() {
-      this.incomes.push({amount: 0});
+    addExpense() {
+      this.expenses.push({amount: 0});
     },
-    removeIncome(index) {
+    removeExpense(index) {
       this.$refs.confirm.show(
         "Are you sure?",
-        "Click 'Confirm' below to permanently remove this income.",
+        "Click 'Confirm' below to permanently remove this expense.",
         () => {
-          this.incomes.splice(index, 1);
+          this.expenses.splice(index, 1);
         },
         () => {}
       );

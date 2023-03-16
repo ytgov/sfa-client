@@ -2,210 +2,169 @@
   <div>
     <v-card class="default mb-5">
       <v-card-title>Institution</v-card-title>
-      <v-card-text>
-        <div class="row">
-          <div class="col-md-4">
-            <v-select
-              outlined
-              dense
-              background-color="white"
-              hide-details
-              label="Academic year"
-              :items="yearOptions"
-              v-model="application.academic_year_id"
-              @change="doSaveApp('academic_year_id', application.academic_year_id)"
-            ></v-select>
+      <v-card-text class="row">
+        <div class="col-md-3">
+          <div class="row">
+            <div class="col-12 pr-md-0">
+              <v-select
+                outlined
+                dense
+                background-color="white"
+                hide-details
+                label="Academic year"
+                :items="yearOptions"
+                v-model="application.academic_year_id"
+                @change="doSaveApp('academic_year_id', application.academic_year_id)"
+              ></v-select>
+            </div>
+            <div class="col-md-8">
+              <div class="row">
+                <div class="col-md-9">
+                  <h3 class="text-subtitle-2 pt-md-2 my-sm-0 my-xs-0">Entering Year</h3>
+                </div>
+                <div class="col-md-3 px-md-0">
+                  <v-text-field
+                    outlined
+                    dense
+                    background-color="white"
+                    hide-details
+                    @keypress="validate.isNumber($event)"
+                    @change="doSaveApp('program_year', application.program_year)"
+                    v-model="application.program_year"
+                  ></v-text-field>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="row">
+                <div class="col-md-6">
+                  <h3 class="text-subtitle-2 pt-md-2 my-sm-0 my-xs-0">of</h3>
+                </div>
+                <div class="col-md-6 px-md-0">
+                  <v-text-field
+                    outlined
+                    dense
+                    background-color="white"
+                    hide-details
+                    @keypress="validate.isNumber($event)"
+                    @change="doSaveApp('program_year', application.program_year)"
+                    v-model="application.program_year"
+                  ></v-text-field>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-12 pr-md-0">
+              <v-text-field
+                outlined
+                dense
+                background-color="white"
+                hide-details
+                label="Student number"
+                @keypress="validate.isNumber($event)"
+                v-model="application.student_number"
+              ></v-text-field>
+            </div>
           </div>
-
-          <div class="col-md-8">
-            <v-autocomplete
-              outlined
-              dense
-              background-color="white"
-              hide-details
-              label="Institution"
-              v-model="application.institution_campus_id"
-              :items="institutionOptions"
-              item-text="name"
-              item-value="id"
-              @change="doSaveApp('institution_campus_id', application.institution_campus_id)"
-            ></v-autocomplete>
-          </div>
-
-          <div class="col-md-4">
-            <v-text-field
-              outlined
-              dense
-              background-color="white"
-              hide-details
-              label="Entering year #"
-              @keypress="validate.isNumber($event)"
-              @change="doSaveApp('program_year', application.program_year)"
-              v-model="application.program_year"
-            ></v-text-field>
-          </div>
-
-          <div class="col-md-4">
-            <v-text-field
-              outlined
-              dense
-              readonly
-              background-color="white"
-              hide-details
-              label="Fall classes start date"
-              :value="application.classes_start_date?.slice(0, 10)"
-            ></v-text-field>
-          </div>
-          <div class="col-md-4">
-            <v-text-field
-              outlined
-              dense
-              readonly
-              background-color="white"
-              hide-details
-              label="Winter classes end date"
-              :value="application.classes_end_date?.slice(0, 10)"
-            ></v-text-field>
-          </div>
-
-          <div class="col-md-4">
-            <v-text-field
-              outlined
-              dense
-              background-color="white"
-              hide-details
-              label="Student number"
-              @keypress="validate.isNumber($event)"
-              v-model="application.student_number"
-            ></v-text-field>
-          </div>
-
-          <div class="col-md-8">
-            <v-expansion-panels flat>
-              <v-expansion-panel key="1" style="padding-top: 0">
-                <v-expansion-panel-header
-                  style="padding-top: 7px; padding-left: 10px"
-                  >Institution details</v-expansion-panel-header
-                >
-                <v-expansion-panel-content>
-                  <div class="row">
-                    <div class="col-md-12">
-                      <v-text-field
-                        outlined
-                        dense
-                        background-color="white"
-                        hide-details
-                        label="Address"
-                        v-model="selectedInstitution.address_line_1"
-                        readonly
-                      ></v-text-field>
-                    </div>
-                    <div class="col-md-6">
-                      <v-select
-                        outlined
-                        dense
-                        background-color="white"
-                        hide-details
-                        label="City"
-                        v-model="selectedInstitution.address_city_id"
-                        :items="cities"
-                        item-value="id"
-                        item-text="description"
-                        readonly
-                      ></v-select>
-                    </div>
-                    <div class="col-md-6">
-                      <v-select
-                        outlined
-                        dense
-                        background-color="white"
-                        hide-details
-                        label="Province"
-                        v-model="selectedInstitution.address_province_id"
-                        :items="provinces"
-                        item-value="id"
-                        item-text="description"
-                        readonly
-                      ></v-select>
-                    </div>
-                    <div class="col-md-6">
-                      <v-text-field
-                        outlined
-                        dense
-                        background-color="white"
-                        hide-details
-                        label="Postal code"
-                        v-model="selectedInstitution.address_postal_code"
-                        readonly
-                      ></v-text-field>
-                    </div>
-                    <div class="col-md-6">
-                      <v-select
-                        outlined
-                        dense
-                        background-color="white"
-                        hide-details
-                        label="Country"
-                        :items="countries"
-                        v-model="selectedInstitution.address_country_id"
-                        readonly
-                        item-value="id"
-                        item-text="description"
-                      ></v-select>
-                    </div>
-                    <div class="col-md-12">
-                      <v-text-field
-                        outlined
-                        dense
-                        background-color="white"
-                        hide-details
-                        label="Care of"
-                        v-model="selectedInstitution.care_of"
-                        readonly
-                      ></v-text-field>
-                    </div>
-
-                    <div class="col-md-4">
-                      <v-text-field
-                        outlined
-                        dense
-                        readonly
-                        background-color="white"
-                        hide-details
-                        label="Inst. code"
-                        v-model="selectedInstitution.federal_institution_code"
-                      ></v-text-field>
-                    </div>
-
-                    <div class="col-md-4">
-                      <v-select
-                        outlined
-                        dense
-                        readonly
-                        background-color="white"
-                        hide-details
-                        label="Inst. level"
-                        v-model="selectedInstitution.institution_level_id"
-                        :items="institutionLevels"
-                        item-text="description"
-                        item-value="id"
-                      ></v-select>
-                    </div>
-                    <div class="col-md-4">
-                      <v-text-field
-                        outlined
-                        dense
-                        readonly
-                        background-color="#ffaaaa"
-                        hide-details
-                        label="FOS"
-                        v-model="selectedInstitution.fos"
-                      ></v-text-field>
-                    </div>
-                  </div>
-                </v-expansion-panel-content>
-              </v-expansion-panel>
-            </v-expansion-panels>
+          
+            
+        </div>
+        <div class="col-md-9">
+          <div class="row">
+            <div class="col-md-12">
+              <v-autocomplete
+                outlined
+                dense
+                background-color="white"
+                hide-details
+                label="Institution"
+                v-model="application.institution_campus_id"
+                :items="institutionOptions"
+                item-text="name"
+                item-value="id"
+                @change="doSaveApp('institution_campus_id', application.institution_campus_id)"
+              ></v-autocomplete>
+            </div>
+            <div class="col-md-6">
+              <v-text-field
+                disabled
+                outlined
+                dense
+                background-color="white"
+                hide-details
+                label="Address"
+              ></v-text-field>
+            </div>
+            <div class="col-md-3">
+              <v-text-field
+                disabled
+                outlined
+                dense
+                background-color="white"
+                hide-details
+                label="City"
+              ></v-text-field>
+            </div>
+            <div class="col-md-3">
+              <v-text-field
+                disabled
+                outlined
+                dense
+                background-color="white"
+                hide-details
+                label="Province"
+              ></v-text-field>
+            </div>
+            <div class="col-md-2">
+              <v-text-field
+                disabled
+                outlined
+                dense
+                background-color="white"
+                hide-details
+                label="Postal Code"
+              ></v-text-field>
+            </div>
+            <div class="col-md-2">
+              <v-text-field
+                disabled
+                outlined
+                dense
+                background-color="white"
+                hide-details
+                label="Country"
+              ></v-text-field>
+            </div>
+            <div class="col-md-1"></div>
+            <div class="col-md-2">
+              <v-text-field
+                disabled
+                outlined
+                dense
+                background-color="white"
+                hide-details
+                label="GUAB"
+              ></v-text-field>
+            </div>
+            <div class="col-md-3">
+              <v-text-field
+                disabled
+                outlined
+                dense
+                background-color="white"
+                hide-details
+                label="Institution Level"
+              ></v-text-field>
+            </div>
+            <div class="col-md-2">
+              <v-text-field
+                disabled
+                outlined
+                dense
+                background-color="white"
+                hide-details
+                label="FOS"
+              ></v-text-field>
+            </div>
           </div>
         </div>
       </v-card-text>
@@ -213,176 +172,163 @@
 
     <v-card class="default mb-5">
       <v-card-title>Program</v-card-title>
-      <v-card-text>
-        <div class="row">
-          <div class="col-md-5">
-            <v-autocomplete
-              outlined
-              dense
-              background-color="white"
-              hide-details
-              label="Program study area"
-              v-model="application.study_area_id"
-              @change="doSaveApp('study_area_id', application.study_area_id)"
-              :items="studyAreas"
-              item-text="description"
-              item-value="id"
-            ></v-autocomplete>
-          </div>
-          <div class="col-md-4">
-            <v-select
-              outlined
-              dense
-              background-color="white"
-              hide-details
-              label="Program type"
-              @change="doSaveApp('program_id', application.program_id)"
-              v-model="application.program_id"
-              :items="programs"
-              item-text="description"
-              item-value="id"
-            ></v-select>
-          </div>
-          <div class="col-md-3">
-            <v-text-field
-              outlined
-              dense
-              background-color="white"
-              hide-details
-              @change="doSaveApp('program_year_total', application.program_year_total)"
-              @keypress="validate.isNumber($event)"
-              label="Duration"
-              v-model="application.program_year_total"
-            ></v-text-field>
-          </div>
-          <div class="col-md-5">
-            <v-select
-              outlined
-              dense
-              background-color="#ffaaaa"
-              hide-details
-              label="Program division"
-              v-model="application.PROGRAM_DIVISION"
-              :items="programDivisionOptions"
-            ></v-select>
-          </div>
-
-          <div class="col-md-7">
-            <v-select
-              outlined
-              dense
-              background-color="white"
-              hide-details
-              label="Student category"
-              @change="doSaveApp('category_id', application.category_id)"
-              v-model="application.category_id"
-              :items="yukonGrantEligibilityList"
-              item-text="description"
-              item-value="id"
-            ></v-select>
-          </div>
-
-          <div class="col-md-4">
-            <v-select
-              outlined
-              dense
-              background-color="#ffaaaa"
-              hide-details
-              label="Attendance"
-              v-model="application.attendance"
-              :items="attendanceOptions"
-            ></v-select>
-          </div>
-
-          <div class="col-md-4">
-            <v-menu
-              v-model="classes_start_menu"
-              :close-on-content-click="false"
-              transition="scale-transition"
-              left
-              nudge-top="26"
-              offset-y
-              min-width="auto"
-            >
-              <template v-slot:activator="{ on, attrs }">
-                <v-text-field
-                  :value="application.classes_start_date?.slice(0, 10)"
-                  label="Fall classes start date"
-                  append-icon="mdi-calendar"
-                  readonly
-                  outlined
-                  hide-details
-                  dense
-                  background-color="white"
-                  v-bind="attrs"
-                  v-on="on"
-                ></v-text-field>
-              </template>
-              <v-date-picker
-                :value="application.classes_start_date?.slice(0, 10)"
-                @input="e => {
-                  application.classes_start_date = e;
-                  classes_start_menu = false;
-                }"
-                @change="doSaveApp('classes_start_date', application.classes_start_date)"
-              ></v-date-picker>
-            </v-menu>
-          </div>
-          <div class="col-md-4">
-            <v-menu
-              v-model="classes_end_menu"
-              :close-on-content-click="false"
-              transition="scale-transition"
-              left
-              nudge-top="26"
-              offset-y
-              min-width="auto"
-            >
-              <template v-slot:activator="{ on, attrs }">
-                <v-text-field
-                  :value="application.classes_end_date?.slice(0, 10)"
-                  label="Winter classes end date"
-                  append-icon="mdi-calendar"
-                  hide-details
-                  readonly
-                  outlined
-                  dense
-                  background-color="white"
-                  v-bind="attrs"
-                  v-on="on"
-                ></v-text-field>
-              </template>
-              <v-date-picker
-                :value="application.classes_end_date?.slice(0, 10)"
-                @input="e => {
-                  application.classes_end_date = e;
-                  classes_end_menu = false;
-                }"
-                @change="doSaveApp('classes_end_date', application.classes_end_date)"
-              ></v-date-picker>
-            </v-menu>
-          </div>
-
-          <div class="col-md-4 pt-0">
-            <v-switch
-              outlined
-              dense
-              hide-details
-              label="By correspondence"
-              v-model="application.is_correspondence"
-            ></v-switch>
-          </div>
-          <div class="col-md-8 pt-0">
-            <v-switch
-              outlined
-              dense
-              hide-details
-              background-color="#ffaaaa"
-              label="STEP and GRAD Corp data sharing consent"
-              v-model="sharing_consent"
-            ></v-switch>
+      <v-card-text class="row">
+        <div class="col-md-4">
+          <div class="row">
+            <div class="col-md-12">
+              <v-autocomplete
+                outlined
+                dense
+                background-color="white"
+                hide-details
+                label="Study Area"
+                v-model="application.study_area_id"
+                @change="doSaveApp('study_area_id', application.study_area_id)"
+                :items="studyAreas"
+                item-text="description"
+                item-value="id"
+              ></v-autocomplete>
+            </div>
+            <div class="col-md-6">
+              <v-btn
+              class="mt-0"
+              color="success"
+              >
+                VIEW PIF
+              </v-btn>
+            </div>
           </div>
         </div>
+        <div class="col-md-5">
+          <div class="row">
+            <div class="col-md-6 px-1">
+              <v-select
+                outlined
+                dense
+                background-color="white"
+                hide-details
+                label="Program Type"
+                @change="doSaveApp('program_id', application.program_id)"
+                v-model="application.program_id"
+                :items="programs"
+                item-text="description"
+                item-value="id"
+              ></v-select>
+            </div>
+            <div class="col-md-6 px-1">
+              <v-select
+                outlined
+                dense
+                background-color="white"
+                hide-details
+                label="Program Division"
+                v-model="application.PROGRAM_DIVISION"
+                :items="programDivisionOptions"
+              ></v-select>
+            </div>
+            <div class="col-md-6 px-1">
+              <v-select
+                outlined
+                dense
+                background-color="white"
+                hide-details
+                label="Attendance"
+                v-model="application.attendance"
+                :items="attendanceOptions"
+              ></v-select>
+            </div>
+            <div class="col-md-6 px-1">
+              <v-switch
+                class="my-0"
+                label="By Correspondance"
+                v-model="application.is_correspondence"
+              ></v-switch>
+            </div>
+            <div class="col-md-6 px-1">
+              <v-menu
+                v-model="classes_start_menu"
+                :close-on-content-click="false"
+                transition="scale-transition"
+                left
+                nudge-top="26"
+                offset-y
+                min-width="auto"
+              >
+                <template v-slot:activator="{ on, attrs }">
+                  <v-text-field
+                    :value="application.classes_start_date?.slice(0, 10)"
+                    label="Class Start Date"
+                    append-icon="mdi-calendar"
+                    readonly
+                    outlined
+                    hide-details
+                    dense
+                    background-color="white"
+                    v-bind="attrs"
+                    v-on="on"
+                  ></v-text-field>
+                </template>
+                <v-date-picker
+                  :value="application.classes_start_date?.slice(0, 10)"
+                  @input="e => {
+                    application.classes_start_date = e;
+                    classes_start_menu = false;
+                  }"
+                  @change="doSaveApp('classes_start_date', application.classes_start_date)"
+                ></v-date-picker>
+              </v-menu>
+            </div>
+            <div class="col-md-6 px-1">
+              <v-menu
+                v-model="classes_end_menu"
+                :close-on-content-click="false"
+                transition="scale-transition"
+                left
+                nudge-top="26"
+                offset-y
+                min-width="auto"
+              >
+                <template v-slot:activator="{ on, attrs }">
+                  <v-text-field
+                    :value="application.classes_end_date?.slice(0, 10)"
+                    label="Class End Date"
+                    append-icon="mdi-calendar"
+                    hide-details
+                    readonly
+                    outlined
+                    dense
+                    background-color="white"
+                    v-bind="attrs"
+                    v-on="on"
+                  ></v-text-field>
+                </template>
+                <v-date-picker
+                  :value="application.classes_end_date?.slice(0, 10)"
+                  @input="e => {
+                    application.classes_end_date = e;
+                    classes_end_menu = false;
+                  }"
+                  @change="doSaveApp('classes_end_date', application.classes_end_date)"
+                ></v-date-picker>
+              </v-menu>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="row justify-end">
+            <div class="col-md-9">
+              <v-text-field
+                outlined
+                dense
+                background-color="white"
+                hide-details
+                label="Study Weeks"
+                v-model="application.attendance"
+                :items="attendanceOptions"
+              ></v-text-field>
+            </div>
+          </div>
+        </div>  
       </v-card-text>
     </v-card>
   </div>

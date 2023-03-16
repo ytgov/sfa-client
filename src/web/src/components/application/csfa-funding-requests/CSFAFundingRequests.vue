@@ -1,32 +1,42 @@
 <template>
   <div class="home">
-    <h1>SFA Funding Requests</h1>
+    <h1>CSL Funding Requests</h1>
 
     <v-tabs v-model="tab" background-color="#fff2d5" color="primary">
-      <v-tab key="0">Training Allowance</v-tab>
-      <v-tab key="1">Yukon Grant</v-tab>
-      <v-tab key="2">Yukon Excellence Awards</v-tab>
+      <v-tab key="0">CSFA Full-Time</v-tab>
+      <v-tab key="1">CSFA Part-Time</v-tab>
+      <v-tab key="2">CSG Disability</v-tab>
     </v-tabs>
 
     <v-tabs-items v-model="tab" style="padding: 20px">
+
       <v-tab-item key="0">
-        <training-allowance></training-allowance>
+        <CSFAFullTime></CSFAFullTime>
       </v-tab-item>
       <v-tab-item key="1">
-        <yukon-grant></yukon-grant>
+        <CSFAPartTime></CSFAPartTime>
       </v-tab-item>
       <v-tab-item key="2">
-        <yukon-excellence></yukon-excellence>
+        <CSGDisabilityForm></CSGDisabilityForm>
       </v-tab-item>
+     
     </v-tabs-items>
   </div>
 </template>
 
 <script>
-import store from "../../store";
+import store from "@/store";
+import CSFAFullTime from "./csfa-full-time/CSFAFullTime.vue";
+import CSFAPartTime from "./csfa-part-time/CSFAPartTime.vue";
+import CSGDisabilityForm from "./csg-disability/CSGDisabilityForm.vue";
 
 export default {
   name: "Home",
+  components: {
+    CSFAFullTime,
+    CSFAPartTime,
+    CSGDisabilityForm,
+  },
   data: () => ({
     tab: 0,
     applicationId: -1,
