@@ -11,6 +11,7 @@
   "author": "Michael Johnson",
   "license": "ISC",
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.293.0",
     "cors": "^2.8.5",
     "dotenv": "^8.6.0",
     "express": "^4.17.1",
@@ -23,7 +24,8 @@
     "knex": "^1.0.4",
     "lodash": "^4.17.21",
     "moment": "^2.29.4",
-    "mssql": "^8.0.2"
+    "mssql": "^8.0.2",
+    "nodemailer": "^6.9.1"
   },
   "devDependencies": {
     "@types/cors": "^2.8.12",
@@ -32,6 +34,7 @@
     "@types/express-session": "^1.17.0",
     "@types/lodash": "^4.14.172",
     "@types/node": "^14.14.5",
+    "@types/nodemailer": "^6.4.7",
     "nodemon": "^2.0.19",
     "ts-node": "^9.1.1",
     "typescript": "^4.5.4"
