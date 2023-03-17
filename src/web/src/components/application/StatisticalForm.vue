@@ -11,6 +11,11 @@
               background-color="white"
               hide-details
               label="Language"
+              v-model="student.language_id"
+              @change="doSaveStudent('language_id', student.language_id, 'personInfo', student.id)"
+              :items="languages"
+              item-value="id"
+              item-text="description"
             ></v-select>
           </div>
           <div class="col-md-3">
@@ -20,10 +25,16 @@
               background-color="white"
               hide-details
               label="Gender"
+              v-model="student.sex_id"
+              @change="doSaveStudent('sex_id', student.sex_id, 'personInfo', student.id)"
+              :items="sexes"
+              item-value="id"
+              item-text="description"
             ></v-select>
           </div>
           <div class="col-md-3">
             <v-menu
+                v-model="show_menu"
                 :close-on-content-click="false"
                 transition="scale-transition"
                 left
@@ -33,8 +44,9 @@
               >
                 <template v-slot:activator="{ on, attrs }">
                   <v-text-field
-                    label="Date app received"
+                    label="Birth Date"
                     append-icon="mdi-calendar"
+                    :value="student.birth_date?.slice(0, 10)"
                     hide-details
                     readonly
                     outlined
@@ -45,6 +57,12 @@
                   ></v-text-field>
                 </template>
                 <v-date-picker
+                :value="student.birth_date?.slice(0, 10)"
+                @input="e => {
+                  student.birth_date = e;
+                  show_menu = false;
+                }"
+                @change="doSaveStudent('birth_date', student.birth_date, 'personInfo', student.id)"
                 ></v-date-picker>
               </v-menu>
           </div>
@@ -79,10 +97,10 @@
               background-color="white"
               hide-details
               label="Citizenship"
-              v-model="application.CITIZENSHIP_STATUS"
+              v-model="application.citizenship_status"
               :items="citizenshipOptions"
               @change="
-                doSaveApp('CITIZENSHIP_STATUS', application.CITIZENSHIP_STATUS)
+                doSaveApp('citizenship_status', application.citizenship_status)
               "
             ></v-select>
           </div>
@@ -163,6 +181,8 @@
               background-color="white"
               hide-details
               label="Notes"
+              v-model="application.stat_info_comment"
+              @change="doSaveApp('stat_info_comment', application.stat_info_comment)"
             >
 
             </v-textarea>
@@ -172,6 +192,8 @@
     </v-card>
 
     <v-switch
+      v-model="application.has_consent_to_share_data"
+      @change="doSaveApp('has_consent_to_share_data', application.has_consent_to_share_data)"
       label="STEP and Grad CORP data sharing consent"
     >
 
@@ -185,7 +207,7 @@ import { mapGetters } from 'vuex';
 
 export default {
   computed: {
-    ...mapGetters(["maritalStatusList", "aboriginalStatusList", "firstNations"]),
+    ...mapGetters(["maritalStatusList", "aboriginalStatusList", "firstNations", "languages", "sexes"]),
     application: function () {
       return store.getters.selectedApplication;
     },
@@ -194,11 +216,12 @@ export default {
     },
   },
   data: () => ({
+    show_menu: false,
     maritalOptions: [],
     aboriginalStatusOptions: [],
     firstNationOptions: [],
     citizenshipOptions: [
-      { vale: null, text: "Not Recorded" },
+      { vale: 0, text: "Not Recorded" },
       { value: 1, text: "Canadian" },
       { value: 2, text: "Permanent Resident" },
       { value: 3, text: "Protected Person" },
@@ -208,6 +231,9 @@ export default {
   async created() {
     store.dispatch("setMaritalStatusList");
     store.dispatch("setAboriginalStatusList");
+    store.dispatch("setFirstNations");
+    store.dispatch("setLanguages");
+    store.dispatch("setSexes");
     store.dispatch("setFirstNations");
     //this.updateView(this.application);
   },
