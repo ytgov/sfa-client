@@ -141,6 +141,27 @@ VALUES (-1, 'Unknown'),
        (3, 'Prefer Not to Say')
 SET IDENTITY_INSERT sfa.indigenous_learner OFF
 
+SET IDENTITY_INSERT sfa.citizenship ON
+INSERT
+INTO sfa.citizenship (id, description)
+VALUES  ( 1, 'Not Recorded'),
+        ( 2, 'Canadian'),
+        ( 3, 'Permanent resident'),
+        ( 4, 'Protected person'),
+        ( 5, 'No citizen'),
+        ( 6, 'Landed Immigrant')
+SET IDENTITY_INSERT sfa.citizenship OFF
+
+SET IDENTITY_INSERT sfa.csl_classification ON
+INSERT
+INTO sfa.csl_classification (id, description)
+VALUES  ( 1, 'Single Dependent'),
+        ( 2, 'Single Independent - 2 year workforce'),
+        ( 3, 'Single Independent - 4 year high school'),
+        ( 4, 'Married / Common Law'),
+        ( 5, 'Single Parent')
+SET IDENTITY_INSERT sfa.csl_classification OFF
+
 UPDATE sfaadmin.student_consent
 SET academic_year_end = 2021
 WHERE academic_year_end = 20201

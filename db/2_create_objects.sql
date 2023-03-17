@@ -994,6 +994,19 @@ CREATE TABLE sfa.correspondence_type
     is_active   BIT           NOT NULL DEFAULT 1
 )
 
+CREATE TABLE sfa.citizenship 
+(
+	id          INT IDENTITY (1,1) PRIMARY KEY,
+	description NVARCHAR(200) NOT NULL,
+	is_active   BIT           NOT NULL DEFAULT 1
+)
+
+CREATE TABLE sfa.csl_classification (
+	id INT IDENTITY (1,1) PRIMARY KEY,
+	description NVARCHAR(200) NOT NULL,
+	is_active BIT NOT NULL DEFAULT 1
+)
+
 -- SFAADMIN.CORRESPONDENCE
 CREATE TABLE sfa.correspondence
 (
@@ -1089,7 +1102,7 @@ CREATE TABLE sfa.application
     classes_end_date               DATE           NULL,
     is_correspondence              BIT            NOT NULL DEFAULT 0,
     is_coop_paid                   BIT            NOT NULL DEFAULT 0,
-    citizenship_status             INT            NULL,
+    citizenship_status             INT            NULL REFERENCES sfa.citizenship,
     is_disabled                    BIT            NOT NULL DEFAULT 0,
     is_minority                    BIT            NOT NULL DEFAULT 0,
     student_number                 NVARCHAR(30)   NULL,
@@ -1097,7 +1110,7 @@ CREATE TABLE sfa.application
     program_year                   FLOAT          NULL,
     is_two_residence               BIT            NOT NULL DEFAULT 0,
     is_moving                      BIT            NOT NULL DEFAULT 0,
-    csl_classification             INT            NULL,
+    csl_classification             INT            NULL REFERENCES sfa.csl_classification,
     csl_previous_province_id       INT            NULL REFERENCES sfa.province,
     program_division_explanation   NVARCHAR(200)  NULL,
     prestudy_accom_code            INT            NULL,
@@ -1147,7 +1160,7 @@ CREATE TABLE sfa.application
     credit_chk_app_comp            BIT            NOT NULL DEFAULT 0,
     credit_chk_comp_date           DATE           NULL,
     csl_clearance_date             DATE           NULL,
-    prestudy_csl_classification    INT            NULL,
+    prestudy_csl_classification    INT            NULL REFERENCES sfa.csl_classification,
     yea_tot_receipt_amount         NUMERIC(10, 2) NULL,
     academic_percent               FLOAT          NULL,
     csl_restriction_comment        NVARCHAR(2000) NULL,
@@ -1163,8 +1176,8 @@ CREATE TABLE sfa.application
     taxes2_filed_province_id       INT            NULL REFERENCES sfa.province,
     taxes1_not_filed               BIT            NOT NULL DEFAULT 0,
     taxes2_not_filed               BIT            NOT NULL DEFAULT 0,
-    taxes1_verified                BIT            NOT NULL DEFAULT 0,,
-    taxes2_verified                BIT            NOT NULL DEFAULT 0,,
+    taxes1_verified                BIT            NOT NULL DEFAULT 0,
+    taxes2_verified                BIT            NOT NULL DEFAULT 0,
     applied_other_funding          BIT            NOT NULL DEFAULT 0,
     csl_restriction_warn_id        INT            NULL REFERENCES sfa.csl_code,
     csl_restriction_reason_id      INT            NULL REFERENCES sfa.csl_code,
@@ -1173,6 +1186,7 @@ CREATE TABLE sfa.application
     prestudy_end_date              DATE           NULL,
     valid_driver_license           BIT            NULL,
     valid_yhcip                    BIT            NULL,
+    has_consent_to_share_data      BIT            NOT NULL DEFAULT 0
 )
 
 CREATE TABLE sfa.agency_assistance
@@ -1424,11 +1438,11 @@ CREATE TABLE sfa.assessment
     pstudy_day_care_actual         FLOAT          NULL,
     student_gross_income           FLOAT          NULL,
     spouse_gross_income            FLOAT          NULL,
-    prestudy_csl_classification    FLOAT          NULL,
+    prestudy_csl_classification    FLOAT          NULL REFERENCES sfa.csl_classification,
     marital_status_id              INT            NULL REFERENCES sfa.marital_status,
     spouse_province_id             INT            NULL REFERENCES sfa.province,
     study_accom_code               FLOAT          NULL,
-    csl_classification             FLOAT          NULL,
+    csl_classification             FLOAT          NULL REFERENCES sfa.csl_classification,
     family_size                    FLOAT          NULL,
     parent_ps_depend_count         FLOAT          NULL,
     parent_province                VARCHAR(100)   NULL,
@@ -1511,7 +1525,7 @@ CREATE TABLE sfa.cls_nars_history
     aboriginal_status_flg       NVARCHAR(1)    NULL,
     aboriginal_category         NVARCHAR(1)    NULL,
     assessment_date             DATE           NULL,
-    csl_classification          INT            NULL,
+    csl_classification          INT            NULL REFERENCES sfa.csl_classification,
     family_size                 INT            NULL,
     post_secondary_children     INT            NULL,
     spouse_student_flg          NVARCHAR(1)    NULL,
