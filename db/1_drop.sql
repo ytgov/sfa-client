@@ -112,3 +112,4 @@ DROP TABLE IF EXISTS sfa.country
 DROP TABLE IF EXISTS sfa.indigenous_learner
 DROP TABLE IF EXISTS sfa.academic_year
 --DROP TABLE sfa.user
+DROP TABLE IF EXISTS sfa.file_reference

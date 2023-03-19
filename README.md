@@ -5,6 +5,8 @@
 Writing code and developing in this application requires running three services:
 
 - A local Microsoft SQL Server (2019 Linux) database running in Docker
+- A local Minio Object Store (S3 compatible) to store files uploaded to the application
+- A local Mail Slurper SMTP endpoint for sending development emails
 - The server-side Node.js application written in TypeScript: `/src/api`
 - The Vue.js and Vuetify based front-end: `/src/web`
 
@@ -16,7 +18,10 @@ To run the database locally, you must have Docker installed as well as Docker Co
 docker-compose -f docker-compose.dev.yml up -d
 ```
 
-This command will start SQL Server and bind it to your local machine's port 1433. When it starts the first time, the database will be empty. To load it with data, you must obtain a database backup and put it into `/db/backups/sfa.bak` then run the follow commands:
+This command will start SQL Server, Email and S3 and bind it to your local machine's port 1433. When it starts the first time, the database will be empty. To load it with data, you must obtain a database backup and put it into `/db/backups/sfa.bak` then run the follow commands:
+
+The first time you start the application, you must create a bucket named `documents` and an Access Key. Copy the access key id and secret and drop those values into the appropriate spots in the environment file. The Minio Web interface located at http://localhost:9090. Subsequent starts, it is not required to access the Minio interface. To preview sent emails, the MailSlurper web interface is located at http://localhost:8081.
+
 
 ```
 docker exec -it sfa-client_sql_1 bash
@@ -28,6 +33,8 @@ This connects you to the running SQL Server container. Once in, run the followin
 cd /opt/mssql-tools/bin
 ./sqlcmd -U sa -s localhost -P Testing1122 -Q "RESTORE DATABASE SFADB_DEV FROM DISK = N'/backups/sfa.bak' WITH FILE = 1"
 ```
+
+
 
 You will now have a local database with data ready for the API. To run the API, run the following commands:
 
