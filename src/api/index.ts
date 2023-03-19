@@ -2,6 +2,7 @@ import express, { Request, Response } from "express";
 import cors from "cors";
 import path from "path";
 import helmet from "helmet";
+import fileUpload from "express-fileupload";
 
 import { adminRouter, legacyRouter, referenceRouter, sfaDomainRouter } from "./routes";
 import { portalRouter } from "./routes/portal";
@@ -14,7 +15,8 @@ import { CreateMigrationRoutes } from "./data/migrator";
 
 const app = express();
 app.use(express.json()); // for parsing application/json
-app.use(express.urlencoded({ extended: true })); // for parsing application/x-www-form-urlencoded
+app.use(express.urlencoded({ extended: true, limit: "10mb" })); // for parsing application/x-www-form-urlencoded
+app.use(fileUpload());
 //app.use(helmet());
 app.use(
   helmet.contentSecurityPolicy({
