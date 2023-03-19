@@ -1682,3 +1682,19 @@ CREATE TABLE sfa.entitlement_error
     entitlement_error_code_id INT NOT NULL REFERENCES sfa.entitlement_error_codes,
     is_resend                 BIT NOT NULL DEFAULT 0
 )
+
+CREATE TABLE sfa.file_reference (
+	object_key VARCHAR(21) PRIMARY KEY,
+	object_key_pdf VARCHAR(21) UNIQUE null,
+	upload_user VARCHAR(100) NOT NULL,
+	upload_date DATETIME2(0) NOT NULL,
+	upload_source VARCHAR(50) NOT NULL,
+    student_id INT NOT NULL REFERENCES sfa.student,
+    application_id INT NOT NULL REFERENCES sfa.application,
+    status VARCHAR(50) NOT NULL,
+    status_date DATETIME2(0) NOT NULL,
+    bucket VARCHAR(50) NOT NULL,
+    file_name NVARCHAR(200) NOT NULL,
+    mime_type NVARCHAR(100) NOT NULL,
+    file_size BIGINT NOT NULL
+)
