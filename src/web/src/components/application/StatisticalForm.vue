@@ -98,7 +98,9 @@
               hide-details
               label="Citizenship"
               v-model="application.citizenship_status"
-              :items="citizenshipOptions"
+              :items="citizenships"
+              item-text="description"
+              item-value="id"
               @change="
                 doSaveApp('citizenship_status', application.citizenship_status)
               "
@@ -207,7 +209,7 @@ import { mapGetters } from 'vuex';
 
 export default {
   computed: {
-    ...mapGetters(["maritalStatusList", "aboriginalStatusList", "firstNations", "languages", "sexes"]),
+    ...mapGetters(["maritalStatusList", "aboriginalStatusList", "firstNations", "languages", "sexes", "citizenships"]),
     application: function () {
       return store.getters.selectedApplication;
     },
@@ -220,15 +222,9 @@ export default {
     maritalOptions: [],
     aboriginalStatusOptions: [],
     firstNationOptions: [],
-    citizenshipOptions: [
-      { vale: 0, text: "Not Recorded" },
-      { value: 1, text: "Canadian" },
-      { value: 2, text: "Permanent Resident" },
-      { value: 3, text: "Protected Person" },
-      { value: 4, text: "Non-Citizen" },
-    ],
   }),
   async created() {
+    store.dispatch("setCitizenships");
     store.dispatch("setMaritalStatusList");
     store.dispatch("setAboriginalStatusList");
     store.dispatch("setFirstNations");

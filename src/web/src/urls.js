@@ -68,3 +68,5 @@ export const DISABILITY_SERVICE =`${config.apiBaseUrl}/api/v2/admin/disability-s
 export const STUDY_AREA =`${config.apiBaseUrl}/api/v2/admin/study-area`;
 export const RELATIONSHIP =`${config.apiBaseUrl}/api/v2/admin/relationship`;
 export const PROGRAM =`${config.apiBaseUrl}/api/v2/admin/program`;
+export const CSL_CLASSIFICATION =`${config.apiBaseUrl}/api/v2/admin/csl-classification`;
+export const CITIZENSHIP =`${config.apiBaseUrl}/api/v2/admin/citizenship`;

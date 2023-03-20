@@ -14,7 +14,9 @@
                             hide-details 
                             label="Pre-Study Classiﬁcation"
                             v-model="application.csl_classification"
-                            :items="cslClasificationOptions"
+                            :items="cslClassifications"
+                            item-text="description"
+                            item-value="id"
                         >
                         </v-select>
                     </div>
@@ -26,7 +28,9 @@
                             hide-details 
                             label="Study Classiﬁcation"
                             v-model="application.prestudy_csl_classification"
-                            :items="cslClasificationOptions"
+                            :items="cslClassifications"
+                            item-text="description"
+                            item-value="id"
                         >
                         </v-select>
                     </div>
@@ -105,7 +109,7 @@ import validator from "@/validator";
 
 export default {
   computed: {
-    ...mapGetters(["highSchools", "monthOptions", "yearOptions"]),
+    ...mapGetters(["highSchools", "monthOptions", "yearOptions", "cslClassifications"]),
     application: function () {
       return store.getters.selectedApplication;
     },
@@ -115,18 +119,12 @@ export default {
   },
   data() {
     return {
-        cslClasificationOptions: [
-            {text: "Single Dependent", value: 1},
-            {text: "Single Independent - 2 year workforce", value: 2},
-            {text: "Single Independent - 4 year high school", value: 3},
-            {text: "Married / Common Law", value: 4},
-            {text: "Single Parent", value: 5},
-        ],
     };
 
     
   },
   async created() {
+    store.dispatch("setCslClassifications");
     store.dispatch("setHighSchools");
     store.dispatch("setMonthOptions");
     store.dispatch("setYearsOptions");
