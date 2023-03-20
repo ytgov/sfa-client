@@ -35,6 +35,8 @@ import { disabilityServiceRouter } from "./disability-service-router";
 import { studyAreaRouter } from "./study-area-router";
 import { relationshipRouter } from "./relationship-router";
 import { programRouter } from "./program-router";
+import { cslClassificationRouter } from "./csl-classification-router";
+import { citizenshipRouter } from "./citizenship-router";
 import { RequireServerAuth, RequireAdmin } from "../auth";
 
 export const adminRouter = express.Router();
@@ -76,3 +78,5 @@ adminRouter.use("/disability-service", disabilityServiceRouter);
 adminRouter.use("/study-area", studyAreaRouter);
 adminRouter.use("/relationship", relationshipRouter);
 adminRouter.use("/program", programRouter);
+adminRouter.use("/csl-classification", cslClassificationRouter);
+adminRouter.use("/citizenship", citizenshipRouter);
