@@ -293,3 +293,111 @@ applicationRouter.delete("/:id/status",
         }
     }
 );
+
+applicationRouter.put("/:application_id/parent-dependent",
+    [param("application_id").isInt().notEmpty()],
+    ReturnValidationErrors,
+    async (req: Request, res: Response) => {
+        try {
+            const { application_id } = req.params;
+            const { data } = req.body;
+
+            if (!Object.values(data).length || Object.values(data).some(v => v === null || v === undefined)) {
+                return res.json({ messages: [{ variant: "error", text: "The value is required" }] });
+            }
+
+            const application: any = await db("sfa.application").where({ id: application_id }).first();
+
+            if (application) {
+
+                const resUpdate = await db("sfa.parent_dependent")
+                    .where({ application_id })
+                    .update({ ...data });
+                
+                return resUpdate > 0 ?
+                    res.json({ messages: [{ variant: "success", text: "Saved" }] })
+                    :
+                    res.json({ messages: [{ variant: "error", text: "Save failed" }] });
+
+            }
+
+            return res.status(404).send();
+
+        } catch (error) {
+            console.error(error);
+            return res.status(400).send(error);
+        }
+    }
+);
+
+applicationRouter.post("/:application_id/parent-dependent",
+    [param("application_id").isInt().notEmpty()],
+    ReturnValidationErrors,
+    async (req: Request, res: Response) => {
+        try {
+            const { application_id } = req.params;
+            const { data } = req.body;
+
+            if (!Object.values(data).length) {
+                return res.json({ messages: [{ variant: "error", text: "The value is required" }] });
+            }
+
+            const application: any = await db("sfa.application").where({ id: application_id }).first();
+
+            if (application) {
+
+                const resInsert = await db("sfa.parent_dependent")
+                    .insert({ ...data, application_id });
+                
+                return resInsert ?
+                    res.json({ messages: [{ variant: "success", text: "Saved" }] })
+                    :
+                    res.json({ messages: [{ variant: "error", text: "Save failed" }] });
+
+            }
+
+            return res.status(404).send();
+
+        } catch (error) {
+            console.error(error);
+            return res.status(400).send(error);
+        }
+    }
+);
+
+applicationRouter.delete("/:id/parent-dependent", [param("id").isInt().notEmpty()], ReturnValidationErrors,
+    async (req: Request, res: Response) => {
+
+        const { id = null } = req.params;
+
+        try {
+
+            const verifyRecord: any = await db("sfa.parent_dependent")
+                .where({ id: id })
+                .first();
+
+            if (!verifyRecord) {
+                return res.status(404).send({ wasDelete: false, message: "The record does not exits" });
+            }
+
+            const deleteRecord: any = await db("sfa.parent_dependent")
+                .where({ id: id })
+                .del();
+
+            return (deleteRecord > 0) ?
+                res.status(202).send({ messages: [{ variant: "success", text: "Removed" }] })
+                :
+                res.status(404).send({ messages: [{ variant: "error", text: "Record does not exits" }] });
+
+        } catch (error: any) {
+
+            console.log(error);
+
+            if (error?.number === 547) {
+                return res.status(409).send({ messages: [{ variant: "error", text: "Cannot be deleted because it is in use." }] });
+            }
+
+            return res.status(409).send({ messages: [{ variant: "error", text: "Error To Delete" }] });
+        }
+    }
+);
