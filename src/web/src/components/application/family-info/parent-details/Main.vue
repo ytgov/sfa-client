@@ -8,7 +8,10 @@
 
         <hr/>
 
-        <ParentsDependents />
+        <ParentsDependents 
+            v-on:showSuccess="showSuccess"
+            v-on:showError="showError"
+        />
 
         
     </div>
@@ -38,7 +41,12 @@ export default {
 
     },
     methods: {
-
+        showSuccess(mgs) {
+            this.$emit("showSuccess", mgs);
+        },
+        showError(mgs) {
+            this.$emit("showError", mgs);
+        },
     },
 };
 </script>
