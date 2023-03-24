@@ -113,7 +113,9 @@ applicationRouter.get("/:id",
             application.requirements = await db("sfa.requirement_met").where({ application_id: id }).orderBy("completed_date");
             application.other_funding = await db("sfa.agency_assistance").where({ application_id: id }).orderBy("id");
             application.yea = await db("sfa.yea").where({ yukon_id: student.yukon_id }).orderBy("school_year");
-            application.institution = await db("sfa.institution_campus").where({ id: application.institution_campus_id }).first()
+            application.institution = await db("sfa.institution_campus").where({ id: application.institution_campus_id }).first();
+            application.parent1 = await db("sfa.person").where({ id: application.parent1_id }).first();
+            application.parent2 = await db("sfa.person").where({ id: application.parent2_id }).first();
 
             for (let dep of application.parent_dependents) {
                 if (dep.birth_date)

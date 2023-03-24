@@ -131,6 +131,41 @@ studentRouter.put("/:student_id",
     }
 );
 
+studentRouter.patch("/:person_id/person",
+    [param("person_id").isInt().notEmpty()], ReturnValidationErrors,
+    async (req: Request, res: Response) => {
+
+        try {
+            const { person_id } = req.params;
+            const { data } = req.body;
+            
+            if (!Object.keys(data).length) {
+                return res.json({ messages: [{ variant: "error", text: "data is required" }] });
+            }
+
+            const person: any = await db("sfa.person").where({ id: person_id }).first();
+
+            if (person) {
+                
+                const resUpdate = await db("sfa.person")
+                    .update({ ...data })
+                    .where({ id: person_id  })
+                    .returning("*");
+                
+                return resUpdate ?
+                res.json({ messages: [{ variant: "success", text: "Updated" }] })
+                :
+                res.json({ messages: [{ variant: "error", text: "Failed to update" }] });
+
+            }
+
+        } catch (error) {
+            console.log(error)
+            return res.json({ messages: [{ variant: "error", text: "Save failed" }] });
+        }
+    }
+);
+
 studentRouter.post("/search",
     async (req: Request, res: Response) => {
         let { terms } = req.body;
