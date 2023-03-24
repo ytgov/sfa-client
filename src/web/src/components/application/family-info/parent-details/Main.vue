@@ -3,8 +3,18 @@
         
         <MailingAddress />
 
-        <Parent :index="1"/>
-        <Parent :index="2"/>
+        <Parent 
+            :index="1" 
+            :parent="application.parent1" 
+            v-on:showSuccess="showSuccess"
+            v-on:showError="showError"
+        />
+        <Parent
+            :index="2" 
+            :parent="application.parent2"
+            v-on:showSuccess="showSuccess"
+            v-on:showError="showError"
+        />
 
         <hr/>
 
@@ -31,6 +41,9 @@ export default {
         ParentsDependents
     },
     computed: {
+        application() {
+            return store.getters.selectedApplication;
+        }
     },
     data: () => ({
 
