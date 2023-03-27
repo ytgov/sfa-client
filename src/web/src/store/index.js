@@ -39,6 +39,7 @@ import studyArea from "@/modules/study-area/store";
 import program from "@/modules/program/store";
 import cslClassification from "@/modules/csl-classification/store";
 import citizenship from "@/modules/citizenship/store";
+import prestudyEmploymentStatus from "@/modules/prestudy-employment-status/store";
 import adminCrud from "./adminCrud";
 import axios from "axios";
 import { APPLICATION_URL, STUDENT_URL } from "../urls"
@@ -398,6 +399,6 @@ export default new Vuex.Store({
     },
   },
 
-  modules: { auth, profile, institution, student, province, countries, cities, addressType, indigenousLearner, Language, maritalStatus, studyField, parentalRelationship, firstNation, portalStatus, sex, studentCategory, applicationType, highSchool, ageDistribution, institutionLevel, assessmentType, batchGroup, educationLevel, status, statusReason, yukonGrantEligibility, disbursementType, reasonsForChange, fundingGroup, disabilityType, aboriginalStatus, disabilityService, relationships, studyArea, program, cslClassification, citizenship, adminCrud, }
+  modules: { auth, profile, institution, student, province, countries, cities, addressType, indigenousLearner, Language, maritalStatus, studyField, parentalRelationship, firstNation, portalStatus, sex, studentCategory, applicationType, highSchool, ageDistribution, institutionLevel, assessmentType, batchGroup, educationLevel, status, statusReason, yukonGrantEligibility, disbursementType, reasonsForChange, fundingGroup, disabilityType, aboriginalStatus, disabilityService, relationships, studyArea, program, cslClassification, citizenship, prestudyEmploymentStatus, adminCrud, }
 
 });
