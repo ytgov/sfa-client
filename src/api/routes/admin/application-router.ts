@@ -116,6 +116,7 @@ applicationRouter.get("/:id",
             application.institution = await db("sfa.institution_campus").where({ id: application.institution_campus_id }).first();
             application.parent1 = await db("sfa.person").where({ id: application.parent1_id }).first();
             application.parent2 = await db("sfa.person").where({ id: application.parent2_id }).first();
+            application.spouse_info = await db("sfa.person").where({ id: application.spouse_id }).first();
 
             for (let dep of application.parent_dependents) {
                 if (dep.birth_date)
@@ -400,6 +401,50 @@ applicationRouter.delete("/:id/parent-dependent", [param("id").isInt().notEmpty(
             }
 
             return res.status(409).send({ messages: [{ variant: "error", text: "Error To Delete" }] });
+        }
+    }
+);
+
+applicationRouter.post("/:application_id/person",
+    [param("application_id").isInt().notEmpty()], ReturnValidationErrors,
+    async (req: Request, res: Response) => {
+
+        try {
+            const { application_id } = req.params;
+            const { data } = req.body;
+            
+            console.log(application_id, data);
+            
+            if (!Object.keys(data).length) {
+                return res.json({ messages: [{ variant: "error", text: "data is required" }] });
+            }
+
+            await db.transaction(async (trx) => {
+                const [resInsert] = await Promise.all(
+                    [
+                        trx("sfa.person")
+                        .insert({ ...data })
+                        .returning("*"),
+                    ]
+                )
+
+                if (resInsert) {
+
+                    const resUpdate = await trx("sfa.application")
+                        .update({ spouse_id: resInsert[0].id })
+                        .where({ id: application_id })
+                        .returning("*");
+
+                    return res.json({ messages: [{ variant: "success", text: "Updated" }] });
+
+                } else {
+                    res.json({ messages: [{ variant: "error", text: "Failed to update" }] });
+                }
+            });
+
+        } catch (error) {
+            console.log(error)
+            return res.json({ messages: [{ variant: "error", text: "Save failed" }] });
         }
     }
 );
