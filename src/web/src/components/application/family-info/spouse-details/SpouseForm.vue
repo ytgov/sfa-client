@@ -23,6 +23,15 @@
               background-color="white"
               hide-details
               label="Last name"
+              oninput="
+                if (this.value.length > 100) this.value = this.value.slice(0, 10);
+                if (this.value.length > 100) this.value = this.value.slice(0, 10);
+                const arr = this.value.split(' ');
+                for (var i = 0; i < arr.length; i++) {
+                    arr[i] = arr[i].charAt(0).toUpperCase() + arr[i].slice(1);
+                }
+                this.value = arr.join(' ');
+              "
               v-model="spouse.last_name"
               @change="change({last_name: spouse.last_name})"
             ></v-text-field>
@@ -34,6 +43,15 @@
               background-color="white"
               hide-details
               label="First name"
+              oninput="
+                if (this.value.length > 100) this.value = this.value.slice(0, 10);
+                if (this.value.length > 100) this.value = this.value.slice(0, 10);
+                const arr = this.value.split(' ');
+                for (var i = 0; i < arr.length; i++) {
+                    arr[i] = arr[i].charAt(0).toUpperCase() + arr[i].slice(1);
+                }
+                this.value = arr.join(' ');
+              "
               v-model="spouse.first_name"
               @change="change({first_name: spouse.first_name})"
             ></v-text-field>
@@ -45,6 +63,11 @@
               background-color="white"
               hide-details
               label="Initial"
+              oninput="
+                this.value = this.value.slice(0,1);
+                this.value = this.value.toUpperCase();
+              "
+              @keypress="validate.isLetter($event)"
               v-model="spouse.initials"
               @change="change({initials: spouse.initials})"
             ></v-text-field>
@@ -57,7 +80,15 @@
               hide-details
               label="SIN"
               v-model="spouse.sin"
-              @change="change({sin: spouse.sin})"
+              @keypress="validate.isNumber($event)"
+                    @change="e => {
+                        if (validate.SIN(spouse.sin) || !String(spouse.sin).length) {
+                            return change({sin: spouse.sin});
+                        } else {
+                            $store.dispatch('loadApplication', application.id);
+                            return $emit('showError', 'Invalid SIN');
+                        }
+                    }"
             ></v-text-field>
           </div>
           <div class="col-md-5">
@@ -67,6 +98,7 @@
               background-color="white"
               hide-details
               label="Income (line 150)"
+              @keypress="validate.isNumber($event)"
               v-model="application.spouse_ln150_income"
               @change="doSaveApp('spouse_ln150_income', application.spouse_ln150_income)"
               v-currency="{ currency: 'USD', locale: 'en' }"
@@ -205,6 +237,7 @@
               background-color="white"
               hide-details
               label="In no, distance from school/work (km)"
+              @keypress="validate.isNumber($event)"
               v-model="application.spouse_study_distance"
               @change="doSaveApp('is_spouse_study_bus', application.spouse_study_distance)"
             ></v-text-field>
@@ -220,6 +253,7 @@ import store from "@/store";
 import { APPLICATION_URL, STUDENT_URL } from "@/urls";
 import axios from "axios";
 import { mapGetters } from 'vuex';
+import validator from "@/validator";
 
 export default {
   name: "Home",
@@ -240,9 +274,11 @@ export default {
     study_post_secondary_from: "",
     study_post_secondary_to: "",
     study_applying_for_csl: false,
+    validate: {},
   }),
   created() {
     store.dispatch('setPrestudyEmployments');
+    this.validate = { ...validator };
   },
   methods: {
     doSaveStudent(field, value) {
