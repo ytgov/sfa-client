@@ -5,13 +5,13 @@
 
         <Parent 
             :index="1" 
-            :parent="application.parent1" 
+            :parent="parent1" 
             v-on:showSuccess="showSuccess"
             v-on:showError="showError"
         />
         <Parent
             :index="2" 
-            :parent="application.parent2"
+            :parent="parent2"
             v-on:showSuccess="showSuccess"
             v-on:showError="showError"
         />
@@ -43,7 +43,13 @@ export default {
     computed: {
         application() {
             return store.getters.selectedApplication;
-        }
+        },
+        parent1() {
+            return this.application?.parent1 || {};
+        },
+        parent2() {
+            return this.application?.parent2 || {};
+        },
     },
     data: () => ({
 

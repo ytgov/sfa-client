@@ -173,7 +173,7 @@
 import { mapGetters } from 'vuex';
 import store from '@/store';
 import axios from 'axios';
-import { STUDENT_URL } from '@/urls';
+import { STUDENT_URL, APPLICATION_URL } from '@/urls';
 import validator from "@/validator";
 
 export default {
@@ -211,18 +211,34 @@ export default {
         },
         async update(personId, data) {
             try {
-                const resInsert = await axios.patch(
-                    `${STUDENT_URL}/${personId}/person`,
-                    { data }
-                );
-                
-                const message = resInsert?.data?.messages[0];
+                if (this.parent?.id) {
+                    const resUpdate = await axios.patch(
+                        `${STUDENT_URL}/${personId}/person`,
+                        { data }
+                    );
+                    
+                    const message = resUpdate?.data?.messages[0];
 
-                if (message?.variant === "success") {
-                    this.$emit("showSuccess", message.text);
-                    //this.setClose();
+                    if (message?.variant === "success") {
+                        this.$emit("showSuccess", message.text);
+                        //this.setClose();
+                    } else {
+                        this.$emit("showError", message.text);
+                    }
                 } else {
-                    this.$emit("showError", message.text);
+                    const resInsert = await axios.post(
+                        `${APPLICATION_URL}/${this.application.id}/person`,
+                        { data, typeId: `parent${this.index}_id` }
+                    );
+                    
+                    const message = resInsert?.data?.messages[0];
+
+                    if (message?.variant === "success") {
+                        this.$emit("showSuccess", message.text);
+                        //this.setClose();
+                    } else {
+                        this.$emit("showError", message.text);
+                    }
                 }
 
             } catch (error) {

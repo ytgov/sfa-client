@@ -303,7 +303,7 @@ export default {
           }
         } else {
           const resInsert = await axios.post(`${APPLICATION_URL}/${this.application.id}/person`,
-            { data },
+            { data, typeId: "spouse_id" },
           );
 
           const message = resInsert?.data?.messages[0];
