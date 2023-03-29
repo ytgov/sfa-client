@@ -114,7 +114,23 @@ applicationRouter.get("/:id",
             application.other_funding = await db("sfa.agency_assistance").where({ application_id: id }).orderBy("id");
             application.yea = await db("sfa.yea").where({ yukon_id: student.yukon_id }).orderBy("school_year");
             application.institution = await db("sfa.institution_campus").where({ id: application.institution_campus_id }).first();
-            application.parent1 = await db("sfa.person").where({ id: application.parent1_id }).first();
+            application.parent1 = await db("sfa.person")
+            .leftJoin("sfa.person_address", "sfa.person.id", "sfa.person_address.person_id")
+            .select(
+                "sfa.person_address.*",
+                "sfa.person_address.id AS person_address_id",
+                "sfa.person_address.address_type_id",
+                "sfa.person_address.address1",
+                "sfa.person_address.address2",
+                "sfa.person_address.city_id",
+                "sfa.person_address.country_id",
+                "sfa.person_address.province_id",
+                "sfa.person_address.postal_code",
+            )
+            .where("sfa.person.id", application.parent1_id )
+            .where("sfa.person_address.address_type_id", 1 )
+            .first();
+
             application.parent2 = await db("sfa.person").where({ id: application.parent2_id }).first();
             application.spouse_info = await db("sfa.person").where({ id: application.spouse_id }).first();
 
@@ -411,9 +427,19 @@ applicationRouter.post("/:application_id/person",
 
         try {
             const { application_id } = req.params;
-            const { data } = req.body;
+            const { data, typeId } = req.body;
             
-            console.log(application_id, data);
+            console.log(application_id, data, typeId);
+
+            const types: any = {
+                spouse_id: "spouse_id",
+                parent1_id: "parent1_id",
+                parent2_id: "parent2_id",
+            };
+
+            if (!types[typeId]) {
+                return res.json({ messages: [{ variant: "error", text: "type Id is required" }] });
+            }
             
             if (!Object.keys(data).length) {
                 return res.json({ messages: [{ variant: "error", text: "data is required" }] });
@@ -431,7 +457,7 @@ applicationRouter.post("/:application_id/person",
                 if (resInsert) {
 
                     const resUpdate = await trx("sfa.application")
-                        .update({ spouse_id: resInsert[0].id })
+                        .update(types[typeId], resInsert[0].id)
                         .where({ id: application_id })
                         .returning("*");
 
