@@ -117,7 +117,7 @@ applicationRouter.get("/:id",
             application.parent1 = await db("sfa.person")
             .leftJoin("sfa.person_address", "sfa.person.id", "sfa.person_address.person_id")
             .select(
-                "sfa.person_address.*",
+                "sfa.person.*",
                 "sfa.person_address.id AS person_address_id",
                 "sfa.person_address.address_type_id",
                 "sfa.person_address.address1",
@@ -128,7 +128,7 @@ applicationRouter.get("/:id",
                 "sfa.person_address.postal_code",
             )
             .where("sfa.person.id", application.parent1_id )
-            .where("sfa.person_address.address_type_id", 1 )
+            .orderBy( "sfa.person_address.address_type_id")
             .first();
 
             application.parent2 = await db("sfa.person").where({ id: application.parent2_id }).first();
@@ -189,8 +189,6 @@ applicationRouter.get("/:id",
 applicationRouter.put("/:id",
     [param("id").notEmpty()], ReturnValidationErrors, async (req: Request, res: Response) => {
         let { id } = req.params;
-
-        console.log("APPLICATION SAVE:", req.body);
 
         db("sfa.application").where({ id }).update(req.body)
             .then((result: any) => {
@@ -428,8 +426,6 @@ applicationRouter.post("/:application_id/person",
         try {
             const { application_id } = req.params;
             const { data, typeId } = req.body;
-            
-            console.log(application_id, data, typeId);
 
             const types: any = {
                 spouse_id: "spouse_id",
@@ -455,18 +451,97 @@ applicationRouter.post("/:application_id/person",
                 )
 
                 if (resInsert) {
-
+                    
                     const resUpdate = await trx("sfa.application")
                         .update(types[typeId], resInsert[0].id)
                         .where({ id: application_id })
                         .returning("*");
 
-                    return res.json({ messages: [{ variant: "success", text: "Updated" }] });
+                    return res.json({ messages: [{ variant: "success", text: "Inserted" }] });
 
                 } else {
                     res.json({ messages: [{ variant: "error", text: "Failed to update" }] });
                 }
             });
+
+        } catch (error) {
+            console.log(error)
+            return res.json({ messages: [{ variant: "error", text: "Save failed" }] });
+        }
+    }
+);
+
+applicationRouter.post("/:application_id/person-address",
+    [param("application_id").isInt().notEmpty()], ReturnValidationErrors,
+    async (req: Request, res: Response) => {
+
+        try {
+            const { application_id } = req.params;
+            const { data, addressTypeId = 1, personAddressId = null } = req.body;
+                
+            if (!Object.keys(data).length) {
+                return res.json({ messages: [{ variant: "error", text: "data is required" }] });
+            }
+            if (personAddressId) {
+                const resInsertPA = await db("sfa.person_address")
+                    .insert({ ...data, address_type_id: addressTypeId, person_id: personAddressId, is_active: true })
+                    .returning("*");
+
+                return res.json({ messages: [{ variant: "success", text: "Inserted" }] });
+            } else {
+                await db.transaction(async (trx) => {
+                    const [resInsert] = await Promise.all(
+                        [
+                            trx("sfa.person")
+                            .insert({ first_name: '' })
+                            .returning("*"),
+                        ]
+                    )
+
+                    if (resInsert) {
+                        
+                        const resUpdateA = await trx("sfa.application")
+                            .update("parent1_id", resInsert[0].id)
+                            .where({ id: application_id })
+                            .returning("*");
+    
+                        const resInsertPA = await trx("sfa.person_address")
+                            .insert({ ...data, person_id: resInsert[0].id, address_type_id: addressTypeId, is_active: true })
+                            .returning("*");
+    
+                        return res.json({ messages: [{ variant: "success", text: "Inserted" }] });
+    
+                    } else {
+                        res.json({ messages: [{ variant: "error", text: "Failed to update" }] });
+                    }
+                });
+            }
+
+        } catch (error) {
+            console.log(error)
+            return res.json({ messages: [{ variant: "error", text: "Save failed" }] });
+        }
+    }
+);
+
+applicationRouter.patch("/:person_address_id/person-address",
+    [param("person_address_id").isInt().notEmpty()], ReturnValidationErrors,
+    async (req: Request, res: Response) => {
+
+        try {
+            const { person_address_id } = req.params;
+            const { data } = req.body;
+            
+            if (!Object.keys(data).length) {
+                return res.json({ messages: [{ variant: "error", text: "data is required" }] });
+            }
+
+            const resUpdate = await db("sfa.person_address")
+                .update({ ...data })
+                .where({ id: person_address_id })
+                .returning("*");
+
+            return res.json({ messages: [{ variant: "success", text: "Inserted" }] });
 
         } catch (error) {
             console.log(error)
