@@ -1,7 +1,11 @@
 <template>
     <div>
         
-        <MailingAddress />
+        <MailingAddress 
+            :parent="parent1" 
+            v-on:showSuccess="showSuccess"
+            v-on:showError="showError"
+        />
 
         <Parent 
             :index="1" 

@@ -27,12 +27,12 @@
                     hide-details 
                     label="Last Name"
                     oninput="
-                        if (this.value.length > 100) this.value = this.value.slice(0, 10);
+                        if (this.value.length > 100) this.value = this.value?.slice(0, 10);
                         const arr = this.value.split(' ');
 
 
                         for (var i = 0; i < arr.length; i++) {
-                            arr[i] = arr[i].charAt(0).toUpperCase() + arr[i].slice(1);
+                            arr[i] = arr[i].charAt(0).toUpperCase() + arr[i]?.slice(1);
 
                         }
 
@@ -56,12 +56,12 @@
                     hide-details 
                     label="First Name"
                     oninput="
-                        if (this.value.length > 100) this.value = this.value.slice(0, 10);
+                        if (this.value.length > 100) this.value = this.value?.slice(0, 10);
                         const arr = this.value.split(' ');
 
 
                         for (var i = 0; i < arr.length; i++) {
-                            arr[i] = arr[i].charAt(0).toUpperCase() + arr[i].slice(1);
+                            arr[i] = arr[i].charAt(0).toUpperCase() + arr[i]?.slice(1);
 
                         }
 
@@ -91,13 +91,13 @@
                             label="Birth date" 
                             append-icon="mdi-calendar" 
                             readonly
-                            :value="dependent.birth_date.slice(0, 10)"
+                            :value="dependent.birth_date?.slice(0, 10)"
                             outlined dense background-color="white" 
                             v-bind="attrs" v-on="on"
                         ></v-text-field>
                     </template>
                     <v-date-picker
-                        :value="dependent.birth_date.slice(0, 10)"
+                        :value="dependent.birth_date?.slice(0, 10)"
                         @input="e => {
                             dependent.birth_date = e;
                             dependent.show_menu = false;
@@ -315,7 +315,8 @@
             </div>
             <div class="col-md-2 d-flex">
                 <h3 class="text-subtitle-1 mt-1 mr-2">Age</h3>
-                <v-text-field 
+                <v-text-field
+                    disabled 
                     outlined 
                     dense 
                     background-color="white" 

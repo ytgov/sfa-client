@@ -14,6 +14,7 @@
                             hide-details 
                             label="Pre-Study Classiﬁcation"
                             v-model="application.csl_classification"
+                            @change="doSaveApp('csl_classification', application.csl_classification)"
                             :items="cslClassifications"
                             item-text="description"
                             item-value="id"
@@ -28,6 +29,7 @@
                             hide-details 
                             label="Study Classiﬁcation"
                             v-model="application.prestudy_csl_classification"
+                            @change="doSaveApp('prestudy_csl_classification', application.prestudy_csl_classification)"
                             :items="cslClassifications"
                             item-text="description"
                             item-value="id"
@@ -54,6 +56,7 @@
                             item-text="name"
                             item-value="id"
                             v-model="student.high_school_id"
+                            @change="doSaveStudent('high_school_id', student.high_school_id, 'studentInfo', student.id)"
                         >
                         </v-autocomplete>
                     </div>
@@ -80,6 +83,7 @@
                             hide-details 
                             label="Year"
                             v-model="student.high_school_left_year"
+                            @change="doSaveStudent('high_school_left_year', student.high_school_left_year, 'studentInfo', student.id)"
                             :items="yearOptions"
                         >
                         </v-select>
@@ -92,6 +96,7 @@
                             hide-details 
                             label="Month"
                             v-model="student.high_school_left_month"
+                            @change="doSaveStudent('high_school_left_month', student.high_school_left_month, 'studentInfo', student.id)"
                             :items="monthOptions"
                         >
                         </v-select>
@@ -133,6 +138,12 @@ export default {
 
   },
   methods: {
+    doSaveStudent(field, value, type, extraId = null, addressType = "") {
+      store.dispatch("updateStudent", [field, value, type, extraId, this, addressType]);
+    },
+    doSaveApp(field, value) {
+      store.dispatch("updateApplication", [field, value, this]);
+    },
   },
 };
 </script>

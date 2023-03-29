@@ -59,7 +59,6 @@
                     label="Phone"
                     v-model="parent.telephone"
                     oninput="
-                        console.log(this);
                         if (this.value.length > 12) {
                             this.value = this.value.slice(0, 12);
                         }
@@ -68,7 +67,7 @@
                     @change="e => {
                         if (validate.telephone(parent.telephone) || 
                             !String(parent.telephone).length) {
-                            return update( parent.id, {phone: parent.telephone} );
+                            return update( parent.id, {telephone: parent.telephone} );
                         } else {
                             $store.dispatch('loadApplication', application.id);
                             return $emit('showError', 'Invalid Telephone');
@@ -121,6 +120,14 @@
                     background-color="white" 
                     hide-details 
                     label="Income Ln 15000"
+                    v-model="incomes.income"
+                    @change="doSaveApp(
+                        incomes.parent === 1 ?
+                            'parent1_income' 
+                            :
+                            'parent2_income', 
+                        incomes.income
+                        )"
                 >
                 </v-text-field>
             </div>
@@ -131,6 +138,14 @@
                     background-color="white" 
                     hide-details 
                     label="Income Ln 23600"
+                    v-model="incomes.net_income"
+                    @change="doSaveApp(
+                        incomes.parent === 1 ?
+                            'parent1_net_income' 
+                            :
+                            'parent2_net_income', 
+                        incomes.net_income
+                        )"
                 >
                 </v-text-field>
             </div>
@@ -141,6 +156,14 @@
                     background-color="white" 
                     hide-details 
                     label="Income Ln 43500"
+                    v-model="incomes.tax_paid"
+                    @change="doSaveApp(
+                        incomes.parent === 1 ?
+                            'parent1_tax_paid' 
+                            :
+                            'parent2_tax_paid', 
+                        incomes.tax_paid
+                        )"
                 >
                 </v-text-field>
             </div>
@@ -188,10 +211,31 @@ export default {
         application() {
             return store.getters.selectedApplication;
         },
-        'parent.telephone': function(value, oldValue) {
-        if (value?.length === 3 || value?.length === 7) {
-            this.parent.telephone = this.parent.telephone+"-";
+        telephone() {
+            return this.parent.telephone;
+        },
+        incomes() {
+            return this.index === 1 ?
+                {
+                    parent: 1,
+                    income: this.application.parent1_income,
+                    net_income: this.application.parent1_net_income,
+                    tax_paid: this.application.parent1_tax_paid,
+                }
+                :
+                {
+                    parent: 2,
+                    income: this.application.parent2_income,
+                    net_income: this.application.parent2_net_income,
+                    tax_paid: this.application.parent2_tax_paid,
+                };
         }
+    },
+    watch: {
+        telephone: function(value, oldValue) {
+            if (value?.length === 3 || value?.length === 7) {
+                this.parent.telephone = this.parent.telephone+"-";
+            }
         },
     },
     data: () => ({
@@ -202,12 +246,12 @@ export default {
         store.dispatch('setCitizenships');
         this.validate = { ...validator };
     },
-    watch: {
-
-    },
     methods: {
         doSaveStudent() {
             store.dispatch("updateStudent", [field, value, type, extraId, this, addressType]);
+        },
+        doSaveApp(field, value) {
+            store.dispatch("updateApplication", [field, value, this]);
         },
         async update(personId, data) {
             try {

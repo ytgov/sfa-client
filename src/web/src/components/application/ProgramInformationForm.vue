@@ -240,7 +240,7 @@
                 hide-details
                 label="Attendance"
                 v-model="application.attendance"
-                :items="attendanceOptions"
+                
               ></v-select>
             </div>
             <div class="col-md-6 px-1">
@@ -248,6 +248,7 @@
                 class="my-0"
                 label="By Correspondance"
                 v-model="application.is_correspondence"
+                @change="doSaveApp('is_correspondence', application.is_correspondence)"
               ></v-switch>
             </div>
             <div class="col-md-6 px-1">
