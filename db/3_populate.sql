@@ -149,7 +149,6 @@ VALUES  ( 1, 'Not Recorded'),
         ( 3, 'Permanent resident'),
         ( 4, 'Protected person'),
         ( 5, 'No citizen'),
-        ( 6, 'Landed Immigrant')
 SET IDENTITY_INSERT sfa.citizenship OFF
 
 SET IDENTITY_INSERT sfa.csl_classification ON

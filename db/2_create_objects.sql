@@ -1185,7 +1185,9 @@ CREATE TABLE sfa.application
     prestudy_start_date            DATE           NULL,
     prestudy_end_date              DATE           NULL,
     valid_driver_license           BIT            NULL,
+    valid_driver_license_comment   TEXT           NULL,
     valid_yhcip                    BIT            NULL,
+    valid_yhcip_comment            TEXT           NULL,
     has_consent_to_share_data      BIT            NOT NULL DEFAULT 0
 )
 
