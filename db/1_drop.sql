@@ -111,5 +111,7 @@ DROP TABLE IF EXISTS sfa.province
 DROP TABLE IF EXISTS sfa.country
 DROP TABLE IF EXISTS sfa.indigenous_learner
 DROP TABLE IF EXISTS sfa.academic_year
+DROP TABLE IF EXISTS sfa.citizenship
+DROP TABLE IF EXISTS sfa.csl_classification
 --DROP TABLE sfa.user
 DROP TABLE IF EXISTS sfa.file_reference

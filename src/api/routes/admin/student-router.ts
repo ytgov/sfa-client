@@ -131,6 +131,41 @@ studentRouter.put("/:student_id",
     }
 );
 
+studentRouter.patch("/:person_id/person",
+    [param("person_id").isInt().notEmpty()], ReturnValidationErrors,
+    async (req: Request, res: Response) => {
+
+        try {
+            const { person_id } = req.params;
+            const { data } = req.body;
+            
+            if (!Object.keys(data).length) {
+                return res.json({ messages: [{ variant: "error", text: "data is required" }] });
+            }
+
+            const person: any = await db("sfa.person").where({ id: person_id }).first();
+
+            if (person) {
+                
+                const resUpdate = await db("sfa.person")
+                    .update({ ...data })
+                    .where({ id: person_id  })
+                    .returning("*");
+                
+                return resUpdate ?
+                res.json({ messages: [{ variant: "success", text: "Updated" }] })
+                :
+                res.json({ messages: [{ variant: "error", text: "Failed to update" }] });
+
+            }
+
+        } catch (error) {
+            console.log(error)
+            return res.json({ messages: [{ variant: "error", text: "Save failed" }] });
+        }
+    }
+);
+
 studentRouter.post("/search",
     async (req: Request, res: Response) => {
         let { terms } = req.body;
@@ -320,7 +355,26 @@ studentRouter.get("/:id",
                             "sfa.dependent_eligibility.dependent_id"
                         )
                         .select(
-                            "sfa.dependent.*",
+                            "sfa.dependent_eligibility.application_id",
+                            "sfa.dependent_eligibility.id as de_id",
+                            "sfa.dependent_eligibility.is_csg_eligible",
+                            "sfa.dependent_eligibility.is_csl_eligible",
+                            "sfa.dependent_eligibility.is_eligible",
+                            "sfa.dependent_eligibility.is_in_progress",
+                            "sfa.dependent_eligibility.is_post_secondary",
+                            "sfa.dependent_eligibility.is_shares_custody",
+                            "sfa.dependent_eligibility.resides_with_student",
+                            "sfa.dependent_eligibility.shares_custody_details",
+                            "sfa.dependent.birth_date",
+                            "sfa.dependent.comments",
+                            "sfa.dependent.first_name",
+                            "sfa.dependent.id as d_id",
+                            "sfa.dependent.is_conversion",
+                            "sfa.dependent.is_disability",
+                            "sfa.dependent.is_in_progress",
+                            "sfa.dependent.last_name",
+                            "sfa.dependent.relationship_id",
+                            "sfa.dependent.student_id",
                         )
                         .where({ student_id: id });
 
@@ -532,29 +586,25 @@ studentRouter.delete("/:id/consent", [param("id").isInt().notEmpty()], ReturnVal
     }
 );
 
-studentRouter.put("/:student_id/dependent",
-    [param("student_id").isInt().notEmpty(), body("extraId").notEmpty()],
+studentRouter.put("/:student_id/:application_id/dependent/:id",
+    [param("student_id").isInt().notEmpty(), body("type").notEmpty()],
     ReturnValidationErrors,
     async (req: Request, res: Response) => {
         try {
-            const { student_id } = req.params;
-            const { type, extraId, data } = req.body;
-
-            if (!("dependentInfo" === type)) {
-                return res.json({ messages: [{ variant: "error", text: "type valid is required" }] });
-            }
-
-            if (Object.keys(data).some(k => k === 'relation_id') &&
-                !(data.relation_id)) {
-                return res.json({ messages: [{ variant: "error", text: "Relationship Id is required" }] });
+            const { student_id, application_id, id } = req.params;
+            const { type, data } = req.body;
+            
+            if ((type !== "dependent") && (type !== "d_eligibility"))  {
+                return res.json({ messages: [{ variant: "error", text: "Type is required" }] });
             }
 
             const student: any = await db("sfa.student").where({ id: student_id }).first();
+            const application: any = await db("sfa.application").where({ id: application_id }).first();
 
-            if (student) {
-
-                const resUpdate = await db("sfa.dependent")
-                    .where({ id: extraId })
+            if (student && application) {
+                const table = type === "dependent" ? "sfa.dependent" : "sfa.dependent_eligibility";
+                const resUpdate = await db(table)
+                    .where({id })
                     .update({ ...data });
 
                 return resUpdate > 0 ?
@@ -573,58 +623,85 @@ studentRouter.put("/:student_id/dependent",
     }
 );
 
-studentRouter.post("/:student_id/dependent", [param("student_id").isInt().notEmpty(),],
+studentRouter.post("/:student_id/:application_id/dependent", [param("student_id").isInt().notEmpty(), param("application_id").isInt().notEmpty()],
     ReturnValidationErrorsCustomMessage,
     async (req: Request, res: Response) => {
         try {
-            const { student_id } = req.params;
-            const { data } = req.body;
+            const { student_id, application_id } = req.params;
+            const { dependentData, dEligibilityData } = req.body;
 
             const student: any = await db("sfa.student").where({ id: student_id }).first();
 
             if (student) {
 
-                const resInsert = await db("sfa.dependent")
-                    .insert({ ...data, student_id });
+                await db.transaction(async (trx) => {
 
-                return resInsert ?
-                    res.json({ messages: [{ variant: "success", text: "Saved" }] })
-                    :
-                    res.json({ messages: [{ variant: "error", text: "Failed" }] });
+                    const [resInsertDependent]: any = await Promise.all(
+                        [
+                            trx('sfa.dependent')
+                                .insert({ ...dependentData, student_id })
+                                .returning("*"),
+                        ]
+                    )
+                        
+                    if (resInsertDependent) {
+                        const resInsert = await trx("sfa.dependent_eligibility")
+                            .insert({ 
+                                ...dEligibilityData, 
+                                dependent_id: resInsertDependent[0].id,
+                                application_id,
+                            })
+                            .returning("*");
 
+                            return resInsert ?
+                                res.json({ messages: [{ variant: "success", text: "Saved" }] })
+                                :
+                                res.json({ messages: [{ variant: "error", text: "Failed" }] });
+                    } else {
+                        return res.json({ messages: [{ variant: "error", text: "Failed" }] });
+                    }
+                });
+
+            } else {
+                return res.status(404).send({ messages: [{ variant: "error", text: "Failed" }] });
             }
 
-            return res.status(404).send({ messages: [{ variant: "error", text: "Failed" }] });
-
         } catch (error) {
-            console.error(error);
-            return res.status(400).send({ messages: [{ variant: "error", text: "Failed", error }] });
+            console.log(error);
+             res.status(500).send({ messages: [{ variant: "error", text: "Failed", }] });
         }
     }
 );
 
-studentRouter.delete("/:id/dependent", [param("id").isInt().notEmpty()], ReturnValidationErrors,
+studentRouter.delete("/:d_elegibility_id/:dependent_id/dependent",  
+    [
+        param("d_elegibility_id").isInt().notEmpty(), 
+        param("dependent_id").isInt().notEmpty(), 
+    ], 
+    ReturnValidationErrors,
     async (req: Request, res: Response) => {
 
-        const { id = null } = req.params;
-        let description = "";
-        try {
+        const { d_elegibility_id, dependent_id } = req.params;
 
-            const verifyRecord: any = await db("sfa.dependent")
-                .where({ id: id })
+        try {
+            
+            const verifyRecord: any = await db("sfa.dependent_eligibility")
+                .where({ id: d_elegibility_id })
                 .first();
 
-            if (!verifyRecord) {
-                return res.status(404).send({ wasDelete: false, message: "The record does not exits" });
+            if (verifyRecord && verifyRecord.dependent_id !== Number(dependent_id)) {
+                return res.status(404).send({ messages: [{ variant: "success", text: "The relationship between the data does not exist." }] });
             }
 
-            description = verifyRecord?.description;
-
-            const deleteRecord: any = await db("sfa.dependent")
-                .where({ id: id })
+            const deleteRecordDEligibility: any = await db("sfa.dependent_eligibility")
+                .where({ id: d_elegibility_id })
                 .del();
 
-            return (deleteRecord > 0) ?
+            const deleteRecordDependent: any = await db("sfa.dependent_eligibility")
+                .where({ id: dependent_id })
+                .del();
+            
+            return (deleteRecordDEligibility > 0 && deleteRecordDependent > 0) ?
                 res.status(202).send({ messages: [{ variant: "success", text: "Removed" }] })
                 :
                 res.status(404).send({ messages: [{ variant: "error", text: "Record does not exits" }] });
