@@ -32,30 +32,39 @@
               dense
               hide-details
               label="I own my home"
-              v-model="study.own"
+              v-model="application.prestudy_own_home"
+              @change="doSaveApp('prestudy_own_home', application.prestudy_own_home)"
             ></v-switch>
           </div>
 
           <div class="col-md-6">
-            <v-text-field
+            <v-autocomplete
               outlined
               dense
               background-color="white"
               hide-details
               label="City"
-              v-model="study.city"
-            ></v-text-field>
+              v-model="application.prestudy_city_id"
+              @change="doSaveApp('prestudy_city_id', application.prestudy_city_id)"
+              :items="cities"
+              item-text="description"
+              item-value="id"
+
+            ></v-autocomplete>
           </div>
           <div class="col-md-6">
-            <v-select
+            <v-autocomplete
               outlined
               dense
               background-color="white"
               hide-details
               label="Province"
-              v-model="study.province"
-              :items="provinceOptions"
-            ></v-select>
+              v-model="application.prestudy_province_id"
+              @change="doSaveApp('prestudy_province_id', application.prestudy_province_id)"
+              :items="provinces"
+              item-text="description"
+              item-value="id"
+            ></v-autocomplete>
           </div>
           <div class="col-md-4 pt-0">
             <v-switch
@@ -63,7 +72,6 @@
               dense
               hide-details
               label="Living with spouse (see Spouse data)"
-              v-model="study.living_with_spouse"
             ></v-switch>
           </div>
           <div class="col-md-4 pt-0">
@@ -72,7 +80,8 @@
               dense
               hide-details
               label="Bus service available"
-              v-model="study.bus_available"
+              v-model="application.prestudy_bus"
+              @change="doSaveApp('prestudy_bus', application.prestudy_bus)"
             ></v-switch>
           </div>
           <div class="col-md-4">
@@ -82,7 +91,9 @@
               background-color="white"
               hide-details
               label="If no, distance from school/work (km)"
-              v-model="study.distance_from_school"
+              @keypress="validate.isNumber($event)"
+              v-model="application.prestudy_distance"
+              @change="doSaveApp('prestudy_distance', application.prestudy_distance)"
             ></v-text-field>
           </div>
         </div>
@@ -121,30 +132,38 @@
               dense
               hide-details
               label="I own my home"
-              v-model="study.own"
+              v-model="application.study_own_home"
+              @change="doSaveApp('study_own_home', application.study_own_home)"
             ></v-switch>
           </div>
 
           <div class="col-md-6">
-            <v-text-field
+            <v-autocomplete
               outlined
               dense
               background-color="white"
               hide-details
               label="City"
-              v-model="study.city"
-            ></v-text-field>
+              v-model="application.study_city_id"
+              @change="doSaveApp('study_city_id', application.study_city_id)"
+              :items="cities"
+              item-text="description"
+              item-value="id"
+            ></v-autocomplete>
           </div>
           <div class="col-md-6">
-            <v-select
+            <v-autocomplete
               outlined
               dense
               background-color="white"
               hide-details
               label="Province"
-              v-model="study.province"
-              :items="provinceOptions"
-            ></v-select>
+              v-model="application.study_province_id"
+              @change="doSaveApp('study_province_id', application.study_province_id)"
+              :items="provinces"
+              item-text="description"
+              item-value="id"
+            ></v-autocomplete>
           </div>
           <div class="col-md-4 pt-0">
             <v-switch
@@ -152,7 +171,8 @@
               dense
               hide-details
               label="Living with spouse (see Spouse data)"
-              v-model="study.living_with_spouse"
+              v-model="application.study_living_w_spouse"
+              @change="doSaveApp('study_living_w_spouse', application.study_living_w_spouse)"
             ></v-switch>
           </div>
           <div class="col-md-4 pt-0">
@@ -161,7 +181,8 @@
               dense
               hide-details
               label="Bus service available"
-              v-model="study.bus_available"
+              v-model="application.study_bus"
+              @change="doSaveApp('study_bus', application.study_bus)"
             ></v-switch>
           </div>
           <div class="col-md-4">
@@ -171,7 +192,9 @@
               background-color="white"
               hide-details
               label="If no, distance from school/work (km)"
-              v-model="study.distance_from_school"
+              @keypress="validate.isNumber($event)"
+              v-model="application.study_distance"
+              @change="doSaveApp('study_distance', application.study_distance)"
             ></v-text-field>
           </div>
         </div>
@@ -181,6 +204,9 @@
 </template>
 
 <script>
+import store from '@/store';
+import { mapGetters } from 'vuex';
+import validator from "@/validator";
 export default {
   data: () => ({
     provinceOptions: ["Yukon", "British Columbia"],
@@ -195,8 +221,24 @@ export default {
       bus_available: false,
       distance_from_school: 0,
     },
+    validate: {},
   }),
-  async created() {},
-  methods: {},
+  computed: {
+    ...mapGetters(["cities", "provinces"]),
+    application: function () {
+      return store.getters.selectedApplication;
+    },
+  },
+  async created() {
+    store.dispatch("setCities");
+    store.dispatch("setProvinces");
+    this.validate = { ...validator };
+    
+  },
+  methods: {
+    doSaveApp(field, value) {
+      store.dispatch("updateApplication", [field, value, this]);
+    },
+  },
 };
 </script>
