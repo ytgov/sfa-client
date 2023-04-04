@@ -12,7 +12,10 @@
       <v-tabs-items v-model="tab" style="padding: 20px">
   
         <v-tab-item key="0">
-          <AccommodationFormVue></AccommodationFormVue>
+          <AccommodationForm
+          v-on:showSuccess="showSuccess"
+          v-on:showError="showError"
+          ></AccommodationForm>
         </v-tab-item>
         <v-tab-item key="1">
           <StudyIncomeForm></StudyIncomeForm>
@@ -30,7 +33,7 @@
   
   <script>
   import store from "@/store";
-import AccommodationFormVue from "./AccommodationForm.vue";
+import AccommodationForm from "./AccommodationForm.vue";
 import StudyIncomeForm from "./StudyIncomeForm.vue";
 import Costs from './costs/Costs.vue';
 import Screening from './screening/Screening.vue';
@@ -38,7 +41,7 @@ import Screening from './screening/Screening.vue';
   export default {
     name: "Home",
     components: {
-      AccommodationFormVue,
+      AccommodationForm,
       StudyIncomeForm,
       Costs,
       Screening,
@@ -57,7 +60,14 @@ import Screening from './screening/Screening.vue';
   
       store.dispatch("setAppSidebar", true);
     },
-    methods: {},
+    methods: {
+      showSuccess(mgs) {
+        this.$emit("showSuccess", mgs);
+      },
+      showError(mgs) {
+        this.$emit("showError", mgs);
+      },
+    },
   };
   </script>
   
