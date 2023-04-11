@@ -133,7 +133,7 @@ applicationRouter.get("/:id",
 
             application.parent2 = await db("sfa.person").where({ id: application.parent2_id }).first();
             application.spouse_info = await db("sfa.person").where({ id: application.spouse_id }).first();
-
+            application.agencies_assistance = await db("sfa.agency_assistance").where({ application_id: application.id });    
             for (let dep of application.parent_dependents) {
                 if (dep.birth_date)
                     dep.birth_date = moment(dep.birth_date).add(7, 'hours').format("YYYY-MM-DD");
@@ -550,54 +550,123 @@ applicationRouter.patch("/:person_address_id/person-address",
     }
 );
 
-applicationRouter.post("/:application_id/person",
+applicationRouter.post("/:application_id/agency-assistance",
     [param("application_id").isInt().notEmpty()], ReturnValidationErrors,
     async (req: Request, res: Response) => {
 
         try {
             const { application_id } = req.params;
-            const { data, typeId } = req.body;
+            const { data } = req.body;
 
-            const types: any = {
-                spouse_id: "spouse_id",
-                parent1_id: "parent1_id",
-                parent2_id: "parent2_id",
-            };
-
-            if (!types[typeId]) {
-                return res.json({ messages: [{ variant: "error", text: "type Id is required" }] });
-            }
-            
             if (!Object.keys(data).length) {
                 return res.json({ messages: [{ variant: "error", text: "data is required" }] });
             }
 
-            await db.transaction(async (trx) => {
-                const [resInsert] = await Promise.all(
-                    [
-                        trx("sfa.person")
-                        .insert({ ...data })
-                        .returning("*"),
-                    ]
-                )
+            if (data?.amount === '' || data?.amount === null || isNaN(data?.amount)) {
+                data.amount = 0;
+            }
 
-                if (resInsert) {
-                    
-                    const resUpdate = await trx("sfa.application")
-                        .update(types[typeId], resInsert[0].id)
-                        .where({ id: application_id })
-                        .returning("*");
+            if (!data?.agency_id) {
+                return res.json({ messages: [{ variant: "error", text: "Agency Id is required" }] });
+            }
 
-                    return res.json({ messages: [{ variant: "success", text: "Inserted" }] });
+            data.is_tuition = !!data?.is_tuition;
+            data.is_living_expenses = !!data?.is_living_expenses;
+            data.is_books = !!data?.is_books;
+            data.is_transportation = !!data?.is_transportation;
 
-                } else {
-                    res.json({ messages: [{ variant: "error", text: "Failed to update" }] });
-                }
-            });
+            const verifyAgency = await db("sfa.agency_assistance").where({application_id, agency_id: data.agency_id});
+
+            if (verifyAgency?.length) {
+                return res.json({ messages: [{ variant: "error", text: "The Agency already exists" }] });
+            }
+
+            const resInsert = await db("sfa.agency_assistance")
+                    .insert({ ...data, application_id });
+
+                return resInsert ?
+                    res.json({ messages: [{ variant: "success", text: "Saved" }] })
+                    :
+                    res.json({ messages: [{ variant: "error", text: "Failed" }] });
 
         } catch (error) {
             console.log(error)
             return res.json({ messages: [{ variant: "error", text: "Save failed" }] });
+        }
+    }
+);
+
+applicationRouter.patch("/:application_id/agency-assistance/:id",
+    [param("application_id").isInt().notEmpty()], ReturnValidationErrors,
+    async (req: Request, res: Response) => {
+
+        try {
+            const { application_id, id } = req.params;
+            const { data } = req.body;
+
+            if (Object.keys(data).some(k => k === 'agency_id')) {
+                const verifyAgency = await db("sfa.agency_assistance").where({application_id, agency_id: data.agency_id});
+
+                if (verifyAgency?.length) {
+                    return res.json({ messages: [{ variant: "error", text: "The Agency already exists" }] });
+                }
+            }
+
+            if (Object.keys(data).some(k => k === 'amount')) {
+                if (data?.amount === '' || data?.amount === null || isNaN(data?.amount)) {
+                    data.amount = 0;
+                }
+            }
+
+            const resUpdate = await db("sfa.agency_assistance")
+                .where({id, application_id})
+                .update({ ...data });
+
+            return resUpdate ?
+                res.json({ messages: [{ variant: "success", text: "Saved" }] })
+                :
+                res.json({ messages: [{ variant: "error", text: "Failed" }] });
+
+        } catch (error) {
+            console.log(error)
+            return res.json({ messages: [{ variant: "error", text: "Save failed" }] });
+        }
+    }
+);
+
+applicationRouter.delete("/:id/agency-assistance", [param("id").isInt().notEmpty()], ReturnValidationErrors,
+    async (req: Request, res: Response) => {
+
+        const { id = null } = req.params;
+
+        try {
+
+            const verifyRecord: any = await db("sfa.agency_assistance")
+                .where({ id: id })
+                .first();
+
+            if (!verifyRecord) {
+                return res.status(404).send({ wasDelete: false, message: "The record does not exits" });
+            }
+
+            const deleteRecord: any = await db("sfa.agency_assistance")
+                .where({ id: id })
+                .del();
+
+            return (deleteRecord > 0) ?
+                res.status(202).send({ messages: [{ variant: "success", text: "Removed" }] })
+                :
+                res.status(404).send({ messages: [{ variant: "error", text: "Record does not exits" }] });
+
+        } catch (error: any) {
+
+            console.log(error);
+
+            if (error?.number === 547) {
+                return res.status(409).send({ messages: [{ variant: "error", text: "Cannot be deleted because it is in use." }] });
+            }
+
+            return res.status(409).send({ messages: [{ variant: "error", text: "Error To Delete" }] });
         }
     }
 );
