@@ -15,22 +15,26 @@
                         <h3 class="text-subtitle-1 mt-1">Left High School</h3>
                     </div> 
                     <div class="col-md-3">
-                        <v-text-field 
+                        <v-text-field
+                            disabled
                             outlined 
                             dense 
                             background-color="white" 
                             hide-details 
                             label="Year"
+                            :value="student.high_school_left_year"
                         >
                         </v-text-field>
                     </div>  
                     <div class="col-md-3">
-                        <v-text-field 
+                        <v-text-field
+                            disabled
                             outlined 
                             dense 
                             background-color="white" 
                             hide-details 
                             label="Month"
+                            :value="student.high_school_left_month"
                         >
                         </v-text-field>
                     </div>  
@@ -73,14 +77,37 @@
                         <h3 class="text-subtitle-1 mt-1">YEA Expire Date</h3>
                     </div> 
                     <div class="col-md-6">
-                        <v-text-field 
-                            outlined 
-                            dense 
-                            background-color="white" 
-                            hide-details 
-                            label=""
+                        <v-menu
+                            v-model="show_menu"
+                            :close-on-content-click="false"
+                            transition="scale-transition"
+                            left
+                            nudge-top="26"
+                            offset-y
+                            min-width="auto"
                         >
-                        </v-text-field>
+                            <template v-slot:activator="{ on, attrs }">
+                            <v-text-field
+                                append-icon="mdi-calendar"
+                                :value="student.yea_expiry_date?.slice(0, 10)"
+                                hide-details
+                                readonly
+                                outlined
+                                dense
+                                background-color="white"
+                                v-bind="attrs"
+                                v-on="on"
+                            ></v-text-field>
+                            </template>
+                            <v-date-picker
+                                :value="student.yea_expiry_date?.slice(0, 10)"
+                                @input="e => {
+                                student.yea_expiry_date = e;
+                                show_menu = false;
+                                }"
+                                @change="doSaveStudent('yea_expiry_date', student.yea_expiry_date, 'studentInfo', student.id)"
+                            ></v-date-picker>
+                        </v-menu>
                     </div>
                 </div>
 
@@ -328,9 +355,20 @@ export default {
 
     },
     computed: {
+        student() {
+            return store.getters.selectedStudent;
+        },
+        application: function () {
+            return store.getters.selectedApplication;
+        },
+        fundingRequest() {
+            const funding = this.application?.funding_requests[0];
+            return funding || {};
+        }
+
     },
     data: () => ({
-
+        show_menu: false,
     }),
     async created() {
     },

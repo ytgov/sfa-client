@@ -12,15 +12,19 @@
             <div class="col-md-6 mb-n2">
             </div>
             <div class="col-md-6 mb-n2">
-                <v-text-field 
-                    outlined 
+                <v-select 
+                    outlined
+                    append-icon=""
                     dense 
                     background-color="white" 
-                    hide-details 
-                    label="Single Independent - 2 years in workforce"
+                    hide-details
+                    v-model="application.csl_classification"
+                    :items="cslClassifications"
+                    item-text="description"
+                    item-value="id"
                     disabled
                 >
-                </v-text-field>
+                </v-select>
             </div>
 
             <div class="col-md-2 my-n2">
@@ -29,8 +33,12 @@
                     dense 
                     background-color="white" 
                     hide-details
-                    :value="true"
                     :items="itemOptions"
+                    :value="!!application.student_meet_residency_req"
+                    @input="e => {
+                        application.student_meet_residency_req = e;
+                    }"
+                    @change="doSaveApp('student_meet_residency_req', application.student_meet_residency_req)"
                 >
                 </v-autocomplete>
             </div>
@@ -44,8 +52,12 @@
                     dense 
                     background-color="white" 
                     hide-details
-                    :value="true"
                     :items="itemOptions"
+                    :value="!!application.student_is_mov_to_anth_cmm_to_attd_prgm"
+                    @input="e => {
+                        application.student_is_mov_to_anth_cmm_to_attd_prgm = e;
+                    }"
+                    @change="doSaveApp('student_is_mov_to_anth_cmm_to_attd_prgm', application.student_is_mov_to_anth_cmm_to_attd_prgm)"
                 >
                 </v-autocomplete>
             </div>
@@ -59,8 +71,12 @@
                     dense 
                     background-color="white" 
                     hide-details
-                    :value="true"
                     :items="itemOptions"
+                    :value="!!application.student_is_maintening_two_residences"
+                    @input="e => {
+                        application.student_is_maintening_two_residences = e;
+                    }"
+                    @change="doSaveApp('student_is_maintening_two_residences', application.student_is_maintening_two_residences)"
                 >
                 </v-autocomplete>
             </div>
@@ -74,8 +90,12 @@
                     dense 
                     background-color="white" 
                     hide-details
-                    :value="true"
                     :items="itemOptions"
+                    :value="!!application.student_is_in_ft_study"
+                    @input="e => {
+                        application.student_is_in_ft_study = e;
+                    }"
+                    @change="doSaveApp('student_is_in_ft_study', application.student_is_in_ft_study)"
                 >
                 </v-autocomplete>
             </div>
@@ -89,8 +109,12 @@
                     dense 
                     background-color="white" 
                     hide-details
-                    v-model="otherFunding"
                     :items="itemOptions"
+                    :value="!!application.student_w_not_receive_fund_from_otr_org"
+                    @input="e => {
+                        application.student_w_not_receive_fund_from_otr_org = e;
+                    }"
+                    @change="doSaveApp('student_w_not_receive_fund_from_otr_org', application.student_w_not_receive_fund_from_otr_org)"
                 >
                 </v-autocomplete>
             </div>
@@ -106,6 +130,8 @@
                     background-color="white" 
                     hide-details 
                     label="Comment"
+                    v-model="application.applied_sta_comment"
+                    @change="doSaveApp('applied_sta_comment', application.applied_sta_comment)"
                 >
 
                 </v-textarea>
@@ -114,7 +140,7 @@
 
         </v-card>
 
-        <OtherFunding v-if="!otherFunding">
+        <OtherFunding v-if="!!!application.student_w_not_receive_fund_from_otr_org">
         </OtherFunding>
 
     </div>
@@ -129,18 +155,28 @@ export default {
         OtherFunding,
     },
     computed: {
+        ...mapGetters(["cslClassifications"]),
+        student() {
+            return store.getters.selectedStudent;
+        },
+        application: function () {
+            return store.getters.selectedApplication;
+        },
     },
     data: () => ({
         itemOptions: [{text: "Yes", value: true}, {text: "No", value: false}],
         otherFunding: true
     }),
     async created() {
+        store.dispatch("setCslClassifications");
     },
     watch: {
 
     },
     methods: {
-
+        doSaveApp(field, value) {
+            store.dispatch("updateApplication", [field, value, this]);
+        },
     },
 };
 </script>

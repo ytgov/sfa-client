@@ -23,40 +23,6 @@
       </v-card-text>
     </v-card>
 
-    <v-card class="default mb-5">
-      <v-card-text>
-        <h3>Applications</h3>
-        <div class="row" v-for="(item, i) of applications" :key="i">
-          <div class="col-md-10">
-            <v-select
-              outlined
-              dense
-              background-color="white"
-              hide-details
-              label="Scholarship"
-              v-model="item.scholarship"
-              :items="scholarshipOptions"
-            ></v-select>
-          </div>
-
-          <div class="col-md-2">
-            <v-btn
-              color="warning"
-              x-small
-              fab
-              title="Remove"
-              class="my-0 float-right"
-              @click="removeApplication(i)"
-              ><v-icon>mdi-close</v-icon></v-btn
-            >
-          </div>
-        </div>
-        <v-btn class="mt-5" color="info" @click="addApplication()"
-          >Add scholarship application</v-btn
-        >
-      </v-card-text>
-    </v-card>
-
     <div class="row">
       <div class="col-md-6">
         <v-card class="default mb-5">

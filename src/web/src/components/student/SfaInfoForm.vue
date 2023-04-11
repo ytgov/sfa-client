@@ -22,6 +22,7 @@
               outlined dense background-color="white" 
               hide-details label=""
               v-model="student.pre_funded_year"
+              @change="doSaveStudent('pre_funded_year', student.pre_funded_year, 'studentInfo', student.id)"
             >
   
             </v-text-field>
@@ -40,6 +41,7 @@
               outlined dense background-color="white" 
               hide-details label=""
               v-model="student.pre_funding_years_used"
+              @change="doSaveStudent('pre_funding_years_used', student.pre_funding_years_used, 'studentInfo', student.id)"
             >
   
             </v-text-field>
@@ -75,7 +77,9 @@
             <v-text-field
               outlined dense background-color="white" 
               hide-details label=""
+              @keypress="validate.isNumber($event)"
               v-model="student.adj_yg_funding_weeks"
+              @change="doSaveStudent('adj_yg_funding_weeks', student.adj_yg_funding_weeks, 'studentInfo', student.id)"
             >
   
             </v-text-field>
@@ -108,8 +112,10 @@
           </div>
           <div class="col-md-3">
             <v-text-field
+              disabled
               outlined dense background-color="white" 
               hide-details label=""
+              v-model="student.pre_leg_sta_up_weeks"
             >
   
             </v-text-field>
@@ -118,7 +124,9 @@
             <v-text-field
               outlined dense background-color="white" 
               hide-details label=""
+              @keypress="validate.isNumber($event)"
               v-model="student.adj_sta_upgrading_weeks"
+              @change="doSaveStudent('adj_sta_upgrading_weeks', student.adj_sta_upgrading_weeks, 'studentInfo', student.id)"
             >
   
             </v-text-field>
@@ -151,8 +159,10 @@
           </div>
           <div class="col-md-3">
             <v-text-field
+              disabled
               outlined dense background-color="white" 
               hide-details label=""
+              v-model="student.pre_leg_outside_travel"
             >
   
             </v-text-field>
@@ -194,21 +204,29 @@
             outlined dense 
             background-color="white" 
             hide-details label="Locator Number"
+            @keypress="validate.isNumber($event)"
             v-model="student.locator_number"
+            @change="doSaveStudent('locator_number', student.locator_number, 'studentInfo', student.id)"
             >
             </v-text-field>
           </div>
           <div class="col-md-3">
-            <v-text-field 
+            <v-text-field
+              disabled
               outlined dense 
               background-color="white" 
-              hide-details label="SFA ID">
+              hide-details label="SFA ID"
+              v-model="student.id"
+              >
             </v-text-field>
           </div>
         </div>
         <div class="row">
           <div class="col-md-3">
-            <v-switch label="Checked for YTID">
+            <v-switch label="Checked for YTID"
+            v-model="student.checked_for_yukon_id"
+            @change="doSaveStudent('checked_for_yukon_id', student.checked_for_yukon_id, 'studentInfo', student.id)"
+            >
             </v-switch>
           </div>
         </div>
@@ -220,7 +238,9 @@
               background-color="white" 
               hide-details 
               label="Yukon ID"
+              @keypress="validate.isNumber($event)"
               v-model="student.yukon_id"
+              @change="doSaveStudent('yukon_id', student.yukon_id, 'studentInfo', student.id)"
             >
             </v-text-field>
           </div>
@@ -270,6 +290,7 @@ export default {
       "STA Upgrading Weeks",
       "YG Outside Travel Count",
     ],
+    validate: {},
   }),
   computed: {
     student: function () {
@@ -279,8 +300,12 @@ export default {
   watch: {
   },
   created() {
+    this.validate = { ...validator };
   },
   methods: {
+    doSaveStudent(field, value, type, extraId = null, addressType = "") {
+      store.dispatch("updateStudent", [field, value, type, extraId, this, addressType]);
+    },
   },
 };
 </script>
