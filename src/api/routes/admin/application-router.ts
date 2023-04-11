@@ -549,3 +549,55 @@ applicationRouter.patch("/:person_address_id/person-address",
         }
     }
 );
+
+applicationRouter.post("/:application_id/person",
+    [param("application_id").isInt().notEmpty()], ReturnValidationErrors,
+    async (req: Request, res: Response) => {
+
+        try {
+            const { application_id } = req.params;
+            const { data, typeId } = req.body;
+
+            const types: any = {
+                spouse_id: "spouse_id",
+                parent1_id: "parent1_id",
+                parent2_id: "parent2_id",
+            };
+
+            if (!types[typeId]) {
+                return res.json({ messages: [{ variant: "error", text: "type Id is required" }] });
+            }
+            
+            if (!Object.keys(data).length) {
+                return res.json({ messages: [{ variant: "error", text: "data is required" }] });
+            }
+
+            await db.transaction(async (trx) => {
+                const [resInsert] = await Promise.all(
+                    [
+                        trx("sfa.person")
+                        .insert({ ...data })
+                        .returning("*"),
+                    ]
+                )
+
+                if (resInsert) {
+                    
+                    const resUpdate = await trx("sfa.application")
+                        .update(types[typeId], resInsert[0].id)
+                        .where({ id: application_id })
+                        .returning("*");
+
+                    return res.json({ messages: [{ variant: "success", text: "Inserted" }] });
+
+                } else {
+                    res.json({ messages: [{ variant: "error", text: "Failed to update" }] });
+                }
+            });
+
+        } catch (error) {
+            console.log(error)
+            return res.json({ messages: [{ variant: "error", text: "Save failed" }] });
+        }
+    }
+);
