@@ -140,7 +140,11 @@
 
         </v-card>
 
-        <OtherFunding v-if="!!!application.student_w_not_receive_fund_from_otr_org">
+        <OtherFunding 
+            v-if="!!!application.student_w_not_receive_fund_from_otr_org"
+            v-on:showSuccess="showSuccess"
+            v-on:showError="showError"
+        >
         </OtherFunding>
 
     </div>
@@ -176,6 +180,12 @@ export default {
     methods: {
         doSaveApp(field, value) {
             store.dispatch("updateApplication", [field, value, this]);
+        },
+        showSuccess(mgs) {
+            this.$emit("showSuccess", mgs);
+        },
+        showError(mgs) {
+            this.$emit("showError", mgs);
         },
     },
 };

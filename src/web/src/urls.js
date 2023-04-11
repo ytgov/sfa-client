@@ -71,3 +71,4 @@ export const PROGRAM =`${config.apiBaseUrl}/api/v2/admin/program`;
 export const CSL_CLASSIFICATION =`${config.apiBaseUrl}/api/v2/admin/csl-classification`;
 export const CITIZENSHIP =`${config.apiBaseUrl}/api/v2/admin/citizenship`;
 export const PRESTUDY_EMPLOYMENT_STATUS =`${config.apiBaseUrl}/api/v2/admin/prestudy-employment-status`;
+export const AGENCY =`${config.apiBaseUrl}/api/v2/admin/agency`;
