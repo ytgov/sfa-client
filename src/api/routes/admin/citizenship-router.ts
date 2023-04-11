@@ -6,42 +6,21 @@ import { DB_CONFIG } from "../../config";
 
 const db = knex(DB_CONFIG)
 
-export const acadecicYearRouter = express.Router();
+export const citizenshipRouter = express.Router();
 
-acadecicYearRouter.get("/", async (req: Request, res: Response) => {
+citizenshipRouter.get("/", async (req: Request, res: Response) => {
 
-    const { filter = "Open" } = req.query;
+    const { filter = true } = req.query;
 
     try {
-
-        const typeStatus = [
-            "Archived",
-            "Open",
-            "Closed",
-            "All"
-        ];
-
-        if (!typeStatus.some(status => status.toLowerCase() === String(filter).toLowerCase())) {
-            return res.status(400).json({ success: false, message: "Error in filter", });
-        }
-
-        const results = String(filter).toLowerCase() === "all" ?
-                await db("sfa.academic_year")
-                    .select(
-                            'sfa.academic_year.id',
-                            'sfa.academic_year.year',
-                            'sfa.academic_year.status',
-                        )
-                    .orderBy('sfa.academic_year.year', 'desc')
-                :
-                await db("sfa.academic_year")
-                    .where("status", filter)  
-                    .select(
-                            'sfa.academic_year.id',
-                            'sfa.academic_year.year',
-                            'sfa.academic_year.status',
-                        )
-                    .orderBy('sfa.academic_year.year', 'desc');
+        const results = await db("sfa.citizenship")
+        .where("is_active", filter !== 'false') 
+        .select(
+                'sfa.citizenship.id',
+                'sfa.citizenship.description',
+                'sfa.citizenship.is_active',
+            )
+            .orderBy('sfa.citizenship.description');
 
             if (results) {
                 return res.status(200).json({ success: true, data: [...results], });
@@ -55,33 +34,24 @@ acadecicYearRouter.get("/", async (req: Request, res: Response) => {
     }
 });
 
-acadecicYearRouter.post("/", body('is_active').isBoolean(), body('description').isString(),
+citizenshipRouter.post("/", body('is_active').isBoolean(), body('description').isString(),
 
     async (req: Request, res: Response) => {
-        const { status, description = "", } = req.body;
+        const { is_active, description = "", } = req.body;
         const trimDescription = description?.trim();
 
         try {
-            const typeStatus = [
-                "Archived",
-                "Open",
-                "Closed",
-            ];
-    
-            if (!typeStatus.some(type => type === status)) {
-                return res.status(400).json({ success: false, message: "Status is incorrect", });
-            }
 
             if (!trimDescription.length) return res.status(400).json({ success: false, message: "Description must be required", });
 
-            const verify = await db("sfa.academic_year")
+            const verify = await db("sfa.citizenship")
                 .select('description')
                 .where({ description: trimDescription });
 
             if (verify?.length) return res.status(400).send({ success: false, message: `"${trimDescription}" already exists`, });
 
-            const resInsert = await db("sfa.academic_year")
-                .insert({ description: trimDescription, status })
+            const resInsert = await db("sfa.citizenship")
+                .insert({ description: trimDescription, is_active })
                 .returning("*");
 
             if (resInsert) {
@@ -96,23 +66,13 @@ acadecicYearRouter.post("/", body('is_active').isBoolean(), body('description').
         }
     });
 
-acadecicYearRouter.patch("/status/:id", [param("id").isInt().notEmpty()], ReturnValidationErrors,
+citizenshipRouter.patch("/status/:id", [param("id").isInt().notEmpty()], ReturnValidationErrors,
     (req: Request, res: Response) => {
 
         const { id = null } = req.params;
-        const { is_active = "Closed" } = req.body;
+        const { is_active = false } = req.body;
 
-        const typeStatus = [
-            "Archived",
-            "Open",
-            "Closed",
-        ];
-
-        if (!typeStatus.some(status => status === is_active)) {
-            return res.status(400).json({ success: false, message: "Status is incorrect", });
-        }
-
-        db("sfa.academic_year")
+        db("sfa.citizenship")
             .update({ is_active })
             .where({ id })
             .returning("*")
@@ -129,7 +89,7 @@ acadecicYearRouter.patch("/status/:id", [param("id").isInt().notEmpty()], Return
             });
     });
 
-acadecicYearRouter.patch("/description/:id", [param("id").isInt().notEmpty()], ReturnValidationErrors,
+citizenshipRouter.patch("/description/:id", [param("id").isInt().notEmpty()], ReturnValidationErrors,
     async (req: Request, res: Response) => {
 
         const { id = null } = req.params;
@@ -141,7 +101,7 @@ acadecicYearRouter.patch("/description/:id", [param("id").isInt().notEmpty()], R
 
             if (!trimDescription.length) return res.status(400).json({ success: false, message: "Description must be required", });
 
-            const verify = await db("sfa.academic_year")
+            const verify = await db("sfa.citizenship")
                 .select('id', 'description')
                 .where({ description: trimDescription });
 
@@ -154,7 +114,7 @@ acadecicYearRouter.patch("/description/:id", [param("id").isInt().notEmpty()], R
             return res.status(400).send({ success: false, message: "Error!", });
         }
 
-        db("sfa.academic_year")
+        db("sfa.citizenship")
             .update({ description: trimDescription })
             .where({ id })
             .returning("*")
@@ -171,14 +131,14 @@ acadecicYearRouter.patch("/description/:id", [param("id").isInt().notEmpty()], R
             });
     });
 
-acadecicYearRouter.delete("/:id", [param("id").isInt().notEmpty()], ReturnValidationErrors,
+citizenshipRouter.delete("/:id", [param("id").isInt().notEmpty()], ReturnValidationErrors,
     async (req: Request, res: Response) => {
 
         const { id = null } = req.params;
         let description = "";
         try {
 
-            const verifyRecord: any = await db("sfa.academic_year")
+            const verifyRecord: any = await db("sfa.citizenship")
                 .where({ id: id })
                 .first();
 
@@ -188,7 +148,7 @@ acadecicYearRouter.delete("/:id", [param("id").isInt().notEmpty()], ReturnValida
 
             description = verifyRecord?.description;
 
-            const deleteRecord: any = await db("sfa.academic_year")
+            const deleteRecord: any = await db("sfa.citizenship")
                 .where({ id: id })
                 .del();
 
@@ -209,4 +169,3 @@ acadecicYearRouter.delete("/:id", [param("id").isInt().notEmpty()], ReturnValida
         }
     }
 );
-

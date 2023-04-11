@@ -31,6 +31,14 @@ const validator = {
             return true;
         }
     },
+    isLetter(evt) {
+        const regex = /^[a-zA-Z]+$/;
+        if ((!regex.test(evt.key))) {
+            evt.preventDefault();
+        } else {
+            return true;
+        }
+    },
     SIN(sin) {
         var check, even, tot;
         console.log(sin);

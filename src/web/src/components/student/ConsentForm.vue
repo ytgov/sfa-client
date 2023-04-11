@@ -23,14 +23,14 @@
               
               <v-select outlined dense hide-details label="Academic year start" background-color="white"  v-model="item.start_academic_year_id"
                 @change="doSaveConsent('start_academic_year_id', item.start_academic_year_id, 'consentInfo', item.id)"
-                :items="yearOptions"></v-select>
+                :items="yearOptions" item-text="year" item-value="id"></v-select>
 
             </div>
             <div class="col-md-4">
 
               <v-select outlined dense hide-details label="Academic year end" background-color="white"  v-model="item.end_academic_year_id"
                 @change="doSaveConsent('end_academic_year_id', item.end_academic_year_id, 'consentInfo', item.id)"
-                :items="yearOptions"></v-select>
+                :items="yearOptions" item-text="year" item-value="id"></v-select>
 
             </div>
           </div>
@@ -50,11 +50,13 @@
 
           <div class="col-md-4">
             <v-select outlined dense hide-details label="Academic year start" background-color="white" :items="yearOptions"
+            item-text="year" item-value="id"
             v-model="newRegister.start_academic_year_id"
             ></v-select>
           </div>
           <div class="col-md-4">
             <v-select outlined dense hide-details label="Academic year end" background-color="white" :items="yearOptions"
+            item-text="year" item-value="id"
             v-model="newRegister.end_academic_year_id"
             ></v-select>
           </div>
@@ -104,10 +106,12 @@ export default {
       return store.getters.selectedStudent;
     },
     yearOptions: function () {
-      return store.getters.yearOptions;
+      return store.getters.academicYears;
     },
   },
-  async created() { },
+  async created() { 
+    store.dispatch("setAcademicYears");
+  },
   methods: {
     setClose() {
 

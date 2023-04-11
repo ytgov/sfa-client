@@ -646,7 +646,8 @@
             <div class="row">
               <div class="col-md-12">
                 <div class="row">
-                  <div class="col-md-2">        
+                  <h3 class="col-md-4 text-left text-subtitle-1 mt-1">Student has Valid Yukon Driver’s License</h3>
+                  <div class="col-md-4">        
                     <v-select
                       outlined
                       dense
@@ -657,16 +658,24 @@
                       v-model="application.valid_driver_license"
                       @change="doSaveApp('valid_driver_license', application.valid_driver_license)"
                     >
-
                     </v-select>
                   </div>
-                  <h3
-                    class="col-md-4 text-left text-subtitle-1 my-0"
-                  >
-                    Student has Valid Yukon Driver’s License
-                  </h3>
+                  <div class="col-md-4">
+                    <v-textarea
+                      rows="1"
+                      outlined
+                      dense
+                      hide-details
+                      background-color="white"
+                      label="Notes"
+                      v-model="application.valid_driver_license_comment"
+                      @change="doSaveApp('valid_driver_license_comment', application.valid_driver_license_comment)"
+                    >
+                    </v-textarea>
+                  </div>
                   
-                  <div class="col-md-2">
+                  <h3 class="col-md-4 text-left text-subtitle-1 mt-1">Student has Valid Yukon Health Care Card</h3>
+                  <div class="col-md-4">
                     <v-select
                       outlined
                       dense
@@ -680,11 +689,19 @@
 
                     </v-select>
                   </div>
-                  <h3
-                    class="col-md-4 text-left text-subtitle-1 my-0"
-                  >
-                    Student has Valid Yukon Health Care Card
-                  </h3>
+                  <div class="col-md-4">
+                    <v-textarea
+                      rows="1"
+                      outlined
+                      dense
+                      hide-details
+                      background-color="white"
+                      label="Notes"
+                      v-model="application.valid_yhcip_comment"
+                      @change="doSaveApp('valid_yhcip_comment', application.valid_yhcip_comment)"
+                    >
+                    </v-textarea>
+                  </div>
                 </div>
               </div>
             </div>
@@ -787,7 +804,7 @@ export default {
     itemOptions: [
       {text: "Yes", value: true},
       {text: "No", value: false},
-      {text: "Unknown", value: null},
+      {text: "Not Available", value: null},
     ],
     
   }),
@@ -888,7 +905,6 @@ export default {
     doSaveResidence(field, value, type, extraId = null, isInsertion = false) {
 
       if (isInsertion) {
-        console.log(this.newRecord.from_year);
         if (!this.newRecord.from_year || !this.newRecord.from_month) {
           return this.newRecord.from_year ? this.$emit("showError", "from_month is required") :
           this.$emit("showError", "from_year is required");
