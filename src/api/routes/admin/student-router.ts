@@ -418,12 +418,26 @@ studentRouter.get("/:id",
                             student.id
                         );
 
+                    const yeaList = await db("sfa.student")
+                        .innerJoin(
+                            "sfa.yea",
+                            "sfa.student.yukon_id",
+                            "sfa.yea.yukon_id"
+                        )
+                        .select(
+                            "sfa.yea.*"
+                        )
+                        .where(
+                            "sfa.yea.yukon_id",
+                            student.yukon_id
+                        );
+
                     let highSchoolInfo = {
                         city_id: null,
                         province_id: null,
                         country_id: null,
                     };
-
+                    
                     if (student?.high_school_id !== null && !isNaN(student?.high_school_id)) {
 
                         const resultsHighSchoolInfo = await db("sfa.high_school")
@@ -463,8 +477,9 @@ studentRouter.get("/:id",
                         consent_info: consentInfo,
                         dependent_info: dependentInfo,
                         residence_info: residenceInfo,
+                        yea_list: yeaList,
                         applications: applicationInfo,
-                        id: student.id
+                        id: student.id,
                     };
 
                     return res.status(200).json({ data });
