@@ -48,31 +48,10 @@
             ></v-switch>
 
             <div v-if="art_society.apply" class="mt-5">
-              <v-file-input
-                multiple
-                truncate-length="15"
-                outlined
-                dense
-                background-color="white"
-                hide-details
-                label="Upload personal essay"
-              ></v-file-input>
               <v-btn class="mt-5 mb-5 float-right" color="primary"
                 >View personal essay</v-btn
               >
-
-              <v-file-input
-                style="clear: both"
-                multiple
-                truncate-length="15"
-                outlined
-                dense
-                background-color="white"
-                hide-details
-                label="Upload recommendation letter"
-              ></v-file-input>
-
-              <v-btn class="mt-5 float-right" color="primary"
+              <v-btn class="mt-5" color="primary"
                 >View recommendation letter</v-btn
               >
               <div style="clear: both"></div>
@@ -88,7 +67,7 @@
             <v-switch
               dense
               hide-details
-              label="Apply for Canadian Army Scholarship"
+              label="Apply for Nicholas John Harach Scholarship"
               v-model="harach.apply"
             ></v-switch>
             <div v-if="harach.apply">

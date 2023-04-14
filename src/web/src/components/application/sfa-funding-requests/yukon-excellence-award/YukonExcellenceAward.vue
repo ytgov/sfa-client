@@ -147,201 +147,157 @@
             <div class="col-md-12">
                 <h3 class="text-h6 font-weight-regular">YEA earned</h3>
             </div>
-
+            
             <div class="col-md-2 pr-1">
                 <h3 class="text-subtitle-1 text-center font-weight-bold">First Name</h3>
-                <v-text-field
-                    class="my-1" 
-                    outlined 
-                    dense 
-                    background-color="white" 
-                    hide-details 
-                    label="First Name"
-                >
-                </v-text-field>
-                <v-text-field 
-                    class="my-1" 
-                    outlined 
-                    dense 
-                    background-color="white" 
-                    hide-details 
-                    label="First Name"
-                >
-                </v-text-field>
-                <v-text-field 
-                    class="my-1"    
-                    outlined 
-                    dense 
-                    background-color="white" 
-                    hide-details 
-                    label="First Name"
-                >
-                </v-text-field>
-                <v-text-field 
-                    class="my-1" 
-                    outlined 
-                    dense 
-                    background-color="white" 
-                    hide-details 
-                    label="First Name"
-                >
-                </v-text-field>
+                <div  v-for="yea, index in student.yea_list" :key="index">
+                    <v-text-field
+                        disabled
+                        class="my-1" 
+                        outlined 
+                        dense 
+                        background-color="white" 
+                        hide-details 
+                        label="First Name"
+                        v-model="yea.first_name"
+                    >
+                    </v-text-field>
+                </div>
+                <template v-if="student.yea_list?.length < 4">
+                    <div v-for="index in MAX_TO_SHOW - student.yea_list.length" :key="index">
+                        <v-text-field
+                            disabled
+                            class="my-1" 
+                            outlined 
+                            dense 
+                            background-color="white" 
+                            hide-details 
+                            label="First Name"
+                        >
+                        </v-text-field>
+                    </div>
+                </template>
             </div>
             <div class="col-md-2 px-1">
                 <h3 class="text-subtitle-1 text-center font-weight-bold">Last Name</h3>
-                <v-text-field
-                    class="my-1" 
-                    outlined 
-                    dense 
-                    background-color="white" 
-                    hide-details 
-                    label="Last Name"
-                >
-                </v-text-field>
-                <v-text-field 
-                    class="my-1" 
-                    outlined 
-                    dense 
-                    background-color="white" 
-                    hide-details 
-                    label="Last Name"
-                >
-                </v-text-field>
-                <v-text-field 
-                    class="my-1"    
-                    outlined 
-                    dense 
-                    background-color="white" 
-                    hide-details 
-                    label="Last Name"
-                >
-                </v-text-field>
-                <v-text-field 
-                    class="my-1" 
-                    outlined 
-                    dense 
-                    background-color="white" 
-                    hide-details 
-                    label="Last Name"
-                >
-                </v-text-field>
+                <div  v-for="yea, index in student.yea_list" :key="index">
+                    <v-text-field
+                        class="my-1"
+                        disabled
+                        outlined 
+                        dense 
+                        background-color="white" 
+                        hide-details 
+                        label="Last Name"
+                        v-model="yea.last_name"
+                    >
+                    </v-text-field>
+                </div>
+                <template v-if="student.yea_list?.length < 4">
+                    <div v-for="index in MAX_TO_SHOW - student.yea_list.length" :key="index">
+                        <v-text-field
+                            disabled
+                            class="my-1" 
+                            outlined 
+                            dense 
+                            background-color="white" 
+                            hide-details 
+                            label="Last Name"
+                        >
+                        </v-text-field>
+                    </div>
+                </template>
             </div>
             <div class="col-md-4 px-1">
                 <h3 class="text-subtitle-1 text-center font-weight-bold">Course</h3>
-                <v-text-field
-                    class="my-1" 
-                    outlined 
-                    dense 
-                    background-color="white" 
-                    hide-details 
-                    label="Course"
-                >
-                </v-text-field>
-                <v-text-field 
-                    class="my-1" 
-                    outlined 
-                    dense 
-                    background-color="white" 
-                    hide-details 
-                    label="Course"
-                >
-                </v-text-field>
-                <v-text-field 
-                    class="my-1"    
-                    outlined 
-                    dense 
-                    background-color="white" 
-                    hide-details 
-                    label="Course"
-                >
-                </v-text-field>
-                <v-text-field 
-                    class="my-1" 
-                    outlined 
-                    dense 
-                    background-color="white" 
-                    hide-details 
-                    label="Course"
-                >
-                </v-text-field>
+                <div  v-for="yea, index in student.yea_list" :key="index">
+                    <v-text-field
+                        class="my-1"
+                        disabled
+                        outlined 
+                        dense 
+                        background-color="white" 
+                        hide-details 
+                        label="Course"
+                        v-model="yea.course"
+                    >
+                    </v-text-field>
+                </div>
+                <template v-if="student.yea_list?.length < 4">
+                    <div v-for="index in MAX_TO_SHOW - student.yea_list.length" :key="index">
+                        <v-text-field
+                            disabled
+                            class="my-1" 
+                            outlined 
+                            dense 
+                            background-color="white" 
+                            hide-details 
+                            label="Course"
+                        >
+                        </v-text-field>
+                    </div>
+                </template>
             </div>
             <div class="col-md-2 px-1">
                 <h3 class="text-subtitle-1 text-center font-weight-bold">Amount</h3>
-                <v-text-field
-                    class="my-1" 
-                    outlined 
-                    dense 
-                    background-color="white" 
-                    hide-details 
-                    label="Amount"
-                >
-                </v-text-field>
-                <v-text-field 
-                    class="my-1" 
-                    outlined 
-                    dense 
-                    background-color="white" 
-                    hide-details 
-                    label="Amount"
-                >
-                </v-text-field>
-                <v-text-field 
-                    class="my-1"    
-                    outlined 
-                    dense 
-                    background-color="white" 
-                    hide-details 
-                    label="Amount"
-                >
-                </v-text-field>
-                <v-text-field 
-                    class="my-1" 
-                    outlined 
-                    dense 
-                    background-color="white" 
-                    hide-details 
-                    label="Amount"
-                >
-                </v-text-field>
+                <div  v-for="yea, index in student.yea_list" :key="index">
+                    <v-text-field
+                        class="my-1"
+                        disabled
+                        outlined 
+                        dense 
+                        background-color="white"
+                        hide-details 
+                        label="Amount"
+                        v-model="yea.yea_amount"
+                    >
+                    </v-text-field>
+                </div>
+                <template v-if="student.yea_list?.length < 4">
+                    <div v-for="index in MAX_TO_SHOW - student.yea_list.length" :key="index">
+                        <v-text-field
+                            disabled
+                            class="my-1" 
+                            outlined 
+                            dense 
+                            background-color="white" 
+                            hide-details 
+                            label="Amount"
+                        >
+                        </v-text-field>
+                    </div>
+                </template>
             </div>
             <div class="col-md-2 pl-1">
+                
                 <h3 class="text-subtitle-1 text-center font-weight-bold">Year</h3>
-                <v-text-field
-                    class="my-1" 
-                    outlined 
-                    dense 
-                    background-color="white" 
-                    hide-details 
-                    label="Year"
-                >
-                </v-text-field>
-                <v-text-field 
-                    class="my-1" 
-                    outlined 
-                    dense 
-                    background-color="white" 
-                    hide-details 
-                    label="Year"
-                >
-                </v-text-field>
-                <v-text-field 
-                    class="my-1"    
-                    outlined 
-                    dense 
-                    background-color="white" 
-                    hide-details 
-                    label="Year"
-                >
-                </v-text-field>
-                <v-text-field 
-                    class="my-1" 
-                    outlined 
-                    dense 
-                    background-color="white" 
-                    hide-details 
-                    label="Year"
-                >
-                </v-text-field>
+                <div  v-for="yea, index in student.yea_list" :key="index">
+                    <v-text-field
+                        class="my-1" 
+                        disabled
+                        outlined 
+                        dense 
+                        background-color="white" 
+                        hide-details 
+                        label="Year"
+                        v-model="yea.school_year"
+                    >
+                    </v-text-field>
+                </div>
+                <template v-if="student.yea_list?.length < 4">
+                    <div v-for="index in MAX_TO_SHOW - student.yea_list.length" :key="index">
+                        <v-text-field
+                            disabled
+                            class="my-1" 
+                            outlined 
+                            dense 
+                            background-color="white" 
+                            hide-details 
+                            label="Year"
+                        >
+                        </v-text-field>
+                    </div>
+                </template>
             </div>
         </v-card>
     </div>
@@ -369,6 +325,7 @@ export default {
     },
     data: () => ({
         show_menu: false,
+        MAX_TO_SHOW: 4,
     }),
     async created() {
     },
