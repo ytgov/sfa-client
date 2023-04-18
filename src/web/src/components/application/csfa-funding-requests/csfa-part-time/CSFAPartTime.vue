@@ -80,7 +80,7 @@
                     dense 
                     background-color="white" 
                     hide-details 
-                    label="Overaward from previous application"
+                    label="Outstanding principal from previous CSFA Loan"
                     disabled
                     value="<$325.00>"
                 >
@@ -101,7 +101,7 @@
                             dense 
                             background-color="white" 
                             hide-details 
-                            label="Overaward from previous application"
+                            label="% of full course load"
                             value="40"
                         >
                         </v-text-field>
@@ -112,7 +112,7 @@
                             dense 
                             background-color="white" 
                             hide-details 
-                            label="Overaward from previous application"
+                            label="Study Weeks"
                             disabled
                             value="16"
                         >
@@ -124,7 +124,7 @@
                             dense 
                             background-color="white" 
                             hide-details 
-                            label="Overaward from previous application"
+                            label="Courses/Wk"
                             value="3"
                         >
                         </v-text-field>

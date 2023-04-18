@@ -1,7 +1,6 @@
 <template>
   <div>
     <h1>Scholarship Applications</h1>
-
     <v-card class="default mb-5">
       <v-card-text>
         <div class="row">
@@ -12,11 +11,11 @@
               background-color="white"
               hide-details
               label="High school/official transcript percentage"
-              v-model="transcript_percentage"
+              v-model="application.academic_percent"
               type="number"
-              step="0.01"
-              min="0.00"
-              max="4.00"
+              step="0.10"
+              min="1.00"
+              max="100.00"
             ></v-text-field>
           </div>
         </div>
@@ -175,6 +174,11 @@ import moment from "moment";
 import store from "@/store";
 
 export default {
+  computed: {
+    application: function () {
+      return store.getters.selectedApplication;
+    },
+  },
   data: () => ({
     applicationId: -1,
     scholarshipOptions: ["Scholarship AAA", "Scholarship BBB"],
