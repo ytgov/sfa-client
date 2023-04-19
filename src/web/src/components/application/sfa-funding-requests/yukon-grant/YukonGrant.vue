@@ -232,7 +232,6 @@ export default {
     }),
     async created() {
         store.dispatch("setCslClassifications");
-        !!this.application?.funding_requests?.some(fr => fr.request_type_id === 2);
     },
     watch: {
 

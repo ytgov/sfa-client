@@ -4,6 +4,9 @@
             <v-switch
                 label=""
                 class="my-0 mr-2"
+                :value="!!STARequest?.id"
+                v-model="checkSTARequest"
+                @change="toggle($event)"
             >
             </v-switch>
             <h3 class="text-h6 font-weight-regular">Student Applied for Training Allowance</h3>
@@ -28,95 +31,110 @@
             </div>
 
             <div class="col-md-2 my-n2">
-                <v-autocomplete 
+                <v-select 
                     outlined 
+                    :disabled="!checkSTARequest"
                     dense 
                     background-color="white" 
                     hide-details
                     :items="itemOptions"
-                    :value="!!application.student_meet_residency_req"
+                    :value="!!STARequest.student_meet_residency_req"
                     @input="e => {
-                        application.student_meet_residency_req = e;
+                        STARequest.student_meet_residency_req = e;
                     }"
-                    @change="doSaveApp('student_meet_residency_req', application.student_meet_residency_req)"
+                    @change="updateFundingRequest({
+                        student_meet_residency_req: STARequest.student_meet_residency_req
+                    }, STARequest.id)"
                 >
-                </v-autocomplete>
+                </v-select>
             </div>
             <div class="col-md-10 my-n2">
                 <h3 class="text-subtitle-1 mt-1">Student meets residency requirement</h3>
             </div>
 
             <div class="col-md-2 my-n2">
-                <v-autocomplete 
+                <v-select 
                     outlined 
+                    :disabled="!checkSTARequest"
                     dense 
                     background-color="white" 
                     hide-details
                     :items="itemOptions"
-                    :value="!!application.student_is_mov_to_anth_cmm_to_attd_prgm"
+                    :value="!!STARequest.student_is_mov_to_anth_cmm_to_attd_prgm"
                     @input="e => {
-                        application.student_is_mov_to_anth_cmm_to_attd_prgm = e;
+                        STARequest.student_is_mov_to_anth_cmm_to_attd_prgm = e;
                     }"
-                    @change="doSaveApp('student_is_mov_to_anth_cmm_to_attd_prgm', application.student_is_mov_to_anth_cmm_to_attd_prgm)"
+                    @change="updateFundingRequest({
+                        student_is_mov_to_anth_cmm_to_attd_prgm: STARequest.student_is_mov_to_anth_cmm_to_attd_prgm
+                    }, STARequest.id)"
                 >
-                </v-autocomplete>
+                </v-select>
             </div>
             <div class="col-md-10 my-n2">
                 <h3 class="text-subtitle-1 mt-1">Student is moving to another community to attend program</h3>
             </div>
 
             <div class="col-md-2">
-                <v-autocomplete 
+                <v-select 
                     outlined 
+                    :disabled="!checkSTARequest"
                     dense 
                     background-color="white" 
                     hide-details
                     :items="itemOptions"
-                    :value="!!application.student_is_maintening_two_residences"
+                    :value="!!STARequest.student_is_maintening_two_residences"
                     @input="e => {
-                        application.student_is_maintening_two_residences = e;
+                        STARequest.student_is_maintening_two_residences = e;
                     }"
-                    @change="doSaveApp('student_is_maintening_two_residences', application.student_is_maintening_two_residences)"
+                    @change="updateFundingRequest({
+                        student_is_maintening_two_residences: STARequest.student_is_maintening_two_residences
+                    }, STARequest.id)"
                 >
-                </v-autocomplete>
+                </v-select>
             </div>
             <div class="col-md-10 my-n2">
                 <h3 class="text-subtitle-1 mt-1">Student is maintening two residences</h3>
             </div>
 
             <div class="col-md-2 my-n2">
-                <v-autocomplete 
+                <v-select 
                     outlined 
+                    :disabled="!checkSTARequest"
                     dense 
                     background-color="white" 
                     hide-details
                     :items="itemOptions"
-                    :value="!!application.student_is_in_ft_study"
+                    :value="!!STARequest.student_is_in_ft_study"
                     @input="e => {
-                        application.student_is_in_ft_study = e;
+                        STARequest.student_is_in_ft_study = e;
                     }"
-                    @change="doSaveApp('student_is_in_ft_study', application.student_is_in_ft_study)"
+                    @change="updateFundingRequest({
+                        student_is_in_ft_study: STARequest.student_is_in_ft_study
+                    }, STARequest.id)"
                 >
-                </v-autocomplete>
+                </v-select>
             </div>
             <div class="col-md-10 my-n2">
                 <h3 class="text-subtitle-1 mt-1">Student is in Full-Time study</h3>
             </div>
 
             <div class="col-md-2 my-n2">
-                <v-autocomplete 
+                <v-select 
                     outlined 
+                    :disabled="!checkSTARequest"
                     dense 
                     background-color="white" 
                     hide-details
                     :items="itemOptions"
-                    :value="!!application.student_w_not_receive_fund_from_otr_org"
+                    :value="!!STARequest.student_w_not_receive_fund_from_otr_org"
                     @input="e => {
-                        application.student_w_not_receive_fund_from_otr_org = e;
+                        STARequest.student_w_not_receive_fund_from_otr_org = e;
                     }"
-                    @change="doSaveApp('student_w_not_receive_fund_from_otr_org', application.student_w_not_receive_fund_from_otr_org)"
+                    @change="updateFundingRequest({
+                        student_w_not_receive_fund_from_otr_org: STARequest.student_w_not_receive_fund_from_otr_org
+                    }, STARequest.id)"
                 >
-                </v-autocomplete>
+                </v-select>
             </div>
             <div class="col-md-10 my-n2">
                 <h3 class="text-subtitle-1 mt-1">Student will not receive funding from any other organization for the study period</h3>
@@ -124,14 +142,17 @@
 
             <div class="col-md-12 mt-n2">
                 <v-textarea
+                    :disabled="!checkSTARequest"
                     rows="3"
                     outlined 
                     dense 
                     background-color="white" 
                     hide-details 
                     label="Comment"
-                    v-model="application.applied_sta_comment"
-                    @change="doSaveApp('applied_sta_comment', application.applied_sta_comment)"
+                    v-model="STARequest.comments"
+                    @change="updateFundingRequest({
+                        comments: STARequest.comments
+                    }, STARequest.id)"
                 >
 
                 </v-textarea>
@@ -141,18 +162,20 @@
         </v-card>
 
         <OtherFunding 
-            v-if="!!!application.student_w_not_receive_fund_from_otr_org"
+            v-if="!!!application.student_w_not_receive_fund_from_otr_org && checkSTARequest"
             v-on:showSuccess="showSuccess"
             v-on:showError="showError"
         >
         </OtherFunding>
-
+        <confirm-dialog ref="confirm"></confirm-dialog>
     </div>
 </template>
 <script>
 import { mapGetters } from 'vuex';
 import store from '@/store';
+import axios from 'axios';
 import OtherFunding from "./OtherFunding.vue";
+import { APPLICATION_URL } from "@/urls";
 
 export default {
     components: {
@@ -166,10 +189,20 @@ export default {
         application: function () {
             return store.getters.selectedApplication;
         },
+        STARequest: function () {
+            const request = this.application
+                ?.funding_requests
+                ?.find(fr => fr.request_type_id === 1);
+
+            this.checkSTARequest = !!request;
+
+            return request || {};
+        },
     },
     data: () => ({
         itemOptions: [{text: "Yes", value: true}, {text: "No", value: false}],
-        otherFunding: true
+        otherFunding: true,
+        checkSTARequest: false,
     }),
     async created() {
         store.dispatch("setCslClassifications");
@@ -186,6 +219,87 @@ export default {
         },
         showError(mgs) {
             this.$emit("showError", mgs);
+        },
+        async deleteRecord(id) {
+            try {
+                const resDelete = await axios.delete(
+                APPLICATION_URL+`/${id}/status`,
+                );
+
+                const message = resDelete.data.messages[0];
+
+                if (message.variant == "success") {
+                    this.$emit("showSuccess", message.text);
+                    this.checkSTARequest = false;
+                } else {
+                    this.$emit("showError", message.text);
+                }
+            } catch (error) {
+                this.$emit("showError", "Error to delete");
+            } finally {
+                store.dispatch("loadApplication", this.application.id);
+            }
+        },
+        removeRecord() {
+            this.$refs.confirm.show(
+                    "Are you sure?",
+                    "Click 'Confirm' below to permanently remove this funding record.",
+                () => {
+                    this.deleteRecord(this.STARequest.id);
+                },
+                () => {
+                    this.checkSTARequest = !this.checkSTARequest;
+                }
+            );
+            
+        },
+        async addFundingRequest() {
+            try {
+                const resInsert = await axios.post(
+                    APPLICATION_URL+`/${this.application.id}/status`,
+                    { request_type_id: 1, received_date: new Date(),},
+                );
+                const message = resInsert?.data?.messages[0];
+
+                if (message?.variant === "success") {
+                    this.$emit("showSuccess", message.text);
+                    this.checkSTARequest = true;
+                } else {
+                    this.$emit("showError", message.text);
+                }
+                
+            } catch (error) {
+                this.$emit("showError", "Error to insert");
+            } finally {
+                store.dispatch("loadApplication", this.application.id);
+            }
+        },
+        async updateFundingRequest(itemToUpdate, id) {
+            try {
+                const resInsert = await axios.put(
+                    APPLICATION_URL+`/${this.application.id}/status/${id}`,
+                    { data: { ...itemToUpdate } },
+                );
+                const message = resInsert?.data?.messages[0];
+
+                if (message?.variant === "success") {
+                    this.$emit("showSuccess", message.text);
+                } else {
+                    this.$emit("showError", message.text);
+                }
+                
+            } catch (error) {
+                this.$emit("showError", "Error to update");
+            } finally {
+                store.dispatch("loadApplication", this.application.id);
+            }
+        },
+        toggle(event) {
+            if (!event && this.STARequest?.id) {
+                this.removeRecord();
+            } else {
+                this.addFundingRequest();
+            }
         },
     },
 };

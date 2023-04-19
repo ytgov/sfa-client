@@ -148,7 +148,6 @@
         </v-card-text>
       </v-card>
     </div>
-    <confirm-dialog ref="confirm"></confirm-dialog>
   </div>
 </template>
 
@@ -235,57 +234,6 @@ export default {
       axios.get(FUNDING_REASON_URL).then((resp) => {
         this.reasonOptions = resp.data;
       });
-    },
-
-    async deleteRecord(id) {
-      try {
-        const resDelete = await axios.delete(
-          APPLICATION_URL+`/${id}/status`,
-        );
-
-        const message = resDelete.data.messages[0];
-
-        if (message.variant == "success") {
-          this.$emit("showSuccess", message.text);
-        } else {
-          this.$emit("showError", message.text);
-        }
-      } catch (error) {
-        this.$emit("showError", "Error to delete");
-      } finally {
-        store.dispatch("loadApplication", this.applicationId);
-      }
-    },
-    removeRecord(id) {
-      this.$refs.confirm.show(
-        "Are you sure?",
-        "Click 'Confirm' below to permanently remove this funding record.",
-        () => {
-          this.deleteRecord(id);
-        },
-        () => {}
-      );
-    },
-    async addFundingRequest() {
-      try {
-        const resInsert = await axios.post(
-            APPLICATION_URL+`/${this.applicationId}/status`,
-            { ...this.newRecord },
-          );
-          const message = resInsert?.data?.messages[0];
-
-          if (message?.variant === "success") {
-            this.$emit("showSuccess", message.text);
-            this.setClose();
-          } else {
-            this.$emit("showError", message.text);
-          }
-          
-      } catch (error) {
-        this.$emit("showError", "Error to insert");
-      } finally {
-        store.dispatch("loadApplication", this.applicationId);
-      }
     },
     async updateFundingRequest(itemToUpdate, id) {
       try {
