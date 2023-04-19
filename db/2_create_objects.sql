@@ -1188,18 +1188,7 @@ CREATE TABLE sfa.application
     valid_driver_license_comment            TEXT           NULL,
     valid_yhcip                             BIT            NULL,
     valid_yhcip_comment                     TEXT           NULL,
-    has_consent_to_share_data               BIT            NOT NULL DEFAULT 0,
-    student_meet_hs_o_equiv_req             BIT            NULL DEFAULT 0,
-    student_meet_residency_req              BIT            NULL DEFAULT 0,
-    student_isnt_elig_f_fund_in_another_jur BIT            NULL DEFAULT 0,
-    student_is_in_ft_study                  BIT            NULL DEFAULT 0,
-    student_is_att_in_elig_prog_des_ps_inst BIT            NULL DEFAULT 0,
-    student_is_elig_for_airfare_trvl_amount BIT            NULL DEFAULT 0,
-    student_is_mov_to_anth_cmm_to_attd_prgm BIT            NULL DEFAULT 0,
-    student_is_maintening_two_residences    BIT            NULL DEFAULT 0,
-    student_w_not_receive_fund_from_otr_org BIT            NULL DEFAULT 0,
-    applied_yk_comment                      TEXT           NULL,
-    applied_sta_comment                     TEXT           NULL
+    has_consent_to_share_data               BIT            NOT NULL DEFAULT 0
 )
 
 CREATE TABLE sfa.agency_assistance
@@ -1281,7 +1270,16 @@ CREATE TABLE sfa.funding_request
     yea_request_type   INT            NULL,
     csl_request_amount NUMERIC(10, 2) NULL,
     is_csl_full_amount BIT            NULL     DEFAULT 0,
-    is_csg_only        BIT            NOT NULL DEFAULT 0
+    is_csg_only        BIT            NOT NULL DEFAULT 0,
+    student_meet_hs_o_equiv_req             BIT            NULL DEFAULT 0,
+    student_meet_residency_req              BIT            NULL DEFAULT 0,
+    student_isnt_elig_f_fund_in_another_jur BIT            NULL DEFAULT 0,
+    student_is_in_ft_study                  BIT            NULL DEFAULT 0,
+    student_is_att_in_elig_prog_des_ps_inst BIT            NULL DEFAULT 0,
+    student_is_elig_for_airfare_trvl_amount BIT            NULL DEFAULT 0,
+    student_is_mov_to_anth_cmm_to_attd_prgm BIT            NULL DEFAULT 0,
+    student_is_maintening_two_residences    BIT            NULL DEFAULT 0,
+    student_w_not_receive_fund_from_otr_org BIT            NULL DEFAULT 0
 )
 
 CREATE TABLE sfa.application_part_time_reason
