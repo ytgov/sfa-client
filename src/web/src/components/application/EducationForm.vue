@@ -13,8 +13,8 @@
                             background-color="white" 
                             hide-details 
                             label="Pre-Study Classiﬁcation"
-                            v-model="application.csl_classification"
-                            @change="doSaveApp('csl_classification', application.csl_classification)"
+                            v-model="application.prestudy_csl_classification"
+                            @change="doSaveApp('prestudy_csl_classification', application.prestudy_csl_classification)"
                             :items="cslClassifications"
                             item-text="description"
                             item-value="id"
@@ -28,8 +28,8 @@
                             background-color="white" 
                             hide-details 
                             label="Study Classiﬁcation"
-                            v-model="application.prestudy_csl_classification"
-                            @change="doSaveApp('prestudy_csl_classification', application.prestudy_csl_classification)"
+                            v-model="application.csl_classification"
+                            @change="doSaveApp('csl_classification', application.csl_classification)"
                             :items="cslClassifications"
                             item-text="description"
                             item-value="id"
