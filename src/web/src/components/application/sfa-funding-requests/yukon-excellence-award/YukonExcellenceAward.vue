@@ -4,6 +4,9 @@
             <v-switch
                 label=""
                 class="my-0 mr-2"
+                :value="!!YEARequest?.id"
+                v-model="checkYEARequest"
+                @change="toggle($event)"
             >
             </v-switch>
             <h3 class="text-h6 font-weight-regular">Student Applied for YEA</h3>
@@ -45,6 +48,7 @@
                     </div> 
                     <div class="col-md-6">
                         <v-text-field 
+                            :disabled="!checkYEARequest"
                             outlined 
                             dense 
                             background-color="white" 
@@ -65,6 +69,12 @@
                             background-color="white" 
                             hide-details 
                             label=""
+                            @keypress="validate.isNumber($event)"
+                            :disabled="!checkYEARequest"
+                            v-model="YEARequest.yea_request_amount"
+                            @change="updateFundingRequest({
+                                yea_request_amount: YEARequest.yea_request_amount
+                            }, YEARequest.id)"
                         >
                         </v-text-field>
                     </div>
@@ -78,6 +88,7 @@
                     </div> 
                     <div class="col-md-6">
                         <v-menu
+                            :disabled="!checkYEARequest"
                             v-model="show_menu"
                             :close-on-content-click="false"
                             transition="scale-transition"
@@ -88,6 +99,7 @@
                         >
                             <template v-slot:activator="{ on, attrs }">
                             <v-text-field
+                                :disabled="!checkYEARequest"
                                 append-icon="mdi-calendar"
                                 :value="student.yea_expiry_date?.slice(0, 10)"
                                 hide-details
@@ -118,6 +130,7 @@
                     <div class="col-md-7 d-flex justify-end"></div>
                     <div class="col-md-5 d-flex justify-end">
                         <v-btn
+                            :disabled="!checkYEARequest"
                             class="my-0"
                             block
                             color="success"
@@ -130,12 +143,17 @@
 
             <div class="col-md-12 mt-n2">
                 <v-textarea
+                    :disabled="!checkYEARequest"
                     rows="3"
                     outlined 
                     dense 
                     background-color="white" 
                     hide-details 
                     label="Comment"
+                    v-model="YEARequest.comments"
+                    @change="updateFundingRequest({
+                        comments: YEARequest.comments
+                    }, YEARequest.id)"
                 >
 
                 </v-textarea>
@@ -300,11 +318,15 @@
                 </template>
             </div>
         </v-card>
+        <confirm-dialog ref="confirm"></confirm-dialog>
     </div>
 </template>
 <script>
 import { mapGetters } from 'vuex';
 import store from '@/store';
+import axios from 'axios';
+import { APPLICATION_URL } from "@/urls";
+import validator from "@/validator";
 
 export default {
     components: {
@@ -320,20 +342,114 @@ export default {
         fundingRequest() {
             const funding = this.application?.funding_requests[0];
             return funding || {};
-        }
+        },
+        YEARequest: function () {
+            const request = this.application
+                ?.funding_requests
+                ?.find(fr => fr.request_type_id === 3);
+
+            this.checkYEARequest = !!request;
+
+            return request || {};
+        },
 
     },
     data: () => ({
         show_menu: false,
         MAX_TO_SHOW: 4,
+        checkYEARequest: false,
+        validate: {},
     }),
     async created() {
+        this.validate = validator;
     },
     watch: {
 
     },
     methods: {
+        async deleteRecord(id) {
+            try {
+                const resDelete = await axios.delete(
+                APPLICATION_URL+`/${id}/status`,
+                );
 
+                const message = resDelete.data.messages[0];
+
+                if (message.variant == "success") {
+                    this.$emit("showSuccess", message.text);
+                    this.checkYEARequest = false;
+                } else {
+                    this.$emit("showError", message.text);
+                }
+            } catch (error) {
+                this.$emit("showError", "Error to delete");
+            } finally {
+                store.dispatch("loadApplication", this.application.id);
+            }
+        },
+        removeRecord() {
+            this.$refs.confirm.show(
+                    "Are you sure?",
+                    "Click 'Confirm' below to permanently remove this funding record.",
+                () => {
+                    this.deleteRecord(this.YEARequest.id);
+                },
+                () => {
+                    this.checkYEARequest = !this.checkYEARequest;
+                }
+            );
+            
+        },
+        async addFundingRequest() {
+            try {
+                const resInsert = await axios.post(
+                    APPLICATION_URL+`/${this.application.id}/status`,
+                    { request_type_id: 3, received_date: new Date(),},
+                );
+                const message = resInsert?.data?.messages[0];
+
+                if (message?.variant === "success") {
+                    this.$emit("showSuccess", message.text);
+                    this.checkYEARequest = true;
+                } else {
+                    this.$emit("showError", message.text);
+                }
+                
+            } catch (error) {
+                this.$emit("showError", "Error to insert");
+            } finally {
+                store.dispatch("loadApplication", this.application.id);
+            }
+        },
+        async updateFundingRequest(itemToUpdate, id) {
+            try {
+                const resInsert = await axios.put(
+                    APPLICATION_URL+`/${this.application.id}/status/${id}`,
+                    { data: { ...itemToUpdate } },
+                );
+                const message = resInsert?.data?.messages[0];
+
+                if (message?.variant === "success") {
+                    this.$emit("showSuccess", message.text);
+                } else {
+                    this.$emit("showError", message.text);
+                }
+                
+            } catch (error) {
+                this.$emit("showError", "Error to update");
+            } finally {
+                store.dispatch("loadApplication", this.application.id);
+            }
+        },
+        toggle(event) {
+            if (!event && this.YEARequest?.id) {
+                this.removeRecord();
+            } else {
+                if (!this.YEARequest?.id) {
+                    this.addFundingRequest();
+                }
+            }
+        },
     },
 };
 </script>
