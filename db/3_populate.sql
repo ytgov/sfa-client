@@ -148,7 +148,7 @@ VALUES  ( 1, 'Not Recorded'),
         ( 2, 'Canadian'),
         ( 3, 'Permanent resident'),
         ( 4, 'Protected person'),
-        ( 5, 'No citizen'),
+        ( 5, 'No citizen')
 SET IDENTITY_INSERT sfa.citizenship OFF
 
 SET IDENTITY_INSERT sfa.csl_classification ON
@@ -956,7 +956,7 @@ INTO sfa.request_type (id, application_type_id, funding_group_id, batch_group_id
                        application_deadline, regulation, program_type, static_description_flag, financial_coding,
                        t4a_required, csg_other_flag, gl_budget, auto_appear, show_online, short_name, help_url,
                        help_text)
-SELECT request_type_id, application_type_id, funding_group_id, batch_group_id, application_req_type_id description,
+SELECT request_type_id, application_type_id, funding_group_id, batch_group_id, description,
        scholarship_flag, application_deadline, regulation, program_type, static_description_flag, financial_coding,
        CASE WHEN t4a_required_flag = 1 THEN 1 ELSE 0 END, csg_other_flag, gl_budget, auto_appear,
        CASE WHEN show_online = 'Y' THEN 1 ELSE 0 END, short_name, help_url, help_text

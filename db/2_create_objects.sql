@@ -1507,7 +1507,7 @@ CREATE TABLE sfa.assessment
     spouse_contribution_override   FLOAT          NULL
 )
 
-CREATE TABLE sfa.cls_nars_history
+CREATE TABLE sfa.csl_nars_history
 (
     id                          INT IDENTITY PRIMARY KEY,
     application_id              INT            NOT NULL REFERENCES sfa.application,
