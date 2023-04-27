@@ -134,6 +134,8 @@ applicationRouter.get("/:id",
             application.parent2 = await db("sfa.person").where({ id: application.parent2_id }).first();
             application.spouse_info = await db("sfa.person").where({ id: application.spouse_id }).first();
             application.agencies_assistance = await db("sfa.agency_assistance").where({ application_id: application.id });    
+            application.courses_enrolled = await db("sfa.course_enrolled").where({ application_id: application.id });   
+
             for (let dep of application.parent_dependents) {
                 if (dep.birth_date)
                     dep.birth_date = moment(dep.birth_date).add(7, 'hours').format("YYYY-MM-DD");
@@ -650,6 +652,120 @@ applicationRouter.delete("/:id/agency-assistance", [param("id").isInt().notEmpty
             }
 
             const deleteRecord: any = await db("sfa.agency_assistance")
+                .where({ id: id })
+                .del();
+
+            return (deleteRecord > 0) ?
+                res.status(202).send({ messages: [{ variant: "success", text: "Removed" }] })
+                :
+                res.status(404).send({ messages: [{ variant: "error", text: "Record does not exits" }] });
+
+        } catch (error: any) {
+
+            console.log(error);
+
+            if (error?.number === 547) {
+                return res.status(409).send({ messages: [{ variant: "error", text: "Cannot be deleted because it is in use." }] });
+            }
+
+            return res.status(409).send({ messages: [{ variant: "error", text: "Error To Delete" }] });
+        }
+    }
+);
+
+applicationRouter.post("/:application_id/course",
+    [param("application_id").isInt().notEmpty()], ReturnValidationErrors,
+    async (req: Request, res: Response) => {
+
+        try {
+            const { application_id } = req.params;
+            const { data } = req.body;
+
+            if (!Object.keys(data).length) {
+                return res.json({ messages: [{ variant: "error", text: "data is required" }] });
+            }
+
+            if (data?.description === '' || data?.description === null) {
+                return res.json({ messages: [{ variant: "error", text: "Description is required" }] });
+            }
+
+            if (!data?.instruction_type_id) {
+                return res.json({ messages: [{ variant: "error", text: "Instruction Type is required" }] });
+            }
+
+            const resInsert = await db("sfa.course_enrolled")
+                    .insert({ ...data, application_id });
+
+                return resInsert ?
+                    res.json({ messages: [{ variant: "success", text: "Saved" }] })
+                    :
+                    res.json({ messages: [{ variant: "error", text: "Failed" }] });
+
+        } catch (error) {
+            console.log(error)
+            return res.json({ messages: [{ variant: "error", text: "Save failed" }] });
+        }
+    }
+);
+
+applicationRouter.patch("/:application_id/course/:id",
+    [param("application_id").isInt().notEmpty()], ReturnValidationErrors,
+    async (req: Request, res: Response) => {
+
+        try {
+            const { application_id, id } = req.params;
+            const { data } = req.body;
+
+            if (Object.keys(data).some(k => k === 'description')) {
+                if (!data?.description?.length) {
+                    return res.json({ messages: [{ variant: "error", text: "Description is required" }] });
+                }
+            }
+
+            if (Object.keys(data).some(k => k === 'description')) {
+                if (!data?.description?.length) {
+                    return res.json({ messages: [{ variant: "error", text: "Description is required" }] });
+                }
+            }
+
+            if (Object.keys(data).some(k => k === 'instruction_type_id')) {
+                if (data?.instruction_type_id === '' || data?.instruction_type_id === null || isNaN(data?.instruction_type_id)) {
+                    return res.json({ messages: [{ variant: "error", text: "Instruction Type is required" }] });
+                }
+            }
+
+            const resUpdate = await db("sfa.course_enrolled")
+                .where({id, application_id})
+                .update({ ...data });
+
+            return resUpdate ?
+                res.json({ messages: [{ variant: "success", text: "Saved" }] })
+                :
+                res.json({ messages: [{ variant: "error", text: "Failed" }] });
+
+        } catch (error) {
+            console.log(error)
+            return res.json({ messages: [{ variant: "error", text: "Save failed" }] });
+        }
+    }
+);
+
+applicationRouter.delete("/:id/course", [param("id").isInt().notEmpty()], ReturnValidationErrors,
+    async (req: Request, res: Response) => {
+
+        const { id = null } = req.params;
+
+        try {
+
+            const verifyRecord: any = await db("sfa.course_enrolled")
+                .where({ id: id })
+                .first();
+
+            if (!verifyRecord) {
+                return res.status(404).send({ wasDelete: false, message: "The record does not exits" });
+            }
+
+            const deleteRecord: any = await db("sfa.course_enrolled")
                 .where({ id: id })
                 .del();
 

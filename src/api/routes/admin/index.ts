@@ -39,6 +39,7 @@ import { cslClassificationRouter } from "./csl-classification-router";
 import { citizenshipRouter } from "./citizenship-router";
 import { prestudyEmploymentRouter } from "./prestudy-employment-status-router";
 import { agencyRouter } from "./agency-router";
+import { instructionTypeRouter } from "./instruction-type-router";
 import { RequireServerAuth, RequireAdmin } from "../auth";
 
 export const adminRouter = express.Router();
@@ -84,3 +85,4 @@ adminRouter.use("/csl-classification", cslClassificationRouter);
 adminRouter.use("/citizenship", citizenshipRouter);
 adminRouter.use("/prestudy-employment-status", prestudyEmploymentRouter);
 adminRouter.use("/agency", agencyRouter);
+adminRouter.use("/instruction-type", instructionTypeRouter);
