@@ -277,61 +277,135 @@
             <div class="col-md-12 mb-n5">
                 <h3 class="text-h6 font-weight-regular">Courses</h3>
             </div>
+            <div class="col-md-12">
+                <div class="row" v-for="course, index in application.courses_enrolled" :key="index">
+                    <div class="col-md-6 pr-1">
+                        <h3 class="text-subtitle-1 text-center font-weight-bold">Course Description</h3>
+                        <v-text-field 
+                            :disabled="showAdd"
+                            outlined 
+                            dense 
+                            background-color="white" 
+                            hide-details
+                            v-model="course.description"
+                            @change="updateCourse({ description: course.description }, course.id)"
+                        >
+                        </v-text-field>
+                    </div>
+                    <div class="col-md-2 px-1">
+                        <h3 class="text-subtitle-1 text-center font-weight-bold">Course Code</h3>
+                        <v-text-field 
+                            :disabled="showAdd"
+                            outlined 
+                            dense 
+                            background-color="white" 
+                            hide-details
+                            v-model="course.course_code"
+                            @change="updateCourse({ course_code: course.course_code }, course.id)"
+                        >
+                        </v-text-field>
+                    </div>
+                    <div class="col-md-3 px-1">
+                        <h3 class="text-subtitle-1 text-center font-weight-bold">Instruction Type</h3>
+                        <v-select
+                            :disabled="showAdd"
+                            outlined 
+                            dense 
+                            background-color="white" 
+                            hide-details
+                            :items="instructionTypes"
+                            item-text="description"
+                            item-value="id"
+                            v-model="course.instruction_type_id"
+                            @change="updateCourse({ instruction_type_id: course.instruction_type_id }, course.id)"
+                        >
+                        </v-select>
+                    </div>
+                    <div class="col-md-1 mt-11 d-md-flex justify-center">
+                        <v-btn
+                            v-if="(index+1 === application.courses_enrolled.length && !showAdd)"
+                            :disabled="showAdd"
+                            color="success" 
+                            x-small
+                            fab 
+                            class="my-0"
+                            @click="showAdd = true"
+                        >
+                            <v-icon>mdi-plus</v-icon>
+                        </v-btn>
+                        <v-btn
+                            :disabled="showAdd"
+                            color="error" 
+                            x-small
+                            fab 
+                            class="my-0 ml-1"
+                            @click="removeCourse(course.id)"
+                        >
+                            <v-icon>mdi-minus</v-icon>
+                        </v-btn>
+                    </div>
+                </div>
+                <div class="row" v-if="showAdd || !application?.courses_enrolled?.length">
+                    <div class="col-md-6 pr-1">
+                        <h3 class="text-subtitle-1 text-center font-weight-bold">Course Description</h3>
+                        <v-text-field
+                            outlined 
+                            dense 
+                            background-color="white" 
+                            hide-details
+                            v-model="newRecord.description"
+                        >
+                        </v-text-field>
+                    </div>
+                    <div class="col-md-2 px-1">
+                        <h3 class="text-subtitle-1 text-center font-weight-bold">Course Code</h3>
+                        <v-text-field
+                            outlined 
+                            dense 
+                            background-color="white" 
+                            hide-details
+                            v-model="newRecord.course_code"
+                        >
+                        </v-text-field>
+                    </div>
+                    <div class="col-md-3 px-1">
+                        <h3 class="text-subtitle-1 text-center font-weight-bold">Instruction Type</h3>
+                        <v-select
+                            outlined 
+                            dense 
+                            background-color="white" 
+                            hide-details
+                            :items="instructionTypes"
+                            item-text="description"
+                            item-value="id"
+                            v-model="newRecord.instruction_type_id"
+                        >
+                        </v-select>
+                    </div>
+                    <div class="col-md-1 mt-11 d-md-flex justify-center">
+                            <v-btn
+                                color="success" 
+                                x-small
+                                fab 
+                                class="my-0"
+                                @click="addCourse"
+                            >
+                                <v-icon>mdi-check</v-icon>
+                            </v-btn>
+                            <v-btn
+                                color="error" 
+                                x-small
+                                fab 
+                                class="my-0 ml-1"
+                                @click="setClose"
+                            >
+                                <v-icon>mdi-close</v-icon>
+                            </v-btn>
+                    </div>
+                </div>
+            </div>
+
             
-            <div class="col-md-6 pr-1">
-                <h3 class="text-subtitle-1 text-center font-weight-bold">Course Description</h3>
-                <v-text-field 
-                    :disabled="!checkCSFAPartTimeRequest"
-                    outlined 
-                    dense 
-                    background-color="white" 
-                    hide-details
-                >
-                </v-text-field>
-            </div>
-            <div class="col-md-2 px-1">
-                <h3 class="text-subtitle-1 text-center font-weight-bold">Course Code</h3>
-                <v-text-field 
-                    :disabled="!checkCSFAPartTimeRequest"
-                    outlined 
-                    dense 
-                    background-color="white" 
-                    hide-details
-                >
-                </v-text-field>
-            </div>
-            <div class="col-md-3 px-1">
-                <h3 class="text-subtitle-1 text-center font-weight-bold">Instruction Type</h3>
-                <v-select
-                    :disabled="!checkCSFAPartTimeRequest"
-                    outlined 
-                    dense 
-                    background-color="white" 
-                    hide-details
-                >
-                </v-select>
-            </div>
-            <div class="col-md-1 mt-11 d-md-flex justify-center">
-                    <v-btn
-                        :disabled="!checkCSFAPartTimeRequest"
-                        color="success" 
-                        x-small
-                        fab 
-                        class="my-0"
-                    >
-                        <v-icon>mdi-plus</v-icon>
-                    </v-btn>
-                    <v-btn
-                        :disabled="!checkCSFAPartTimeRequest"
-                        color="error" 
-                        x-small
-                        fab 
-                        class="my-0 ml-1"
-                        @click="setClose"
-                    >
-                        <v-icon>mdi-minus</v-icon>
-                    </v-btn>
-            </div>
 
 
         </v-card>
@@ -346,11 +420,8 @@ import { APPLICATION_URL } from "@/urls";
 import validator from "@/validator";
 
 export default {
-    components: {
-
-    },
     computed: {
-        ...mapGetters(["cslClassifications", "provinces"]),
+        ...mapGetters(["cslClassifications", "provinces", "instructionTypes"]),
         student() {
             return store.getters.selectedStudent;
         },
@@ -371,15 +442,31 @@ export default {
         itemOptions: [{text: 'Yes', value: true}, {text: 'No', value: false}],
         checkCSFAPartTimeRequest: false,
         validate: {},
+        showAdd: false,
+        newRecord: {
+            description: "",
+            course_code: "",
+            instruction_type_id: null,
+        },
     }),
     async created() {
         this.validate = validator;
         store.dispatch("setProvinces");
+        store.dispatch("setInstructionTypes");
     },
     watch: {
 
     },
     methods: {
+        setClose() {
+            this.newRecord = {
+                description: "",
+                course_code: "",
+                instruction_type_id: null,
+            };
+
+            this.showAdd = false;
+        },
         doSaveApp(field, value) {
             store.dispatch("updateApplication", [field, value, this]);
         },
@@ -416,6 +503,38 @@ export default {
             );
             
         },
+        async deleteCourse(id) {
+            try {
+                const resDelete = await axios.delete(
+                APPLICATION_URL+`/${id}/course`,
+                );
+
+                const message = resDelete.data.messages[0];
+
+                if (message.variant == "success") {
+                    this.$emit("showSuccess", message.text);
+                } else {
+                    this.$emit("showError", message.text);
+                }
+            } catch (error) {
+                this.$emit("showError", "Error to delete");
+            } finally {
+                store.dispatch("loadApplication", this.application.id);
+            }
+        },
+        removeCourse(id) {
+            this.$refs.confirm.show(
+                    "Are you sure?",
+                    "Click 'Confirm' below to permanently remove this course.",
+                () => {
+                    this.deleteCourse(id);
+                },
+                () => {
+
+                }
+            );
+            
+        },
         async addFundingRequest() {
             try {
                 const resInsert = await axios.post(
@@ -437,6 +556,36 @@ export default {
                 store.dispatch("loadApplication", this.application.id);
             }
         },
+        async addCourse() {
+            try {
+                if (!this.newRecord.description.length) {
+                    this.$emit("showError", "Description is required");
+                    return;
+                }
+                if (!this.newRecord.instruction_type_id) {
+                    this.$emit("showError", "Instruction Type is required");
+                    return;
+                }
+
+                const resInsert = await axios.post(
+                    APPLICATION_URL+`/${this.application.id}/course`,
+                    { data: { ...this.newRecord, application_id: this.application.id} },
+                );
+                const message = resInsert?.data?.messages[0];
+
+                if (message?.variant === "success") {
+                    this.$emit("showSuccess", message.text);
+                    this.setClose();
+                } else {
+                    this.$emit("showError", message.text);
+                }
+                
+            } catch (error) {
+                this.$emit("showError", "Error to insert");
+            } finally {
+                store.dispatch("loadApplication", this.application.id);
+            }
+        },
         async updateFundingRequest(itemToUpdate, id) {
             try {
                 const resInsert = await axios.put(
@@ -444,6 +593,26 @@ export default {
                     { data: { ...itemToUpdate } },
                 );
                 const message = resInsert?.data?.messages[0];
+
+                if (message?.variant === "success") {
+                    this.$emit("showSuccess", message.text);
+                } else {
+                    this.$emit("showError", message.text);
+                }
+                
+            } catch (error) {
+                this.$emit("showError", "Error to update");
+            } finally {
+                store.dispatch("loadApplication", this.application.id);
+            }
+        },
+        async updateCourse(itemToUpdate, id) {
+            try {
+                const resUpdate = await axios.patch(
+                    APPLICATION_URL+`/${this.application.id}/course/${id}`,
+                    { data: { ...itemToUpdate } },
+                );
+                const message = resUpdate?.data?.messages[0];
 
                 if (message?.variant === "success") {
                     this.$emit("showSuccess", message.text);
