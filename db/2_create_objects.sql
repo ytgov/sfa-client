@@ -1001,6 +1001,20 @@ CREATE TABLE sfa.citizenship
 	is_active   BIT           NOT NULL DEFAULT 1
 )
 
+CREATE TABLE sfa.program_division 
+(
+	id          INT IDENTITY (1,1) PRIMARY KEY,
+	description NVARCHAR(200) NOT NULL,
+	is_active   BIT           NOT NULL DEFAULT 1
+)
+
+CREATE TABLE sfa.attendance 
+(
+	id          INT IDENTITY (1,1) PRIMARY KEY,
+	description NVARCHAR(200) NOT NULL,
+	is_active   BIT           NOT NULL DEFAULT 1
+)
+
 CREATE TABLE sfa.csl_classification (
 	id INT IDENTITY (1,1) PRIMARY KEY,
 	description NVARCHAR(200) NOT NULL,
@@ -1139,7 +1153,7 @@ CREATE TABLE sfa.application
     parent_residence_comment                NVARCHAR(500)  NULL,
     study_living_w_spouse                   BIT            NOT NULL DEFAULT 0,
     tuition_estimate_amount                 NUMERIC(10, 2) NULL,
-    program_division                        INT            NULL,
+    program_division                        INT            NULL REFERENCES sfa.program_division,
     is_previous_cslft                       BIT            NOT NULL DEFAULT 0,
     is_previous_cslpt                       BIT            NOT NULL DEFAULT 0,
     coop_start_year                         INT            NULL,
@@ -1188,6 +1202,7 @@ CREATE TABLE sfa.application
     valid_driver_license_comment            TEXT           NULL,
     valid_yhcip                             BIT            NULL,
     valid_yhcip_comment                     TEXT           NULL,
+    attendance_id                           INT            NULL REFERENCES sfa.attendance,
     has_consent_to_share_data               BIT            NOT NULL DEFAULT 0
 )
 
@@ -1257,20 +1272,21 @@ CREATE TABLE sfa.expense
 
 CREATE TABLE sfa.funding_request
 (
-    id                 INT IDENTITY PRIMARY KEY,
-    application_id     INT            NOT NULL REFERENCES sfa.application,
-    request_type_id    INT            NULL REFERENCES sfa.request_type,
-    status_id          INT            NULL REFERENCES sfa.status,
-    status_reason_id   INT            NULL REFERENCES sfa.status_reason,
-    comments           TEXT           NULL,
-    custom_status      TEXT           NULL,
-    received_date      DATE           NULL,
-    status_date        DATE           NULL,
-    yea_request_amount NUMERIC(10, 2) NULL,
-    yea_request_type   INT            NULL,
-    csl_request_amount NUMERIC(10, 2) NULL,
-    is_csl_full_amount BIT            NULL     DEFAULT 0,
-    is_csg_only        BIT            NOT NULL DEFAULT 0,
+    id                  INT IDENTITY PRIMARY KEY,
+    application_id      INT            NOT NULL REFERENCES sfa.application,
+    request_type_id     INT            NULL REFERENCES sfa.request_type,
+    status_id           INT            NULL REFERENCES sfa.status,
+    status_reason_id    INT            NULL REFERENCES sfa.status_reason,
+    comments            TEXT           NULL,
+    custom_status       TEXT           NULL,
+    received_date       DATE           NULL,
+    status_date         DATE           NULL,
+    yea_request_amount  NUMERIC(10, 2) NULL,
+    yea_request_type    INT            NULL,
+    csl_request_amount  NUMERIC(10, 2) NULL,
+    is_csl_full_amount  BIT            NULL     DEFAULT 0,
+    is_csg_only         BIT            NOT NULL DEFAULT 0,
+    entering_first_year BIT            NULL DEFAULT 0,
     student_meet_hs_o_equiv_req             BIT            NULL DEFAULT 0,
     student_meet_residency_req              BIT            NULL DEFAULT 0,
     student_isnt_elig_f_fund_in_another_jur BIT            NULL DEFAULT 0,
