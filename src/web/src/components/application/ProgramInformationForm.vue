@@ -200,7 +200,7 @@
               class="mt-0"
               color="success"
               >
-                VIEW PIF
+                View PIF
               </v-btn>
             </div>
           </div>

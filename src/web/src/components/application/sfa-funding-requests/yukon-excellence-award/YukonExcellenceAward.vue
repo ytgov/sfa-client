@@ -135,7 +135,7 @@
                             block
                             color="success"
                         >
-                            VIEW RECEIPT(S)
+                        View receipt(s)
                         </v-btn>
                     </div>
                 </div>

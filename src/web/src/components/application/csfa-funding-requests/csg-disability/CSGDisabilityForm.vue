@@ -207,7 +207,7 @@
               block
               class="text-subtitle-2 mt-0"
             >
-            VIEW QUOTE
+            View quote
             </v-btn>
             </div>
             <div class="col-md-6 mx-0">
@@ -217,7 +217,7 @@
               class="text-subtitle-2 mt-0"
               disabled
             >
-            VIEW RECEIPT
+            View receipt
             </v-btn>
             </div>
           </div>
@@ -324,7 +324,7 @@
               block
               class="text-subtitle-2 mt-0"
             >
-            VIEW QUOTE
+            View quote
             </v-btn>
             </div>
             <div class="col-md-6 mx-0">
@@ -334,7 +334,7 @@
               class="text-subtitle-2 mt-0"
               disabled
             >
-            VIEW RECEIPT
+            View receipt
             </v-btn>
             </div>
           </div>

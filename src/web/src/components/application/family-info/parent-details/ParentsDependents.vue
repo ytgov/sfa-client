@@ -367,14 +367,14 @@
             @click="setClose"
             v-if="!showAdd"
         >
-            ADD PARENT’S DEPENDENT
+            Add parent’s dependent
         </v-btn>
         <v-btn
             v-else
             color="primary"
             @click="setClose"
         >
-            CANCEL
+            Cancel
         </v-btn>
         
         <confirm-dialog ref="confirm"></confirm-dialog>

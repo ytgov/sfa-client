@@ -250,7 +250,7 @@
               block 
               color="success"
             >
-              SEARCH LAST NAME
+              Search last name
             </v-btn>
           </div>
           <div class="col-md-4">
@@ -258,7 +258,7 @@
               class="my-0"
               color="success"
             >
-              SEARCH PREVIOUS LAST NAME
+              Search previous last name
             </v-btn>
           </div>
         </div>

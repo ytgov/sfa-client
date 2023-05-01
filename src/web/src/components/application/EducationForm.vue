@@ -65,7 +65,7 @@
                             color="success"
                             class="my-0"
                         >
-                            View Hst
+                            View HST
                         </v-btn>
                     </div>
                 </div>

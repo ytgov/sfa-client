@@ -6,7 +6,7 @@
             </div>
             <v-spacer></v-spacer>
             <div class="col-md-3">
-                <v-btn block color="success" class="my-0">VIEW PARENT {{ index }} NOA</v-btn>
+                <v-btn block color="success" class="my-0">View parent {{ index }} NOA</v-btn>
             </div>
 
             <div class="col-md-4">

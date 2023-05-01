@@ -7,10 +7,10 @@
             <div class="col-md-6">
                 <v-row>
                     <div class="col-md-6">
-                        <v-btn block color="success" class="my-0">VIEW YG/STA PDEC</v-btn>
+                        <v-btn block color="success" class="my-0">View YG/STA PDEC</v-btn>
                     </div>
                     <div class="col-md-6">
-                        <v-btn block color="success" class="my-0">VIEW CSFA PDEC</v-btn>
+                        <v-btn block color="success" class="my-0">View CSFA PDEC</v-btn>
                     </div>
                 </v-row>
             </div>
