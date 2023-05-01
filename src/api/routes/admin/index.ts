@@ -40,6 +40,8 @@ import { citizenshipRouter } from "./citizenship-router";
 import { prestudyEmploymentRouter } from "./prestudy-employment-status-router";
 import { agencyRouter } from "./agency-router";
 import { instructionTypeRouter } from "./instruction-type-router";
+import { programDivisionRouter } from "./program-division-router";
+import { attendanceRouter } from "./attendance-router";
 import { RequireServerAuth, RequireAdmin } from "../auth";
 
 export const adminRouter = express.Router();
@@ -86,3 +88,5 @@ adminRouter.use("/citizenship", citizenshipRouter);
 adminRouter.use("/prestudy-employment-status", prestudyEmploymentRouter);
 adminRouter.use("/agency", agencyRouter);
 adminRouter.use("/instruction-type", instructionTypeRouter);
+adminRouter.use("/attendance", attendanceRouter);
+adminRouter.use("/program-division", programDivisionRouter);
