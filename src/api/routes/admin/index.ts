@@ -42,6 +42,7 @@ import { agencyRouter } from "./agency-router";
 import { instructionTypeRouter } from "./instruction-type-router";
 import { programDivisionRouter } from "./program-division-router";
 import { attendanceRouter } from "./attendance-router";
+import { documentStatusRouter } from "./document-status-router";
 import { RequireServerAuth, RequireAdmin } from "../auth";
 
 export const adminRouter = express.Router();
@@ -90,3 +91,4 @@ adminRouter.use("/agency", agencyRouter);
 adminRouter.use("/instruction-type", instructionTypeRouter);
 adminRouter.use("/attendance", attendanceRouter);
 adminRouter.use("/program-division", programDivisionRouter);
+adminRouter.use("/document-status", documentStatusRouter);
