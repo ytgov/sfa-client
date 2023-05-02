@@ -151,6 +151,14 @@ VALUES  ( 1, 'Not Recorded'),
         ( 5, 'No citizen')
 SET IDENTITY_INSERT sfa.citizenship OFF
 
+SET IDENTITY_INSERT sfa.document_status ON
+INSERT
+INTO sfa.document_status (id, description)
+VALUES  ( 1, 'Pendieng'),
+        ( 2, 'Approved'),
+        ( 3, 'Rejected')
+SET IDENTITY_INSERT sfa.document_status OFF
+
 SET IDENTITY_INSERT sfa.program_division ON
 INSERT
 INTO sfa.program_division (id, description)

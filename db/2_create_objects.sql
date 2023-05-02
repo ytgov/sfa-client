@@ -1001,6 +1001,13 @@ CREATE TABLE sfa.citizenship
 	is_active   BIT           NOT NULL DEFAULT 1
 )
 
+CREATE TABLE sfa.document_status 
+(
+	id          INT IDENTITY (1,1) PRIMARY KEY,
+	description NVARCHAR(200) NOT NULL,
+	is_active   BIT           NOT NULL DEFAULT 1
+)
+
 CREATE TABLE sfa.program_division 
 (
 	id          INT IDENTITY (1,1) PRIMARY KEY,
@@ -1386,6 +1393,7 @@ CREATE TABLE sfa.requirement_met
     id                  INT IDENTITY PRIMARY KEY,
     application_id      INT  NOT NULL REFERENCES sfa.application,
     requirement_type_id INT  NULL REFERENCES sfa.requirement_type,
+    comment             TEXT NULL,
     completed_date      DATE NULL
 )
 
@@ -1732,6 +1740,7 @@ CREATE TABLE sfa.file_reference (
 	upload_source VARCHAR(50) NOT NULL,
     student_id INT NOT NULL REFERENCES sfa.student,
     application_id INT NOT NULL REFERENCES sfa.application,
+    requirement_type_id INT NOT NULL REFERENCES sfa.requirement_type,
     status VARCHAR(50) NOT NULL,
     status_date DATETIME2(0) NOT NULL,
     bucket VARCHAR(50) NOT NULL,
