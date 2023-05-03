@@ -115,5 +115,6 @@ DROP TABLE IF EXISTS sfa.citizenship
 DROP TABLE IF EXISTS sfa.csl_classification
 DROP TABLE IF EXISTS sfa.attendance
 DROP TABLE IF EXISTS sfa.program_division
+DROP TABLE IF EXISTS sfa.document_status
 --DROP TABLE sfa.user
 DROP TABLE IF EXISTS sfa.file_reference
