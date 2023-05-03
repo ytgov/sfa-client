@@ -11,13 +11,22 @@
     <v-tabs-items v-model="tab" style="padding: 20px">
 
       <v-tab-item key="0">
-        <CSFAFullTime></CSFAFullTime>
+        <CSFAFullTime
+          v-on:showSuccess="showSuccess"
+          v-on:showError="showError"
+        ></CSFAFullTime>
       </v-tab-item>
       <v-tab-item key="1">
-        <CSFAPartTime></CSFAPartTime>
+        <CSFAPartTime
+          v-on:showSuccess="showSuccess"
+          v-on:showError="showError"
+        ></CSFAPartTime>
       </v-tab-item>
       <v-tab-item key="2">
-        <CSGDisabilityForm></CSGDisabilityForm>
+        <CSGDisabilityForm
+          v-on:showSuccess="showSuccess"
+          v-on:showError="showError"
+        ></CSGDisabilityForm>
       </v-tab-item>
      
     </v-tabs-items>
@@ -51,6 +60,13 @@ export default {
 
     store.dispatch("setAppSidebar", true);
   },
-  methods: {},
+  methods: {
+    showSuccess(mgs) {
+      this.$emit("showSuccess", mgs);
+    },
+    showError(mgs) {
+      this.$emit("showError", mgs);
+    },
+  },
 };
 </script>

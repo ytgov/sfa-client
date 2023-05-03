@@ -1,7 +1,6 @@
 <template>
   <div>
     <h1>Scholarship Applications</h1>
-
     <v-card class="default mb-5">
       <v-card-text>
         <div class="row">
@@ -12,48 +11,14 @@
               background-color="white"
               hide-details
               label="High school/official transcript percentage"
-              v-model="transcript_percentage"
+              v-model="application.academic_percent"
               type="number"
-              step="0.01"
-              min="0.00"
-              max="4.00"
+              step="0.10"
+              min="1.00"
+              max="100.00"
             ></v-text-field>
           </div>
         </div>
-      </v-card-text>
-    </v-card>
-
-    <v-card class="default mb-5">
-      <v-card-text>
-        <h3>Applications</h3>
-        <div class="row" v-for="(item, i) of applications" :key="i">
-          <div class="col-md-10">
-            <v-select
-              outlined
-              dense
-              background-color="white"
-              hide-details
-              label="Scholarship"
-              v-model="item.scholarship"
-              :items="scholarshipOptions"
-            ></v-select>
-          </div>
-
-          <div class="col-md-2">
-            <v-btn
-              color="warning"
-              x-small
-              fab
-              title="Remove"
-              class="my-0 float-right"
-              @click="removeApplication(i)"
-              ><v-icon>mdi-close</v-icon></v-btn
-            >
-          </div>
-        </div>
-        <v-btn class="mt-5" color="info" @click="addApplication()"
-          >Add scholarship application</v-btn
-        >
       </v-card-text>
     </v-card>
 
@@ -66,7 +31,9 @@
               dense
               hide-details
               label="Apply for Canadian Army Scholarship"
-              v-model="canadian_army.apply"
+              :value="!!canadianArmyScholarship?.id"
+              v-model="checkCandianArmy"
+              @change="toggle($event, 'CAS', canadianArmyScholarship?.id)"
             ></v-switch>
           </v-card-text>
         </v-card>
@@ -78,35 +45,16 @@
               dense
               hide-details
               label="Apply for Yukon Art Society Scholarship"
-              v-model="art_society.apply"
+              :value="!!yukonArtSocietyScholarship?.id"
+              v-model="checkArtSociety"
+              @change="toggle($event, 'YASS', yukonArtSocietyScholarship?.id)"
             ></v-switch>
 
-            <div v-if="art_society.apply" class="mt-5">
-              <v-file-input
-                multiple
-                truncate-length="15"
-                outlined
-                dense
-                background-color="white"
-                hide-details
-                label="Upload personal essay"
-              ></v-file-input>
+            <div v-if="checkArtSociety" class="mt-5">
               <v-btn class="mt-5 mb-5 float-right" color="primary"
                 >View personal essay</v-btn
               >
-
-              <v-file-input
-                style="clear: both"
-                multiple
-                truncate-length="15"
-                outlined
-                dense
-                background-color="white"
-                hide-details
-                label="Upload recommendation letter"
-              ></v-file-input>
-
-              <v-btn class="mt-5 float-right" color="primary"
+              <v-btn class="mt-5" color="primary"
                 >View recommendation letter</v-btn
               >
               <div style="clear: both"></div>
@@ -122,18 +70,19 @@
             <v-switch
               dense
               hide-details
-              label="Apply for Canadian Army Scholarship"
-              v-model="harach.apply"
+              label="Apply for Nicholas John Harach Scholarship"
+              :value="!!nicholasJohnHarachScholarship?.id"
+              v-model="checkNJH"
+              @change="toggle($event, 'NJHS', nicholasJohnHarachScholarship?.id)"
             ></v-switch>
-            <div v-if="harach.apply">
+            <div v-if="checkNJH">
               <v-switch
                 dense
                 hide-details
                 label="Entering first year"
-                v-model="harach.first_year"
               ></v-switch>
 
-              <div v-if="!harach.first_year" class="mt-5">
+              <div v-if="!checkNJH" class="mt-5">
                 <v-file-input
                   multiple
                   truncate-length="15"
@@ -156,7 +105,6 @@
                   background-color="white"
                   hide-details
                   label="Post-secondary average"
-                  v-model="harach.post_secondary_average"
                   type="number"
                   step="0.01"
                   min="0.00"
@@ -174,18 +122,19 @@
               dense
               hide-details
               label="Apply for Yukon Huskys C.B. Radio Club Scholarship"
-              v-model="radio_club.apply"
+              :value="!!yukonHuskysScholarship?.id"
+              v-model="checkHuskys"
+              @change="toggle($event, 'YHS', yukonHuskysScholarship?.id)"
             ></v-switch>
 
-            <div v-if="radio_club.apply">
+            <div v-if="checkHuskys">
               <v-switch
                 dense
                 hide-details
                 label="Entering first year"
-                v-model="radio_club.first_year"
               ></v-switch>
 
-              <div v-if="!radio_club.first_year" class="mt-5">
+              <!-- <div v-if="!radio_club.first_year" class="mt-5">
                 <v-file-input
                   multiple
                   truncate-length="15"
@@ -214,7 +163,7 @@
                   min="0.00"
                   max="4.00"
                 ></v-text-field>
-              </div>
+              </div> -->
             </div>
           </v-card-text>
         </v-card>
@@ -227,9 +176,46 @@
 
 <script>
 import moment from "moment";
-import store from "@/store";
+import store from '@/store';
+import axios from 'axios';
+import { APPLICATION_URL } from "@/urls";
+import validator from "@/validator";
 
 export default {
+  computed: {
+    application: function () {
+      return store.getters.selectedApplication;
+    },
+    canadianArmyScholarship: function () {
+      const request = this.application
+        ?.funding_requests
+        ?.find(fr => fr.request_type_id === 7);
+      this.checkCandianArmy = !!request;
+      return request || {};
+    },
+    nicholasJohnHarachScholarship: function () {
+      const request = this.application
+        ?.funding_requests
+        ?.find(fr => fr.request_type_id === 9);
+      this.checkNJH = !!request;
+      return request || {};
+    },
+    yukonArtSocietyScholarship: function () {
+      const request = this.application
+        ?.funding_requests
+        ?.find(fr => fr.request_type_id === 10);
+      this.checkArtSociety = !!request;
+      return request || {};
+    },
+    yukonHuskysScholarship: function () {
+      const request = this.application
+        ?.funding_requests
+        ?.find(fr => fr.request_type_id === 11);
+      this.checkHuskys = !!request;
+      return request || {};
+    },
+
+  },
   data: () => ({
     applicationId: -1,
     scholarshipOptions: ["Scholarship AAA", "Scholarship BBB"],
@@ -237,23 +223,15 @@ export default {
     transcript_percentage: "4.0",
     applications: [],
     maxDate: moment().format("YYYY-MM-DD"),
-
-    canadian_army: {
-      apply: false,
-    },
-    apply_cdn_army: false,
-    harach: {
-      apply: false,
-      first_year: true,
-      post_secondary_average: 0,
-    },
-    art_society: {
-      apply: false,
-    },
-    radio_club: {
-      apply: false,
-      first_year: true,
-      post_secondary_average: 0,
+    checkCandianArmy: false,
+    checkNJH: false,
+    checkArtSociety: false,
+    checkHuskys: false,
+    scholarshipsTypes: {
+      CAS:7,
+      NJHS:9,
+      YASS:10,
+      YHS:11,
     },
   }),
   async created() {
@@ -267,18 +245,98 @@ export default {
     store.dispatch("setAppSidebar", true);
   },
   methods: {
-    addApplication() {
-      this.applications.push({ birth_date: "" });
+    async deleteRecord(id) {
+      try {
+        const resDelete = await axios.delete(
+        APPLICATION_URL+`/${id}/status`,
+        );
+        const message = resDelete.data.messages[0];
+        if (message.variant == "success") {
+            this.$emit("showSuccess", message.text);
+            this.checkYEARequest = false;
+        } else {
+            this.$emit("showError", message.text);
+        }
+      } catch (error) {
+        this.$emit("showError", "Error to delete");
+      } finally {
+        store.dispatch("loadApplication", this.application.id);
+      }
     },
-    removeApplication(index) {
+    removeRecord(id, type) {
       this.$refs.confirm.show(
-        "Are you sure?",
-        "Click 'Confirm' below to permanently remove this scholarship application.",
-        () => {
-          this.applications.splice(index, 1);
-        },
-        () => {}
-      );
+            "Are you sure?",
+            "Click 'Confirm' below to permanently remove this funding record.",
+          () => {
+            this.deleteRecord(id);
+          },
+          () => {
+            switch (this.scholarshipsTypes?.[type]) {
+              case 7:
+                this.checkCandianArmy = !this.checkCandianArmy;
+                break;
+              case 9:
+                this.checkNJH = !this.checkNJH;
+                break;
+              case 10:
+                this.checkArtSociety = !this.checkArtSociety;
+                break;
+              case 11:
+                this.checkHuskys = !this.checkHuskys;
+                break;
+            
+              default:
+                break;
+            }
+          }
+      ); 
+    },
+    async addFundingRequest(type) {
+      try {
+        const resInsert = await axios.post(
+          APPLICATION_URL+`/${this.application.id}/status`,
+          { request_type_id: type, received_date: new Date(),},
+        );
+        const message = resInsert?.data?.messages[0];
+        if (message?.variant === "success") {
+          this.$emit("showSuccess", message.text);
+          this.checkYEARequest = true;
+        } else {
+          this.$emit("showError", message.text);
+        }
+          
+      } catch (error) {
+        this.$emit("showError", "Error to insert");
+      } finally {
+        store.dispatch("loadApplication", this.application.id);
+      }
+    },
+    async updateFundingRequest(itemToUpdate, id) {
+      try {
+        const resInsert = await axios.put(
+            APPLICATION_URL+`/${this.application.id}/status/${id}`,
+            { data: { ...itemToUpdate } },
+          );
+        const message = resInsert?.data?.messages[0];
+        if (message?.variant === "success") {
+          this.$emit("showSuccess", message.text);
+        } else {
+          this.$emit("showError", message.text);
+        }
+      } catch (error) {
+        this.$emit("showError", "Error to update");
+      } finally {
+        store.dispatch("loadApplication", this.application.id);
+      }
+    },
+    toggle(event, type, id = null) {
+      if (!event && id) {
+        this.removeRecord(id, type);
+      } else {
+        if (!id && this.scholarshipsTypes?.[type]) {
+          this.addFundingRequest(this.scholarshipsTypes[type]);
+        }
+      }
     },
   },
 };

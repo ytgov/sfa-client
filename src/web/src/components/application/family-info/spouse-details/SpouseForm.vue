@@ -9,10 +9,10 @@
           <div class="col-md-6">
             <v-row>
                 <div class="col-md-6">
-                    <v-btn block color="success" class="my-0">VIEW SPDEC</v-btn>
+                    <v-btn block color="success" class="my-0">View SPDEC</v-btn>
                 </div>
                 <div class="col-md-6">
-                    <v-btn block color="success" class="my-0">VIEW SPOUSE NOA</v-btn>
+                    <v-btn block color="success" class="my-0">View spouse NOA</v-btn>
                 </div>
             </v-row>
         </div>

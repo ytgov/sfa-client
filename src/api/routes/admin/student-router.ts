@@ -325,7 +325,14 @@ studentRouter.get("/:id",
         try {
             const { id } = req.params;
 
-            const student: any = await db("sfa.student").where({ id }).first();
+            const student: any = await db("sfa.student")
+            .where({ id })
+            .select(
+                "sfa.student.*",
+                db.raw("sfa.fn_get_pre_leg_sta_up_weeks(student.id) AS pre_leg_sta_up_weeks"),
+                db.raw("sfa.fn_get_pre_leg_outside_travel(student.id) AS pre_leg_outside_travel"),
+            )
+            .first();
 
             if (student) {
 
@@ -411,12 +418,26 @@ studentRouter.get("/:id",
                             student.id
                         );
 
+                    const yeaList = await db("sfa.student")
+                        .innerJoin(
+                            "sfa.yea",
+                            "sfa.student.yukon_id",
+                            "sfa.yea.yukon_id"
+                        )
+                        .select(
+                            "sfa.yea.*"
+                        )
+                        .where(
+                            "sfa.yea.yukon_id",
+                            student.yukon_id
+                        );
+
                     let highSchoolInfo = {
                         city_id: null,
                         province_id: null,
                         country_id: null,
                     };
-
+                    
                     if (student?.high_school_id !== null && !isNaN(student?.high_school_id)) {
 
                         const resultsHighSchoolInfo = await db("sfa.high_school")
@@ -440,6 +461,10 @@ studentRouter.get("/:id",
                         pre_funding_years_used: student.pre_funding_years_used,
                         adj_sta_upgrading_weeks: student.adj_sta_upgrading_weeks,
                         adj_outside_travel_cnt: student.adj_outside_travel_cnt,
+                        checked_for_yukon_id: student.checked_for_yukon_id,
+                        pre_leg_sta_up_weeks: student.pre_leg_sta_up_weeks,
+                        pre_leg_outside_travel: student.pre_leg_outside_travel,
+                        yea_expiry_date: student.yea_expiry_date,
                         vendor_id: student.vendor_id,
                         is_crown_ward: student.is_crown_ward,
                         high_school_final_grade: student.high_school_final_grade,
@@ -452,8 +477,9 @@ studentRouter.get("/:id",
                         consent_info: consentInfo,
                         dependent_info: dependentInfo,
                         residence_info: residenceInfo,
+                        yea_list: yeaList,
                         applications: applicationInfo,
-                        id: student.id
+                        id: student.id,
                     };
 
                     return res.status(200).json({ data });

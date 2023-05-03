@@ -10,10 +10,10 @@
                     <div class="col-md-6">
                         <v-btn :disabled="showAdd" block color="error" 
                         @click="removeRecord(dependent.d_id, dependent.de_id)"
-                        class="my-0">REMOVE DEPENDENT</v-btn>
+                        class="my-0">Remove dependent</v-btn>
                     </div>
                     <div class="col-md-6">
-                        <v-btn :disabled="showAdd" block color="success" class="my-0">VIEW BCERT</v-btn>
+                        <v-btn :disabled="showAdd" block color="success" class="my-0">View BCERT</v-btn>
                     </div>
                 </v-row>
             </div>

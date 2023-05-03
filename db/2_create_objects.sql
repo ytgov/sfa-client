@@ -1001,6 +1001,27 @@ CREATE TABLE sfa.citizenship
 	is_active   BIT           NOT NULL DEFAULT 1
 )
 
+CREATE TABLE sfa.document_status 
+(
+	id          INT IDENTITY (1,1) PRIMARY KEY,
+	description NVARCHAR(200) NOT NULL,
+	is_active   BIT           NOT NULL DEFAULT 1
+)
+
+CREATE TABLE sfa.program_division 
+(
+	id          INT IDENTITY (1,1) PRIMARY KEY,
+	description NVARCHAR(200) NOT NULL,
+	is_active   BIT           NOT NULL DEFAULT 1
+)
+
+CREATE TABLE sfa.attendance 
+(
+	id          INT IDENTITY (1,1) PRIMARY KEY,
+	description NVARCHAR(200) NOT NULL,
+	is_active   BIT           NOT NULL DEFAULT 1
+)
+
 CREATE TABLE sfa.csl_classification (
 	id INT IDENTITY (1,1) PRIMARY KEY,
 	description NVARCHAR(200) NOT NULL,
@@ -1139,7 +1160,7 @@ CREATE TABLE sfa.application
     parent_residence_comment       NVARCHAR(500)  NULL,
     study_living_w_spouse          BIT            NOT NULL DEFAULT 0,
     tuition_estimate_amount        NUMERIC(10, 2) NULL,
-    program_division               INT            NULL,
+    program_division               INT            NULL REFERENCES sfa.program_division,
     is_previous_cslft              BIT            NOT NULL DEFAULT 0,
     is_previous_cslpt              BIT            NOT NULL DEFAULT 0,
     coop_start_year                INT            NULL,
@@ -1188,6 +1209,7 @@ CREATE TABLE sfa.application
     valid_driver_license_comment   TEXT           NULL,
     valid_yhcip                    BIT            NULL,
     valid_yhcip_comment            TEXT           NULL,
+    attendance_id                  INT            NULL REFERENCES sfa.attendance,
     has_consent_to_share_data      BIT            NOT NULL DEFAULT 0
 )
 
@@ -1270,7 +1292,17 @@ CREATE TABLE sfa.funding_request
     yea_request_type   INT            NULL,
     csl_request_amount NUMERIC(10, 2) NULL,
     is_csl_full_amount BIT            NULL     DEFAULT 0,
-    is_csg_only        BIT            NOT NULL DEFAULT 0
+    is_csg_only        BIT            NOT NULL DEFAULT 0,
+    entering_first_year                     BIT            NULL DEFAULT 0,
+    student_meet_hs_o_equiv_req             BIT            NULL DEFAULT 0,
+    student_meet_residency_req              BIT            NULL DEFAULT 0,
+    student_isnt_elig_f_fund_in_another_jur BIT            NULL DEFAULT 0,
+    student_is_in_ft_study                  BIT            NULL DEFAULT 0,
+    student_is_att_in_elig_prog_des_ps_inst BIT            NULL DEFAULT 0,
+    student_is_elig_for_airfare_trvl_amount BIT            NULL DEFAULT 0,
+    student_is_mov_to_anth_cmm_to_attd_prgm BIT            NULL DEFAULT 0,
+    student_is_maintening_two_residences    BIT            NULL DEFAULT 0,
+    student_w_not_receive_fund_from_otr_org BIT            NULL DEFAULT 0
 )
 
 CREATE TABLE sfa.application_part_time_reason
@@ -1361,6 +1393,7 @@ CREATE TABLE sfa.requirement_met
     id                  INT IDENTITY PRIMARY KEY,
     application_id      INT  NOT NULL REFERENCES sfa.application,
     requirement_type_id INT  NULL REFERENCES sfa.requirement_type,
+    comment             TEXT NULL,
     completed_date      DATE NULL
 )
 
@@ -1498,7 +1531,7 @@ CREATE TABLE sfa.assessment
     spouse_contribution_override   FLOAT          NULL
 )
 
-CREATE TABLE sfa.cls_nars_history
+CREATE TABLE sfa.csl_nars_history
 (
     id                          INT IDENTITY PRIMARY KEY,
     application_id              INT            NOT NULL REFERENCES sfa.application,
@@ -1707,6 +1740,7 @@ CREATE TABLE sfa.file_reference (
 	upload_source VARCHAR(50) NOT NULL,
     student_id INT NOT NULL REFERENCES sfa.student,
     application_id INT NOT NULL REFERENCES sfa.application,
+    requirement_type_id INT NOT NULL REFERENCES sfa.requirement_type,
     status VARCHAR(50) NOT NULL,
     status_date DATETIME2(0) NOT NULL,
     bucket VARCHAR(50) NOT NULL,
