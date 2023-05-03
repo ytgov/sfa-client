@@ -200,7 +200,7 @@
               class="mt-0"
               color="success"
               >
-                VIEW PIF
+                View PIF
               </v-btn>
             </div>
           </div>
@@ -228,8 +228,11 @@
                 background-color="white"
                 hide-details
                 label="Program Division"
-                v-model="application.PROGRAM_DIVISION"
-                :items="programDivisionOptions"
+                :items="programDivisions"
+                item-text="description"
+                item-value="id"
+                v-model="application.program_division" 
+                @change="doSaveApp('program_division', application.program_division)"
               ></v-select>
             </div>
             <div class="col-md-6 px-1">
@@ -239,7 +242,11 @@
                 background-color="white"
                 hide-details
                 label="Attendance"
-                v-model="application.attendance"
+                :items="attendances"
+                item-text="description"
+                item-value="id"
+                v-model="application.attendance_id"
+                @change="doSaveApp('attendance_id', application.attendance_id)"
                 
               ></v-select>
             </div>
@@ -330,7 +337,8 @@
                 background-color="white"
                 hide-details
                 label="Study Weeks"
-                :value="application.study_weeks_count"
+                v-model="application.study_weeks_count"
+                @change="doSaveApp('study_weeks_count', application.study_weeks_count)"
               ></v-text-field>
             </div>
           </div>
@@ -372,7 +380,9 @@ import { mapGetters } from 'vuex';
 
 export default {
   computed: {
-    ...mapGetters(["yearOptions", "countries", "cities", "provinces", "institutionLevels", "studyAreas", "yukonGrantEligibilityList", "programs"]),
+    ...mapGetters(["yearOptions", "countries", "cities", "provinces", 
+      "institutionLevels", "studyAreas", "yukonGrantEligibilityList",
+      "programs", "attendances", "programDivisions"]),
     application: function () {
       return store.getters.selectedApplication;
     },
@@ -410,6 +420,8 @@ export default {
     store.dispatch("setStudyAreas");
     store.dispatch("setYukonGrantEligibility");
     store.dispatch("setPrograms");
+    store.dispatch("setProgramDivisions");
+    store.dispatch("setAttendances");
 
   },
   methods: {

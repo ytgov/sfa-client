@@ -11,16 +11,28 @@
 
     <v-tabs-items v-model="tab" style="padding: 20px">
       <v-tab-item key="0">
-        <yukon-grant></yukon-grant>
+        <yukon-grant
+          v-on:showSuccess="showSuccess"
+          v-on:showError="showError"
+        ></yukon-grant>
       </v-tab-item>
       <v-tab-item key="1">
-        <YukonExcellenceAward></YukonExcellenceAward>
+        <YukonExcellenceAward
+          v-on:showSuccess="showSuccess"
+          v-on:showError="showError"
+        ></YukonExcellenceAward>
       </v-tab-item>
       <v-tab-item key="2">
-        <StudentTrainingAllowance></StudentTrainingAllowance>
+        <StudentTrainingAllowance
+          v-on:showSuccess="showSuccess"
+          v-on:showError="showError"
+        ></StudentTrainingAllowance>
       </v-tab-item>
       <v-tab-item key="3">
-        <ScholarshipApplications></ScholarshipApplications>
+        <ScholarshipApplications
+          v-on:showSuccess="showSuccess"
+          v-on:showError="showError"
+        ></ScholarshipApplications>
       </v-tab-item>
     </v-tabs-items>
   </div>
@@ -55,6 +67,13 @@ export default {
 
     store.dispatch("setAppSidebar", true);
   },
-  methods: {},
+  methods: {
+    showSuccess(mgs) {
+      this.$emit("showSuccess", mgs);
+    },
+    showError(mgs) {
+      this.$emit("showError", mgs);
+    },
+  },
 };
 </script>

@@ -54,7 +54,7 @@
                 ></v-date-picker>
               </v-menu>
             </div>
-            <div class="col-md-2">
+            <div class="col-md-3">
               <v-btn 
                 :disabled="showAdd"
                 dense
@@ -65,7 +65,7 @@
                 Assessment
               </v-btn>
           </div>
-            <div class="col-md-2">
+            <div class="col-md-3">
               <v-btn 
                 :disabled="showAdd"
                 dense
@@ -74,18 +74,6 @@
                 block
               >
                   Print Letter
-              </v-btn>
-          </div>
-            <div class="col-md-2">
-              <v-btn 
-                :disabled="showAdd"
-                dense
-                color="error" 
-                class="my-0"
-                block
-                @click="removeRecord(item.id)"
-              >
-                  Remove
               </v-btn>
           </div>
             
@@ -159,159 +147,7 @@
 
         </v-card-text>
       </v-card>
-      <v-card class="default" v-if="showAdd">
-        <v-card-text>
-          <div class="row">
-            <div class="col-md-4">
-              <v-select
-                outlined
-                dense
-                background-color="white"
-                hide-details
-                v-model="newRecord.request_type_id"
-                label="Funding Type"
-                :items="fundingTypeOptions"
-                item-text="DESCRIPTION"
-                item-value="REQUEST_TYPE_ID"
-              ></v-select>
-            </div>
-            <div class="col-md-2">
-              <v-menu
-                v-model="newRecord.received_date_menu"
-                :close-on-content-click="false"
-                transition="scale-transition"
-                left
-                nudge-top="26"
-                offset-y
-                min-width="auto"
-              >
-                <template v-slot:activator="{ on, attrs }">
-                  <v-text-field
-                    v-model="newRecord.received_date"
-                    label="Date app received"
-                    append-icon="mdi-calendar"
-                    hide-details
-                    readonly
-                    outlined
-                    dense
-                    background-color="white"
-                    v-bind="attrs"
-                    v-on="on"
-                  ></v-text-field>
-                </template>
-                <v-date-picker
-                  v-model="newRecord.received_date"
-                  @input="newRecord.received_date_menu = false"
-                ></v-date-picker>
-              </v-menu>
-            </div>
-            <div class="col-md-2">
-
-            </div>
-            <div class="col-md-2">
-              <v-btn
-                dense
-                color="success" 
-                class="my-0"
-                block
-                @click="e => {
-                  addFundingRequest();
-                }"
-              >
-                  Save
-              </v-btn>
-            </div>
-            <div class="col-md-2">
-              <v-btn
-                dense
-                color="error" 
-                class="my-0"
-                block
-                @click="setClose"
-              >
-                  Cancel
-              </v-btn>
-            </div>
-          </div>
-          <div class="row">
-            <div class="col-md-4">
-              <v-select
-                outlined
-                dense
-                background-color="white"
-                hide-details
-                label="Funding Status"
-                v-model="newRecord.status_id"
-                :items="statusOptions"
-                item-text="DESCRIPTION"
-                item-value="STATUS_ID"
-              ></v-select>
-            </div>
-            <div class="col-md-2">
-              <v-menu
-                v-model="newRecord.status_date_menu"
-                :close-on-content-click="false"
-                transition="scale-transition"
-                left
-                nudge-top="26"
-                offset-y
-                min-width="auto"
-              >
-                <template v-slot:activator="{ on, attrs }">
-                  <v-text-field
-                    v-model="newRecord.status_date"
-                    label="Status date"
-                    append-icon="mdi-calendar"
-                    hide-details
-                    readonly
-                    outlined
-                    dense
-                    background-color="white"
-                    v-bind="attrs"
-                    v-on="on"
-                  ></v-text-field>
-                </template>
-                <v-date-picker
-                  v-model="newRecord.status_date"
-                  @input="newRecord.status_date_menu = false"
-                ></v-date-picker>
-              </v-menu>
-            </div>
-            <div class="col-md-6">
-              <v-autocomplete
-                outlined
-                dense
-                background-color="white"
-                hide-details
-                label="Reason"
-                v-model="newRecord.status_reason_id"
-                :items="reasonOptions"
-                item-text="DESCRIPTION"
-                item-value="STATUS_REASON_ID"
-              ></v-autocomplete>
-            </div>
-          </div>
-        </v-card-text>
-      </v-card>
     </div>
-
-    <div class="col-md-12 mt-n5">
-      <v-btn 
-      color="info" 
-      @click="setClose"
-      v-if="!showAdd"
-    >
-      Add funding record
-    </v-btn>
-    <v-btn 
-      color="info" 
-      @click="setClose"
-      v-else
-    >
-      Cancel
-    </v-btn>
-    </div>
-    <confirm-dialog ref="confirm"></confirm-dialog>
   </div>
 </template>
 
@@ -398,57 +234,6 @@ export default {
       axios.get(FUNDING_REASON_URL).then((resp) => {
         this.reasonOptions = resp.data;
       });
-    },
-
-    async deleteRecord(id) {
-      try {
-        const resDelete = await axios.delete(
-          APPLICATION_URL+`/${id}/status`,
-        );
-
-        const message = resDelete.data.messages[0];
-
-        if (message.variant == "success") {
-          this.$emit("showSuccess", message.text);
-        } else {
-          this.$emit("showError", message.text);
-        }
-      } catch (error) {
-        this.$emit("showError", "Error to delete");
-      } finally {
-        store.dispatch("loadApplication", this.applicationId);
-      }
-    },
-    removeRecord(id) {
-      this.$refs.confirm.show(
-        "Are you sure?",
-        "Click 'Confirm' below to permanently remove this funding record.",
-        () => {
-          this.deleteRecord(id);
-        },
-        () => {}
-      );
-    },
-    async addFundingRequest() {
-      try {
-        const resInsert = await axios.post(
-            APPLICATION_URL+`/${this.applicationId}/status`,
-            { ...this.newRecord },
-          );
-          const message = resInsert?.data?.messages[0];
-
-          if (message?.variant === "success") {
-            this.$emit("showSuccess", message.text);
-            this.setClose();
-          } else {
-            this.$emit("showError", message.text);
-          }
-          
-      } catch (error) {
-        this.$emit("showError", "Error to insert");
-      } finally {
-        store.dispatch("loadApplication", this.applicationId);
-      }
     },
     async updateFundingRequest(itemToUpdate, id) {
       try {
