@@ -1393,7 +1393,6 @@ CREATE TABLE sfa.requirement_met
     id                  INT IDENTITY PRIMARY KEY,
     application_id      INT  NOT NULL REFERENCES sfa.application,
     requirement_type_id INT  NULL REFERENCES sfa.requirement_type,
-    comment             TEXT NULL,
     completed_date      DATE NULL
 )
 
@@ -1746,5 +1745,6 @@ CREATE TABLE sfa.file_reference (
     bucket VARCHAR(50) NOT NULL,
     file_name NVARCHAR(200) NOT NULL,
     mime_type NVARCHAR(100) NOT NULL,
+    comment TEXT NULL,
     file_size BIGINT NOT NULL
 )
