@@ -13,14 +13,14 @@ documentStatusRouter.get("/", async (req: Request, res: Response) => {
     const { filter = true } = req.query;
 
     try {
-        const results = await db("sfa.document-status")
+        const results = await db("sfa.document_status")
         .where("is_active", filter !== 'false') 
         .select(
-                'sfa.document-status.id',
-                'sfa.document-status.description',
-                'sfa.document-status.is_active',
+                'sfa.document_status.id',
+                'sfa.document_status.description',
+                'sfa.document_status.is_active',
             )
-        .orderBy('sfa.document-status.description');
+        .orderBy('sfa.document_status.description');
 
         if (results) {
             return res.status(200).json({ success: true, data: [...results], });
@@ -44,13 +44,13 @@ documentStatusRouter.post("/", body('is_active').isBoolean(), body('description'
 
             if (!trimDescription.length) return res.status(400).json({ success: false, message: "Description must be required", });
 
-            const verify = await db("sfa.document-status")
+            const verify = await db("sfa.document_status")
                 .select('description')
                 .where({ description: trimDescription });
 
             if (verify?.length) return res.status(400).send({ success: false, message: `"${trimDescription}" already exists`, });
 
-            const resInsert = await db("sfa.document-status")
+            const resInsert = await db("sfa.document_status")
                 .insert({ description: trimDescription, is_active })
                 .returning("*");
 
@@ -72,7 +72,7 @@ documentStatusRouter.patch("/status/:id", [param("id").isInt().notEmpty()], Retu
         const { id = null } = req.params;
         const { is_active = false } = req.body;
 
-        db("sfa.document-status")
+        db("sfa.document_status")
             .update({ is_active })
             .where({ id })
             .returning("*")
@@ -101,7 +101,7 @@ documentStatusRouter.patch("/description/:id", [param("id").isInt().notEmpty()],
 
             if (!trimDescription.length) return res.status(400).json({ success: false, message: "Description must be required", });
 
-            const verify = await db("sfa.document-status")
+            const verify = await db("sfa.document_status")
                 .select('id', 'description')
                 .where({ description: trimDescription });
 
@@ -114,7 +114,7 @@ documentStatusRouter.patch("/description/:id", [param("id").isInt().notEmpty()],
             return res.status(400).send({ success: false, message: "Error!", });
         }
 
-        db("sfa.document-status")
+        db("sfa.document_status")
             .update({ description: trimDescription })
             .where({ id })
             .returning("*")
@@ -138,7 +138,7 @@ documentStatusRouter.delete("/:id", [param("id").isInt().notEmpty()], ReturnVali
         let description = "";
         try {
 
-            const verifyRecord: any = await db("sfa.document-status")
+            const verifyRecord: any = await db("sfa.document_status")
                 .where({ id: id })
                 .first();
 
@@ -148,7 +148,7 @@ documentStatusRouter.delete("/:id", [param("id").isInt().notEmpty()], ReturnVali
 
             description = verifyRecord?.description;
 
-            const deleteRecord: any = await db("sfa.document-status")
+            const deleteRecord: any = await db("sfa.document_status")
                 .where({ id: id })
                 .del();
 
