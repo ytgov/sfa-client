@@ -786,3 +786,24 @@ applicationRouter.delete("/:id/course", [param("id").isInt().notEmpty()], Return
         }
     }
 );
+
+applicationRouter.get("/yea/all", async (req: Request, res: Response) => {
+
+    const { last_name = "" } = req.query;
+
+    try {
+        const results = await db("sfa.yea")
+        .where("last_name", last_name)
+        .orderBy('sfa.yea.first_name');
+
+        if (results) {
+            return res.status(200).json({ success: true, data: [...results], });
+        } else {
+            return res.status(404).send();
+        }
+
+    } catch (error: any) {
+        console.log(error);
+        return res.status(404).send();
+    }
+});
