@@ -240,7 +240,7 @@
               label="Yukon ID"
               @keypress="validate.isNumber($event)"
               v-model="student.yukon_id"
-              @change="doSaveStudent('yukon_id', student.yukon_id, 'studentInfo', student.id)"
+              disabled
             >
             </v-text-field>
           </div>
@@ -249,6 +249,10 @@
               class="my-0" 
               block 
               color="success"
+              @click="e => {
+                this.getAllYEAList('last_name');
+                showModal();
+              }"
             >
               Search last name
             </v-btn>
@@ -257,6 +261,10 @@
             <v-btn
               class="my-0"
               color="success"
+              @click="e => {
+                this.getAllYEAList('previous_last_name');
+                showModal();
+              }"
             >
               Search previous last name
             </v-btn>
@@ -265,16 +273,26 @@
 
       </v-card-text>
     </v-card>
+    <SearchByLastName 
+      :showModal="showModal" 
+      :dialogModel="dialogModel" 
+      :yeaList="yeaList"
+      v-on:showSuccess="showSuccess"
+      v-on:showError="showError"
+    />
   </div>
 </template>
 <script>
 import axios from "axios";
 import store from "../../store";
 import { mapState, mapGetters } from "vuex";
+import { APPLICATION_URL } from '@/urls';
 import validator from "@/validator";
+import SearchByLastName from "../application/SearchByLastName.vue";
 
 export default {
   data: () => ({
+    dialogModel: false,
     columns_names: [
       "",
       "Pre-System Data",
@@ -291,6 +309,7 @@ export default {
       "YG Outside Travel Count",
     ],
     validate: {},
+    yeaList: [],
   }),
   computed: {
     student: function () {
@@ -306,7 +325,39 @@ export default {
     doSaveStudent(field, value, type, extraId = null, addressType = "") {
       store.dispatch("updateStudent", [field, value, type, extraId, this, addressType]);
     },
+    showModal(show = true) {
+      this.dialogModel = show;
+    },
+    setTypeSearch(type = "") {
+      this.typeSearch = type;
+    },
+    async getAllYEAList(typeSearch = "") {
+      const last_name = typeSearch === "previous_last_name" ? 
+          this.student.previous_last_name
+          :
+          typeSearch === "last_name" ? 
+              this.student.last_name 
+              :
+              "";
+      try {
+        const res = await axios.get(APPLICATION_URL+`/yea/all?last_name=${last_name}`);
+        if (res?.data?.success) {
+            this.yeaList = [...res.data.data];
+        }
+      } catch (error) {
+        console.log("Error to get YEA List");
+      }
+    },
+    showSuccess(mgs) {
+      this.$emit("showSuccess", mgs);
+    },
+    showError(mgs) {
+      this.$emit("showError", mgs);
+    },
   },
+  components: {
+    SearchByLastName,
+  }
 };
 </script>
   
