@@ -12,6 +12,7 @@
               hide-details
               label="High school/official transcript percentage"
               v-model="application.academic_percent"
+              @change="doSaveApp('academic_percent', application.academic_percent)"
               type="number"
               step="0.10"
               min="1.00"
@@ -215,6 +216,9 @@ export default {
     store.dispatch("setAppSidebar", true);
   },
   methods: {
+    doSaveApp(field, value) {
+      store.dispatch("updateApplication", [field, value, this]);
+    },
     async deleteRecord(id) {
       try {
         const resDelete = await axios.delete(
