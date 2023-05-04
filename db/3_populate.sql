@@ -1431,9 +1431,9 @@ FROM sfaadmin.assessment
 SET IDENTITY_INSERT sfa.assessment OFF
 
 
-SET IDENTITY_INSERT sfa.cls_nars_history ON
+SET IDENTITY_INSERT sfa.csl_nars_history ON
 INSERT
-INTO sfa.cls_nars_history ( id, application_id, student_id, assessment_id, academic_year, sin, loan_year, postal_prefix
+INTO sfa.csl_nars_history ( id, application_id, student_id, assessment_id, academic_year, sin, loan_year, postal_prefix
                           , birth_date, gender, marital_status, institution_code
                           , field_of_study, year_study, study_weeks, study_start_date, study_end_date, loan_type
                           , course_percentage, credit_check_flg, credit_check_status
@@ -1509,7 +1509,7 @@ SELECT [CSL_NARS_HISTORY_ID], [HISTORY_DETAIL_ID], [STUDENT_ID], [ASSESSMENT_ID]
 FROM sfaadmin.csl_nars_history
 WHERE history_detail_id IN (SELECT id FROM sfa.application)
   AND assessment_id IN (SELECT id FROM sfa.assessment)
-SET IDENTITY_INSERT sfa.cls_nars_history OFF
+SET IDENTITY_INSERT sfa.csl_nars_history OFF
 
 SET IDENTITY_INSERT sfa.disbursement ON
 INSERT
