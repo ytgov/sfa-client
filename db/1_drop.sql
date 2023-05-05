@@ -1,4 +1,7 @@
 -- DROPS
+DROP TABLE IF EXISTS sfa.file_reference
+DROP TABLE IF EXISTS sfa.student_auth
+
 DROP TABLE IF EXISTS sfa.entitlement_error
 DROP TABLE IF EXISTS sfa.disbursement
 DROP TABLE IF EXISTS sfa.cls_nars_history
@@ -117,4 +120,3 @@ DROP TABLE IF EXISTS sfa.attendance
 DROP TABLE IF EXISTS sfa.program_division
 DROP TABLE IF EXISTS sfa.document_status
 --DROP TABLE sfa.user
-DROP TABLE IF EXISTS sfa.file_reference
