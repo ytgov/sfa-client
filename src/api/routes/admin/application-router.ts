@@ -104,7 +104,14 @@ applicationRouter.get("/:id",
     [param("id").notEmpty()], ReturnValidationErrors, async (req: Request, res: Response) => {
         let { id } = req.params;
 
-        let application = await db("sfa.application").where({ id }).first();
+        let application = await db("sfa.application")
+        .select(
+            "sfa.application.*",
+            db.raw("sfa.fn_get_prev_pre_leg_weeks(application.student_id, application.id) AS prev_pre_leg_weeks"),
+            db.raw("sfa.fn_get_funded_years_used_preleg_chg(application.student_id, application.id) AS funded_years_used_preleg_chg"),
+        )
+        .where({ id })
+        .first();
 
         if (application) {
             let student = await db("sfa.student").where({ id: application.student_id }).first();
