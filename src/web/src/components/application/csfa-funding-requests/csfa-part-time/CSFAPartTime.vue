@@ -51,9 +51,7 @@
                             class="my-0"
                             label="Full amount requested"
                             v-model="CSFAPartTimeRequest.is_csl_full_amount"
-                            @change="updateFundingRequest({
-                                is_csl_full_amount: CSFAPartTimeRequest.is_csl_full_amount
-                            }, CSFAPartTimeRequest.id)"
+                            @change="toggleForBoth($event, 'is_csl_full_amount')"
                         >
                         </v-switch>
                     </div>
@@ -93,9 +91,7 @@
                     class="my-0"
                     label="Applied for Canada Student Grant Only"
                     v-model="CSFAPartTimeRequest.is_csg_only"
-                    @change="updateFundingRequest({
-                        is_csg_only: CSFAPartTimeRequest.is_csg_only
-                    }, CSFAPartTimeRequest.id)"
+                    @change="toggleForBoth($event, 'is_csg_only')"
                 >
                 </v-switch>
             </div>
@@ -437,6 +433,15 @@ export default {
 
             return request || {};
         },
+        GrantPartTimeRequest: function () {
+            const request = this.application
+                ?.funding_requests
+                ?.find(fr => fr.request_type_id === 31);
+
+            this.checkCSFAPartTimeRequest = !!request;
+
+            return request || {};
+        },
     },
     data: () => ({
         itemOptions: [{text: 'Yes', value: true}, {text: 'No', value: false}],
@@ -535,11 +540,11 @@ export default {
             );
             
         },
-        async addFundingRequest() {
+        async addFundingRequest(type) {
             try {
                 const resInsert = await axios.post(
                     APPLICATION_URL+`/${this.application.id}/status`,
-                    { request_type_id: 5, received_date: new Date(),},
+                    { request_type_id: type, received_date: new Date(),},
                 );
                 const message = resInsert?.data?.messages[0];
 
@@ -631,9 +636,85 @@ export default {
                 this.removeRecord();
             } else {
                 if (!this.CSFAPartTimeRequest?.id) {
-                    this.addFundingRequest();
+                    this.addFundingRequest(5);
                 }
             }
+        },
+        toggleForBoth(event, requestType = "") {
+            if (!event && (this.GrantPartTimeRequest?.id)) {
+                this.removeBothRecord(requestType);
+            } else {
+                if (event && (!this.GrantPartTimeRequest?.id)) {
+                    this.addFundingRequest(31);
+                    if (requestType === "is_csl_full_amount") {
+                    this.updateFundingRequest({
+                            is_csl_full_amount: this.CSFAPartTimeRequest.is_csl_full_amount
+                        }, this.CSFAPartTimeRequest.id);
+                    }
+                    if (requestType === "is_csg_only") {
+                        this.updateFundingRequest({
+                            is_csg_only: this.CSFAPartTimeRequest.is_csg_only
+                        }, this.CSFAPartTimeRequest.id);
+                    }
+                }else if (
+                    event && (!!this.GrantPartTimeRequest?.id)
+                    || !event && (!this.GrantTopUpFullTimeRequest?.id)
+                ) {
+                    if (requestType === "is_csl_full_amount") {
+                        this.updateFundingRequest({
+                            is_csl_full_amount: this.CSFAPartTimeRequest.is_csl_full_amount
+                        }, this.CSFAPartTimeRequest.id);
+                    }
+                    if (requestType === "is_csg_only") {
+                        this.updateFundingRequest({
+                            is_csg_only: this.CSFAPartTimeRequest.is_csg_only
+                        }, this.CSFAPartTimeRequest.id);
+                    }
+                }
+            }
+            
+        },
+        async deleteBothRecord(id) {
+            try {
+                const resDelete = await axios.delete(
+                APPLICATION_URL+`/${id}/status`,
+                );
+
+                const message = resDelete.data.messages[0];
+
+                if (message.variant === "success") {
+                    this.$emit("showSuccess", message.text);
+                } else {
+                    this.$emit("showError", message.text);
+                }
+            } catch (error) {
+                this.$emit("showError", "Error to delete");
+            } finally {
+                store.dispatch("loadApplication", this.application.id);
+            }
+        },
+        removeBothRecord(requestType) {
+            this.$refs.confirm.show(
+                    "Are you sure?",
+                    "Click 'Confirm' below to permanently remove this funding record.",
+                () => {
+                    this.deleteBothRecord(this.GrantPartTimeRequest?.id);
+                    if (requestType === "is_csl_full_amount") {
+                        this.updateFundingRequest({
+                            is_csl_full_amount: this.CSFAPartTimeRequest.is_csl_full_amount
+                        }, this.CSFAPartTimeRequest.id);
+                    }
+                    if (requestType === "is_csg_only") {
+                        this.updateFundingRequest({
+                            is_csg_only: this.CSFAPartTimeRequest.is_csg_only
+                        }, this.CSFAPartTimeRequest.id);
+                    }
+                    
+                },
+                () => {
+                }
+            );
+            
         },
     },
 };
