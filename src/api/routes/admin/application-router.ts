@@ -107,8 +107,8 @@ applicationRouter.get("/:id",
         let application = await db("sfa.application")
         .select(
             "sfa.application.*",
-            db.raw("sfa.fn_get_prev_pre_leg_weeks(application.student_id, application.id) AS prev_pre_leg_weeks"),
-            db.raw("sfa.fn_get_funded_years_used_preleg_chg(application.student_id, application.id) AS funded_years_used_preleg_chg"),
+            db.raw("sfa.fn_get_prev_pre_leg_weeks(sfa.application.student_id, sfa.application.id) AS prev_pre_leg_weeks"),
+            db.raw("sfa.fn_get_funded_years_used_preleg_chg(sfa.application.student_id, sfa.application.id) AS funded_years_used_preleg_chg")
         )
         .where({ id })
         .first();
