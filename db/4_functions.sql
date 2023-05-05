@@ -108,7 +108,7 @@ END
 
 GO
 
-CREATE OR ALTER FUNCTION fn_get_funded_years_used_preleg_chg(
+CREATE OR ALTER FUNCTION sfa.fn_get_funded_years_used_preleg_chg(
 	@student_id_p INT, 
 	@application_id_p INT
 )
