@@ -50,6 +50,8 @@
             <v-text-field
               outlined dense background-color="white" 
               hide-details label=""
+              disabled
+              v-model="application.funded_years_used_preleg_chg"
             >
   
             </v-text-field>
@@ -69,6 +71,8 @@
             <v-text-field
               outlined dense background-color="white" 
               hide-details label=""
+              disabled
+              v-model="application.prev_pre_leg_weeks"
             >
   
             </v-text-field>
@@ -314,6 +318,9 @@ export default {
   computed: {
     student: function () {
       return store.getters.selectedStudent;
+    },
+    application: function () {
+      return store.getters.selectedApplication;
     },
   },
   watch: {
