@@ -236,14 +236,24 @@ applicationRouter.post("/:application_id/status",
                     status_date,
                     comments,
                 };
+                const checkIsActive = await db("sfa.request_type")
+                    .where("id", request_type_id)
+                    .first();
 
-                const resInsert = await db("sfa.funding_request")
+                if (checkIsActive?.is_active) {
+
+                    const resInsert = await db("sfa.funding_request")
                     .insert({ ...newRecord, is_csg_only: false, application_id });
 
-                return resInsert ?
-                    res.json({ messages: [{ variant: "success", text: "Saved" }] })
-                    :
-                    res.json({ messages: [{ variant: "error", text: "Failed" }] });
+                    return resInsert ?
+                        res.json({ messages: [{ variant: "success", text: "Saved" }] })
+                        :
+                        res.json({ messages: [{ variant: "error", text: "Failed" }] });
+
+                } else {
+                    res.json({ messages: [{ variant: "error", text: "Request Type is not active" }] });
+                }
+                
 
             }
 
