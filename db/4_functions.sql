@@ -34,7 +34,7 @@ BEGIN
     GROUP BY a.student_id;
 
     RETURN CEILING(@v_num_weeks); 
-END;
+END
 
 GO
 
@@ -74,7 +74,63 @@ BEGIN
     GROUP BY a.student_id;
 
     RETURN @v_count; 
-END;
+END
+
+GO
+
+CREATE OR ALTER FUNCTION sfa.fn_get_prev_pre_leg_weeks(@student_id_p INT, @application_id_p INT)
+RETURNS NUMERIC
+AS 
+BEGIN
+    DECLARE  @v_num_weeks NUMERIC = 0;
+
+        SELECT @v_num_weeks = CEILING(SUM(CASE WHEN fr.request_type_id = 1  THEN a.weeks_allowed ELSE  a.years_funded_equivalent*34 END))
+        FROM sfa.application app
+        INNER JOIN sfa.funding_request fr ON app.id = fr.application_id
+            , (SELECT funding_request_id
+                    , assessment_id
+                    , sum(disbursed_amount) disbursed_amount
+                FROM sfa.disbursement
+            GROUP BY funding_request_id, assessment_id) d
+        INNER JOIN sfa.assessment a ON d.assessment_id = a.id
+        WHERE  fr.id = d.funding_request_id 
+        AND app.id < @application_id_p 
+        AND app.program_id <> (SELECT id FROM sfa.program WHERE description = 'Upgrading-Academic')
+        AND app.student_id = @student_id_p
+        AND app.academic_year_id <=2015
+        AND d.disbursed_amount > 0 -- positive disbursement
+        AND fr.request_type_id in (1,2) -- request type STA
+        group by app.student_id;
+
+        RETURN CEILING(@v_num_weeks);              
+
+END
+
+GO
+
+CREATE OR ALTER FUNCTION fn_get_funded_years_used_preleg_chg(
+	@student_id_p INT, 
+	@application_id_p INT
+)
+RETURNS NUMERIC
+AS 
+BEGIN
+    DECLARE @v_funded_years_count NUMERIC = 0;
+    DECLARE c_years_funded CURSOR FOR 
+        SELECT  COALESCE(sum(a.years_funded_equivalent), 0) AS years_funded
+        FROM sfa.application app
+        INNER JOIN  sfa.funding_request fr ON app.id = fr.application_id
+        INNER JOIN  sfa.assessment a ON  fr.id  = a.funding_request_id
+        WHERE app.student_id = @student_id_p 
+        AND app.id <>  @application_id_p 
+        AND a.years_funded_equivalent IS NOT NULL;
+
+    OPEN  c_years_funded;
+    FETCH NEXT FROM c_years_funded INTO @v_funded_years_count  
+    CLOSE  c_years_funded;
+
+        RETURN @v_funded_years_count;
+END
 
 GO
 
