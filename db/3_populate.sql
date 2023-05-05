@@ -977,11 +977,11 @@ INSERT
 INTO sfa.request_type (id, application_type_id, funding_group_id, batch_group_id, description, scholarship_flag,
                        application_deadline, regulation, program_type, static_description_flag, financial_coding,
                        t4a_required, csg_other_flag, gl_budget, auto_appear, show_online, short_name, help_url,
-                       help_text)
+                       help_text, is_active)
 SELECT request_type_id, application_type_id, funding_group_id, batch_group_id, description,
        scholarship_flag, application_deadline, regulation, program_type, static_description_flag, financial_coding,
        CASE WHEN t4a_required_flag = 1 THEN 1 ELSE 0 END, csg_other_flag, gl_budget, auto_appear,
-       CASE WHEN show_online = 'Y' THEN 1 ELSE 0 END, short_name, help_url, help_text
+       CASE WHEN show_online = 'Y' THEN 1 ELSE 0 END, short_name, help_url, help_text, CASE WHEN is_active_flg = 'Y' THEN 1 ELSE 0 END
 FROM sfaadmin.request_type
 
 SET IDENTITY_INSERT sfa.request_type OFF

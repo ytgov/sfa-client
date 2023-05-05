@@ -926,7 +926,8 @@ CREATE TABLE sfa.request_type
     show_online             BIT            NOT NULL DEFAULT 0,
     short_name              NVARCHAR(15)   NULL,
     help_url                NVARCHAR(1000) NULL,
-    help_text               TEXT           NULL
+    help_text               TEXT           NULL,
+    is_active               BIT            NOT NULL DEFAULT 0
 )
 
 -- SFAADMIN.REQUEST_REQUIREMENT
