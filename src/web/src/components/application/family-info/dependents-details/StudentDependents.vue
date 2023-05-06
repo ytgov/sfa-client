@@ -1,5 +1,7 @@
 <template>
     <div>
+        {{checkFullTime}}
+        {{checkPartTime}}
         <h3 class="text-h5 font-weight-regular mb-5">Student’s Dependents</h3>
         <v-card class="default row mb-5" v-for="dependent, index in filterList" :key="index">
             <div class="col-md-6">
@@ -194,6 +196,8 @@
                     :disabled="showAdd"
                     class="my-n5"
                     label="STA eligible"
+                    v-model="dependent.is_sta_eligible"
+                    @change="toggle($event, 'is_sta_eligible', dependent.de_id, 'd_eligibility')"
                     
                 >
                 </v-switch>
@@ -204,11 +208,7 @@
                     class="my-n5"
                     label="CSG eligible"
                     v-model="dependent.is_csg_eligible"
-                    @change="updateDependent(
-                            dependent.de_id, 
-                            { is_csg_eligible: dependent.is_csg_eligible },
-                            'd_eligibility'
-                        )"
+                    @change="toggle($event, 'is_csg_eligible', dependent.de_id, 'd_eligibility')"
                 >
                 </v-switch>
             </div>
@@ -218,11 +218,7 @@
                     class="my-n5"
                     label="CSL eligible"
                     v-model="dependent.is_csl_eligible"
-                    @change="updateDependent(
-                            dependent.de_id, 
-                            { is_csl_eligible: dependent.is_csl_eligible },
-                            'd_eligibility'
-                        )"
+                    @change="toggle($event, 'is_csl_eligible', dependent.de_id, 'd_eligibility')"
                 >
                 </v-switch>
             </div>
@@ -444,9 +440,37 @@ export default {
         },
         filterList() {
             return this.student?.dependent_info?.filter(d => d.application_id === this.application?.id) || [];
-        }
+        },
+        fullTime() {
+            const request = this.application
+                ?.funding_requests?.find(fr => fr.request_type_id === 4);
+                this.checkFullTime = !!request;
+            return request || {};
+        },
+        partTime() {
+            const request = this.application
+                ?.funding_requests?.find(fr => fr.request_type_id === 5);
+                this.checkPartTime = !!request;
+            return request || {};
+        },
+        grantDFT() {
+            const request = this.application
+                ?.funding_requests?.find(fr => fr.request_type_id === 32);
+                this.checkGrantDFT = !!request;
+            return request || {};
+        },
+        grantDPT() {
+            const request = this.application
+                ?.funding_requests?.find(fr => fr.request_type_id === 33);
+                this.checkGrantDPT = !!request;
+            return request || {};
+        },
     },
     data: () => ({
+        checkFullTime: false,
+        checkPartTime: false,
+        checkGrantDFT: false,
+        checkGrantDPT: false,
         showAdd: false,
         moment: {},
         show_menu_add: false,
@@ -581,6 +605,230 @@ export default {
             },
             () => {}
         );
+        },
+        async insertGrant(grantOne = null, grantTwo = null, both = false) {
+            try {
+                let resInsert = null;
+                let resInsertTwo = null;
+
+                if (!both && (grantOne === 32 || grantOne === 33)) {
+                    resInsert = await axios.post(
+                        APPLICATION_URL + `/${this.application.id}/status`,
+                        { request_type_id: grantOne, received_date: new Date(), },
+                    );
+                }else if (both && ((grantOne === 32 || grantOne === 33) && (grantTwo === 32 || grantTwo === 33))) {
+                    resInsert = await axios.post(
+                        APPLICATION_URL + `/${this.application.id}/status`,
+                        { request_type_id: grantOne, received_date: new Date(), },
+                    );
+                    resInsertTwo = await axios.post(
+                        APPLICATION_URL + `/${this.application.id}/status`,
+                        { request_type_id: grantTwo, received_date: new Date(), },
+                    );
+                }
+
+                if (both) {
+                    const message = resInsert?.data?.messages[0];
+                    const messageTwo = resInsertTwo?.data?.messages[0];
+
+                    if (message?.variant === "success" && messageTwo?.variant === "success") {
+                    this.$emit("showSuccess", message.text);
+                    return true;
+                    } else {
+                        this.$emit("showError", "Some insert failed");
+                        return false;
+                    }
+                } else {
+
+                    const message = resInsert?.data?.messages[0];
+
+                    if (message?.variant === "success") {
+                        this.$emit("showSuccess", message.text);
+                        return true;
+                    } else {
+                        this.$emit("showError", "Insert failed");
+                        return false;
+                    }
+                }
+
+            } catch (error) {
+                this.$emit("showError", "Error to insert");
+                return false;
+            } finally {
+                store.dispatch("loadApplication", this.application.id);
+            }
+        },
+        toggle(event, switchType, itemId, tableType) {
+            if (event) {
+                if ((this.fullTime?.id && this.partTime?.id) && (!this.grantDFT?.id && !this.
+                grantDPT?.id)) {
+                    if (this.insertGrant(32, 33, true)) {
+                        const objToSend = {};
+                        objToSend[switchType] = event;
+                        this.updateDependent(
+                            itemId, 
+                            objToSend,
+                            tableType
+                        )
+                    };
+                } else if (this.fullTime?.id && !this.grantDFT?.id) {
+                    const res = this.insertGrant(32);
+                    if (res) {
+                        const objToSend = {};
+                        objToSend[switchType] = event;
+                        this.updateDependent(
+                            itemId, 
+                            objToSend,
+                            tableType
+                        )
+                    };
+                } else if (this.partTime?.id && !this.grantDPT?.id) {
+                    if (this.insertGrant(33)) {
+                        const objToSend = {};
+                        objToSend[switchType] = event;
+                        this.updateDependent(
+                            itemId, 
+                            objToSend,
+                            tableType
+                        )
+                    }
+                } else {
+                    const objToSend = {};
+                    objToSend[switchType] = event;
+                    this.updateDependent(
+                        itemId, 
+                        objToSend,
+                        tableType
+                    )
+                }
+            } else {
+                if (this.grantDFT?.id && this.grantDPT?.id) {
+                    this.removeGrant(
+                            this.grantDFT.id, 
+                            this.grantDPT.id, 
+                            switchType, 
+                            itemId,
+                            tableType
+                        );
+                } else if (this.grantDFT?.id) {
+                    this.removeGrant(
+                            this.grantDFT.id,
+                            null,
+                            switchType, 
+                            itemId,
+                            tableType
+                        );
+                } else if (this.grantDPT?.id) {
+                    this.removeGrant(
+                            this.grantDPT.id,
+                            null,
+                            switchType, 
+                            itemId,
+                            tableType
+                        );
+                } else {
+                    const objToSend = {};
+                    objToSend[switchType] = event;
+                    this.updateDependent(
+                        itemId, 
+                        objToSend,
+                        tableType
+                    );
+                }
+            }
+
+        },
+        async deleteGrant(firstId = null, secondId = null) {
+            try {
+                let resDelete = null;
+                let resDeleteTwo = null;
+
+                if (firstId && secondId) {
+                    resDelete = await axios.delete(
+                        APPLICATION_URL + `/${firstId}/status`,
+                    );
+
+                    resDeleteTwo = await axios.delete(
+                        APPLICATION_URL + `/${secondId}/status`,
+                    );
+
+                    const message = resDelete.data.messages[0];
+                    const messageTwo = resDeleteTwo.data.messages[0];
+
+                    if (message.variant === "success" && messageTwo.variant === "success") {
+                        this.$emit("showSuccess", message.text);
+                        return true;
+                    } else {
+                        this.$emit("showError", "Some delete failed");
+                        return false;
+                    }
+                } else if (firstId) {
+                    resDelete = await axios.delete(
+                        APPLICATION_URL + `/${firstId}/status`,
+                    );
+
+                    const message = resDelete.data.messages[0];
+
+                    if (message.variant == "success") {
+                        this.$emit("showSuccess", message.text);
+                        return true;
+                    } else {
+                        this.$emit("showError", message.text);
+                        return false;
+                    }
+                }
+                
+            } catch (error) {
+                this.$emit("showError", "Error to delete");
+                return false;
+            } finally {
+                store.dispatch("loadApplication", this.application.id);
+            }
+        },
+        removeGrant(firstId = null, secondId = null, switchType, itemId, tableType) {
+            this.$refs.confirm.show(
+                "Are you sure?",
+                "Click 'Confirm' below to permanently remove this funding record.",
+                () => {
+                    if (firstId && secondId) {
+                        const res = this.deleteGrant(firstId, secondId);
+
+                        if (res) {
+                            const objToSend = {};
+                            objToSend[switchType] = !res;
+                            this.updateDependent(
+                                itemId, 
+                                objToSend,
+                                tableType
+                            );
+                        }
+
+                    } else if (firstId) {
+                        const res = this.deleteGrant(firstId);
+
+                        if (res) {
+                            const objToSend = {};
+                            objToSend[switchType] = !res;
+                            this.updateDependent(
+                                itemId, 
+                                objToSend,
+                                tableType
+                            );
+                        }
+                    }
+                },
+                () => {
+                    if (tableType === "d_eligibility") {
+                        for (const item of this.filterList) {
+                            if (item?.de_id === itemId) {
+                                item[switchType] = !item[switchType];
+                                break;
+                            }
+                        }
+                    }
+                }
+            );
+
         },
     },
     props: {
