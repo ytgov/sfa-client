@@ -1243,7 +1243,7 @@ CREATE TABLE sfa.dependent_eligibility
     id                     INT IDENTITY PRIMARY KEY,
     application_id         INT  NOT NULL REFERENCES sfa.application,
     dependent_id           INT  NOT NULL REFERENCES sfa.dependent,
-    is_eligible            BIT  NOT NULL DEFAULT 0,
+    is_sta_eligible        BIT  NOT NULL DEFAULT 0,
     is_post_secondary      BIT  NOT NULL DEFAULT 0,
     resides_with_student   BIT  NOT NULL DEFAULT 0,
     is_shares_custody      BIT  NOT NULL DEFAULT 0,

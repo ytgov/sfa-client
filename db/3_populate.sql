@@ -1244,7 +1244,7 @@ SET IDENTITY_INSERT sfa.course_enrolled OFF
 -- SFA.dependent_eligibility
 SET IDENTITY_INSERT sfa.dependent_eligibility ON
 INSERT
-INTO sfa.dependent_eligibility (id, application_id, dependent_id, is_eligible, is_post_secondary, resides_with_student,
+INTO sfa.dependent_eligibility (id, application_id, dependent_id, is_sta_eligible, is_post_secondary, resides_with_student,
                                 is_shares_custody, shares_custody_details, is_csl_eligible, is_csg_eligible,
                                 is_in_progress)
 SELECT dependent_eligibility_id, history_detail_id, dependent_id, COALESCE(eligible, 0), COALESCE(post_secondary, 0),
