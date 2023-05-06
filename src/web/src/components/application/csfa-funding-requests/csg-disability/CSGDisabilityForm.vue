@@ -17,7 +17,7 @@
       <v-card class="default row mb-5">
         <div class="col-md-4">
           <v-switch
-            label="Permenant Disability"
+            label="Permanent disability"
             class="my-0"
             :disabled="!checkCSGDisabilityRequest"
           >
@@ -25,7 +25,7 @@
         </div>
         <div class="col-md-4">
           <v-switch
-              label="Presistent/Prolonged Disability"
+              label="Presistent/Prolonged disability"
               class="my-0"
               :disabled="!checkCSGDisabilityRequest"
           >
@@ -190,7 +190,7 @@
             dense 
             background-color="white" 
             hide-details
-            label="Requested Amount"
+            label="Requested amount"
             value="$5,000.00"
             :disabled="!checkCSGDServicesAndEquipmentRequest"
           >
@@ -315,7 +315,7 @@
             dense 
             background-color="white" 
             hide-details
-            label="Requested Amount"
+            label="Requested amount"
             value="$5,000.00"
             :disabled="!checkCSGDServicesAndEquipmentRequest"
           >

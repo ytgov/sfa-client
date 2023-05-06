@@ -21,7 +21,7 @@
                     dense 
                     background-color="white" 
                     hide-details 
-                    label="Address Line 1"
+                    label="Address line 1"
                     v-model="parent.address1"
                     @change="update({ address1: parent.address1 })"
                 >
@@ -33,7 +33,7 @@
                     dense 
                     background-color="white" 
                     hide-details 
-                    label="Address Line 2"
+                    label="Address line 2"
                     v-model="parent.address2"
                     @change="update({ address2: parent.address2 })"
                 >
@@ -76,7 +76,7 @@
                     dense 
                     background-color="white" 
                     hide-details 
-                    label="Postal Code"
+                    label="Postal code"
                     v-model="parent.postal_code"
                     @change="update({ postal_code: parent.postal_code })"
                 >

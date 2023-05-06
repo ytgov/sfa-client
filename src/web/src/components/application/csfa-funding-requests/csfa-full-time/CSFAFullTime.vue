@@ -67,7 +67,7 @@
                             dense 
                             background-color="white" 
                             hide-details 
-                            label="Requested Amount"
+                            label="Requested amount"
                             @keypress="validate.isNumber($event)"
                             v-model="CSFAFullTimeRequest.csl_request_amount"
                             @change="updateFundingRequest({

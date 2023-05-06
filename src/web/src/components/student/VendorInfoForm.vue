@@ -134,7 +134,7 @@
                     <v-text-field 
                         outlined dense 
                         background-color="white" 
-                        hide-details label="Postal Code"
+                        hide-details label="Postal code"
                     >
                     </v-text-field>
                 </div>
@@ -219,7 +219,7 @@
                     <v-text-field 
                         outlined dense 
                         background-color="white" 
-                        hide-details label="Postal Code"
+                        hide-details label="Postal code"
                     >
                     </v-text-field>
                 </div>
@@ -308,7 +308,7 @@
                     <v-text-field 
                         outlined dense 
                         background-color="white" 
-                        hide-details label="Postal Code"
+                        hide-details label="Postal code"
                     >
                     </v-text-field>
                 </div>

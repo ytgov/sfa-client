@@ -26,7 +26,7 @@
                     dense 
                     background-color="white" 
                     hide-details 
-                    label="Last Name"
+                    label="Last name"
                     oninput="
                         if (this.value.length > 100) this.value = this.value.slice(0, 10);
                         const arr = this.value.split(' ');
@@ -51,7 +51,7 @@
                     dense 
                     background-color="white" 
                     hide-details 
-                    label="First Name"
+                    label="First name"
                     oninput="
                         if (this.value.length > 100) this.value = this.value.slice(0, 10);
                         const arr = this.value.split(' ');
@@ -140,7 +140,7 @@
                 <v-switch
                     :disabled="showAdd"
                     class="my-0"
-                    label="Shared Custody"
+                    label="Shared custody"
                     v-model="dependent.is_shared_custody"
                     @change="updateValue({ is_shared_custody: dependent.is_shared_custody })"
                 >
@@ -150,7 +150,7 @@
                 <v-switch
                     :disabled="showAdd"
                     class="my-0"
-                    label="In Post-Secondary"
+                    label="In post-secondary"
                     v-model="dependent.is_attend_post_secondary"
                     @change="updateValue({ is_attend_post_secondary: dependent.is_attend_post_secondary })"
                 >
@@ -160,7 +160,7 @@
                 <v-switch
                     :disabled="showAdd"
                     class="my-0"
-                    label="Eligible Dependent"
+                    label="Eligible dependent"
                     v-model="dependent.is_eligible"
                     @change="updateValue({ is_eligible: dependent.is_eligible })"
                 >
@@ -216,7 +216,7 @@
                     dense 
                     background-color="white" 
                     hide-details 
-                    label="Last Name"
+                    label="Last name"
                     oninput="
                         if (this.value.length > 100) this.value = this.value.slice(0, 10);
                         const arr = this.value.split(' ');
@@ -240,7 +240,7 @@
                     dense 
                     background-color="white" 
                     hide-details 
-                    label="First Name"
+                    label="First name"
                     oninput="
                         if (this.value.length > 100) this.value = this.value.slice(0, 10);
                         const arr = this.value.split(' ');
@@ -325,7 +325,7 @@
             <div class="col-md-3">
                 <v-switch
                     class="my-0"
-                    label="Shared Custody"
+                    label="Shared custody"
                     v-model="newRecord.is_shared_custody"
                 >
                 </v-switch>
@@ -333,7 +333,7 @@
             <div class="col-md-3">
                 <v-switch
                     class="my-0"
-                    label="In Post-Secondary"
+                    label="In post-secondary"
                     v-model="newRecord.is_attend_post_secondary"
                 >
                 </v-switch>
@@ -341,7 +341,7 @@
             <div class="col-md-3">
                 <v-switch
                     class="my-0"
-                    label="Eligible Dependent"
+                    label="Eligible dependent"
                     v-model="newRecord.is_eligible"
                 >
                 </v-switch>

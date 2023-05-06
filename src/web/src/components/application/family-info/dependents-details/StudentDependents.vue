@@ -25,7 +25,7 @@
                     dense 
                     background-color="white" 
                     hide-details 
-                    label="Last Name"
+                    label="Last name"
                     oninput="
                         if (this.value.length > 100) this.value = this.value?.slice(0, 10);
                         const arr = this.value.split(' ');
@@ -54,7 +54,7 @@
                     dense 
                     background-color="white" 
                     hide-details 
-                    label="First Name"
+                    label="First name"
                     oninput="
                         if (this.value.length > 100) this.value = this.value?.slice(0, 10);
                         const arr = this.value.split(' ');
@@ -164,7 +164,7 @@
                 <v-switch
                     :disabled="showAdd"
                     class="my-n5"
-                    label="Shared Custody"
+                    label="Shared custody"
                     v-model="dependent.is_shares_custody"
                     @change="updateDependent(
                             dependent.de_id, 
@@ -178,7 +178,7 @@
                 <v-switch
                     :disabled="showAdd"
                     class="my-n5"
-                    label="In Post-Secondary"
+                    label="In post-secondary"
                     v-model="dependent.is_post_secondary"
                     @change="updateDependent(
                             dependent.de_id, 
@@ -193,7 +193,7 @@
                 <v-switch
                     :disabled="showAdd"
                     class="my-n5"
-                    label="STA Eligible"
+                    label="STA eligible"
                     
                 >
                 </v-switch>
@@ -202,7 +202,7 @@
                 <v-switch
                     :disabled="showAdd"
                     class="my-n5"
-                    label="CSG Eligible"
+                    label="CSG eligible"
                     v-model="dependent.is_csg_eligible"
                     @change="updateDependent(
                             dependent.de_id, 
@@ -216,7 +216,7 @@
                 <v-switch
                     :disabled="showAdd"
                     class="my-n5"
-                    label="CSL Eligible"
+                    label="CSL eligible"
                     v-model="dependent.is_csl_eligible"
                     @change="updateDependent(
                             dependent.de_id, 
@@ -269,7 +269,7 @@
                     dense 
                     background-color="white" 
                     hide-details 
-                    label="Last Name"
+                    label="Last name"
                     v-model="dependentData.last_name"
                 >
                 </v-text-field>
@@ -280,7 +280,7 @@
                     dense 
                     background-color="white" 
                     hide-details 
-                    label="First Name"
+                    label="First name"
                     v-model="dependentData.first_name"
                 >
                 </v-text-field>
@@ -352,7 +352,7 @@
             <div class="col-md-4">
                 <v-switch
                     class="my-n5"
-                    label="Shared Custody"
+                    label="Shared custody"
                     v-model="dEligibilityData.is_shares_custody"
                 >
                 </v-switch>
@@ -360,7 +360,7 @@
             <div class="col-md-4">
                 <v-switch
                     class="my-n5"
-                    label="In Post-Secondary"
+                    label="In post-secondary"
                     v-model="dEligibilityData.is_post_secondary"
                 >
                 </v-switch>
@@ -369,7 +369,7 @@
             <div class="col-md-4">
                 <v-switch
                     class="my-n5"
-                    label="STA Eligible"
+                    label="STA eligible"
                 >
                 </v-switch>
             </div>
@@ -377,7 +377,7 @@
                 <v-switch
                     
                     class="my-n5"
-                    label="CSG Eligible"
+                    label="CSG eligible"
                     v-model="dEligibilityData.is_csg_eligible"
                 >
                 </v-switch>
@@ -385,7 +385,7 @@
             <div class="col-md-4">
                 <v-switch
                     class="my-n5"
-                    label="CSL Eligible"
+                    label="CSL eligible"
                     v-model="dEligibilityData.is_csl_eligible"
                 >
                 </v-switch>

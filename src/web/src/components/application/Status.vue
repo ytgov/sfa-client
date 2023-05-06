@@ -12,7 +12,7 @@
                 dense
                 background-color="white"
                 hide-details
-                label="Funding Type"
+                label="Funding type"
                 v-model="item.request_type_id"
                 :items="fundingTypeOptions"
                 item-text="DESCRIPTION"
@@ -85,7 +85,7 @@
                 dense
                 background-color="white"
                 hide-details
-                label="Funding Status"
+                label="Funding status"
                 @change="updateFundingRequest({ status_id: item.status_id }, item.id)"
                 v-model="item.status_id"
                 :items="statusOptions"
