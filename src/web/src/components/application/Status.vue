@@ -5,15 +5,14 @@
       <v-card class="default mb-5" v-for="item, index in application.funding_requests" :key="index">
         <v-card-text>
           <div class="row">
-            <div class="col-md-4">
+            <div class="col-md-4" :title="fundingTypeOptions?.find(ft => ft.REQUEST_TYPE_ID === item?.request_type_id)?.DESCRIPTION || 'Funding Status' ">
               <v-select
-                :disabled="showAdd"
+                disabled
                 outlined
                 dense
                 background-color="white"
                 hide-details
                 label="Funding Type"
-                @change="updateFundingRequest({ request_type_id: item.request_type_id }, item.id)"
                 v-model="item.request_type_id"
                 :items="fundingTypeOptions"
                 item-text="DESCRIPTION"
