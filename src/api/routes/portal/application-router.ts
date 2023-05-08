@@ -22,7 +22,6 @@ portalApplicationRouter.post("/:sub", async (req: Request, res: Response) => {
   const { sub } = req.params;
   const { academic_year_id, student_id, application_json, is_active, create_date, update_date } = req.body;
 
-  console.log("IN DRAFT PPLICATION CRTEATE", sub, student_id);
   let newDraft = {
     student_id,
     academic_year_id,
@@ -42,8 +41,6 @@ portalApplicationRouter.put("/:sub/:draftId", async (req: Request, res: Response
   const { application_json, is_active } = req.body;
 
   let student = await studentService.getBySub(sub);
-
-  console.log("SAVING DRAFT")
 
   if (student) {
     let applications = await applicationService.updateDraft(parseInt(draftId), {
