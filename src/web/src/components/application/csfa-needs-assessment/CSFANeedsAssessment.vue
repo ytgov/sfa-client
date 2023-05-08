@@ -18,13 +18,22 @@
           ></AccommodationForm>
         </v-tab-item>
         <v-tab-item key="1">
-          <StudyIncomeForm></StudyIncomeForm>
+          <StudyIncomeForm 
+          v-on:showSuccess="showSuccess"
+          v-on:showError="showError"
+          ></StudyIncomeForm>
         </v-tab-item>
         <v-tab-item key="2">
-          <Costs></Costs>
+          <Costs
+          v-on:showSuccess="showSuccess"
+          v-on:showError="showError"
+          ></Costs>
         </v-tab-item>
         <v-tab-item key="3">
-          <Screening></Screening>
+          <Screening
+          v-on:showSuccess="showSuccess"
+          v-on:showError="showError"
+          ></Screening>
         </v-tab-item>
        
       </v-tabs-items>

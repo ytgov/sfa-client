@@ -15,7 +15,7 @@
                     dense
                     background-color="white"
                     hide-details
-                    label="First Name"
+                    label="First name"
                     v-model="parent.first_name"
                     @change="update( parent.id, {first_name: parent.first_name} )"
                 >
@@ -27,7 +27,7 @@
                     dense 
                     background-color="white" 
                     hide-details 
-                    label="Last Name"
+                    label="Last name"
                     v-model="parent.last_name"
                     @change="update( parent.id, {last_name: parent.last_name} )"
                 >
@@ -120,6 +120,7 @@
                     background-color="white" 
                     hide-details 
                     label="Income Ln 15000"
+                    v-currency="{ currency: 'USD', locale: 'en' }"
                     v-model="incomes.income"
                     @change="doSaveApp(
                         incomes.parent === 1 ?
@@ -138,6 +139,7 @@
                     background-color="white" 
                     hide-details 
                     label="Income Ln 23600"
+                    v-currency="{ currency: 'USD', locale: 'en' }"
                     v-model="incomes.net_income"
                     @change="doSaveApp(
                         incomes.parent === 1 ?
@@ -156,6 +158,7 @@
                     background-color="white" 
                     hide-details 
                     label="Income Ln 43500"
+                    v-currency="{ currency: 'USD', locale: 'en' }"
                     v-model="incomes.tax_paid"
                     @change="doSaveApp(
                         incomes.parent === 1 ?

@@ -75,3 +75,6 @@ export const AGENCY =`${config.apiBaseUrl}/api/v2/admin/agency`;
 export const INSTRUCTION_TYPE =`${config.apiBaseUrl}/api/v2/admin/instruction-type`;
 export const ATTENDANCE =`${config.apiBaseUrl}/api/v2/admin/attendance`;
 export const PROGRAM_DIVISION =`${config.apiBaseUrl}/api/v2/admin/program-division`;
+export const DOCUMENT_STATUS =`${config.apiBaseUrl}/api/v2/admin/document-status`;
+export const INCOME_TYPE =`${config.apiBaseUrl}/api/v2/admin/income-type`;
+export const EXPENSE_CATEGORY =`${config.apiBaseUrl}/api/v2/admin/expense-category`;

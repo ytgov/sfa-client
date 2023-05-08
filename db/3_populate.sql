@@ -184,6 +184,28 @@ VALUES  ( 1, 'Single Dependent'),
         ( 5, 'Single Parent')
 SET IDENTITY_INSERT sfa.csl_classification OFF
 
+SET IDENTITY_INSERT sfa.income_type ON
+INSERT
+INTO sfa.income_type (id, description, assess_as_asset, is_active)
+VALUES  ( 1, 'Alimony Suport', 0, 0),
+        ( 2, 'CPP Disability benefits', 0, 1),
+        ( 3, 'Canada Employment Training Allowance HRDC', 1, 1),
+        ( 4, 'Child Care Subsidy', 0, 1),
+        ( 5, 'Child Support', 0, 0),
+        ( 6, 'Dept. of Indian Affairs (DIA)', 0, 0),
+        ( 7, 'Education Trust Fund', 0, 0),
+        ( 8, 'Education Trust Fund / RESP (specify)', 0, 0),
+        ( 9, 'Employment Income', 0, 0),
+        ( 10, 'Employment Insurance', 1, 1),
+        ( 11, 'First Nations educational funding', 0, 0),
+        ( 12, 'Other (specify)', 0, 1),
+        ( 13, 'Other Govt non-repayble grants/bursaries, etc', 1, 1),
+        ( 14, 'RESP received from other individual', 0, 0),
+        ( 15, 'RESP received from parent', 0, 0),
+        ( 16, 'Scholarships - Merit Based', 1, 1)
+
+SET IDENTITY_INSERT sfa.income_type OFF
+
 UPDATE sfaadmin.student_consent
 SET academic_year_end = 2021
 WHERE academic_year_end = 20201
@@ -978,11 +1000,11 @@ INSERT
 INTO sfa.request_type (id, application_type_id, funding_group_id, batch_group_id, description, scholarship_flag,
                        application_deadline, regulation, program_type, static_description_flag, financial_coding,
                        t4a_required, csg_other_flag, gl_budget, auto_appear, show_online, short_name, help_url,
-                       help_text)
+                       help_text, is_active)
 SELECT request_type_id, application_type_id, funding_group_id, batch_group_id, description,
        scholarship_flag, application_deadline, regulation, program_type, static_description_flag, financial_coding,
        CASE WHEN t4a_required_flag = 1 THEN 1 ELSE 0 END, csg_other_flag, gl_budget, auto_appear,
-       CASE WHEN show_online = 'Y' THEN 1 ELSE 0 END, short_name, help_url, help_text
+       CASE WHEN show_online = 'Y' THEN 1 ELSE 0 END, short_name, help_url, help_text, CASE WHEN is_active_flg = 'Y' THEN 1 ELSE 0 END
 FROM sfaadmin.request_type
 
 SET IDENTITY_INSERT sfa.request_type OFF
@@ -1245,7 +1267,7 @@ SET IDENTITY_INSERT sfa.course_enrolled OFF
 -- SFA.dependent_eligibility
 SET IDENTITY_INSERT sfa.dependent_eligibility ON
 INSERT
-INTO sfa.dependent_eligibility (id, application_id, dependent_id, is_eligible, is_post_secondary, resides_with_student,
+INTO sfa.dependent_eligibility (id, application_id, dependent_id, is_sta_eligible, is_post_secondary, resides_with_student,
                                 is_shares_custody, shares_custody_details, is_csl_eligible, is_csg_eligible,
                                 is_in_progress)
 SELECT dependent_eligibility_id, history_detail_id, dependent_id, COALESCE(eligible, 0), COALESCE(post_secondary, 0),
@@ -1432,9 +1454,9 @@ FROM sfaadmin.assessment
 SET IDENTITY_INSERT sfa.assessment OFF
 
 
-SET IDENTITY_INSERT sfa.cls_nars_history ON
+SET IDENTITY_INSERT sfa.csl_nars_history ON
 INSERT
-INTO sfa.cls_nars_history ( id, application_id, student_id, assessment_id, academic_year, sin, loan_year, postal_prefix
+INTO sfa.csl_nars_history ( id, application_id, student_id, assessment_id, academic_year, sin, loan_year, postal_prefix
                           , birth_date, gender, marital_status, institution_code
                           , field_of_study, year_study, study_weeks, study_start_date, study_end_date, loan_type
                           , course_percentage, credit_check_flg, credit_check_status
@@ -1510,7 +1532,7 @@ SELECT [CSL_NARS_HISTORY_ID], [HISTORY_DETAIL_ID], [STUDENT_ID], [ASSESSMENT_ID]
 FROM sfaadmin.csl_nars_history
 WHERE history_detail_id IN (SELECT id FROM sfa.application)
   AND assessment_id IN (SELECT id FROM sfa.assessment)
-SET IDENTITY_INSERT sfa.cls_nars_history OFF
+SET IDENTITY_INSERT sfa.csl_nars_history OFF
 
 SET IDENTITY_INSERT sfa.disbursement ON
 INSERT

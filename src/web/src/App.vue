@@ -45,6 +45,7 @@
         </v-list-item>
 
         <v-btn
+          v-if="false"
           color="primary"
           small
           dark
@@ -76,7 +77,7 @@
 
           <v-divider class="mb-3"></v-divider>
 
-          <v-row>
+          <v-row v-if="false">
             <v-col
               ><v-btn
                 small

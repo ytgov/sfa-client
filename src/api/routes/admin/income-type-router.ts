@@ -6,21 +6,22 @@ import { DB_CONFIG } from "../../config";
 
 const db = knex(DB_CONFIG)
 
-export const documentStatusRouter = express.Router();
+export const incomeTypeRouter = express.Router();
 
-documentStatusRouter.get("/", async (req: Request, res: Response) => {
+incomeTypeRouter.get("/", async (req: Request, res: Response) => {
 
     const { filter = true } = req.query;
 
     try {
-        const results = await db("sfa.document_status")
+        const results = await db("sfa.income_type")
         .where("is_active", filter !== 'false') 
         .select(
-                'sfa.document_status.id',
-                'sfa.document_status.description',
-                'sfa.document_status.is_active',
+                'sfa.income_type.id',
+                'sfa.income_type.description',
+                'sfa.income_type.assess_as_asset',
+                'sfa.income_type.is_active',
             )
-        .orderBy('sfa.document_status.description');
+        .orderBy('sfa.income_type.description');
 
         if (results) {
             return res.status(200).json({ success: true, data: [...results], });
@@ -34,7 +35,7 @@ documentStatusRouter.get("/", async (req: Request, res: Response) => {
     }
 });
 
-documentStatusRouter.post("/", body('is_active').isBoolean(), body('description').isString(),
+incomeTypeRouter.post("/", body('is_active').isBoolean(), body('description').isString(),
 
     async (req: Request, res: Response) => {
         const { is_active, description = "", } = req.body;
@@ -44,13 +45,13 @@ documentStatusRouter.post("/", body('is_active').isBoolean(), body('description'
 
             if (!trimDescription.length) return res.status(400).json({ success: false, message: "Description must be required", });
 
-            const verify = await db("sfa.document_status")
+            const verify = await db("sfa.income_type")
                 .select('description')
                 .where({ description: trimDescription });
 
             if (verify?.length) return res.status(400).send({ success: false, message: `"${trimDescription}" already exists`, });
 
-            const resInsert = await db("sfa.document_status")
+            const resInsert = await db("sfa.income_type")
                 .insert({ description: trimDescription, is_active })
                 .returning("*");
 
@@ -66,13 +67,13 @@ documentStatusRouter.post("/", body('is_active').isBoolean(), body('description'
         }
     });
 
-documentStatusRouter.patch("/status/:id", [param("id").isInt().notEmpty()], ReturnValidationErrors,
+incomeTypeRouter.patch("/status/:id", [param("id").isInt().notEmpty()], ReturnValidationErrors,
     (req: Request, res: Response) => {
 
         const { id = null } = req.params;
         const { is_active = false } = req.body;
 
-        db("sfa.document_status")
+        db("sfa.income_type")
             .update({ is_active })
             .where({ id })
             .returning("*")
@@ -89,7 +90,30 @@ documentStatusRouter.patch("/status/:id", [param("id").isInt().notEmpty()], Retu
             });
     });
 
-documentStatusRouter.patch("/description/:id", [param("id").isInt().notEmpty()], ReturnValidationErrors,
+incomeTypeRouter.patch("/assess-as-asset/:id", [param("id").isInt().notEmpty()], ReturnValidationErrors,
+    (req: Request, res: Response) => {
+
+        const { id = null } = req.params;
+        const { assess_as_asset = false } = req.body;
+
+        db("sfa.income_type")
+            .update({ assess_as_asset })
+            .where({ id })
+            .returning("*")
+            .then((resp: any) => {
+                if (resp[0]?.assess_as_asset === assess_as_asset && resp[0]?.id === Number(id)) {
+                    res.status(202).send({ wasUpdated: true, ...resp[0] });
+                } else {
+                    res.status(409).send({ wasUpdated: false, message: "Could Not Updated" });
+                }
+            })
+            .catch(function (e: any) {
+                console.log(e);
+                res.status(409).send({ wasUpdated: false, message: "Could Not Updated" });
+            });
+    });
+
+incomeTypeRouter.patch("/description/:id", [param("id").isInt().notEmpty()], ReturnValidationErrors,
     async (req: Request, res: Response) => {
 
         const { id = null } = req.params;
@@ -101,7 +125,7 @@ documentStatusRouter.patch("/description/:id", [param("id").isInt().notEmpty()],
 
             if (!trimDescription.length) return res.status(400).json({ success: false, message: "Description must be required", });
 
-            const verify = await db("sfa.document_status")
+            const verify = await db("sfa.income_type")
                 .select('id', 'description')
                 .where({ description: trimDescription });
 
@@ -114,7 +138,7 @@ documentStatusRouter.patch("/description/:id", [param("id").isInt().notEmpty()],
             return res.status(400).send({ success: false, message: "Error!", });
         }
 
-        db("sfa.document_status")
+        db("sfa.income_type")
             .update({ description: trimDescription })
             .where({ id })
             .returning("*")
@@ -131,14 +155,14 @@ documentStatusRouter.patch("/description/:id", [param("id").isInt().notEmpty()],
             });
     });
 
-documentStatusRouter.delete("/:id", [param("id").isInt().notEmpty()], ReturnValidationErrors,
+incomeTypeRouter.delete("/:id", [param("id").isInt().notEmpty()], ReturnValidationErrors,
     async (req: Request, res: Response) => {
 
         const { id = null } = req.params;
         let description = "";
         try {
 
-            const verifyRecord: any = await db("sfa.document_status")
+            const verifyRecord: any = await db("sfa.income_type")
                 .where({ id: id })
                 .first();
 
@@ -148,7 +172,7 @@ documentStatusRouter.delete("/:id", [param("id").isInt().notEmpty()], ReturnVali
 
             description = verifyRecord?.description;
 
-            const deleteRecord: any = await db("sfa.document_status")
+            const deleteRecord: any = await db("sfa.income_type")
                 .where({ id: id })
                 .del();
 

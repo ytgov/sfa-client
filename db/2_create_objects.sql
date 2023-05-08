@@ -926,7 +926,8 @@ CREATE TABLE sfa.request_type
     show_online             BIT            NOT NULL DEFAULT 0,
     short_name              NVARCHAR(15)   NULL,
     help_url                NVARCHAR(1000) NULL,
-    help_text               TEXT           NULL
+    help_text               TEXT           NULL,
+    is_active               BIT            NOT NULL DEFAULT 0
 )
 
 -- SFAADMIN.REQUEST_REQUIREMENT
@@ -1026,6 +1027,13 @@ CREATE TABLE sfa.csl_classification (
 	id INT IDENTITY (1,1) PRIMARY KEY,
 	description NVARCHAR(200) NOT NULL,
 	is_active BIT NOT NULL DEFAULT 1
+)
+
+CREATE TABLE sfa.income_type (
+	id INT IDENTITY (1,1) PRIMARY KEY,
+	description NVARCHAR(200) NOT NULL,
+	assess_as_asset BIT NOT NULL DEFAULT 0,
+	is_active BIT NOT NULL DEFAULT 0
 )
 
 -- SFAADMIN.CORRESPONDENCE
@@ -1213,6 +1221,14 @@ CREATE TABLE sfa.application
     has_consent_to_share_data      BIT            NOT NULL DEFAULT 0
 )
 
+CREATE TABLE sfa.income (
+	id INT IDENTITY (1,1) PRIMARY KEY,
+	application_id INT NOT NULL REFERENCES sfa.application,
+	income_type_id INT NULL REFERENCES sfa.income_type,
+	comment TEXT NULL,
+    amount NUMERIC NULL
+)
+
 CREATE TABLE sfa.agency_assistance
 (
     id                 INT IDENTITY PRIMARY KEY,
@@ -1242,7 +1258,7 @@ CREATE TABLE sfa.dependent_eligibility
     id                     INT IDENTITY PRIMARY KEY,
     application_id         INT  NOT NULL REFERENCES sfa.application,
     dependent_id           INT  NOT NULL REFERENCES sfa.dependent,
-    is_eligible            BIT  NOT NULL DEFAULT 0,
+    is_sta_eligible        BIT  NOT NULL DEFAULT 0,
     is_post_secondary      BIT  NOT NULL DEFAULT 0,
     resides_with_student   BIT  NOT NULL DEFAULT 0,
     is_shares_custody      BIT  NOT NULL DEFAULT 0,
@@ -1472,11 +1488,11 @@ CREATE TABLE sfa.assessment
     pstudy_day_care_actual         FLOAT          NULL,
     student_gross_income           FLOAT          NULL,
     spouse_gross_income            FLOAT          NULL,
-    prestudy_csl_classification    FLOAT          NULL REFERENCES sfa.csl_classification,
+    prestudy_csl_classification    INT            NULL REFERENCES sfa.csl_classification,
     marital_status_id              INT            NULL REFERENCES sfa.marital_status,
     spouse_province_id             INT            NULL REFERENCES sfa.province,
     study_accom_code               FLOAT          NULL,
-    csl_classification             FLOAT          NULL REFERENCES sfa.csl_classification,
+    csl_classification             INT            NULL REFERENCES sfa.csl_classification,
     family_size                    FLOAT          NULL,
     parent_ps_depend_count         FLOAT          NULL,
     parent_province                VARCHAR(100)   NULL,

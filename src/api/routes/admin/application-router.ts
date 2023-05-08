@@ -104,10 +104,18 @@ applicationRouter.get("/:id",
     [param("id").notEmpty()], ReturnValidationErrors, async (req: Request, res: Response) => {
         let { id } = req.params;
 
-        let application = await db("sfa.application").where({ id }).first();
+        let application = await db("sfa.application")
+        .select(
+            "sfa.application.*",
+            db.raw("sfa.fn_get_prev_pre_leg_weeks(sfa.application.student_id, sfa.application.id) AS prev_pre_leg_weeks"),
+            db.raw("sfa.fn_get_funded_years_used_preleg_chg(sfa.application.student_id, sfa.application.id) AS funded_years_used_preleg_chg")
+        )
+        .where({ id })
+        .first();
 
         if (application) {
             let student = await db("sfa.student").where({ id: application.student_id }).first();
+            application.incomes = await db("sfa.income").where({ application_id: id });
             application.funding_requests = await db("sfa.funding_request").where({ application_id: id }).orderBy("received_date");
             application.parent_dependents = await db("sfa.parent_dependent").where({ application_id: id }).orderBy("birth_date");
             application.requirements = await db("sfa.requirement_met").where({ application_id: id }).orderBy("completed_date");
@@ -229,14 +237,24 @@ applicationRouter.post("/:application_id/status",
                     status_date,
                     comments,
                 };
+                const checkIsActive = await db("sfa.request_type")
+                    .where("id", request_type_id)
+                    .first();
 
-                const resInsert = await db("sfa.funding_request")
+                if (checkIsActive?.is_active) {
+
+                    const resInsert = await db("sfa.funding_request")
                     .insert({ ...newRecord, is_csg_only: false, application_id });
 
-                return resInsert ?
-                    res.json({ messages: [{ variant: "success", text: "Saved" }] })
-                    :
-                    res.json({ messages: [{ variant: "error", text: "Failed" }] });
+                    return resInsert ?
+                        res.json({ messages: [{ variant: "success", text: "Saved" }] })
+                        :
+                        res.json({ messages: [{ variant: "error", text: "Failed" }] });
+
+                } else {
+                    res.json({ messages: [{ variant: "error", text: "Request Type is not active" }] });
+                }
+                
 
             }
 
@@ -766,6 +784,131 @@ applicationRouter.delete("/:id/course", [param("id").isInt().notEmpty()], Return
             }
 
             const deleteRecord: any = await db("sfa.course_enrolled")
+                .where({ id: id })
+                .del();
+
+            return (deleteRecord > 0) ?
+                res.status(202).send({ messages: [{ variant: "success", text: "Removed" }] })
+                :
+                res.status(404).send({ messages: [{ variant: "error", text: "Record does not exits" }] });
+
+        } catch (error: any) {
+
+            console.log(error);
+
+            if (error?.number === 547) {
+                return res.status(409).send({ messages: [{ variant: "error", text: "Cannot be deleted because it is in use." }] });
+            }
+
+            return res.status(409).send({ messages: [{ variant: "error", text: "Error To Delete" }] });
+        }
+    }
+);
+
+applicationRouter.get("/yea/all", async (req: Request, res: Response) => {
+
+    const { last_name = "" } = req.query;
+
+    try {
+        const results = await db("sfa.yea")
+        .where("last_name", last_name)
+        .orderBy('sfa.yea.first_name');
+
+        if (results) {
+            return res.status(200).json({ success: true, data: [...results], });
+        } else {
+            return res.status(404).send();
+        }
+
+    } catch (error: any) {
+        console.log(error);
+        return res.status(404).send();
+    }
+});
+
+applicationRouter.post("/:application_id/income",
+    [param("application_id").isInt().notEmpty()], ReturnValidationErrors,
+    async (req: Request, res: Response) => {
+
+        try {
+            const { application_id } = req.params;
+            const { data } = req.body;
+
+            if (!Object.keys(data).length) {
+                return res.json({ messages: [{ variant: "error", text: "data is required" }] });
+            }
+
+            if (data?.amount === '' || data?.amount === null || (!data?.amount && data?.amount !== 0)) {
+                data.amount = 0;
+            }
+
+            const resInsert = await db("sfa.income")
+                    .insert({ ...data, application_id });
+
+                return resInsert ?
+                    res.json({ messages: [{ variant: "success", text: "Saved" }] })
+                    :
+                    res.json({ messages: [{ variant: "error", text: "Failed" }] });
+
+        } catch (error) {
+            console.log(error)
+            return res.json({ messages: [{ variant: "error", text: "Save failed" }] });
+        }
+    }
+);
+
+applicationRouter.patch("/:application_id/income/:id",
+    [param("application_id").isInt().notEmpty(), param("id").isInt().notEmpty()], ReturnValidationErrors,
+    async (req: Request, res: Response) => {
+
+        try {
+            const { application_id, id } = req.params;
+            const { data } = req.body;
+
+            if (Object.keys(data).some(k => k === 'amount')) {
+                if (data.amount === null || data.amount === '') {
+                    data.amount = 0;
+                }
+            }
+
+            if (Object.keys(data).some(k => k === 'income_type_id')) {
+                if (data?.income_type_id === '' || data?.income_type_id === null || isNaN(data?.income_type_id)) {
+                    return res.json({ messages: [{ variant: "error", text: "Income Type is required" }] });
+                }
+            }
+
+            const resUpdate = await db("sfa.income")
+                .where({id, application_id})
+                .update({ ...data });
+
+            return resUpdate ?
+                res.json({ messages: [{ variant: "success", text: "Saved" }] })
+                :
+                res.json({ messages: [{ variant: "error", text: "Failed" }] });
+
+        } catch (error) {
+            console.log(error)
+            return res.json({ messages: [{ variant: "error", text: "Save failed" }] });
+        }
+    }
+);
+
+applicationRouter.delete("/income/:id", [param("id").isInt().notEmpty()], ReturnValidationErrors,
+    async (req: Request, res: Response) => {
+
+        const { id = null } = req.params;
+
+        try {
+
+            const verifyRecord: any = await db("sfa.income")
+                .where({ id: id })
+                .first();
+
+            if (!verifyRecord) {
+                return res.status(404).send({ wasDelete: false, message: "The record does not exits" });
+            }
+
+            const deleteRecord: any = await db("sfa.income")
                 .where({ id: id })
                 .del();
 

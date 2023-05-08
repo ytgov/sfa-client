@@ -6,21 +6,22 @@ import { DB_CONFIG } from "../../config";
 
 const db = knex(DB_CONFIG)
 
-export const documentStatusRouter = express.Router();
+export const expenseCategoryRouter = express.Router();
 
-documentStatusRouter.get("/", async (req: Request, res: Response) => {
+expenseCategoryRouter.get("/", async (req: Request, res: Response) => {
 
     const { filter = true } = req.query;
 
     try {
-        const results = await db("sfa.document_status")
+        const results = await db("sfa.expense_category")
         .where("is_active", filter !== 'false') 
         .select(
-                'sfa.document_status.id',
-                'sfa.document_status.description',
-                'sfa.document_status.is_active',
+                'sfa.expense_category.id',
+                'sfa.expense_category.report_expense_category_id',
+                'sfa.expense_category.description',
+                'sfa.expense_category.is_active',
             )
-        .orderBy('sfa.document_status.description');
+        .orderBy('sfa.expense_category.description');
 
         if (results) {
             return res.status(200).json({ success: true, data: [...results], });
@@ -34,7 +35,7 @@ documentStatusRouter.get("/", async (req: Request, res: Response) => {
     }
 });
 
-documentStatusRouter.post("/", body('is_active').isBoolean(), body('description').isString(),
+expenseCategoryRouter.post("/", body('is_active').isBoolean(), body('description').isString(),
 
     async (req: Request, res: Response) => {
         const { is_active, description = "", } = req.body;
@@ -44,13 +45,13 @@ documentStatusRouter.post("/", body('is_active').isBoolean(), body('description'
 
             if (!trimDescription.length) return res.status(400).json({ success: false, message: "Description must be required", });
 
-            const verify = await db("sfa.document_status")
+            const verify = await db("sfa.expense_category")
                 .select('description')
                 .where({ description: trimDescription });
 
             if (verify?.length) return res.status(400).send({ success: false, message: `"${trimDescription}" already exists`, });
 
-            const resInsert = await db("sfa.document_status")
+            const resInsert = await db("sfa.expense_category")
                 .insert({ description: trimDescription, is_active })
                 .returning("*");
 
@@ -66,13 +67,13 @@ documentStatusRouter.post("/", body('is_active').isBoolean(), body('description'
         }
     });
 
-documentStatusRouter.patch("/status/:id", [param("id").isInt().notEmpty()], ReturnValidationErrors,
+expenseCategoryRouter.patch("/status/:id", [param("id").isInt().notEmpty()], ReturnValidationErrors,
     (req: Request, res: Response) => {
 
         const { id = null } = req.params;
         const { is_active = false } = req.body;
 
-        db("sfa.document_status")
+        db("sfa.expense_category")
             .update({ is_active })
             .where({ id })
             .returning("*")
@@ -89,7 +90,7 @@ documentStatusRouter.patch("/status/:id", [param("id").isInt().notEmpty()], Retu
             });
     });
 
-documentStatusRouter.patch("/description/:id", [param("id").isInt().notEmpty()], ReturnValidationErrors,
+expenseCategoryRouter.patch("/description/:id", [param("id").isInt().notEmpty()], ReturnValidationErrors,
     async (req: Request, res: Response) => {
 
         const { id = null } = req.params;
@@ -101,7 +102,7 @@ documentStatusRouter.patch("/description/:id", [param("id").isInt().notEmpty()],
 
             if (!trimDescription.length) return res.status(400).json({ success: false, message: "Description must be required", });
 
-            const verify = await db("sfa.document_status")
+            const verify = await db("sfa.expense_category")
                 .select('id', 'description')
                 .where({ description: trimDescription });
 
@@ -114,7 +115,7 @@ documentStatusRouter.patch("/description/:id", [param("id").isInt().notEmpty()],
             return res.status(400).send({ success: false, message: "Error!", });
         }
 
-        db("sfa.document_status")
+        db("sfa.expense_category")
             .update({ description: trimDescription })
             .where({ id })
             .returning("*")
@@ -131,14 +132,14 @@ documentStatusRouter.patch("/description/:id", [param("id").isInt().notEmpty()],
             });
     });
 
-documentStatusRouter.delete("/:id", [param("id").isInt().notEmpty()], ReturnValidationErrors,
+expenseCategoryRouter.delete("/:id", [param("id").isInt().notEmpty()], ReturnValidationErrors,
     async (req: Request, res: Response) => {
 
         const { id = null } = req.params;
         let description = "";
         try {
 
-            const verifyRecord: any = await db("sfa.document_status")
+            const verifyRecord: any = await db("sfa.expense_category")
                 .where({ id: id })
                 .first();
 
@@ -148,7 +149,7 @@ documentStatusRouter.delete("/:id", [param("id").isInt().notEmpty()], ReturnVali
 
             description = verifyRecord?.description;
 
-            const deleteRecord: any = await db("sfa.document_status")
+            const deleteRecord: any = await db("sfa.expense_category")
                 .where({ id: id })
                 .del();
 

@@ -124,7 +124,7 @@
                 dense
                 background-color="white"
                 hide-details
-                label="Postal Code"
+                label="Postal code"
                 :value="selectedInstitution.address_postal_code"
               ></v-text-field>
             </div>
@@ -157,7 +157,7 @@
                 dense
                 background-color="white"
                 hide-details
-                label="Institution Level"
+                label="Institution level"
                 :value="institutionLevels.find(i => i.id = selectedInstitution.institution_level_id)?.description"
               ></v-text-field>
             </div>
@@ -187,7 +187,7 @@
                 dense
                 background-color="white"
                 hide-details
-                label="Study Area"
+                label="Study area"
                 v-model="application.study_area_id"
                 @change="doSaveApp('study_area_id', application.study_area_id)"
                 :items="studyAreas"
@@ -213,7 +213,7 @@
                 dense
                 background-color="white"
                 hide-details
-                label="Program Type"
+                label="Program type"
                 @change="doSaveApp('program_id', application.program_id)"
                 v-model="application.program_id"
                 :items="programs"
@@ -227,7 +227,7 @@
                 dense
                 background-color="white"
                 hide-details
-                label="Program Division"
+                label="Program division"
                 :items="programDivisions"
                 item-text="description"
                 item-value="id"
@@ -253,7 +253,7 @@
             <div class="col-md-6 px-1">
               <v-switch
                 class="my-0"
-                label="By Correspondance"
+                label="By correspondance"
                 v-model="application.is_correspondence"
                 @change="doSaveApp('is_correspondence', application.is_correspondence)"
               ></v-switch>
@@ -271,7 +271,7 @@
                 <template v-slot:activator="{ on, attrs }">
                   <v-text-field
                     :value="application.classes_start_date?.slice(0, 10)"
-                    label="Class Start Date"
+                    label="Class start date"
                     append-icon="mdi-calendar"
                     readonly
                     outlined
@@ -305,7 +305,7 @@
                 <template v-slot:activator="{ on, attrs }">
                   <v-text-field
                     :value="application.classes_end_date?.slice(0, 10)"
-                    label="Class End Date"
+                    label="Class end date"
                     append-icon="mdi-calendar"
                     hide-details
                     readonly
@@ -336,7 +336,7 @@
                 dense
                 background-color="white"
                 hide-details
-                label="Study Weeks"
+                label="Study weeks"
                 v-model="application.study_weeks_count"
                 @change="doSaveApp('study_weeks_count', application.study_weeks_count)"
               ></v-text-field>
