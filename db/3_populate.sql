@@ -183,6 +183,28 @@ VALUES  ( 1, 'Single Dependent'),
         ( 5, 'Single Parent')
 SET IDENTITY_INSERT sfa.csl_classification OFF
 
+SET IDENTITY_INSERT sfa.income_type ON
+INSERT
+INTO sfa.income_type (id, description, assess_as_asset, is_active)
+VALUES  ( 1, 'Alimony Suport', 0, 0),
+        ( 2, 'CPP Disability benefits', 0, 1),
+        ( 3, 'Canada Employment Training Allowance HRDC', 1, 1),
+        ( 4, 'Child Care Subsidy', 0, 1),
+        ( 5, 'Child Support', 0, 0),
+        ( 6, 'Dept. of Indian Affairs (DIA)', 0, 0),
+        ( 7, 'Education Trust Fund', 0, 0),
+        ( 8, 'Education Trust Fund / RESP (specify)', 0, 0),
+        ( 9, 'Employment Income', 0, 0),
+        ( 10, 'Employment Insurance', 1, 1),
+        ( 11, 'First Nations educational funding', 0, 0),
+        ( 12, 'Other (specify)', 0, 1),
+        ( 13, 'Other Govt non-repayble grants/bursaries, etc', 1, 1),
+        ( 14, 'RESP received from other individual', 0, 0),
+        ( 15, 'RESP received from parent', 0, 0),
+        ( 16, 'Scholarships - Merit Based', 1, 1)
+
+SET IDENTITY_INSERT sfa.income_type OFF
+
 UPDATE sfaadmin.student_consent
 SET academic_year_end = 2021
 WHERE academic_year_end = 20201
