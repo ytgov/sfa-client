@@ -1029,14 +1029,6 @@ CREATE TABLE sfa.csl_classification (
 	is_active BIT NOT NULL DEFAULT 1
 )
 
-CREATE TABLE sfa.income (
-	id INT IDENTITY (1,1) PRIMARY KEY,
-	application_id INT NOT NULL REFERENCES sfa.application,
-	income_type_id INT NULL REFERENCES sfa.income_type,
-	comment TEXT NULL,
-    amount NUMERIC NULL
-)
-
 CREATE TABLE sfa.income_type (
 	id INT IDENTITY (1,1) PRIMARY KEY,
 	description NVARCHAR(200) NOT NULL,
@@ -1227,6 +1219,14 @@ CREATE TABLE sfa.application
     valid_yhcip_comment            TEXT           NULL,
     attendance_id                  INT            NULL REFERENCES sfa.attendance,
     has_consent_to_share_data      BIT            NOT NULL DEFAULT 0
+)
+
+CREATE TABLE sfa.income (
+	id INT IDENTITY (1,1) PRIMARY KEY,
+	application_id INT NOT NULL REFERENCES sfa.application,
+	income_type_id INT NULL REFERENCES sfa.income_type,
+	comment TEXT NULL,
+    amount NUMERIC NULL
 )
 
 CREATE TABLE sfa.agency_assistance
