@@ -1747,6 +1747,16 @@ CREATE TABLE sfa.entitlement_error
     is_resend                 BIT NOT NULL DEFAULT 0
 )
 
+CREATE TABLE sfa.application_draft (
+  id INT IDENTITY(1,1) PRIMARY KEY,
+  student_id INT NOT NULL REFERENCES sfa.student,
+  academic_year_id INT NOT NULL REFERENCES sfa.academic_year,
+  create_date DATETIME2(0) NOT NULL DEFAULT GETDATE(),
+  update_date DATETIME2(0) NOT NULL DEFAULT GETDATE(),
+  is_active BIT DEFAULT 1,
+  application_json TEXT NOT NULL
+)
+
 CREATE TABLE sfa.file_reference (
 	object_key VARCHAR(21) PRIMARY KEY,
 	object_key_pdf VARCHAR(21) UNIQUE null,
@@ -1754,7 +1764,8 @@ CREATE TABLE sfa.file_reference (
 	upload_date DATETIME2(0) NOT NULL,
 	upload_source VARCHAR(50) NOT NULL,
     student_id INT NOT NULL REFERENCES sfa.student,
-    application_id INT NOT NULL REFERENCES sfa.application,
+    application_id INT NULL REFERENCES sfa.application,
+    application_draft_id INT NULL REFERENCES sfa.application_draft,
     requirement_type_id INT NOT NULL REFERENCES sfa.requirement_type,
     status VARCHAR(50) NOT NULL,
     status_date DATETIME2(0) NOT NULL,
@@ -1763,4 +1774,12 @@ CREATE TABLE sfa.file_reference (
     mime_type NVARCHAR(100) NOT NULL,
     comment TEXT NULL,
     file_size BIGINT NOT NULL
+)
+
+CREATE TABLE sfa.student_auth (
+  id INT IDENTITY(1,1) PRIMARY KEY,
+  student_id INT NOT NULL REFERENCES sfa.student,
+  sub NVARCHAR(100) NOT NULL UNIQUE,
+  create_date DATETIME2(0) NOT NULL DEFAULT GETDATE(),
+  is_active BIT DEFAULT 1
 )

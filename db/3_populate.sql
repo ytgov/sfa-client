@@ -99,8 +99,9 @@ VALUES ('2015', 'Closed'),
 INSERT
 INTO sfa.academic_year (year, status)
 VALUES ('2020', 'Closed'),
-       ('2021', 'Open'),
-       ('2022', 'Open')
+       ('2021', 'Closed'),
+       ('2022', 'Open'),
+       ('2023', 'Open')
 
 UPDATE sfa.academic_year
 SET status = 'Archived'
