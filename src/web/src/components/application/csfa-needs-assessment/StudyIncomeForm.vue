@@ -14,6 +14,9 @@
               hide-details
               label="Income type"
               v-model="item.income_type_id"
+              :items="incomeTypes"
+              item-text="description"
+              item-value="id"
               @change="updateIncome(item.id, {income_type_id: item.income_type_id})"
             ></v-select>
           </div>
@@ -63,6 +66,9 @@
               background-color="white"
               hide-details
               label="Income type"
+              :items="incomeTypes"
+              item-text="description"
+              item-value="id"
               v-model="newRecord.income_type_id"
             ></v-select>
           </div>
@@ -130,7 +136,7 @@ import { APPLICATION_URL } from '@/urls';
 import axios from 'axios';
 export default {
   computed: {
-    //...mapGetters(['']),
+    ...mapGetters(["incomeTypes"]),
     application: function () {
       return store.getters.selectedApplication;
     },
@@ -144,7 +150,9 @@ export default {
       comment: ""
     },
   }),
-  async created() {},
+  async created() {
+    store.dispatch("setIncomeTypes");
+  },
   methods: {
     setShowAdd() {
       this.newRecord = {
