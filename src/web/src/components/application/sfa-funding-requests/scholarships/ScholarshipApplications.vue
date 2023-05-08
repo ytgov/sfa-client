@@ -12,6 +12,7 @@
               hide-details
               label="High school/official transcript percentage"
               v-model="application.academic_percent"
+              @change="doSaveApp('academic_percent', application.academic_percent)"
               type="number"
               step="0.10"
               min="1.00"
@@ -23,7 +24,7 @@
     </v-card>
 
     <div class="row">
-      <div class="col-md-6">
+      <div class="col-md-12">
         <v-card class="default mb-5">
           <v-card-text>
             <h3>Canadian Army Scholarship</h3>
@@ -38,31 +39,9 @@
           </v-card-text>
         </v-card>
 
-        <v-card class="default mb-5">
-          <v-card-text>
-            <h3>Yukon Art Society Scholarship</h3>
-            <v-switch
-              dense
-              hide-details
-              label="Apply for Yukon Art Society Scholarship"
-              :value="!!yukonArtSocietyScholarship?.id"
-              v-model="checkArtSociety"
-              @change="toggle($event, 'YASS', yukonArtSocietyScholarship?.id)"
-            ></v-switch>
-
-            <div v-if="checkArtSociety" class="mt-5">
-              <v-btn class="mt-5 mb-5 float-right" color="primary"
-                >View personal essay</v-btn
-              >
-              <v-btn class="mt-5" color="primary"
-                >View recommendation letter</v-btn
-              >
-              <div style="clear: both"></div>
-            </div>
-          </v-card-text>
-        </v-card>
       </div>
-      <div class="col-md-6">
+
+      <div class="col-md-12">
         <v-card class="default mb-5">
           <v-card-text>
             <h3>Nicholas John Harach Scholarship</h3>
@@ -200,13 +179,6 @@ export default {
       this.checkNJH = !!request;
       return request || {};
     },
-    yukonArtSocietyScholarship: function () {
-      const request = this.application
-        ?.funding_requests
-        ?.find(fr => fr.request_type_id === 10);
-      this.checkArtSociety = !!request;
-      return request || {};
-    },
     yukonHuskysScholarship: function () {
       const request = this.application
         ?.funding_requests
@@ -225,7 +197,6 @@ export default {
     maxDate: moment().format("YYYY-MM-DD"),
     checkCandianArmy: false,
     checkNJH: false,
-    checkArtSociety: false,
     checkHuskys: false,
     scholarshipsTypes: {
       CAS:7,
@@ -245,6 +216,9 @@ export default {
     store.dispatch("setAppSidebar", true);
   },
   methods: {
+    doSaveApp(field, value) {
+      store.dispatch("updateApplication", [field, value, this]);
+    },
     async deleteRecord(id) {
       try {
         const resDelete = await axios.delete(
@@ -277,9 +251,6 @@ export default {
                 break;
               case 9:
                 this.checkNJH = !this.checkNJH;
-                break;
-              case 10:
-                this.checkArtSociety = !this.checkArtSociety;
                 break;
               case 11:
                 this.checkHuskys = !this.checkHuskys;

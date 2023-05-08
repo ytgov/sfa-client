@@ -45,7 +45,7 @@
               dense 
               background-color="white" 
               hide-details 
-              label="Last Name" 
+              label="Last name" 
               oninput="
                 if (this.value.length > 100) this.value = this.value.slice(0, 10);
                 const arr = this.value.split(' ');
@@ -194,7 +194,7 @@
               dense 
               background-color="white" 
               hide-details 
-              label="First Name" 
+              label="First name" 
               oninput="
                 if (this.value.length > 100) this.value = this.value.slice(0, 10);
                 const arr = this.value.split(' ');
@@ -228,7 +228,7 @@
               outlined 
               dense 
               background-color="white" 
-              hide-details label="Last Name"
+              hide-details label="Last name"
             >
             </v-text-field>
           </div>

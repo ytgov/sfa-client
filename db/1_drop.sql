@@ -5,7 +5,7 @@ DROP TABLE IF EXISTS sfa.application_draft
 
 DROP TABLE IF EXISTS sfa.entitlement_error
 DROP TABLE IF EXISTS sfa.disbursement
-DROP TABLE IF EXISTS sfa.cls_nars_history
+DROP TABLE IF EXISTS sfa.csl_nars_history
 DROP TABLE IF EXISTS sfa.assessment
 DROP TABLE IF EXISTS sfa.communication_log
 DROP TABLE IF EXISTS sfa.requirement_met
@@ -120,4 +120,7 @@ DROP TABLE IF EXISTS sfa.csl_classification
 DROP TABLE IF EXISTS sfa.attendance
 DROP TABLE IF EXISTS sfa.program_division
 DROP TABLE IF EXISTS sfa.document_status
+DROP TABLE IF EXISTS sfa.income
+DROP TABLE IF EXISTS sfa.income_type
 --DROP TABLE sfa.user
+DROP TABLE IF EXISTS sfa.file_reference

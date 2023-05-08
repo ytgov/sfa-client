@@ -43,6 +43,8 @@ import { instructionTypeRouter } from "./instruction-type-router";
 import { programDivisionRouter } from "./program-division-router";
 import { attendanceRouter } from "./attendance-router";
 import { documentStatusRouter } from "./document-status-router";
+import { expenseCategoryRouter } from "./expense-category-router";
+import { incomeTypeRouter } from "./income-type-router";
 import { RequireServerAuth, RequireAdmin } from "../auth";
 
 export const adminRouter = express.Router();
@@ -92,3 +94,5 @@ adminRouter.use("/instruction-type", instructionTypeRouter);
 adminRouter.use("/attendance", attendanceRouter);
 adminRouter.use("/program-division", programDivisionRouter);
 adminRouter.use("/document-status", documentStatusRouter);
+adminRouter.use("/expense-category", expenseCategoryRouter);
+adminRouter.use("/income-type", incomeTypeRouter);
