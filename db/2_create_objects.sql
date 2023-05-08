@@ -1036,6 +1036,7 @@ CREATE TABLE sfa.income_type (
 	is_active BIT NOT NULL DEFAULT 0
 )
 
+
 -- SFAADMIN.CORRESPONDENCE
 CREATE TABLE sfa.correspondence
 (
@@ -1242,6 +1243,14 @@ CREATE TABLE sfa.agency_assistance
     other_purpose      NVARCHAR(500)  NULL,
     agency_comment     NVARCHAR(500)  NULL,
     UNIQUE (agency_id, application_id)
+)
+
+CREATE TABLE sfa.income (
+	id INT IDENTITY (1,1) PRIMARY KEY,
+	application_id INT NOT NULL REFERENCES sfa.application,
+	income_type_id INT NULL REFERENCES sfa.income_type,
+	comment TEXT NULL,
+    amount NUMERIC NULL
 )
 
 CREATE TABLE sfa.course_enrolled
