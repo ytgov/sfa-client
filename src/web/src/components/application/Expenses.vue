@@ -16,7 +16,7 @@
       </v-tab-item>
     </v-tabs-items>
   </div>
-</template>s
+</template>
 <script>
 export default {
   name: "Home",
