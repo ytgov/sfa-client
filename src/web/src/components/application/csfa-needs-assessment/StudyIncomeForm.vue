@@ -34,7 +34,8 @@
             ></v-text-field>
           </div>
           <div class="col-md-5">
-            <v-text-field
+            <v-textarea
+              rows="1"
               :disabled="showAdd"
               outlined
               dense
@@ -43,7 +44,7 @@
               label="Comment"
               v-model="item.comment"
               @change="updateIncome(item.id, {comment: item.comment})"
-            ></v-text-field>
+            ></v-textarea>
           </div>
           <div class="col-md-1">
             <v-btn
@@ -143,7 +144,6 @@ export default {
   },
   data: () => ({
     showAdd: false,
-    incomes: [],
     newRecord: {
       income_type_id: null,
       amount: 0,
@@ -187,8 +187,6 @@ export default {
     },
     async addIncome() {
       try {
-        console.log(`${APPLICATION_URL}/${this.application.id}/income`);
-        console.log({ data: { ...this.newRecord } });
         const resInsert = await axios.post(
           `${APPLICATION_URL}/${this.application.id}/income`,
           { data: { ...this.newRecord } }
