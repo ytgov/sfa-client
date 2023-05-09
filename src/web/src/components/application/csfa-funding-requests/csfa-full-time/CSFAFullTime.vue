@@ -33,18 +33,18 @@
                 </v-autocomplete>
             </div>
             <div class="col-md-6">
-                <v-text-field
+                <v-select
                     outlined 
                     dense 
                     background-color="white" 
                     hide-details
-                    disabled
-                    :value="cslClassifications.find(cc => cc.id === application?.csl_classification)?.description || 'CSL Classification'"
+                    v-model="application.csl_classification"
+                    @change="doSaveApp('csl_classification', application.csl_classification)"
                     :items="cslClassifications"
                     item-text="description"
                     item-value="id"
                 >
-                </v-text-field>
+                </v-select>
             </div>
             <div class="col-md-6">
                 <div class="row">
@@ -85,8 +85,8 @@
                     background-color="white" 
                     hide-details 
                     label="Student gross income (Ln 15000)"
-                    disabled
-                    value="$0.00"
+                    v-model="application.student_ln150_income"
+                    @change="doSaveApp('student_ln150_income', application.student_ln150_income)"
                 >
                 </v-text-field>
             </div>
@@ -110,7 +110,6 @@
                     hide-details 
                     label="Overaward from previous application"
                     disabled
-                    value="<$325.00>"
                 >
                 </v-text-field>
             </div>
