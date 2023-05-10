@@ -145,7 +145,8 @@ SET IDENTITY_INSERT sfa.indigenous_learner OFF
 SET IDENTITY_INSERT sfa.citizenship ON
 INSERT
 INTO sfa.citizenship (id, description)
-VALUES  ( 1, 'Not Recorded'),
+VALUES  ( 0, 'Unknown'),
+        ( 1, 'Not Recorded'),
         ( 2, 'Canadian'),
         ( 3, 'Permanent resident'),
         ( 4, 'Protected person'),
@@ -163,7 +164,8 @@ SET IDENTITY_INSERT sfa.document_status OFF
 SET IDENTITY_INSERT sfa.program_division ON
 INSERT
 INTO sfa.program_division (id, description)
-VALUES  ( 1, 'Semesters – 4 months duration'),
+VALUES  ( 0, 'Unknown'),
+        ( 1, 'Semesters – 4 months duration'),
         ( 2, 'Quarters – 3 months duration')
 SET IDENTITY_INSERT sfa.program_division OFF
 
@@ -1207,7 +1209,7 @@ WHILE @@FETCH_STATUS = 0 BEGIN
             @spouse_study_school_to, COALESCE(@spouse_study_csl_flag, 0), COALESCE(@spouse_study_bus_flag, 0),
             @spouse_study_distance, @spouse_study_income_comment,
             @classes_start_date, @classes_end_date, COALESCE(@correspondence_flag, 0), COALESCE(@coop_paid_flag, 0),
-            @citizenship_status, COALESCE(@disabled_flag, 0), COALESCE(@minority_flag, 0),
+            COALESCE(@citizenship_status, 1), COALESCE(@disabled_flag, 0), COALESCE(@minority_flag, 0),
             @student_number, @program_year_total, @program_year, COALESCE(@two_residence_flag, 0),
             COALESCE(@moving_flag, 0), @csl_classification, @csl_previous_province_id,
             @program_division_explan, @prestudy_accom_code, COALESCE(@prestudy_own_home_flag, 0),
@@ -1218,7 +1220,7 @@ WHILE @@FETCH_STATUS = 0 BEGIN
             @books_supplies_cost, @outstanding_cslpt_amt,
             @previous_csg_pt_amt, @percent_of_full_time, COALESCE(@part_of_ft_flag, 0), @study_weeks_count,
             @class_hours_per_week, @parent_residence_comment,
-            COALESCE(@study_living_w_spouse_flag, 0), @tuition_estimate, @program_division,
+            COALESCE(@study_living_w_spouse_flag, 0), @tuition_estimate, COALESCE(@program_division, 0),
             COALESCE(@previous_cslft_flag, 0), COALESCE(@previous_cslpt_flag, 0), @coop_start_year,
             @coop_start_month, @coop_end_year, @coop_end_month, COALESCE(@exclude_from_count, 0),
             COALESCE(@perm_disabled_flag, 0), @disabled_equipment, @previous_csg_disability_amount,
