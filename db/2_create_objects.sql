@@ -1245,14 +1245,6 @@ CREATE TABLE sfa.agency_assistance
     UNIQUE (agency_id, application_id)
 )
 
-CREATE TABLE sfa.income (
-	id INT IDENTITY (1,1) PRIMARY KEY,
-	application_id INT NOT NULL REFERENCES sfa.application,
-	income_type_id INT NULL REFERENCES sfa.income_type,
-	comment TEXT NULL,
-    amount NUMERIC NULL
-)
-
 CREATE TABLE sfa.course_enrolled
 (
     id                  INT IDENTITY PRIMARY KEY,
