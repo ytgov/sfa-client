@@ -1222,7 +1222,9 @@ CREATE TABLE sfa.application
     has_consent_to_share_data      BIT            NOT NULL DEFAULT 0,
     permanent_disability           BIT            NOT NULL DEFAULT 0,
     pers_or_prolong_disability     BIT            NOT NULL DEFAULT 0,
-    disability_start_date          DATE           NULL
+    disability_start_date          DATE           NULL,
+    requires_credit_check          BIT            NOT NULL DEFAULT 0,
+    last_checked_on                DATE           NULL
 
 )
 
