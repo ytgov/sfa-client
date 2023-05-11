@@ -250,14 +250,14 @@
             @click="setClose"
             v-if="!showAdd"
         >
-            ADD AGENCY
+            Add Agency
         </v-btn>
         <v-btn
             v-else
             color="primary"
             @click="setClose"
         >
-            CANCEL
+            Cancel
         </v-btn>
 
         <confirm-dialog ref="confirm"></confirm-dialog>
