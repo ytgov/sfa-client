@@ -148,7 +148,7 @@
           </div>
         </v-card-text>
 
-        <v-card-text class="row my-n5" v-if="showAddDisability || !application?.disabilities.length">
+        <v-card-text class="row my-n5" v-if="showAddDisability || !application?.disabilities?.length">
           <div class="col-md-6">
             <v-autocomplete 
               outlined 
@@ -363,7 +363,7 @@
           </div>
         </v-card-text>
 
-        <v-card-text class="row" v-if="showAddDisabilityService || !application?.disability_services.length">
+        <v-card-text class="row" v-if="showAddDisabilityService || !application?.disability_services?.length">
           <div class="col-md-6">
             <v-autocomplete 
               outlined 
@@ -460,131 +460,246 @@
         </v-card-text>
 
       </v-card>
-      <v-card class="default row mb-5">
+      <v-card class="default mb-5">
         <div class="col-md-12">
           <h3 class="text-h6 mb-n2 font-weight-regular">Equipment required</h3>
         </div>
-        <div class="col-md-6">
-          <v-autocomplete 
-            outlined 
-            dense 
-            background-color="white" 
-            hide-details
-            :disabled="!checkCSGDServicesAndEquipmentRequest"
-          >
-          </v-autocomplete>
-        </div>
-        <div class="col-md-4">
-          <v-switch
-            label="Confirmation of need verified"
-            class="my-1"
-            :disabled="!checkCSGDServicesAndEquipmentRequest"
-          >
-          </v-switch>
-        </div>
-        <div class="col-md-2">
-          <div class="row">
-            <div class="col-4 d-flex justify-center">
-              <v-btn
-                color="success"
-                x-small
-                fab
-                title="Add"
-                class="my-0"
-                :disabled="!checkCSGDServicesAndEquipmentRequest"
-              >
-              <v-icon>mdi-plus</v-icon>
-              </v-btn>
-            </div>
-            <div class="col-4 d-flex justify-center">
-              <v-btn
-                color="error"
-                x-small
-                fab
-                title="Remove"
-                class="my-0"
-                :disabled="!checkCSGDServicesAndEquipmentRequest"
-              >
-              <v-icon>mdi-minus</v-icon>
-              </v-btn>
-            </div>
-            <div class="col-4 d-flex justify-center">
-              <v-btn
-                color="warning"
-                x-small
-                fab
-                title=""
-                class="my-0"
-                :disabled="!checkCSGDServicesAndEquipmentRequest"
-              >
-              <v-icon>mdi-dots-horizontal</v-icon>
-              </v-btn>
+        
+        <v-card-text class="row" v-for="item, index of application?.disability_equipments" :key="index">
+          <div class="col-md-6">
+            <v-autocomplete 
+              outlined 
+              dense 
+              background-color="white" 
+              hide-details
+              :disabled="!(checkCSGDServicesAndEquipmentRequest && !showAddDisabilityEquipment)"
+              :items="disabilityServices"
+              item-text="description"
+              item-value="id"
+              v-model="item.equipment_category_id"
+              @change="updateDisabilityEquipment(item.id, {equipment_category_id: item.equipment_category_id})"
+            >
+            </v-autocomplete>
+          </div>
+          <div class="col-md-4">
+            <v-switch
+              label="Confirmation of need verified"
+              class="my-1"
+              :disabled="!(checkCSGDServicesAndEquipmentRequest && !showAddDisabilityEquipment)"
+              v-model="item.verified_equipment_need"
+              @change="updateDisabilityEquipment(item.id, {verified_equipment_need: item.verified_equipment_need})"
+            >
+            </v-switch>
+          </div>
+          <div class="col-md-2">
+            <div class="row">
+              <div class="col-4 d-flex justify-center">
+                <v-btn
+                  color="success"
+                  x-small
+                  fab
+                  title="Add"
+                  class="my-0"
+                  :disabled="!(checkCSGDServicesAndEquipmentRequest && !showAddDisabilityEquipment)"
+                  @click="showAddDisabilityEquipment = true"
+                >
+                <v-icon>mdi-plus</v-icon>
+                </v-btn>
+              </div>
+              <div class="col-4 d-flex justify-center">
+                <v-btn
+                  color="error"
+                  x-small
+                  fab
+                  title="Remove"
+                  class="my-0"
+                  :disabled="!(checkCSGDServicesAndEquipmentRequest && !showAddDisabilityEquipment)"
+                  @click="removeDisabilityEquipment(item.id)"
+                >
+                <v-icon>mdi-minus</v-icon>
+                </v-btn>
+              </div>
+              <div class="col-4 d-flex justify-center">
+                <v-btn
+                  color="warning"
+                  x-small
+                  fab
+                  title=""
+                  class="my-0"
+                  :disabled="!(checkCSGDServicesAndEquipmentRequest && !showAddDisabilityEquipment)"
+                >
+                <v-icon>mdi-dots-horizontal</v-icon>
+                </v-btn>
+              </div>
             </div>
           </div>
-        </div>
+  
+          <div class="col-md-3 pr-2 mr-n2">
+            <v-text-field 
+              outlined 
+              dense 
+              background-color="white" 
+              hide-details
+              label="Requested amount"
+              value="$5,000.00"
+              :disabled="!(checkCSGDServicesAndEquipmentRequest && !showAddDisabilityEquipment)"
+              v-model="item.requested_amount"
+              @change="updateDisabilityEquipment(item.id, {requested_amount: item.requested_amount})"
+            >
+            </v-text-field>
+          </div>
+          <div class="col-md-3 px-2 mr-n2">
+            <v-text-field 
+              outlined 
+              dense 
+              background-color="white" 
+              hide-details
+              label="Maximum allowed amount"
+              value="$2,000.00"
+              :disabled="!(checkCSGDServicesAndEquipmentRequest && !showAddDisabilityEquipment)"
+              v-model="item.max_allowed_amount"
+              @change="updateDisabilityEquipment(item.id, {max_allowed_amount: item.max_allowed_amount})"
+            >
+            </v-text-field>
+          </div>
+          <div class="col-md-3 pl-2 mr-n2">
+            <v-text-field 
+              outlined 
+              dense 
+              background-color="white" 
+              hide-details
+              label="Approve amount"
+              value="$2,000.00"
+              :disabled="!(checkCSGDServicesAndEquipmentRequest && !showAddDisabilityEquipment)"
+              v-model="item.approve_amount"
+              @change="updateDisabilityEquipment(item.id, {approve_amount: item.approve_amount})"
+            >
+            </v-text-field>
+          </div>
+          <div class="col-md-3  pl-1 mb-0">
+            <div class="row">
+              <div class="col-md-6 mx-0">
+                <v-btn
+                color="blue"
+                block
+                class="text-subtitle-2 mt-0"
+                :disabled="!(checkCSGDServicesAndEquipmentRequest && !showAddDisabilityEquipment)"
+              >
+              View quote
+              </v-btn>
+              </div>
+              <div class="col-md-6 mx-0">
+                <v-btn
+                color="blue"
+                block
+                class="text-subtitle-2 mt-0"
+                disabled
+              >
+              View receipt
+              </v-btn>
+              </div>
+            </div>
+          </div>
+        </v-card-text>
 
-        <div class="col-md-3 pr-2 mr-n2">
-          <v-text-field 
-            outlined 
-            dense 
-            background-color="white" 
-            hide-details
-            label="Requested amount"
-            value="$5,000.00"
-            :disabled="!checkCSGDServicesAndEquipmentRequest"
-          >
-          </v-text-field>
-        </div>
-        <div class="col-md-3 px-2 mr-n2">
-          <v-text-field 
-            outlined 
-            dense 
-            background-color="white" 
-            hide-details
-            label="Maximum allowed amount"
-            value="$2,000.00"
-            disabled
-          >
-          </v-text-field>
-        </div>
-        <div class="col-md-3 pl-2 mr-n2">
-          <v-text-field 
-            outlined 
-            dense 
-            background-color="white" 
-            hide-details
-            label="Approve amount"
-            value="$2,000.00"
-            :disabled="!checkCSGDServicesAndEquipmentRequest"
-          >
-          </v-text-field>
-        </div>
-        <div class="col-md-3  pl-1 mb-0">
-          <div class="row">
-            <div class="col-md-6 mx-0">
-              <v-btn
-              color="blue"
-              block
-              class="text-subtitle-2 mt-0"
+        <v-card-text class="row" v-if="showAddDisabilityEquipment || !application?.disability_equipments?.length">
+          <div class="col-md-6">
+            <v-autocomplete 
+              outlined 
+              dense 
+              background-color="white" 
+              hide-details
               :disabled="!checkCSGDServicesAndEquipmentRequest"
+              :items="disabilityServices"
+              item-text="description"
+              item-value="id"
+              v-model="newRecordDisabilityEquipment.equipment_category_id"
             >
-            View quote
-            </v-btn>
-            </div>
-            <div class="col-md-6 mx-0">
-              <v-btn
-              color="blue"
-              block
-              class="text-subtitle-2 mt-0"
-              disabled
+            </v-autocomplete>
+          </div>
+          <div class="col-md-4">
+            <v-switch
+              label="Confirmation of need verified"
+              class="my-1"
+              :disabled="!checkCSGDServicesAndEquipmentRequest"
+              v-model="newRecordDisabilityEquipment.verified_equipment_need"
             >
-            View receipt
-            </v-btn>
+            </v-switch>
+          </div>
+          <div class="col-md-2">
+            <div class="row">
+              <div class="col-6 d-flex justify-end">
+                <v-btn
+                  color="success"
+                  x-small
+                  fab
+                  title="Add"
+                  class="my-0"
+                  :disabled="!checkCSGDServicesAndEquipmentRequest"
+                  @click="addDisabilityEquipment"
+                >
+                <v-icon>mdi-check</v-icon>
+                </v-btn>
+              </div>
+              <div class="col-6 d-flex justify-end">
+                <v-btn
+                  color="error"
+                  x-small
+                  fab
+                  title="Remove"
+                  class="my-0"
+                  :disabled="!checkCSGDServicesAndEquipmentRequest"
+                  @click="setCloseDisabilityEquipment"
+                >
+                <v-icon>mdi-close</v-icon>
+                </v-btn>
+              </div>
             </div>
           </div>
-        </div>
+  
+          <div class="col-md-3 pr-2 mr-n2">
+            <v-text-field 
+              outlined 
+              dense 
+              background-color="white" 
+              hide-details
+              label="Requested amount"
+              value="$5,000.00"
+              :disabled="!checkCSGDServicesAndEquipmentRequest"
+              v-model="newRecordDisabilityEquipment.requested_amount"
+            >
+            </v-text-field>
+          </div>
+          <div class="col-md-3 px-2 mr-n2">
+            <v-text-field 
+              outlined 
+              dense 
+              background-color="white" 
+              hide-details
+              label="Maximum allowed amount"
+              value="$2,000.00"
+              :disabled="!checkCSGDServicesAndEquipmentRequest"
+              v-model="newRecordDisabilityEquipment.max_allowed_amount"
+            >
+            </v-text-field>
+          </div>
+          <div class="col-md-3 pl-2 mr-n2">
+            <v-text-field 
+              outlined 
+              dense 
+              background-color="white" 
+              hide-details
+              label="Approve amount"
+              value="$2,000.00"
+              :disabled="!checkCSGDServicesAndEquipmentRequest"
+              v-model="newRecordDisabilityEquipment.approve_amount"
+            >
+            </v-text-field>
+          </div>
+        </v-card-text>
 
       </v-card>
+
       <confirm-dialog ref="confirm"></confirm-dialog>
   </div>
 </template>
@@ -623,6 +738,7 @@ export default {
       show_menu: false,
       showAddDisability: false,
       showAddDisabilityService: false,
+      showAddDisabilityEquipment: false,
       itemOptions: [{text: '', value: null}, {text: 'Yes', value: 1}, {text: 'No', value: 0}],
       checkCSGDisabilityRequest: false,
       checkCSGDServicesAndEquipmentRequest: false,
@@ -637,6 +753,13 @@ export default {
         max_allowed_amount: 0,
         approve_amount: 0,
       },
+      newRecordDisabilityEquipment: {
+        equipment_category_id: null,
+        verified_equipment_need: false,
+        requested_amount: 0,
+        max_allowed_amount: 0,
+        approve_amount: 0,
+      },
   }),
   async created() {
     store.dispatch("setDisabilityTypes");
@@ -646,6 +769,16 @@ export default {
 
   },
   methods: {
+    setCloseDisabilityEquipment() {
+      this.newRecordDisabilityEquipment = {
+        equipment_category_id: null,
+        verified_equipment_need: false,
+        requested_amount: 0,
+        max_allowed_amount: 0,
+        approve_amount: 0,
+      };
+      this.showAddDisabilityEquipment = false;
+    },
     setCloseDisabilityService() {
       this.newRecordDisabilityService = {
         disability_service_id: null,
@@ -881,7 +1014,6 @@ export default {
 
         if (message?.variant === "success") {
           this.$emit("showSuccess", message.text);
-          this.setCloseDisability();
         } else {
           this.$emit("showError", message.text);
         }
@@ -916,6 +1048,85 @@ export default {
         "Click 'Confirm' below to permanently remove this disability.",
         () => {
           this.deleteDisabilityService(id);
+        },
+        () => {}
+      );
+    },
+    async addDisabilityEquipment() {
+      try {
+
+        if (!this.newRecordDisabilityEquipment?.equipment_category_id) {
+          this.$emit("showError", "Equipment Category is required");
+        }
+
+        const resInsert = await axios.post(
+          `${APPLICATION_URL}/${this.application.id}/disability-equipment`,
+          { data: { ...this.newRecordDisabilityEquipment, } }
+        );
+
+        const message = resInsert?.data?.messages[0];
+
+        if (message?.variant === "success") {
+          this.$emit("showSuccess", message.text);
+          this.setCloseDisabilityEquipment();
+        } else {
+          this.$emit("showError", message.text);
+        }
+
+      } catch (error) {
+        console.log(error);
+        this.$emit("showError", "Error to insert");
+
+      } finally {
+        store.dispatch("loadApplication", this.application.id);
+      }
+    },
+    async updateDisabilityEquipment(id, data) {
+      try {
+
+        const resUpdate = await axios.patch(
+          `${APPLICATION_URL}/${this.application.id}/disability-equipment/${id}`,
+          { data }
+        );
+
+        const message = resUpdate?.data?.messages[0];
+
+        if (message?.variant === "success") {
+          this.$emit("showSuccess", message.text);
+        } else {
+          this.$emit("showError", message.text);
+        }
+
+      } catch (error) {
+        console.log(error);
+        this.$emit("showError", "Error to insert");
+
+      } finally {
+        store.dispatch("loadApplication", this.application.id);
+      }
+    },
+    async deleteDisabilityEquipment(id) {
+      try {
+        const resDelete = await axios.delete(`${APPLICATION_URL}/disability-equipment/${id}`);
+        const message = resDelete?.data?.messages[0];
+        if (message?.variant === "success") {
+            this.$emit("showSuccess", message.text);
+        } else {
+            this.$emit("showError", message.text);
+        }
+      } catch (error) {
+        console.log(error);
+        this.$emit("showError", "Error to delete");
+      } finally {
+        store.dispatch("loadApplication", this.application.id);
+      }
+    },
+    removeDisabilityEquipment(id) {
+      this.$refs.confirm.show(
+        "Are you sure?",
+        "Click 'Confirm' below to permanently remove this disability.",
+        () => {
+          this.deleteDisabilityEquipment(id);
         },
         () => {}
       );
