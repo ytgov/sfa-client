@@ -78,3 +78,4 @@ export const PROGRAM_DIVISION =`${config.apiBaseUrl}/api/v2/admin/program-divisi
 export const DOCUMENT_STATUS =`${config.apiBaseUrl}/api/v2/admin/document-status`;
 export const INCOME_TYPE =`${config.apiBaseUrl}/api/v2/admin/income-type`;
 export const EXPENSE_CATEGORY =`${config.apiBaseUrl}/api/v2/admin/expense-category`;
+export const EQUIPMENT_CATEGORY =`${config.apiBaseUrl}/api/v2/admin/equipment-category`;

@@ -473,7 +473,7 @@
               background-color="white" 
               hide-details
               :disabled="!(checkCSGDServicesAndEquipmentRequest && !showAddDisabilityEquipment)"
-              :items="disabilityServices"
+              :items="equipmentCategories"
               item-text="description"
               item-value="id"
               v-model="item.equipment_category_id"
@@ -610,7 +610,7 @@
               background-color="white" 
               hide-details
               :disabled="!checkCSGDServicesAndEquipmentRequest"
-              :items="disabilityServices"
+              :items="equipmentCategories"
               item-text="description"
               item-value="id"
               v-model="newRecordDisabilityEquipment.equipment_category_id"
@@ -714,7 +714,7 @@ export default {
 
   },
   computed: {
-    ...mapGetters(["disabilityTypes", "disabilityServices"]),
+    ...mapGetters(["disabilityTypes", "disabilityServices", "equipmentCategories"]),
     student() {
       return store.getters.selectedStudent;
     },
@@ -764,6 +764,7 @@ export default {
   async created() {
     store.dispatch("setDisabilityTypes");
     store.dispatch("setDisabilityServices");
+    store.dispatch("setEquipmentCategories");
   },
   watch: {
 
