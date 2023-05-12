@@ -1,7 +1,7 @@
 import moment from "moment";
 import { DB_CONFIG } from "../../config";
 import knex from "knex";
-import { countBy, orderBy } from "lodash";
+import { countBy } from "lodash";
 
 const db = knex(DB_CONFIG);
 const schema = "sfa";

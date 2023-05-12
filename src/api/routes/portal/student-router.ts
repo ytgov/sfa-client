@@ -1,7 +1,6 @@
 import express, { Request, Response } from "express";
 import { DocumentService } from "../../services/shared";
 import { PortalStudentService } from "../../services/portal";
-import { first, last } from "lodash";
 
 export const portalStudentRouter = express.Router();
 
