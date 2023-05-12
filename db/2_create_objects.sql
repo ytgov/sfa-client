@@ -1813,3 +1813,16 @@ CREATE TABLE sfa.student_auth (
   create_date DATETIME2(0) NOT NULL DEFAULT GETDATE(),
   is_active BIT DEFAULT 1
 )
+
+CREATE TABLE sfa.vendor_fmis(
+	is_active BIT NULL, 
+	vendor_id VARCHAR(12) NULL, 
+	vendor_name VARCHAR(30) NULL,
+	address_line_1 VARCHAR(30) NULL, 
+	address_line_2 VARCHAR(30) NULL,	
+	address_line_3 VARCHAR(30) NULL,
+	address_line_4 VARCHAR(30) NULL, 
+	address_line_5 VARCHAR(20) NULL,	
+	postal_code VARCHAR(15) NULL, 
+	address_code VARCHAR(12) NULL
+);
