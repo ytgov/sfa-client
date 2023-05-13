@@ -5,7 +5,7 @@ import knex from "knex";
 import { ReturnValidationErrors, ReturnValidationErrorsCustomMessage } from "../../middleware";
 import { DB_CONFIG } from "../../config";
 import { first, orderBy } from "lodash";
-
+import axios from "axios";
 let { RequireServerAuth, RequireAdmin } = require("../auth")
 
 const db = knex(DB_CONFIG)
@@ -999,6 +999,83 @@ studentRouter.get("/:studentId/applications/:applicationId",
 
         res.json({ data: [{ appliation_id: 1123, institution_name: "HAPPY TOWN" }] })
     });
+
+studentRouter.get("/:student_id/vendor",
+[param("student_id").isInt().notEmpty()], ReturnValidationErrors,
+    async (req: Request, res: Response) => {
+        
+        try {
+            let { student_id } = req.params;
+
+            const student = await db("sfa.student")
+            .where({ id: student_id }).first();
+
+            if (student && Boolean(student?.vendor_id)) {
+                
+                const vendor = await axios.get(
+                        'https://api.gov.yk.ca/finance/api/v1/vendor/'+(student.vendor_id),
+                        {
+                            headers: { 
+                                    "Ocp-Apim-Subscription-Key": "593e9b12bfb747db862429c0a935482c",
+                                },
+                        },
+                    );
+
+                if (vendor?.status === 200) {
+                    return res.status(200).json({ success: true, data: { ...vendor.data }, });
+                } else {
+                    return res.status(404).send();
+                }
+
+            } else {
+
+                return res.status(404).send();
+
+            }
+
+        } catch (error: any) {
+            console.log(error);
+            return res.status(404).send();
+        }
+        
+    }
+);
+
+studentRouter.get("/:student_id/vendor-list",
+[param("student_id").isInt().notEmpty()], ReturnValidationErrors,
+    async (req: Request, res: Response) => {
+        
+        try {
+            let { student_id } = req.params;
+
+            const student = await db("sfa.student")
+            .where({ id: student_id }).first();
+
+            if (student) {
+                
+                const vendorList = await axios.post(`https://api.gov.yk.ca/finance/api/v1/vendor/search`, { term: "all"}, { 
+                    headers: { "Ocp-Apim-Subscription-Key": "593e9b12bfb747db862429c0a935482c" },
+                });
+                
+                if (vendorList?.status === 200) {
+                    return res.status(200).json({ success: true, data: { ...vendorList.data }, });
+                } else {
+                    return res.status(404).send();
+                }
+
+            } else {
+
+                return res.status(404).send();
+
+            }
+
+        } catch (error: any) {
+            console.log(error);
+            return res.status(404).send();
+        }
+        
+    }
+);
 
 async function insertStudent(student: any) {
     let max = (await db("sfa.STUDENT").max("student_id as smax").first())?.smax;
