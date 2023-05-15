@@ -133,8 +133,6 @@ export class PortalStudentService {
         .distinct()
     ).map((i) => i.id);
 
-    console.log(nameMatch, dobMatch, phoneMatch, postalMatch, emailMatch, sinMatch);
-
     if (sinMatch.length == 0) {
       let fullList = [nameMatch, dobMatch, phoneMatch.length > 20 ? [] : phoneMatch, postalMatch, emailMatch];
       let flat = fullList.flatMap((e) => e);
@@ -152,8 +150,6 @@ export class PortalStudentService {
       let sinStudentId = sinMatch[0];
       let nameMatchSin = nameMatch.indexOf(sinStudentId) >= 0;
       let dobMatchSin = dobMatch.indexOf(sinStudentId) >= 0;
-
-      console.log("NM", nameMatchSin, dobMatchSin)
 
       if (nameMatchSin || dobMatchSin) {
         await db("student_auth").withSchema(schema).insert({ student_id: sinStudentId, sub });
