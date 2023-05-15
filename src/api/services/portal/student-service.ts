@@ -94,7 +94,7 @@ export class PortalStudentService {
       await db("person")
         .withSchema(schema)
         .innerJoin("student", "student.person_id", "person.id")
-        .where({ birth_date: moment(date_of_birth).format("YYYY-MM-DD") })
+        .where({ birth_date: new Date(date_of_birth.toDateString()) })
         .select("student.id")
         .distinct()
     ).map((i) => i.id);
