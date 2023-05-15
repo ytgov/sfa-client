@@ -351,6 +351,9 @@ studentRouter.get("/:id",
 
                     const consentInfo = await db("sfa.student_consent")
                         .where({ student_id: id });
+                    
+                        const vendorUpdates = await db("sfa.vendor_update")
+                        .where({ student_id: id });
 
                     const residenceInfo = await db("sfa.residence")
                         .where({ student_id: id });
@@ -480,6 +483,7 @@ studentRouter.get("/:id",
                         yea_list: yeaList,
                         applications: applicationInfo,
                         id: student.id,
+                        vendor_updates: vendorUpdates,
                     };
 
                     return res.status(200).json({ data });
@@ -1074,6 +1078,83 @@ studentRouter.get("/:student_id/vendor-list",
             return res.status(404).send();
         }
         
+    }
+);
+
+studentRouter.post("/:student_id/vendor-update",
+    [
+        param("student_id").isInt().notEmpty(),
+        body('data.address_type_id').notEmpty().withMessage("Address Type is required"),
+        body('data.vendor_id').notEmpty().withMessage("Vendor Id is required"),
+    ],
+    ReturnValidationErrorsCustomMessage,
+    async (req: Request, res: Response) => {
+        try {
+            const { student_id } = req.params;
+            const { data } = req.body;
+
+            const student: any = await db("sfa.student").where({ id: student_id }).first();
+
+            if (student) {
+                
+                const resInsert = await db("sfa.vendor_update")
+                    .insert({ ...data, student_id });
+
+                return resInsert ?
+                    res.json({ messages: [{ variant: "success", text: "Saved" }] })
+                    :
+                    res.json({ messages: [{ variant: "error", text: "Failed" }] });
+
+            }
+
+            return res.status(404).send({ messages: [{ variant: "error", text: "Failed" }] });
+
+        } catch (error) {
+            console.error(error);
+            return res.status(400).send({ messages: [{ variant: "error", text: "Failed", error }] });
+        }
+    }
+);
+
+studentRouter.patch("/:student_id/vendor-update/:id",
+    [
+        param("student_id").isInt().notEmpty(),
+        param("id").isInt().notEmpty(),
+    ],
+    ReturnValidationErrors,
+    async (req: Request, res: Response) => {
+        try {
+            const { student_id, id } = req.params;
+            const { data } = req.body;
+
+
+
+            const student: any = await db("sfa.student").where({ id: student_id }).first();
+
+            if (student) {
+                if (Object.keys(data).some(value => value === "address_type_id")) {
+                    if (!data.address_type_id) {
+                        return res.json({ messages: [{ variant: "error", text: "Address Type is required" }] });
+                    }
+                }
+                const resUpdate = await db("sfa.vendor_update")
+                    .where("id", id)
+                    .where("student_id", student_id)
+                    .update({ ...data, student_id });
+
+                return resUpdate > 0 ?
+                    res.json({ messages: [{ variant: "success", text: "Saved" }] })
+                    :
+                    res.json({ messages: [{ variant: "error", text: "Failed" }] });
+
+            }
+
+            return res.status(404).send({ messages: [{ variant: "error", text: "Failed" }] });
+
+        } catch (error) {
+            console.error(error);
+            return res.status(400).send({ messages: [{ variant: "error", text: "Failed", error }] });
+        }
     }
 );
 
