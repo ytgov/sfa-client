@@ -119,6 +119,7 @@ export default {
     props: {
         dialogModel: Boolean,
         showModal: Function,
+        getVendorData: Function,
         vendorList: Array,
     }
 };

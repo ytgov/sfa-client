@@ -231,6 +231,9 @@ export default new Vuex.Store({
         if (emitter?.isAdding) {
           emitter.isAdding = false;
         }
+        if (emitter?.getVendorData) {
+          emitter.getVendorData();
+        }
         state.dispatch("loadStudent", emitter.student.id);
       }
     },
