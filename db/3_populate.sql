@@ -1570,19 +1570,3 @@ FROM [SFAADMIN].[ENTITLEMENT_ERROR]
          INNER JOIN sfa.entitlement_error_codes ON entitlement_error.error_code = entitlement_error_codes.code
          INNER JOIN sfa.disbursement ON [ENTITLEMENT_ERROR].disbursement_id = disbursement.id
 SET IDENTITY_INSERT sfa.entitlement_error OFF
-
-SET IDENTITY_INSERT sfa.student_consent ON
-
-INSERT INTO sfa.vendor_fmis (
-	is_active, vendor_id, vendor_name,
-	address_line_1, address_line_2,	address_line_3,
-	address_line_4, address_line_5,	postal_code, address_code
-)
-SELECT
-	CASE WHEN ACTIVE = '1' THEN 1 ELSE 0 END, VENDID, VENDNAME,
-	VENDL1, VENDL2, VENDL3,
-	VENDL4, VENDL5, VENDPOST, ADDRCODE 
-	
-FROM sfaadmin.vendor_fmis
-
-SET IDENTITY_INSERT sfa.vendor_fmis OFF
