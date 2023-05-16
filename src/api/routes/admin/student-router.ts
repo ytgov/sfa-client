@@ -331,6 +331,7 @@ studentRouter.get("/:id",
                 "sfa.student.*",
                 db.raw("sfa.fn_get_pre_leg_sta_up_weeks(student.id) AS pre_leg_sta_up_weeks"),
                 db.raw("sfa.fn_get_pre_leg_outside_travel(student.id) AS pre_leg_outside_travel"),
+                db.raw("sfa.fn_get_yea_total(student.yukon_id) - sfa.fn_get_system_yea_used(student.id) AS yea_balance"),
             )
             .first();
 
