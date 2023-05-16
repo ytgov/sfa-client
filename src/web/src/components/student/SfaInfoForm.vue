@@ -51,7 +51,7 @@
               outlined dense background-color="white" 
               hide-details label=""
               disabled
-              v-model="application.funded_years_used_preleg_chg"
+              v-model="student.funded_years_used_preleg_chg"
             >
   
             </v-text-field>
@@ -72,7 +72,7 @@
               outlined dense background-color="white" 
               hide-details label=""
               disabled
-              v-model="application.prev_pre_leg_weeks"
+              v-model="student.prev_pre_leg_weeks"
             >
   
             </v-text-field>
