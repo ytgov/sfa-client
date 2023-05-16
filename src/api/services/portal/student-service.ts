@@ -1,7 +1,7 @@
 import moment from "moment";
 import { DB_CONFIG } from "../../config";
 import knex from "knex";
-import { countBy, orderBy } from "lodash";
+import { countBy } from "lodash";
 
 const db = knex(DB_CONFIG);
 const schema = "sfa";
@@ -71,12 +71,14 @@ export class PortalStudentService {
     portal_id: string,
     sub: string
   ): Promise<boolean> {
-    let sinMatch = await db("person")
-      .withSchema(schema)
-      .innerJoin("student", "student.person_id", "person.id")
-      .where({ sin })
-      .select("student.id")
-      .distinct();
+    let sinMatch = (
+      await db("person")
+        .withSchema(schema)
+        .innerJoin("student", "student.person_id", "person.id")
+        .where({ sin })
+        .select("student.id")
+        .distinct()
+    ).map((i) => i.id);
 
     let nameMatch = (
       await db("person")
@@ -94,7 +96,7 @@ export class PortalStudentService {
       await db("person")
         .withSchema(schema)
         .innerJoin("student", "student.person_id", "person.id")
-        .where({ birth_date: moment(date_of_birth).format("YYYY-MM-DD") })
+        .where({ birth_date: moment.utc(date_of_birth).format("YYYY-MM-DD") })
         .select("student.id")
         .distinct()
     ).map((i) => i.id);
@@ -131,8 +133,10 @@ export class PortalStudentService {
         .distinct()
     ).map((i) => i.id);
 
+    console.log(nameMatch, dobMatch, phoneMatch, postalMatch, emailMatch, sinMatch);
+
     if (sinMatch.length == 0) {
-      let fullList = [nameMatch, dobMatch, phoneMatch, postalMatch, emailMatch];
+      let fullList = [nameMatch, dobMatch, phoneMatch.length > 20 ? [] : phoneMatch, postalMatch, emailMatch];
       let flat = fullList.flatMap((e) => e);
       let counts = countBy(flat);
       let flatCount = Object.entries(counts).map(([key, val]) => ({ key, val }));
@@ -148,6 +152,8 @@ export class PortalStudentService {
       let sinStudentId = sinMatch[0];
       let nameMatchSin = nameMatch.indexOf(sinStudentId) >= 0;
       let dobMatchSin = dobMatch.indexOf(sinStudentId) >= 0;
+
+      console.log("NM", nameMatchSin, dobMatchSin)
 
       if (nameMatchSin || dobMatchSin) {
         await db("student_auth").withSchema(schema).insert({ student_id: sinStudentId, sub });

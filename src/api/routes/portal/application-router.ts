@@ -11,7 +11,7 @@ portalApplicationRouter.get("/:sub", async (req: Request, res: Response) => {
   let student = await studentService.getBySub(sub);
 
   if (student) {
-    let applications = await applicationService.getApplicationsForStudent(student.id);
+    let applications = await applicationService.getDraftsForStudent(student.id);
     res.json({ data: applications });
   }
 
