@@ -54,6 +54,7 @@
                             background-color="white" 
                             hide-details 
                             label=""
+                            v-model="student.yea_balance"
                         >
                         </v-text-field>
                     </div>
