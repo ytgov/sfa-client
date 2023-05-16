@@ -332,6 +332,26 @@ studentRouter.get("/:id",
                 db.raw("sfa.fn_get_pre_leg_sta_up_weeks(student.id) AS pre_leg_sta_up_weeks"),
                 db.raw("sfa.fn_get_pre_leg_outside_travel(student.id) AS pre_leg_outside_travel"),
                 db.raw("sfa.fn_get_yea_total(student.yukon_id) - sfa.fn_get_system_yea_used(student.id) AS yea_balance"),
+                db.raw(`
+                        sfa.fn_get_prev_pre_leg_weeks(
+                            student.id,
+                            (	
+                                SELECT TOP 1 
+                                id  FROM sfa.application WHERE student_id = student.id 
+                                ORDER BY academic_year_id DESC
+                            )
+                        ) AS prev_pre_leg_weeks
+                    `),
+                db.raw(`
+                    sfa.fn_get_funded_years_used_preleg_chg(
+                        student.id, 
+                        (	
+                            SELECT TOP 1 
+                            id  FROM sfa.application WHERE student_id = student.id 
+                            ORDER BY academic_year_id DESC
+                        )
+                    ) AS funded_years_used_preleg_chg
+                `),
             )
             .first();
 
@@ -485,6 +505,9 @@ studentRouter.get("/:id",
                         applications: applicationInfo,
                         id: student.id,
                         vendor_updates: vendorUpdates,
+                        yea_balance: student.yea_balance,
+                        prev_pre_leg_weeks: student.prev_pre_leg_weeks,
+                        funded_years_used_preleg_chg: student.funded_years_used_preleg_chg,
                     };
 
                     return res.status(200).json({ data });
