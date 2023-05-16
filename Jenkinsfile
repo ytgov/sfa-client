@@ -50,6 +50,14 @@ pipeline {
 
     }
     post {
+        always {
+            emailext (
+                to: 'michael@icefoganalytics.com',
+                subject: '$DEFAULT_SUBJECT',
+                body: '$DEFAULT_CONTENT , ${GIT_REVISION} is the git commit ID, build number ${BUILD_NUMBER} ',
+                mimeType: 'text/html'
+            );
+        }
         success {
             echo 'Build complete'
         }

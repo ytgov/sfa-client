@@ -1,7 +1,6 @@
 import express, { Request, Response } from "express";
 import { DocumentService } from "../../services/shared";
 import { PortalStudentService } from "../../services/portal";
-import { first, last } from "lodash";
 
 export const portalStudentRouter = express.Router();
 
@@ -12,7 +11,9 @@ portalStudentRouter.get("/:sub", async (req: Request, res: Response) => {
   const { sub } = req.params;
   let student = await studentService.getBySub(sub);
 
-  delete student.user_password;
+  if (student) {
+    delete student.user_password;
+  }
 
   res.json({ data: student });
 });
