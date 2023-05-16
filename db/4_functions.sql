@@ -319,3 +319,38 @@ BEGIN
 
 END
 GO
+
+CREATE OR ALTER FUNCTION sfa.fn_get_yea_total(@ytid_p VARCHAR)
+RETURNS NUMERIC
+BEGIN
+    DECLARE @v_yea_total FLOAT = 0;
+    DECLARE c_yea_total CURSOR FOR 
+        SELECT sum(yea_amount) 
+        FROM sfa.yea
+        WHERE yukon_id = @ytid_p OR yukon_id_old = @ytid_p
+        AND yea_amount IS NOT NULL;
+		SET @v_yea_total = 0;
+		
+		OPEN c_yea_total  
+		FETCH NEXT FROM c_yea_total INTO @v_yea_total  
+		CLOSE c_yea_total  
+    DEALLOCATE c_yea_total   
+		RETURN @v_yea_total;
+END
+GO
+
+CREATE OR ALTER FUNCTION sfa.fn_get_system_yea_used(@student_id_p INT)
+RETURNS NUMERIC
+BEGIN
+    DECLARE @v_total_yea NUMERIC = 0;
+    DECLARE @v_yea_code NUMERIC = 3;
+        SELECT @v_total_yea = SUM(disbursed_amount)
+        FROM sfa.disbursement
+        WHERE disbursement.funding_request_id IN
+            (SELECT id FROM sfa.funding_request
+                                WHERE funding_request.application_id IN
+                                        (SELECT application_id FROM sfa.application as app
+                                                WHERE app.student_id = @student_id_p)
+                        AND funding_request.request_type_id = @v_yea_code);
+        RETURN COALESCE(@v_total_yea,0);
+END;
