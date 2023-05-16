@@ -1036,6 +1036,7 @@ CREATE TABLE sfa.income_type (
 	is_active BIT NOT NULL DEFAULT 0
 )
 
+
 -- SFAADMIN.CORRESPONDENCE
 CREATE TABLE sfa.correspondence
 (
@@ -1218,7 +1219,13 @@ CREATE TABLE sfa.application
     valid_yhcip                    BIT            NULL,
     valid_yhcip_comment            TEXT           NULL,
     attendance_id                  INT            NULL REFERENCES sfa.attendance,
-    has_consent_to_share_data      BIT            NOT NULL DEFAULT 0
+    has_consent_to_share_data      BIT            NOT NULL DEFAULT 0,
+    permanent_disability           BIT            NOT NULL DEFAULT 0,
+    pers_or_prolong_disability     BIT            NOT NULL DEFAULT 0,
+    disability_start_date          DATE           NULL,
+    requires_credit_check          BIT            NOT NULL DEFAULT 0,
+    last_checked_on                DATE           NULL
+
 )
 
 CREATE TABLE sfa.income (
@@ -1273,14 +1280,37 @@ CREATE TABLE sfa.disability
     id                 INT IDENTITY PRIMARY KEY,
     application_id     INT           NOT NULL REFERENCES sfa.application,
     disability_type_id INT           NOT NULL REFERENCES sfa.disability_type,
-    description        NVARCHAR(100) NULL
+    description        NVARCHAR(100) NULL,
+    verified_disability_need BIT     NOT NULL DEFAULT 0
 )
 
 CREATE TABLE sfa.disability_requirement
 (
     id                    INT IDENTITY PRIMARY KEY,
     application_id        INT NOT NULL REFERENCES sfa.application,
-    disability_service_id INT NOT NULL REFERENCES sfa.disability_service
+    disability_service_id INT NOT NULL REFERENCES sfa.disability_service,
+    requested_amount      NUMERIC(10, 2) NULL,
+    max_allowed_amount    NUMERIC(10, 2) NULL,
+    approve_amount        NUMERIC(10, 2) NULL,
+    verified_service_need BIT NOT NULL DEFAULT 0
+)
+
+CREATE TABLE sfa.equipment_category
+(
+    id                 INT IDENTITY PRIMARY KEY,
+    description        NVARCHAR(100) NOT NULL,
+    is_active          BIT NOT NULL DEFAULT 1
+)
+
+CREATE TABLE sfa.equipment_required
+(
+    id                    INT IDENTITY PRIMARY KEY,
+    application_id        INT NOT NULL REFERENCES sfa.application,
+    equipment_category_id INT NOT NULL REFERENCES sfa.equipment_category,
+    requested_amount      NUMERIC(10, 2) NULL,
+    max_allowed_amount    NUMERIC(10, 2) NULL,
+    approve_amount        NUMERIC(10, 2) NULL,
+    verified_equipment_need BIT NOT NULL DEFAULT 0
 )
 
 CREATE TABLE sfa.expense

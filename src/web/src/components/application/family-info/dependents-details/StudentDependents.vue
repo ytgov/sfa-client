@@ -1,7 +1,5 @@
 <template>
     <div>
-        {{checkFullTime}}
-        {{checkPartTime}}
         <h3 class="text-h5 font-weight-regular mb-5">Student’s Dependents</h3>
         <v-card class="default row mb-5" v-for="dependent, index in filterList" :key="index">
             <div class="col-md-6">
@@ -251,10 +249,10 @@
             <div class="col-md-6">
                 <v-row>
                     <div class="col-md-6">
-                        <v-btn @click="setClose" block color="error" class="my-0">CANCEL</v-btn>
+                        <v-btn @click="setClose" block color="error" class="my-0">Cancel</v-btn>
                     </div>
                     <div class="col-md-6">
-                        <v-btn block color="success" class="my-0" @click="insertDependent">ADD</v-btn>
+                        <v-btn block color="success" class="my-0" @click="insertDependent">Add</v-btn>
                     </div>
                 </v-row>
             </div>
@@ -407,14 +405,14 @@
             @click="setClose"
             v-if="!showAdd"
         >
-            ADD DEPENDENT
+            Add Dependent
         </v-btn>
         <v-btn
             v-else
             color="primary"
             @click="setClose"
         >
-            CANCEL
+            Cancel
         </v-btn>
         <confirm-dialog ref="confirm"></confirm-dialog>
     </div>
