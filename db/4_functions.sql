@@ -335,7 +335,7 @@ BEGIN
 		FETCH NEXT FROM c_yea_total INTO @v_yea_total  
 		CLOSE c_yea_total  
     DEALLOCATE c_yea_total   
-		RETURN @v_yea_total;
+		RETURN COALESCE(@v_yea_total, 0);
 END
 GO
 
