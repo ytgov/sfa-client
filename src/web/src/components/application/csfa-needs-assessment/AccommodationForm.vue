@@ -134,7 +134,7 @@
               background-color="white"
               hide-details
               label="Accommodation type"
-              v-model="application.study_accom_codeg"
+              v-model="application.study_accom_code"
               :items="housingOptions"
               @change="
                 doSaveApp('study_accom_code', application.study_accom_code)
