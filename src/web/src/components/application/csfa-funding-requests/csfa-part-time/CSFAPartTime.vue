@@ -68,7 +68,10 @@
                             hide-details 
                             label="Requested amount"
                             @keypress="validate.isNumber($event)"
-                            v-model="CSFAPartTimeRequest.csl_request_amount"
+                            :value="'$'+CSFAPartTimeRequest.csl_request_amount"
+                            @input="e => {
+                                CSFAPartTimeRequest.csl_request_amount = Number(e.slice(1));
+                            }"
                             @change="updateFundingRequest({
                                 csl_request_amount: CSFAPartTimeRequest.csl_request_amount
                             }, CSFAPartTimeRequest.id)"
@@ -85,7 +88,11 @@
                     background-color="white" 
                     hide-details 
                     label="Student gross income (Ln 15000)"
-                    v-model="application.student_ln150_income"
+                    @keypress="validate.isNumber($event)"
+                    :value="'$'+application.student_ln150_income"
+                    @input="e => {
+                        application.student_ln150_income = Number(e.slice(1));
+                    }"
                     @change="doSaveApp('student_ln150_income', application.student_ln150_income)"
                 >
                 </v-text-field>
@@ -126,13 +133,14 @@
             <div class="col-md-6">
                 <div class="row">
                     <div class="col-md-4">
-                        <v-text-field 
-                            disabled
+                        <v-text-field
                             outlined 
                             dense 
                             background-color="white" 
                             hide-details 
                             label="% of full course load"
+                            v-model="application.percent_of_full_time"
+                            @change="doSaveApp('percent_of_full_time', application.percent_of_full_time)"
                             value="40"
                         >
                         </v-text-field>
