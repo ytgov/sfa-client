@@ -109,14 +109,46 @@ export class DocumentService {
     return 0;
   }
 
+  async uploadDraftDocument(
+    email: string,
+    student_id: string | number,
+    application_id: string | number,
+    file: UploadedFile,
+    requirement_type_id: number
+  ) {
+    let fRef = {
+      object_key: nanoid(),
+      object_key_pdf: nanoid(),
+      bucket: AWS_S3_BUCKET,
+      upload_date: new Date(),
+      upload_user: email,
+      upload_source: "Portal",
+      file_name: file.name,
+      file_contents: file.data,
+      student_id: parseInt(student_id.toString()),
+      application_id: undefined,
+      application_draft_id: parseInt(application_id.toString()),
+      requirement_type_id,
+      mime_type: file.mimetype,
+      file_size: file.size,
+      comment: "This is fake",
+      status: FileStatus.UNREVIEWED,
+      status_date: new Date(),
+    } as FileReference;
+
+    await this.uploadFile(fRef);
+  }
+
   async uploadApplicationDocument(
     email: string,
     student_id: string | number,
     application_id: string | number,
-    file: UploadedFile
+    file: UploadedFile,
+    requirement_type_id: number
   ) {
     let fRef = {
       object_key: nanoid(),
+      object_key_pdf: nanoid(),
       bucket: AWS_S3_BUCKET,
       upload_date: new Date(),
       upload_user: email,
@@ -125,11 +157,16 @@ export class DocumentService {
       file_contents: file.data,
       student_id: parseInt(student_id.toString()),
       application_id: parseInt(application_id.toString()),
+      application_draft_id: undefined,
+      requirement_type_id,
       mime_type: file.mimetype,
       file_size: file.size,
+      comment: "This is fake",
       status: FileStatus.UNREVIEWED,
       status_date: new Date(),
     } as FileReference;
+
+    console.log("FREF", fRef);
 
     await this.uploadFile(fRef);
   }
@@ -176,6 +213,8 @@ function forInsert(input: FileReference | FileReferenceBase) {
     object_key_pdf: input.object_key_pdf,
     student_id: input.student_id,
     application_id: input.application_id,
+    application_draft_id: input.application_draft_id,
+    comment: input.comment,
     status: input.status,
     status_date: input.status_date,
     bucket: input.bucket,
@@ -185,6 +224,7 @@ function forInsert(input: FileReference | FileReferenceBase) {
     upload_user: input.upload_user,
     upload_date: input.upload_date,
     upload_source: input.upload_source,
+    requirement_type_id: input.requirement_type_id,
   };
 }
 
