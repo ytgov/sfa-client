@@ -516,6 +516,9 @@ studentRouter.get("/:id",
                         post_leg_weeks: student.post_leg_weeks,
                         pre_leg_weeks: student.pre_leg_weeks,
                         post_leg_sta_up_weeks: student.post_leg_sta_up_weeks,
+                        csl_warn_code: student.csl_warn_code,
+                        csl_letter_date: student.csl_letter_date,
+                        pre_over_award_amount: student.pre_over_award_amount,
                     };
 
                     return res.status(200).json({ data });
