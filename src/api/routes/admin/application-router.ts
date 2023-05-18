@@ -127,6 +127,28 @@ applicationRouter.get("/:id",
             application.other_funding = await db("sfa.agency_assistance").where({ application_id: id }).orderBy("id");
             application.yea = await db("sfa.yea").where({ yukon_id: student.yukon_id }).orderBy("school_year");
             application.institution = await db("sfa.institution_campus").where({ id: application.institution_campus_id }).first();
+            application.warning_code = await db("sfa.application as app").innerJoin("sfa.csl_code as warning", function () {
+                this.on("warning.id", "=", "csl_restriction_warn_id");
+            }).select(
+                "app.id",
+                "csl_restriction_reason_id",
+                "csl_restriction_warn_id",
+                "warning.warning_code",
+                "warning.code_type",
+                "warning.definition"
+            ).where("app.id", id).first();
+
+          application.reason_code = await db("sfa.application as app").innerJoin("sfa.csl_code as reason", function () {
+              this.on("reason.id", "=", "csl_restriction_reason_id");
+            }).select(
+              "app.id",
+              "csl_restriction_reason_id",
+              "csl_restriction_warn_id",
+              "reason.reason_code",
+              "reason.code_type",
+              "reason.definition"
+            ).where("app.id", id).first();
+
             application.parent1 = await db("sfa.person")
             .leftJoin("sfa.person_address", "sfa.person.id", "sfa.person_address.person_id")
             .select(
