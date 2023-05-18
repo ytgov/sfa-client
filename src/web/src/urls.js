@@ -40,6 +40,7 @@ export const ACADEMIC_YEAR_URL=`${config.apiBaseUrl}/api/v2/admin/academic-year`
 export const PROVINCE=`${config.apiBaseUrl}/api/v2/admin/province`;
 export const COUNTRIES=`${config.apiBaseUrl}/api/v2/admin/countries`;
 export const CITIES=`${config.apiBaseUrl}/api/v2/admin/cities`;
+export const CSL_CODES = `${config.apiBaseUrl}/api/v2/admin/csl-codes`;
 export const ADDRESS_TYPE=`${config.apiBaseUrl}/api/v2/admin/address-type`;
 export const INDIGENOUS_LERNER=`${config.apiBaseUrl}/api/v2/admin/indigenous-learner`;
 export const LANGUAGE=`${config.apiBaseUrl}/api/v2/admin/language`;
