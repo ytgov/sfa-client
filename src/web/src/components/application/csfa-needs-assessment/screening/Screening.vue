@@ -1,10 +1,6 @@
 <template>
     <div>
-        <CreditCheckForm
-            v-on:showSuccess="showSuccess"
-            v-on:showError="showError"
-        >
-        </CreditCheckForm>
+        <!-- THE 'CreditCheckForm' COMPONENT WAS HERE -->
         
         <CSLRestrictionForm
             v-on:showSuccess="showSuccess"
