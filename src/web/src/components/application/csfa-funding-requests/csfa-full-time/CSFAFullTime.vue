@@ -34,6 +34,7 @@
             </div>
             <div class="col-md-6">
                 <v-select
+                    :disabled="!checkCSFAFullTimeRequest"
                     outlined 
                     dense 
                     background-color="white" 
@@ -69,7 +70,10 @@
                             hide-details 
                             label="Requested amount"
                             @keypress="validate.isNumber($event)"
-                            v-model="CSFAFullTimeRequest.csl_request_amount"
+                            :value="'$'+(CSFAFullTimeRequest.csl_request_amount ?? 0)"
+                            @input="e => {
+                                CSFAFullTimeRequest.csl_request_amount = Number(e.slice(1));
+                            }"
                             @change="updateFundingRequest({
                                 csl_request_amount: CSFAFullTimeRequest.csl_request_amount
                             }, CSFAFullTimeRequest.id)"
@@ -82,15 +86,19 @@
                 <v-text-field 
                     outlined 
                     dense 
-                    background-color="white" 
+                    background-color="white"
+                    :disabled="!checkCSFAFullTimeRequest"
                     hide-details 
                     label="Student gross income (Ln 15000)"
-                    v-model="application.student_ln150_income"
+                    :value="'$'+(application.student_ln150_income?? 0)"
+                    @input="e => {
+                        application.student_ln150_income = Number(e.slice(1));
+                    }"
                     @change="doSaveApp('student_ln150_income', application.student_ln150_income)"
                 >
                 </v-text-field>
             </div>
-            <div class="col-md-6">
+            <div class="col-md-12">
                 <v-switch 
                     :disabled="!checkCSFAFullTimeRequest"
                     class="my-0"
@@ -101,17 +109,6 @@
                     }"
                 >
                 </v-switch>
-            </div>
-            <div class="col-md-6">
-                <v-text-field 
-                    outlined 
-                    dense 
-                    background-color="white" 
-                    hide-details 
-                    label="Overaward from previous application"
-                    disabled
-                >
-                </v-text-field>
             </div>
 
             <!-- QUESTIONS -->

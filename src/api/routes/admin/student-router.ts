@@ -331,6 +331,31 @@ studentRouter.get("/:id",
                 "sfa.student.*",
                 db.raw("sfa.fn_get_pre_leg_sta_up_weeks(student.id) AS pre_leg_sta_up_weeks"),
                 db.raw("sfa.fn_get_pre_leg_outside_travel(student.id) AS pre_leg_outside_travel"),
+                db.raw("sfa.fn_get_yea_total(student.yukon_id) - sfa.fn_get_system_yea_used(student.id) AS yea_balance"),
+                db.raw(`
+                        sfa.fn_get_prev_pre_leg_weeks(
+                            student.id,
+                            (	
+                                SELECT TOP 1 
+                                id  FROM sfa.application WHERE student_id = student.id 
+                                ORDER BY academic_year_id DESC
+                            )
+                        ) AS prev_pre_leg_weeks
+                    `),
+                db.raw(`
+                    sfa.fn_get_funded_years_used_preleg_chg(
+                        student.id, 
+                        (	
+                            SELECT TOP 1 
+                            id  FROM sfa.application WHERE student_id = student.id 
+                            ORDER BY academic_year_id DESC
+                        )
+                    ) AS funded_years_used_preleg_chg
+                `),
+                db.raw("sfa.fn_get_post_leg_sta_up_weeks(student.id) AS post_leg_sta_up_weeks"),
+                db.raw("sfa.fn_get_post_leg_weeks(student.id) AS post_leg_weeks"),
+                db.raw("sfa.fn_get_pre_leg_weeks(student.id) AS pre_leg_weeks"),
+                db.raw("sfa.fn_get_post_leg_outside_travel(student.id) AS post_leg_outside_travel"),
             )
             .first();
 
@@ -460,12 +485,13 @@ studentRouter.get("/:id",
                         locator_number: student.locator_number,
                         yukon_id: student.yukon_id,
                         pre_funded_year: student.pre_funded_year,
-                        adj_yg_funding_weeks: student.adj_yg_funding_weeks,
+                        adj_yg_funding_weeks: student.adj_yg_funding_weeks || 0,
                         pre_funding_years_used: student.pre_funding_years_used,
                         adj_sta_upgrading_weeks: student.adj_sta_upgrading_weeks,
                         adj_outside_travel_cnt: student.adj_outside_travel_cnt,
                         checked_for_yukon_id: student.checked_for_yukon_id,
-                        pre_leg_sta_up_weeks: student.pre_leg_sta_up_weeks,
+                        pre_leg_sta_up_weeks: student.pre_leg_sta_up_weeks || 0,
+                        post_leg_outside_travel: student.post_leg_outside_travel || 0,
                         pre_leg_outside_travel: student.pre_leg_outside_travel,
                         yea_expiry_date: student.yea_expiry_date,
                         vendor_id: student.vendor_id,
@@ -484,6 +510,15 @@ studentRouter.get("/:id",
                         applications: applicationInfo,
                         id: student.id,
                         vendor_updates: vendorUpdates,
+                        yea_balance: student.yea_balance,
+                        prev_pre_leg_weeks: student.prev_pre_leg_weeks,
+                        funded_years_used_preleg_chg: student.funded_years_used_preleg_chg,
+                        post_leg_weeks: student.post_leg_weeks,
+                        pre_leg_weeks: student.pre_leg_weeks,
+                        post_leg_sta_up_weeks: student.post_leg_sta_up_weeks,
+                        csl_warn_code: student.csl_warn_code,
+                        csl_letter_date: student.csl_letter_date,
+                        pre_over_award_amount: student.pre_over_award_amount,
                     };
 
                     return res.status(200).json({ data });

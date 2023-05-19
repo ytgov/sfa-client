@@ -1168,6 +1168,7 @@ CREATE TABLE sfa.application
     class_hours_per_week           NUMERIC(4, 1)  NULL,
     parent_residence_comment       NVARCHAR(500)  NULL,
     study_living_w_spouse          BIT            NOT NULL DEFAULT 0,
+    prestudy_living_w_spouse       BIT            NOT NULL DEFAULT 0,
     tuition_estimate_amount        NUMERIC(10, 2) NULL,
     program_division               INT            NULL REFERENCES sfa.program_division,
     is_previous_cslft              BIT            NOT NULL DEFAULT 0,
@@ -1533,6 +1534,7 @@ CREATE TABLE sfa.assessment
     prestudy_bus_flag              FLOAT          NULL,
     study_bus_flag                 FLOAT          NULL,
     study_living_w_spouse_flag     FLOAT          NULL,
+    prestudy_living_w_spouse_flag  FLOAT          NULL,
     csl_full_amt_flag              FLOAT          NULL,
     study_area_id                  INT            NULL REFERENCES sfa.study_area,
     program_id                     INT            NULL REFERENCES sfa.program,
@@ -1812,4 +1814,21 @@ CREATE TABLE sfa.student_auth (
   sub NVARCHAR(100) NOT NULL UNIQUE,
   create_date DATETIME2(0) NOT NULL DEFAULT GETDATE(),
   is_active BIT DEFAULT 1
+)
+
+CREATE TABLE sfa.vendor_update (
+	id INT IDENTITY(1,1) PRIMARY KEY,
+	address NVARCHAR(200) NULL,
+	city_id INT NULL REFERENCES sfa.city,
+	province_id INT NULL REFERENCES sfa.province,
+	postal_code NVARCHAR(50) NULL,
+	country_id INT NULL REFERENCES sfa.country,
+	telephone NVARCHAR(24)  NULL,
+    email NVARCHAR(100) NULL,
+    address_type_id INT NOT NULL REFERENCES sfa.address_type,
+    vendor_id NVARCHAR(25) NOT NULL,
+    created_date DATE NOT NULL DEFAULT GETDATE(),
+    update_requested_date DATE NULL,
+    update_completed_date DATE NULL,
+    student_id INT NOT NULL REFERENCES sfa.student
 )
