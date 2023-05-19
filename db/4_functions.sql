@@ -279,7 +279,7 @@ END
 GO
 
 --AASSESSMENT SFA
-CREATE OR ALTER FUNCTION sfa.fn_get_previous_weeks_yg(@program_p VARCHAR, @student_id_p INT,  @application_id_p INT) 
+CREATE OR ALTER FUNCTION sfa.fn_get_previous_weeks_yg(@program_p NVARCHAR(255), @student_id_p INT,  @application_id_p INT) 
 RETURNS NUMERIC
 AS 
 BEGIN
@@ -320,7 +320,7 @@ BEGIN
 END
 GO
 
-CREATE OR ALTER FUNCTION sfa.fn_get_yea_total(@ytid_p VARCHAR)
+CREATE OR ALTER FUNCTION sfa.fn_get_yea_total(@ytid_p NVARCHAR(25))
 RETURNS NUMERIC
 BEGIN
     DECLARE @v_yea_total FLOAT = 0;
@@ -329,12 +329,11 @@ BEGIN
         FROM sfa.yea
         WHERE yukon_id = @ytid_p OR yukon_id_old = @ytid_p
         AND yea_amount IS NOT NULL;
-		SET @v_yea_total = 0;
 		
 		OPEN c_yea_total  
 		FETCH NEXT FROM c_yea_total INTO @v_yea_total  
 		CLOSE c_yea_total  
-    DEALLOCATE c_yea_total   
+    	DEALLOCATE c_yea_total   
 		RETURN COALESCE(@v_yea_total, 0);
 END
 GO
