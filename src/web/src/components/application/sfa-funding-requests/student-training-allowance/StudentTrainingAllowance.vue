@@ -162,7 +162,7 @@
         </v-card>
 
         <OtherFunding 
-            v-if="!!!application.student_w_not_receive_fund_from_otr_org && checkSTARequest"
+            v-if="!STARequest.student_w_not_receive_fund_from_otr_org && checkSTARequest"
             v-on:showSuccess="showSuccess"
             v-on:showError="showError"
         >

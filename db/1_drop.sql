@@ -122,5 +122,8 @@ DROP TABLE IF EXISTS sfa.program_division
 DROP TABLE IF EXISTS sfa.document_status
 DROP TABLE IF EXISTS sfa.income
 DROP TABLE IF EXISTS sfa.income_type
+DROP TABLE IF EXISTS sfa.equipment_category
+DROP TABLE IF EXISTS sfa.equipment_required
+DROP TABLE IF EXISTS sfa.vendor_update
 --DROP TABLE sfa.user
 DROP TABLE IF EXISTS sfa.file_reference

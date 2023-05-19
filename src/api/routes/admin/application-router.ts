@@ -106,22 +106,49 @@ applicationRouter.get("/:id",
 
         let application = await db("sfa.application")
         .select(
-            "sfa.application.*",
-            db.raw("sfa.fn_get_prev_pre_leg_weeks(sfa.application.student_id, sfa.application.id) AS prev_pre_leg_weeks"),
-            db.raw("sfa.fn_get_funded_years_used_preleg_chg(sfa.application.student_id, sfa.application.id) AS funded_years_used_preleg_chg")
+            "sfa.application.*"
         )
         .where({ id })
         .first();
 
         if (application) {
             let student = await db("sfa.student").where({ id: application.student_id }).first();
+            application.prev_pre_leg_weeks = application.prev_pre_leg_weeks ?? 22;
+            application.funded_years_used_preleg_chg = application.funded_years_used_preleg_chg ?? 22;
+
             application.incomes = await db("sfa.income").where({ application_id: id });
+            application.expenses = await db("sfa.expense").where({ application_id: id });
+            application.disabilities = await db("sfa.disability").where({ application_id: id });
+            application.disability_services = await db("sfa.disability_requirement").where({ application_id: id });
+            application.disability_equipments = await db("sfa.equipment_required").where({ application_id: id });
             application.funding_requests = await db("sfa.funding_request").where({ application_id: id }).orderBy("received_date");
             application.parent_dependents = await db("sfa.parent_dependent").where({ application_id: id }).orderBy("birth_date");
             application.requirements = await db("sfa.requirement_met").where({ application_id: id }).orderBy("completed_date");
             application.other_funding = await db("sfa.agency_assistance").where({ application_id: id }).orderBy("id");
             application.yea = await db("sfa.yea").where({ yukon_id: student.yukon_id }).orderBy("school_year");
             application.institution = await db("sfa.institution_campus").where({ id: application.institution_campus_id }).first();
+            application.warning_code = await db("sfa.application as app").innerJoin("sfa.csl_code as warning", function () {
+                this.on("warning.id", "=", "csl_restriction_warn_id");
+            }).select(
+                "app.id",
+                "csl_restriction_reason_id",
+                "csl_restriction_warn_id",
+                "warning.warning_code",
+                "warning.code_type",
+                "warning.definition"
+            ).where("app.id", id).first();
+
+          application.reason_code = await db("sfa.application as app").innerJoin("sfa.csl_code as reason", function () {
+              this.on("reason.id", "=", "csl_restriction_reason_id");
+            }).select(
+              "app.id",
+              "csl_restriction_reason_id",
+              "csl_restriction_warn_id",
+              "reason.reason_code",
+              "reason.code_type",
+              "reason.definition"
+            ).where("app.id", id).first();
+
             application.parent1 = await db("sfa.person")
             .leftJoin("sfa.person_address", "sfa.person.id", "sfa.person_address.person_id")
             .select(
@@ -909,6 +936,437 @@ applicationRouter.delete("/income/:id", [param("id").isInt().notEmpty()], Return
             }
 
             const deleteRecord: any = await db("sfa.income")
+                .where({ id: id })
+                .del();
+
+            return (deleteRecord > 0) ?
+                res.status(202).send({ messages: [{ variant: "success", text: "Removed" }] })
+                :
+                res.status(404).send({ messages: [{ variant: "error", text: "Record does not exits" }] });
+
+        } catch (error: any) {
+
+            console.log(error);
+
+            if (error?.number === 547) {
+                return res.status(409).send({ messages: [{ variant: "error", text: "Cannot be deleted because it is in use." }] });
+            }
+
+            return res.status(409).send({ messages: [{ variant: "error", text: "Error To Delete" }] });
+        }
+    }
+);
+
+applicationRouter.post("/:application_id/expense",
+    [param("application_id").isInt().notEmpty()], ReturnValidationErrors,
+    async (req: Request, res: Response) => {
+
+        try {
+            const { application_id } = req.params;
+            const { data } = req.body;
+
+            if (!Object.keys(data).length) {
+                return res.json({ messages: [{ variant: "error", text: "data is required" }] });
+            }
+
+            if (data?.amount === '' || data?.amount === null || (!data?.amount && data?.amount !== 0)) {
+                data.amount = 0;
+            }
+            if ( !data?.period_id || !Number(data.period_id)) {
+                return res.json({ messages: [{ variant: "error", text: "Period is required" }] });
+            }
+
+            const resInsert = await db("sfa.expense")
+                    .insert({ ...data, application_id });
+
+                return resInsert ?
+                    res.json({ messages: [{ variant: "success", text: "Saved" }] })
+                    :
+                    res.json({ messages: [{ variant: "error", text: "Failed" }] });
+
+        } catch (error) {
+            console.log(error)
+            return res.json({ messages: [{ variant: "error", text: "Save failed" }] });
+        }
+    }
+);
+
+applicationRouter.patch("/:application_id/expense/:id",
+    [param("application_id").isInt().notEmpty(), param("id").isInt().notEmpty()], ReturnValidationErrors,
+    async (req: Request, res: Response) => {
+
+        try {
+            const { application_id, id } = req.params;
+            const { data } = req.body;
+
+            if (Object.keys(data).some(k => k === 'amount')) {
+                if (data.amount === null || data.amount === '') {
+                    data.amount = 0;
+                }
+            }
+
+            if (Object.keys(data).some(k => k === 'period_id')) {
+                if ( !data.period_id || !Number(data.period_id)) {
+                    return res.json({ messages: [{ variant: "error", text: "Period is required" }] });
+                }
+            }
+
+            const resUpdate = await db("sfa.expense")
+                .where({id, application_id})
+                .update({ ...data });
+
+            return resUpdate ?
+                res.json({ messages: [{ variant: "success", text: "Saved" }] })
+                :
+                res.json({ messages: [{ variant: "error", text: "Failed" }] });
+
+        } catch (error) {
+            console.log(error)
+            return res.json({ messages: [{ variant: "error", text: "Save failed" }] });
+        }
+    }
+);
+
+applicationRouter.delete("/expense/:id", [param("id").isInt().notEmpty()], ReturnValidationErrors,
+    async (req: Request, res: Response) => {
+
+        const { id = null } = req.params;
+
+        try {
+
+            const verifyRecord: any = await db("sfa.expense")
+                .where({ id: id })
+                .first();
+
+            if (!verifyRecord) {
+                return res.status(404).send({ wasDelete: false, message: "The record does not exits" });
+            }
+
+            const deleteRecord: any = await db("sfa.expense")
+                .where({ id: id })
+                .del();
+
+            return (deleteRecord > 0) ?
+                res.status(202).send({ messages: [{ variant: "success", text: "Removed" }] })
+                :
+                res.status(404).send({ messages: [{ variant: "error", text: "Record does not exits" }] });
+
+        } catch (error: any) {
+
+            console.log(error);
+
+            if (error?.number === 547) {
+                return res.status(409).send({ messages: [{ variant: "error", text: "Cannot be deleted because it is in use." }] });
+            }
+
+            return res.status(409).send({ messages: [{ variant: "error", text: "Error To Delete" }] });
+        }
+    }
+);
+
+applicationRouter.post("/:application_id/disability",
+    [param("application_id").isInt().notEmpty()], ReturnValidationErrors,
+    async (req: Request, res: Response) => {
+
+        try {
+            const { application_id } = req.params;
+            const { data } = req.body;
+
+            if (!Object.keys(data).length) {
+                return res.json({ messages: [{ variant: "error", text: "data is required" }] });
+            }
+
+            if ( !data?.disability_type_id || !Number(data.disability_type_id)) {
+                return res.json({ messages: [{ variant: "error", text: "Disability Type is required" }] });
+            }
+
+            if (!data?.verified_disability_need) {
+                data.verified_disability_need = false;
+            }
+
+            const resInsert = await db("sfa.disability")
+                    .insert({ ...data, application_id });
+
+                return resInsert ?
+                    res.json({ messages: [{ variant: "success", text: "Saved" }] })
+                    :
+                    res.json({ messages: [{ variant: "error", text: "Failed" }] });
+
+        } catch (error) {
+            console.log(error)
+            return res.json({ messages: [{ variant: "error", text: "Save failed" }] });
+        }
+    }
+);
+
+applicationRouter.patch("/:application_id/disability/:id",
+    [param("application_id").isInt().notEmpty(), param("id").isInt().notEmpty()], ReturnValidationErrors,
+    async (req: Request, res: Response) => {
+
+        try {
+            const { application_id, id } = req.params;
+            const { data } = req.body;
+
+            if (Object.keys(data).some(k => k === 'disability_type_id')) {
+                if ( !data?.disability_type_id || !Number(data.disability_type_id)) {
+                    return res.json({ messages: [{ variant: "error", text: "Disability Type is required" }] });
+                }
+            }
+
+            if (Object.keys(data).some(k => k === 'verified_disability_need')) {
+                if (!Boolean(data?.verified_disability_need)) {
+                    data.verified_disability_need = false;
+                }
+            }
+
+            const resUpdate = await db("sfa.disability")
+                .where({id, application_id})
+                .update({ ...data });
+
+            return resUpdate ?
+                res.json({ messages: [{ variant: "success", text: "Saved" }] })
+                :
+                res.json({ messages: [{ variant: "error", text: "Failed" }] });
+
+        } catch (error) {
+            console.log(error)
+            return res.json({ messages: [{ variant: "error", text: "Save failed" }] });
+        }
+    }
+);
+
+applicationRouter.delete("/disability/:id", [param("id").isInt().notEmpty()], ReturnValidationErrors,
+    async (req: Request, res: Response) => {
+
+        const { id = null } = req.params;
+
+        try {
+
+            const verifyRecord: any = await db("sfa.disability")
+                .where({ id: id })
+                .first();
+
+            if (!verifyRecord) {
+                return res.status(404).send({ wasDelete: false, message: "The record does not exits" });
+            }
+
+            const deleteRecord: any = await db("sfa.disability")
+                .where({ id: id })
+                .del();
+
+            return (deleteRecord > 0) ?
+                res.status(202).send({ messages: [{ variant: "success", text: "Removed" }] })
+                :
+                res.status(404).send({ messages: [{ variant: "error", text: "Record does not exits" }] });
+
+        } catch (error: any) {
+
+            console.log(error);
+
+            if (error?.number === 547) {
+                return res.status(409).send({ messages: [{ variant: "error", text: "Cannot be deleted because it is in use." }] });
+            }
+
+            return res.status(409).send({ messages: [{ variant: "error", text: "Error To Delete" }] });
+        }
+    }
+);
+
+applicationRouter.post("/:application_id/disability-service",
+    [param("application_id").isInt().notEmpty()], ReturnValidationErrors,
+    async (req: Request, res: Response) => {
+
+        try {
+            const { application_id } = req.params;
+            const { data } = req.body;
+
+            if (!Object.keys(data).length) {
+                return res.json({ messages: [{ variant: "error", text: "data is required" }] });
+            }
+
+            if ( !data?.disability_service_id || !Number(data.disability_service_id)) {
+                return res.json({ messages: [{ variant: "error", text: "Disability Service is required" }] });
+            }
+
+            if (!data?.verified_service_need) {
+                data.verified_service_need = false;
+            }
+
+            const resInsert = await db("sfa.disability_requirement")
+                    .insert({ ...data, application_id });
+
+                return resInsert ?
+                    res.json({ messages: [{ variant: "success", text: "Saved" }] })
+                    :
+                    res.json({ messages: [{ variant: "error", text: "Failed" }] });
+
+        } catch (error) {
+            console.log(error)
+            return res.json({ messages: [{ variant: "error", text: "Save failed" }] });
+        }
+    }
+);
+
+applicationRouter.patch("/:application_id/disability-service/:id",
+    [param("application_id").isInt().notEmpty(), param("id").isInt().notEmpty()], ReturnValidationErrors,
+    async (req: Request, res: Response) => {
+
+        try {
+            const { application_id, id } = req.params;
+            const { data } = req.body;
+
+            if (Object.keys(data).some(k => k === 'disability_service_id')) {
+                if ( !data?.disability_service_id || !Number(data.disability_service_id)) {
+                    return res.json({ messages: [{ variant: "error", text: "Disability Type is required" }] });
+                }
+            }
+
+            if (Object.keys(data).some(k => k === 'verified_service_need')) {
+                if (!Boolean(data?.verified_service_need)) {
+                    data.verified_service_need = false;
+                }
+            }
+
+            const resUpdate = await db("sfa.disability_requirement")
+                .where({id, application_id})
+                .update({ ...data });
+
+            return resUpdate ?
+                res.json({ messages: [{ variant: "success", text: "Saved" }] })
+                :
+                res.json({ messages: [{ variant: "error", text: "Failed" }] });
+
+        } catch (error) {
+            console.log(error)
+            return res.json({ messages: [{ variant: "error", text: "Save failed" }] });
+        }
+    }
+);
+
+applicationRouter.delete("/disability-service/:id", [param("id").isInt().notEmpty()], ReturnValidationErrors,
+    async (req: Request, res: Response) => {
+
+        const { id = null } = req.params;
+
+        try {
+
+            const verifyRecord: any = await db("sfa.disability_requirement")
+                .where({ id: id })
+                .first();
+
+            if (!verifyRecord) {
+                return res.status(404).send({ wasDelete: false, message: "The record does not exits" });
+            }
+
+            const deleteRecord: any = await db("sfa.disability_requirement")
+                .where({ id: id })
+                .del();
+
+            return (deleteRecord > 0) ?
+                res.status(202).send({ messages: [{ variant: "success", text: "Removed" }] })
+                :
+                res.status(404).send({ messages: [{ variant: "error", text: "Record does not exits" }] });
+
+        } catch (error: any) {
+
+            console.log(error);
+
+            if (error?.number === 547) {
+                return res.status(409).send({ messages: [{ variant: "error", text: "Cannot be deleted because it is in use." }] });
+            }
+
+            return res.status(409).send({ messages: [{ variant: "error", text: "Error To Delete" }] });
+        }
+    }
+);
+
+applicationRouter.post("/:application_id/disability-equipment",
+    [param("application_id").isInt().notEmpty()], ReturnValidationErrors,
+    async (req: Request, res: Response) => {
+
+        try {
+            const { application_id } = req.params;
+            const { data } = req.body;
+
+            if (!Object.keys(data).length) {
+                return res.json({ messages: [{ variant: "error", text: "data is required" }] });
+            }
+
+            if ( !data?.equipment_category_id || !Number(data.equipment_category_id)) {
+                return res.json({ messages: [{ variant: "error", text: "Equipment Category is required" }] });
+            }
+
+            if (!data?.verified_equipment_need) {
+                data.verified_equipment_need = false;
+            }
+
+            const resInsert = await db("sfa.equipment_required")
+                    .insert({ ...data, application_id });
+
+                return resInsert ?
+                    res.json({ messages: [{ variant: "success", text: "Saved" }] })
+                    :
+                    res.json({ messages: [{ variant: "error", text: "Failed" }] });
+
+        } catch (error) {
+            console.log(error)
+            return res.json({ messages: [{ variant: "error", text: "Save failed" }] });
+        }
+    }
+);
+
+applicationRouter.patch("/:application_id/disability-equipment/:id",
+    [param("application_id").isInt().notEmpty(), param("id").isInt().notEmpty()], ReturnValidationErrors,
+    async (req: Request, res: Response) => {
+
+        try {
+            const { application_id, id } = req.params;
+            const { data } = req.body;
+
+            if (Object.keys(data).some(k => k === 'equipment_category_id')) {
+                if ( !data?.equipment_category_id || !Number(data.equipment_category_id)) {
+                    return res.json({ messages: [{ variant: "error", text: "Equipment Category is required" }] });
+                }
+            }
+
+            if (Object.keys(data).some(k => k === 'verified_equipment_need')) {
+                if (!Boolean(data?.verified_equipment_need)) {
+                    data.verified_equipment_need = false;
+                }
+            }
+
+            const resUpdate = await db("sfa.equipment_required")
+                .where({id, application_id})
+                .update({ ...data });
+
+            return resUpdate ?
+                res.json({ messages: [{ variant: "success", text: "Saved" }] })
+                :
+                res.json({ messages: [{ variant: "error", text: "Failed" }] });
+
+        } catch (error) {
+            console.log(error)
+            return res.json({ messages: [{ variant: "error", text: "Save failed" }] });
+        }
+    }
+);
+
+applicationRouter.delete("/disability-equipment/:id", [param("id").isInt().notEmpty()], ReturnValidationErrors,
+    async (req: Request, res: Response) => {
+
+        const { id = null } = req.params;
+
+        try {
+
+            const verifyRecord: any = await db("sfa.equipment_required")
+                .where({ id: id })
+                .first();
+
+            if (!verifyRecord) {
+                return res.status(404).send({ wasDelete: false, message: "The record does not exits" });
+            }
+
+            const deleteRecord: any = await db("sfa.equipment_required")
                 .where({ id: id })
                 .del();
 

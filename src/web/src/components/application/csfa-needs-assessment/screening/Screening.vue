@@ -1,7 +1,12 @@
 <template>
     <div>
-        <CreditCheckForm></CreditCheckForm>
-        <CSLRestrictionForm></CSLRestrictionForm>
+        <!-- THE 'CreditCheckForm' COMPONENT WAS HERE -->
+        
+        <CSLRestrictionForm
+            v-on:showSuccess="showSuccess"
+            v-on:showError="showError"
+        >
+        </CSLRestrictionForm>
     </div>
 </template>
 <script>
@@ -25,7 +30,12 @@ export default {
 
     },
     methods: {
-
+        showSuccess(mgs) {
+            this.$emit("showSuccess", mgs);
+        },
+        showError(mgs) {
+            this.$emit("showError", mgs);
+        },
     },
 };
 </script>

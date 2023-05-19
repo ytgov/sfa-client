@@ -33,15 +33,19 @@
                 </v-autocomplete>
             </div>
             <div class="col-md-6">
-                <v-text-field 
+                <v-select
+                    :disabled="!checkCSFAPartTimeRequest"
                     outlined 
                     dense 
                     background-color="white" 
-                    hide-details 
-                    :value="cslClassifications?.find(cc => cc.id === application?.csl_classification)?.description || 'CSL Classification'"
-                    disabled
+                    hide-details
+                    v-model="application.csl_classification"
+                    @change="doSaveApp('csl_classification', application.csl_classification)"
+                    :items="cslClassifications"
+                    item-text="description"
+                    item-value="id"
                 >
-                </v-text-field>
+                </v-select>
             </div>
             <div class="col-md-6">
                 <div class="row">
@@ -64,7 +68,10 @@
                             hide-details 
                             label="Requested amount"
                             @keypress="validate.isNumber($event)"
-                            v-model="CSFAPartTimeRequest.csl_request_amount"
+                            :value="'$'+(CSFAPartTimeRequest.csl_request_amount ?? 0)"
+                            @input="e => {
+                                CSFAPartTimeRequest.csl_request_amount = Number(e.slice(1));
+                            }"
                             @change="updateFundingRequest({
                                 csl_request_amount: CSFAPartTimeRequest.csl_request_amount
                             }, CSFAPartTimeRequest.id)"
@@ -75,13 +82,18 @@
             </div>
             <div class="col-md-6">
                 <v-text-field 
+                    :disabled="!checkCSFAPartTimeRequest"
                     outlined 
                     dense 
                     background-color="white" 
                     hide-details 
                     label="Student gross income (Ln 15000)"
-                    disabled
-                    value="$0.00"
+                    @keypress="validate.isNumber($event)"
+                    :value="'$'+(application.student_ln150_income ?? 0)"
+                    @input="e => {
+                        application.student_ln150_income = Number(e.slice(1));
+                    }"
+                    @change="doSaveApp('student_ln150_income', application.student_ln150_income)"
                 >
                 </v-text-field>
             </div>
@@ -101,9 +113,10 @@
                     dense 
                     background-color="white" 
                     hide-details 
+                    :disabled="!checkCSFAPartTimeRequest"
                     label="Outstanding principal from previous CSFA Loan"
-                    disabled
-                    value="<$325.00>"
+                    v-model="application.outstanding_cslpt_amount"
+                    @change="doSaveApp('outstanding_cslpt_amount', application.outstanding_cslpt_amount)"
                 >
                 </v-text-field>
             </div>
@@ -120,38 +133,41 @@
             <div class="col-md-6">
                 <div class="row">
                     <div class="col-md-4">
-                        <v-text-field 
-                            disabled
+                        <v-text-field
                             outlined 
                             dense 
                             background-color="white" 
                             hide-details 
                             label="% of full course load"
+                            v-model="application.percent_of_full_time"
+                            @change="doSaveApp('percent_of_full_time', application.percent_of_full_time)"
                             value="40"
                         >
                         </v-text-field>
                     </div>
                     <div class="col-md-4">
-                        <v-text-field 
+                        <v-text-field
+                            :disabled="!checkCSFAPartTimeRequest"
                             outlined 
                             dense 
                             background-color="white" 
                             hide-details 
                             label="Study Weeks"
-                            disabled
-                            value="16"
+                            v-model="application.study_weeks_count"
+                            @change="doSaveApp('study_weeks_count', application.study_weeks_count)"
                         >
                         </v-text-field>
                     </div>
                     <div class="col-md-4">
-                        <v-text-field 
-                            disabled
+                        <v-text-field
+                            :disabled="!checkCSFAPartTimeRequest"
                             outlined 
                             dense 
                             background-color="white" 
                             hide-details 
                             label="Courses/Wk"
-                            value="3"
+                            v-model="application.courses_per_week"
+                            @change="doSaveApp('courses_per_week', application.courses_per_week)"
                         >
                         </v-text-field>
                     </div>

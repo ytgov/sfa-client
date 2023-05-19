@@ -14,6 +14,9 @@
               hide-details
               label="Income type"
               v-model="item.income_type_id"
+              :items="incomeTypes"
+              item-text="description"
+              item-value="id"
               @change="updateIncome(item.id, {income_type_id: item.income_type_id})"
             ></v-select>
           </div>
@@ -31,7 +34,8 @@
             ></v-text-field>
           </div>
           <div class="col-md-5">
-            <v-text-field
+            <v-textarea
+              rows="1"
               :disabled="showAdd"
               outlined
               dense
@@ -40,7 +44,7 @@
               label="Comment"
               v-model="item.comment"
               @change="updateIncome(item.id, {comment: item.comment})"
-            ></v-text-field>
+            ></v-textarea>
           </div>
           <div class="col-md-1">
             <v-btn
@@ -63,6 +67,9 @@
               background-color="white"
               hide-details
               label="Income type"
+              :items="incomeTypes"
+              item-text="description"
+              item-value="id"
               v-model="newRecord.income_type_id"
             ></v-select>
           </div>
@@ -130,21 +137,22 @@ import { APPLICATION_URL } from '@/urls';
 import axios from 'axios';
 export default {
   computed: {
-    //...mapGetters(['']),
+    ...mapGetters(["incomeTypes"]),
     application: function () {
       return store.getters.selectedApplication;
     },
   },
   data: () => ({
     showAdd: false,
-    incomes: [],
     newRecord: {
       income_type_id: null,
       amount: 0,
       comment: ""
     },
   }),
-  async created() {},
+  async created() {
+    store.dispatch("setIncomeTypes");
+  },
   methods: {
     setShowAdd() {
       this.newRecord = {
@@ -179,8 +187,6 @@ export default {
     },
     async addIncome() {
       try {
-        console.log(`${APPLICATION_URL}/${this.application.id}/income`);
-        console.log({ data: { ...this.newRecord } });
         const resInsert = await axios.post(
           `${APPLICATION_URL}/${this.application.id}/income`,
           { data: { ...this.newRecord } }

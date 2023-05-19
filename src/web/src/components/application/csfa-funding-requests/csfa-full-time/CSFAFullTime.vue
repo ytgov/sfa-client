@@ -33,18 +33,19 @@
                 </v-autocomplete>
             </div>
             <div class="col-md-6">
-                <v-text-field
+                <v-select
+                    :disabled="!checkCSFAFullTimeRequest"
                     outlined 
                     dense 
                     background-color="white" 
                     hide-details
-                    disabled
-                    :value="cslClassifications.find(cc => cc.id === application?.csl_classification)?.description || 'CSL Classification'"
+                    v-model="application.csl_classification"
+                    @change="doSaveApp('csl_classification', application.csl_classification)"
                     :items="cslClassifications"
                     item-text="description"
                     item-value="id"
                 >
-                </v-text-field>
+                </v-select>
             </div>
             <div class="col-md-6">
                 <div class="row">
@@ -69,7 +70,10 @@
                             hide-details 
                             label="Requested amount"
                             @keypress="validate.isNumber($event)"
-                            v-model="CSFAFullTimeRequest.csl_request_amount"
+                            :value="'$'+(CSFAFullTimeRequest.csl_request_amount ?? 0)"
+                            @input="e => {
+                                CSFAFullTimeRequest.csl_request_amount = Number(e.slice(1));
+                            }"
                             @change="updateFundingRequest({
                                 csl_request_amount: CSFAFullTimeRequest.csl_request_amount
                             }, CSFAFullTimeRequest.id)"
@@ -82,15 +86,19 @@
                 <v-text-field 
                     outlined 
                     dense 
-                    background-color="white" 
+                    background-color="white"
+                    :disabled="!checkCSFAFullTimeRequest"
                     hide-details 
                     label="Student gross income (Ln 15000)"
-                    disabled
-                    value="$0.00"
+                    :value="'$'+(application.student_ln150_income?? 0)"
+                    @input="e => {
+                        application.student_ln150_income = Number(e.slice(1));
+                    }"
+                    @change="doSaveApp('student_ln150_income', application.student_ln150_income)"
                 >
                 </v-text-field>
             </div>
-            <div class="col-md-6">
+            <div class="col-md-12">
                 <v-switch 
                     :disabled="!checkCSFAFullTimeRequest"
                     class="my-0"
@@ -101,18 +109,6 @@
                     }"
                 >
                 </v-switch>
-            </div>
-            <div class="col-md-6">
-                <v-text-field 
-                    outlined 
-                    dense 
-                    background-color="white" 
-                    hide-details 
-                    label="Overaward from previous application"
-                    disabled
-                    value="<$325.00>"
-                >
-                </v-text-field>
             </div>
 
             <!-- QUESTIONS -->

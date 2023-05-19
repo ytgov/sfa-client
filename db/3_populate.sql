@@ -219,6 +219,18 @@ SELECT institution_level_id, description, CASE WHEN is_active_flg = 'Y' THEN 1 E
 FROM sfaadmin.institution_level
 SET IDENTITY_INSERT sfa.institution_level OFF
 
+SET IDENTITY_INSERT sfa.equipment_category ON
+INSERT
+INTO sfa.equipment_category (id, description)
+VALUES  ( 1, 'Computers, Tablets, and associated technologies'),
+        ( 2, 'Electronic Magnification Systems'),
+        ( 3, 'Digital voice recorders / Smartpens / Reader Pens'),
+        ( 4, 'Braille products'),
+        ( 5, 'Assistive listening devices'),
+        ( 6, 'Assistive technology package'),
+        ( 7, 'Other software')
+SET IDENTITY_INSERT sfa.equipment_category OFF
+
 SET IDENTITY_INSERT sfa.institution ON
 
 INSERT

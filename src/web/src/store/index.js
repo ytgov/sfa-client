@@ -38,6 +38,7 @@ import relationships from "@/modules/relationship/store";
 import studyArea from "@/modules/study-area/store";
 import program from "@/modules/program/store";
 import cslClassification from "@/modules/csl-classification/store";
+import cslCode from "@/modules/csl-code/store";
 import citizenship from "@/modules/citizenship/store";
 import prestudyEmploymentStatus from "@/modules/prestudy-employment-status/store";
 import academicYear from "@/modules/academic-year/store";
@@ -48,6 +49,7 @@ import programDivision from "@/modules/program-division/store";
 import documentStatus from "@/modules/income-type/store";
 import incomeType from "@/modules/document-status/store";
 import expenseCategory from "@/modules/expense-category/store";
+import equipmentCategory from "@/modules/equipment-category/store";
 import adminCrud from "./adminCrud";
 import axios from "axios";
 import { APPLICATION_URL, STUDENT_URL } from "../urls"
@@ -230,6 +232,9 @@ export default new Vuex.Store({
         if (emitter?.isAdding) {
           emitter.isAdding = false;
         }
+        if (emitter?.getVendorData) {
+          emitter.getVendorData();
+        }
         state.dispatch("loadStudent", emitter.student.id);
       }
     },
@@ -407,6 +412,6 @@ export default new Vuex.Store({
     },
   },
 
-  modules: { auth, profile, institution, student, province, countries, cities, addressType, indigenousLearner, Language, maritalStatus, studyField, parentalRelationship, firstNation, portalStatus, sex, studentCategory, applicationType, highSchool, ageDistribution, institutionLevel, assessmentType, batchGroup, educationLevel, status, statusReason, yukonGrantEligibility, disbursementType, reasonsForChange, fundingGroup, disabilityType, aboriginalStatus, disabilityService, relationships, studyArea, program, cslClassification, citizenship, prestudyEmploymentStatus, academicYear, agency, instructionType, programDivision, attendance, documentStatus, incomeType, expenseCategory, adminCrud, }
+  modules: { auth, profile, institution, student, province, countries, cities, cslCode, addressType, indigenousLearner, Language, maritalStatus, studyField, parentalRelationship, firstNation, portalStatus, sex, studentCategory, applicationType, highSchool, ageDistribution, institutionLevel, assessmentType, batchGroup, educationLevel, status, statusReason, yukonGrantEligibility, disbursementType, reasonsForChange, fundingGroup, disabilityType, aboriginalStatus, disabilityService, relationships, studyArea, program, cslClassification, citizenship, prestudyEmploymentStatus, academicYear, agency, instructionType, programDivision, attendance, documentStatus, incomeType, expenseCategory, equipmentCategory, adminCrud, }
 
 });
