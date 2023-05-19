@@ -34,6 +34,7 @@
             </div>
             <div class="col-md-6">
                 <v-select
+                    :disabled="!checkCSFAFullTimeRequest"
                     outlined 
                     dense 
                     background-color="white" 
@@ -69,7 +70,7 @@
                             hide-details 
                             label="Requested amount"
                             @keypress="validate.isNumber($event)"
-                            :value="'$'+CSFAFullTimeRequest.csl_request_amount"
+                            :value="'$'+(CSFAFullTimeRequest.csl_request_amount ?? 0)"
                             @input="e => {
                                 CSFAFullTimeRequest.csl_request_amount = Number(e.slice(1));
                             }"
@@ -85,10 +86,11 @@
                 <v-text-field 
                     outlined 
                     dense 
-                    background-color="white" 
+                    background-color="white"
+                    :disabled="!checkCSFAFullTimeRequest"
                     hide-details 
                     label="Student gross income (Ln 15000)"
-                    :value="'$'+application.student_ln150_income"
+                    :value="'$'+(application.student_ln150_income?? 0)"
                     @input="e => {
                         application.student_ln150_income = Number(e.slice(1));
                     }"

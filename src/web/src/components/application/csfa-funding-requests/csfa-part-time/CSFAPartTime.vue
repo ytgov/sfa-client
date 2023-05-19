@@ -68,7 +68,7 @@
                             hide-details 
                             label="Requested amount"
                             @keypress="validate.isNumber($event)"
-                            :value="'$'+CSFAPartTimeRequest.csl_request_amount"
+                            :value="'$'+(CSFAPartTimeRequest.csl_request_amount ?? 0)"
                             @input="e => {
                                 CSFAPartTimeRequest.csl_request_amount = Number(e.slice(1));
                             }"
@@ -89,7 +89,7 @@
                     hide-details 
                     label="Student gross income (Ln 15000)"
                     @keypress="validate.isNumber($event)"
-                    :value="'$'+application.student_ln150_income"
+                    :value="'$'+(application.student_ln150_income ?? 0)"
                     @input="e => {
                         application.student_ln150_income = Number(e.slice(1));
                     }"
