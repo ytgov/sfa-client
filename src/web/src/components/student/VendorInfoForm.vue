@@ -312,6 +312,7 @@
 
         <v-btn
             v-if="!showAdd"
+            :disabled="!Boolean(student.vendor_id)"
             @click="showAdd = true"
             class="primary mt-0"
             show
