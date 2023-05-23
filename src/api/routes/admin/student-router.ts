@@ -1119,10 +1119,8 @@ studentRouter.get("/:student_id/vendor-list",
 studentRouter.post("/:student_id/vendor-update",
     [
         param("student_id").isInt().notEmpty(),
-        body('data.address_type_id').notEmpty().withMessage("Address Type is required"),
-        body('data.vendor_id').notEmpty().withMessage("Vendor Id is required"),
     ],
-    ReturnValidationErrorsCustomMessage,
+    ReturnValidationErrors,
     async (req: Request, res: Response) => {
         try {
             const { student_id } = req.params;
@@ -1131,7 +1129,19 @@ studentRouter.post("/:student_id/vendor-update",
             const student: any = await db("sfa.student").where({ id: student_id }).first();
 
             if (student) {
-                
+
+                if (Object.keys(data).some(k => k === "vendor_id")) {
+                    if (!data.vendor_id) {
+                        return res.json({ messages: [{ variant: "error", text: "Vendor Id is required" }] });
+                    }
+                }
+
+                if (Object.keys(data).some(k => k === "address_type_id")) {
+                    if (!data.address_type_id) {
+                        return res.json({ messages: [{ variant: "error", text: "Address Type Id is required" }] });
+                    }
+                }
+
                 const resInsert = await db("sfa.vendor_update")
                     .insert({ ...data, student_id });
 
