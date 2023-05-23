@@ -166,8 +166,6 @@ export class DocumentService {
       status_date: new Date(),
     } as FileReference;
 
-    console.log("FREF", fRef);
-
     await this.uploadFile(fRef);
   }
 

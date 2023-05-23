@@ -12,3 +12,11 @@ portalReferenceRouter.get("/city", (req: Request, res: Response) => {
 portalReferenceRouter.get("/institution", async (req: Request, res: Response) => {
   res.json({ data: await db.getInstitutions() });
 });
+
+portalReferenceRouter.get("/education_level", async (req: Request, res: Response) => {
+  res.json({ data: await db.getEducationLevels() });
+});
+
+portalReferenceRouter.get("/relationship", async (req: Request, res: Response) => {
+  res.json({ data: await db.getRelationships() });
+});
