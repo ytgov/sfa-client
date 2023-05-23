@@ -246,6 +246,15 @@ applicationRouter.post("/:application_id/status",
                     .where("id", request_type_id)
                     .first();
 
+                const checkIfExist = await db("sfa.funding_request")
+                    .where("request_type_id", request_type_id)
+                    .where("application_id", application_id)
+                    .first();
+
+                if (checkIfExist) {
+                    return res.json({ messages: [{ variant: "error", text: "A record already exist with the same information" }] });
+                }
+
                 if (checkIsActive?.is_active) {
 
                     const resInsert = await db("sfa.funding_request")
