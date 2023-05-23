@@ -106,15 +106,16 @@ applicationRouter.get("/:id",
 
         let application = await db("sfa.application")
         .select(
-            "sfa.application.*",
-            db.raw("sfa.fn_get_prev_pre_leg_weeks(sfa.application.student_id, sfa.application.id) AS prev_pre_leg_weeks"),
-            db.raw("sfa.fn_get_funded_years_used_preleg_chg(sfa.application.student_id, sfa.application.id) AS funded_years_used_preleg_chg")
+            "sfa.application.*"
         )
         .where({ id })
         .first();
 
         if (application) {
             let student = await db("sfa.student").where({ id: application.student_id }).first();
+            application.prev_pre_leg_weeks = application.prev_pre_leg_weeks ?? 22;
+            application.funded_years_used_preleg_chg = application.funded_years_used_preleg_chg ?? 22;
+
             application.incomes = await db("sfa.income").where({ application_id: id });
             application.expenses = await db("sfa.expense").where({ application_id: id });
             application.disabilities = await db("sfa.disability").where({ application_id: id });
@@ -126,6 +127,28 @@ applicationRouter.get("/:id",
             application.other_funding = await db("sfa.agency_assistance").where({ application_id: id }).orderBy("id");
             application.yea = await db("sfa.yea").where({ yukon_id: student.yukon_id }).orderBy("school_year");
             application.institution = await db("sfa.institution_campus").where({ id: application.institution_campus_id }).first();
+            application.warning_code = await db("sfa.application as app").innerJoin("sfa.csl_code as warning", function () {
+                this.on("warning.id", "=", "csl_restriction_warn_id");
+            }).select(
+                "app.id",
+                "csl_restriction_reason_id",
+                "csl_restriction_warn_id",
+                "warning.warning_code",
+                "warning.code_type",
+                "warning.definition"
+            ).where("app.id", id).first();
+
+          application.reason_code = await db("sfa.application as app").innerJoin("sfa.csl_code as reason", function () {
+              this.on("reason.id", "=", "csl_restriction_reason_id");
+            }).select(
+              "app.id",
+              "csl_restriction_reason_id",
+              "csl_restriction_warn_id",
+              "reason.reason_code",
+              "reason.code_type",
+              "reason.definition"
+            ).where("app.id", id).first();
+
             application.parent1 = await db("sfa.person")
             .leftJoin("sfa.person_address", "sfa.person.id", "sfa.person_address.person_id")
             .select(

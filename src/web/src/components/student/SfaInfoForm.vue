@@ -51,7 +51,7 @@
               outlined dense background-color="white" 
               hide-details label=""
               disabled
-              v-model="application.funded_years_used_preleg_chg"
+              v-model="student.funded_years_used_preleg_chg"
             >
   
             </v-text-field>
@@ -72,7 +72,7 @@
               outlined dense background-color="white" 
               hide-details label=""
               disabled
-              v-model="application.prev_pre_leg_weeks"
+              v-model="student.prev_pre_leg_weeks"
             >
   
             </v-text-field>
@@ -92,6 +92,8 @@
             <v-text-field
               outlined dense background-color="white" 
               hide-details label=""
+              disabled
+              :value="totalYGSTAFundWeeks"
             >
   
             </v-text-field>
@@ -139,6 +141,8 @@
             <v-text-field
               outlined dense background-color="white" 
               hide-details label=""
+              disabled
+              :value="totalSTAUpWeeks"
             >
   
             </v-text-field>
@@ -176,6 +180,7 @@
               outlined dense background-color="white" 
               hide-details label=""
               v-model="student.adj_outside_travel_cnt"
+              @change="doSaveStudent('adj_outside_travel_cnt', student.adj_outside_travel_cnt, 'studentInfo', student.id)"
             >
   
             </v-text-field>
@@ -184,6 +189,8 @@
             <v-text-field
               outlined dense background-color="white" 
               hide-details label=""
+              disabled
+              :value="totalYGSOTTravel"
             >
   
             </v-text-field>
@@ -322,6 +329,21 @@ export default {
     application: function () {
       return store.getters.selectedApplication;
     },
+    totalSTAUpWeeks() {
+      const total = this.student.pre_leg_sta_up_weeks + 
+        Number(this.student.adj_sta_upgrading_weeks) + this.student.post_leg_sta_up_weeks;
+      return total || 0;
+    },
+    totalYGSTAFundWeeks() {
+      const total = this.student.post_leg_weeks +
+        this.student.pre_leg_weeks + Number(this.student.adj_yg_funding_weeks);
+      return total || 0;
+    },
+    totalYGSOTTravel() {
+      const total = this.student.post_leg_outside_travel +
+        this.student.pre_leg_outside_travel + Number(this.student.adj_outside_travel_cnt);
+      return total || 0;
+    }
   },
   watch: {
   },
