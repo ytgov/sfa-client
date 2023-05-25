@@ -199,6 +199,7 @@
               <v-btn
               class="mt-0"
               color="success"
+              @click="showPDF"
               >
                 View PIF
               </v-btn>
@@ -345,6 +346,10 @@
         </div>  
       </v-card-text>
     </v-card>
+    
+    <show-pdf ref="showPdf">
+    </show-pdf>
+
   </div>
 </template>
 
@@ -448,6 +453,21 @@ export default {
     doSaveApp(field, value) {
       store.dispatch("updateApplication", [field, value, this]);
     },
+    
+    async showPDF() {
+      let buf = await fetch("http://localhost:3000/api/portal/student/1788/application/6049/files/SsoIoSvz7QX1YoPOY_Wet")
+      .then((r) => r.arrayBuffer());
+
+      console.log(buf);
+      const blob = new Blob([buf], {type: 'application/pdf'});
+      const blobURL = URL.createObjectURL(blob);
+
+      this.$refs.showPdf.show(
+        blobURL || "",
+        () => {},
+        () => {},
+      );
+    }
   },
 };
 </script>
