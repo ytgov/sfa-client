@@ -59,6 +59,7 @@
                 dense
                 color="blue" 
                 class="my-0"
+                @click="assessmentLoadForm(item)"
                 block
               >
                 Assessment
@@ -214,6 +215,9 @@ export default {
     };
       this.showAdd = !this.showAdd;
     },
+    assessmentLoadForm: function (items) {
+      console.log("Value: ", items.request_type_id);
+    },
     loadRequirementTypes() {
       axios.get(REQUIREMENT_TYPE_URL).then((resp) => {
         this.requirementTypeOptions = resp.data;
@@ -222,11 +226,12 @@ export default {
     loadFundingTypes() {
       axios.get(FUNDING_TYPE_URL).then((resp) => {
         this.fundingTypeOptions = resp.data;
+        console.log(resp);
       });
     },
     loadStatus() {
       axios.get(FUNDING_STATUS_URL).then((resp) => {
-        this.statusOptions = resp.data;
+        this.statusOptions = resp.data; 
       });
     },
     loadReasons() {
