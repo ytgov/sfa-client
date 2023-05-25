@@ -23,19 +23,19 @@ import CSFAFundingRequests from "../components/application/csfa-funding-requests
 import CSFANeedsAssessment from "../components/application/csfa-needs-assessment/CSFANeedsAssessment";
 import Documentation from "../components/application/Documentation";
 
-import CSLFT from "../components/application/csfa-needs-assessment/CSLFT";
-import CSLPT from "../components/application/csfa-needs-assessment/CSLPT";
-import CSGPTDEP from "../components/application/csfa-needs-assessment/CSGPTDEP";
-import CSGPT from "../components/application/csfa-needs-assessment/CSGPT";
-import CSGDSE from "../components/application/csfa-needs-assessment/CSGDSE";
-import CSGTP from "../components/application/csfa-needs-assessment/CSGTP";
-import CSGD from "../components/application/csfa-needs-assessment/CSGD";
-import CSGFTDEP from "../components/application/csfa-needs-assessment/CSGFTDEP";
-import CSGFT from "../components/application/csfa-needs-assessment/CSGFT";
-import CanadianArmyScholarship from "../components/application/csfa-needs-assessment/CanadianArmyScholarship";
-import TrainingAllowance from "../components/application/csfa-needs-assessment/TrainingAllowance";
-import YukonGrant from "../components/application/csfa-needs-assessment/YukonGrant";
-import YukonExcellenceAwards from "../components/application/csfa-needs-assessment/YukonExcellenceAwards";
+import CSLFT from "../components/application/csfa-needs-assessment/CSLFT.vue";
+import CSLPT from "../components/application/csfa-needs-assessment/CSLPT.vue";
+import CSGPTDEP from "../components/application/csfa-needs-assessment/CSGPTDEP.vue";
+import CSGPT from "../components/application/csfa-needs-assessment/CSGPT.vue";
+import CSGDSE from "../components/application/csfa-needs-assessment/CSGDSE.vue";
+import CSGTP from "../components/application/csfa-needs-assessment/CSGTP.vue";
+import CSGD from "../components/application/csfa-needs-assessment/CSGD.vue";
+import CSGFTDEP from "../components/application/csfa-needs-assessment/CSGFTDEP.vue";
+import CSGFT from "../components/application/csfa-needs-assessment/CSGFT.vue";
+import CanadianArmyScholarship from "../components/application/csfa-needs-assessment/CanadianArmyScholarship.vue";
+import TrainingAllowance from "../components/application/csfa-needs-assessment/TrainingAllowance.vue";
+import YukonGrant from "../components/application/csfa-needs-assessment/YukonGrant.vue";
+import YukonExcellenceAwards from "../components/application/csfa-needs-assessment/YukonExcellenceAwards.vue";
 
 import StudentModuleRoutes from "@/modules/student/router";
 import ApplicationTypeModuleRooutes from "@/modules/application-type/router";

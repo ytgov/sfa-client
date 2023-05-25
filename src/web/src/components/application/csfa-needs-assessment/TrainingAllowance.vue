@@ -1,6 +1,5 @@
 <template>
   <div class="home training-allowance-assessment">
-    <h1>Funding Status</h1>
     <div class="col-md-12">
       <v-card class="default mb-5 bg-color-blue" v-for="item, index in application.funding_requests" :key="index">
         <div class="col-lg-12 nopadding d-flex flex-wrap low-margin">

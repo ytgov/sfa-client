@@ -1,6 +1,5 @@
 <template>
   <div class="home">
-    <h1>Funding Status</h1>
     <div class="col-md-12">
       <v-card class="default mb-5 bg-color-blue card-padding-bottom" v-for="item, index in application.funding_requests" :key="index">
         <v-card-title>Assessment - Canadian Army Scholarship</v-card-title>
