@@ -1,6 +1,6 @@
 <template>
   <div class="home cslft-msfaa-assessment">
-    <v-card class="default mb-5 bg-color-blue" v-for="item, index in application.funding_requests" :key="index">
+    <v-card class="default mb-5 bg-color-blue">
       <v-card-text class="nopadding d-flex flex-wrap top-margin low-margin">
         <div class="col-xs-12 col-sm-12 col-lg-12 nopadding d-flex flex-wrap">
           <div class="col-xs-12 col-lg-12 nopadding">
@@ -34,7 +34,7 @@
                     <template v-slot:activator="{ on, attrs }">
                       <v-text-field
                         :disabled="showAdd"
-                        v-model="item.assessed_date"
+                        v-model="assessed_date"
                         label="Date Issued"
                         append-icon="mdi-calendar"
                         hide-details
@@ -67,7 +67,7 @@
                     <template v-slot:activator="{ on, attrs }">
                       <v-text-field
                         :disabled="showAdd"
-                        v-model="item.date_sent_to_nslsc"
+                        v-model="date_sent_to_nslsc"
                         label="Date Sent to NSLSC"
                         append-icon="mdi-calendar"
                         hide-details
@@ -100,7 +100,7 @@
                     <template v-slot:activator="{ on, attrs }">
                       <v-text-field
                         :disabled="showAdd"
-                        v-model="item.date_student_signed"
+                        v-model="date_student_signed"
                         label="Date Student Signed"
                         append-icon="mdi-calendar"
                         hide-details
@@ -133,7 +133,7 @@
                     <template v-slot:activator="{ on, attrs }">
                       <v-text-field
                         :disabled="showAdd"
-                        v-model="item.date_received_by_nslsc"
+                        v-model="date_received_by_nslsc"
                         label="Date Received by NSLSC"
                         append-icon="mdi-calendar"
                         hide-details
@@ -180,7 +180,7 @@
                     <template v-slot:activator="{ on, attrs }">
                       <v-text-field
                         :disabled="showAdd"
-                        v-model="item.date_cancelled"
+                        v-model="date_cancelled"
                         label="Date Cancelled"
                         append-icon="mdi-calendar"
                         hide-details
@@ -300,7 +300,7 @@
               <template v-slot:activator="{ on, attrs }">
                 <v-text-field
                   :disabled="showAdd"
-                  v-model="item.response_date"
+                  v-model="response_date"
                   label="Response Date"
                   append-icon="mdi-calendar"
                   hide-details

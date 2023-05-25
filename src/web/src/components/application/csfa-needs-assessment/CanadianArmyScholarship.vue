@@ -1,7 +1,7 @@
 <template>
   <div class="home">
     <div class="col-md-12">
-      <v-card class="default mb-5 bg-color-blue card-padding-bottom" v-for="item, index in application.funding_requests" :key="index">
+      <v-card class="default mb-5 bg-color-blue card-padding-bottom">
         <v-card-title>Assessment - Canadian Army Scholarship</v-card-title>
         <v-card-text>
           <h3><strong>Disbursment - Miscellaneous</strong></h3>
@@ -11,7 +11,6 @@
                 <div class="col-md-9">
                   <v-menu
                     :disabled="showAdd"
-                    v-model="item.assessed_date_menu"
                     :close-on-content-click="false"
                     transition="scale-transition"
                     left
@@ -22,7 +21,6 @@
                     <template v-slot:activator="{ on, attrs }">
                       <v-text-field
                         :disabled="showAdd"
-                        v-model="item.assessed_date"
                         label="Assessed Date"
                         append-icon="mdi-calendar"
                         hide-details
@@ -36,8 +34,6 @@
                     </template>
                     <v-date-picker
                       :disabled="showAdd"
-                      v-model="item.assessed_date"
-                      @input="item.assessed_date_menu = false"
                     ></v-date-picker>
                   </v-menu>
                 </div>
@@ -48,7 +44,6 @@
                 <div class="col-md-9">
                   <v-menu
                     :disabled="showAdd"
-                    v-model="item.issue_date_menu"
                     :close-on-content-click="false"
                     transition="scale-transition"
                     left
@@ -59,7 +54,6 @@
                     <template v-slot:activator="{ on, attrs }">
                       <v-text-field
                         :disabled="showAdd"
-                        v-model="item.issue_date"
                         label="Issue Date"
                         append-icon="mdi-calendar"
                         hide-details
@@ -73,8 +67,6 @@
                     </template>
                     <v-date-picker
                       :disabled="showAdd"
-                      v-model="item.issue_date"
-                      @input="item.issue_date_menu = false"
                     ></v-date-picker>
                   </v-menu>
                 </div>
@@ -85,7 +77,6 @@
                 <div class="col-md-9">
                   <v-menu
                     :disabled="showAdd"
-                    v-model="item.due_date_menu"
                     :close-on-content-click="false"
                     transition="scale-transition"
                     left
@@ -96,7 +87,6 @@
                     <template v-slot:activator="{ on, attrs }">
                       <v-text-field
                         :disabled="showAdd"
-                        v-model="item.due_date"
                         label="Due Date"
                         append-icon="mdi-calendar"
                         hide-details
@@ -110,8 +100,6 @@
                     </template>
                     <v-date-picker
                       :disabled="showAdd"
-                      v-model="item.due_date"
-                      @input="item.due_date_menu = false"
                     ></v-date-picker>
                   </v-menu>
                 </div>
@@ -129,8 +117,6 @@
                     background-color="white"
                     hide-details
                     label="Disbursment Type"
-                    @change="updateFundingRequest({ request_type_id: item.request_type_id }, item.id)"
-                    v-model="item.request_type_id"
                     :items="fundingTypeOptions"
                     item-text="DESCRIPTION"
                     item-value="REQUEST_TYPE_ID"

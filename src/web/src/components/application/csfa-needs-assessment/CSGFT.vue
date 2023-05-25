@@ -1,7 +1,7 @@
 <template>
   <div class="home csgft-assessment">
     <div class="col-md-12">
-      <v-card class="default mb-5 bg-color-blue" v-for="item, index in application.funding_requests" :key="index">
+      <v-card class="default mb-5 bg-color-blue">
         <div class="col-lg-12 nopadding d-flex flex-wrap low-margin">
           <v-card-title class="col-xs-12 col-lg-8">Assessment - CSGFT</v-card-title>
           <div class="col-xs-12 col-lg-4 nopadding d-flex">
