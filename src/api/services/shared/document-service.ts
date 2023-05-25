@@ -114,7 +114,10 @@ export class DocumentService {
     student_id: string | number,
     application_id: string | number,
     file: UploadedFile,
-    requirement_type_id: number
+    requirement_type_id: number,
+    disability_requirement_id: string | number,
+    person_id: string | number,
+    dependent_id: string | number
   ) {
     let fRef = {
       object_key: nanoid(),
@@ -134,6 +137,9 @@ export class DocumentService {
       comment: "This is fake",
       status: FileStatus.UNREVIEWED,
       status_date: new Date(),
+      disability_requirement_id,
+      person_id,
+      dependent_id,
     } as FileReference;
 
     await this.uploadFile(fRef);
@@ -144,7 +150,10 @@ export class DocumentService {
     student_id: string | number,
     application_id: string | number,
     file: UploadedFile,
-    requirement_type_id: number
+    requirement_type_id: number,
+    disability_requirement_id: string | number,
+    person_id: string | number,
+    dependent_id: string | number
   ) {
     let fRef = {
       object_key: nanoid(),
@@ -164,6 +173,9 @@ export class DocumentService {
       comment: "This is fake",
       status: FileStatus.UNREVIEWED,
       status_date: new Date(),
+      disability_requirement_id,
+      person_id,
+      dependent_id,
     } as FileReference;
 
     await this.uploadFile(fRef);
