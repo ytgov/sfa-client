@@ -20,3 +20,16 @@ portalReferenceRouter.get("/education_level", async (req: Request, res: Response
 portalReferenceRouter.get("/relationship", async (req: Request, res: Response) => {
   res.json({ data: await db.getRelationships() });
 });
+
+portalReferenceRouter.get("/first-nation", async (req: Request, res: Response) => {
+  res.json({ data: await db.getFirstNations() });
+});
+
+portalReferenceRouter.get("/student-category", async (req: Request, res: Response) => {
+  res.json({ data: await db.getStudentCategories() });
+});
+
+portalReferenceRouter.get("/high-school/:provinceId", async (req: Request, res: Response) => {
+  const { provinceId } = req.params;
+  res.json({ data: await db.getHighSchools(provinceId) });
+});
