@@ -456,11 +456,11 @@ export default {
     
     async showPDF() {
       try {
-        let buf = await fetch("http://localhost:3000/api/portal/student/1788/application/6049/files/SsoIoSvz7QX1YoPOY_Wet")
+        /*let buf = await fetch("http://localhost:3000/api/portal/student/1788/application/6049/files/SsoIoSvz7QX1YoPOY_Wet")
         .then((r) => r.arrayBuffer()) ;
         const blob = new Blob([buf], {type: 'application/pdf'});
-        const blobURL = URL.createObjectURL(blob) || "";
-        this.$refs.showPdf.showModal(blobURL);
+        const blobURL = URL.createObjectURL(blob) || "";*/
+        this.$refs.showPdf.showModal("https://ww1.microchip.com/downloads/en/DeviceDoc/Atmel-7810-Automotive-Microcontrollers-ATmega328P_Datasheet.pdf");
       } catch (error) {
         console.log(error);
       }
