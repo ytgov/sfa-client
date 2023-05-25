@@ -64,7 +64,7 @@ portalStudentRouter.post("/:sub/link", async (req: Request, res: Response) => {
 //uploads a document
 portalStudentRouter.post("/:student_id/draft/:application_id/files", async (req: Request, res: Response) => {
   const { student_id, application_id } = req.params;
-  const { requirement_type_id } = req.body;
+  const { requirement_type_id, disability_requirement_id, person_id, dependent_id } = req.body;
 
   let email = "michael@icefoganalytics.com"; //req.user.email;
 
@@ -72,7 +72,7 @@ portalStudentRouter.post("/:student_id/draft/:application_id/files", async (req:
     let files = Array.isArray(req.files.files) ? req.files.files : [req.files.files];
 
     for (let file of files) {
-      await documentService.uploadDraftDocument(email, student_id, application_id, file, requirement_type_id);
+      await documentService.uploadDraftDocument(email, student_id, application_id, file, requirement_type_id, disability_requirement_id, person_id, dependent_id);
     }
     return res.json({ message: "success" });
   }
@@ -82,7 +82,7 @@ portalStudentRouter.post("/:student_id/draft/:application_id/files", async (req:
 //uploads a document
 portalStudentRouter.post("/:student_id/application/:application_id/files", async (req: Request, res: Response) => {
   const { student_id, application_id } = req.params;
-  const { requirement_type_id } = req.body;
+  const { requirement_type_id, disability_requirement_id, person_id, dependent_id } = req.body;
 
   let email = "michael@icefoganalytics.com"; //req.user.email;
 
@@ -90,7 +90,7 @@ portalStudentRouter.post("/:student_id/application/:application_id/files", async
     let files = Array.isArray(req.files.files) ? req.files.files : [req.files.files];
 
     for (let file of files) {
-      await documentService.uploadApplicationDocument(email, student_id, application_id, file, requirement_type_id);
+      await documentService.uploadApplicationDocument(email, student_id, application_id, file, requirement_type_id, disability_requirement_id, person_id, dependent_id);
     }
     return res.json({ message: "success" });
   }

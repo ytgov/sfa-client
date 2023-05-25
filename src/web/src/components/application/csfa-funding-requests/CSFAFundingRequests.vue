@@ -1,6 +1,6 @@
 <template>
   <div class="home">
-    <h1>CSL Funding Requests</h1>
+    <h1>CSFA Funding Requests</h1>
 
     <v-tabs v-model="tab" background-color="#fff2d5" color="primary">
       <v-tab key="0">CSFA Full-Time</v-tab>
