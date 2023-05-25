@@ -1,7 +1,21 @@
 <template>
   <div class="home">
-    <h1>Funding Status</h1>
-    <div class="col-md-12">
+    <div class="col-md-12 d-flex">
+      <v-btn
+        v-if="!showFundings"
+        @click="showFundingStatus"
+        color="warning"
+        x-small
+        fab
+        class="mt-2 mr-5"
+        title="Cancel"
+      >
+        <v-icon>mdi-keyboard-backspace</v-icon>
+      </v-btn>
+
+      <h1>Funding Status</h1>
+    </div>
+    <div class="col-md-12"  v-if="showFundings">
       <v-card class="default mb-5" v-for="item, index in application.funding_requests" :key="index">
         <v-card-text>
           <div class="row">
@@ -59,7 +73,7 @@
                 dense
                 color="blue" 
                 class="my-0"
-                @click="assessmentLoadForm(item)"
+                @click="showAssessment(item?.request_type_id || null)"
                 block
               >
                 Assessment
@@ -148,13 +162,15 @@
         </v-card-text>
       </v-card>
     </div>
+    <component v-if="!showFundings && assessmentTypeId" :is="assessmentTypeC" />
   </div>
 </template>
 
 <script>
 import store from "../../store";
 import axios from "axios";
-import moment from "moment";
+//Grants and Scholarships
+import { assessmentType } from "@/components/application/assessmentType.js";
 import {
   REQUIREMENT_TYPE_URL,
   FUNDING_TYPE_URL,
@@ -165,12 +181,20 @@ import {
 
 export default {
   name: "Home",
+  components: {
+  },
   computed: {
+    assessmentTypeC() {
+      const id = this.assessmentTypeId;
+      return assessmentType(id);
+    },
     application: function () {
       return store.getters.selectedApplication;
     },
   },
   data: () => ({
+    assessmentTypeId: null,
+    showFundings: true,
     showAdd: false,
     applicationId: -1,
     fundingTypeOptions: [],
@@ -185,6 +209,7 @@ export default {
       status_date: null,
       status_date_menu: false,
       received_date_menu: false,
+      assessmentsComponents: {}
     },
   }),
   async created() {
@@ -203,6 +228,13 @@ export default {
     store.dispatch("setAppSidebar", true);
   },
   methods: {
+    showAssessment(id) {
+      this.showFundings = false;
+      this.assessmentTypeId = id;
+    },
+    showFundingStatus() {
+      this.showFundings = true;
+    },
     setClose() {
       this.newRecord = {
       request_type_id: null,
