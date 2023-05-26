@@ -1835,3 +1835,10 @@ CREATE TABLE sfa.vendor_update (
     update_completed_date DATE NULL,
     student_id INT NOT NULL REFERENCES sfa.student
 )
+
+CREATE TABLE sfa.field_program (
+    id INT IDENTITY (1,1) PRIMARY KEY,
+    study_field_id INT NOT NULL REFERENCES sfa.study_field (id),
+    program_id INT NOT NULL REFERENCES sfa.program (id),
+    field_program_code float(8) NULL
+);

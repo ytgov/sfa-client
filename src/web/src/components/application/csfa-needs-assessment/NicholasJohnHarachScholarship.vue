@@ -2,7 +2,7 @@
   <div class="home">
     <div class="col-md-12">
       <v-card class="default mb-5 bg-color-blue card-padding-bottom">
-        <v-card-title>Assessment - Canadian Army Scholarship</v-card-title>
+        <v-card-title>Assessment - Nicholas John Harach Scholarship</v-card-title>
         <v-card-text>
           <h3><strong>Disbursment - Miscellaneous</strong></h3>
           <div class="row">
