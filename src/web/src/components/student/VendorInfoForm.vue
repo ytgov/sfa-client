@@ -728,13 +728,13 @@ export default {
             header.style.display = "flex";            
             header.style.padding = "15px";            
             header.style.paddingBottom = "0px";                        
-            header.style.marginBottom = "-13px";  
+            header.style.marginBottom = "-13px";               
 
             const container = document.createElement("div");     
-            container.style.width = "190px";      
+            container.style.width = "190px";                  
 
             const subcontainer = document.createElement("div");   
-            subcontainer.style.width = "145px";  
+            subcontainer.style.width = "104px";               
                        
             let boxContainer1 = document.createElement("div");                                   
             let boxContainer2 = document.createElement("div");                 
@@ -815,21 +815,24 @@ export default {
 
             const line = document.createElement("img");
             line.src = lineSrc;
-            line.style.width = "156px";
+            line.style.width = "100%";
             line.style.height = "1px";
-            line.style.marginLeft = "20px";
+            line.style.paddingLeft = "15px";            
+            line.style.paddingRight = "15px";            
+            
 
             const line2 = document.createElement("img");
             line2.src = lineSrc;
-            line2.style.width = "156px";
+            line2.style.width = "100%";
             line2.style.height = "1px";
-            line2.style.marginLeft = "20px";
+            line2.style.paddingLeft = "15px";
+            line2.style.paddingRight = "15px";
 
             const line3 = document.createElement("img");
             line3.src = lineSrc;
             line3.style.width = "57px";
             line3.style.height = "1px";
-            line3.style.marginLeft = "44px";            
+            line3.style.marginLeft = "39px";            
 
             const line4 = document.createElement("img");
             line4.src = lineSrc;
@@ -854,11 +857,11 @@ export default {
                 element.src = squareSrc;
                 element.style.width = "5px";
                 element.style.height = "5px";   
-                element.style.marginLeft = "70px";  
+                element.style.marginLeft = "65px";  
             }
 
             square1.style.marginLeft = "0";      
-            square4.style.marginLeft = "56px";                           
+            square4.style.marginLeft = "51px";                                                      
 
             /* SPANS */             
             
@@ -922,46 +925,46 @@ export default {
             for(let info of vendorArray) {        
                 info.style.fontSize = "4px";
                 info.style.marginBottom = "2px";                                
-                info.style.paddingLeft = "20px";                                                       
+                info.style.paddingLeft = "15px";                                                       
             }           
 
             for(let i = 0; i < vendorSpans.length; i++) {
                 switch (i) {
                     case 0:
-                        vendorSpans[i].style.paddingLeft = "20px";                                                
+                        vendorSpans[i].style.paddingLeft = "19px";                                                
                         break;                    
                     case 1:
-                    vendorSpans[i].style.paddingLeft = "27px";  
+                    vendorSpans[i].style.paddingLeft = "26px";  
                         break;
                     case 2:
-                    vendorSpans[i].style.paddingLeft = "1px";      
+                    vendorSpans[i].style.paddingLeft = "0px";      
                         break;
                     case 3:
-                    vendorSpans[i].style.paddingLeft = "12px";  
+                    vendorSpans[i].style.paddingLeft = "11px";  
                         break;
                     case 4:
-                    vendorSpans[i].style.paddingLeft = "20px";  
+                    vendorSpans[i].style.paddingLeft = "19px";  
                         break;
                     case 5:
-                    vendorSpans[i].style.paddingLeft = "15px";  
+                    vendorSpans[i].style.paddingLeft = "14px";  
                         break;
                     case 6:
-                    vendorSpans[i].style.paddingLeft = "24px";  
+                    vendorSpans[i].style.paddingLeft = "23px";  
                         break;
                     case 7:
-                    vendorSpans[i].style.paddingLeft = "9px";  
+                    vendorSpans[i].style.paddingLeft = "8px";  
                         break;
                     case 8:
-                    vendorSpans[i].style.paddingLeft = "5px";                      
+                    vendorSpans[i].style.paddingLeft = "4px";                      
                         break;
                     case 9:
-                    vendorSpans[i].style.paddingLeft = "16px";  
+                    vendorSpans[i].style.paddingLeft = "15px";  
                         break;   
                     case 10:
-                    vendorSpans[i].style.paddingLeft = "10px";  
+                    vendorSpans[i].style.paddingLeft = "9px";  
                         break;   
                     case 11:
-                    vendorSpans[i].style.paddingLeft = "9px";  
+                    vendorSpans[i].style.paddingLeft = "8px";  
                         break;                          
                     default:
                         break;
@@ -1054,7 +1057,7 @@ export default {
 
             /* FOOTER */
             const footerP1Container = document.createElement("div");                     
-            footerP1Container.style.marginLeft = "20px";     
+            footerP1Container.style.marginLeft = "15px";     
             footerP1Container.style.marginBottom = "-12px";    
             footerP1Container.style.marginTop = "50px";    
             footerP1Container.style.display = "flex";              
@@ -1063,19 +1066,18 @@ export default {
             const footerParagraph0 = document.createElement("p");
             footerParagraph0.innerHTML = "Prepared by: " + this.username;              
             footerParagraph0.style.fontSize = "4px";              
-            footerParagraph0.style.width = "90px"; 
+            footerParagraph0.style.width = "87px";             
 
             const footerParagraph1 = document.createElement("p");
-            footerParagraph1.innerHTML = "Department: E-13A" + "<span style='padding-right: 5px'></span>Date:" + formattedDate(spanCreatedDate.innerText, 1);  
+            footerParagraph1.innerHTML = "Department: E-13A" + "<span style='padding-right: 4px'></span>Date:" + formattedDate(spanCreatedDate.innerText, 1);  
             footerParagraph1.style.fontSize = "4px";              
             // footerParagraph1.style.marginBottom = "-12px";                          
-            footerParagraph1.style.width = "90px"; 
+            footerParagraph1.style.width = "80px";             
                                                 
             const footerParagraph2 = document.createElement("p");
-            footerParagraph2.innerText = "Financial Approval:_______________________________ Date:________________";  
+            footerParagraph2.innerText = "Financial Approval: ______________________________ Date: ____________________";  
             footerParagraph2.style.fontSize = "4px";  
-            footerParagraph2.style.paddingLeft = "20px";  
-            footerParagraph2.style.paddingRight = "20px";  
+            footerParagraph2.style.paddingLeft = "15px";              
             footerParagraph2.style.marginBottom = "5px";  
 
             const footerParagraph3 = document.createElement("p");
@@ -1086,7 +1088,8 @@ export default {
             function footer(){
                 doc.setFont("'Nunito', sans-serif;");                
                 doc.setFontSize(10);
-                doc.text(170,285, 'page ' + doc.internal.getCurrentPageInfo().pageNumber + " of " + doc.internal.getNumberOfPages());
+                doc.text(167,285, 'page ' + doc.internal.getCurrentPageInfo().pageNumber + " of " + doc.internal.getNumberOfPages());
+                
                 doc.page ++;
             };
 
@@ -1102,8 +1105,8 @@ export default {
 
             footerParagraph3.innerText = currentDate;  
             footerParagraph3.style.fontSize = "4px";     
-            footerParagraph3.style.paddingLeft = "20px";  
-            footerParagraph3.style.paddingRight = "20px";          
+            footerParagraph3.style.paddingLeft = "15px";  
+            footerParagraph3.style.paddingRight = "15px";          
             
             
             /* APPENDS*/ 
