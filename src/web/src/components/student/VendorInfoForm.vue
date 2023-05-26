@@ -1086,9 +1086,9 @@ export default {
 
 
             function footer(){
-                doc.setFont("'Nunito', sans-serif;");                
-                doc.setFontSize(10);
-                doc.text(167,285, 'page ' + doc.internal.getCurrentPageInfo().pageNumber + " of " + doc.internal.getNumberOfPages());
+                doc.setFont("Montserrat");                
+                doc.setFontSize(11);
+                doc.text(167,284, 'page ' + doc.internal.getCurrentPageInfo().pageNumber + " of " + doc.internal.getNumberOfPages());
                 
                 doc.page ++;
             };
