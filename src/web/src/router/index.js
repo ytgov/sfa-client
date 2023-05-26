@@ -23,6 +23,8 @@ import CSFAFundingRequests from "../components/application/csfa-funding-requests
 import CSFANeedsAssessment from "../components/application/csfa-needs-assessment/CSFANeedsAssessment";
 import Documentation from "../components/application/Documentation";
 
+import YukonHuskysCBRadioClubScholarship from "../components/application/csfa-needs-assessment/YukonHuskysCBRadioClubScholarship.vue";
+import NicholasJohnHarachScholarship from "../components/application/csfa-needs-assessment/NicholasJohnHarachScholarship.vue";
 import CSLFT from "../components/application/csfa-needs-assessment/CSLFT.vue";
 import CSLPT from "../components/application/csfa-needs-assessment/CSLPT.vue";
 import CSGPTDEP from "../components/application/csfa-needs-assessment/CSGPTDEP.vue";
@@ -163,6 +165,22 @@ const routes = [
     path: "/application/:id/assessment/canadian-armys-cholarship/0",
     name: "CanadianArmyScholarship",
     component: CanadianArmyScholarship,
+    meta: {
+      requiresAuth: true
+    }
+  },
+  {
+    path: "/application/:id/assessment/nicholas-john-harach-scholarship/0",
+    name: "NicholasJohnHarachScholarship",
+    component: NicholasJohnHarachScholarship,
+    meta: {
+      requiresAuth: true
+    }
+  },
+  {
+    path: "/application/:id/assessment/yukon-huskys-CB-Radio-Club-Scholarship/0",
+    name: "YukonHuskysCBRadioClubScholarship",
+    component: YukonHuskysCBRadioClubScholarship,
     meta: {
       requiresAuth: true
     }
