@@ -1,10 +1,12 @@
 import express, { Request, Response } from "express";
 import { PortalApplicationService, PortalStudentService } from "../../services/portal";
+import { DocumentService } from "../../services/shared";
 
 export const portalApplicationRouter = express.Router();
 
 const applicationService = new PortalApplicationService();
 const studentService = new PortalStudentService();
+const documentService = new DocumentService();
 
 portalApplicationRouter.get("/:sub", async (req: Request, res: Response) => {
   const { sub } = req.params;
@@ -49,6 +51,25 @@ portalApplicationRouter.put("/:sub/:draftId", async (req: Request, res: Response
       update_date: new Date(),
     });
     res.json({ data: applications });
+  }
+
+  res.status(404);
+});
+
+portalApplicationRouter.delete("/:sub/:draftId", async (req: Request, res: Response) => {
+  const { sub, draftId } = req.params;
+  let student = await studentService.getBySub(sub);
+
+  if (student) {
+    let applications = await applicationService.getDraftsForStudent(student.id);
+    let appIds = applications.map((a) => a.id);
+
+    if (appIds.includes(parseInt(draftId))) {
+      await documentService.deleteDocumentsForDraft(parseInt(draftId));
+      await applicationService.deleteDraft(parseInt(draftId));
+    }
+
+    res.json({ data: "success" });
   }
 
   res.status(404);

@@ -63,6 +63,11 @@ export class DocumentService {
     return await db<FileReferenceBase>("sfa.file_reference").where({ application_id });
   }
 
+  //return the Document metadata
+  async getDocumentsForDraft(application_draft_id: number): Promise<FileReferenceBase[]> {
+    return await db<FileReferenceBase>("sfa.file_reference").where({ application_draft_id });
+  }
+
   //return the Document metadata and file
   async getDocumentWithFile(object_key: string): Promise<FileReference | undefined> {
     // pull the
@@ -79,6 +84,15 @@ export class DocumentService {
     }
 
     return undefined;
+  }
+
+  //return the Document metadata
+  async deleteDocumentsForDraft(application_draft_id: number): Promise<any> {
+    let draftFiles = await db<FileReferenceBase>("sfa.file_reference").where({ application_draft_id });
+
+    for (let file of draftFiles) {
+      await this.removeDocument(file.object_key);
+    }
   }
 
   // returns the number of documents removed (0 or 1)
