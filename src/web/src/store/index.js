@@ -52,7 +52,7 @@ import expenseCategory from "@/modules/expense-category/store";
 import equipmentCategory from "@/modules/equipment-category/store";
 import adminCrud from "./adminCrud";
 import axios from "axios";
-import { APPLICATION_URL, STUDENT_URL } from "../urls"
+import { APPLICATION_URL, STUDENT_URL } from "../urls";
 
 Vue.use(Vuex);
 
@@ -71,13 +71,13 @@ export default new Vuex.Store({
     monthOptions: [],
   },
   getters: {
-    showAppSidebar: state => state.showAppSidebar,
-    showSideBarAdmin: state => state.showSideBarAdmin,
-    selectedStudent: state => state.selectedStudent,
-    selectedApplication: state => state.selectedApplication,
-    recentStudents: state => state.recentStudents,
-    yearOptions: state => state.yearOptions,
-    monthOptions: state => state.monthOptions,
+    showAppSidebar: (state) => state.showAppSidebar,
+    showSideBarAdmin: (state) => state.showSideBarAdmin,
+    selectedStudent: (state) => state.selectedStudent,
+    selectedApplication: (state) => state.selectedApplication,
+    recentStudents: (state) => state.recentStudents,
+    yearOptions: (state) => state.yearOptions,
+    monthOptions: (state) => state.monthOptions,
   },
   mutations: {
     SET_MONTH_OPTIONS(state, value) {
@@ -109,7 +109,7 @@ export default new Vuex.Store({
       state.selectedStudentId = value.id;
       state.selectedStudent = value;
 
-      let isRecent = state.recentStudents.filter(r => r.id == value.id);
+      let isRecent = state.recentStudents.filter((r) => r.id == value.id);
 
       if (isRecent.length == 0) {
         state.recentStudents.unshift(value);
@@ -120,7 +120,7 @@ export default new Vuex.Store({
       state.selectedStudentLocator = "";
       state.selectedStudentId = 0;
       state.selectedStudent = {};
-    }
+    },
   },
   actions: {
     setAppSidebar(state, value) {
@@ -133,24 +133,21 @@ export default new Vuex.Store({
       const options = [];
       const startYear = value;
       const currentYear = new Date().getFullYear();
-    
+
       for (let i = currentYear; i >= startYear; i--) {
-        options.push({ value: i,  text: i.toString(), });
+        options.push({ value: i, text: i.toString() });
       }
 
       state.commit("SET_YEAR_OPTIONS", options);
-
     },
     setMonthOptions(state) {
-      
       const options = [];
-      
+
       for (let i = 1; i <= 12; i++) {
-        options.push({ value: i,  text: i.toString(), });
+        options.push({ value: i, text: i.toString() });
       }
 
       state.commit("SET_MONTH_OPTIONS", options);
-
     },
     setStudent(state, value) {
       state.commit("SET_STUDENT", value);
@@ -177,27 +174,31 @@ export default new Vuex.Store({
     async updateStudent(state, vals) {
       const url = vals[6] !== undefined ? vals[6] : "";
       const isInsertion = vals[7] !== undefined ? vals[7] : false;
-      let body = JSON.parse(`{"data": { "${vals[0]}": "${vals[1]}" }, "type": "${vals[2]}", "extraId": "${vals[3]}"}`);
-      
+      let body = JSON.parse(
+        `{"data": { "${vals[0]}": "${vals[1]}" }, "type": "${vals[2]}", "extraId": "${vals[3]}"}`
+      );
+
       if (vals[1] === null) {
         body.data[vals[0]] = null;
       }
 
       if (isInsertion) {
-        body = { ...body, data: vals[1]};
+        body = { ...body, data: vals[1] };
       }
-      
+
       let emitter = vals[4];
-      
-      body = vals[5]?.length > 0 ?
-        { ...body, addressType: vals[5] }
-        :
-        { ...body, addressType: null };
+
+      body =
+        vals[5]?.length > 0
+          ? { ...body, addressType: vals[5] }
+          : { ...body, addressType: null };
 
       try {
         if (isInsertion) {
-          const resInsert = await axios
-            .post(`${STUDENT_URL}/${state.state.selectedStudentId}${url}`, body);
+          const resInsert = await axios.post(
+            `${STUDENT_URL}/${state.state.selectedStudentId}${url}`,
+            body
+          );
 
           const message = resInsert?.data?.messages[0];
 
@@ -213,8 +214,10 @@ export default new Vuex.Store({
             emitter.$emit("showError", message.text);
           }
         } else {
-          const resUpdate = await axios
-            .put(`${STUDENT_URL}/${state.state.selectedStudentId}${url}`, body);
+          const resUpdate = await axios.put(
+            `${STUDENT_URL}/${state.state.selectedStudentId}${url}`,
+            body
+          );
 
           const message = resUpdate?.data?.messages[0];
 
@@ -247,18 +250,18 @@ export default new Vuex.Store({
 
       let emitter = vals[2];
 
-      axios.put(`${APPLICATION_URL}/${state.state.selectedApplicationId}`, body)
-        .then(resp => {
+      axios
+        .put(`${APPLICATION_URL}/${state.state.selectedApplicationId}`, body)
+        .then((resp) => {
           let message = resp.data.messages[0];
           if (message.variant == "success")
             emitter.$emit("showSuccess", message.text);
-          else
-            emitter.$emit("showError", message.text);
+          else emitter.$emit("showError", message.text);
         })
-        .catch(err => {
+        .catch((err) => {
           console.log("ERROR HAPPENED", err);
           emitter.$emit("showError", err.data.messages[0].text);
-        })
+        });
     },
     updateConsent(state, vals) {
       let emitter = vals[1];
@@ -269,42 +272,45 @@ export default new Vuex.Store({
         let id = consent.id;
         delete consent.id;
 
-        axios.put(`${STUDENT_URL}/${state.state.selectedStudentId}/consent/${id}`, consent)
-          .then(resp => {
+        axios
+          .put(
+            `${STUDENT_URL}/${state.state.selectedStudentId}/consent/${id}`,
+            consent
+          )
+          .then((resp) => {
             let message = resp.data.messages[0];
             if (message.variant == "success") {
               let student = state.state.selectedStudent;
               student.consents = resp.data.data;
               state.commit("SET_STUDENT", student);
               emitter.$emit("showSuccess", message.text);
-            }
-            else
-              emitter.$emit("showError", message.text);
+            } else emitter.$emit("showError", message.text);
           })
-          .catch(err => {
+          .catch((err) => {
             console.log("ERROR HAPPENED", err);
             emitter.$emit("showError", err.data.messages[0].text);
-          })
-      }
-      else {
+          });
+      } else {
         //console.log("DOING POST", consent)
 
-        axios.post(`${STUDENT_URL}/${state.state.selectedStudentId}/consent`, consent)
-          .then(resp => {
+        axios
+          .post(
+            `${STUDENT_URL}/${state.state.selectedStudentId}/consent`,
+            consent
+          )
+          .then((resp) => {
             let message = resp.data.messages[0];
             if (message.variant == "success") {
               let student = state.state.selectedStudent;
               student.consents = resp.data.data;
               state.commit("SET_STUDENT", student);
               emitter.$emit("showSuccess", message.text);
-            }
-            else
-              emitter.$emit("showError", message.text);
+            } else emitter.$emit("showError", message.text);
           })
-          .catch(err => {
+          .catch((err) => {
             console.log("ERROR HAPPENED", err);
             emitter.$emit("showError", err.data.messages[0].text);
-          })
+          });
       }
     },
     deleteConsent(state, vals) {
@@ -312,106 +318,101 @@ export default new Vuex.Store({
       let consent = vals[0];
       let id = consent.id;
 
-      axios.delete(`${STUDENT_URL}/${state.state.selectedStudentId}/consent/${id}`)
-        .then(resp => {
+      axios
+        .delete(`${STUDENT_URL}/${state.state.selectedStudentId}/consent/${id}`)
+        .then((resp) => {
           let message = resp.data.messages[0];
           if (message.variant == "success")
             emitter.$emit("showSuccess", message.text);
-          else
-            emitter.$emit("showError", message.text);
+          else emitter.$emit("showError", message.text);
         })
-        .catch(err => {
+        .catch((err) => {
           console.log("ERROR HAPPENED", err);
           emitter.$emit("showError", err.data.messages[0].text);
-        })
+        });
     },
 
     deleteEducation(state, vals) {
       let emitter = vals[0];
       let idToDelete = vals[1];
 
-      axios.delete(`${STUDENT_URL}/${idToDelete}/education`)
-        .then(resp => {
+      axios
+        .delete(`${STUDENT_URL}/${idToDelete}/education`)
+        .then((resp) => {
           let message = resp.data.messages[0];
           if (message.variant == "success")
             emitter.$emit("showSuccess", message.text);
-          else
-            emitter.$emit("showError", message.text);
+          else emitter.$emit("showError", message.text);
         })
-        .catch(err => {
+        .catch((err) => {
           console.log("ERROR HAPPENED", err);
           emitter.$emit("showError", err.data.messages[0].text);
         })
         .finally(() => {
           state.dispatch("loadStudent", emitter.student.id);
         });
-         
     },
     deleteConsent(state, vals) {
       let emitter = vals[0];
       let idToDelete = vals[1];
 
-      axios.delete(`${STUDENT_URL}/${idToDelete}/consent`)
-        .then(resp => {
+      axios
+        .delete(`${STUDENT_URL}/${idToDelete}/consent`)
+        .then((resp) => {
           let message = resp.data.messages[0];
           if (message.variant == "success")
             emitter.$emit("showSuccess", message.text);
-          else
-            emitter.$emit("showError", message.text);
+          else emitter.$emit("showError", message.text);
         })
-        .catch(err => {
+        .catch((err) => {
           console.log("ERROR HAPPENED", err);
           emitter.$emit("showError", err.data.messages[0].text);
         })
         .finally(() => {
           state.dispatch("loadStudent", emitter.student.id);
         });
-         
     },
     deleteDependent(state, vals) {
       let emitter = vals[0];
       let idToDelete = vals[1];
 
-      axios.delete(`${STUDENT_URL}/${idToDelete}/dependent`)
-        .then(resp => {
+      axios
+        .delete(`${STUDENT_URL}/${idToDelete}/dependent`)
+        .then((resp) => {
           let message = resp.data.messages[0];
           if (message.variant == "success")
             emitter.$emit("showSuccess", message.text);
-          else
-            emitter.$emit("showError", message.text);
+          else emitter.$emit("showError", message.text);
         })
-        .catch(err => {
+        .catch((err) => {
           console.log("ERROR HAPPENED", err);
           emitter.$emit("showError", err.data.messages[0].text);
         })
         .finally(() => {
           state.dispatch("loadStudent", emitter.student.id);
         });
-         
     },
     deleteResidence(state, vals) {
       let emitter = vals[0];
       let idToDelete = vals[1];
 
-      axios.delete(`${STUDENT_URL}/${idToDelete}/residence`)
-        .then(resp => {
+      axios
+        .delete(`${STUDENT_URL}/${idToDelete}/residence`)
+        .then((resp) => {
           let message = resp.data.messages[0];
           if (message.variant == "success")
             emitter.$emit("showSuccess", message.text);
-          else
-            emitter.$emit("showError", message.text);
+          else emitter.$emit("showError", message.text);
         })
-        .catch(err => {
+        .catch((err) => {
           console.log("ERROR HAPPENED", err);
           emitter.$emit("showError", err.data.messages[0].text);
         })
         .finally(() => {
           state.dispatch("loadStudent", emitter.student.id);
         });
-         
     },
   },
 
   modules: { auth, profile, institution, student, province, countries, cities, cslCode, addressType, indigenousLearner, Language, maritalStatus, studyField, parentalRelationship, firstNation, portalStatus, sex, studentCategory, applicationType, highSchool, ageDistribution, institutionLevel, assessmentType, batchGroup, educationLevel, status, statusReason, yukonGrantEligibility, disbursementType, reasonsForChange, fundingGroup, disabilityType, aboriginalStatus, disabilityService, relationships, studyArea, program, cslClassification, citizenship, prestudyEmploymentStatus, academicYear, agency, instructionType, programDivision, attendance, documentStatus, incomeType, expenseCategory, equipmentCategory, adminCrud, }
-
 });
