@@ -1183,10 +1183,11 @@ export default {
             vendor.appendChild(spanVendor);     
             paymentType.appendChild(spanPaymentType);
 
+            let fileName = `Vendor ID ${spanVendor.innerText}  - Request ${this.student.vendor_updates[index].id}`
 
             doc.html(container, {
                 callback: function (doc) {
-                doc.save();
+                doc.save(fileName);
             },
             x: 10,
             y: 10
