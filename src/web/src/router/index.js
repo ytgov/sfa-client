@@ -23,6 +23,20 @@ import CSFAFundingRequests from "../components/application/csfa-funding-requests
 import CSFANeedsAssessment from "../components/application/csfa-needs-assessment/CSFANeedsAssessment";
 import Documentation from "../components/application/Documentation";
 
+import CSLFT from "../components/application/csfa-needs-assessment/CSLFT.vue";
+import CSLPT from "../components/application/csfa-needs-assessment/CSLPT.vue";
+import CSGPTDEP from "../components/application/csfa-needs-assessment/CSGPTDEP.vue";
+import CSGPT from "../components/application/csfa-needs-assessment/CSGPT.vue";
+import CSGDSE from "../components/application/csfa-needs-assessment/CSGDSE.vue";
+import CSGTP from "../components/application/csfa-needs-assessment/CSGTP.vue";
+import CSGD from "../components/application/csfa-needs-assessment/CSGD.vue";
+import CSGFTDEP from "../components/application/csfa-needs-assessment/CSGFTDEP.vue";
+import CSGFT from "../components/application/csfa-needs-assessment/CSGFT.vue";
+import CanadianArmyScholarship from "../components/application/csfa-needs-assessment/CanadianArmyScholarship.vue";
+import TrainingAllowance from "../components/application/csfa-needs-assessment/TrainingAllowance.vue";
+import YukonGrant from "../components/application/csfa-needs-assessment/YukonGrant.vue";
+import YukonExcellenceAwards from "../components/application/csfa-needs-assessment/YukonExcellenceAwards.vue";
+
 import StudentModuleRoutes from "@/modules/student/router";
 import ApplicationTypeModuleRooutes from "@/modules/application-type/router";
 import InstitutionModuleRoutes from "@/modules/institution/router";
@@ -145,6 +159,113 @@ const routes = [
       requiresAuth: true
     }
   },
+  {
+    path: "/application/:id/assessment/canadian-armys-cholarship/0",
+    name: "CanadianArmyScholarship",
+    component: CanadianArmyScholarship,
+    meta: {
+      requiresAuth: true
+    }
+  },
+  {
+    path: "/application/:id/assessment/training-allowance/0",
+    name: "CanadianArmyScholarship",
+    component: TrainingAllowance,
+    meta: {
+      requiresAuth: true
+    }
+  },
+  {
+    path: "/application/:id/assessment/yukon-grant/0",
+    name: "YukonGrant",
+    component: YukonGrant,
+    meta: {
+      requiresAuth: true
+    }
+  },
+  {
+    path: "/application/:id/assessment/yukon-excellence-awards/0",
+    name: "YukonExcellenceAwards",
+    component: YukonExcellenceAwards,
+    meta: {
+      requiresAuth: true
+    }
+  },
+  {
+    path: "/application/:id/assessment/csgft/0",
+    name: "CSGFT",
+    component: CSGFT,
+    meta: {
+      requiresAuth: true
+    }
+  },
+  {
+    path: "/application/:id/assessment/csgftdep/0",
+    name: "CSGFTDEP",
+    component: CSGFTDEP,
+    meta: {
+      requiresAuth: true
+    }
+  },
+  {
+    path: "/application/:id/assessment/csgd/0",
+    name: "CSGD",
+    component: CSGD,
+    meta: {
+      requiresAuth: true
+    }
+  },
+  {
+    path: "/application/:id/assessment/csgtp/0",
+    name: "CSGTP",
+    component: CSGTP,
+    meta: {
+      requiresAuth: true
+    }
+  },
+  {
+    path: "/application/:id/assessment/csgdse/0",
+    name: "CSGTP",
+    component: CSGDSE,
+    meta: {
+      requiresAuth: true
+    }
+  },
+  {
+    path: "/application/:id/assessment/csgpt/0",
+    name: "CSGPT",
+    component: CSGPT,
+    meta: {
+      requiresAuth: true
+    }
+  },
+  {
+    path: "/application/:id/assessment/csgptdep/0",
+    name: "CSGPTDEP",
+    component: CSGPTDEP,
+    meta: {
+      requiresAuth: true
+    }
+  },
+  {
+    path: "/application/:id/assessment/cslpt/0",
+    name: "CSLPT",
+    component: CSLPT,
+    meta: {
+      requiresAuth: true
+    }
+  },
+  {
+    path: "/application/:id/assessment/CSLFT/0",
+    name: "CSLFT",
+    component: CSLFT,
+    meta: {
+      requiresAuth: true
+    }
+  },
+  
+
+
   {
     path: "/student/:id",
     name: "StudentDetails",

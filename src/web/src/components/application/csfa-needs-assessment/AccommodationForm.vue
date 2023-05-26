@@ -49,7 +49,9 @@
               hide-details
               label="I own my home"
               v-model="application.prestudy_own_home"
-              @change="doSaveApp('prestudy_own_home', application.prestudy_own_home)"
+              @change="
+                doSaveApp('prestudy_own_home', application.prestudy_own_home)
+              "
             ></v-switch>
           </div>
 
@@ -61,11 +63,12 @@
               hide-details
               label="City"
               v-model="application.prestudy_city_id"
-              @change="doSaveApp('prestudy_city_id', application.prestudy_city_id)"
+              @change="
+                doSaveApp('prestudy_city_id', application.prestudy_city_id)
+              "
               :items="cities"
               item-text="description"
               item-value="id"
-
             ></v-autocomplete>
           </div>
           <div class="col-md-6">
@@ -76,7 +79,12 @@
               hide-details
               label="Province"
               v-model="application.prestudy_province_id"
-              @change="doSaveApp('prestudy_province_id', application.prestudy_province_id)"
+              @change="
+                doSaveApp(
+                  'prestudy_province_id',
+                  application.prestudy_province_id
+                )
+              "
               :items="provinces"
               item-text="description"
               item-value="id"
@@ -116,7 +124,9 @@
               label="If no, distance from school/work (km)"
               @keypress="validate.isNumber($event)"
               v-model="application.prestudy_distance"
-              @change="doSaveApp('prestudy_distance', application.prestudy_distance)"
+              @change="
+                doSaveApp('prestudy_distance', application.prestudy_distance)
+              "
             ></v-text-field>
           </div>
         </div>
@@ -190,7 +200,9 @@
               hide-details
               label="Province"
               v-model="application.study_province_id"
-              @change="doSaveApp('study_province_id', application.study_province_id)"
+              @change="
+                doSaveApp('study_province_id', application.study_province_id)
+              "
               :items="provinces"
               item-text="description"
               item-value="id"
@@ -203,7 +215,12 @@
               hide-details
               label="Living with spouse (see Spouse data)"
               v-model="application.study_living_w_spouse"
-              @change="doSaveApp('study_living_w_spouse', application.study_living_w_spouse)"
+              @change="
+                doSaveApp(
+                  'study_living_w_spouse',
+                  application.study_living_w_spouse
+                )
+              "
             ></v-switch>
           </div>
           <div class="col-md-4 pt-0">
@@ -235,8 +252,8 @@
 </template>
 
 <script>
-import store from '@/store';
-import { mapGetters } from 'vuex';
+import store from "@/store";
+import { mapGetters } from "vuex";
 import validator from "@/validator";
 export default {
   data: () => ({
@@ -273,7 +290,7 @@ export default {
   }),
   computed: {
     ...mapGetters(["cities", "provinces"]),
-    application: function () {
+    application: function() {
       return store.getters.selectedApplication;
     },
   },
@@ -281,11 +298,13 @@ export default {
     store.dispatch("setCities");
     store.dispatch("setProvinces");
     this.validate = { ...validator };
-    
   },
   methods: {
     doSaveApp(field, value) {
       store.dispatch("updateApplication", [field, value, this]);
+    },
+    logSelectedOption() {
+      console.log(`Selected option: ${this.prestudy.housing}`);
     },
   },
 };

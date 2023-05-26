@@ -15,6 +15,9 @@ export interface FileReferenceBase {
   mime_type: string;
   file_size: number;
   comment?: string;
+  person_id?: number;
+  dependent_id?: number;
+  disability_requirement_id?: number;
 }
 
 export interface FileReference extends FileReferenceBase {
