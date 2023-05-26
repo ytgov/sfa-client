@@ -23,6 +23,7 @@ import CSFAFundingRequests from "../components/application/csfa-funding-requests
 import CSFANeedsAssessment from "../components/application/csfa-needs-assessment/CSFANeedsAssessment";
 import Documentation from "../components/application/Documentation";
 
+import GrantforMatureLearnersTop_Up from "../components/application/csfa-needs-assessment/GrantforMatureLearnersTop_Up.vue";
 import YukonHuskysCBRadioClubScholarship from "../components/application/csfa-needs-assessment/YukonHuskysCBRadioClubScholarship.vue";
 import NicholasJohnHarachScholarship from "../components/application/csfa-needs-assessment/NicholasJohnHarachScholarship.vue";
 import CSLFT from "../components/application/csfa-needs-assessment/CSLFT.vue";
@@ -181,6 +182,14 @@ const routes = [
     path: "/application/:id/assessment/yukon-huskys-CB-Radio-Club-Scholarship/0",
     name: "YukonHuskysCBRadioClubScholarship",
     component: YukonHuskysCBRadioClubScholarship,
+    meta: {
+      requiresAuth: true
+    }
+  },
+  {
+    path: "/application/:id/assessment/Grant-for-Mature-Learners-Top-Up/0",
+    name: "GrantforMatureLearnersTop_Up",
+    component: GrantforMatureLearnersTop_Up,
     meta: {
       requiresAuth: true
     }
