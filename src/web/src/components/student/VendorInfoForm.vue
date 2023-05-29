@@ -684,7 +684,7 @@ export default {
                     this.vendorData.VendAddrL2?.trim(),
                     this.vendorData.VendAddrCity?.trim(),
                     this.vendorData.VendAddrPost?.trim(),
-                    this.vendorData.VendAddrProv?.trim(),
+                    this.vendorData.VendAddrProv?.trim(),                    
                 ];
                 const address_line = addresses?.filter(d => Boolean(d)).join(", ");
 
@@ -720,7 +720,8 @@ export default {
             };
             this.showAdd = false;
         },
-        generatePDF(index) {                    
+        generatePDF(index) {       
+            console.log(this.vendorData);
             const doc = new jsPDF();                        
 
             /* CONTAINERS */            
@@ -911,7 +912,7 @@ export default {
             vendor.innerText = "VENDOR ID - ASSIGNED BY FINANCE: ";
             paymentType.innerText = "Payment Type: ";
            
-            spanPaymentType.innerText = "C";
+            spanPaymentType.innerText = this.vendorData.VendPayTypeCode;
             spanVendorName.innerText = this.vendorInfo;
             spanAddress.innerText = this.student.vendor_updates[index].address;    
             spanPostalCode.innerText = this.student.vendor_updates[index].postal_code;
