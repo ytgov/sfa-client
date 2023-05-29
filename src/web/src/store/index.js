@@ -50,6 +50,7 @@ import documentStatus from "@/modules/income-type/store";
 import incomeType from "@/modules/document-status/store";
 import expenseCategory from "@/modules/expense-category/store";
 import equipmentCategory from "@/modules/equipment-category/store";
+import changeReason from "@/modules/change-reason/store";
 import adminCrud from "./adminCrud";
 import axios from "axios";
 import { APPLICATION_URL, STUDENT_URL } from "../urls";
@@ -414,5 +415,5 @@ export default new Vuex.Store({
     },
   },
 
-  modules: { auth, profile, institution, student, province, countries, cities, cslCode, addressType, indigenousLearner, Language, maritalStatus, studyField, parentalRelationship, firstNation, portalStatus, sex, studentCategory, applicationType, highSchool, ageDistribution, institutionLevel, assessmentType, batchGroup, educationLevel, status, statusReason, yukonGrantEligibility, disbursementType, reasonsForChange, fundingGroup, disabilityType, aboriginalStatus, disabilityService, relationships, studyArea, program, cslClassification, citizenship, prestudyEmploymentStatus, academicYear, agency, instructionType, programDivision, attendance, documentStatus, incomeType, expenseCategory, equipmentCategory, adminCrud, }
+  modules: { auth, profile, institution, student, province, countries, cities, cslCode, addressType, indigenousLearner, Language, maritalStatus, studyField, parentalRelationship, firstNation, portalStatus, sex, studentCategory, applicationType, highSchool, ageDistribution, institutionLevel, assessmentType, batchGroup, educationLevel, status, statusReason, yukonGrantEligibility, disbursementType, reasonsForChange, fundingGroup, disabilityType, aboriginalStatus, disabilityService, relationships, studyArea, program, cslClassification, citizenship, prestudyEmploymentStatus, academicYear, agency, instructionType, programDivision, attendance, documentStatus, incomeType, expenseCategory, equipmentCategory, changeReason, adminCrud, }
 });
