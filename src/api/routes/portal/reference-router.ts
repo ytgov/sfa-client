@@ -33,3 +33,11 @@ portalReferenceRouter.get("/high-school/:provinceId", async (req: Request, res: 
   const { provinceId } = req.params;
   res.json({ data: await db.getHighSchools(provinceId) });
 });
+
+portalReferenceRouter.get("/marital_status", async (req: Request, res: Response) => {
+  res.json({ data: await db.getMaritalStatus() });
+});
+
+portalReferenceRouter.get("/aboriginal_status", async (req: Request, res: Response) => {
+  res.json({ data: await db.getAboriginalStatus() });
+});

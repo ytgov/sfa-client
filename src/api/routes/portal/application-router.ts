@@ -45,14 +45,43 @@ portalApplicationRouter.put("/:sub/:draftId", async (req: Request, res: Response
   let student = await studentService.getBySub(sub);
 
   if (student) {
-    let applications = await applicationService.updateDraft(parseInt(draftId), {
-      application_json,
-      is_active,
-      update_date: new Date(),
-    });
-    res.json({ data: applications });
+    let applications = await applicationService.getDraftsForStudent(student.id);
+    let appIds = applications.map((a) => a.id);
+
+    if (appIds.includes(parseInt(draftId))) {
+      let result = await applicationService.updateDraft(parseInt(draftId), {
+        application_json,
+        is_active,
+        update_date: new Date(),
+      });
+      res.json({ data: result });
+    }
   }
 
+  res.status(404);
+});
+
+portalApplicationRouter.put("/:sub/:draftId/submit", async (req: Request, res: Response) => {
+  const { sub, draftId } = req.params;
+  const { application_json, is_active } = req.body;
+
+  let student = await studentService.getBySub(sub);
+
+  if (student) {
+    let applications = await applicationService.getDraftsForStudent(student.id);
+    let appIds = applications.map((a) => a.id);
+
+    if (appIds.includes(parseInt(draftId))) {
+      let application = await applicationService.submitDraft(parseInt(draftId));
+
+      if (application) {
+        let draftDocs = await documentService.getDocumentsForDraft(parseInt(draftId));
+        documentService.draftToApplication(parseInt(draftId), application.id);
+
+        res.json({ data: application });
+      }
+    }
+  }
   res.status(404);
 });
 

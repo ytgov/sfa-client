@@ -199,6 +199,10 @@ export class DocumentService {
     return await db("sfa.file_reference").where({ object_key }).update(forUpdate(input));
   }
 
+  async draftToApplication(application_draft_id: number, application_id: number) {
+    await db<FileReferenceBase>("sfa.file_reference").where({ application_draft_id }).update({ application_id });
+  }
+
   // writes a document to storage and the database
   async uploadFile(input: FileReference): Promise<FileReference> {
     await db("sfa.file_reference").insert(forInsert(input));

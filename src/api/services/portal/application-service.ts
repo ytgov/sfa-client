@@ -1,5 +1,6 @@
 import knex from "knex";
 import { DB_CONFIG } from "../../config";
+import { Application, ApplicationFromDraft } from "../../models";
 import moment from "moment";
 
 const db = knex(DB_CONFIG);
@@ -47,6 +48,29 @@ export class PortalApplicationService {
 
   async updateDraft(id: number, draftPartial: any) {
     return await db("application_draft").withSchema(schema).where({ id }).update(draftPartial);
+  }
+
+  async submitDraft(id: number): Promise<undefined | Application> {
+    let draft = await db("application_draft").withSchema(schema).where({ id }).first();
+
+    if (draft) {
+      let draftApp = JSON.parse(draft.application_json);
+
+      let conv = ApplicationFromDraft({ ...draft, ...draftApp });
+
+
+      //let appArr = await db<Application>("sfa.application").insert({}).returning("*");
+
+      /* if (appArr && appArr.length == 1) {
+        let app = appArr[0];
+
+        // dependent
+        //
+        return app;
+      } */
+    }
+
+    return undefined;
   }
 
   async deleteDraft(id: number) {
