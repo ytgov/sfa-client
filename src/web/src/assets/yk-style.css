@@ -124,3 +124,7 @@ ul.v-breadcrumbs {
 .text-error {
     color: #9b1b27 !important;
 }
+
+.on-top div {
+    z-index: 2;
+}
