@@ -81,6 +81,7 @@ export class DocumentService {
     return undefined;
   }
 
+
   // returns the number of documents removed (0 or 1)
   async removeDocument(object_key: string): Promise<number> {
     let docRef = await db<FileReferenceBase>("sfa.file_reference").where({ object_key }).first();
@@ -135,7 +136,7 @@ export class DocumentService {
       mime_type: file.mimetype,
       file_size: file.size,
       comment: "This is fake",
-      status: FileStatus.UNREVIEWED,
+      status: 1,
       status_date: new Date(),
       disability_requirement_id,
       person_id,
@@ -171,7 +172,7 @@ export class DocumentService {
       mime_type: file.mimetype,
       file_size: file.size,
       comment: "This is fake",
-      status: FileStatus.UNREVIEWED,
+      status: 1,
       status_date: new Date(),
       disability_requirement_id,
       person_id,
