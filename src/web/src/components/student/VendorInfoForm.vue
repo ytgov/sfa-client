@@ -913,7 +913,7 @@ export default {
             paymentType.innerText = "Payment Type: ";
            
             spanPaymentType.innerText = this.vendorData.VendPayTypeCode;
-            spanVendorName.innerText = this.vendorInfo;
+            spanVendorName.innerText = this.vendorData.VendName;
             spanAddress.innerText = this.student.vendor_updates[index].address;    
             spanPostalCode.innerText = this.student.vendor_updates[index].postal_code;
             spanTelephone.innerText = this.student.vendor_updates[index].telephone;
@@ -1089,7 +1089,7 @@ export default {
             function footer(){
                 doc.setFont("Montserrat");                
                 doc.setFontSize(11);
-                doc.text(167,284, 'page ' + doc.internal.getCurrentPageInfo().pageNumber + " of " + doc.internal.getNumberOfPages());
+                doc.text(167,284, 'Page ' + doc.internal.getCurrentPageInfo().pageNumber + " of " + doc.internal.getNumberOfPages());
                 
                 doc.page ++;
             };
