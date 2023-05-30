@@ -46,7 +46,7 @@
               <div class="col-sm-4 col-lg-4">
                 <v-menu
                   :disabled="showAdd"
-                  v-model="item.assessed_date_menu"
+                  v-model="assessed_date_menu"
                   :close-on-content-click="false"
                   transition="scale-transition"
                   left
@@ -57,7 +57,7 @@
                   <template v-slot:activator="{ on, attrs }">
                     <v-text-field
                       :disabled="showAdd"
-                      v-model="item.assessed_date"
+                      v-model="assessed_date"
                       label="Assessed Date"
                       append-icon="mdi-calendar"
                       hide-details
@@ -71,8 +71,8 @@
                   </template>
                   <v-date-picker
                     :disabled="showAdd"
-                    v-model="item.assessed_date"
-                    @input="item.assessed_date_menu = false"
+                    v-model="assessed_date"
+                    @input="assessed_date_menu = false"
                   ></v-date-picker>
                 </v-menu>
               </div>
@@ -291,130 +291,25 @@
         </v-card-text>
       </v-card>
     </div>
-    <div class="col-lg-12">
-      <v-card class="default mb-5 bg-color-blue">
-        <v-card-title>Disbursement (s)</v-card-title>
-        <div class="col-xs-12 col-sm-12 col-lg-12 d-flex noppading-bottom">
-          <div class="col-xs-2 col-sm-2 col-lg-2 nopadding d-flex align-center justify-center">
-            <p class="nomargin">Disbursed Amt</p>
-          </div>
-          <div class="col-xs-1 col-sm-1 col-lg-1 nopadding d-flex align-center justify-center">
-            <p class="nomargin">Reference #</p>
-          </div>
-          <div class="col-xs-2 col-sm-2 col-lg-2 nopadding d-flex align-center justify-center">
-            <p class="nomargin">Disbursement Type</p>
-          </div>
-          <div class="col-xs-1 col-sm-1 col-lg-1 nopadding d-flex align-center justify-center">
-            <p class="nomargin">Issue Date</p>
-          </div>
-          <div class="col-xs-1 col-sm-1 col-lg-1 nopadding d-flex align-center justify-center">
-            <p class="nomargin">Tax Year</p>
-          </div>
-          <div class="col-xs-1 col-sm-1 col-lg-1 nopadding d-flex align-center justify-center">
-            <p class="nomargin">Due Date</p>
-          </div>
-          <div class="col-xs-3 col-sm-3 col-lg-3 nopadding d-flex align-center justify-center">
-            <p class="nomargin">Change Reason</p>
-          </div>
-          <div class="col-xs-1 col-sm-1 col-lg-1 nopadding d-flex align-center justify-center">
-            <p class="nomargin">Batch ID</p>
-          </div>
-        </div>
-        <div class="col-xs-12 col-sm-12 col-lg-12 d-flex low-margin noppading-top">
-          <div class="col-xs-2 col-sm-2 col-lg-2 nopadding">
-            <v-text-field
-              outlined
-              dense
-              background-color="white"
-              hide-details
-              @keypress="validate.isNumber($event)"
-              v-model="disbursed_amt"
-            ></v-text-field>
-          </div>
-          <div class="col-xs-1 col-sm-1 col-lg-1 nopadding">
-            <v-text-field
-              outlined
-              dense
-              background-color="white"
-              hide-details
-              @keypress="validate.isNumber($event)"
-              v-model="reference_number"
-            ></v-text-field>
-          </div>
-          <div class="col-xs-2 col-sm-2 col-lg-2 nopadding">
-            <v-select
-              :disabled="showAdd"
-              outlined
-              dense
-              background-color="white"
-              hide-details
-              v-model="disbursement_type"
-              item-text="DESCRIPTION"
-              item-value="REQUEST_TYPE_ID"
-            ></v-select>
-          </div>
-          <div class="col-xs-1 col-sm-1 col-lg-1 nopadding">
-            <v-text-field
-              outlined
-              dense
-              background-color="white"
-              hide-details
-              @keypress="validate.isNumber($event)"
-              v-model="issue_date"
-            ></v-text-field>
-          </div>
-          <div class="col-xs-1 col-sm-1 col-lg-1 nopadding">
-            <v-text-field
-              outlined
-              dense
-              background-color="white"
-              hide-details
-              @keypress="validate.isNumber($event)"
-              v-model="tax_year"
-            ></v-text-field>
-          </div>
-          <div class="col-xs-1 col-sm-1 col-lg-1 nopadding">
-            <v-text-field
-              outlined
-              dense
-              background-color="white"
-              hide-details
-              @keypress="validate.isNumber($event)"
-              v-model="due_date"
-            ></v-text-field>
-          </div>
-          <div class="col-xs-3 col-sm-3 col-lg-3 nopadding">
-            <v-select
-              :disabled="showAdd"
-              outlined
-              dense
-              background-color="white"
-              hide-details
-              v-model="disbursement_type"
-              item-text="DESCRIPTION"
-              item-value="REQUEST_TYPE_ID"
-            ></v-select>
-          </div>
-          <div class="col-xs-1 col-sm-1 col-lg-1 nopadding">
-            <v-text-field
-              outlined
-              dense
-              background-color="white"
-              hide-details
-              @keypress="validate.isNumber($event)"
-              v-model="family_size"
-            ></v-text-field>
-          </div>
-        </div>
-      </v-card>
-    </div>
+    <Disbursement
+      :disbursements="disbursements"
+    ></Disbursement>
   </div>
 </template>
 <script>
 import store from "../../../store";
 import validator from "@/validator";
+import Disbursement from "./Disbursement.vue";
 export default {
   name: "Home",
+  components: {
+    Disbursement,
+  },
+  data() {
+    return {
+      disbursements: [1,2,3]
+    };
+  },
   computed: {
     application: function () {
       return store.getters.selectedApplication;
