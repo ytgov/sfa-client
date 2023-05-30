@@ -5,6 +5,30 @@ const db = knex(DB_CONFIG);
 const schema = "sfa";
 
 export class ReferenceService {
+  async getCities(): Promise<any[]> {
+    return db("city")
+      .withSchema(schema)
+      .where({ is_active: true })
+      .select(["id", "description"])
+      .orderBy("description");
+  }
+
+  async getProvinces(): Promise<any[]> {
+    return db("province")
+      .withSchema(schema)
+      .where({ is_active: true })
+      .select(["id", "description"])
+      .orderBy("description");
+  }
+
+  async getCountries(): Promise<any[]> {
+    return db("country")
+      .withSchema(schema)
+      .where({ is_active: true })
+      .select(["id", "description"])
+      .orderBy("description");
+  }
+
   async getInstitutions(): Promise<any[]> {
     return db("institution")
       .withSchema(schema)
@@ -44,7 +68,7 @@ export class ReferenceService {
       .withSchema(schema)
       .where({ is_active: true })
       .select(["id", "description"])
-      .orderBy("id");
+      .orderBy("description");
   }
 
   async getHighSchools(province_id?: string): Promise<any[]> {
@@ -71,5 +95,46 @@ export class ReferenceService {
       .where({ is_active: true })
       .select(["id", "description"])
       .orderBy("id");
+  }
+
+  async getCitizenship(): Promise<any[]> {
+    return db("citizenship")
+      .withSchema(schema)
+      .where({ is_active: true })
+      .whereNot({ id: 0 })
+      .select(["id", "description"])
+      .orderBy("id");
+  }
+
+  async getIncomeTypes(): Promise<any[]> {
+    return db("income_type").withSchema(schema).where({ is_active: true }).select(["id", "description"]).orderBy("id");
+  }
+
+  async getStudyFields(): Promise<any[]> {
+    let fields = await db("study_field")
+      .withSchema(schema)
+      .where({ is_active: true })
+      .select(["id", "description"])
+      .orderBy("description");
+    let areas = await db("study_area")
+      .withSchema(schema)
+      .where({ is_active: true, show_online: true })
+      .select(["id", "description", "study_field_id"])
+      .orderBy("description");
+
+    for (let field of fields) {
+      field.areas = areas.filter((a) => a.study_field_id == field.id);
+      field.areas.map((a: any) => delete a.study_field_id);
+    }
+
+    return fields;
+  }
+
+  async getPrograms(): Promise<any[]> {
+    return db("program")
+      .withSchema(schema)
+      .where({ is_active: true })
+      .select(["id", "description"])
+      .orderBy("education_level_id", "id");
   }
 }

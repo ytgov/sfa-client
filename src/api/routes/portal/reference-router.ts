@@ -5,8 +5,16 @@ export const portalReferenceRouter = express.Router();
 
 const db = new ReferenceService();
 
-portalReferenceRouter.get("/city", (req: Request, res: Response) => {
-  res.send(["Whitehorse", "Tagish"]);
+portalReferenceRouter.get("/city", async (req: Request, res: Response) => {
+  res.json({ data: await db.getCities() });
+});
+
+portalReferenceRouter.get("/province", async (req: Request, res: Response) => {
+  res.json({ data: await db.getProvinces() });
+});
+
+portalReferenceRouter.get("/country", async (req: Request, res: Response) => {
+  res.json({ data: await db.getCountries() });
 });
 
 portalReferenceRouter.get("/institution", async (req: Request, res: Response) => {
@@ -40,4 +48,20 @@ portalReferenceRouter.get("/marital_status", async (req: Request, res: Response)
 
 portalReferenceRouter.get("/aboriginal_status", async (req: Request, res: Response) => {
   res.json({ data: await db.getAboriginalStatus() });
+});
+
+portalReferenceRouter.get("/citizenship", async (req: Request, res: Response) => {
+  res.json({ data: await db.getCitizenship() });
+});
+
+portalReferenceRouter.get("/income-type", async (req: Request, res: Response) => {
+  res.json({ data: await db.getIncomeTypes() });
+});
+
+portalReferenceRouter.get("/study-field", async (req: Request, res: Response) => {
+  res.json({ data: await db.getStudyFields() });
+});
+
+portalReferenceRouter.get("/program", async (req: Request, res: Response) => {
+  res.json({ data: await db.getPrograms() });
 });
