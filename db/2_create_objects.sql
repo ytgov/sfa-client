@@ -1802,7 +1802,7 @@ CREATE TABLE sfa.file_reference (
     person_id INT NULL REFERENCES sfa.person,
     dependent_id INT NULL REFERENCES sfa.dependent,
     disability_requirement_id INT NULL REFERENCES sfa.disability_requirement,
-    status VARCHAR(50) NOT NULL,
+    status INT NULL REFERENCES sfa.document_status,
     status_date DATETIME2(0) NOT NULL,
     bucket VARCHAR(50) NOT NULL,
     file_name NVARCHAR(200) NOT NULL,
