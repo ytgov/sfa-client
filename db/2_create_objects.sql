@@ -955,7 +955,9 @@ CREATE TABLE sfa.expense_category
     id                         INT IDENTITY (1,1) PRIMARY KEY,
     report_expense_category_id INT           NULL REFERENCES sfa.report_expense_category,
     description                NVARCHAR(200) NOT NULL,
-    is_active                  BIT           NOT NULL DEFAULT 1
+    is_active                  BIT           NOT NULL DEFAULT 1,
+    notes                      NVARCHAR(700) NULL,
+    is_required                BIT           NOT NULL DEFAULT 0
 )
 
 -- SFAADMIN.EDUCATION

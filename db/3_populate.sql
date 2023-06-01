@@ -775,6 +775,10 @@ INTO sfa.student_category (code, description, is_active)
 SELECT student_category_code, description, CASE WHEN is_active_flg = 'Y' THEN 1 ELSE 0 END
 FROM sfaadmin.student_category
 
+INSERT INTO sfa.student_category (code, description) VALUES ('IND','Independent')
+UPDATE sfa.student_category SET description = 'Dependent' WHERE id = 1
+UPDATE sfa.student_category SET is_active = 0 WHERE code IN ('MW','SDA','SDH','SIA','SIH')
+
 -- SFAADMIN.STUDENT_CONTRIBUTION
 INSERT
 INTO sfa.student_contribution (academic_year_id, province_id, period_id, student_category_id, contribution_amount)
