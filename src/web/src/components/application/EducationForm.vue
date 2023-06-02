@@ -64,6 +64,7 @@
                         <v-btn
                             color="success"
                             class="my-0"
+                            @click="showPDF"
                         >
                             View HST
                         </v-btn>
@@ -104,6 +105,8 @@
                 </div>
             </v-card-text>
         </v-card>
+         <show-pdf ref="showPdf">
+        </show-pdf>
     </div>
 </template>
 <script>
@@ -111,6 +114,9 @@ import axios from "axios";
 import store from "../../store";
 import { mapGetters, mapState } from 'vuex';
 import validator from "@/validator";
+import {
+  APPLICATION_URL,  
+} from "../../urls";
 
 export default {
   computed: {
@@ -144,6 +150,17 @@ export default {
     doSaveApp(field, value) {
       store.dispatch("updateApplication", [field, value, this]);
     },
+    async showPDF() {      
+      try {              
+          let buf = await fetch(APPLICATION_URL + `/${this.application.id}/student/${this.student.id}/files/1`)           
+            .then((r) => r.arrayBuffer());                        
+            const blob = new Blob([buf], {type: 'application/pdf'});
+            const blobURL = URL.createObjectURL(blob) || "";                   
+            this.$refs.showPdf.showModal(blobURL);                                                                   
+      } catch (error) {
+        console.log(error);
+      }
+    }
   },
 };
 </script>

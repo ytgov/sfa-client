@@ -345,6 +345,7 @@
                 block
                 class="text-subtitle-2 mt-0"
                 :disabled="!(checkCSGDServicesAndEquipmentRequest && !showAddDisabilityService)"
+                @click="showPDF(45)"
               >
               View quote
               </v-btn>
@@ -354,7 +355,8 @@
                 color="blue"
                 block
                 class="text-subtitle-2 mt-0"
-                disabled
+                
+                @click="showPDF(27)"
               >
               View receipt
               </v-btn>
@@ -584,6 +586,7 @@
                 block
                 class="text-subtitle-2 mt-0"
                 :disabled="!(checkCSGDServicesAndEquipmentRequest && !showAddDisabilityEquipment)"
+                @click="showPDF(46)"
               >
               View quote
               </v-btn>
@@ -593,7 +596,8 @@
                 color="blue"
                 block
                 class="text-subtitle-2 mt-0"
-                disabled
+                
+                @click="showPDF(27)"
               >
               View receipt
               </v-btn>
@@ -701,6 +705,8 @@
       </v-card>
 
       <confirm-dialog ref="confirm"></confirm-dialog>
+      <show-pdf ref="showPdf">
+    </show-pdf>
   </div>
 </template>
 <script>
@@ -770,6 +776,17 @@ export default {
 
   },
   methods: {
+    async showPDF(reqId) {      
+      try {              
+          let buf = await fetch(APPLICATION_URL + `/${this.application.id}/student/${this.student.id}/files/${reqId}`)           
+            .then((r) => r.arrayBuffer());                        
+            const blob = new Blob([buf], {type: 'application/pdf'});
+            const blobURL = URL.createObjectURL(blob) || "";                   
+            this.$refs.showPdf.showModal(blobURL);                                                                   
+      } catch (error) {
+        console.log(error);
+      }
+    },
     setCloseDisabilityEquipment() {
       this.newRecordDisabilityEquipment = {
         equipment_category_id: null,

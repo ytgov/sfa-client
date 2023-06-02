@@ -1596,3 +1596,11 @@ BEGIN
 END
 
 UPDATE sfa.person_address SET is_active = 0 WHERE address1 IS NULL AND city_id IS NULL
+
+-- sfa.field_program
+SET IDENTITY_INSERT sfa.field_program ON
+INSERT
+INTO sfa.field_program (study_field_id, program_id, field_program_code)
+SELECT study_field_id, program_id,field_program_code
+FROM sfaadmin.field_program
+SET IDENTITY_INSERT sfa.field_program OFF

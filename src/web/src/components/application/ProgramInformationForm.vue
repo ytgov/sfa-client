@@ -199,6 +199,7 @@
               <v-btn
               class="mt-0"
               color="success"
+              @click="showPDF(76)"
               >
                 View PIF
               </v-btn>
@@ -345,6 +346,10 @@
         </div>  
       </v-card-text>
     </v-card>
+    
+    <show-pdf ref="showPdf">
+    </show-pdf>
+
   </div>
 </template>
 
@@ -375,6 +380,8 @@ import {
   PROGRAM_TYPE_URL,
   PROGRAM_DIVISION_URL,
   CATEGORY_URL,
+  APPLICATION_URL,
+  STUDENT_URL
 } from "../../urls";
 import { mapGetters } from 'vuex';
 
@@ -383,6 +390,9 @@ export default {
     ...mapGetters(["yearOptions", "countries", "cities", "provinces", 
       "institutionLevels", "studyAreas", "yukonGrantEligibilityList",
       "programs", "attendances", "programDivisions"]),
+    student: function () {
+      return store.getters.selectedStudent;
+    },
     application: function () {
       return store.getters.selectedApplication;
     },
@@ -448,6 +458,18 @@ export default {
     doSaveApp(field, value) {
       store.dispatch("updateApplication", [field, value, this]);
     },
+    
+    async showPDF(reqId) {      
+      try {              
+          let buf = await fetch(APPLICATION_URL + `/${this.application.id}/student/${this.student.id}/files/76`)           
+            .then((r) => r.arrayBuffer());                        
+            const blob = new Blob([buf], {type: 'application/pdf'});
+            const blobURL = URL.createObjectURL(blob) || "";                   
+            this.$refs.showPdf.showModal(blobURL);                                                                   
+      } catch (error) {
+        console.log(error);
+      }
+    }
   },
 };
 </script>
