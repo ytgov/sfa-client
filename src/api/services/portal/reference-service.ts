@@ -150,7 +150,7 @@ export class ReferenceService {
     return db("expense_category")
       .withSchema(schema)
       .where({ is_active: true })
-      .select(["id", "description"])
+      .select(["id", "description", "notes", "is_required"])
       .orderBy("description");
   }
 }
