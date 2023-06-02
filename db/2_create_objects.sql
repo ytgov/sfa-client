@@ -1107,6 +1107,8 @@ CREATE TABLE sfa.application
     spouse_id                      INT            NULL REFERENCES sfa.person,
     parent1_id                     INT            NULL REFERENCES sfa.person,
     parent2_id                     INT            NULL REFERENCES sfa.person,
+    parent1_relationship_id        INT            NULL REFERENCES sfa.relationship,
+    parent2_relationship_id        INT            NULL REFERENCES sfa.relationship,
     parent1_income                 NUMERIC(10, 2) NULL,
     parent1_net_income             NUMERIC(10, 2) NULL,
     parent1_tax_paid               NUMERIC(10, 2) NULL,
@@ -1802,7 +1804,7 @@ CREATE TABLE sfa.file_reference (
     person_id INT NULL REFERENCES sfa.person,
     dependent_id INT NULL REFERENCES sfa.dependent,
     disability_requirement_id INT NULL REFERENCES sfa.disability_requirement,
-    status VARCHAR(50) NOT NULL,
+    status INT NULL REFERENCES sfa.document_status,
     status_date DATETIME2(0) NOT NULL,
     bucket VARCHAR(50) NOT NULL,
     file_name NVARCHAR(200) NOT NULL,
@@ -1835,3 +1837,10 @@ CREATE TABLE sfa.vendor_update (
     update_completed_date DATE NULL,
     student_id INT NOT NULL REFERENCES sfa.student
 )
+
+CREATE TABLE sfa.field_program (
+    id INT IDENTITY (1,1) PRIMARY KEY,
+    study_field_id INT NOT NULL REFERENCES sfa.study_field (id),
+    program_id INT NOT NULL REFERENCES sfa.program (id),
+    field_program_code float(8) NULL
+);

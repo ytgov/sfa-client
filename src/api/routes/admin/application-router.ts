@@ -2,11 +2,14 @@ import express, { Request, Response } from "express";
 import { body, param } from "express-validator";
 import moment from "moment";
 import knex from "knex";
+import { DocumentService } from "../../services/shared";
 import { ReturnValidationErrors } from "../../middleware";
 import { DB_CONFIG } from "../../config";
-
+import { Buffer } from 'buffer';
 const db = knex(DB_CONFIG)
 export const applicationRouter = express.Router();
+export const portalStudentRouter = express.Router();
+const documentService = new DocumentService();
 
 applicationRouter.post("/",
     [body("studentId").notEmpty(), body("academicYear").notEmpty(), body("institutionId").notEmpty()], ReturnValidationErrors,
@@ -137,6 +140,9 @@ applicationRouter.get("/:id",
                 "warning.code_type",
                 "warning.definition"
             ).where("app.id", id).first();
+            application.fileRef = await db("sfa.file_reference").select().where({ application_id: id}).andWhere({student_id: application.student_id});         
+                        
+            
 
           application.reason_code = await db("sfa.application as app").innerJoin("sfa.csl_code as reason", function () {
               this.on("reason.id", "=", "csl_restriction_reason_id");
@@ -268,6 +274,15 @@ applicationRouter.post("/:application_id/status",
                     .where("id", request_type_id)
                     .first();
 
+                const checkIfExist = await db("sfa.funding_request")
+                    .where("request_type_id", request_type_id)
+                    .where("application_id", application_id)
+                    .first();
+
+                if (checkIfExist) {
+                    return res.json({ messages: [{ variant: "error", text: "A record already exist with the same information" }] });
+                }
+
                 if (checkIsActive?.is_active) {
 
                     const resInsert = await db("sfa.funding_request")
@@ -293,6 +308,72 @@ applicationRouter.post("/:application_id/status",
 
     }
 );
+
+// downloads a document      
+    applicationRouter.get("/:application_id/student/:student_id/files/:file_type", async (req: Request, res: Response) => {          
+    const { student_id, application_id, file_type } = req.params;    
+ 
+    //* Ordenar descendente mas nuevo a mas viejo
+    let doc:any = await db("sfa.file_reference").where({ application_id: application_id}).andWhere({student_id: student_id}).andWhere
+    ({requirement_type_id: file_type}).orderBy("upload_date", "desc").first();   
+    
+    if(doc) {
+        let fileReference = await documentService.getDocumentWithFile(doc.object_key);    
+    
+        if (
+          fileReference &&
+          fileReference.student_id == parseInt(student_id) &&
+          fileReference.application_id == parseInt(application_id)
+        ) {
+          res.set("Content-disposition", "attachment; filename=" + fileReference.file_name);
+          res.set("Content-type", fileReference.mime_type);
+          return res.send(fileReference.file_contents);
+        }
+    }
+   
+      
+    res.status(404).send();
+  });
+  
+
+  // downloads a document with extra parameters
+        applicationRouter.get("/:application_id/student/:student_id/files/:file_type/fellow_type/:fellow_type/fellow/:fellow", async (req: Request, res: Response) => {                      
+            console.log(req.params);
+            const { student_id, application_id, file_type, fellow_type, fellow } = req.params;    
+         
+            console.log(student_id, application_id, file_type, fellow_type, fellow);
+            let doc:any;
+            switch(fellow_type) {
+                case "dependent":                    
+                    doc = await db("sfa.file_reference").where({ application_id: application_id}).andWhere({student_id: student_id}).andWhere
+                    ({requirement_type_id: file_type}).andWhere({dependent_id: fellow}).orderBy("upload_date", "desc").first();                      
+                    break;
+                case "parent":
+                    doc = await db("sfa.file_reference").where({ application_id: application_id}).andWhere({student_id: student_id}).andWhere
+                    ({requirement_type_id: file_type}).andWhere({fellow_type: fellow}).orderBy("upload_date", "desc").first();   
+                    break;
+                
+            }
+            
+            if(doc) {
+                let fileReference = await documentService.getDocumentWithFile(doc.object_key);    
+            
+                if (
+                  fileReference &&
+                  fileReference.student_id == parseInt(student_id) &&
+                  fileReference.application_id == parseInt(application_id)
+                ) {
+                  res.set("Content-disposition", "attachment; filename=" + fileReference.file_name);
+                  res.set("Content-type", fileReference.mime_type);
+                  return res.send(fileReference.file_contents);
+                }
+                  
+            }
+            
+            res.status(404).send();
+          });
+          
+  
 
 applicationRouter.put("/:application_id/status/:id",
     [param("application_id").isInt().notEmpty(), param("id").isInt().notEmpty()],

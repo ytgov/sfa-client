@@ -1572,3 +1572,11 @@ FROM [SFAADMIN].[ENTITLEMENT_ERROR]
          INNER JOIN sfa.entitlement_error_codes ON entitlement_error.error_code = entitlement_error_codes.code
          INNER JOIN sfa.disbursement ON [ENTITLEMENT_ERROR].disbursement_id = disbursement.id
 SET IDENTITY_INSERT sfa.entitlement_error OFF
+
+-- sfa.field_program
+SET IDENTITY_INSERT sfa.field_program ON
+INSERT
+INTO sfa.field_program (study_field_id, program_id, field_program_code)
+SELECT study_field_id, program_id,field_program_code
+FROM sfaadmin.field_program
+SET IDENTITY_INSERT sfa.field_program OFF
