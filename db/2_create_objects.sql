@@ -1109,6 +1109,7 @@ CREATE TABLE sfa.application
     spouse_id                      INT            NULL REFERENCES sfa.person,
     parent1_id                     INT            NULL REFERENCES sfa.person,
     parent2_id                     INT            NULL REFERENCES sfa.person,
+    primary_address_id             INT            NULL REFERENCES sfa.person_address,
     parent1_income                 NUMERIC(10, 2) NULL,
     parent1_net_income             NUMERIC(10, 2) NULL,
     parent1_tax_paid               NUMERIC(10, 2) NULL,
