@@ -1576,3 +1576,23 @@ FROM [SFAADMIN].[ENTITLEMENT_ERROR]
          INNER JOIN sfa.entitlement_error_codes ON entitlement_error.error_code = entitlement_error_codes.code
          INNER JOIN sfa.disbursement ON [ENTITLEMENT_ERROR].disbursement_id = disbursement.id
 SET IDENTITY_INSERT sfa.entitlement_error OFF
+
+UPDATE sfa.expense_category SET notes = '(hardware, softwear, and supplies)' WHERE description like 'Computer%'
+UPDATE sfa.expense_category SET notes = '(enter the full cost before any subsidy amount you are eligible for) x (per month)' WHERE description like 'Day Care%'
+UPDATE sfa.expense_category SET notes = '(out of pocket costs greater then covered under any insurance plan). Specify your medical/dental/optical costs: x (per month)' WHERE description like 'Medical%'
+UPDATE sfa.expense_category SET notes = '(you may be required to provide supporting documentation) x (per month)' WHERE description like 'Alimony%'
+UPDATE sfa.expense_category SET notes = '(you may be required to provide supporting documentation) x (per month)' WHERE description like 'Child Support%'
+
+IF NOT EXISTS (SELECT * FROM sfa.expense_category WHERE description like 'Tuition%')
+BEGIN
+	INSERT INTO sfa.expense_category (description, notes, is_active, is_required, report_expense_category_id)
+	VALUES ('Tuition and compulsory fees', '(include even if someone else is paying on your behalf). Do not include residence fees', 1, 1, 10)
+END
+
+IF NOT EXISTS (SELECT * FROM sfa.expense_category WHERE description like 'Books%')
+BEGIN
+	INSERT INTO sfa.expense_category (description, notes, is_active, is_required, report_expense_category_id)
+	VALUES ('Books and supplies', '(e.g. books, pencils, pens, photocopy services, etc.)', 1, 1, 10)
+END
+
+UPDATE sfa.person_address SET is_active = 0 WHERE address1 IS NULL AND city_id IS NULL
