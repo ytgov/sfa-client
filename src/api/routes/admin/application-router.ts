@@ -1720,3 +1720,97 @@ applicationRouter.delete("/disability-equipment/:id", [param("id").isInt().notEm
         }
     }
 );
+
+applicationRouter.get("/:application_id/:funding_request_id/assessments",
+    [param("application_id").isInt().notEmpty(), param("funding_request_id").isInt().notEmpty()], 
+    ReturnValidationErrors, 
+    async (req: Request, res: Response) => {
+        try {
+            const { application_id, funding_request_id } = req.params;
+
+            const application = await db("sfa.application")
+                .where({ id: application_id })
+                .first();
+
+            const fundingRequest = await db("sfa.funding_request")
+                .where({ application_id })
+                .where({ id: funding_request_id })
+                .first();
+
+            if (application && fundingRequest) {
+
+                const getAsessment = await db("sfa.assessment")
+                .where({ funding_request_id });
+
+                const listAssessment = getAsessment.map((a, index) => {
+                    return {
+                        name_assessment: `assessment ${index+1} - ${a.id}`,
+                        ...a,
+                    };
+                });
+
+                return res.json({
+                    messages: [{ variant: "success" }],
+                    data: [ ...listAssessment ],
+                });
+            } else {
+                return res.status(409).send({ messages: [{ variant: "error", text: "Error get data" }] });
+            }
+
+        } catch (error) {
+            console.log(error);
+            return res.status(409).send({ messages: [{ variant: "error", text: "Error get data" }] });
+        }   
+    }
+);
+
+applicationRouter.post("/:application_id/:funding_request_id/assessments",
+    [param("application_id").isInt().notEmpty(), param("funding_request_id").isInt().notEmpty()], 
+    ReturnValidationErrors, 
+    async (req: Request, res: Response) => {
+        try {
+            const { application_id, funding_request_id } = req.params;
+
+            const application = await db("sfa.application")
+                .where({ id: application_id })
+                .first();
+
+            if (application) {
+
+                const fundingRequest = await db("sfa.funding_request")
+                    .where({ application_id })
+                    .where({ id: funding_request_id })
+                    .first();
+
+                if (fundingRequest?.request_type_id === 2) { // Create Assessment YG
+
+                    db.transaction(async (trx) => {
+
+                        const resSP = await db.raw(`EXEC sfa.sp_get_init_value ${funding_request_id}, ${application.id}, ${application.student_id};`);
+
+                        console.log(resSP);
+
+                        return resSP?.[0]?.status
+                            ? res.json({
+                                messages: [{ variant: "success" }],
+                                data: [],
+                            })
+                            : res.json({
+                                messages: [{ variant: "error" }],
+                                data: [],
+                            });
+
+                    });
+                } else {
+                    return res.json({
+                        messages: [{ variant: "error" }],
+                        data: [],
+                    });
+                }
+            }
+        } catch (error) {
+            console.log(error);
+            return res.status(409).send({ messages: [{ variant: "error", text: "Error to insert" }] });
+        }   
+    }
+);

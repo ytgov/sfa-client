@@ -137,4 +137,20 @@ export class ReferenceService {
       .select(["id", "description"])
       .orderBy("education_level_id", "id");
   }
+
+  async getAgencies(): Promise<any[]> {
+    return db("agency")
+      .withSchema(schema)
+      .where({ is_active: true })
+      .select(["id", "description"])
+      .orderBy("description");
+  }
+
+  async getExpenseCategories(): Promise<any[]> {
+    return db("expense_category")
+      .withSchema(schema)
+      .where({ is_active: true })
+      .select(["id", "description", "notes", "is_required"])
+      .orderBy("description");
+  }
 }

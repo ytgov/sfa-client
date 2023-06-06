@@ -21,7 +21,7 @@ portalReferenceRouter.get("/institution", async (req: Request, res: Response) =>
   res.json({ data: await db.getInstitutions() });
 });
 
-portalReferenceRouter.get("/education_level", async (req: Request, res: Response) => {
+portalReferenceRouter.get("/education-level", async (req: Request, res: Response) => {
   res.json({ data: await db.getEducationLevels() });
 });
 
@@ -42,11 +42,11 @@ portalReferenceRouter.get("/high-school/:provinceId", async (req: Request, res: 
   res.json({ data: await db.getHighSchools(provinceId) });
 });
 
-portalReferenceRouter.get("/marital_status", async (req: Request, res: Response) => {
+portalReferenceRouter.get("/marital-status", async (req: Request, res: Response) => {
   res.json({ data: await db.getMaritalStatus() });
 });
 
-portalReferenceRouter.get("/aboriginal_status", async (req: Request, res: Response) => {
+portalReferenceRouter.get("/aboriginal-status", async (req: Request, res: Response) => {
   res.json({ data: await db.getAboriginalStatus() });
 });
 
@@ -64,4 +64,12 @@ portalReferenceRouter.get("/study-field", async (req: Request, res: Response) =>
 
 portalReferenceRouter.get("/program", async (req: Request, res: Response) => {
   res.json({ data: await db.getPrograms() });
+});
+
+portalReferenceRouter.get("/agency", async (req: Request, res: Response) => {
+  res.json({ data: await db.getAgencies() });
+});
+
+portalReferenceRouter.get("/expense-category", async (req: Request, res: Response) => {
+  res.json({ data: await db.getExpenseCategories() });
 });
