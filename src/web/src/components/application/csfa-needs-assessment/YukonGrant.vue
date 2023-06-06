@@ -426,8 +426,7 @@
                     background-color="white"
                     hide-details
                     label="Airfare Amount"
-                    @keypress="validate.isNumber($event)"
-                    v-model="airfare_amount"
+                    v-model="currentAssessment.airfare_amount"
                   ></v-text-field>
                 </div>
               </div>
@@ -439,8 +438,7 @@
                   background-color="white"
                   hide-details
                   label="Disbursement Period 1, 2..."
-                  @keypress="validate.isNumber($event)"
-                  v-model="disbursement_period"
+                  v-model="currentAssessment.air_travel_disbursement_period"
                 ></v-text-field>
               </div>
               <div class="col-sm-6 col-lg-7 low-margin">
@@ -450,8 +448,7 @@
                   background-color="white"
                   hide-details
                   label="No. of disbursements"
-                  @keypress="validate.isNumber($event)"
-                  v-model="no_of_disbursements"
+                  v-model="currentAssessment.disbursements_required"
                 ></v-text-field>
               </div>
             </div>
@@ -465,7 +462,7 @@
                     hide-details
                     label="Adjust Amount"
                     @keypress="validate.isNumber($event)"
-                    v-model="adjust_amount"
+                    v-model="currentAssessment.assessment_adj_amount"
                   ></v-text-field>
                 </div>
                 <div class="col-xs-12 col-lg-12">
@@ -475,8 +472,7 @@
                     background-color="white"
                     hide-details
                     label="Assessed Amount"
-                    @keypress="validate.isNumber($event)"
-                    v-model="assessed_amount"
+                    v-model="currentAssessment.assessed_amount"
                   ></v-text-field>
                 </div>
                 <div class="col-xs-12 col-lg-12 low-margin mobile-noppading-bottom">
@@ -486,8 +482,6 @@
                     background-color="white"
                     hide-details
                     label="Previous Disbursement"
-                    @keypress="validate.isNumber($event)"
-                    v-model="previous_disbursement"
                   ></v-text-field>
                 </div>
               </div>
@@ -514,8 +508,7 @@
                     background-color="white"
                     hide-details
                     label="Over Award"
-                    @keypress="validate.isNumber($event)"
-                    v-model="over_award"
+                    v-model="currentAssessment.over_award"
                   ></v-text-field>
                 </div>
                 <div class="col-xs-12 col-lg-12">
@@ -525,8 +518,7 @@
                     background-color="white"
                     hide-details
                     label="Over Disburse Period"
-                    @keypress="validate.isNumber($event)"
-                    v-model="over_disburse_period"
+                    v-model="currentAssessment.over_award_disbursement_period"
                   ></v-text-field>
                 </div>
                 <div class="col-xs-12 col-lg-12">
@@ -536,7 +528,6 @@
                     background-color="white"
                     hide-details
                     label="Net Amount"
-                    @keypress="validate.isNumber($event)"
                     v-model="net_amount"
                   ></v-text-field>
                 </div>
