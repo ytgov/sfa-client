@@ -1273,9 +1273,9 @@ END
 GO
 
 -- GET_ASSESS_INFO, now FUNCTION
+-- GET_ASSESS_INFO, now FUNCTION
 CREATE OR ALTER FUNCTION sfa.fn_get_assess_info ( 
-    @funding_request_id INT,
-    @assessment_id INT
+    @funding_request_id INT
 )
 RETURNS
 @assessment_record TABLE (
@@ -1322,11 +1322,6 @@ BEGIN
         assessment_id INT
     );
     
-    DECLARE @assess_count NUMERIC;
-    DECLARE @prev_assessment_id INT;
-    
-    SELECT @assess_count = COALESCE(sfa.fn_get_assessment_count(@funding_request_id), 0);
-
     INSERT INTO @temp (
         funding_request_id,
         effective_rate_date , 
@@ -1368,11 +1363,6 @@ BEGIN
         assessment_id
     FROM sfa.fn_get_yg_assessment(@funding_request_id);
 
-    SELECT @prev_assessment_id = assessment_id FROM sfa.fn_get_yg_assessment(@funding_request_id);
-            
-    EXEC sfa.sp_move_disbursement @assessment_id, @prev_assessment_id;
-
-
     INSERT INTO @assessment_record (
        funding_request_id,
        effective_rate_date , 
@@ -1393,7 +1383,7 @@ BEGIN
        assessed_amount,
        assessment_id
     )
-    SELECT TOP 1
+    SELECT
         @funding_request_id,
         effective_rate_date , 
         classes_end_date,
@@ -1424,6 +1414,7 @@ CREATE OR ALTER PROCEDURE sfa.sp_get_init_value
 AS
 BEGIN
     DECLARE @assessment_id INT;
+    DECLARE @prev_assessment_id INT;
 
     IF EXISTS (SELECT 1 FROM sfa.assessment WHERE funding_request_id = @funding_request_id)
         BEGIN
@@ -1467,15 +1458,21 @@ BEGIN
                     assessment_type_id = 2
                 FROM (
                     SELECT * FROM sfa.fn_get_assess_info (
-                        @funding_request_id,
-                        @assessment_id
+                        @funding_request_id
                     )
                 ) t
-                WHERE assessment_id = @assessment_id;
+                WHERE id = @assessment_id;
+
+                SELECT @prev_assessment_id = assessment_id FROM sfa.fn_get_yg_assessment(@funding_request_id);
+            
+                EXEC sfa.sp_move_disbursement @assessment_id, @prev_assessment_id;
+
+                SELECT 1 as status, 'Inserted success' AS message, @assessment_id AS assessment_id_inserted;
 
                 COMMIT TRANSACTION
             END TRY
             BEGIN CATCH
+                SELECT 0 as status, 'Error to insert' AS message;
                 ROLLBACK TRANSACTION;
             END CATCH
         END
@@ -1529,15 +1526,18 @@ BEGIN
                     )
                 ) t
                 WHERE id = @assessment_id;
-
+                
+                SELECT 1 as status, 'Inserted success' AS message, @assessment_id AS assessment_id_inserted;
                 COMMIT TRANSACTION
             END TRY
             BEGIN CATCH
+                SELECT 0 as status, 'Error to insert' AS message;
                 ROLLBACK TRANSACTION;
             END CATCH
             
         END
 END
+GO
 
 -- END FUNCTIONS TO ASSESSMENT_YG --
 
