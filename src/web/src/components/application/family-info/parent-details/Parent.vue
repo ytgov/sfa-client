@@ -36,6 +36,7 @@
             <v-spacer></v-spacer>
             <div class="col-md-3">
                 <v-autocomplete 
+                    v-if="index === 1"
                     outlined 
                     dense 
                     background-color="white" 
@@ -44,8 +45,22 @@
                     item-text="description"
                     item-value="id"
                     label="Relationship"
-                    v-model="parent.relationship_id"
-                    @change="update( parent.id, {relationship_id: parent.relationship_id} )"
+                    v-model="application.parent1_relationship_id"
+                    @change="doSaveApp( 'parent1_relationship_id', application.parent1_relationship_id )"
+                >
+                </v-autocomplete>
+                <v-autocomplete
+                    v-else
+                    outlined 
+                    dense 
+                    background-color="white" 
+                    hide-details
+                    :items="relationships"
+                    item-text="description"
+                    item-value="id"
+                    label="Relationship"
+                    v-model="application.parent2_relationship_id"
+                    @change="doSaveApp( 'parent2_relationship_id', application.parent2_relationship_id )"
                 >
                 </v-autocomplete>
             </div>
@@ -107,8 +122,8 @@
                     item-text="description"
                     item-value="id"
                     label="Citizenship"
-                    v-model="parent.citizenship_id"
-                    @change="update( parent.id, {citizenship_id: parent.citizenship_id} )"
+                    v-model="parent.citizenship_code"
+                    @change="update( parent.id, {citizenship_code: parent.citizenship_code} )"
                 >
                 </v-autocomplete>
             </div>

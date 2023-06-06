@@ -63,8 +63,6 @@ portalApplicationRouter.put("/:sub/:draftId", async (req: Request, res: Response
 
 portalApplicationRouter.put("/:sub/:draftId/submit", async (req: Request, res: Response) => {
   const { sub, draftId } = req.params;
-  const { application_json, is_active } = req.body;
-
   let student = await studentService.getBySub(sub);
 
   if (student) {
@@ -72,13 +70,15 @@ portalApplicationRouter.put("/:sub/:draftId/submit", async (req: Request, res: R
     let appIds = applications.map((a) => a.id);
 
     if (appIds.includes(parseInt(draftId))) {
-      let application = await applicationService.submitDraft(parseInt(draftId));
+      let application = await applicationService.submitDraft(student, parseInt(draftId));
+
+      console.log("Application Created", application);
 
       if (application) {
         let draftDocs = await documentService.getDocumentsForDraft(parseInt(draftId));
         documentService.draftToApplication(parseInt(draftId), application.id);
 
-        res.json({ data: application });
+        return res.json({ data: application });
       }
     }
   }
