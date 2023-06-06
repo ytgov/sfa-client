@@ -102,7 +102,7 @@ applicationRouter.post("/:history_detail_id/duplicate",
             return res.json({ messages: [{ text: "This record appears to already exist", variant: "error" }] })
         }
     });
-
+    
 applicationRouter.get("/:id",
     [param("id").notEmpty()], ReturnValidationErrors, async (req: Request, res: Response) => {
         let { id } = req.params;
@@ -140,20 +140,109 @@ applicationRouter.get("/:id",
                 "warning.code_type",
                 "warning.definition"
             ).where("app.id", id).first();
-            application.fileRef = await db("sfa.file_reference").select().where({ application_id: id}).andWhere({student_id: application.student_id});         
-                        
+            application.fileRef = await db("sfa.file_reference").select().where({ application_id: id}).andWhere({student_id: application.student_id});    
+            
+            //SELECT request_type_id  FROM sfa.funding_request  where application_id = 6049
+            application.subDocumentation = await db("sfa.funding_request").select("request_type_id").where("application_id", id);
+
+            const subquery = [];
+            if(application.subDocumentation) {
+                for(let element of application.subDocumentation) {
+                    subquery.push(element.request_type_id)
+                }
+            }
+                         
+            application.docCatalog = await db("sfa.requirement_type");
+            
+            application.documentation = await db("sfa.request_requirement as doc")
+            .innerJoin("sfa.request_type as rt", function () {
+                this.on("rt.id", "=", "doc.request_type_id");
+            })
+            .innerJoin("sfa.requirement_type as t", function () {
+                this.on("t.id", "=", "doc.requirement_type_id");
+            })
+            .leftJoin("sfa.requirement_met as ds", function () {
+                this.on("ds.requirement_type_id", "=", "t.id");
+            })
+            .leftJoin("sfa.file_reference as fr", function () {
+                this.on("fr.requirement_type_id", "=", "t.id").andOn("fr.application_id", "=", "ds.application_id");
+            }).select(
+                "fr.object_key", 
+                "fr.object_key_pdf",
+                "fr.person_id",
+                "fr.dependent_id",
+                "fr.disability_requirement_id",
+                //"fr.requirement_type_id",
+                "t.id as requirement_type_id",//
+                "ds.comment",
+                "fr.mime_type",
+                "t.description", 
+                "fr.file_name", 
+                "fr.upload_date", 
+                "fr.status", 
+                "ds.completed_date" 
+            ).where("t.is_active", 1)     
+            .andWhere("ds.application_id", id)      
+            .andWhere(function () {
+                this.whereIn('rt.id', function () {
+                    //await db("sfa.funding_request").select("request_type_id").where("application_id", id)
+                  this.select('request_type_id').from('sfa.funding_request').where('application_id', id)
+                })
+                .orWhereNotNull('fr.object_key')})
+
+                /*
+            .andWhere("ds.application_id", id)        
+            //.whereIn("rt.id", application.subDocumentation)    
+            .whereIn("rt.id", subquery).orWhereNotNull("fr.object_key");
+            */
+            /*.groupBy("fr.requirement_type_id",
+                                      "ds.comment",
+                                      "t.description",
+                                      "fr.mime_type",
+                                      "fr.file_name", 
+                                      "ds.application_id", 
+                                      "fr.upload_date", 
+                                      "fr.status", 
+                                      "ds.completed_date",
+                                      "fr.person_id",
+                                      "fr.dependent_id",
+                                      "fr.disability_requirement_id",
+                                      "fr.object_key", 
+                                      "fr.object_key_pdf",);       */
+            
+            application.finalDocumentation = [];
+
             
 
-          application.reason_code = await db("sfa.application as app").innerJoin("sfa.csl_code as reason", function () {
-              this.on("reason.id", "=", "csl_restriction_reason_id");
-            }).select(
-              "app.id",
-              "csl_restriction_reason_id",
-              "csl_restriction_warn_id",
-              "reason.reason_code",
-              "reason.code_type",
-              "reason.definition"
-            ).where("app.id", id).first();
+              function refreshDocuments() {
+                application.documentation.forEach((objX: any) => {
+                    const foundObjZ = application.finalDocumentation.find((objZ: any) => objZ.requirement_type_id === objX.requirement_type_id);
+                    if (foundObjZ) {
+                      if (objX.upload_date > foundObjZ.upload_date) {
+                        // Si el objeto de "X" tiene una fecha más actual, reemplazar el objeto en "Z"
+                        const index = application.finalDocumentation.indexOf(foundObjZ);
+                        application.finalDocumentation[index] = objX;
+                      }
+                    } else {
+                      // Si el objeto de "X" no existe en "Z", agregarlo directamente
+                      application.finalDocumentation.push(objX);
+                    }
+                  });
+              }
+
+              refreshDocuments();
+              
+
+            application.reason_code = await db("sfa.application as app").innerJoin("sfa.csl_code as reason", function () {
+                this.on("reason.id", "=", "csl_restriction_reason_id");
+                }).select(
+                "app.id",
+                "csl_restriction_reason_id",
+                "csl_restriction_warn_id",
+                "reason.reason_code",
+                "reason.code_type",
+                "reason.definition"
+                ).where("app.id", id).first();
 
             application.parent1 = await db("sfa.person")
             .leftJoin("sfa.person_address", "sfa.person.id", "sfa.person_address.person_id")
@@ -334,14 +423,99 @@ applicationRouter.post("/:application_id/status",
       
     res.status(404).send();
   });
+
   
+//uploads a document
+
+/*
+    applicationRouter.post(":application_id/student/:student_id/files/:requirement_type_id/obj_key/:objKey", async (req: Request, res: Response) => {     
+        console.log("Hi");
+        
+        const { student_id, application_id } = req.params;
+        const { requirement_type_id, disability_requirement_id, person_id, dependent_id } = req.body;
+        console.log("Hi");
+        let email = "michael@icefoganalytics.com"; //req.user.email;
+    
+        if (req.files) {
+        let files = Array.isArray(req.files.files) ? req.files.files : [req.files.files];
+    
+        for (let file of files) {
+            await documentService.uploadApplicationDocument(email, student_id, application_id, file, requirement_type_id, disability_requirement_id, person_id, dependent_id);
+        }
+        return res.json({ message: "success" });
+        }
+        res.json({ error: "No files included in request" });        
+        
+        
+
+    });
+*/
+
+applicationRouter.post("/:application_id/student/:student_id/files", async (req: Request, res: Response) => {       
+    const { student_id, application_id } = req.params;
+    const { requirement_type_id, disability_requirement_id, person_id, dependent_id } = req.body;
+  
+    
+    let email = "michael@icefoganalytics.com"; //req.user.email;
+  
+    if (req.files) {
+      let files = Array.isArray(req.files.files) ? req.files.files : [req.files.files];
+  
+      for (let file of files) {
+        await documentService.uploadApplicationDocument(email, student_id, application_id, file, requirement_type_id, disability_requirement_id, person_id, dependent_id);
+      }      
+      return res.json({ messages: [{ variant: "success", text: "Saved" }] })      
+    }    
+    res.json({ error: "No files included in request" });
+  });
+
+
+
+
+  // updates _met
+  applicationRouter.post("/:application_id/student/:student_id/files/:requirement_type_id",
+    [param("application_id").isInt().notEmpty(), param("student_id").isInt().notEmpty(), param("requirement_type_id").isInt().notEmpty()],
+    ReturnValidationErrors,
+    async (req: Request, res: Response) => {        
+        try {
+            const { application_id, student_id, requirement_type_id } = req.params;
+            const { completed_date } = req.body;            
+            const application: any = await db("sfa.file_reference").where({ application_id: application_id }).andWhere({ student_id: student_id }).andWhere({ requirement_type_id: requirement_type_id }).first();
+
+            if (application) {
+
+                const resInsert = await db("sfa.requirement_met")
+                    .insert({ completed_date, requirement_type_id, application_id });
+                
+                return resInsert ?
+                    res.json({ messages: [{ variant: "success", text: "Saved" }] })
+                    :
+                    res.json({ messages: [{ variant: "error", text: "Save failed" }] });
+
+            }
+
+            return res.status(404).send();
+
+        } catch (error) {
+            console.error(error);
+            return res.status(400).send(error);
+        }
+    }
+);
+
+  /*
+  
+                :
+                res.json({ messages: [{ variant: "error", text: "Failed" }] });
+
+  */
 
   // downloads a document with extra parameters
         applicationRouter.get("/:application_id/student/:student_id/files/:file_type/fellow_type/:fellow_type/fellow/:fellow", async (req: Request, res: Response) => {                      
-            console.log(req.params);
+            
             const { student_id, application_id, file_type, fellow_type, fellow } = req.params;    
          
-            console.log(student_id, application_id, file_type, fellow_type, fellow);
+            
             let doc:any;
             switch(fellow_type) {
                 case "dependent":                    
@@ -378,7 +552,7 @@ applicationRouter.post("/:application_id/status",
 applicationRouter.put("/:application_id/status/:id",
     [param("application_id").isInt().notEmpty(), param("id").isInt().notEmpty()],
     ReturnValidationErrors,
-    async (req: Request, res: Response) => {
+    async (req: Request, res: Response) => {        
 
         const { application_id, id } = req.params;
         const { data } = req.body;
@@ -395,6 +569,84 @@ applicationRouter.put("/:application_id/status/:id",
                 res.json({ messages: [{ variant: "error", text: "Failed" }] });
 
 
+        } catch (error) {
+            return res.json({ messages: [{ text: "Failed to update Funding Request", variant: "error" }] });
+        }
+
+    }
+);
+
+
+// applicationRouter.put("/:application_id/student/:student_id/files/:requirement_type_id",
+//     [param("application_id").isInt().notEmpty(), param("student_id").isInt().notEmpty(), param("requirement_type_id").isInt().notEmpty()],
+//     ReturnValidationErrors,
+//     async (req: Request, res: Response) => {                
+//         const { application_id, student_id, requirement_type_id } = req.params;
+//         const { data } = req.body;        
+//         try {
+            
+//             const resUpdate = await db("sfa.requirement_met")
+//                 .where({application_id, requirement_type_id})
+//                 .update({ ...data });                
+//             return resUpdate ?
+//                 res.json({ messages: [{ variant: "success", text: "Saved" }] })
+//                 :
+//                 res.json({ messages: [{ variant: "error", text: "Failed" }] });
+
+            
+//         } catch (error) {
+//             return res.json({ messages: [{ text: "Failed to update Funding Request", variant: "error" }] });
+//         }
+
+//     }
+// );
+
+
+
+applicationRouter.put("/:application_id/files/:requirement_type_id",
+    [param("application_id").isInt().notEmpty(), param("requirement_type_id").isInt().notEmpty()],
+    ReturnValidationErrors,
+    async (req: Request, res: Response) => {   
+               
+        const { application_id, requirement_type_id } = req.params;
+        const { data } = req.body;        
+        try {
+            
+            const resUpdate = await db("sfa.requirement_met")
+                .where({application_id, requirement_type_id})
+                .update({ ...data });                
+            return resUpdate ?
+                res.json({ messages: [{ variant: "success", text: "Saved" }] })
+                :
+                res.json({ messages: [{ variant: "error", text: "Failed" }] });
+
+            
+        } catch (error) {
+            return res.json({ messages: [{ text: "Failed to update Funding Request", variant: "error" }] });
+        }
+
+    }
+);
+
+
+applicationRouter.put("/:application_id/student/:student_id/files/:requirement_type_id",
+    [param("application_id").isInt().notEmpty(), param("student_id").isInt().notEmpty(), param("requirement_type_id").isInt().notEmpty()],
+    ReturnValidationErrors,
+    async (req: Request, res: Response) => {        
+        // console.log("Status")        
+        const { application_id, student_id, requirement_type_id } = req.params;
+        const { data } = req.body;        
+        try {
+            
+            const resUpdate = await db("sfa.file_reference")
+                .where({application_id, requirement_type_id, student_id})
+                .update({ ...data });                
+            return resUpdate ?
+                res.json({ messages: [{ variant: "success", text: "Saved" }] })
+                :
+                res.json({ messages: [{ variant: "error", text: "Failed" }] });
+
+            
         } catch (error) {
             return res.json({ messages: [{ text: "Failed to update Funding Request", variant: "error" }] });
         }
