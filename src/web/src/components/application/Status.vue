@@ -73,7 +73,7 @@
                 dense
                 color="blue" 
                 class="my-0"
-                @click="showAssessment(item?.request_type_id || null)"
+                @click="showAssessment(item?.request_type_id || null, item?.id || null)"
                 block
               >
                 Assessment
@@ -178,12 +178,14 @@ import {
   FUNDING_REASON_URL,
   APPLICATION_URL
 } from "../../urls";
+import { mapGetters } from 'vuex';
 
 export default {
   name: "Home",
   components: {
   },
   computed: {
+    ...mapGetters(['assessments']),
     assessmentTypeC() {
       const id = this.assessmentTypeId;
       return assessmentType(id);
@@ -228,11 +230,13 @@ export default {
     store.dispatch("setAppSidebar", true);
   },
   methods: {
-    showAssessment(id) {
+    showAssessment(request_type_id, funding_request_id) {
       this.showFundings = false;
-      this.assessmentTypeId = id;
+      store.dispatch('getAssessments', { application_id: this.application.id, funding_request_id });
+      this.assessmentTypeId = request_type_id;
     },
     showFundingStatus() {
+
       this.showFundings = true;
     },
     setClose() {
