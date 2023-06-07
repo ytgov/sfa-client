@@ -1418,6 +1418,24 @@ applicationRouter.get("/:application_id/:funding_request_id/assessments",
                 const getAsessment = await db("sfa.assessment")
                 .where({ funding_request_id });
 
+                if (getAsessment?.length) {
+
+                    for (let item of getAsessment) {
+                        const readOnlyData = await db.raw(
+                            `SELECT 
+                            COALESCE(sfa.fn_get_previous_weeks_yg(${application.student_id},  ${application_id}), 0) AS previous_weeks,
+                            COALESCE(sfa.fn_get_allowed_weeks ('${moment(application.classes_start_date).format("YYYY-MM-DD")}', '${moment(application.classes_end_date).format("YYYY-MM-DD")}'), 0) AS assessed_weeks,
+                            COALESCE(sfa.fn_get_disbursed_amount_fct(${funding_request_id}, ${item.id}), 0) AS previous_disbursement,
+                            COALESCE(sfa.fn_net_amount(${funding_request_id},  ${item.id}), 0) AS net_amount,
+                            COALESCE(sfa.fn_get_total_funded_years ( ${application.student_id}, ${application_id}), 0) AS years_funded;
+                            `
+                        );
+                        
+                        item.read_only_data = readOnlyData?.[0] || {};
+                    }
+    
+                }
+
                 const listAssessment = getAsessment.map((a, index) => {
                     return {
                         name_assessment: `assessment ${index+1} - ${a.id}`,
@@ -1463,8 +1481,6 @@ applicationRouter.post("/:application_id/:funding_request_id/assessments",
                     db.transaction(async (trx) => {
 
                         const resSP = await db.raw(`EXEC sfa.sp_get_init_value ${funding_request_id}, ${application.id}, ${application.student_id};`);
-
-                        console.log(resSP);
 
                         return resSP?.[0]?.status
                             ? res.json({
