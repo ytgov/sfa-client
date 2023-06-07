@@ -1490,3 +1490,50 @@ applicationRouter.post("/:application_id/:funding_request_id/assessments",
         }   
     }
 );
+
+applicationRouter.patch("/:application_id/:funding_request_id/assessments/:id",
+    [
+        param("application_id").isInt().notEmpty(), 
+        param("funding_request_id").isInt().notEmpty(),
+        param("id").isInt().notEmpty(),
+    ], 
+    ReturnValidationErrors, 
+    async (req: Request, res: Response) => {
+        try {
+            const { id, application_id, funding_request_id } = req.params;
+            const { data } = req.body;
+            
+            const application = await db("sfa.application")
+                .where({ id: application_id })
+                .first();
+
+            if (application) {
+
+                const fundingRequest = await db("sfa.funding_request")
+                    .where({ application_id })
+                    .where({ id: funding_request_id })
+                    .first();
+
+                if (fundingRequest) { // Create Assessment YG
+                    const resUpdate = await db("sfa.assessment")
+                        .where({ id, funding_request_id })
+                        .update({ ...data });
+
+                    return resUpdate ?
+                        res.json({ messages: [{ variant: "success", text: "Saved" }] })
+                        :
+                        res.json({ messages: [{ variant: "error", text: "Failed" }] });
+
+                } else {
+                    return res.json({
+                        messages: [{ variant: "error", text: "Error to insert" }],
+                        data: [],
+                    });
+                }
+            }
+        } catch (error) {
+            console.log(error);
+            return res.status(409).send({ messages: [{ variant: "error", text: "Error to insert" }] });
+        }   
+    }
+);
