@@ -5,6 +5,8 @@ WHERE name = N'sfa')
     EXEC ('CREATE SCHEMA [sfa]');
 GO
 
+USE SFADB_DEV;
+GO
 -- sfa.country
 CREATE TABLE sfa.country
 (

@@ -1,3 +1,6 @@
+USE SFADB_DEV;
+GO
+
 SET IDENTITY_INSERT sfa.country ON
 INSERT
 INTO sfa.country (id, description, is_active)
@@ -900,88 +903,6 @@ VALUES (1, 'Home'),
        (4, 'Parent')
 SET IDENTITY_INSERT sfa.address_type OFF
 
-SET NOCOUNT ON
-
-DECLARE @s_student_id FLOAT, @s_first_name VARCHAR(30), @s_last_name VARCHAR(30), @s_initials VARCHAR(5), @s_vendor_id VARCHAR(25), @s_yukon_id VARCHAR(15), @s_sin FLOAT, @s_national_id VARCHAR(50), @s_csl_letter_date DATETIME2(0), @s_csl_warn_code VARCHAR(1), @s_language_id FLOAT, @s_birth_date DATETIME2(0), @s_home_address1 VARCHAR(100), @s_home_address2 VARCHAR(100), @s_birth_city_id FLOAT, @s_birth_country_id FLOAT, @s_home_city_id FLOAT, @s_birth_province_id FLOAT, @s_home_province_id FLOAT, @s_home_country_id FLOAT, @s_home_phone VARCHAR(24), @s_home_postal_code VARCHAR(15), @s_home_email VARCHAR(50), @s_locator_number VARCHAR(15), @s_mailing_address1 VARCHAR(100), @s_mailing_address2 VARCHAR(100), @s_mailing_city_id FLOAT, @s_mailing_province_id FLOAT, @s_mailing_country_id FLOAT, @s_mailing_postal_code VARCHAR(15), @s_pre_funded_year NUMERIC(4, 0), @s_pre_funding_years_used FLOAT, @s_school_email VARCHAR(50), @s_school_phone VARCHAR(24), @s_created_by VARCHAR(30), @s_created_date DATETIME2(0), @s_updated_by VARCHAR(30), @s_updated_date DATETIME2(0), @s_high_school_final_grade VARCHAR(15), @s_parent_mailing_address1 VARCHAR(100), @s_arent_mailing_address2 VARCHAR(100), @s_parent_mailing_city_id FLOAT, @s_parent_mailing_province_id FLOAT, @s_parent_mailing_country_id FLOAT, @s_parent_mailing_postal_code VARCHAR(15), @s_parent_telephone VARCHAR(24), @s_pre_over_award NUMERIC(8, 2), @s_pre_yea_awards_used NUMERIC(8, 2), @s_education_level_id FLOAT, @s_high_school_id FLOAT, @s_high_school_left_year NUMERIC(4, 0), @s_high_school_left_month NUMERIC(2, 0), @s_sex FLOAT, @s_spouse_hs_end_month NUMERIC(2, 0), @s_spouse_hs_end_year NUMERIC(4, 0), @s_user_name VARCHAR(100), @s_user_password VARCHAR(255), @s_is_active_flg VARCHAR(1), @s_is_first_logon_flg VARCHAR(1), @s_last_pw_chg_date DATETIME2(0), @s_last_logon_date DATETIME2(0), @s_previous_last_name VARCHAR(30), @s_yea_expiry_date DATETIME2(0), @s_adj_yg_funding_weeks FLOAT, @s_adj_sta_upgrading_weeks FLOAT, @s_adj_outside_travel_cnt FLOAT, @s_checked_for_ytid_flg VARCHAR(3), @s_indigenous_learner VARCHAR(25), @s_crown_ward_flg VARCHAR(3);
-
-DECLARE @s_home_address_id INT, @s_mail_address_id INT, @s_person_id INT, @s_parent1_id INT, @s_parent2_id INT, @s_parent_address_id INT;
-
-DECLARE student_cursor CURSOR FOR SELECT *
-FROM sfaadmin.student
-OPEN student_cursor;
-
-FETCH NEXT FROM student_cursor INTO @s_student_id, @s_first_name, @s_last_name, @s_initials, @s_vendor_id, @s_yukon_id, @s_sin , @s_national_id, @s_csl_letter_date, @s_csl_warn_code, @s_language_id, @s_birth_date, @s_home_address1, @s_home_address2, @s_birth_city_id, @s_birth_country_id, @s_home_city_id, @s_birth_province_id, @s_home_province_id, @s_home_country_id, @s_home_phone, @s_home_postal_code, @s_home_email, @s_locator_number, @s_mailing_address1, @s_mailing_address2, @s_mailing_city_id, @s_mailing_province_id, @s_mailing_country_id, @s_mailing_postal_code, @s_pre_funded_year, @s_pre_funding_years_used, @s_school_email, @s_school_phone, @s_created_by, @s_created_date, @s_updated_by, @s_updated_date, @s_high_school_final_grade, @s_parent_mailing_address1, @s_arent_mailing_address2, @s_parent_mailing_city_id, @s_parent_mailing_province_id, @s_parent_mailing_country_id, @s_parent_mailing_postal_code, @s_parent_telephone, @s_pre_over_award, @s_pre_yea_awards_used, @s_education_level_id, @s_high_school_id, @s_high_school_left_year, @s_high_school_left_month, @s_sex, @s_spouse_hs_end_month, @s_spouse_hs_end_year, @s_user_name, @s_user_password, @s_is_active_flg, @s_is_first_logon_flg, @s_last_pw_chg_date, @s_last_logon_date, @s_previous_last_name, @s_yea_expiry_date, @s_adj_yg_funding_weeks, @s_adj_sta_upgrading_weeks, @s_adj_outside_travel_cnt, @s_checked_for_ytid_flg, @s_indigenous_learner, @s_crown_ward_flg;
-
-WHILE @@FETCH_STATUS = 0 BEGIN
-    -- create the student person
-    INSERT
-    INTO sfa.person (language_id, sex_id, birth_city_id, birth_province_id, birth_country_id,
-                     first_name, last_name, initials, previous_last_name, sin, birth_date, telephone, email)
-    VALUES (@s_language_id, @s_sex, @s_birth_city_id, @s_birth_province_id, @s_birth_country_id,
-            @s_first_name, @s_last_name, @s_initials, @s_previous_last_name, LTRIM(STR(@s_sin, 15, 0)), @s_birth_date, @s_home_phone,
-            @s_home_email)
-
-    SELECT @s_person_id = SCOPE_IDENTITY();
-
-    -- create the home address
-    INSERT
-    INTO sfa.person_address (person_id, address_type_id, address1, address2, city_id, province_id, country_id,
-                             postal_code)
-    VALUES (@s_person_id, 1, @s_home_address1, @s_home_address2, @s_home_city_id, @s_home_province_id,
-            @s_home_country_id, @s_home_postal_code)
-
-    SELECT @s_home_address_id = SCOPE_IDENTITY();
-
-    -- create the mailing address
-    INSERT
-    INTO sfa.person_address (person_id, address_type_id, address1, address2, city_id, province_id, country_id,
-                             postal_code)
-    VALUES (@s_person_id, 2, @s_mailing_address1, @s_mailing_address2, @s_mailing_city_id, @s_mailing_province_id,
-            @s_mailing_country_id, @s_mailing_postal_code)
-
-    SELECT @s_mail_address_id = SCOPE_IDENTITY();
-
-    -- create the parent address
-    INSERT
-    INTO sfa.person_address (person_id, address_type_id, address1, city_id, province_id, country_id, postal_code)
-    VALUES (@s_person_id, 4, @s_parent_mailing_address1, @s_parent_mailing_city_id, @s_parent_mailing_province_id,
-            @s_parent_mailing_country_id, @s_parent_mailing_postal_code)
-
-    SELECT @s_parent_address_id = SCOPE_IDENTITY();
-
-    SET IDENTITY_INSERT sfa.student ON
-    INSERT
-    INTO sfa.student(id, person_id, high_school_id, education_level_id, indigenous_learner_id, vendor_id, yukon_id,
-                     checked_for_yukon_id,
-                     national_id, locator_number, is_crown_ward, high_school_final_grade, high_school_left_year,
-                     high_school_left_month, pre_funded_year,
-                     pre_funding_years_used, csl_letter_date, csl_warn_code, pre_over_award_amount,
-                     pre_yea_awards_used_amount, user_name, user_password, is_active,
-                     is_first_logon_flg, last_logon_date, last_pw_change_date, yea_expiry_date, adj_yg_funding_weeks,
-                     adj_sta_upgrading_weeks, adj_outside_travel_cnt)
-    VALUES (@s_student_id, @s_person_id, @s_high_school_id, @s_education_level_id,
-            CASE WHEN @s_indigenous_learner = 'Yes' THEN 1
-                 WHEN @s_indigenous_learner = 'No' THEN 2
-                 WHEN @s_indigenous_learner = 'Prefer Not to Say' THEN 3
-                 ELSE -1 END, @s_vendor_id,
-            @s_yukon_id, CASE WHEN @s_checked_for_ytid_flg = 'Yes' THEN 1 ELSE 0 END,
-            @s_national_id, @s_locator_number, CASE WHEN @s_crown_ward_flg = 'Y' THEN 1 ELSE 0 END,
-            @s_high_school_final_grade, @s_high_school_left_year, @s_high_school_left_month, @s_pre_funded_year,
-            @s_pre_funding_years_used, @s_csl_letter_date, @s_csl_warn_code, @s_pre_over_award, @s_pre_yea_awards_used,
-            @s_user_name, @s_user_password, CASE WHEN @s_is_active_flg = 'Y' THEN 1 ELSE 0 END,
-            @s_is_first_logon_flg, @s_last_logon_date, @s_last_pw_chg_date, @s_yea_expiry_date, @s_adj_yg_funding_weeks,
-            @s_adj_sta_upgrading_weeks, @s_adj_outside_travel_cnt)
-
-    SET IDENTITY_INSERT sfa.student OFF
-
-    FETCH NEXT FROM student_cursor INTO @s_student_id, @s_first_name, @s_last_name, @s_initials, @s_vendor_id, @s_yukon_id, @s_sin , @s_national_id, @s_csl_letter_date, @s_csl_warn_code, @s_language_id, @s_birth_date, @s_home_address1, @s_home_address2, @s_birth_city_id, @s_birth_country_id, @s_home_city_id, @s_birth_province_id, @s_home_province_id, @s_home_country_id, @s_home_phone, @s_home_postal_code, @s_home_email, @s_locator_number, @s_mailing_address1, @s_mailing_address2, @s_mailing_city_id, @s_mailing_province_id, @s_mailing_country_id, @s_mailing_postal_code, @s_pre_funded_year, @s_pre_funding_years_used, @s_school_email, @s_school_phone, @s_created_by, @s_created_date, @s_updated_by, @s_updated_date, @s_high_school_final_grade, @s_parent_mailing_address1, @s_arent_mailing_address2, @s_parent_mailing_city_id, @s_parent_mailing_province_id, @s_parent_mailing_country_id, @s_parent_mailing_postal_code, @s_parent_telephone, @s_pre_over_award, @s_pre_yea_awards_used, @s_education_level_id, @s_high_school_id, @s_high_school_left_year, @s_high_school_left_month, @s_sex, @s_spouse_hs_end_month, @s_spouse_hs_end_year, @s_user_name, @s_user_password, @s_is_active_flg, @s_is_first_logon_flg, @s_last_pw_chg_date, @s_last_logon_date, @s_previous_last_name, @s_yea_expiry_date, @s_adj_yg_funding_weeks, @s_adj_sta_upgrading_weeks, @s_adj_outside_travel_cnt, @s_checked_for_ytid_flg, @s_indigenous_learner, @s_crown_ward_flg;
-END;
-
-CLOSE student_cursor;
-DEALLOCATE student_cursor;
-
-SET NOCOUNT OFF
-
 -- SFAADMIN.STUDENT_CONSENT
 SET IDENTITY_INSERT sfa.student_consent ON
 
@@ -1115,152 +1036,6 @@ SELECT communication_id, communication_type_id, officer_id, student_id, request_
 FROM sfaadmin.communication
 
 SET IDENTITY_INSERT sfa.communication OFF
-
--- SFA.APPLICATION
-
-SET NOCOUNT ON
-
-DECLARE @history_detail_id FLOAT, @student_id FLOAT, @parent1_first_name VARCHAR(30), @parent1_last_name VARCHAR(30), @parent1_income NUMERIC(8, 2), @parent1_tax_paid NUMERIC(8, 2), @parent1_relationship_id FLOAT, @parent2_first_name VARCHAR(30), @parent2_last_name VARCHAR(30), @parent2_income NUMERIC(8, 2), @parent2_tax_paid NUMERIC(8, 2), @parent2_relationship_id FLOAT, @created_by VARCHAR(30), @created_date DATETIME2(0), @updated_by VARCHAR(30), @updated_date DATETIME2(0), @institution_id FLOAT, @study_area_id FLOAT, @program_id FLOAT, @classes_start_date DATETIME2(0), @classes_end_date DATETIME2(0), @correspondence_flag NUMERIC(3, 0), @coop_paid_flag NUMERIC(3, 0), @aboriginal_status_id FLOAT, @marital_status_id FLOAT, @citizenship_status FLOAT, @disabled_flag NUMERIC(3, 0), @minority_flag NUMERIC(3, 0), @student_number VARCHAR(30), @academic_year VARCHAR(15), @program_year_total FLOAT, @program_year FLOAT, @two_residence_flag FLOAT, @moving_flag FLOAT, @csl_classification NUMERIC(3, 0), @csl_previous_province_id FLOAT, @program_division_explan VARCHAR(100), @prestudy_accom_code NUMERIC(3, 0), @prestudy_own_home_flag NUMERIC(3, 0), @prestudy_board_amount NUMERIC(7, 2), @prestudy_city_id FLOAT, @prestudy_province_id FLOAT, @prestudy_bus_flag NUMERIC(3, 0), @prestudy_distance NUMERIC(5, 0), @prestudy_employ_status_id FLOAT, @study_accom_code NUMERIC(3, 0), @study_own_home_flag NUMERIC(3, 0), @study_board_amount NUMERIC(7, 2), @study_city_id FLOAT, @study_province_id FLOAT, @study_bus_flag NUMERIC(3, 0), @study_distance NUMERIC(5, 0), @books_supplies_cost NUMERIC(6, 0), @outstanding_cslpt_amt NUMERIC(8, 2), @previous_csg_pt_amt NUMERIC(8, 2), @stat_info_comment VARCHAR(500), @percent_of_full_time NUMERIC(3, 0), @part_of_ft_flag NUMERIC(3, 0), @study_weeks_count NUMERIC(3, 0), @class_hours_per_week NUMERIC(4, 1), @parent_residence_comment VARCHAR(500), @study_living_w_spouse_flag NUMERIC(3, 0), @tuition_estimate NUMERIC(9, 2), @program_division NUMERIC(3, 0), @previous_cslft_flag NUMERIC(1, 0), @previous_cslpt_flag NUMERIC(1, 0), @parent1_citizenship_code NUMERIC(1, 0), @spouse_prestudy_emp_status_id FLOAT, @spouse_study_emp_status_id FLOAT, @spouse_study_school_from DATETIME2(0), @spouse_study_school_to DATETIME2(0), @spouse_pstudy_school_to DATETIME2(0), @spouse_pstudy_school_from DATETIME2(0), @spouse_study_csl_flag NUMERIC(3, 0), @spouse_study_bus_flag NUMERIC(3, 0), @spouse_study_distance NUMERIC(5, 0), @spouse_last_name VARCHAR(30), @spouse_first_name VARCHAR(30), @spouse_initials VARCHAR(5), @coop_start_year NUMERIC(4, 0), @coop_start_month NUMERIC(2, 0), @coop_end_year NUMERIC(4, 0), @coop_end_month NUMERIC(2, 0), @spouse_pstudy_income_comment VARCHAR(500), @spouse_study_income_comment VARCHAR(500), @spouse_sin FLOAT, @exclude_from_count NUMERIC(4, 0), @perm_disabled_flag NUMERIC(3, 0), @disabled_equipment VARCHAR(256), @previous_csg_disability_amount NUMERIC(8, 2), @previous_csg_fem_doc_amount NUMERIC(8, 2), @spouse_hs_end_year NUMERIC(4, 0), @spouse_hs_end_month NUMERIC(2, 0), @credit_chk_reqd_date DATETIME2(0), @credit_chk_fax_sent_date DATETIME2(0), @credit_chk_passed_date DATETIME2(0), @credit_chk_passed_flag NUMERIC(4, 0), @credit_chk_appeal_date DATETIME2(0), @credit_chk_app_comp_date DATETIME2(0), @credit_chk_app_comp_flag NUMERIC(4, 0), @credit_chk_comp_date DATETIME2(0), @csl_clearance_date DATETIME2(0), @prestudy_csl_classification NUMERIC(3, 0), @category_id FLOAT, @yea_tot_receipt_amount NUMERIC(8, 2), @academic_percent FLOAT, @csl_restriction_comment VARCHAR(2000), @in_progress_page NUMERIC(10, 0), @online_start_date DATETIME2(0), @online_submit_date DATETIME2(0), @parent1_sin FLOAT, @parent2_sin FLOAT, @parent1_net_income NUMERIC(8, 2), @parent2_net_income NUMERIC(8, 2), @student_ln150_income NUMERIC(8, 2), @spouse_ln150_income NUMERIC(8, 2), @rem_transition_grant_yrs NUMERIC(3, 0), @taxes_filed_year1 NUMERIC(4, 0), @taxes_filed_year2 NUMERIC(4, 0), @taxes_filed1_province_id FLOAT, @taxes_filed2_province_id FLOAT, @taxes_not_filed_yr1_flg VARCHAR(1), @taxes_not_filed_yr2_flg VARCHAR(1), @applied_other_funding_flg VARCHAR(1), @csl_restriction_warn_id FLOAT, @csl_restriction_reason_id FLOAT, @courses_per_week NUMERIC(4, 0), @first_nation_id FLOAT, @prestudy_start_date DATETIME2(0), @prestudy_end_date DATETIME2(0), @school_email VARCHAR(50), @school_phone VARCHAR(24), @rowid UNIQUEIDENTIFIER;
-
-DECLARE @spouse_id INT, @parent1_id INT, @parent2_id INT;
-
-DECLARE app_cursor CURSOR FOR SELECT h.*, s.school_email, s.school_phone
-FROM sfaadmin.history_detail h
-         INNER JOIN sfaadmin.student s ON h.student_id = s.student_id
-WHERE history_detail_id NOT IN (2348, 3202, 2288, 16170)
-OPEN app_cursor;
-
-FETCH NEXT FROM app_cursor INTO @history_detail_id, @student_id, @parent1_first_name, @parent1_last_name, @parent1_income, @parent1_tax_paid, @parent1_relationship_id, @parent2_first_name, @parent2_last_name, @parent2_income, @parent2_tax_paid, @parent2_relationship_id, @created_by, @created_date, @updated_by, @updated_date, @institution_id, @study_area_id, @program_id, @classes_start_date, @classes_end_date, @correspondence_flag, @coop_paid_flag, @aboriginal_status_id, @marital_status_id, @citizenship_status, @disabled_flag, @minority_flag, @student_number, @academic_year, @program_year_total, @program_year, @two_residence_flag, @moving_flag, @csl_classification, @csl_previous_province_id, @program_division_explan, @prestudy_accom_code, @prestudy_own_home_flag, @prestudy_board_amount, @prestudy_city_id, @prestudy_province_id, @prestudy_bus_flag, @prestudy_distance, @prestudy_employ_status_id, @study_accom_code, @study_own_home_flag, @study_board_amount, @study_city_id, @study_province_id, @study_bus_flag, @study_distance, @books_supplies_cost, @outstanding_cslpt_amt, @previous_csg_pt_amt, @stat_info_comment, @percent_of_full_time, @part_of_ft_flag, @study_weeks_count, @class_hours_per_week, @parent_residence_comment, @study_living_w_spouse_flag, @tuition_estimate, @program_division, @previous_cslft_flag, @previous_cslpt_flag, @parent1_citizenship_code, @spouse_prestudy_emp_status_id, @spouse_study_emp_status_id, @spouse_study_school_from, @spouse_study_school_to, @spouse_pstudy_school_to, @spouse_pstudy_school_from, @spouse_study_csl_flag, @spouse_study_bus_flag, @spouse_study_distance, @spouse_last_name, @spouse_first_name, @spouse_initials, @coop_start_year, @coop_start_month, @coop_end_year, @coop_end_month, @spouse_pstudy_income_comment, @spouse_study_income_comment, @spouse_sin, @exclude_from_count, @perm_disabled_flag, @disabled_equipment, @previous_csg_disability_amount, @previous_csg_fem_doc_amount, @spouse_hs_end_year, @spouse_hs_end_month, @credit_chk_reqd_date, @credit_chk_fax_sent_date, @credit_chk_passed_date, @credit_chk_passed_flag, @credit_chk_appeal_date, @credit_chk_app_comp_date, @credit_chk_app_comp_flag, @credit_chk_comp_date, @csl_clearance_date, @prestudy_csl_classification, @category_id, @yea_tot_receipt_amount, @academic_percent, @csl_restriction_comment, @in_progress_page, @online_start_date, @online_submit_date, @parent1_sin, @parent2_sin, @parent1_net_income, @parent2_net_income, @student_ln150_income, @spouse_ln150_income, @rem_transition_grant_yrs, @taxes_filed_year1, @taxes_filed_year2, @taxes_filed1_province_id, @taxes_filed2_province_id, @taxes_not_filed_yr1_flg, @taxes_not_filed_yr2_flg, @applied_other_funding_flg, @csl_restriction_warn_id, @csl_restriction_reason_id, @courses_per_week, @first_nation_id, @prestudy_start_date, @prestudy_end_date, @rowid, @school_email, @school_phone;
-
-WHILE @@FETCH_STATUS = 0 BEGIN
-    SELECT @parent1_id = NULL;
-    SELECT @parent2_id = NULL;
-    SELECT @spouse_id = NULL;
-
-    -- create the parent 1
-    IF @parent1_last_name IS NOT NULL OR @parent1_income IS NOT NULL
-        BEGIN
-            INSERT
-            INTO sfa.person (first_name, last_name, sin)
-            VALUES (@parent1_first_name, @parent1_last_name, LTRIM(STR(@parent1_sin, 15, 0)))
-            SELECT @parent1_id = SCOPE_IDENTITY();
-
-        END
-
-    IF @parent2_last_name IS NOT NULL OR @parent2_income IS NOT NULL
-        BEGIN
-            INSERT
-            INTO sfa.person (first_name, last_name, sin)
-            VALUES (@parent2_first_name, @parent2_last_name, LTRIM(STR(@parent2_sin, 15, 0)))
-            SELECT @parent2_id = SCOPE_IDENTITY();
-        END
-
-    IF @spouse_last_name IS NOT NULL OR @spouse_sin IS NOT NULL
-        BEGIN
-            INSERT
-            INTO sfa.person (first_name, last_name, initials, sin)
-            VALUES (@spouse_first_name, @spouse_last_name, @spouse_initials, LTRIM(STR(@spouse_sin, 15, 0)))
-            SELECT @spouse_id = SCOPE_IDENTITY();
-        END
-
-    SET IDENTITY_INSERT sfa.student OFF
-
-    SET IDENTITY_INSERT sfa.application ON
-
-    INSERT
-    INTO sfa.application (id, student_id, academic_year_id, institution_campus_id, study_area_id, program_id,
-                          aboriginal_status_id,
-                          marital_status_id, category_id, first_nation_id, spouse_id, parent1_id, parent2_id,
-                          parent1_income,
-                          parent1_net_income, parent1_tax_paid, parent2_income, parent2_net_income, parent2_tax_paid,
-                          school_email,
-                          school_telephone, spouse_hs_end_year, spouse_hs_end_month, spouse_prestudy_emp_status_id,
-                          spouse_pstudy_school_from,
-                          spouse_pstudy_school_to, spouse_pstudy_income_comment, spouse_study_emp_status_id,
-                          spouse_study_school_from,
-                          spouse_study_school_to, is_spouse_study_csl, is_spouse_study_bus, spouse_study_distance,
-                          spouse_study_income_comment,
-                          classes_start_date, classes_end_date, is_correspondence, is_coop_paid, citizenship_status,
-                          is_disabled, is_minority,
-                          student_number, program_year_total, program_year, is_two_residence, is_moving,
-                          csl_classification, csl_previous_province_id,
-                          program_division_explanation, prestudy_accom_code, prestudy_own_home, prestudy_board_amount,
-                          prestudy_city_id, prestudy_province_id,
-                          prestudy_bus, prestudy_distance, prestudy_employ_status_id, study_accom_code, study_own_home,
-                          study_board_amount,
-                          study_city_id, study_province_id, study_bus, study_distance, stat_info_comment,
-                          books_supplies_cost, outstanding_cslpt_amount,
-                          previous_csg_pt_amount, percent_of_full_time, is_part_of_ft, study_weeks_count,
-                          class_hours_per_week, parent_residence_comment,
-                          study_living_w_spouse, tuition_estimate_amount, program_division, is_previous_cslft,
-                          is_previous_cslpt, coop_start_year,
-                          coop_start_month, coop_end_year, coop_end_month, exclude_from_count, is_perm_disabled,
-                          disabled_equipment, previous_csg_disability_amount,
-                          previous_csg_fem_doc_amount, credit_chk_reqd_date, credit_chk_fax_sent_date,
-                          credit_chk_passed_date, credit_chk_passed,
-                          credit_chk_appeal_date, credit_chk_app_comp_date, credit_chk_app_comp, credit_chk_comp_date,
-                          csl_clearance_date,
-                          prestudy_csl_classification, yea_tot_receipt_amount, academic_percent,
-                          csl_restriction_comment, in_progress_page,
-                          online_start_date, online_submit_date, rem_transition_grant_years, student_ln150_income,
-                          spouse_ln150_income,
-                          taxes1_filed_year, taxes2_filed_year, taxes1_filed_province_id, taxes2_filed_province_id,
-                          taxes1_not_filed,
-                          taxes2_not_filed, applied_other_funding, csl_restriction_warn_id, csl_restriction_reason_id,
-                          courses_per_week,
-                          prestudy_start_date, prestudy_end_date)
-    VALUES (@history_detail_id, @student_id, COALESCE(@academic_year, DATEPART(YEAR, @created_date)),
-            COALESCE(@institution_id, 0), @study_area_id, @program_id, @aboriginal_status_id,
-            @marital_status_id, @category_id, @first_nation_id, @spouse_id, @parent1_id, @parent2_id, @parent1_income,
-            @parent1_net_income, @parent1_tax_paid, @parent2_income, @parent2_net_income, @parent2_tax_paid,
-            @school_email,
-            @school_phone, @spouse_hs_end_year, @spouse_hs_end_month, @spouse_prestudy_emp_status_id,
-            @spouse_pstudy_school_from,
-            @spouse_pstudy_school_to, @spouse_pstudy_income_comment, @spouse_study_emp_status_id,
-            @spouse_study_school_from,
-            @spouse_study_school_to, COALESCE(@spouse_study_csl_flag, 0), COALESCE(@spouse_study_bus_flag, 0),
-            @spouse_study_distance, @spouse_study_income_comment,
-            @classes_start_date, @classes_end_date, COALESCE(@correspondence_flag, 0), COALESCE(@coop_paid_flag, 0),
-            COALESCE(@citizenship_status, 1), COALESCE(@disabled_flag, 0), COALESCE(@minority_flag, 0),
-            @student_number, @program_year_total, @program_year, COALESCE(@two_residence_flag, 0),
-            COALESCE(@moving_flag, 0), @csl_classification, @csl_previous_province_id,
-            @program_division_explan, @prestudy_accom_code, COALESCE(@prestudy_own_home_flag, 0),
-            @prestudy_board_amount, @prestudy_city_id, @prestudy_province_id,
-            COALESCE(@prestudy_bus_flag, 0), @prestudy_distance, @prestudy_employ_status_id, @study_accom_code,
-            COALESCE(@study_own_home_flag, 0), @study_board_amount,
-            @study_city_id, @study_province_id, COALESCE(@study_bus_flag, 0), @study_distance, @stat_info_comment,
-            @books_supplies_cost, @outstanding_cslpt_amt,
-            @previous_csg_pt_amt, @percent_of_full_time, COALESCE(@part_of_ft_flag, 0), @study_weeks_count,
-            @class_hours_per_week, @parent_residence_comment,
-            COALESCE(@study_living_w_spouse_flag, 0), @tuition_estimate, COALESCE(@program_division, 0),
-            COALESCE(@previous_cslft_flag, 0), COALESCE(@previous_cslpt_flag, 0), @coop_start_year,
-            @coop_start_month, @coop_end_year, @coop_end_month, COALESCE(@exclude_from_count, 0),
-            COALESCE(@perm_disabled_flag, 0), @disabled_equipment, @previous_csg_disability_amount,
-            @previous_csg_fem_doc_amount, @credit_chk_reqd_date, @credit_chk_fax_sent_date, @credit_chk_passed_date,
-            COALESCE(@credit_chk_passed_flag, 0),
-            @credit_chk_appeal_date, @credit_chk_app_comp_date, COALESCE(@credit_chk_app_comp_flag, 0),
-            @credit_chk_comp_date, @csl_clearance_date,
-            @prestudy_csl_classification, @yea_tot_receipt_amount, @academic_percent, @csl_restriction_comment,
-            @in_progress_page,
-            @online_start_date, @online_submit_date, @rem_transition_grant_yrs, @student_ln150_income,
-            @spouse_ln150_income,
-            @taxes_filed_year1, @taxes_filed_year2, @taxes_filed1_province_id, @taxes_filed2_province_id,
-            CASE WHEN @taxes_not_filed_yr1_flg = 'Y' THEN 1 ELSE 0 END,
-            CASE WHEN @taxes_not_filed_yr2_flg = 'Y' THEN 1 ELSE 0 END,
-            CASE WHEN @applied_other_funding_flg = 'Y' THEN 1 ELSE 0 END, @csl_restriction_warn_id,
-            @csl_restriction_reason_id, @courses_per_week,
-            @prestudy_start_date, @prestudy_end_date)
-
-    SET IDENTITY_INSERT sfa.application OFF
-
-    FETCH NEXT FROM app_cursor INTO @history_detail_id, @student_id, @parent1_first_name, @parent1_last_name, @parent1_income, @parent1_tax_paid, @parent1_relationship_id, @parent2_first_name, @parent2_last_name, @parent2_income, @parent2_tax_paid, @parent2_relationship_id, @created_by, @created_date, @updated_by, @updated_date, @institution_id, @study_area_id, @program_id, @classes_start_date, @classes_end_date, @correspondence_flag, @coop_paid_flag, @aboriginal_status_id, @marital_status_id, @citizenship_status, @disabled_flag, @minority_flag, @student_number, @academic_year, @program_year_total, @program_year, @two_residence_flag, @moving_flag, @csl_classification, @csl_previous_province_id, @program_division_explan, @prestudy_accom_code, @prestudy_own_home_flag, @prestudy_board_amount, @prestudy_city_id, @prestudy_province_id, @prestudy_bus_flag, @prestudy_distance, @prestudy_employ_status_id, @study_accom_code, @study_own_home_flag, @study_board_amount, @study_city_id, @study_province_id, @study_bus_flag, @study_distance, @books_supplies_cost, @outstanding_cslpt_amt, @previous_csg_pt_amt, @stat_info_comment, @percent_of_full_time, @part_of_ft_flag, @study_weeks_count, @class_hours_per_week, @parent_residence_comment, @study_living_w_spouse_flag, @tuition_estimate, @program_division, @previous_cslft_flag, @previous_cslpt_flag, @parent1_citizenship_code, @spouse_prestudy_emp_status_id, @spouse_study_emp_status_id, @spouse_study_school_from, @spouse_study_school_to, @spouse_pstudy_school_to, @spouse_pstudy_school_from, @spouse_study_csl_flag, @spouse_study_bus_flag, @spouse_study_distance, @spouse_last_name, @spouse_first_name, @spouse_initials, @coop_start_year, @coop_start_month, @coop_end_year, @coop_end_month, @spouse_pstudy_income_comment, @spouse_study_income_comment, @spouse_sin, @exclude_from_count, @perm_disabled_flag, @disabled_equipment, @previous_csg_disability_amount, @previous_csg_fem_doc_amount, @spouse_hs_end_year, @spouse_hs_end_month, @credit_chk_reqd_date, @credit_chk_fax_sent_date, @credit_chk_passed_date, @credit_chk_passed_flag, @credit_chk_appeal_date, @credit_chk_app_comp_date, @credit_chk_app_comp_flag, @credit_chk_comp_date, @csl_clearance_date, @prestudy_csl_classification, @category_id, @yea_tot_receipt_amount, @academic_percent, @csl_restriction_comment, @in_progress_page, @online_start_date, @online_submit_date, @parent1_sin, @parent2_sin, @parent1_net_income, @parent2_net_income, @student_ln150_income, @spouse_ln150_income, @rem_transition_grant_yrs, @taxes_filed_year1, @taxes_filed_year2, @taxes_filed1_province_id, @taxes_filed2_province_id, @taxes_not_filed_yr1_flg, @taxes_not_filed_yr2_flg, @applied_other_funding_flg, @csl_restriction_warn_id, @csl_restriction_reason_id, @courses_per_week, @first_nation_id, @prestudy_start_date, @prestudy_end_date, @rowid, @school_email, @school_phone;
-END;
-
-CLOSE app_cursor;
-DEALLOCATE app_cursor;
-
-SET NOCOUNT OFF
-PRINT 'Application Cursor Complete'
 
 -- SFA.AGENCY_ASSISTANCE
 INSERT
@@ -1574,9 +1349,9 @@ FROM [SFAADMIN].[ENTITLEMENT_ERROR]
 SET IDENTITY_INSERT sfa.entitlement_error OFF
 
 -- sfa.field_program
-SET IDENTITY_INSERT sfa.field_program ON
+SET IDENTITY_INSERT sfa.field_program OFF
 INSERT
 INTO sfa.field_program (study_field_id, program_id, field_program_code)
 SELECT study_field_id, program_id,field_program_code
 FROM sfaadmin.field_program
-SET IDENTITY_INSERT sfa.field_program OFF
+SET IDENTITY_INSERT sfa.field_program ON

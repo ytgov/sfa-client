@@ -1,3 +1,6 @@
+USE SFADB_DEV;
+GO
+
 -- STA Upgrading Weeks - Pre-Legislation Chg
 --before get_prev_pre_leg_weeks
 CREATE OR ALTER FUNCTION sfa.fn_get_pre_leg_sta_up_weeks 

@@ -203,9 +203,10 @@
                         background-color="white"
                         hide-details
                         label="Accommodation Type"
+                        :items="accommodation_types"
                         v-model="accommodation_type"
-                        item-text="DESCRIPTION"
-                        item-value="REQUEST_TYPE_ID"
+                        item-text="description"
+                        item-value="id"
                       ></v-select>
                     </div>
                   </div>
@@ -350,9 +351,10 @@
                         background-color="white"
                         hide-details
                         label="Accommodation Type"
+                        :items="accommodation_types"
                         v-model="accommodation_type"
-                        item-text="DESCRIPTION"
-                        item-value="REQUEST_TYPE_ID"
+                        item-text="description"
+                        item-value="id"
                       ></v-select>
                     </div>
                   </div>
@@ -482,6 +484,8 @@
 <script>
 import store from "@/store";
 import validator from "@/validator";
+import axios from "axios";
+import { ACCOMMODATION_TYPE } from "../../../../urls";
 export default {
   name: "Home",
   computed: {
@@ -489,14 +493,25 @@ export default {
       return store.getters.selectedApplication;
     },
   },
+  data: () => ({
+    accommodation_types: [],
+  }),
   async created() {
+    this.loadAccommodationTypes();
     this.validate = validator;
     this.applicationId = this.$route.params.id;
     let storeApp = store.getters.selectedApplication;
     if (this.applicationId != storeApp.HISTORY_DETAIL_ID) {
       await store.dispatch("loadApplication", this.applicationId);
     }
-  }
+  },
+  methods: {
+    async loadAccommodationTypes() {
+      axios.get(ACCOMMODATION_TYPE).then(res => {
+        this.accommodation_types = res.data.data;
+      });
+    }
+  },
 };
 </script>
 <style>

@@ -1,3 +1,5 @@
+USE SFADB_DEV;
+GO
 
 CREATE TABLE [dbo].[inst_camp](
 	[INSTITUTION_ID] [smallint] NOT NULL,
