@@ -26,8 +26,6 @@
         </v-btn>
       </div>
     </div> -->
-    {{$store.getters?.selectedAssessment?.assessed_date}}
-    {{customAssessment.assessed_date?.slice(0, 10)+'xd xd'}}
     <div class="col-md-12">
       {{mensaje}}
       <v-card class="default mb-5 bg-color-blue">
@@ -292,11 +290,13 @@
                 </div>
                 <div class="col-xs-12 col-lg-12">
                   <v-text-field
+                    disabled
                     outlined
                     dense
                     background-color="white"
                     hide-details
-                    label="Years Funded (IS A FUNCTION)"
+                    label="Years Funded"
+                    :value="customAssessment?.read_only_data?.years_funded ?? 0"
                   ></v-text-field>
                 </div>
               </div>
@@ -359,8 +359,8 @@
                     dense
                     background-color="white"
                     hide-details
-                    label="Previous Weeks FUNCTION"
-                    v-model="previous_weeks"
+                    label="Previous Weeks"
+                    :value="customAssessment?.read_only_data?.previous_weeks ?? 0"
                   ></v-text-field>
                 </div>
                 <div class="col-xs-12 col-lg-12 line-jump-height d-flex align-center not-displayed-sx not-displayed-sx-md"></div>
@@ -368,12 +368,13 @@
               <div class="col-xs-12 col-sm-4 col-lg-4 nopadding d-flex flex-wrap mobile-low-margin">
                 <div class="col-xs-12 col-lg-12">
                   <v-text-field
+                    disabled
                     outlined
                     dense
                     background-color="white"
                     hide-details
-                    label="Assessed Weeks FUNCTION"
-                    v-model="assessed_weeks"
+                    label="Assessed Weeks"
+                    :value="customAssessment?.read_only_data?.assessed_weeks ?? 0"
                   ></v-text-field>
                 </div>
                 <div class="col-xs-12 col-lg-12 line-jump-height d-flex align-center not-displayed-sx not-displayed-sx-md"></div>
@@ -422,18 +423,18 @@
               <div class="col-sm-6 col-lg-7 nopadding d-flex flex-wrap mobile-custom-border">
                 <div class="col-xs-12 col-lg-12">
                   <v-text-field
-                    disabled
                     outlined
                     dense
                     background-color="white"
                     hide-details
                     label="Travel Allowance"
                     @keypress="validate.isNumber($event)"
-                    v-model="travel_allowance"
+                    v-model="customAssessment.travel_allowance"
                   ></v-text-field>
                 </div>
                 <div class="col-xs-12 col-lg-12">
                   <v-text-field
+                    @keypress="validate.isNumber($event)"
                     outlined
                     dense
                     background-color="white"
@@ -446,6 +447,7 @@
               <div class="col-sm-6 col-lg-5 d-flex align-center nopadding-left mobile-custom-border-2">
                 <img class="not-displayed-sx" src="../../../../public/img/curly-brackets.png">
                 <v-text-field
+                  @keypress="validate.isNumber($event)"
                   outlined
                   dense
                   background-color="white"
@@ -496,6 +498,7 @@
                     background-color="white"
                     hide-details
                     label="Previous Disbursement"
+                    :value="customAssessment?.read_only_data?.previous_disbursement ?? 0"
                   ></v-text-field>
                 </div>
               </div>
@@ -543,7 +546,7 @@
                     background-color="white"
                     hide-details
                     label="Net Amount"
-                    v-model="net_amount"
+                    :value="customAssessment?.read_only_data?.net_amount ?? 0"
                   ></v-text-field>
                 </div>
               </div>
@@ -599,8 +602,12 @@ export default {
   },
   methods: {
     ObjCompare(obj1, obj2) {
+      delete obj1.read_only_data;
+      delete obj2.read_only_data;
+
       const Obj1_keys = Object.keys(obj1);
       const Obj2_keys = Object.keys(obj2);
+
       if (Obj1_keys.length !== Obj2_keys.length) {
         return true;
       }
@@ -620,7 +627,7 @@ export default {
       const selected = JSON.parse(JSON.stringify(this.selectedAssessment))
       store.dispatch("setCustomAssessment", { ...selected });
       const custom = JSON.parse(JSON.stringify(this.customAssessment));
-      this.isChanging = this.ObjCompare(custom, selected);
+      this.isChanging = this.ObjCompare({ ...custom }, { ...selected });
     },
     updateAssessment() {
       const custom = JSON.parse(JSON.stringify(this.customAssessment));
@@ -649,7 +656,7 @@ export default {
           const custom = JSON.parse(JSON.stringify(val));
           const selected = JSON.parse(JSON.stringify(this.selectedAssessment))
 
-          this.isChanging = this.ObjCompare(custom, selected);
+          this.isChanging = this.ObjCompare({ ...custom }, { ...selected });
         },
     },
     programDivision(val, oldVal) {
@@ -657,7 +664,7 @@ export default {
       const selected = JSON.parse(JSON.stringify(this.selectedAssessment))
 
       if (this.programDivisionBack) {
-        this.isChanging = this.ObjCompare(custom, selected);
+        this.isChanging = this.ObjCompare({ ...custom }, { ...selected });
       }
     },
   },

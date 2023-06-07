@@ -6,13 +6,13 @@ const state = {
     assessments: [],
     selectedAssessment: {},
     customAssessment: {},
+    readOnlyData: {},
 };
 const getters = {
     assessments: (state) => state.assessments,
     selectedAssessment: (state) => state.selectedAssessment,
-    customAssessment: (state) => {
-        return state.customAssessment;
-    },
+    readOnlyData: (state) => state.readOnlyData,
+    customAssessment: (state) => state.customAssessment,
 };
 const mutations = {
     SET_ASSESSMENTS(state, value) {
@@ -23,6 +23,9 @@ const mutations = {
     },
     SET_CUSTOM_ASSESSMENT(state, value) {
         state.customAssessment = value;
+    },
+    SET_READ_ONLY_DATA(state, value) {
+        state.readOnlyData = value;
     },
 };
 
@@ -53,6 +56,7 @@ const actions = {
 
                 state.commit("SET_SELECTED_ASSESSMENT", { ...data[0] });
                 state.commit("SET_CUSTOM_ASSESSMENT", { ...data[0] });
+                state.commit("SET_READ_ONLY_DATA", { ...data[0]?.read_only_data });
 
                 state.commit("SET_ASSESSMENTS", data);
             } else {
@@ -104,7 +108,7 @@ const actions = {
                 return;
             }
 
-            const dataFormated = _.omit(vals.data, ['id', 'name_assessment', 'program_division']);
+            const dataFormated = _.omit(vals.data, ['id', 'name_assessment', 'program_division', 'read_only_data']);
 
             const res = await axios.patch(
                 APPLICATION_URL + `/${vals.application_id}/${vals.funding_request_id}/assessments/${vals.assessment_id}`,
@@ -124,7 +128,7 @@ const actions = {
         } catch (error) {
             const thisVal = vals?.thisVal || {};
             thisVal?.$emit("showError", "Error to update");
-            console.log("Error to insert assessments", error);
+            console.log("Error to update assessments", error);
         } finally {
             if (!(vals?.application_id && vals?.funding_request_id)) {
                 return;
