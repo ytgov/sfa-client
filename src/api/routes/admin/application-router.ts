@@ -1507,16 +1507,68 @@ applicationRouter.post("/:application_id/:funding_request_id/assessments",
     }
 );
 
-applicationRouter.patch("/:application_id/:funding_request_id/assessments/:id",
+applicationRouter.get("/:application_id/:funding_request_id/assessments/:assessment_id/re-calc",
     [
         param("application_id").isInt().notEmpty(), 
         param("funding_request_id").isInt().notEmpty(),
-        param("id").isInt().notEmpty(),
+        param("assessment_id").isInt().notEmpty(),
     ], 
     ReturnValidationErrors, 
     async (req: Request, res: Response) => {
         try {
-            const { id, application_id, funding_request_id } = req.params;
+            const { assessment_id, application_id, funding_request_id } = req.params;
+
+            const application = await db("sfa.application")
+                .where({ id: application_id })
+                .first();
+
+            const  assessment = await db("sfa.assessment")
+                .where({ id: assessment_id })
+                .first();
+
+            if (application && (Number(assessment?.funding_request_id) === Number(funding_request_id))) {
+
+                const recalc = await db.raw(
+                    `SELECT * FROM sfa.fn_get_new_info(
+                        ${application_id},
+                        ${assessment_id},
+                        ${funding_request_id},
+                        ${application.student_id}
+                    );
+                    `
+                );
+                const calculateValues = recalc?.[0];
+                
+                calculateValues.destination_city_id = calculateValues.destination_city;
+
+                delete calculateValues.destination_city;
+                delete calculateValues.previous_disbursement;
+                
+                return res.json({
+                    messages: [{ variant: "success" }],
+                    data: [ calculateValues ],
+                });
+            } else {
+                return res.status(409).send({ messages: [{ variant: "error", text: "Error get data" }] });
+            }
+
+        } catch (error) {
+            console.log(error);
+            return res.status(409).send({ messages: [{ variant: "error", text: "Error get data" }] });
+        }   
+    }
+);
+
+applicationRouter.patch("/:application_id/:funding_request_id/assessments/:assessment_id",
+    [
+        param("application_id").isInt().notEmpty(), 
+        param("funding_request_id").isInt().notEmpty(),
+        param("assessment_id").isInt().notEmpty(),
+    ], 
+    ReturnValidationErrors, 
+    async (req: Request, res: Response) => {
+        try {
+            const { assessment_id, application_id, funding_request_id } = req.params;
             const { data } = req.body;
             
             const application = await db("sfa.application")
@@ -1532,7 +1584,7 @@ applicationRouter.patch("/:application_id/:funding_request_id/assessments/:id",
 
                 if (fundingRequest) { // Create Assessment YG
                     const resUpdate = await db("sfa.assessment")
-                        .where({ id, funding_request_id })
+                        .where({ id: assessment_id, funding_request_id })
                         .update({ ...data });
 
                     return resUpdate ?
