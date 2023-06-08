@@ -136,6 +136,36 @@ const actions = {
             this.dispatch('getAssessments', vals);
         }
     },
+    async recalcAssessment(state, vals) {
+        try {
+
+            if (!(vals?.application_id && vals?.funding_request_id && vals?.assessment_id)) {
+                return;
+            }
+
+            const res = await axios.get(
+                APPLICATION_URL + `/${vals.application_id}/${vals.funding_request_id}/assessments/${vals.assessment_id}/re-calc`,
+            );
+
+            const message = res?.data?.messages[0];
+            
+            if (message?.variant === "success") {
+                const data = res?.data?.data || [];
+
+                if (!data.length) {
+                    this.dispatch('postAssessment', vals);
+                    return;
+                }
+                state.commit("SET_CUSTOM_ASSESSMENT", { ...this.getters.customAssessment, ...data[0] } );
+            } else {
+                console.log("Error to get assessments");
+            }
+
+        } catch (error) {
+            console.log("Error to get assessments", error);
+        } finally {
+        }
+    },
 };
 
 export default {

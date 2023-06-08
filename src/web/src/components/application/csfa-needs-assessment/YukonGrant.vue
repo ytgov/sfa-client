@@ -409,7 +409,7 @@
               <div class="col-sm-4 col-lg-7 not-displayed-sx"></div>
               <div class="col-xs-12 col-sm-4 col-lg-5">
                 <v-btn 
-                  
+                  @click="recalcAssessment"
                   dense
                   color="blue" 
                   class="my-0"
@@ -552,7 +552,9 @@
               </div>
               <div class="col-sm-4 col-lg-5 d-flex nopadding line-jump-height align-center justify-center">
                 <div class="col-xs-12 col-lg-12 height-fit-content d-flex justify-center">
-                  <v-switch label="Applied">
+                  <v-switch 
+                  v-model="customAssessment.over_award_applied_flg"
+                  label="Applied">
                   </v-switch>
                 </div>
               </div>
@@ -645,6 +647,18 @@ export default {
             funding_request_id: custom.funding_request_id,
             assessment_id: custom.id,
             thisVal: this
+          }
+        );
+    },
+    recalcAssessment() {
+      const custom = JSON.parse(JSON.stringify(this.customAssessment));
+
+      store.dispatch(
+          "recalcAssessment",
+          {
+            application_id: this.application.id,
+            funding_request_id: custom.funding_request_id,
+            assessment_id: custom.id,
           }
         );
     },
