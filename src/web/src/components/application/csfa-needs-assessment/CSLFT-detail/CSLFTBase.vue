@@ -13,7 +13,8 @@
                     dense
                     background-color="white"
                     hide-details
-                    label="Assessed Type"
+                    label="Assessment Type"
+                    :items="assessmentTypes"
                     v-model="cslft.base.assessed_type"
                     item-text="description"
                     item-value="id"
@@ -154,17 +155,19 @@
               <div class="col-xs-12 col-sm-4 col-md-4 col-lg-4 nopadding d-flex flex-wrap mobile-low-margin">
                 <div class="col-xs-12 col-lg-12 nopadding d-flex flex-wrap">
                   <div class="col-xs-12 col-lg-12">
-                    <v-select
+                    <v-autocomplete
                       :disabled="showAdd"
+                      clearable
                       outlined
                       dense
                       background-color="white"
                       hide-details
                       label="Pre-Study Province"
+                      :items="provinces"
                       v-model="cslft.base.pre_study_province"
                       item-text="description"
                       item-value="id"
-                    ></v-select>
+                    ></v-autocomplete>
                   </div>
                   <div class="col-xs-12 col-lg-12 nopadding d-flex">
                     <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6">
@@ -203,7 +206,7 @@
                         background-color="white"
                         hide-details
                         label="Accommodation Type"
-                        :items="accommodation_types"
+                        :items="accommodationTypes"
                         v-model="cslft.base.pre_study_accommodation_type"
                         item-text="description"
                         item-value="id"
@@ -218,7 +221,7 @@
                         background-color="white"
                         hide-details
                         label="Pre-Study Classification"
-                        :items="csl_classification_list"
+                        :items="cslClassifications"
                         v-model="cslft.base.pre_study_classification"
                         item-text="description"
                         item-value="id"
@@ -306,17 +309,19 @@
               <div class="col-xs-12 col-sm-4 col-md-4 col-lg-4 nopadding d-flex flex-wrap mobile-low-margin">
                 <div class="col-xs-12 col-lg-12 nopadding d-flex flex-wrap">
                   <div class="col-xs-12 col-lg-12">
-                    <v-select
+                    <v-autocomplete
                       :disabled="showAdd"
+                      clearable
                       outlined
                       dense
                       background-color="white"
                       hide-details
                       label="Study Province"
+                      :items="provinces"
                       v-model="cslft.base.study_province"
                       item-text="description"
                       item-value="id"
-                    ></v-select>
+                    ></v-autocomplete>
                   </div>
                   <div class="col-xs-12 col-lg-12 nopadding d-flex">
                     <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6">
@@ -355,7 +360,7 @@
                         background-color="white"
                         hide-details
                         label="Accommodation Type"
-                        :items="accommodation_types"
+                        :items="accommodationTypes"
                         v-model="cslft.base.study_accommodation_type"
                         item-text="description"
                         item-value="id"
@@ -370,7 +375,7 @@
                         background-color="white"
                         hide-details
                         label="Study Classification"
-                        :items="csl_classification_list"
+                        :items="cslClassifications"
                         v-model="cslft.base.study_classification"
                         item-text="description"
                         item-value="id"
@@ -385,17 +390,19 @@
               <div class="col-xs-12 col-sm-5 col-md-5 col-lg-5 nopadding d-flex flex-wrap mobile-low-margin">
                 <div class="col-xs-12 col-lg-12 nopadding d-flex flex-wrap">
                   <div class="col-xs-12 col-lg-12">
-                    <v-select
+                    <v-autocomplete
                       :disabled="showAdd"
+                      clearable
                       outlined
                       dense
                       background-color="white"
                       hide-details
                       label="Study Area"
+                      :items="studyAreas"
                       v-model="cslft.base.study_area"
                       item-text="description"
                       item-value="id"
-                    ></v-select>
+                    ></v-autocomplete>
                   </div>
                 </div>
               </div>
@@ -409,6 +416,7 @@
                       background-color="white"
                       hide-details
                       label="Study Program"
+                      :items="programs"
                       v-model="cslft.base.study_program"
                       item-text="description"
                       item-value="id"
@@ -458,6 +466,7 @@
                       background-color="white"
                       hide-details
                       label="Marital Status"
+                      :items="maritalStatusList"
                       v-model="cslft.base.marital_status"
                       item-text="description"
                       item-value="id"
@@ -468,17 +477,19 @@
               <div class="col-xs-12 col-sm-4 col-md-4 col-lg-4 nopadding d-flex flex-wrap mobile-low-margin">
                 <div class="col-xs-12 col-lg-12 nopadding d-flex flex-wrap">
                   <div class="col-xs-12 col-lg-12">
-                    <v-select
+                    <v-autocomplete
                       :disabled="showAdd"
+                      clearable
                       outlined
                       dense
                       background-color="white"
                       hide-details
                       label="Spouse Province"
+                      :items="provinces"
                       v-model="cslft.base.spouse_province"
                       item-text="description"
                       item-value="id"
-                    ></v-select>
+                    ></v-autocomplete>
                   </div>
                 </div>
               </div>
@@ -492,18 +503,18 @@
 <script>
 import store from "@/store";
 import validator from "@/validator";
-import axios from "axios";
-import { ACCOMMODATION_TYPE } from "../../../../urls";
+import { mapGetters } from 'vuex';
+
 export default {
   name: "cslft-base",
   computed: {
+    ...mapGetters(["cslClassifications", "accommodationTypes", "maritalStatusList", "studyAreas", "provinces", "assessmentTypes", "programs"]),
     application: function () {
       return store.getters.selectedApplication;
     },
   },
   data: () => ({
     showAdd: false,
-    accommodation_types: [],
     cslft: {
       base: {
         assessed_type: undefined,
@@ -538,22 +549,18 @@ export default {
     }
   }),
   async created() {
-    this.loadAccommodationTypes();
-    await store.dispatch("setCslClassifications", false);
-    const clsClassificationList = store.getters.clsClassification;
-    console.log("Classification List", clsClassificationList);
+    store.dispatch("setCslClassifications");
+    store.dispatch("setAccommodationTypes");
+    store.dispatch("setMaritalStatusList");
+    store.dispatch("setStudyAreas");
+    store.dispatch("setProvinces");
+    store.dispatch("setAssessmentTypes");
+    store.dispatch("setPrograms");
     this.validate = validator;
     this.applicationId = this.$route.params.id;
-    let storeApp = store.getters.selectedApplication;
+    const storeApp = store.getters.selectedApplication;
     if (this.applicationId != storeApp.HISTORY_DETAIL_ID) {
       await store.dispatch("loadApplication", this.applicationId);
-    }
-  },
-  methods: {
-    async loadAccommodationTypes() {
-      axios.get(ACCOMMODATION_TYPE).then(res => {
-        this.accommodation_types = res.data.data;
-      });
     }
   },
 };
