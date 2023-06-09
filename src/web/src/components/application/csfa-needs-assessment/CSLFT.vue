@@ -114,7 +114,7 @@ export default {
     CSLFTAward,
     CSLFTMSFAA,
   },
-  name: "Home",
+  name: "cslft-assessment",
   computed: {
     application: function () {
       return store.getters.selectedApplication;
@@ -123,6 +123,7 @@ export default {
   data: () => ({
     tab: 0,
     applicationId: -1,
+    showAdd: false,
   }),
   watch: {
     student: function (val) {

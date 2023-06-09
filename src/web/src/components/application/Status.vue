@@ -180,7 +180,7 @@ import {
 } from "../../urls";
 
 export default {
-  name: "Home",
+  name: "application-status",
   components: {
   },
   computed: {
@@ -258,7 +258,6 @@ export default {
     loadFundingTypes() {
       axios.get(FUNDING_TYPE_URL).then((resp) => {
         this.fundingTypeOptions = resp.data;
-        console.log(resp);
       });
     },
     loadStatus() {
