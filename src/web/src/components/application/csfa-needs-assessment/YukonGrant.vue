@@ -27,7 +27,6 @@
       </div>
     </div> -->
     <div class="col-md-12">
-      {{mensaje}}
       <v-card class="default mb-5 bg-color-blue">
         <div class="col-lg-12 nopadding d-flex flex-wrap low-margin">
           <v-card-title class="col-xs-12 col-lg-8">Assessment - Yukon Grant</v-card-title>
@@ -563,11 +562,14 @@
         </v-card-text>
       </v-card>
     </div>
-    <!-- <div class="col-lg-12">
+    <div class="col-lg-12">
       <Disbursement
-      :disbursements="[]"
+      :assessmentId="customAssessment?.id"
+      :fundingRequestId="customAssessment?.funding_request_id"
+      v-on:showError="showError"
+      v-on:showSuccess="showSuccess"
       ></Disbursement>
-    </div> -->
+    </div>
   </div>
 </template>
 <script>
@@ -594,7 +596,7 @@ export default {
     Disbursement,
   },
   computed: {
-    ...mapGetters(["assessments", "cities", "programDivisions", "customAssessment", "selectedAssessment"]),
+    ...mapGetters(["assessments", "cities", "programDivisions", "customAssessment", "selectedAssessment", "disbursements"]),
     application: function () {
       return store.getters.selectedApplication;
     },
@@ -662,6 +664,12 @@ export default {
           }
         );
     },
+    showSuccess(mgs) {
+      this.$emit("showSuccess", mgs);
+    },
+    showError(mgs) {
+      this.$emit("showError", mgs);
+    },
   },
   watch: {
     customAssessment: {
@@ -680,6 +688,12 @@ export default {
       if (this.programDivisionBack) {
         this.isChanging = this.ObjCompare({ ...custom }, { ...selected });
       }
+    },
+    disbursements: {
+      deep: true,
+        handler(val, oldVal) {
+          //alert("disbursement was updated");
+        },
     },
   },
   async created() {
