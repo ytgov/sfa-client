@@ -608,33 +608,6 @@ applicationRouter.post("/:application_id/status",
     res.status(404).send();
   });
 
-  
-//uploads a document
-
-/*
-    applicationRouter.post(":application_id/student/:student_id/files/:requirement_type_id/obj_key/:objKey", async (req: Request, res: Response) => {     
-        console.log("Hi");
-        
-        const { student_id, application_id } = req.params;
-        const { requirement_type_id, disability_requirement_id, person_id, dependent_id } = req.body;
-        console.log("Hi");
-        let email = "michael@icefoganalytics.com"; //req.user.email;
-    
-        if (req.files) {
-        let files = Array.isArray(req.files.files) ? req.files.files : [req.files.files];
-    
-        for (let file of files) {
-            await documentService.uploadApplicationDocument(email, student_id, application_id, file, requirement_type_id, disability_requirement_id, person_id, dependent_id);
-        }
-        return res.json({ message: "success" });
-        }
-        res.json({ error: "No files included in request" });        
-        
-        
-
-    });
-*/
-
 applicationRouter.post("/:application_id/student/:student_id/files", async (req: Request, res: Response) => {       
     const { student_id, application_id } = req.params;
     const { requirement_type_id, disability_requirement_id, person_id, dependent_id, comment, email } = req.body;
@@ -822,7 +795,7 @@ applicationRouter.put("/:application_id/files/:requirement_type_id",
                
         const { application_id, requirement_type_id } = req.params;
         const { data, type, object_key } = req.body;       
-        console.log(data, type)         
+        
         try {
             if(type === "date") {
                 const resUpdate = await db("sfa.requirement_met")
@@ -857,8 +830,7 @@ applicationRouter.put("/:application_id/files/:requirement_type_id",
 applicationRouter.put("/:application_id/student/:student_id/files/:requirement_type_id",
     [param("application_id").isInt().notEmpty(), param("student_id").isInt().notEmpty(), param("requirement_type_id").isInt().notEmpty()],
     ReturnValidationErrors,
-    async (req: Request, res: Response) => {        
-        // console.log("Status")        
+    async (req: Request, res: Response) => {                
         const { application_id, student_id, requirement_type_id } = req.params;
         const { data } = req.body;        
         try {
@@ -2012,8 +1984,7 @@ applicationRouter.post("/:application_id/:funding_request_id/assessments",
                     db.transaction(async (trx) => {
 
                         const resSP = await db.raw(`EXEC sfa.sp_get_init_value ${funding_request_id}, ${application.id}, ${application.student_id};`);
-
-                        console.log(resSP);
+                        
 
                         return resSP?.[0]?.status
                             ? res.json({

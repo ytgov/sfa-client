@@ -35,7 +35,7 @@
                 >
                   <template v-slot:activator="{ on, attrs }">
                     <v-text-field
-                      :value="item.upload_date.toString().slice(0, 10)"
+                      :value="item.upload_date ? item.upload_date.toString().slice(0, 10) : item.upload_date"
                       label="Received date"
                       append-icon="mdi-calendar"
                       hide-details
@@ -67,7 +67,7 @@
                 >
                   <template v-slot:activator="{ on, attrs }">
                     <v-text-field
-                      :value="item.completed_date.toString().slice(0, 10)"
+                      :value="item.completed_date ? item.completed_date.toString().slice(0, 10) : item.completed_date"
                       label="Completed date"
                       append-icon="mdi-calendar"
                       hide-details
@@ -102,24 +102,11 @@
                   :items="documentStatusList"
                   item-text="description"
                   item-value="id"
-                  @change="updateStatus({status: item.status}, item.requirement_type_id, item)"
-                  @click="printItem(item)"
+                  @change="updateStatus({status: item.status}, item.requirement_type_id, item)"                  
                 ></v-autocomplete>
                
                 
               </div>
-
-              <!-- <div class="col-md-1">
-                <v-btn
-                  color="warning"
-                  x-small
-                  fab
-                  title="Remove"
-                  class="my-0 float-right"
-                  @click="removeDocumentation(i)"
-                  ><v-icon>mdi-close</v-icon></v-btn
-                >
-              </div> -->
               <div class="col-md-4">
                 <v-text-field
                   outlined
@@ -133,22 +120,23 @@
                 ></v-text-field>
               </div>
               <div class="col-md-3">
-                <v-file-input
+                <v-file-input       
+                  ref="fileInput"           
                   multiple
                   truncate-length="15"
                   outlined
                   dense
                   background-color="white"
                   hide-details
-                  label="Upload document"
-                  @change="uploadDoc(item)"
+                  label="Upload document"                  
+                  @change="uploadDoc(item, i)"                  
                 ></v-file-input>
               </div>
               <div class="col-md-1">
                 <v-btn
                   class="mt-0"
                   color="primary"                                          
-                  @click="postDoc(item)"       
+                  @click="postDoc(item, i)"       
                   >
                   Upload file
                 </v-btn> 
@@ -167,8 +155,7 @@
                 </v-btn>                                
               </div>
 
-              <div class="col-md-1" v-if="item.file_name && item.upload_date">
-                <!-- <a :href="downloadPdf(item.requirement_type_id)">{{ item.file_name }}</a> -->
+              <div class="col-md-1" v-if="item.file_name && item.upload_date">                
                 <v-btn
                   class="mt-0"
                   color="success"                                          
@@ -183,9 +170,7 @@
           </div>
         </div>
       </v-card-text>
-    </v-card>
-
-    <!-- <v-btn color="info" @click="addDocumentation()">Add documentation</v-btn> -->
+    </v-card>    
 
      <v-card class="default mb-5 row"  v-if="showAdd"> 
       
@@ -356,9 +341,10 @@ export default {
       "YG Application",
       "Official Transcript - Original document (must be mailed)",
     ],
+    file: null,
+    uploadedDoc: [],
     documents: [],
     documents2: [],    
-    uploadedDoc: null,
     showAdd: false,
     documentationData: {
       description: null,
@@ -417,14 +403,11 @@ export default {
       const innerFormData = new FormData();   
       innerFormData.append('requirement_type_id', this.documentationData.description  );
       innerFormData.append('completed_date', this.documentationData.completed_date  );
-//      innerFormData.append('comment', this.documentationData.comment  );
       innerFormData.append('data', {completed_date: this.documentationData.completed_date}  );
                         
     
         try {                              
           const reqType = this.documentationData.description;
-          console.log(this.documentationData.comment, typeof this.documentationData.comment);
-          console.log(this.documentationData.status, typeof this.documentationData.status);
           
           if(this.documentationData.comment === null && this.documentationData.status === 3) {            
             this.$emit("showError", "If status is rejected, you must comment");
@@ -435,8 +418,7 @@ export default {
             try {                                         
               const resInsert = await axios.post(APPLICATION_URL + `/${this.application.id}/student/${this.student.id}/files/${reqType}`,
               innerFormData, {headers: {'Content-Type': 'multipart/form-data' },});                        
-              const message = resInsert?.data?.messages[0];    
-              console.log("1: ", message);
+              const message = resInsert?.data?.messages[0];                  
               if (message?.variant === "success") {
                 this.$emit("showSuccess", message.text);
               } else {
@@ -450,8 +432,7 @@ export default {
               store.dispatch("loadApplication", this.applicationId);
             }
             
-            const message = resInsert.data.messages[0];       
-            console.log("2: ", message);   
+            const message = resInsert.data.messages[0];                   
             if (message?.variant === "success") {
               this.$emit("showSuccess", message.text);
             } else {
@@ -466,9 +447,7 @@ export default {
             store.dispatch("loadApplication", this.applicationId);
           }                     
     },
-    printItem(item) {
-      console.log(item);
-    },
+
     formatDate(date) {
       if (!date) return null; 
       
@@ -517,15 +496,9 @@ export default {
             this.documents2.push({id: d.id, description: d.description})     
           }                       
         });        
-//        this.documents2 = resp.data;
       });
     },
-    async showPDF(refId) {        
-      //console.log(this.documents2) 
-       //const { requirement_type_id, disability_requirement_id, person_id, dependent_id } = req.body;
-       //console.log(refId);
-      //console.log(this.application);
-      console.log(this.application)
+    async showPDF(refId) {                   
       try {              
           let buf = await fetch(APPLICATION_URL + `/${this.application.id}/student/${this.student.id}/files/${refId}`)           
             .then((r) => r.arrayBuffer());                        
@@ -539,8 +512,7 @@ export default {
     downloadPdf(refId) {
       return APPLICATION_URL + `/${this.application.id}/student/${this.student.id}/files/${refId}`;
     },
-    async updateReqMet(itemToUpdate, refId) {
-      console.log(itemToUpdate, refId)
+    async updateReqMet(itemToUpdate, refId) {      
       try {
         const resInsert = await axios.put(
           APPLICATION_URL + `/${this.application.id}/files/${refId}`,
@@ -560,11 +532,7 @@ export default {
         store.dispatch("loadApplication", this.applicationId);
       }
     },
-    async updateComment(itemToUpdate, refId, item) {
-      console.log(this.application.finalDocumentation)
-      console.log(item)
-      
-      
+    async updateComment(itemToUpdate, refId, item) {      
       try {
         const resInsert = await axios.put(
           APPLICATION_URL + `/${this.application.id}/files/${refId}`,
@@ -588,68 +556,47 @@ export default {
     async updateStatus(itemToUpdate, refId, item) {            
       if(this.documentationData.comment === null && item.status === 3) {            
             this.$emit("showError", "If status is rejected, you must comment");
-      } else {
-        /*
-        try {
-        const resInsert = await axios.put(
-          APPLICATION_URL + `/${this.application.id}/student/${this.student.id}/files/${refId}`,
-            { data: { ...itemToUpdate } },
-          );
-          const message = resInsert?.data?.messages[0];
+      }          
+    },    
+    async uploadDoc(item, i) {                                   
+      this.uploadedDoc.push({id: i, file: event.target.files[0]});   
+      
+    },
+    async postDoc(item, i) {         
+      const index = this.uploadedDoc.findIndex(e => e.id === i);      
+      if(index !== -1) {           
+        let doc = this.uploadedDoc[index].file;
+        const formData = new FormData();      
 
-          if (message?.variant === "success") {
-            this.$emit("showSuccess", message.text);
-          } else {
-            this.$emit("showError", message.text);
-          }
+        formData.append('files', doc);
+        formData.append("requirement_type_id", item.requirement_type_id);
+        formData.append("disability_requirement_id", item.disability_requirement_id);
+        formData.append("person_id", item.person_id);
+        formData.append("dependent_id", item.dependent_id);
+        formData.append("object_key", item.object_key);
+
+        const innerFormData = new FormData();   
+        innerFormData.append('completed_data', item.completed_date  );                
+      
+        
+      try {          
+
+        let resInsert = await axios.post(APPLICATION_URL + `/${this.application.id}/student/${this.student.id}/files`, formData, {headers: {'Content-Type': 'multipart/form-data' },});                                         
+        let message = resInsert?.data?.messages[0];
           
+        if (message?.variant === "success") {
+          this.$emit("showSuccess", message.text);
+        } else {
+          this.$emit("showError", message.text);
+        }          
       } catch (error) {
+        console.log(error)
         this.$emit("showError", "Error to update");
       } finally {
-        store.dispatch("loadApplication", this.applicationId);
-      }
-      */
-      }            
-    },    
-
-    async uploadDoc(item) {                      
-      this.uploadedDoc = event.target.files[0];      
-    },
-    async postDoc(item) {
-      console.log(item)
-      console.log(this.uploadedDoc)
-      
-      const formData = new FormData();
-      // Agrega los archivos al objeto FormData
-      formData.append('files', this.uploadedDoc);
-      formData.append("requirement_type_id", item.requirement_type_id);
-      formData.append("disability_requirement_id", item.disability_requirement_id);
-      formData.append("person_id", item.person_id);
-      formData.append("dependent_id", item.dependent_id);
-      formData.append("object_key", item.object_key);
-
-      const innerFormData = new FormData();   
-      innerFormData.append('completed_data', item.completed_date  );
-
-      
-        try {          
-          const resInsert = await axios.post(APPLICATION_URL + `/${this.application.id}/student/${this.student.id}/files`,
-          formData, {headers: {'Content-Type': 'multipart/form-data' },});                                         
-
-          const message = resInsert?.data?.messages[0];
-            
-          if (message?.variant === "success") {
-            this.$emit("showSuccess", message.text);
-          } else {
-            this.$emit("showError", message.text);
-          }          
-        } catch (error) {
-          console.log(error)
-          this.$emit("showError", "Error to update");
-        } finally {
-          store.dispatch("loadApplication", this.applicationId);
-        }    
-          
+        this.uploadedDoc.splice(index, index);        
+        store.dispatch("loadApplication", this.applicationId);        
+      }    
+      }          
     }
   },  
 };
