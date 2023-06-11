@@ -73,7 +73,7 @@
                 dense
                 color="blue" 
                 class="my-0"
-                @click="showAssessment(item?.request_type_id || null)"
+                @click="showAssessment(item?.id || null, item?.request_type_id || null)"
                 block
               >
                 Assessment
@@ -162,7 +162,7 @@
         </v-card-text>
       </v-card>
     </div>
-    <component v-if="!showFundings && assessmentTypeId" :is="assessmentTypeC" />
+    <component v-if="!showFundings && assessmentTypeId" :is="assessmentTypeC.component" v-bind="{...assessmentProps}" />
   </div>
 </template>
 
@@ -170,7 +170,6 @@
 import store from "../../store";
 import axios from "axios";
 //Grants and Scholarships
-import { assessmentType } from "@/components/application/assessmentType.js";
 import {
   REQUIREMENT_TYPE_URL,
   FUNDING_TYPE_URL,
@@ -178,6 +177,7 @@ import {
   FUNDING_REASON_URL,
   APPLICATION_URL
 } from "../../urls";
+import { assessmentTypeWithProps } from "./assessmentType";
 
 export default {
   name: "application-status",
@@ -186,7 +186,13 @@ export default {
   computed: {
     assessmentTypeC() {
       const id = this.assessmentTypeId;
-      return assessmentType(id);
+      return assessmentTypeWithProps(id);
+    },
+    assessmentProps() {
+      return {
+        ...this.assessmentTypeC.props,
+        funding_request_id: this.fundingRequestId
+      }
     },
     application: function () {
       return store.getters.selectedApplication;
@@ -194,6 +200,7 @@ export default {
   },
   data: () => ({
     assessmentTypeId: null,
+    fundingRequestId: null,
     showFundings: true,
     showAdd: false,
     applicationId: -1,
@@ -228,9 +235,10 @@ export default {
     store.dispatch("setAppSidebar", true);
   },
   methods: {
-    showAssessment(id) {
+    showAssessment(id, type_id) {
       this.showFundings = false;
-      this.assessmentTypeId = id;
+      this.assessmentTypeId = type_id;
+      this.fundingRequestId = id;
     },
     showFundingStatus() {
       this.showFundings = true;

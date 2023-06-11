@@ -517,8 +517,8 @@ export default {
     showAdd: false,
     cslft: {
       base: {
-        assessed_type: undefined,
-        assessed_date: undefined,
+        assessed_type: 1,
+        assessed_date: "2023-06-10",
         assessed_date_menu: undefined,
         no_dependents: undefined,
         pre_study_accommodation_type: undefined,

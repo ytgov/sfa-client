@@ -15,8 +15,8 @@ async (req: Request, res: Response) => {
     const { id = null } = req.query;
 
     try {
-        const results = await db("sfa.funding_request")
-            .where("funding_request_id", id);
+        const results = await db("sfa.assessment")
+            .where("id", id);
 
         if (results) {
             return res.status(200).json({ success: true, data: [...results], });
@@ -29,3 +29,24 @@ async (req: Request, res: Response) => {
         return res.status(404).send();
     }
 });
+
+assessmentRouter.post("/",
+    [body("funding_request_id").notEmpty()], ReturnValidationErrors,
+    async (req: Request, res: Response) => {
+        const { funding_request_id, ...assessment } = req.body;
+        const existing = await db("sfa.assessment").where({ funding_request_id: funding_request_id }).count("* as count").first();
+
+        let newApp = {
+            funding_request_id: funding_request_id,            
+            ...assessment
+        };
+
+        const newRow = await db("sfa.assessment").insert(newApp).returning("*");
+
+        if (newRow && newRow.length == 1) {
+            return res.json({ data: { id: newRow[0].id }, messages: [{ text: "Assessment created", variant: "success" }] });
+        }
+        else {
+            return res.json({ messages: [{ text: "This record appears to already exist", variant: "error" }] })
+        }
+    });
