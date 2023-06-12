@@ -151,7 +151,7 @@ applicationRouter.get("/:id",
                     subquery.push(element.request_type_id)
                 }
             }
-                         
+
             application.docCatalog = await db("sfa.requirement_type");
             
             application.documentation = await db("sfa.request_requirement as doc")
@@ -186,9 +186,9 @@ applicationRouter.get("/:id",
             .andWhere(function () {
                 this.whereIn('rt.id', function () {
                     //await db("sfa.funding_request").select("request_type_id").where("application_id", id)
-                  this.select('request_type_id').from('sfa.funding_request').where('application_id', id)
-                })
-                .orWhereNotNull('fr.object_key')})
+                this.select('request_type_id').from('sfa.funding_request').where('application_id', id)
+            })
+            .orWhereNotNull('fr.object_key')})
 
                 /*
             .andWhere("ds.application_id", id)        

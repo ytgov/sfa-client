@@ -57,7 +57,7 @@ typings/
 
 # Optional npm cache directory
 .npm
-
+ecosystem.config.js
 # Optional eslint cache
 .eslintcache
 
