@@ -18,6 +18,8 @@ export interface FileReferenceBase {
   person_id?: number;
   dependent_id?: number;
   disability_requirement_id?: number;
+
+  status_description?: string;
 }
 
 export interface FileReference extends FileReferenceBase {
