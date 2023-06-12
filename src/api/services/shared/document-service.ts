@@ -201,7 +201,7 @@ export class DocumentService {
     await this.uploadFile(fRef);
   }
 
-  async updateDocument(object_key: string, input: FileReferenceBase) {
+  async updateDocument(object_key: string, input: any) {
     return await db("sfa.file_reference").where({ object_key }).update(forUpdate(input));
   }
 

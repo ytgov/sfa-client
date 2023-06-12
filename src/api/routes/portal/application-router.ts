@@ -32,6 +32,7 @@ portalApplicationRouter.get("/:sub/:draftId/required-documents", async (req: Req
 
     if (appIds.includes(parseInt(draftId))) {
       let existingDocs = await documentService.getDocumentsForDraft(parseInt(draftId));
+      existingDocs = existingDocs.filter((d) => d.status_description != "Replaced");
       let draft = applications.filter((a) => a.id == draftId)[0];
       let app = JSON.parse(draft.application_json);
 
@@ -39,8 +40,7 @@ portalApplicationRouter.get("/:sub/:draftId/required-documents", async (req: Req
       let requestTypes = uniq(funding.map((f) => f.request_type_id));
 
       let reqDocs = await applicationService.getDocumentRequirementsFor(requestTypes);
-
-      let dupsToAdd = new Array<any>();
+      let returnDocs = new Array<any>();
 
       for (let doc of reqDocs) {
         let existing = existingDocs.filter((d) => d.requirement_type_id == doc.requirement_type_id);
@@ -56,18 +56,45 @@ portalApplicationRouter.get("/:sub/:draftId/required-documents", async (req: Req
 
             doc.upload = existing[i];
             doc.status_description = existing[i].status_description;
-            dupsToAdd.push(d1);
+            returnDocs.push(d1);
           }
+        }
+
+        returnDocs.push(doc);
+      }
+
+      for (let doc of returnDocs) {
+        switch (doc.condition) {
+          case "CSL and SFA":
+            break;
+          case "CSL Only":
+            break;
+          case "Dependent":
+            break;
+          case "Has Dependant":
+            break;
+          case "Married/Common Law":
+            break;
+          case "Not CSL":
+            break;
+          case "Not Dependent Student":
+            break;
+          case "Other Agency Funding":
+            break;
+          case "Private/Distance/Outside Canada":
+            break;
+          case "Spouse as Dependent":
+            break;
+          case "Yukon and Previous CSL":
+            break;
         }
       }
 
-      dupsToAdd.forEach((d) => reqDocs.push(d));
+      //returnDocs = returnDocs.filter((r) => r.meets_conditions == true);
 
-      reqDocs = sortBy(reqDocs, "description");
+      returnDocs = sortBy(returnDocs, "description");
 
-      console.log("Exisitng docs", existingDocs.length);
-
-      res.json({ data: reqDocs });
+      res.json({ data: returnDocs });
     }
   }
 
@@ -77,7 +104,8 @@ portalApplicationRouter.get("/:sub/:draftId/required-documents", async (req: Req
 //uploads a document
 portalApplicationRouter.post("/:sub/:draftId/upload", async (req: Request, res: Response) => {
   const { sub, draftId } = req.params;
-  const { requirement_type_id, disability_requirement_id, person_id, dependent_id, mimetype, replace } = req.body;
+  const { requirement_type_id, disability_requirement_id, person_id, dependent_id, mimetype, replace, replace_id } =
+    req.body;
   let student = await studentService.getBySub(sub);
 
   if (student) {
@@ -101,6 +129,14 @@ portalApplicationRouter.post("/:sub/:draftId/upload", async (req: Request, res: 
           person_id,
           dependent_id
         );
+
+        if (replace_id) {
+          let doc = await documentService.getDocument(replace_id);
+
+          if (doc) {
+            await documentService.updateDocument(doc.object_key, { status: 4, status_date: new Date() });
+          }
+        }
 
         return res.json({ message: "success" });
       }

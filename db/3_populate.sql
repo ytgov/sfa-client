@@ -158,7 +158,8 @@ INSERT
 INTO sfa.document_status (id, description)
 VALUES  ( 1, 'Pendieng'),
         ( 2, 'Approved'),
-        ( 3, 'Rejected')
+        ( 3, 'Rejected'),
+        ( 4, 'Replaced')
 SET IDENTITY_INSERT sfa.document_status OFF
 
 SET IDENTITY_INSERT sfa.program_division ON
