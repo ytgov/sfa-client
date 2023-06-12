@@ -6,6 +6,7 @@ import {
   ListObjectsV2Command,
   PutObjectCommand,
   DeleteObjectCommand,
+  CopyObjectOutputFilterSensitiveLog,
 } from "@aws-sdk/client-s3";
 import { nanoid } from "nanoid";
 import { UploadedFile } from "express-fileupload";
@@ -63,6 +64,14 @@ export class DocumentService {
     return await db<FileReferenceBase>("sfa.file_reference").where({ application_id });
   }
 
+  //return the Document metadata
+  async getDocumentsForDraft(application_draft_id: number): Promise<FileReferenceBase[]> {
+    return await db<FileReferenceBase>("sfa.file_reference")
+      .innerJoin("sfa.document_status", "file_reference.status", "document_status.id")
+      .select(["file_reference.*", "document_status.description as status_description"])
+      .where({ application_draft_id });
+  }
+
   //return the Document metadata and file
   async getDocumentWithFile(object_key: string): Promise<FileReference | undefined> {
     // pull the
@@ -79,6 +88,15 @@ export class DocumentService {
     }
 
     return undefined;
+  }
+
+  //return the Document metadata
+  async deleteDocumentsForDraft(application_draft_id: number): Promise<any> {
+    let draftFiles = await db<FileReferenceBase>("sfa.file_reference").where({ application_draft_id });
+
+    for (let file of draftFiles) {
+      await this.removeDocument(file.object_key);
+    }
   }
 
   // returns the number of documents removed (0 or 1)
@@ -119,6 +137,8 @@ export class DocumentService {
     person_id: string | number,
     dependent_id: string | number
   ) {
+    console.log("FILEDRAFT", file);
+
     let fRef = {
       object_key: nanoid(),
       object_key_pdf: nanoid(),
@@ -135,7 +155,7 @@ export class DocumentService {
       mime_type: file.mimetype,
       file_size: file.size,
       comment: "This is fake",
-      status: FileStatus.UNREVIEWED,
+      status: 1,
       status_date: new Date(),
       disability_requirement_id,
       person_id,
@@ -153,7 +173,9 @@ export class DocumentService {
     requirement_type_id: number,
     disability_requirement_id: string | number,
     person_id: string | number,
-    dependent_id: string | number
+    dependent_id: string | number,
+    comment: string = "This is fake",
+    source: string = "Portal"
   ) {
     let fRef = {
       object_key: nanoid(),
@@ -161,7 +183,7 @@ export class DocumentService {
       bucket: AWS_S3_BUCKET,
       upload_date: new Date(),
       upload_user: email,
-      upload_source: "Portal",
+      upload_source: source,
       file_name: file.name,
       file_contents: file.data,
       student_id: parseInt(student_id.toString()),
@@ -170,8 +192,8 @@ export class DocumentService {
       requirement_type_id,
       mime_type: file.mimetype,
       file_size: file.size,
-      comment: "This is fake",
-      status: FileStatus.UNREVIEWED,
+      comment: comment,      
+      status: 1,
       status_date: new Date(),
       disability_requirement_id,
       person_id,
@@ -181,8 +203,12 @@ export class DocumentService {
     await this.uploadFile(fRef);
   }
 
-  async updateDocument(object_key: string, input: FileReferenceBase) {
+  async updateDocument(object_key: string, input: any) {
     return await db("sfa.file_reference").where({ object_key }).update(forUpdate(input));
+  }
+
+  async draftToApplication(application_draft_id: number, application_id: number) {
+    await db<FileReferenceBase>("sfa.file_reference").where({ application_draft_id }).update({ application_id });
   }
 
   // writes a document to storage and the database

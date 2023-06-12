@@ -73,7 +73,7 @@
                 dense
                 color="blue" 
                 class="my-0"
-                @click="showAssessment(item?.id || null, item?.request_type_id || null)"
+                @click="showAssessment(item?.request_type_id || null, item?.id || null)"
                 block
               >
                 Assessment
@@ -162,7 +162,14 @@
         </v-card-text>
       </v-card>
     </div>
-    <component v-if="!showFundings && assessmentTypeId" :is="assessmentTypeC.component" v-bind="{...assessmentProps}" />
+    <component 
+      v-if="!showFundings && assessmentTypeId" 
+      :is="assessmentTypeC" 
+      v-on:close="showFundingStatus" 
+      v-on:showError="showError"
+      v-on:showSuccess="showSuccess"
+    ></component>
+    
   </div>
 </template>
 
@@ -170,6 +177,7 @@
 import store from "../../store";
 import axios from "axios";
 //Grants and Scholarships
+import { assessmentType } from "@/components/application/assessmentType.js";
 import {
   REQUIREMENT_TYPE_URL,
   FUNDING_TYPE_URL,
@@ -177,13 +185,14 @@ import {
   FUNDING_REASON_URL,
   APPLICATION_URL
 } from "../../urls";
-import { assessmentTypeWithProps } from "./assessmentType";
+import { mapGetters } from 'vuex';
 
 export default {
   name: "application-status",
   components: {
   },
   computed: {
+    ...mapGetters(['assessments']),
     assessmentTypeC() {
       const id = this.assessmentTypeId;
       return assessmentTypeWithProps(id);
@@ -200,7 +209,6 @@ export default {
   },
   data: () => ({
     assessmentTypeId: null,
-    fundingRequestId: null,
     showFundings: true,
     showAdd: false,
     applicationId: -1,
@@ -235,12 +243,13 @@ export default {
     store.dispatch("setAppSidebar", true);
   },
   methods: {
-    showAssessment(id, type_id) {
+    showAssessment(request_type_id, funding_request_id) {
       this.showFundings = false;
-      this.assessmentTypeId = type_id;
-      this.fundingRequestId = id;
+      store.dispatch('getAssessments', { application_id: this.application.id, funding_request_id });
+      this.assessmentTypeId = request_type_id;
     },
     showFundingStatus() {
+
       this.showFundings = true;
     },
     setClose() {
@@ -297,6 +306,12 @@ export default {
       } finally {
         store.dispatch("loadApplication", this.applicationId);
       }
+    },
+    showSuccess(mgs) {
+      this.$emit("showSuccess", mgs);
+    },
+    showError(mgs) {
+      this.$emit("showError", mgs);
     },
   },
 };

@@ -1,6 +1,6 @@
 <template>
   <div class="home cslpt-base-assessment">
-    <v-card class="default mb-5 bg-color-blue" v-for="item, index in application.funding_requests" :key="index">
+    <v-card class="default mb-5 bg-color-blue">
       <v-card-text class="nopadding d-flex flex-wrap top-margin low-margin">
         <div class="col-xs-12 col-sm-12 col-lg-12 nopadding d-flex flex-wrap">
           <div class="col-xs-12 col-lg-12 nopadding d-flex mobile-column-flex flex-wrap">

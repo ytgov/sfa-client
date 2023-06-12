@@ -8,7 +8,7 @@ export interface FileReferenceBase {
   upload_date: Date;
   upload_user: string;
   upload_source: string;
-  status: FileStatus;
+  status: number;
   status_date: Date;
   bucket: string;
   file_name: string;
@@ -18,6 +18,8 @@ export interface FileReferenceBase {
   person_id?: number;
   dependent_id?: number;
   disability_requirement_id?: number;
+
+  status_description?: string;
 }
 
 export interface FileReference extends FileReferenceBase {

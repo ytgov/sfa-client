@@ -13,7 +13,7 @@
                         class="my-0">Remove dependent</v-btn>
                     </div>
                     <div class="col-md-6">
-                        <v-btn :disabled="showAdd" block color="success" class="my-0">View BCERT</v-btn>
+                        <v-btn :disabled="showAdd" block color="success" class="my-0" @click="showPDF(dependent)">View BCERT</v-btn>
                     </div>
                 </v-row>
             </div>
@@ -415,6 +415,10 @@
             Cancel
         </v-btn>
         <confirm-dialog ref="confirm"></confirm-dialog>
+
+        
+    <show-pdf ref="showPdf">
+    </show-pdf>
     </div>
 </template>
 <script>
@@ -495,6 +499,10 @@ export default {
 
     },
     methods: {
+        showDependant(dependent) {
+            console.log(dependent.d_id);
+            console.log(this.student);
+        },
         setClose() {
             this.dependentData = {
                 birth_date: null,
@@ -827,6 +835,19 @@ export default {
                 }
             );
 
+        },
+        async showPDF(dependent) {      
+            try {     
+                console.log(dependent.d_id);
+                console.log(this.student);                         
+                let buf = await fetch(APPLICATION_URL + `/${this.application.id}/student/${this.student.id}/files/73/fellow_type/dependent/fellow/${dependent.d_id}/`)           
+                    .then((r) => r.arrayBuffer());                        
+                    const blob = new Blob([buf], {type: 'application/pdf'});
+                    const blobURL = URL.createObjectURL(blob) || "";                   
+                    this.$refs.showPdf.showModal(blobURL);                                                                   
+            } catch (error) {
+                console.log(error);
+            }
         },
     },
     props: {

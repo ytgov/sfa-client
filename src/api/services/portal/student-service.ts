@@ -164,6 +164,10 @@ export class PortalStudentService {
   async update(sub: string, student: any) {
     return db("student").withSchema(schema).where({ sub }).update(student);
   }
+
+  async getAddresses(person_id: number): Promise<any[]> {
+    return db("person_address").withSchema(schema).where({ person_id, is_active: true });
+  }
 }
 
 export interface Student_Create {

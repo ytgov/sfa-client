@@ -39,6 +39,7 @@ import { programRouter } from "./program-router";
 import { cslClassificationRouter } from "./csl-classification-router";
 import { accommodationTypeRouter } from "./accommodation-type-router";
 import { cslCodeRouter } from "./csl-code-router";
+import { requirementTypeRouter } from "./requirement-type-router";
 import { citizenshipRouter } from "./citizenship-router";
 import { prestudyEmploymentRouter } from "./prestudy-employment-status-router";
 import { agencyRouter } from "./agency-router";
@@ -51,6 +52,7 @@ import { incomeTypeRouter } from "./income-type-router";
 import { equipmentCategoryRouter } from "./equipment-category-router";
 import { RequireServerAuth, RequireAdmin } from "../auth";
 import { changeReasonRouter } from "./change-reason-router";
+import { disbursementRouter } from "./disbursement";
 
 export const adminRouter = express.Router();
 //adminRouter.use("/", RequireServerAuth, RequireAdmin)
@@ -94,6 +96,7 @@ adminRouter.use("/relationship", relationshipRouter);
 adminRouter.use("/program", programRouter);
 adminRouter.use("/csl-classification", cslClassificationRouter);
 adminRouter.use("/csl-codes", cslCodeRouter);
+adminRouter.use("/requirement-type", requirementTypeRouter);
 adminRouter.use("/citizenship", citizenshipRouter);
 adminRouter.use("/prestudy-employment-status", prestudyEmploymentRouter);
 adminRouter.use("/agency", agencyRouter);
@@ -106,3 +109,4 @@ adminRouter.use("/income-type", incomeTypeRouter);
 adminRouter.use("/equipment-category", equipmentCategoryRouter);
 adminRouter.use("/change-reason", changeReasonRouter);
 adminRouter.use("/accommodation-type", accommodationTypeRouter);
+adminRouter.use("/disbursement", disbursementRouter);
