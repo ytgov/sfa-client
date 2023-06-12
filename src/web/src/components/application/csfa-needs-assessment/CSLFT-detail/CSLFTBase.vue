@@ -1,5 +1,9 @@
 <template>
   <div class="home cslft-base-assessment">
+    <p class="test">
+    This is a test
+    {{ cslft }}
+    </p>
     <v-card class="default mb-5 bg-color-blue">
       <v-card-text class="nopadding d-flex flex-wrap top-margin low-margin">
         <div class="col-xs-12 col-sm-12 col-lg-12 nopadding d-flex flex-wrap">
@@ -498,56 +502,33 @@
         </div>
       </v-card-text>
     </v-card>
+    <button type="button" @click="changeValue()">Testing Reactivity</button>
   </div>
 </template>
 <script>
 import store from "@/store";
 import validator from "@/validator";
-import { mapGetters } from 'vuex';
+import { mapGetters, mapState } from 'vuex';
 
 export default {
   name: "cslft-base",
   computed: {
     ...mapGetters(["cslClassifications", "accommodationTypes", "maritalStatusList", "studyAreas", "provinces", "assessmentTypes", "programs"]),
+    ...mapState({
+      cslft: state => state.cslft.cslft
+    }),
     application: function () {
       return store.getters.selectedApplication;
     },
   },
   data: () => ({
     showAdd: false,
-    cslft: {
-      base: {
-        assessed_type: 1,
-        assessed_date: "2023-06-10",
-        assessed_date_menu: undefined,
-        no_dependents: undefined,
-        pre_study_accommodation_type: undefined,
-        pre_study_end_date: undefined,
-        pre_study_end_date_menu: undefined,
-        pre_study_start_date: undefined,
-        pre_study_start_date_menu: undefined,
-        pre_study_classification: undefined,
-        pre_study_mon: undefined,
-        pre_study_wks: undefined,
-        pre_study_province: undefined,
-        study_accommodation_type: undefined,
-        study_end_date: undefined,
-        study_end_date_menu: undefined,
-        study_start_date: undefined,
-        study_start_date_menu: undefined,
-        study_area: undefined,
-        study_classification: undefined,
-        study_months: undefined,
-        study_program: undefined,
-        study_province: undefined,
-        study_weeks: undefined,
-        spouse_province: undefined,
-        marital_status: undefined,
-        period: undefined,
-        fos_code: undefined,
-      }
-    }
   }),
+  methods: {
+    changeValue() {
+      store.state.cslft.cslft.base.assessed_type = 2;
+    }
+  },
   async created() {
     store.dispatch("setCslClassifications");
     store.dispatch("setAccommodationTypes");

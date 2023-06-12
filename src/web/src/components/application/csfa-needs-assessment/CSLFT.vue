@@ -126,7 +126,7 @@ export default {
   data: () => ({
     tab: 0,
     applicationId: -1,
-    showAdd: false,
+    showAdd: false
   }),
   watch: {
     student: function (val) {

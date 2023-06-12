@@ -1,9 +1,12 @@
 import Vue from "vue";
 import Vuex from "vuex";
 
+// Stores
 import auth from "./auth";
 import profile from "./profile";
 import institution from "./institution";
+
+// Modules
 import student from "@/modules/student/store";
 import province from "@/modules/province/store";
 import countries from "@/modules/countries/store";
@@ -53,6 +56,11 @@ import expenseCategory from "@/modules/expense-category/store";
 import equipmentCategory from "@/modules/equipment-category/store";
 import changeReason from "@/modules/change-reason/store";
 import adminCrud from "./adminCrud";
+
+// DTO Modules
+import cslft from "@/modules/cslft/store";
+
+// Config
 import axios from "axios";
 import { APPLICATION_URL, STUDENT_URL } from "../urls";
 
@@ -416,5 +424,5 @@ export default new Vuex.Store({
     },
   },
 
-  modules: { auth, profile, institution, student, province, countries, cities, cslCode, addressType, indigenousLearner, Language, maritalStatus, studyField, parentalRelationship, firstNation, portalStatus, sex, studentCategory, applicationType, highSchool, ageDistribution, institutionLevel, assessmentType, batchGroup, educationLevel, status, statusReason, yukonGrantEligibility, disbursementType, reasonsForChange, fundingGroup, disabilityType, aboriginalStatus, disabilityService, relationships, studyArea, program, cslClassification, accommodationType, citizenship, prestudyEmploymentStatus, academicYear, agency, instructionType, programDivision, attendance, documentStatus, incomeType, expenseCategory, equipmentCategory, changeReason, adminCrud, }
+  modules: { auth, profile, institution, cslft, student, province, countries, cities, cslCode, addressType, indigenousLearner, Language, maritalStatus, studyField, parentalRelationship, firstNation, portalStatus, sex, studentCategory, applicationType, highSchool, ageDistribution, institutionLevel, assessmentType, batchGroup, educationLevel, status, statusReason, yukonGrantEligibility, disbursementType, reasonsForChange, fundingGroup, disabilityType, aboriginalStatus, disabilityService, relationships, studyArea, program, cslClassification, accommodationType, citizenship, prestudyEmploymentStatus, academicYear, agency, instructionType, programDivision, attendance, documentStatus, incomeType, expenseCategory, equipmentCategory, changeReason, adminCrud, }
 });
