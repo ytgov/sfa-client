@@ -25,5 +25,7 @@ EXPOSE 3000
 WORKDIR /home/node/app
 
 ENV NODE_ENV=production
+ENV NODE_TLS_REJECT_UNAUTHORIZED=0
+
 RUN npm run build
 CMD [ "node", "./dist/index.js" ]
