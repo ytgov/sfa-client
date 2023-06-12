@@ -189,7 +189,7 @@ export default {
         },
         selectApplication(item) {
             this.selectedApplication = item;
-            this.$router.push(`/application/${item.student_id}`);
+            this.$router.push(`/application/${item.id}/personal`);
         },
     },
 };
