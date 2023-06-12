@@ -1,9 +1,5 @@
 <template>
   <div class="home cslft-base-assessment">
-    <p class="test">
-    This is a test
-    {{ cslft }}
-    </p>
     <v-card class="default mb-5 bg-color-blue">
       <v-card-text class="nopadding d-flex flex-wrap top-margin low-margin">
         <div class="col-xs-12 col-sm-12 col-lg-12 nopadding d-flex flex-wrap">
