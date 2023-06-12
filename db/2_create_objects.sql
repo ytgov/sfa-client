@@ -6,20 +6,15 @@ WHERE name = N'sfa')
 GO
 
 -- sfa.country
-IF OBJECT_ID(N'[sfa].[country]', N'U') IS NULL
-BEGIN
 CREATE TABLE sfa.country
 (
     id           INT IDENTITY (1, 1) PRIMARY KEY,
     description  NVARCHAR(100) NOT NULL,
     abbreviation NVARCHAR(20)  NULL,
     is_active    BIT           NOT NULL DEFAULT 1
-);
-END;
+)
 
 -- sfa.province
-IF OBJECT_ID(N'[sfa].[province]', N'U') IS NULL
-BEGIN
 CREATE TABLE sfa.province
 (
     id           INT IDENTITY (1, 1) PRIMARY KEY,
@@ -27,30 +22,23 @@ CREATE TABLE sfa.province
     abbreviation NVARCHAR(20)  NULL,
     country_id   INT           NULL REFERENCES sfa.country (id),
     is_active    BIT           NOT NULL DEFAULT 1
-);
-END;
+)
 -- SFA.CITY
-IF OBJECT_ID(N'[sfa].[city]', N'U') IS NULL
-BEGIN
 CREATE TABLE sfa.city
 (
     id          INT IDENTITY (1, 1) PRIMARY KEY,
     description NVARCHAR(100) NOT NULL,
     province_id INT           NULL REFERENCES sfa.province (id),
     is_active   BIT           NOT NULL DEFAULT 1
-);
-END;
+)
 
 -- ACADEMIC_YEAR
-IF OBJECT_ID(N'[sfa].[academic_year]', N'U') IS NULL
-BEGIN
 CREATE TABLE sfa.academic_year
 (
     id     INT IDENTITY (1965,1) PRIMARY KEY,
     [year] NVARCHAR(4)  NOT NULL UNIQUE,
     status NVARCHAR(50) NOT NULL DEFAULT 'Open'
-);
-END;
+)
 
 -- USER
 IF NOT EXISTS(SELECT *
@@ -71,18 +59,14 @@ WHERE name = 'user'
                        create_date    DATETIME2(0)     NOT NULL DEFAULT GETDATE()
                    )
 
-IF OBJECT_ID(N'[sfa].[institution_level]', N'U') IS NULL
-BEGIN
+
 CREATE TABLE sfa.institution_level
 (
     id          INT IDENTITY (1,1) PRIMARY KEY,
     description NVARCHAR(50) NOT NULL UNIQUE,
     is_active   BIT          NOT NULL DEFAULT 1
-);
-END;
+)
 
-IF OBJECT_ID(N'[sfa].[institution]', N'U') IS NULL
-BEGIN
 CREATE TABLE sfa.institution
 (
     id                       INT IDENTITY (1,1) PRIMARY KEY,
@@ -90,11 +74,8 @@ CREATE TABLE sfa.institution
     is_active                BIT           NOT NULL DEFAULT 1,
     federal_institution_code NVARCHAR(24),
     institution_level_id     INT           NOT NULL REFERENCES sfa.institution_level (id)
-);
-END;
+)
 
-IF OBJECT_ID(N'[sfa].[institution_campus]', N'U') IS NULL
-BEGIN
 CREATE TABLE sfa.institution_campus
 (
     id                       INT IDENTITY (1,1) PRIMARY KEY,
@@ -111,11 +92,8 @@ CREATE TABLE sfa.institution_campus
     address_country_id       INT REFERENCES sfa.country (id)  NULL,
     address_postal_code      NVARCHAR(50),
     email_address            NVARCHAR(100)
-);
-END;
+)
 
-IF OBJECT_ID(N'[sfa].[institution_campus_dates]', N'U') IS NULL
-BEGIN
 CREATE TABLE sfa.institution_campus_dates
 (
     id                    INT IDENTITY (1,1) PRIMARY KEY,
@@ -123,11 +101,8 @@ CREATE TABLE sfa.institution_campus_dates
     academic_year_id      INT       NOT NULL REFERENCES sfa.academic_year (id),
     class_start_date      DATETIME2(0) NULL,
     class_end_date        DATETIME2(0) NULL
-);
-END;
+)
 
-IF OBJECT_ID(N'[sfa].[institution_campus_notes]', N'U') IS NULL
-BEGIN
 CREATE TABLE sfa.institution_campus_notes
 (
     id                    INT IDENTITY (1,1) PRIMARY KEY,
@@ -135,36 +110,27 @@ CREATE TABLE sfa.institution_campus_notes
     note                  TEXT         NOT NULL,
     create_date           DATETIME2(0) NOT NULL DEFAULT GETDATE(),
     create_user_id        INT          NOT NULL REFERENCES sfa.[user]
-);
-END;
+)
 
 
 -- SEX
-IF OBJECT_ID(N'[sfa].[sex]', N'U') IS NULL
-BEGIN
 CREATE TABLE sfa.sex
 (
     id          INT IDENTITY (1,1) PRIMARY KEY,
     description NVARCHAR(50) NOT NULL UNIQUE,
     is_active   BIT          NOT NULL DEFAULT 1
-);
-END;
+)
 
 -- INDEIGENOUS_LEARNER
-IF OBJECT_ID(N'[sfa].[indigenous_learner]', N'U') IS NULL
-BEGIN
 CREATE TABLE sfa.indigenous_learner
 (
     id          INT IDENTITY PRIMARY KEY,
     description NVARCHAR(50) NOT NULL UNIQUE,
     is_active   BIT          NOT NULL DEFAULT 0
-);
-END;
+)
 
 
 -- SFAADMIN.ABORIGINAL_STATUS
-IF OBJECT_ID(N'[sfa].[aboriginal_status]', N'U') IS NULL
-BEGIN
 CREATE TABLE sfa.aboriginal_status
 (
     id             INT IDENTITY (1,1) PRIMARY KEY,
@@ -172,125 +138,92 @@ CREATE TABLE sfa.aboriginal_status
     is_active      BIT           NOT NULL DEFAULT 1,
     nars_status_id INT           NULL,
     sort_order     INT           NOT NULL DEFAULT 99
-);
-END;
+)
 
 -- SFAADMIN.AGE_DISTRIBUTION
-IF OBJECT_ID(N'[sfa].[age_distribution]', N'U') IS NULL
-BEGIN
 CREATE TABLE sfa.age_distribution
 (
     id        INT IDENTITY (1,1) PRIMARY KEY,
     start_age INT NOT NULL,
     end_age   INT NOT NULL
-);
-END;
+)
 
 -- SFAADMIN.AGENCY
-IF OBJECT_ID(N'[sfa].[agency]', N'U') IS NULL
-BEGIN
 CREATE TABLE sfa.agency
 (
     id          INT IDENTITY (1,1) PRIMARY KEY,
     description NVARCHAR(200) NOT NULL,
     is_active   BIT           NOT NULL DEFAULT 1
-);
-END;
+)
 
 -- SFAADMIN.APPLICATION_TYPE
-IF OBJECT_ID(N'[sfa].[application_type]', N'U') IS NULL
-BEGIN
 CREATE TABLE sfa.application_type
 (
     id          INT IDENTITY (1,1) PRIMARY KEY,
     description NVARCHAR(200) NOT NULL,
     is_active   BIT           NOT NULL DEFAULT 1
-);
-END;
+)
 
 -- SFAADMIN.ASSESSMENT_TYPE
-IF OBJECT_ID(N'[sfa].[assessment_type]', N'U') IS NULL
-BEGIN
 CREATE TABLE sfa.assessment_type
 (
     id          INT IDENTITY (1,1) PRIMARY KEY,
     description NVARCHAR(200) NOT NULL,
     is_active   BIT           NOT NULL DEFAULT 1
-);
-END;
+)
 
 -- SFAADMIN.BATCH_GROUP
-IF OBJECT_ID(N'[sfa].[batch_group]', N'U') IS NULL
-BEGIN
 CREATE TABLE sfa.batch_group
 (
     id          INT IDENTITY (1,1) PRIMARY KEY,
     description NVARCHAR(200) NOT NULL,
     prefix      NVARCHAR(200) NULL,
     is_active   BIT           NOT NULL DEFAULT 1
-);
-END;
+)
 
 -- SFAADMIN.BATCH_PARAMETER
-IF OBJECT_ID(N'[sfa].[batch_parameter]', N'U') IS NULL
-BEGIN
 CREATE TABLE sfa.batch_parameter
 (
     id               INT IDENTITY (1,1) PRIMARY KEY,
     description      NVARCHAR(200) NOT NULL,
     user_description NVARCHAR(200) NULL,
     is_active        BIT           NOT NULL DEFAULT 1
-);
-END;
+)
 
 -- SFAADMIN.CATEGORY
-IF OBJECT_ID(N'[sfa].[category]', N'U') IS NULL
-BEGIN
 CREATE TABLE sfa.category
 (
     id          INT IDENTITY (1,1) PRIMARY KEY,
     description NVARCHAR(200) NOT NULL,
     is_active   BIT           NOT NULL DEFAULT 1
-);
-END;
+)
 
 -- SFAADMIN.CHANGE_REASON
-IF OBJECT_ID(N'[sfa].[change_reason]', N'U') IS NULL
-BEGIN
 CREATE TABLE sfa.change_reason
 (
     id          INT IDENTITY (1,1) PRIMARY KEY,
     description NVARCHAR(200) NOT NULL,
     is_active   BIT           NOT NULL DEFAULT 1
-);
-END;
+)
 
 -- SFAADMIN.CHILD_CARE_CEILING
-IF OBJECT_ID(N'[sfa].[child_care_ceiling]', N'U') IS NULL
-BEGIN
 CREATE TABLE sfa.child_care_ceiling
 (
     id               INT IDENTITY (1,1) PRIMARY KEY,
     academic_year_id INT           NOT NULL REFERENCES sfa.academic_year (id),
     province_id      INT           NOT NULL REFERENCES sfa.province (id),
     max_amount       NUMERIC(7, 2) NOT NULL
-);
-END;
+)
 
 -- SFAADMIN.COMUNICATION_TYPE
-IF OBJECT_ID(N'[sfa].[communication_type]', N'U') IS NULL
-BEGIN
 CREATE TABLE sfa.communication_type
 (
     id          INT IDENTITY (1,1) PRIMARY KEY,
     description NVARCHAR(200) NOT NULL,
     is_active   BIT           NOT NULL DEFAULT 1
-);
-END;
+)
 
 -- SFAADMIN.CSG_LOOKUP
-IF OBJECT_ID(N'[sfa].[csg_lookup]', N'U') IS NULL
-BEGIN
 CREATE TABLE sfa.csg_lookup
 (
     id                          INT IDENTITY (1,1) PRIMARY KEY,
@@ -303,12 +236,9 @@ CREATE TABLE sfa.csg_lookup
     csgpt_dep_max_amount        NUMERIC(7, 2) NOT NULL,
     csgpt_dep_1_2_weekly_amount NUMERIC(7, 2) NOT NULL,
     csgpt_dep_3_weekly_amount   NUMERIC(7, 2) NOT NULL
-);
-END;
+)
 
 -- SFAADMIN.CSG_THRESHOLD
-IF OBJECT_ID(N'[sfa].[csg_threshold]', N'U') IS NULL
-BEGIN
 CREATE TABLE sfa.csg_threshold
 (
     id                        INT IDENTITY (1,1) PRIMARY KEY,
@@ -324,12 +254,9 @@ CREATE TABLE sfa.csg_threshold
     csgpt_dep3_phase_out_rate FLOAT          NULL,
     csgft_dep_phase_out_rate  FLOAT          NULL,
     UNIQUE (academic_year_id, family_size)
-);
-END;
+)
 
 -- SFAADMIN.CSL_CODE
-IF OBJECT_ID(N'[sfa].[csl_code]', N'U') IS NULL
-BEGIN
 CREATE TABLE sfa.csl_code
 (
     id           INT IDENTITY (1,1) PRIMARY KEY,
@@ -338,12 +265,9 @@ CREATE TABLE sfa.csl_code
     code_type    NVARCHAR(10)   NOT NULL,
     definition   NVARCHAR(1000) NOT NULL,
     is_active    BIT            NOT NULL DEFAULT 1
-);
-END;
+)
 
 -- SFAADMIN.CSL_LOOKUP
-IF OBJECT_ID(N'[sfa].[csl_lookup]', N'U') IS NULL
-BEGIN
 CREATE TABLE sfa.csl_lookup
 (
     id                                INT IDENTITY (1,1) PRIMARY KEY,
@@ -366,12 +290,9 @@ CREATE TABLE sfa.csl_lookup
     student_contrib_max_amount        NUMERIC(10, 2) NULL,
     csl_pt_max_amount                 NUMERIC(10, 2) NULL,
     csl_pt_wk_misc_amount             NUMERIC(10, 2) NULL
-);
-END;
+)
 
 -- SFAADMIN.CSL_NSLSC_ADDRESS
-IF OBJECT_ID(N'[sfa].[csl_nslsc_address]', N'U') IS NULL
-BEGIN
 CREATE TABLE sfa.csl_nslsc_address
 (
     id               INT IDENTITY (1,1) PRIMARY KEY,
@@ -385,24 +306,18 @@ CREATE TABLE sfa.csl_nslsc_address
     phone_number     NVARCHAR(50)  NOT NULL,
     effective_date   DATETIME2(0)  NOT NULL DEFAULT GETDATE(),
     expiry_date      DATETIME2(0)  NULL
-);
-END;
+)
 
 -- SFAADMIN.CSL_REASON
-IF OBJECT_ID(N'[sfa].[csl_reason]', N'U') IS NULL
-BEGIN
 CREATE TABLE sfa.csl_reason
 (
     id          INT IDENTITY (1,1) PRIMARY KEY,
     type        NVARCHAR(50) NOT NULL,
     name        NVARCHAR(50) NOT NULL,
     description TEXT         NULL
-);
-END;
+)
 
 -- SFAADMIN.CSL_RESTRICTED
-IF OBJECT_ID(N'[sfa].[csl_restricted]', N'U') IS NULL
-BEGIN
 CREATE TABLE sfa.csl_restricted
 (
     id                    INT IDENTITY (1,1) PRIMARY KEY,
@@ -421,58 +336,43 @@ CREATE TABLE sfa.csl_restricted
     calsc_restrict2       NVARCHAR(1)    NULL,
     calsc_restrict3       NVARCHAR(1)    NULL,
     fi_restrict1          NVARCHAR(1)    NULL
-);
-END;
+)
 
 -- SFAADMIN.DISAB_SERVICE_TYPE
-IF OBJECT_ID(N'[sfa].[disability_service]', N'U') IS NULL
-BEGIN
 CREATE TABLE sfa.disability_service
 (
     id          INT IDENTITY (1,1) PRIMARY KEY,
     description NVARCHAR(200) NOT NULL,
     is_active   BIT           NOT NULL DEFAULT 1
-);
-END;
+)
 
 -- SFAADMIN.DISABILITY_TYPE
-IF OBJECT_ID(N'[sfa].[disability_type]', N'U') IS NULL
-BEGIN
 CREATE TABLE sfa.disability_type
 (
     id          INT IDENTITY (1,1) PRIMARY KEY,
     description NVARCHAR(200) NOT NULL,
     csl_code    NVARCHAR(5)   NOT NULL,
     is_active   BIT           NOT NULL DEFAULT 1
-);
-END;
+)
 
 -- SFAADMIN.DISBURSEMENT_TYPE
-IF OBJECT_ID(N'[sfa].[disbursement_type]', N'U') IS NULL
-BEGIN
 CREATE TABLE sfa.disbursement_type
 (
     id          INT IDENTITY (1,1) PRIMARY KEY,
     description NVARCHAR(200) NOT NULL,
     is_active   BIT           NOT NULL DEFAULT 1
-);
-END;
+)
 
 -- SFAADMIN.EDUCATION_LEVEL
-IF OBJECT_ID(N'[sfa].[education_level]', N'U') IS NULL
-BEGIN
 CREATE TABLE sfa.education_level
 (
     id          INT IDENTITY (1,1) PRIMARY KEY,
     description NVARCHAR(200) NOT NULL,
     rank        INT           NOT NULL,
     is_active   BIT           NOT NULL DEFAULT 1
-);
-END;
+)
 
 -- SFAADMIN.ENTITLEMENT_ERROR_CODES
-IF OBJECT_ID(N'[sfa].[entitlement_error_codes]', N'U') IS NULL
-BEGIN
 CREATE TABLE sfa.entitlement_error_codes
 (
     id             INT IDENTITY (1,1) PRIMARY KEY,
@@ -481,36 +381,27 @@ CREATE TABLE sfa.entitlement_error_codes
     is_confirmed   BIT           NOT NULL DEFAULT 1,
     is_in_feedback BIT           NOT NULL DEFAULT 1,
     is_resend      BIT           NOT NULL DEFAULT 1
-);
-END;
+)
 
 -- SFAADMIN.FIRST_NATION
-IF OBJECT_ID(N'[sfa].[first_nation]', N'U') IS NULL
-BEGIN
 CREATE TABLE sfa.first_nation
 (
     id          INT IDENTITY (1,1) PRIMARY KEY,
     description NVARCHAR(200) NOT NULL,
     city_id     INT           NULL REFERENCES sfa.city (id),
     is_active   BIT           NOT NULL DEFAULT 1
-);
-END;
+)
 
 -- SFAADMIN.FUNDING_GROUP
-IF OBJECT_ID(N'[sfa].[funding_group]', N'U') IS NULL
-BEGIN
 CREATE TABLE sfa.funding_group
 (
     id          INT IDENTITY (1,1) PRIMARY KEY,
     description NVARCHAR(200) NOT NULL,
     sort_order  INT           NOT NULL DEFAULT 99,
     is_active   BIT           NOT NULL DEFAULT 1
-);
-END;
+)
 
 -- SFAADMIN.HIGH_SCHOOL
-IF OBJECT_ID(N'[sfa].[high_school]', N'U') IS NULL
-BEGIN
 CREATE TABLE sfa.high_school
 (
     id          INT IDENTITY (1,1) PRIMARY KEY,
@@ -519,12 +410,9 @@ CREATE TABLE sfa.high_school
     province_id INT           NOT NULL REFERENCES sfa.province (id),
     country_id  INT           NOT NULL REFERENCES sfa.country (id),
     is_active   BIT           NOT NULL DEFAULT 1
-);
-END;
+)
 
 -- SFAADMIN.INFO_CATEGORY
-IF OBJECT_ID(N'[sfa].[info_category]', N'U') IS NULL
-BEGIN
 CREATE TABLE sfa.info_category
 (
     id            INT IDENTITY (1,1) PRIMARY KEY,
@@ -533,67 +421,49 @@ CREATE TABLE sfa.info_category
     sort_order    INT           NOT NULL DEFAULT 99,
     first_item    NVARCHAR(200) NOT NULL,
     is_active     BIT           NOT NULL DEFAULT 1
-);
-END;
+)
 
 -- SFAADMIN.INSTRUCTION_TYPE
-IF OBJECT_ID(N'[sfa].[instruction_type]', N'U') IS NULL
-BEGIN
 CREATE TABLE sfa.instruction_type
 (
     id          INT IDENTITY (1,1) PRIMARY KEY,
     description NVARCHAR(200) NOT NULL,
     is_active   BIT           NOT NULL DEFAULT 1
-);
-END;
+)
 
 -- SFAADMIN.INVESTMENT_TYPE
-IF OBJECT_ID(N'[sfa].[investment_type]', N'U') IS NULL
-BEGIN
 CREATE TABLE sfa.investment_type
 (
     id          INT IDENTITY (1,1) PRIMARY KEY,
     description NVARCHAR(200) NOT NULL,
     is_active   BIT           NOT NULL DEFAULT 1
-);
-END;
+)
 
 -- SFAADMIN.LANGUAGE
-IF OBJECT_ID(N'[sfa].[language]', N'U') IS NULL
-BEGIN
 CREATE TABLE sfa.language
 (
     id          INT IDENTITY (1,1) PRIMARY KEY,
     description NVARCHAR(200) NOT NULL,
     is_active   BIT           NOT NULL DEFAULT 1
-);
-END;
+)
 
 -- SFAADMIN.MARITAL_STATUS
-IF OBJECT_ID(N'[sfa].[marital_status]', N'U') IS NULL
-BEGIN
 CREATE TABLE sfa.marital_status
 (
     id          INT IDENTITY (1,1) PRIMARY KEY,
     description NVARCHAR(200) NOT NULL,
     is_active   BIT           NOT NULL DEFAULT 1
-);
-END;
+)
 
 -- SFAADMIN.OWNERSHIP
-IF OBJECT_ID(N'[sfa].[ownership]', N'U') IS NULL
-BEGIN
 CREATE TABLE sfa.ownership
 (
     id          INT IDENTITY (1,1) PRIMARY KEY,
     description NVARCHAR(200) NOT NULL,
     is_active   BIT           NOT NULL DEFAULT 1
-);
-END;
+)
 
 -- SFAADMIN.PARENT_CONTRIBUTION_FORMULA
-IF OBJECT_ID(N'[sfa].[parent_contribution_formula]', N'U') IS NULL
-BEGIN
 CREATE TABLE sfa.parent_contribution_formula
 (
     id                 INT IDENTITY (1,1) PRIMARY KEY,
@@ -604,56 +474,41 @@ CREATE TABLE sfa.parent_contribution_formula
     percentage         FLOAT          NOT NULL,
     subtract_amount    NUMERIC(10, 2),
     divide_by          INT            NOT NULL
-);
-END;
+)
 
 -- SFAADMIN.PART_TIME_REASON
-IF OBJECT_ID(N'[sfa].[part_time_reason]', N'U') IS NULL
-BEGIN
 CREATE TABLE sfa.part_time_reason
 (
     id          INT IDENTITY (1,1) PRIMARY KEY,
     description NVARCHAR(200) NOT NULL,
     is_active   BIT           NOT NULL DEFAULT 1
-);
-END;
+)
 
 -- SFAADMIN.PERIOD
-IF OBJECT_ID(N'[sfa].[period]', N'U') IS NULL
-BEGIN
 CREATE TABLE sfa.period
 (
     id          INT IDENTITY (1,1) PRIMARY KEY,
     description NVARCHAR(200) NOT NULL,
     is_active   BIT           NOT NULL DEFAULT 1
-);
-END;
+)
 
 -- SFAADMIN.PORTAL_STATUS
-IF OBJECT_ID(N'[sfa].[portal_status]', N'U') IS NULL
-BEGIN
 CREATE TABLE sfa.portal_status
 (
     id          INT IDENTITY (1,1) PRIMARY KEY,
     description NVARCHAR(200) NOT NULL,
     is_active   BIT           NOT NULL DEFAULT 1
-);
-END;
+)
 
 -- SFAADMIN.PRESTUDY_EMPLOY_STATUS
-IF OBJECT_ID(N'[sfa].[prestudy_employment_status]', N'U') IS NULL
-BEGIN
 CREATE TABLE sfa.prestudy_employment_status
 (
     id          INT IDENTITY (1,1) PRIMARY KEY,
     description NVARCHAR(200) NOT NULL,
     is_active   BIT           NOT NULL DEFAULT 1
-);
-END;
+)
 
 -- SFAADMIN.PRESTUDY_TAX_RATE
-IF OBJECT_ID(N'[sfa].[prestudy_tax_rate]', N'U') IS NULL
-BEGIN
 CREATE TABLE sfa.prestudy_tax_rate
 (
     id                 INT IDENTITY (1,1) PRIMARY KEY,
@@ -661,46 +516,34 @@ CREATE TABLE sfa.prestudy_tax_rate
     from_income_amount NUMERIC(10, 2) NOT NULL,
     to_income_amount   NUMERIC(10, 2) NOT NULL,
     prestudy_tax_rate  FLOAT          NOT NULL
-);
-END;
+)
 
 -- SFAADMIN.PROGRAM
-IF OBJECT_ID(N'[sfa].[program]', N'U') IS NULL
-BEGIN
 CREATE TABLE sfa.program
 (
     id                 INT IDENTITY (1,1) PRIMARY KEY,
     description        NVARCHAR(200) NOT NULL,
     education_level_id INT           NOT NULL REFERENCES sfa.education_level (id),
     is_active          BIT           NOT NULL DEFAULT 1
-);
-END;
+)
 
 -- SFAADMIN.RELATIONSHIP
-IF OBJECT_ID(N'[sfa].[relationship]', N'U') IS NULL
-BEGIN
 CREATE TABLE sfa.relationship
 (
     id          INT IDENTITY (1,1) PRIMARY KEY,
     description NVARCHAR(200) NOT NULL,
     is_active   BIT           NOT NULL DEFAULT 1
-);
-END;
+)
 
 -- SFAADMIN.REPORT_EXPENSE_CATEGORY
-IF OBJECT_ID(N'[sfa].[report_expense_category]', N'U') IS NULL
-BEGIN
 CREATE TABLE sfa.report_expense_category
 (
     id          INT IDENTITY (1,1) PRIMARY KEY,
     description NVARCHAR(200) NOT NULL,
     is_active   BIT           NOT NULL DEFAULT 1
-);
-END;
+)
 
 -- SFAADMIN.REQUIREMENT_TYPE
-IF OBJECT_ID(N'[sfa].[requirement_type]', N'U') IS NULL
-BEGIN
 CREATE TABLE sfa.requirement_type
 (
     id                INT IDENTITY (1,1) PRIMARY KEY,
@@ -708,12 +551,9 @@ CREATE TABLE sfa.requirement_type
     document_location NVARCHAR(2000) NULL,
     show_online       BIT            NOT NULL DEFAULT 1,
     is_active         BIT            NOT NULL DEFAULT 1
-);
-END;
+)
 
 -- SFAADMIN.SFA_DOCUMENT_LINK
-IF OBJECT_ID(N'[sfa].[sfa_document_link]', N'U') IS NULL
-BEGIN
 CREATE TABLE sfa.sfa_document_link
 (
     id                INT IDENTITY (1,1) PRIMARY KEY,
@@ -721,12 +561,9 @@ CREATE TABLE sfa.sfa_document_link
     document_location NVARCHAR(2000) NULL,
     sort_order        INT            NOT NULL DEFAULT 99,
     is_active         BIT            NOT NULL DEFAULT 1
-);
-END;
+)
 
 -- SFAADMIN.SPOUSE_TAX_RATE
-IF OBJECT_ID(N'[sfa].[spouse_tax_rate]', N'U') IS NULL
-BEGIN
 CREATE TABLE sfa.spouse_tax_rate
 (
     id                 INT IDENTITY (1,1) PRIMARY KEY,
@@ -735,12 +572,9 @@ CREATE TABLE sfa.spouse_tax_rate
     from_income_amount NUMERIC(10, 2) NOT NULL,
     to_income_amount   NUMERIC(10, 2) NOT NULL,
     tax_rate           FLOAT          NOT NULL
-);
-END;
+)
 
 -- SFAADMIN.STA_LOOKUP
-IF OBJECT_ID(N'[sfa].[sta_lookup]', N'U') IS NULL
-BEGIN
 CREATE TABLE sfa.sta_lookup
 (
     id                      INT IDENTITY (1,1) PRIMARY KEY,
@@ -751,12 +585,9 @@ CREATE TABLE sfa.sta_lookup
     dependent_3_amount      NUMERIC(10, 2) NOT NULL,
     dependent_4_amount      NUMERIC(10, 2) NOT NULL,
     second_residence_amount NUMERIC(10, 2) NOT NULL
-);
-END;
+)
 
 -- SFAADMIN.STANDARD_OF_LIVING
-IF OBJECT_ID(N'[sfa].[standard_of_living]', N'U') IS NULL
-BEGIN
 CREATE TABLE sfa.standard_of_living
 (
     id                     INT IDENTITY (1,1) PRIMARY KEY,
@@ -765,12 +596,9 @@ CREATE TABLE sfa.standard_of_living
     family_size            INT            NOT NULL,
     standard_living_amount NUMERIC(10, 2) NOT NULL,
     UNIQUE (academic_year_id, province_id, family_size)
-);
-END;
+)
 
 -- SFAADMIN.STATUS
-IF OBJECT_ID(N'[sfa].[status]', N'U') IS NULL
-BEGIN
 CREATE TABLE sfa.status
 (
     id                 INT IDENTITY (1,1) PRIMARY KEY,
@@ -778,36 +606,27 @@ CREATE TABLE sfa.status
     online_description NVARCHAR(200) NULL,
     sort_order         INT           NOT NULL DEFAULT 99,
     is_active          BIT           NOT NULL DEFAULT 1
-);
-END;
+)
 
 -- SFAADMIN.STATUS_REASON
-IF OBJECT_ID(N'[sfa].[status_reason]', N'U') IS NULL
-BEGIN
 CREATE TABLE sfa.status_reason
 (
     id          INT IDENTITY (1,1) PRIMARY KEY,
     status_id   INT           NULL REFERENCES sfa.status (id),
     description NVARCHAR(200) NOT NULL,
     is_active   BIT           NOT NULL DEFAULT 1
-);
-END;
+)
 
 -- SFAADMIN.STUDENT_CATEGORY
-IF OBJECT_ID(N'[sfa].[student_category]', N'U') IS NULL
-BEGIN
 CREATE TABLE sfa.student_category
 (
     id          INT IDENTITY (1,1) PRIMARY KEY,
     code        NVARCHAR(10)  NOT NULL UNIQUE,
     description NVARCHAR(200) NOT NULL,
     is_active   BIT           NOT NULL DEFAULT 1
-);
-END;
+)
 
 -- SFAADMIN.STUDENT_CONTRIBUTION
-IF OBJECT_ID(N'[sfa].[student_contribution]', N'U') IS NULL
-BEGIN
 CREATE TABLE sfa.student_contribution
 (
     id                  INT IDENTITY (1,1) PRIMARY KEY,
@@ -817,12 +636,9 @@ CREATE TABLE sfa.student_contribution
     student_category_id INT            NOT NULL REFERENCES sfa.student_category (id),
     contribution_amount NUMERIC(10, 2) NOT NULL,
     UNIQUE (academic_year_id, province_id, period_id, student_category_id)
-);
-END;
+)
 
 -- SFAADMIN.STUDENT_LIVING_ALLOWANCE
-IF OBJECT_ID(N'[sfa].[student_living_allowance]', N'U') IS NULL
-BEGIN
 CREATE TABLE sfa.student_living_allowance
 (
     id                     INT IDENTITY (1,1) PRIMARY KEY,
@@ -834,23 +650,17 @@ CREATE TABLE sfa.student_living_allowance
     misc_amount            NUMERIC(10, 2) NOT NULL,
     public_tranport_amount NUMERIC(10, 2) NOT NULL,
     UNIQUE (academic_year_id, province_id, student_category_id)
-);
-END;
+)
 
 -- SFAADMIN.STUDY_FIELD
-IF OBJECT_ID(N'[sfa].[study_field]', N'U') IS NULL
-BEGIN
 CREATE TABLE sfa.study_field
 (
     id          INT IDENTITY (1,1) PRIMARY KEY,
     description NVARCHAR(200) NOT NULL,
     is_active   BIT           NOT NULL DEFAULT 1
-);
-END;
+)
 
 -- SFAADMIN.STUDY_AREA
-IF OBJECT_ID(N'[sfa].[study_area]', N'U') IS NULL
-BEGIN
 CREATE TABLE sfa.study_area
 (
     id             INT IDENTITY (1,1) PRIMARY KEY,
@@ -858,12 +668,9 @@ CREATE TABLE sfa.study_area
     description    NVARCHAR(200) NOT NULL,
     show_online    BIT           NOT NULL DEFAULT 1,
     is_active      BIT           NOT NULL DEFAULT 1
-);
-END;
+)
 
 -- SFAADMIN.STUDY_TAX_RATE
-IF OBJECT_ID(N'[sfa].[study_tax_rate]', N'U') IS NULL
-BEGIN
 CREATE TABLE sfa.study_tax_rate
 (
     id                 INT IDENTITY (1,1) PRIMARY KEY,
@@ -871,23 +678,17 @@ CREATE TABLE sfa.study_tax_rate
     from_income_amount NUMERIC(10, 2) NOT NULL,
     to_income_amount   NUMERIC(10, 2) NOT NULL,
     study_tax_rate     FLOAT          NOT NULL
-);
-END;
+)
 
 -- SFAADMIN.SYSTEM_DEP_PARAMS
-IF OBJECT_ID(N'[sfa].[system_dep_params]', N'U') IS NULL
-BEGIN
 CREATE TABLE sfa.system_dep_params
 (
     id              INT IDENTITY (1,1) PRIMARY KEY,
     dependent_count INT            NOT NULL UNIQUE,
     weekly_amount   NUMERIC(10, 2) NOT NULL
-);
-END;
+)
 
 -- SFAADMIN.SYSTEM_PARAMETER
-IF OBJECT_ID(N'[sfa].[system_parameter]', N'U') IS NULL
-BEGIN
 CREATE TABLE sfa.system_parameter
 (
     id                           INT IDENTITY (1,1) PRIMARY KEY,
@@ -918,12 +719,9 @@ CREATE TABLE sfa.system_parameter
     director_phone               NVARCHAR(24)   NULL,
     environment                  NVARCHAR(10)   NULL,
     cslft_msfaa_text             NVARCHAR(100)  NULL
-);
-END;
+)
 
 -- SFAADMIN.TRANSPORTATION
-IF OBJECT_ID(N'[sfa].[transportation]', N'U') IS NULL
-BEGIN
 CREATE TABLE sfa.transportation
 (
     id                      INT IDENTITY (1,1) PRIMARY KEY,
@@ -932,24 +730,18 @@ CREATE TABLE sfa.transportation
     travel_allowance_amount NUMERIC(10, 2) NOT NULL,
     airfare_amount          NUMERIC(10, 2) NOT NULL,
     UNIQUE (home_city_id, institution_city_id)
-);
-END;
+)
 
 -- SFAADMIN.VERIFICATION_LOG
-IF OBJECT_ID(N'[sfa].[verification_log]', N'U') IS NULL
-BEGIN
 CREATE TABLE sfa.verification_log
 (
     id                    INT IDENTITY (1,1) PRIMARY KEY,
     institution_campus_id INT NOT NULL REFERENCES sfa.institution_campus (id),
     is_emailed            BIT NOT NULL DEFAULT 1,
     student_count         INT NOT NULL
-);
-END;
+)
 
 -- SFAADMIN.YEA
-IF OBJECT_ID(N'[sfa].[yea]', N'U') IS NULL
-BEGIN
 CREATE TABLE sfa.yea
 (
     id           INT IDENTITY (1,1) PRIMARY KEY,
@@ -962,12 +754,9 @@ CREATE TABLE sfa.yea
     school_month INT            NULL,
     course       NVARCHAR(100)  NULL,
     yea_amount   NUMERIC(10, 2) NULL
-);
-END;
+)
 
 -- SFAADMIN.YEA_UPDATE
-IF OBJECT_ID(N'[sfa].[yea_update]', N'U') IS NULL
-BEGIN
 CREATE TABLE sfa.yea_update
 (
     id              INT IDENTITY (1,1) PRIMARY KEY,
@@ -980,12 +769,9 @@ CREATE TABLE sfa.yea_update
     course          NVARCHAR(100)  NULL,
     yea_amount      NUMERIC(10, 2) NULL,
     orig_yea_amount NUMERIC(10, 2) NULL
-);
-END;
+)
 
 -- SFAADMIN.YG_COST
-IF OBJECT_ID(N'[sfa].[yg_cost]', N'U') IS NULL
-BEGIN
 CREATE TABLE sfa.yg_cost
 (
     id                      INT IDENTITY (1,1) PRIMARY KEY,
@@ -1000,23 +786,17 @@ CREATE TABLE sfa.yg_cost
     quarter_book_amount     NUMERIC(10, 2) NOT NULL,
     weekly_amount           NUMERIC(10, 2) NULL,
     allowed_percent         FLOAT          NOT NULL
-);
-END;
+)
 
 -- SFA.ADDRESS_TYPE
-IF OBJECT_ID(N'[sfa].[address_type]', N'U') IS NULL
-BEGIN
 CREATE TABLE sfa.address_type
 (
     id          INT IDENTITY (1,1) PRIMARY KEY,
     description NVARCHAR(100) NOT NULL UNIQUE,
     is_active   BIT           NOT NULL DEFAULT 1
-);
-END;
+)
 
 -- SFA.PERSON
-IF OBJECT_ID(N'[sfa].[person]', N'U') IS NULL
-BEGIN
 CREATE TABLE sfa.person
 (
     id                 INT IDENTITY (1,1) PRIMARY KEY,
@@ -1034,12 +814,9 @@ CREATE TABLE sfa.person
     birth_date         DATE          NULL,
     telephone          NVARCHAR(24)  NULL,
     email              NVARCHAR(100) NULL
-);
-END;
+)
 
 -- SFA.PERSON_ADDRESS
-IF OBJECT_ID(N'[sfa].[person_address]', N'U') IS NULL
-BEGIN
 CREATE TABLE sfa.person_address
 (
     id              INT IDENTITY (1,1) PRIMARY KEY,
@@ -1055,12 +832,9 @@ CREATE TABLE sfa.person_address
     telephone       NVARCHAR(24)  NULL,
     email           NVARCHAR(100) NULL,
     is_active       BIT           NOT NULL DEFAULT 1
-);
-END;
+)
 
 -- SFAADMIN.STUDENT
-IF OBJECT_ID(N'[sfa].[student]', N'U') IS NULL
-BEGIN
 CREATE TABLE sfa.student
 (
     id                         INT IDENTITY (1,1) PRIMARY KEY,
@@ -1099,12 +873,9 @@ CREATE TABLE sfa.student
     adj_yg_funding_weeks       INT            NULL,
     adj_sta_upgrading_weeks    INT            NULL,
     adj_outside_travel_cnt     INT            NULL
-);
-END;
+)
 
 -- SFAADMIN.STUDENT_CONSENT
-IF OBJECT_ID(N'[sfa].[student_consent]', N'U') IS NULL
-BEGIN
 CREATE TABLE sfa.student_consent
 (
     id                     INT IDENTITY (1,1) PRIMARY KEY,
@@ -1114,12 +885,9 @@ CREATE TABLE sfa.student_consent
     consent_person         NVARCHAR(200) NOT NULL,
     consent_sfa            BIT           NOT NULL DEFAULT 0,
     consent_csl            BIT           NOT NULL DEFAULT 0
-);
-END;
+)
 
 -- SFAADMIN.RESIDENCE
-IF OBJECT_ID(N'[sfa].[residence]', N'U') IS NULL
-BEGIN
 CREATE TABLE sfa.residence
 (
     id             INT IDENTITY (1,1) PRIMARY KEY,
@@ -1135,12 +903,9 @@ CREATE TABLE sfa.residence
     to_year        INT           NULL,
     to_month       INT           NULL,
     is_in_progress BIT           NOT NULL DEFAULT 1
-);
-END;
+)
 
 -- SFAADMIN.REQUEST_TYPE
-IF OBJECT_ID(N'[sfa].[request_type]', N'U') IS NULL
-BEGIN
 CREATE TABLE sfa.request_type
 (
     id                      INT IDENTITY (1,1) PRIMARY KEY,
@@ -1163,12 +928,9 @@ CREATE TABLE sfa.request_type
     help_url                NVARCHAR(1000) NULL,
     help_text               TEXT           NULL,
     is_active               BIT            NOT NULL DEFAULT 0
-);
-END;
+)
 
 -- SFAADMIN.REQUEST_REQUIREMENT
-IF OBJECT_ID(N'[sfa].[request_requirement]', N'U') IS NULL
-BEGIN
 CREATE TABLE sfa.request_requirement
 (
     id                  INT IDENTITY (1,1) PRIMARY KEY,
@@ -1176,24 +938,18 @@ CREATE TABLE sfa.request_requirement
     requirement_type_id INT           NOT NULL REFERENCES sfa.requirement_type,
     condition           NVARCHAR(200) NULL,
     UNIQUE (request_type_id, requirement_type_id)
-);
-END;
+)
 
 -- SFAADMIN.INSTITUTION_REQUEST_TYPE
-IF OBJECT_ID(N'[sfa].[institution_request_type]', N'U') IS NULL
-BEGIN
 CREATE TABLE sfa.institution_request_type
 (
     id                    INT IDENTITY (1,1) PRIMARY KEY,
     institution_campus_id INT NOT NULL REFERENCES sfa.institution_campus,
     request_type_id       INT NOT NULL REFERENCES sfa.request_type,
     UNIQUE (institution_campus_id, request_type_id)
-);
-END;
+)
 
 -- SFAADMIN.EXPENESE_CATEGORY
-IF OBJECT_ID(N'[sfa].[expense_category]', N'U') IS NULL
-BEGIN
 CREATE TABLE sfa.expense_category
 (
     id                         INT IDENTITY (1,1) PRIMARY KEY,
@@ -1202,12 +958,9 @@ CREATE TABLE sfa.expense_category
     is_active                  BIT           NOT NULL DEFAULT 1,
     notes                      NVARCHAR(700) NULL,
     is_required                BIT           NOT NULL DEFAULT 0
-);
-END;
+)
 
 -- SFAADMIN.EDUCATION
-IF OBJECT_ID(N'[sfa].[education]', N'U') IS NULL
-BEGIN
 CREATE TABLE sfa.education
 (
     id                    INT IDENTITY (1,1) PRIMARY KEY,
@@ -1219,12 +972,9 @@ CREATE TABLE sfa.education
     to_year               INT NULL,
     to_month              INT NULL,
     is_in_progress        BIT NOT NULL DEFAULT 1
-);
-END;
+)
 
 -- SFAADMIN.DEPENDENT
-IF OBJECT_ID(N'[sfa].[dependent]', N'U') IS NULL
-BEGIN
 CREATE TABLE sfa.dependent
 (
     id              INT IDENTITY (1,1) PRIMARY KEY,
@@ -1237,83 +987,59 @@ CREATE TABLE sfa.dependent
     is_in_progress  BIT           NOT NULL DEFAULT 1,
     is_conversion   BIT           NOT NULL DEFAULT 0,
     is_disability   BIT           NOT NULL DEFAULT 0
-);
-END;
+)
 
 -- SFAADMIN.CORRESPONDENCE_TYPE
-IF OBJECT_ID(N'[sfa].[correspondence_type]', N'U') IS NULL
-BEGIN
 CREATE TABLE sfa.correspondence_type
 (
     id          INT IDENTITY (1,1) PRIMARY KEY,
     description NVARCHAR(200) NOT NULL,
     is_active   BIT           NOT NULL DEFAULT 1
-);
-END;
+)
 
-IF OBJECT_ID(N'[sfa].[citizenship]', N'U') IS NULL
-BEGIN
 CREATE TABLE sfa.citizenship 
 (
 	id          INT IDENTITY (1,1) PRIMARY KEY,
 	description NVARCHAR(200) NOT NULL,
 	is_active   BIT           NOT NULL DEFAULT 1
-);
-END;
+)
 
-IF OBJECT_ID(N'[sfa].[document_status]', N'U') IS NULL
-BEGIN
 CREATE TABLE sfa.document_status 
 (
 	id          INT IDENTITY (1,1) PRIMARY KEY,
 	description NVARCHAR(200) NOT NULL,
 	is_active   BIT           NOT NULL DEFAULT 1
-);
-END;
+)
 
-IF OBJECT_ID(N'[sfa].[program_division]', N'U') IS NULL
-BEGIN
 CREATE TABLE sfa.program_division 
 (
 	id          INT IDENTITY (1,1) PRIMARY KEY,
 	description NVARCHAR(200) NOT NULL,
 	is_active   BIT           NOT NULL DEFAULT 1
-);
-END;
+)
 
-IF OBJECT_ID(N'[sfa].[attendance]', N'U') IS NULL
-BEGIN
 CREATE TABLE sfa.attendance 
 (
 	id          INT IDENTITY (1,1) PRIMARY KEY,
 	description NVARCHAR(200) NOT NULL,
 	is_active   BIT           NOT NULL DEFAULT 1
-);
-END;
+)
 
-IF OBJECT_ID(N'[sfa].[csl_classification]', N'U') IS NULL
-BEGIN
 CREATE TABLE sfa.csl_classification (
 	id INT IDENTITY (1,1) PRIMARY KEY,
 	description NVARCHAR(200) NOT NULL,
 	is_active BIT NOT NULL DEFAULT 1
-);
-END;
+)
 
-IF OBJECT_ID(N'[sfa].[income_type]', N'U') IS NULL
-BEGIN
 CREATE TABLE sfa.income_type (
 	id INT IDENTITY (1,1) PRIMARY KEY,
 	description NVARCHAR(200) NOT NULL,
 	assess_as_asset BIT NOT NULL DEFAULT 0,
 	is_active BIT NOT NULL DEFAULT 0
-);
-END;
+)
 
 
 -- SFAADMIN.CORRESPONDENCE
-IF OBJECT_ID(N'[sfa].[correspondence]', N'U') IS NULL
-BEGIN
 CREATE TABLE sfa.correspondence
 (
     id                     INT IDENTITY (1,1) PRIMARY KEY,
@@ -1325,12 +1051,9 @@ CREATE TABLE sfa.correspondence
     correspondence_date    DATETIME2(0) NOT NULL,
     sent_date              DATETIME2(0) NULL,
     is_complete            BIT          NOT NULL DEFAULT 0
-);
-END;
+)
 
 -- SFAADMIN.corres_batch_param
-IF OBJECT_ID(N'[sfa].[correspondence_batch_param]', N'U') IS NULL
-BEGIN
 CREATE TABLE sfa.correspondence_batch_param
 (
     id                 INT IDENTITY (1,1) PRIMARY KEY,
@@ -1338,24 +1061,18 @@ CREATE TABLE sfa.correspondence_batch_param
     batch_parameter_id INT  NOT NULL REFERENCES sfa.batch_parameter,
     parameter_value    TEXT NULL,
     UNIQUE (correspondence_id, batch_parameter_id)
-);
-END;
+)
 
 -- SFAADMIN.corr_type_batch_param
-IF OBJECT_ID(N'[sfa].[correspondence_type_batch_param]', N'U') IS NULL
-BEGIN
 CREATE TABLE sfa.correspondence_type_batch_param
 (
     id                     INT IDENTITY (1,1) PRIMARY KEY,
     correspondence_type_id INT           NOT NULL REFERENCES sfa.correspondence_type,
     batch_parameter_id     INT           NOT NULL REFERENCES sfa.batch_parameter,
     source                 NVARCHAR(200) NULL
-);
-END;
+)
 
 -- SFAADMIN.COMMUNICATION
-IF OBJECT_ID(N'[sfa].[communication]', N'U') IS NULL
-BEGIN
 CREATE TABLE sfa.communication
 (
     id                    INT IDENTITY (1,1) PRIMARY KEY,
@@ -1366,11 +1083,8 @@ CREATE TABLE sfa.communication
     comments              TEXT         NULL,
     communication_date    DATETIME2(0) NULL,
     show_alert            BIT          NOT NULL DEFAULT 0
-);
-END;
+)
 
-IF OBJECT_ID(N'[sfa].[student_persons]', N'U') IS NULL
-BEGIN
 CREATE TABLE sfa.student_persons
 (
     id              INT IDENTITY (1,1) PRIMARY KEY,
@@ -1378,11 +1092,8 @@ CREATE TABLE sfa.student_persons
     person_id       INT NULL REFERENCES sfa.person,
     relationship_id INT NOT NULL REFERENCES sfa.relationship,
     is_active       BIT NOT NULL DEFAULT 1
-);
-END;
+)
 
-IF OBJECT_ID(N'[sfa].[application]', N'U') IS NULL
-BEGIN
 CREATE TABLE sfa.application
 (
     id                             INT IDENTITY (1, 1) PRIMARY KEY,
@@ -1521,22 +1232,16 @@ CREATE TABLE sfa.application
     requires_credit_check          BIT            NOT NULL DEFAULT 0,
     last_checked_on                DATE           NULL
 
-);
-END;
+)
 
-IF OBJECT_ID(N'[sfa].[income]', N'U') IS NULL
-BEGIN
 CREATE TABLE sfa.income (
 	id INT IDENTITY (1,1) PRIMARY KEY,
 	application_id INT NOT NULL REFERENCES sfa.application,
 	income_type_id INT NULL REFERENCES sfa.income_type,
 	comment TEXT NULL,
     amount NUMERIC NULL
-);
-END;
+)
 
-IF OBJECT_ID(N'[sfa].[agency_assistance]', N'U') IS NULL
-BEGIN
 CREATE TABLE sfa.agency_assistance
 (
     id                 INT IDENTITY PRIMARY KEY,
@@ -1550,11 +1255,8 @@ CREATE TABLE sfa.agency_assistance
     other_purpose      NVARCHAR(500)  NULL,
     agency_comment     NVARCHAR(500)  NULL,
     UNIQUE (agency_id, application_id)
-);
-END;
+)
 
-IF OBJECT_ID(N'[sfa].[course_enrolled]', N'U') IS NULL
-BEGIN
 CREATE TABLE sfa.course_enrolled
 (
     id                  INT IDENTITY PRIMARY KEY,
@@ -1562,11 +1264,8 @@ CREATE TABLE sfa.course_enrolled
     instruction_type_id INT           NOT NULL REFERENCES sfa.instruction_type,
     description         NVARCHAR(500) NOT NULL,
     course_code         NVARCHAR(100) NULL
-);
-END;
+)
 
-IF OBJECT_ID(N'[sfa].[dependent_eligibility]', N'U') IS NULL
-BEGIN
 CREATE TABLE sfa.dependent_eligibility
 (
     id                     INT IDENTITY PRIMARY KEY,
@@ -1580,11 +1279,8 @@ CREATE TABLE sfa.dependent_eligibility
     is_csl_eligible        BIT  NOT NULL DEFAULT 0,
     is_csg_eligible        BIT  NOT NULL DEFAULT 0,
     is_in_progress         BIT  NOT NULL DEFAULT 0
-);
-END;
+)
 
-IF OBJECT_ID(N'[sfa].[disability]', N'U') IS NULL
-BEGIN
 CREATE TABLE sfa.disability
 (
     id                 INT IDENTITY PRIMARY KEY,
@@ -1592,11 +1288,8 @@ CREATE TABLE sfa.disability
     disability_type_id INT           NOT NULL REFERENCES sfa.disability_type,
     description        NVARCHAR(100) NULL,
     verified_disability_need BIT     NOT NULL DEFAULT 0
-);
-END;
+)
 
-IF OBJECT_ID(N'[sfa].[disability_requirement]', N'U') IS NULL
-BEGIN
 CREATE TABLE sfa.disability_requirement
 (
     id                    INT IDENTITY PRIMARY KEY,
@@ -1606,21 +1299,15 @@ CREATE TABLE sfa.disability_requirement
     max_allowed_amount    NUMERIC(10, 2) NULL,
     approve_amount        NUMERIC(10, 2) NULL,
     verified_service_need BIT NOT NULL DEFAULT 0
-);
-END;
+)
 
-IF OBJECT_ID(N'[sfa].[equipment_category]', N'U') IS NULL
-BEGIN
 CREATE TABLE sfa.equipment_category
 (
     id                 INT IDENTITY PRIMARY KEY,
     description        NVARCHAR(100) NOT NULL,
     is_active          BIT NOT NULL DEFAULT 1
-);
-END;
+)
 
-IF OBJECT_ID(N'[sfa].[equipment_required]', N'U') IS NULL
-BEGIN
 CREATE TABLE sfa.equipment_required
 (
     id                    INT IDENTITY PRIMARY KEY,
@@ -1630,11 +1317,8 @@ CREATE TABLE sfa.equipment_required
     max_allowed_amount    NUMERIC(10, 2) NULL,
     approve_amount        NUMERIC(10, 2) NULL,
     verified_equipment_need BIT NOT NULL DEFAULT 0
-);
-END;
+)
 
-IF OBJECT_ID(N'[sfa].[expense]', N'U') IS NULL
-BEGIN
 CREATE TABLE sfa.expense
 (
     id             INT IDENTITY PRIMARY KEY,
@@ -1643,11 +1327,8 @@ CREATE TABLE sfa.expense
     period_id      INT            NOT NULL REFERENCES sfa.period,
     description    NVARCHAR(500)  NULL,
     amount         NUMERIC(10, 2) NOT NULL DEFAULT 0.00
-);
-END;
+)
 
-IF OBJECT_ID(N'[sfa].[funding_request]', N'U') IS NULL
-BEGIN
 CREATE TABLE sfa.funding_request
 (
     id                 INT IDENTITY PRIMARY KEY,
@@ -1674,21 +1355,15 @@ CREATE TABLE sfa.funding_request
     student_is_mov_to_anth_cmm_to_attd_prgm BIT            NULL DEFAULT 0,
     student_is_maintening_two_residences    BIT            NULL DEFAULT 0,
     student_w_not_receive_fund_from_otr_org BIT            NULL DEFAULT 0
-);
-END;
+)
 
-IF OBJECT_ID(N'[sfa].[application_part_time_reason]', N'U') IS NULL
-BEGIN
 CREATE TABLE sfa.application_part_time_reason
 (
     id                  INT IDENTITY PRIMARY KEY,
     application_id      INT NOT NULL REFERENCES sfa.application,
     part_time_reason_id INT NOT NULL REFERENCES sfa.part_time_reason
-);
-END;
+)
 
-IF OBJECT_ID(N'[sfa].[investment]', N'U') IS NULL
-BEGIN
 CREATE TABLE sfa.investment
 (
     id                 INT IDENTITY PRIMARY KEY,
@@ -1698,11 +1373,8 @@ CREATE TABLE sfa.investment
     market_value       NUMERIC(10, 2),
     is_rrsp            BIT NOT NULL DEFAULT 0,
     is_joint           BIT NOT NULL DEFAULT 0
-);
-END;
+)
 
-IF OBJECT_ID(N'[sfa].[msfaa]', N'U') IS NULL
-BEGIN
 CREATE TABLE sfa.msfaa
 (
     id                 INT IDENTITY PRIMARY KEY,
@@ -1717,11 +1389,8 @@ CREATE TABLE sfa.msfaa
     sent_seq_number    INT          NULL,
     last_reminder_sent INT          NULL,
     is_full_time       BIT          NOT NULL DEFAULT 1
-);
-END;
+)
 
-IF OBJECT_ID(N'[sfa].[msfaa_email_log]', N'U') IS NULL
-BEGIN
 CREATE TABLE sfa.msfaa_email_log
 (
     id            INT IDENTITY PRIMARY KEY,
@@ -1729,11 +1398,8 @@ CREATE TABLE sfa.msfaa_email_log
     is_emailed    BIT           NOT NULL DEFAULT 0,
     reminder_sent INT           NOT NULL,
     email         NVARCHAR(100) NOT NULL
-);
-END;
+)
 
-IF OBJECT_ID(N'[sfa].[parent_dependent]', N'U') IS NULL
-BEGIN
 CREATE TABLE sfa.parent_dependent
 (
     id                       INT IDENTITY PRIMARY KEY,
@@ -1750,11 +1416,8 @@ CREATE TABLE sfa.parent_dependent
     is_eligible              BIT           NOT NULL DEFAULT 1,
     is_disabled              BIT           NOT NULL DEFAULT 1,
     conversion               BIT           NOT NULL DEFAULT 1
-);
-END;
+)
 
-IF OBJECT_ID(N'[sfa].[parent_resident]', N'U') IS NULL
-BEGIN
 CREATE TABLE sfa.parent_resident
 (
     id             INT IDENTITY PRIMARY KEY,
@@ -1766,11 +1429,8 @@ CREATE TABLE sfa.parent_resident
     from_month     INT NULL,
     to_year        INT NULL,
     to_month       INT NULL
-);
-END;
+)
 
-IF OBJECT_ID(N'[sfa].[correspondence_request_status]', N'U') IS NULL
-BEGIN
 CREATE TABLE sfa.correspondence_request_status
 (
     id                     INT IDENTITY PRIMARY KEY,
@@ -1778,22 +1438,17 @@ CREATE TABLE sfa.correspondence_request_status
     status_id              INT NOT NULL REFERENCES sfa.status,
     correspondence_type_id INT NOT NULL REFERENCES sfa.correspondence_type,
     UNIQUE (request_type_id, status_id, correspondence_type_id)
-);
-END;
+)
 
-IF OBJECT_ID(N'[sfa].[requirement_met]', N'U') IS NULL
-BEGIN
 CREATE TABLE sfa.requirement_met
 (
     id                  INT IDENTITY PRIMARY KEY,
     application_id      INT  NOT NULL REFERENCES sfa.application,
     requirement_type_id INT  NULL REFERENCES sfa.requirement_type,
     completed_date      DATE NULL,
-    comment             VARCHAR(1000) NULL
+    comment             VARCHAR(1000) NULL;
 )
 
-IF OBJECT_ID(N'[sfa].[communication_log]', N'U') IS NULL
-BEGIN
 CREATE TABLE sfa.communication_log
 (
     id              INT IDENTITY PRIMARY KEY,
@@ -1804,11 +1459,8 @@ CREATE TABLE sfa.communication_log
     subject         TEXT          NULL,
     reminder_sent   INT           NULL,
     is_emailed      BIT           NOT NULL DEFAULT 0
-);
-END;
+)
 
-IF OBJECT_ID(N'[sfa].[assessment]', N'U') IS NULL
-BEGIN
 CREATE TABLE sfa.assessment
 (
     id                             INT IDENTITY PRIMARY KEY,
@@ -1930,11 +1582,8 @@ CREATE TABLE sfa.assessment
     spouse_previous_contribution   FLOAT          NULL,
     student_contribution_override  FLOAT          NULL,
     spouse_contribution_override   FLOAT          NULL
-);
-END;
+)
 
-IF OBJECT_ID(N'[sfa].[csl_nars_history]', N'U') IS NULL
-BEGIN
 CREATE TABLE sfa.csl_nars_history
 (
     id                          INT IDENTITY PRIMARY KEY,
@@ -2102,11 +1751,8 @@ CREATE TABLE sfa.csl_nars_history
     financial_investments       FLOAT          NULL,
     married_adjustment          FLOAT          NULL,
     study_cost_computers        FLOAT          NULL
-);
-END;
+)
 
-IF OBJECT_ID(N'[sfa].[disbursement]', N'U') IS NULL
-BEGIN
 CREATE TABLE sfa.disbursement
 (
     id                        INT IDENTITY PRIMARY KEY,
@@ -2129,22 +1775,16 @@ CREATE TABLE sfa.disbursement
     ecert_response_date       DATE           NULL,
     ecert_status              VARCHAR(20)    NULL,
     ecert_portal_status_id    INT            NULL
-);
-END;
+)
 
-IF OBJECT_ID(N'[sfa].[entitlement_error]', N'U') IS NULL
-BEGIN
 CREATE TABLE sfa.entitlement_error
 (
     id                        INT IDENTITY PRIMARY KEY,
     disbursement_id           INT NOT NULL REFERENCES sfa.disbursement,
     entitlement_error_code_id INT NOT NULL REFERENCES sfa.entitlement_error_codes,
     is_resend                 BIT NOT NULL DEFAULT 0
-);
-END;
+)
 
-IF OBJECT_ID(N'[sfa].[application_draft]', N'U') IS NULL
-BEGIN
 CREATE TABLE sfa.application_draft (
   id INT IDENTITY(1,1) PRIMARY KEY,
   student_id INT NOT NULL REFERENCES sfa.student,
@@ -2153,11 +1793,8 @@ CREATE TABLE sfa.application_draft (
   update_date DATETIME2(0) NOT NULL DEFAULT GETDATE(),
   is_active BIT DEFAULT 1,
   application_json TEXT NOT NULL
-);
-END;
+)
 
-IF OBJECT_ID(N'[sfa].[file_reference]', N'U') IS NULL
-BEGIN
 CREATE TABLE sfa.file_reference (
 	object_key VARCHAR(21) PRIMARY KEY,
 	object_key_pdf VARCHAR(21) UNIQUE null,
@@ -2178,22 +1815,16 @@ CREATE TABLE sfa.file_reference (
     mime_type NVARCHAR(100) NOT NULL,
     comment TEXT NULL,
     file_size BIGINT NOT NULL
-);
-END;
+)
 
-IF OBJECT_ID(N'[sfa].[student_auth]', N'U') IS NULL
-BEGIN
 CREATE TABLE sfa.student_auth (
   id INT IDENTITY(1,1) PRIMARY KEY,
   student_id INT NOT NULL REFERENCES sfa.student,
   sub NVARCHAR(100) NOT NULL UNIQUE,
   create_date DATETIME2(0) NOT NULL DEFAULT GETDATE(),
   is_active BIT DEFAULT 1
-);
-END;
+)
 
-IF OBJECT_ID(N'[sfa].[vendor_update]', N'U') IS NULL
-BEGIN
 CREATE TABLE sfa.vendor_update (
 	id INT IDENTITY(1,1) PRIMARY KEY,
 	address NVARCHAR(200) NULL,
@@ -2209,15 +1840,11 @@ CREATE TABLE sfa.vendor_update (
     update_requested_date DATE NULL,
     update_completed_date DATE NULL,
     student_id INT NOT NULL REFERENCES sfa.student
-);
-END;
+)
 
-IF OBJECT_ID(N'[sfa].[field_program]', N'U') IS NULL
-BEGIN
 CREATE TABLE sfa.field_program (
     id INT IDENTITY (1,1) PRIMARY KEY,
     study_field_id INT NOT NULL REFERENCES sfa.study_field (id),
     program_id INT NOT NULL REFERENCES sfa.program (id),
     field_program_code float(8) NULL
 );
-END;
