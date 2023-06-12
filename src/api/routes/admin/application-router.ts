@@ -131,6 +131,11 @@ applicationRouter.get("/:id",
             application.other_funding = await db("sfa.agency_assistance").where({ application_id: id }).orderBy("id");
             application.yea = await db("sfa.yea").where({ yukon_id: student.yukon_id }).orderBy("school_year");
             application.institution = await db("sfa.institution_campus").where({ id: application.institution_campus_id }).first();
+            application.main_institution = await db("sfa.institution_campus")
+                .innerJoin("sfa.institution", "institution.id", "institution_campus.institution_id")
+                .select("institution.*")
+                .where({ "institution_campus.id": application.institution_campus_id }).first();
+
             application.warning_code = await db("sfa.application as app").innerJoin("sfa.csl_code as warning", function () {
                 this.on("warning.id", "=", "csl_restriction_warn_id");
             }).select(
@@ -152,7 +157,7 @@ applicationRouter.get("/:id",
                     subquery.push(element.request_type_id)
                 }
             }
-                         
+
             application.docCatalog = await db("sfa.requirement_type");
                     
 

@@ -50,9 +50,9 @@
                                 v-for="(item, idx) of recentApplications"
                                 :key="idx"
                             >
-                                <router-link :to="`/student/${item.id}`"
-                                    >{{ item.first_name }} {{ item.initials }}
-                                    {{ item.last_name }} ({{ item.sin }})
+                                <router-link :to="`/application/${item.id}/personal`"
+                                    >{{getStudentName(item.student_id)}} - 
+                                    {{ item.academic_year_id}}: {{ item.main_institution.name }}
                                 </router-link>
                             </li>
                         </ol>
@@ -182,6 +182,14 @@ export default {
         selectStudent(item) {
             this.selectedStudent = item;
             this.$router.push(`/student/${item.student_id}`);
+        },
+        getStudentName(studentId) {
+            let filteredStudent = this.recentStudents.find(student => student.id == studentId);
+            return `${filteredStudent.first_name} ${filteredStudent.last_name}`;
+        },
+        selectApplication(item) {
+            this.selectedApplication = item;
+            this.$router.push(`/application/${item.student_id}`);
         },
     },
 };
