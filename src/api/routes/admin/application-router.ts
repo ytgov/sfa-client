@@ -142,199 +142,9 @@ applicationRouter.get("/:id",
                 "warning.definition"
             ).where("app.id", id).first();
             application.fileRef = await db("sfa.file_reference").select().where({ application_id: id}).andWhere({student_id: application.student_id});    
-            
-            //SELECT request_type_id  FROM sfa.funding_request  where application_id = 6049
-            application.subDocumentation = await db("sfa.funding_request").select("request_type_id").where("application_id", id);
-
-            const subquery = [];
-            if(application.subDocumentation) {
-                for(let element of application.subDocumentation) {
-                    subquery.push(element.request_type_id)
-                }
-            }
                          
             application.docCatalog = await db("sfa.requirement_type");
-                    
-
-
-            
-        application.documentation2 = await db("sfa.file_reference as fr")
-        .innerJoin("sfa.requirement_type as t", function() {
-            this.on("t.id", "=", "fr.requirement_type_id")
-        })                                
-        .leftJoin("sfa.requirement_met as ds", function () {
-            this.on("ds.requirement_type_id", "=", "t.id")
-            .andOn("ds.application_id", "=", "fr.application_id")                    
-        })
-        .select(
-            db.raw("MAX(fr.object_key) AS object_key"),
-            db.raw("MAX(fr.object_key_pdf) AS object_key_pdf"),
-            db.raw("MAX(fr.person_id) AS person_id"),
-            db.raw("MAX(fr.dependent_id) AS dependent_id"),
-            db.raw("MAX(fr.disability_requirement_id) AS disability_requirement_id"),
-            db.raw("MAX(fr.file_name) AS file_name"),
-            db.raw("MAX(fr.upload_date) AS upload_date"),
-            db.raw("MAX(fr.status) AS status"),
-            db.raw("MAX(t.id) AS requirement_type_id"),
-            db.raw("MAX(t.description) AS description"),
-            db.raw("MAX(ds.completed_date) AS completed_date"),
-            db.raw("MAX(ds.comment) AS comment"),
-            db.raw("MAX(fr.mime_type) AS mime_type")
-        )
-        .where("t.is_active", 1)
-        .andWhere("fr.application_id", id)
-        .andWhere(function () {
-            this.whereNotIn("fr.object_key", function () {
-                this.select("fr.object_key")
-                    .from("sfa.request_requirement as doc")
-                    .innerJoin("sfa.request_type as rt", function() {
-                        this.on("rt.id", "=", "doc.request_type_id")
-                    })
-                    .innerJoin("sfa.requirement_type as t", function() {
-                        this.on("t.id", "=", "doc.requirement_type_id")
-                    })
-                    .leftJoin("sfa.requirement_met as ds", function() {
-                        this.on("ds.requirement_type_id", "=", "t.id");
-                    })
-                    .leftJoin("sfa.file_reference as fr", function () {
-                        this.on("fr.requirement_type_id", "=", "t.id")
-                        this.andOn("fr.application_id", "=", "ds.application_id");
-                    })
-                    .where("t.is_active", 1)
-                    .andWhere("ds.application_id", id)
-                    .andWhere(function () {
-                        this.whereIn("rt.id", function () {
-                            this.select("request_type_id")
-                                .from("sfa.funding_request")
-                                .where("application_id", id)
-                                .orWhere(function () {
-                                    this.whereNotNull("fr.object_key");
-                                });
-                        })                       
-                    })                                                             
-            });
-        })   
-        .andWhere("fr.upload_date", function (this: any) {
-            this.from("sfa.file_reference as fr2")
-                .max("fr2.upload_date")
-                .innerJoin("sfa.requirement_met as ds2", function (this: any) {
-                    this.on("ds2.requirement_type_id", "=", "fr2.requirement_type_id")
-                    this.andOn("ds2.application_id", "=", "fr2.application_id");
-                })
-                .where("fr2.requirement_type_id", "=", db.raw("t.id"))
-                .andWhere("fr2.application_id", "=", db.raw("ds.application_id"));
-        })
-        .groupBy("fr.object_key");         
-        
-
-        
-        application.documentation = await db("sfa.request_requirement as doc")
-            .innerJoin("sfa.request_type as rt", function() {
-                this.on("rt.id", "=", "doc.request_type_id")
-            })
-            .innerJoin("sfa.requirement_type as t", function() {
-                this.on("t.id", "=", "doc.requirement_type_id")
-            })
-            .leftJoin("sfa.requirement_met as ds", function() {
-                this.on("ds.requirement_type_id", "=", "t.id");
-            })
-            .leftJoin("sfa.file_reference as fr", function () {
-                this.on("fr.requirement_type_id", "=", "t.id")
-                this.andOn("fr.application_id", "=", "ds.application_id");
-            })
-        .select(
-            db.raw("MAX(fr.object_key) AS object_key"),
-            db.raw("MAX(fr.object_key_pdf) AS object_key_pdf"),
-            db.raw("MAX(fr.person_id) AS person_id"),
-            db.raw("MAX(fr.dependent_id) AS dependent_id"),
-            db.raw("MAX(fr.disability_requirement_id) AS disability_requirement_id"),
-            db.raw("MAX(fr.file_name) AS file_name"),
-            db.raw("MAX(fr.upload_date) AS upload_date"),
-            db.raw("MAX(fr.status) AS status"),
-            db.raw("MAX(t.id) AS requirement_type_id"),
-            db.raw("MAX(t.description) AS description"),
-            db.raw("MAX(ds.completed_date) AS completed_date"),
-            db.raw("MAX(ds.comment) AS comment"),
-            db.raw("MAX(fr.mime_type) AS mime_type")
-        )
-        .where("t.is_active", 1)
-        .andWhere("ds.application_id", id)
-        .andWhere(function () {
-            this.whereIn("rt.id", function () {
-                this.select("request_type_id")
-                    .from("sfa.funding_request")
-                    .where("application_id", id)
-                    .orWhere(function () {
-                        this.whereNotNull("fr.object_key");
-                    });
-            });
-        })            
-        .andWhere("fr.upload_date", function (this: any) {
-            this.from("sfa.file_reference as fr2")
-                .max("fr2.upload_date")
-                .innerJoin("sfa.requirement_met as ds2", function (this: any) {
-                    this.on("ds2.requirement_type_id", "=", "fr2.requirement_type_id")
-                    this.andOn("ds2.application_id", "=", "fr2.application_id");
-                })
-                .where("fr2.requirement_type_id", "=", db.raw("t.id"))
-                .andWhere("fr2.application_id", "=", db.raw("ds.application_id"));
-        })
-        .groupBy("fr.object_key")
-        
-        application.documentation3 = [...application.documentation, ...application.documentation2];
-        
-        
-        application.innerFinalDocumentation1 = 
-            await db("sfa.request_requirement as doc")
-            .select(
-                "fr.object_key",
-                "fr.object_key_pdf",
-                "fr.person_id",
-                "fr.dependent_id",
-                "fr.disability_requirement_id",
-                "fr.file_name",
-                "fr.upload_date",
-                "fr.status",
-                "t.id AS requirement_type_id",
-                "t.description",
-                "ds.completed_date",
-                "ds.comment",
-                "fr.mime_type",
-                db.raw
-                (
-                    'ROW_NUMBER() OVER (PARTITION BY fr.dependent_id, t.id ORDER BY fr.upload_date DESC) AS row_num'
-                )
-            )
-            .innerJoin("sfa.request_type as rt", function() {
-                this.on("rt.id", "=", "doc.request_type_id")
-            })
-            .innerJoin("sfa.requirement_type as t", function() {
-                this.on("t.id", "=", "doc.requirement_type_id")
-            })
-            .leftJoin("sfa.requirement_met as ds", function() {
-                this.on("ds.requirement_type_id" ,"=", "t.id")
-            })
-            .leftJoin("sfa.file_reference as fr", function() {
-                this.on("fr.requirement_type_id", "=", "t.id")
-                this.andOn("fr.application_id", "=", "ds.application_id")
-            })            
-            .where("t.is_active", 1)
-            .andWhere("ds.application_id", id)
-            .andWhere(function() {
-                this.whereIn("rt.id", function() {
-                    this.select("request_type_id")
-                    .from("sfa.funding_request")
-                    .where("application_id", id)
-                })
-                .orWhere(function () {
-                    this.whereNotNull("fr.object_key");                    
-                });
-            })
-            .as("sub");          
-
-            
-            
-            
+                                                                                    
             application.finalDocumentation = 
                 await db.select(
                     "sub.object_key",
@@ -353,7 +163,7 @@ applicationRouter.get("/:id",
                 )                     
                 .fromRaw(`(SELECT fr.object_key, fr.object_key_pdf, fr.person_id, fr.dependent_id, fr.disability_requirement_id, fr.file_name, fr.upload_date, fr.status, t.id AS requirement_type_id, t.description, ds.completed_date, ds.comment, fr.mime_type, ROW_NUMBER() OVER (PARTITION BY fr.dependent_id, t.id, fr.person_id, fr.disability_requirement_id ORDER BY fr.upload_date DESC) AS row_num FROM sfa.request_requirement doc INNER JOIN sfa.request_type rt ON rt.id = doc.request_type_id INNER JOIN sfa.requirement_type t ON t.id = doc.requirement_type_id LEFT JOIN sfa.requirement_met ds ON ds.requirement_type_id = t.id LEFT JOIN sfa.file_reference fr ON fr.requirement_type_id = t.id AND fr.application_id = ds.application_id WHERE t.is_active = 1  AND ds.application_id = ${id}  AND (rt.id IN (SELECT request_type_id FROM sfa.funding_request WHERE application_id = ${id}) OR fr.object_key IS NOT NULL)) as sub`)
                 .where("sub.row_num", 1);             
-            
+        
 
             application.finalDocumentation2 = 
                 await db.select(
@@ -404,18 +214,9 @@ applicationRouter.get("/:id",
                         })  
                     })
                 })
-          
-                application.finalDocumentation3 = [...application.finalDocumentation, ...application.finalDocumentation2];
             
-            
-
-
-            /* QUERY FINAL */         
-                        
-              
-       
-      
-      
+            application.finalDocumentation3 = [...application.finalDocumentation, ...application.finalDocumentation2];
+                                                                                             
 
             application.reason_code = await db("sfa.application as app").innerJoin("sfa.csl_code as reason", function () {
                 this.on("reason.id", "=", "csl_restriction_reason_id");
