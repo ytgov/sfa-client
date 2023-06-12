@@ -275,7 +275,7 @@
 import store from "@/store";
 import validator from "@/validator";
 export default {
-  name: "Home",
+  name: "cslft-parental",
   computed: {
     application: function () {
       return store.getters.selectedApplication;

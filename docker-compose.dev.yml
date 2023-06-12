@@ -13,6 +13,7 @@ services:
       - ./db/data:/var/opt/mssql/data
       - ./db/log:/var/opt/mssql/log
       - ./db/backups/:/var/opt/sqlserver/backup
+      - ./db/scripts:/var/opt/sqlserver/scripts
 
   s3:
       image: "minio/minio:latest"

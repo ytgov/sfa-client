@@ -188,14 +188,20 @@ import {
 import { mapGetters } from 'vuex';
 
 export default {
-  name: "Home",
+  name: "application-status",
   components: {
   },
   computed: {
     ...mapGetters(['assessments']),
     assessmentTypeC() {
       const id = this.assessmentTypeId;
-      return assessmentType(id);
+      return assessmentTypeWithProps(id);
+    },
+    assessmentProps() {
+      return {
+        ...this.assessmentTypeC.props,
+        funding_request_id: this.fundingRequestId
+      }
     },
     application: function () {
       return store.getters.selectedApplication;
@@ -269,7 +275,6 @@ export default {
     loadFundingTypes() {
       axios.get(FUNDING_TYPE_URL).then((resp) => {
         this.fundingTypeOptions = resp.data;
-        console.log(resp);
       });
     },
     loadStatus() {

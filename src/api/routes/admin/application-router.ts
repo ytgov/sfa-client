@@ -482,7 +482,7 @@ applicationRouter.get("/:id",
 
                 student.applications = await db("sfa.application")
                     .innerJoin("sfa.institution_campus", "application.institution_campus_id", "institution_campus.id")
-                    .innerJoin("sfa.institution", "institution_id", "institution_campus.institution_id")
+                    .innerJoin("sfa.institution", "institution.id", "institution_campus.institution_id")
                     .select("application.*").select("institution.name as institution_name")
                     .where({ student_id: student.id }).orderBy("academic_year_id", "desc");
 
