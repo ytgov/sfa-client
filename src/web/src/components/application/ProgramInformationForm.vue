@@ -199,7 +199,7 @@
               <v-btn
               class="mt-0"
               color="success"
-              @click="showPDF"
+              @click="showPDF(76)"
               >
                 View PIF
               </v-btn>
@@ -380,6 +380,8 @@ import {
   PROGRAM_TYPE_URL,
   PROGRAM_DIVISION_URL,
   CATEGORY_URL,
+  APPLICATION_URL,
+  STUDENT_URL
 } from "../../urls";
 import { mapGetters } from 'vuex';
 
@@ -388,6 +390,9 @@ export default {
     ...mapGetters(["yearOptions", "countries", "cities", "provinces", 
       "institutionLevels", "studyAreas", "yukonGrantEligibilityList",
       "programs", "attendances", "programDivisions"]),
+    student: function () {
+      return store.getters.selectedStudent;
+    },
     application: function () {
       return store.getters.selectedApplication;
     },
@@ -454,13 +459,13 @@ export default {
       store.dispatch("updateApplication", [field, value, this]);
     },
     
-    async showPDF() {
-      try {
-        /*let buf = await fetch("http://localhost:3000/api/portal/student/1788/application/6049/files/SsoIoSvz7QX1YoPOY_Wet")
-        .then((r) => r.arrayBuffer()) ;
-        const blob = new Blob([buf], {type: 'application/pdf'});
-        const blobURL = URL.createObjectURL(blob) || "";*/
-        this.$refs.showPdf.showModal("https://ww1.microchip.com/downloads/en/DeviceDoc/Atmel-7810-Automotive-Microcontrollers-ATmega328P_Datasheet.pdf");
+    async showPDF(reqId) {      
+      try {              
+          let buf = await fetch(APPLICATION_URL + `/${this.application.id}/student/${this.student.id}/files/76`)           
+            .then((r) => r.arrayBuffer());                        
+            const blob = new Blob([buf], {type: 'application/pdf'});
+            const blobURL = URL.createObjectURL(blob) || "";                   
+            this.$refs.showPdf.showModal(blobURL);                                                                   
       } catch (error) {
         console.log(error);
       }

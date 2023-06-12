@@ -18,6 +18,18 @@ portalStudentRouter.get("/:sub", async (req: Request, res: Response) => {
   res.json({ data: student });
 });
 
+portalStudentRouter.get("/:sub/addresses", async (req: Request, res: Response) => {
+  const { sub } = req.params;
+  let student = await studentService.getBySub(sub);
+
+  if (student) {
+    let list = await studentService.getAddresses(student.person_id);
+    return res.json({ data: list });
+  }
+
+  res.json({ data: [] });
+});
+
 portalStudentRouter.post("/:sub", async (req: Request, res: Response) => {
   const { sub } = req.params;
   const { date_of_birth, first_name, last_name, sin, email } = req.body;
@@ -72,7 +84,16 @@ portalStudentRouter.post("/:student_id/draft/:application_id/files", async (req:
     let files = Array.isArray(req.files.files) ? req.files.files : [req.files.files];
 
     for (let file of files) {
-      await documentService.uploadDraftDocument(email, student_id, application_id, file, requirement_type_id, disability_requirement_id, person_id, dependent_id);
+      await documentService.uploadDraftDocument(
+        email,
+        student_id,
+        application_id,
+        file,
+        requirement_type_id,
+        disability_requirement_id,
+        person_id,
+        dependent_id
+      );
     }
     return res.json({ message: "success" });
   }
@@ -90,7 +111,16 @@ portalStudentRouter.post("/:student_id/application/:application_id/files", async
     let files = Array.isArray(req.files.files) ? req.files.files : [req.files.files];
 
     for (let file of files) {
-      await documentService.uploadApplicationDocument(email, student_id, application_id, file, requirement_type_id, disability_requirement_id, person_id, dependent_id);
+      await documentService.uploadApplicationDocument(
+        email,
+        student_id,
+        application_id,
+        file,
+        requirement_type_id,
+        disability_requirement_id,
+        person_id,
+        dependent_id
+      );
     }
     return res.json({ message: "success" });
   }
