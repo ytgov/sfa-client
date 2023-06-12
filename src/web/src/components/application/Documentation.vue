@@ -7,7 +7,7 @@
         <div class="row">
           <div class="col-md-12">
             <h3>Documentation</h3>
-            <div v-for="(item, i) of this.application.finalDocumentation" :key="i" class="row">                       
+            <div v-for="(item, i) of this.application.finalDocumentation3" :key="i" class="row">                       
               
               <div class="col-md-4">
                 <v-select
@@ -35,7 +35,7 @@
                 >
                   <template v-slot:activator="{ on, attrs }">
                     <v-text-field
-                      v-model="item.upload_date"
+                      :value="item.upload_date ? item.upload_date.toString().slice(0, 10) : item.upload_date"
                       label="Received date"
                       append-icon="mdi-calendar"
                       hide-details
@@ -67,7 +67,7 @@
                 >
                   <template v-slot:activator="{ on, attrs }">
                     <v-text-field
-                      v-model="item.completed_date"
+                      :value="item.completed_date ? item.completed_date.toString().slice(0, 10) : item.completed_date"
                       label="Completed date"
                       append-icon="mdi-calendar"
                       hide-details
@@ -85,7 +85,7 @@
                       item.completed_date = e;
                       item.completed_date_menu = false;
                     }"                                        
-                    @change="updateReqMet({completed_date: item.completed_date}, item.requirement_type_id, item)"
+                    @change="updateReqMet({completed_date: item.completed_date}, item.requirement_type_id)"
                   ></v-date-picker>
                 </v-menu>
               </div>
@@ -102,23 +102,10 @@
                   :items="documentStatusList"
                   item-text="description"
                   item-value="id"
-                  @change="updateStatus({status: item.status}, item.requirement_type_id)"
-                  @click="printItem(item)"
+                  @change="updateStatus({status: item.status}, item.requirement_type_id, item)"                  
                 ></v-autocomplete>
                
                 
-              </div>
-
-              <div class="col-md-1">
-                <v-btn
-                  color="warning"
-                  x-small
-                  fab
-                  title="Remove"
-                  class="my-0 float-right"
-                  @click="removeDocumentation(i)"
-                  ><v-icon>mdi-close</v-icon></v-btn
-                >
               </div>
               <div class="col-md-4">
                 <v-text-field
@@ -128,24 +115,34 @@
                   hide-details
                   label="Comment"
                   v-model="item.comment"    
-                  @change="updateReqMet({comment: item.comment}, item.requirement_type_id)" 
+                  @change="updateComment({comment: item.comment}, item.requirement_type_id, item)" 
                   required             
                 ></v-text-field>
               </div>
-              <div class="col-md-4">
-                <v-file-input
+              <div class="col-md-3">
+                <v-file-input       
+                  ref="fileInput"           
                   multiple
                   truncate-length="15"
                   outlined
                   dense
                   background-color="white"
                   hide-details
-                  label="Upload document"
-                  @change="uploadDoc(item)"
+                  label="Upload document"                  
+                  @change="uploadDoc(item, i)"                  
                 ></v-file-input>
               </div>
+              <div class="col-md-1">
+                <v-btn
+                  class="mt-0"
+                  color="primary"                                          
+                  @click="postDoc(item, i)"       
+                  >
+                  Upload file
+                </v-btn> 
+              </div>
               <div class="col-md-1" v-if="item.file_name && item.upload_date">
-                <h4 class>{{ item.file_name }}</h4>
+                <h4 style="font-size: 16px; font-weight: 700;">{{ item.file_name }}</h4>
               </div>
 
               <div class="col-md-1" v-if="item.file_name && item.upload_date && item.mime_type === 'application/pdf'">           
@@ -158,14 +155,13 @@
                 </v-btn>                                
               </div>
 
-              <div class="col-md-1" v-if="item.file_name && item.upload_date">
-                <!-- <a :href="downloadPdf(item.requirement_type_id)">{{ item.file_name }}</a> -->
+              <div class="col-md-1" v-if="item.file_name && item.upload_date">                
                 <v-btn
                   class="mt-0"
                   color="success"                                          
                   :href="downloadPdf(item.requirement_type_id)"          
                   >
-                  {{ item.file_name }}
+                  Download
                 </v-btn>  
               </div>     
               
@@ -174,9 +170,7 @@
           </div>
         </div>
       </v-card-text>
-    </v-card>
-
-    <!-- <v-btn color="info" @click="addDocumentation()">Add documentation</v-btn> -->
+    </v-card>    
 
      <v-card class="default mb-5 row"  v-if="showAdd"> 
       
@@ -296,6 +290,17 @@
                   @change="checkFile"
                 ></v-file-input>
               </div>
+              <div class="col-md-4">
+                <v-text-field
+                  outlined
+                  dense
+                  background-color="white"
+                  hide-details
+                  label="Comment"
+                  v-model="documentationData.comment"                      
+                  required             
+                ></v-text-field>
+              </div>
 
         </v-card>
 
@@ -325,7 +330,7 @@ import { mapGetters } from "vuex";
 import axios from "axios";
 import {
   APPLICATION_URL,
-  REQUIREMENT_TYPE_URL,  
+  REQUIREMENT_TYPE,  
 } from "../../urls";
 
 export default {
@@ -336,9 +341,10 @@ export default {
       "YG Application",
       "Official Transcript - Original document (must be mailed)",
     ],
+    file: null,
+    uploadedDoc: [],
     documents: [],
-    documents2: [],
-    uploadedDoc: null,
+    documents2: [],    
     showAdd: false,
     documentationData: {
       description: null,
@@ -347,10 +353,14 @@ export default {
       status: null,
       received_date_menu: null,
       completed_date_menu: null,
-      file: null
+      file: null,
+      comment: null      
     }
   }),
   computed: {
+    username() {      
+      return store.getters.fullName;
+    },
     ...mapGetters(["documentStatusList"]),   
     application: function () {    
       return store.getters.selectedApplication;
@@ -374,80 +384,70 @@ export default {
   methods: {    
     checkFile(event) {      
       const formData = new FormData();
-      // Agrega los archivos al objeto FormData
-      //formData.append('files', event.target.files[0]);
-      
-      //this.documentationData.file = formData;
-      //console.log(event)
       this.documentationData.file = event;            
     },    
     handleUploadAndClose() {
-      this.uploadNewDoc(),
-      this.setClose()
+      this.uploadNewDoc()         
     },
-    async uploadNewDoc() {          
-          
-      const formData = new FormData();
-      // Agrega los archivos al objeto FormData
+    async uploadNewDoc() {            
+                
+      const formData = new FormData();      
       formData.append('files', this.documentationData.file[0]);
+      formData.append('comment', this.documentationData.comment);
       formData.append("requirement_type_id", this.documentationData.description);
       formData.append("disability_requirement_id", null);
       formData.append("person_id", null);
       formData.append("dependent_id", null);
+      formData.append("email", this.username);      
 
       const innerFormData = new FormData();   
       innerFormData.append('requirement_type_id', this.documentationData.description  );
       innerFormData.append('completed_date', this.documentationData.completed_date  );
-            
-      console.log(this.documentationData.description);
-      console.log(this.documentationData.completed_date);
+      innerFormData.append('data', {completed_date: this.documentationData.completed_date}  );
+                        
     
-        try {          
-          const resInsert = await axios.post(APPLICATION_URL + `/${this.application.id}/student/${this.student.id}/files`,
-          formData, {headers: {'Content-Type': 'multipart/form-data'},});            
+        try {                              
+          const reqType = this.documentationData.description;
+          
+          if(this.documentationData.comment === null && this.documentationData.status === 3) {            
+            this.$emit("showError", "If status is rejected, you must comment");
+          } else {
+            const resInsert = await axios.post(APPLICATION_URL + `/${this.application.id}/student/${this.student.id}/files`,
+            formData, {headers: {'Content-Type': 'multipart/form-data'},});                      
 
-          try {                             
-            const resInsert = await axios.post(APPLICATION_URL + `/${this.application.id}/student/${this.student.id}/files/${this.documentationData.description}`,
-            innerFormData, {headers: {'Content-Type': 'multipart/form-data' },});                        
-            const message = resInsert?.data?.messages[0];            
+            try {                                         
+              const resInsert = await axios.post(APPLICATION_URL + `/${this.application.id}/student/${this.student.id}/files/${reqType}`,
+              innerFormData, {headers: {'Content-Type': 'multipart/form-data' },});                        
+              const message = resInsert?.data?.messages[0];                  
+              if (message?.variant === "success") {
+                this.$emit("showSuccess", message.text);
+              } else {
+                this.$emit("showError", message.text);
+              }   
+                  
+            } catch (error) {
+              console.log(error)
+              this.$emit("showError", "Error to update inner");
+            } finally {
+              store.dispatch("loadApplication", this.applicationId);
+            }
+            
+            const message = resInsert.data.messages[0];                   
             if (message?.variant === "success") {
               this.$emit("showSuccess", message.text);
             } else {
               this.$emit("showError", message.text);
             }   
-                
+            this.setClose()
+            }             
           } catch (error) {
             console.log(error)
-            this.$emit("showError", "Error to update inner");
+            this.$emit("showError", "Error to update");
           } finally {
             store.dispatch("loadApplication", this.applicationId);
-          }
-          
-          const message = resInsert.data.messages[0];          
-          if (message?.variant === "success") {
-            this.$emit("showSuccess", message.text);
-          } else {
-            this.$emit("showError", message.text);
-          }          
-        } catch (error) {
-          console.log(error)
-          this.$emit("showError", "Error to update");
-        } finally {
-          store.dispatch("loadApplication", this.applicationId);
-        }        
-        
+          }                     
     },
-    print(data) {
-      //console.log(data);      
-      //console.log(this.documents2);  
-      console.log("**",this.documentationData)   
-    },
-    printItem(item) {
-      console.log(item);
-    },
-    saveDocumentation(data) {
 
-    },
     formatDate(date) {
       if (!date) return null; 
       
@@ -464,21 +464,16 @@ export default {
       return `${year}-${month}-${day}`;
     },
     
-    setClose() {
-            this.dependentData = {
-                birth_date: null,
-                comments: null,
-                first_name: null,
-                last_name: null,
-                relationship_id: null,
-            };
-            this.dEligibilityData = {
-                is_csg_eligible: false,
-                is_csl_eligible: false,
-                is_post_secondary: false,
-                is_shares_custody: false,
-                resides_with_student: false,
-            };
+    setClose() {               
+      
+      this.documentationData.description = null;
+      this.documentationData.received_date = null;
+      this.documentationData.completed_date = null;
+      this.documentationData.status = null;
+      this.documentationData.received_date_menu = null;
+      this.documentationData.completed_date_menu = null;
+      this.documentationData.file = null;
+
             this.showAdd = !this.showAdd;
         },
     addDocumentation() {
@@ -494,25 +489,16 @@ export default {
         () => {}
       );
     },
-    loadRequirementTypes() {
-      axios.get(REQUIREMENT_TYPE_URL).then((resp) => {
-        resp.data.forEach((d) => {             
-          if(d.IS_ACTIVE_FLG === "Y") {
-            this.documents2.push(
-            {id: d.REQUIREMENT_TYPE_ID,
-            description: d.DESCRIPTION}
-          )     
-          }
-                       
-        });
-//        this.documents2 = resp.data;
+    loadRequirementTypes() {      
+      axios.get(REQUIREMENT_TYPE).then((resp) => {        
+        resp.data.data.forEach((d) => {           
+          if(d.is_active === true) {
+            this.documents2.push({id: d.id, description: d.description})     
+          }                       
+        });        
       });
     },
-    async showPDF(refId) {        
-      //console.log(this.documents2) 
-       //const { requirement_type_id, disability_requirement_id, person_id, dependent_id } = req.body;
-       //console.log(refId);
-      //console.log(this.application);
+    async showPDF(refId) {                   
       try {              
           let buf = await fetch(APPLICATION_URL + `/${this.application.id}/student/${this.student.id}/files/${refId}`)           
             .then((r) => r.arrayBuffer());                        
@@ -526,12 +512,11 @@ export default {
     downloadPdf(refId) {
       return APPLICATION_URL + `/${this.application.id}/student/${this.student.id}/files/${refId}`;
     },
-    async updateReqMet(itemToUpdate, refId, item) {
-      //console.log(item)
+    async updateReqMet(itemToUpdate, refId) {      
       try {
         const resInsert = await axios.put(
           APPLICATION_URL + `/${this.application.id}/files/${refId}`,
-            { data: { ...itemToUpdate } },
+            { data: { ...itemToUpdate }, type: "date"  },
           );
           const message = resInsert?.data?.messages[0];
 
@@ -547,12 +532,11 @@ export default {
         store.dispatch("loadApplication", this.applicationId);
       }
     },
-    async updateStatus(itemToUpdate, refId) {
-      //console.log(APPLICATION_URL + `/${this.application.id}/student/${this.student.id}/files/${refId}`)
+    async updateComment(itemToUpdate, refId, item) {      
       try {
         const resInsert = await axios.put(
-          APPLICATION_URL + `/${this.application.id}/student/${this.student.id}/files/${refId}`,
-            { data: { ...itemToUpdate } },
+          APPLICATION_URL + `/${this.application.id}/files/${refId}`,
+            { data: { ...itemToUpdate }, type: "comment", object_key: item.object_key },
           );
           const message = resInsert?.data?.messages[0];
 
@@ -567,48 +551,53 @@ export default {
       } finally {
         store.dispatch("loadApplication", this.applicationId);
       }
+      
+    },
+    async updateStatus(itemToUpdate, refId, item) {            
+      if(this.documentationData.comment === null && item.status === 3) {            
+            this.$emit("showError", "If status is rejected, you must comment");
+      }          
     },    
-    getFile(event) {
-      //console.log(event)
+    async uploadDoc(item, i) {                                   
+      this.uploadedDoc.push({id: i, file: event.target.files[0]});   
+      
     },
+    async postDoc(item, i) {         
+      const index = this.uploadedDoc.findIndex(e => e.id === i);      
+      if(index !== -1) {           
+        let doc = this.uploadedDoc[index].file;
+        const formData = new FormData();      
 
-    async uploadDoc(item) {          
+        formData.append('files', doc);
+        formData.append("requirement_type_id", item.requirement_type_id);
+        formData.append("disability_requirement_id", item.disability_requirement_id);
+        formData.append("person_id", item.person_id);
+        formData.append("dependent_id", item.dependent_id);
+        formData.append("object_key", item.object_key);
+
+        const innerFormData = new FormData();   
+        innerFormData.append('completed_data', item.completed_date  );                
       
-      console.log(event.target.files[0]);
-      const formData = new FormData();
-      // Agrega los archivos al objeto FormData
-      formData.append('files', event.target.files[0]);
-      formData.append("requirement_type_id", item.requirement_type_id);
-      formData.append("disability_requirement_id", item.disability_requirement_id);
-      formData.append("person_id", item.person_id);
-      formData.append("dependent_id", item.dependent_id);
-
-      const innerFormData = new FormData();   
-      innerFormData.append('completed_data', item.completed_date  );
-      
-      /*
-      const formData = new FormData();
-      formData.append('file', file);
-*/         
-        try {          
-          const resInsert = await axios.post(APPLICATION_URL + `/${this.application.id}/student/${this.student.id}/files`,
-          formData, {headers: {'Content-Type': 'multipart/form-data' },});                                         
-
-          const message = resInsert?.data?.messages[0];
-            
-          if (message?.variant === "success") {
-            this.$emit("showSuccess", message.text);
-          } else {
-            this.$emit("showError", message.text);
-          }          
-        } catch (error) {
-          console.log(error)
-          this.$emit("showError", "Error to update");
-        } finally {
-          store.dispatch("loadApplication", this.applicationId);
-        }
         
-    },
+      try {          
+
+        let resInsert = await axios.post(APPLICATION_URL + `/${this.application.id}/student/${this.student.id}/files`, formData, {headers: {'Content-Type': 'multipart/form-data' },});                                         
+        let message = resInsert?.data?.messages[0];
+          
+        if (message?.variant === "success") {
+          this.$emit("showSuccess", message.text);
+        } else {
+          this.$emit("showError", message.text);
+        }          
+      } catch (error) {
+        console.log(error)
+        this.$emit("showError", "Error to update");
+      } finally {
+        this.uploadedDoc.splice(index, index);        
+        store.dispatch("loadApplication", this.applicationId);        
+      }    
+      }          
+    }
   },  
 };
 </script>
