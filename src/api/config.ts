@@ -64,4 +64,5 @@ export const AWS_S3_CONFIG = {
   credentials: { accessKeyId: AWS_S3_ACCESS_KEY, secretAccessKey: AWS_S3_ACCESS_SECRET },
   endpoint: AWS_S3_ENDPOINT,
   forcePathStyle: true,
+  region: 'ca-1'
 };
