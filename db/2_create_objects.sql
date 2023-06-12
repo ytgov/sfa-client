@@ -1788,9 +1788,9 @@ CREATE TABLE sfa.requirement_met
     id                  INT IDENTITY PRIMARY KEY,
     application_id      INT  NOT NULL REFERENCES sfa.application,
     requirement_type_id INT  NULL REFERENCES sfa.requirement_type,
-    completed_date      DATE NULL
-);
-END;
+    completed_date      DATE NULL,
+    comment             VARCHAR(1000) NULL
+)
 
 IF OBJECT_ID(N'[sfa].[communication_log]', N'U') IS NULL
 BEGIN

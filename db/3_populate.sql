@@ -158,7 +158,8 @@ INSERT
 INTO sfa.document_status (id, description)
 VALUES  ( 1, 'Pendieng'),
         ( 2, 'Approved'),
-        ( 3, 'Rejected')
+        ( 3, 'Rejected'),
+        ( 4, 'Replaced')
 SET IDENTITY_INSERT sfa.document_status OFF
 
 SET IDENTITY_INSERT sfa.program_division ON
@@ -1577,7 +1578,7 @@ FROM [SFAADMIN].[ENTITLEMENT_ERROR]
          INNER JOIN sfa.disbursement ON [ENTITLEMENT_ERROR].disbursement_id = disbursement.id
 SET IDENTITY_INSERT sfa.entitlement_error OFF
 
-UPDATE sfa.expense_category SET notes = '(hardware, softwear, and supplies)' WHERE description like 'Computer%'
+UPDATE sfa.expense_category SET notes = '(hardware, software, and supplies)' WHERE description like 'Computer%'
 UPDATE sfa.expense_category SET notes = '(enter the full cost before any subsidy amount you are eligible for) x (per month)' WHERE description like 'Day Care%'
 UPDATE sfa.expense_category SET notes = '(out of pocket costs greater then covered under any insurance plan). Specify your medical/dental/optical costs: x (per month)' WHERE description like 'Medical%'
 UPDATE sfa.expense_category SET notes = '(you may be required to provide supporting documentation) x (per month)' WHERE description like 'Alimony%'
@@ -1598,9 +1599,7 @@ END
 UPDATE sfa.person_address SET is_active = 0 WHERE address1 IS NULL AND city_id IS NULL
 
 -- sfa.field_program
-SET IDENTITY_INSERT sfa.field_program ON
 INSERT
 INTO sfa.field_program (study_field_id, program_id, field_program_code)
 SELECT study_field_id, program_id,field_program_code
 FROM sfaadmin.field_program
-SET IDENTITY_INSERT sfa.field_program OFF

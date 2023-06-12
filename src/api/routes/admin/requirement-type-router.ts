@@ -16,7 +16,7 @@ requirementTypeRouter.get("/", async (req: Request, res: Response) => {
         "sfa.requirement_type.id",
         "sfa.requirement_type.description",
         "sfa.requirement_type.document_location",
-        
+        "sfa.requirement_type.is_active",
       );
 
     if (results) {

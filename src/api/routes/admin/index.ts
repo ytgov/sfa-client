@@ -50,6 +50,7 @@ import { incomeTypeRouter } from "./income-type-router";
 import { equipmentCategoryRouter } from "./equipment-category-router";
 import { RequireServerAuth, RequireAdmin } from "../auth";
 import { changeReasonRouter } from "./change-reason-router";
+import { disbursementRouter } from "./disbursement";
 
 export const adminRouter = express.Router();
 //adminRouter.use("/", RequireServerAuth, RequireAdmin)
@@ -104,3 +105,4 @@ adminRouter.use("/expense-category", expenseCategoryRouter);
 adminRouter.use("/income-type", incomeTypeRouter);
 adminRouter.use("/equipment-category", equipmentCategoryRouter);
 adminRouter.use("/change-reason", changeReasonRouter);
+adminRouter.use("/disbursement", disbursementRouter);

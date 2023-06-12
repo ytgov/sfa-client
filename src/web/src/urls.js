@@ -80,3 +80,4 @@ export const INCOME_TYPE =`${config.apiBaseUrl}/api/v2/admin/income-type`;
 export const EXPENSE_CATEGORY =`${config.apiBaseUrl}/api/v2/admin/expense-category`;
 export const EQUIPMENT_CATEGORY =`${config.apiBaseUrl}/api/v2/admin/equipment-category`;
 export const CHANGE_REASON =`${config.apiBaseUrl}/api/v2/admin/change-reason`;
+export const DISBURSEMENT =`${config.apiBaseUrl}/api/v2/admin/disbursement`;
