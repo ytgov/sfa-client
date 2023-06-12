@@ -6,6 +6,7 @@ import {
   ListObjectsV2Command,
   PutObjectCommand,
   DeleteObjectCommand,
+  CopyObjectOutputFilterSensitiveLog,
 } from "@aws-sdk/client-s3";
 import { nanoid } from "nanoid";
 import { UploadedFile } from "express-fileupload";
@@ -65,7 +66,10 @@ export class DocumentService {
 
   //return the Document metadata
   async getDocumentsForDraft(application_draft_id: number): Promise<FileReferenceBase[]> {
-    return await db<FileReferenceBase>("sfa.file_reference").where({ application_draft_id });
+    return await db<FileReferenceBase>("sfa.file_reference")
+      .innerJoin("sfa.document_status", "file_reference.status", "document_status.id")
+      .select(["file_reference.*", "document_status.description as status_description"])
+      .where({ application_draft_id });
   }
 
   //return the Document metadata and file
@@ -133,6 +137,8 @@ export class DocumentService {
     person_id: string | number,
     dependent_id: string | number
   ) {
+    console.log("FILEDRAFT", file);
+
     let fRef = {
       object_key: nanoid(),
       object_key_pdf: nanoid(),
@@ -197,7 +203,7 @@ export class DocumentService {
     await this.uploadFile(fRef);
   }
 
-  async updateDocument(object_key: string, input: FileReferenceBase) {
+  async updateDocument(object_key: string, input: any) {
     return await db("sfa.file_reference").where({ object_key }).update(forUpdate(input));
   }
 

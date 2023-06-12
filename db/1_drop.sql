@@ -1,4 +1,20 @@
 -- DROPS
+DROP FUNCTION IF EXISTS sfa.fn_get_pre_leg_sta_up_weeks
+DROP FUNCTION IF EXISTS sfa.fn_get_pre_leg_outside_travel
+DROP FUNCTION IF EXISTS sfa.fn_get_prev_pre_leg_weeks
+DROP FUNCTION IF EXISTS sfa.fn_get_funded_years_used_preleg_chg
+DROP FUNCTION IF EXISTS sfa.fn_get_prev_post_leg_weeks
+DROP FUNCTION IF EXISTS sfa.fn_get_prev_pre_leg_sta_up_weeks
+DROP FUNCTION IF EXISTS sfa.fn_get_prev_post_leg_sta_up_weeks
+DROP FUNCTION IF EXISTS sfa.fn_get_post_leg_sta_up_weeks
+DROP FUNCTION IF EXISTS sfa.fn_get_post_leg_outside_travel
+DROP FUNCTION IF EXISTS sfa.fn_get_previous_weeks_yg
+DROP FUNCTION IF EXISTS sfa.fn_get_yea_total
+DROP FUNCTION IF EXISTS sfa.fn_get_system_yea_used
+DROP FUNCTION IF EXISTS sfa.fn_get_allowed_weeks
+DROP FUNCTION IF EXISTS sfa.fn_get_post_leg_weeks
+DROP FUNCTION IF EXISTS sfa.fn_get_pre_leg_weeks
+
 DROP TABLE IF EXISTS sfa.file_reference
 DROP TABLE IF EXISTS sfa.student_auth
 DROP TABLE IF EXISTS sfa.application_draft
@@ -126,4 +142,3 @@ DROP TABLE IF EXISTS sfa.equipment_category
 DROP TABLE IF EXISTS sfa.equipment_required
 DROP TABLE IF EXISTS sfa.vendor_update
 --DROP TABLE sfa.user
-DROP TABLE IF EXISTS sfa.file_reference
