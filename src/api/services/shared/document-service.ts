@@ -171,7 +171,7 @@ export class DocumentService {
     disability_requirement_id: string | number,
     person_id: string | number,
     dependent_id: string | number,
-    comment: string = "This is fake",
+    comment: string = "",
     source: string = "Portal"
   ) {
     let fRef = {
