@@ -195,13 +195,7 @@ export default {
     ...mapGetters(['assessments']),
     assessmentTypeC() {
       const id = this.assessmentTypeId;
-      return assessmentTypeWithProps(id);
-    },
-    assessmentProps() {
-      return {
-        ...this.assessmentTypeC.props,
-        funding_request_id: this.fundingRequestId
-      }
+      return assessmentType(id);
     },
     application: function () {
       return store.getters.selectedApplication;

@@ -354,7 +354,7 @@ export default {
       received_date_menu: null,
       completed_date_menu: null,
       file: null,
-      comment: null      
+      comment: ""      
     }
   }),
   computed: {
