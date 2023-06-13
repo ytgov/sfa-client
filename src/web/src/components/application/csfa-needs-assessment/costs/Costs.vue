@@ -20,6 +20,7 @@ import PreStudyExpensesForm from './PreStudyExpensesForm.vue';
 import StudyExpensesForm from './StudyExpensesForm.vue';
 
 export default {
+    name: "costs-assessment",
     components: {
         PreStudyExpensesForm,
         StudyExpensesForm,

@@ -73,7 +73,7 @@
                 dense
                 color="blue" 
                 class="my-0"
-                @click="showAssessment(item?.request_type_id || null)"
+                @click="showAssessment(item?.request_type_id || null, item?.id || null)"
                 block
               >
                 Assessment
@@ -162,7 +162,14 @@
         </v-card-text>
       </v-card>
     </div>
-    <component v-if="!showFundings && assessmentTypeId" :is="assessmentTypeC" />
+    <component 
+      v-if="!showFundings && assessmentTypeId" 
+      :is="assessmentTypeC" 
+      v-on:close="showFundingStatus" 
+      v-on:showError="showError"
+      v-on:showSuccess="showSuccess"
+    ></component>
+    
   </div>
 </template>
 
@@ -178,12 +185,14 @@ import {
   FUNDING_REASON_URL,
   APPLICATION_URL
 } from "../../urls";
+import { mapGetters } from 'vuex';
 
 export default {
-  name: "Home",
+  name: "application-status",
   components: {
   },
   computed: {
+    ...mapGetters(['assessments']),
     assessmentTypeC() {
       const id = this.assessmentTypeId;
       return assessmentType(id);
@@ -228,11 +237,13 @@ export default {
     store.dispatch("setAppSidebar", true);
   },
   methods: {
-    showAssessment(id) {
+    showAssessment(request_type_id, funding_request_id) {
       this.showFundings = false;
-      this.assessmentTypeId = id;
+      store.dispatch('getAssessments', { application_id: this.application.id, funding_request_id });
+      this.assessmentTypeId = request_type_id;
     },
     showFundingStatus() {
+
       this.showFundings = true;
     },
     setClose() {
@@ -258,7 +269,6 @@ export default {
     loadFundingTypes() {
       axios.get(FUNDING_TYPE_URL).then((resp) => {
         this.fundingTypeOptions = resp.data;
-        console.log(resp);
       });
     },
     loadStatus() {
@@ -290,6 +300,12 @@ export default {
       } finally {
         store.dispatch("loadApplication", this.applicationId);
       }
+    },
+    showSuccess(mgs) {
+      this.$emit("showSuccess", mgs);
+    },
+    showError(mgs) {
+      this.$emit("showError", mgs);
     },
   },
 };

@@ -1,5 +1,31 @@
 <template>
   <div class="home yukon-grant-assessment">
+    <!-- <div class="row col-md-12 justify-space-between">
+      <div class="col-md-4">
+        <v-select
+          outlined 
+          dense 
+          background-color="white"
+          hide-details 
+          label="assessments"
+          v-model="assessmentSelected"
+          :items="assessments"
+          item-text="name_assessment"
+          item-value="id"
+        >
+        </v-select>
+      </div>
+      <div class="col-md-3 pr-0">
+        <v-btn 
+          dense
+          color="green" 
+          class="my-0"
+          block
+        >
+          <v-icon>mdi-plus</v-icon> CREATE ASSESSMENT
+        </v-btn>
+      </div>
+    </div> -->
     <div class="col-md-12">
       <v-card class="default mb-5 bg-color-blue">
         <div class="col-lg-12 nopadding d-flex flex-wrap low-margin">
@@ -7,29 +33,31 @@
           <div class="col-xs-12 col-lg-4 nopadding d-flex">
             <div class="col-xs-4 col-sm-4">
               <v-btn 
-                :disabled="showAdd"
+                :disabled="!isChanging"
                 dense
                 color="green" 
                 class="my-0"
                 block
+                @click="updateAssessment"
               >
               SAVE
               </v-btn>
             </div>
             <div class="col-xs-4 col-sm-4">
               <v-btn 
-                :disabled="showAdd"
+                :disabled="!isChanging"
                 dense
                 color="orange" 
                 class="my-0"
                 block
+                @click="cancelEdition"
               >
               CANCEL
               </v-btn>
             </div>
             <div class="col-xs-4 col-sm-4">
               <v-btn 
-                :disabled="showAdd"
+                @click="$emit('close')"
                 dense
                 color="red" 
                 class="my-0"
@@ -46,8 +74,7 @@
               <div class="col-xs-12 col-lg-4 nopadding d-flex flex-wrap">
                 <div class="col-xs-12 col-lg-12">
                   <v-menu
-                    :disabled="showAdd"
-                    v-model="assesst_date_menu"
+                    v-model="assessed_date_menu"
                     :close-on-content-click="false"
                     transition="scale-transition"
                     left
@@ -57,9 +84,8 @@
                   >
                     <template v-slot:activator="{ on, attrs }">
                       <v-text-field
-                        :disabled="showAdd"
-                        v-model="assesst_date"
-                        label="Assesst Date"
+                        :value="customAssessment.assessed_date?.slice(0, 10)"
+                        label="Assessed Date"
                         append-icon="mdi-calendar"
                         hide-details
                         readonly
@@ -71,15 +97,16 @@
                       ></v-text-field>
                     </template>
                     <v-date-picker
-                      :disabled="showAdd"
-                      v-model="assesst_date"
-                      @input="assesst_date_menu = false"
+                      :value="customAssessment.assessed_date?.slice(0, 10)"
+                      @input="e => {
+                        customAssessment.assessed_date = e;
+                        assessed_date_menu = false;
+                      }"
                     ></v-date-picker>
                   </v-menu>
                 </div>
                 <div class="col-xs-12 col-lg-12">
                   <v-menu
-                    :disabled="showAdd"
                     v-model="effective_rate_date_menu"
                     :close-on-content-click="false"
                     transition="scale-transition"
@@ -90,8 +117,7 @@
                   >
                     <template v-slot:activator="{ on, attrs }">
                       <v-text-field
-                        :disabled="showAdd"
-                        v-model="effective_rate_date"
+                        :value="customAssessment.effective_rate_date?.slice(0, 10)"
                         label="Effective Rate Date"
                         append-icon="mdi-calendar"
                         hide-details
@@ -104,28 +130,39 @@
                       ></v-text-field>
                     </template>
                     <v-date-picker
-                      :disabled="showAdd"
-                      v-model="effective_rate_date"
-                      @input="effective_rate_date_menu = false"
+                      :value="customAssessment.effective_rate_date?.slice(0, 10)"
+                      @input="e => {
+                        customAssessment.effective_rate_date = e;
+                        effective_rate_date_menu = false;
+                      }"
                     ></v-date-picker>
                   </v-menu>
                 </div>
                 <div class="col-xs-12 col-lg-12 mobile-noppading-bottom">
-                  <v-text-field
+                  <v-select
                     outlined
                     dense
                     background-color="white"
                     hide-details
                     label="Program Division"
-                    @keypress="validate.isNumber($event)"
-                    v-model="program_division"
-                  ></v-text-field>
+                    :value="application.program_division"
+                    @input="e => {
+                      if (programDivisionBack === null) {
+                        programDivisionBack = application.program_division;
+                      }
+                      application.program_division = e;
+                      customAssessment.program_division = e;
+                    }"
+                    :items="programDivisions"
+                    item-text="description"
+                    item-value="id"
+                  ></v-select>
                 </div>
               </div>
               <div class="col-xs-12 col-lg-4 nopadding d-flex flex-wrap">
                 <div class="col-xs-12 col-lg-12 clss-st-date-re-order">
                   <v-menu
-                      :disabled="showAdd"
+                      
                       v-model="classes_start_date_menu"
                       :close-on-content-click="false"
                       transition="scale-transition"
@@ -136,8 +173,7 @@
                     >
                       <template v-slot:activator="{ on, attrs }">
                         <v-text-field
-                          :disabled="showAdd"
-                          v-model="classes_start_date"
+                          :value="customAssessment.classes_start_date?.slice(0, 10)"
                           label="Classes Start Date"
                           append-icon="mdi-calendar"
                           hide-details
@@ -150,15 +186,16 @@
                         ></v-text-field>
                       </template>
                       <v-date-picker
-                        :disabled="showAdd"
-                        v-model="classes_start_date"
-                        @input="classes_start_date_menu = false"
+                        :value="customAssessment.classes_start_date?.slice(0, 10)"
+                        @input="e => {
+                          customAssessment.classes_start_date = e;
+                          classes_start_date_menu = false;
+                        }"
                       ></v-date-picker>
                   </v-menu>
                 </div>
                 <div class="col-xs-12 col-lg-12 clss-en-date-re-order mobile-low-margin">
                   <v-menu
-                    :disabled="showAdd"
                     v-model="classes_end_date_menu"
                     :close-on-content-click="false"
                     transition="scale-transition"
@@ -169,8 +206,7 @@
                   >
                   <template v-slot:activator="{ on, attrs }">
                     <v-text-field
-                      :disabled="showAdd"
-                      v-model="classes_end_date"
+                      :value="customAssessment.classes_end_date?.slice(0, 10)"
                       label="Classes End Date"
                       append-icon="mdi-calendar"
                       hide-details
@@ -183,9 +219,11 @@
                     ></v-text-field>
                     </template>
                     <v-date-picker
-                      :disabled="showAdd"
-                      v-model="classes_end_date"
-                      @input="classes_end_date_menu = false"
+                      :value="customAssessment.classes_end_date?.slice(0, 10)"
+                      @input="e => {
+                        customAssessment.classes_end_date = e;
+                        classes_end_date_menu = false;
+                      }"
                     ></v-date-picker>
                   </v-menu>
                 </div>
@@ -196,26 +234,30 @@
               <div class="col-xs-12 col-lg-4 nopadding d-flex flex-wrap">
                 <div class="col-xs-12 col-lg-12">
                   <v-select
-                    :disabled="showAdd"
+                    
                     outlined
                     dense
                     background-color="white"
                     hide-details
                     label="Home Community"
-                    v-model="home_community"
-                    item-text="DESCRIPTION"
-                    item-value="REQUEST_TYPE_ID"
+                    v-model="customAssessment.home_city_id"
+                    :items="cities"
+                    item-text="description"
+                    item-value="id"
                   ></v-select>
                 </div>
                 <div class="col-xs-12 col-lg-12">
-                  <v-text-field
+                  <v-select
                     outlined
                     dense
                     background-color="white"
                     hide-details
                     label="Destination City"
-                    v-model="batch_id"
-                  ></v-text-field>
+                    v-model="customAssessment.destination_city_id"
+                    :items="cities"
+                    item-text="description"
+                    item-value="id"
+                  ></v-select>
                 </div>
                 <div class="col-xs-12 col-lg-12 line-jump-height d-flex align-center not-displayed-sx"></div>
               </div>
@@ -232,8 +274,7 @@
                     background-color="white"
                     hide-details
                     label="Allowed Months"
-                    @keypress="validate.isNumber($event)"
-                    v-model="allowed_months"
+                    v-model="customAssessment.allowed_months"
                   ></v-text-field>
                 </div>
                 <div class="col-xs-12 col-lg-12">
@@ -243,19 +284,18 @@
                     background-color="white"
                     hide-details
                     label="Faction of whole year"
-                    @keypress="validate.isNumber($event)"
-                    v-model="faction_of_whole_year"
+                    v-model="customAssessment.years_funded_equivalent"
                   ></v-text-field>
                 </div>
                 <div class="col-xs-12 col-lg-12">
                   <v-text-field
+                    disabled
                     outlined
                     dense
                     background-color="white"
                     hide-details
                     label="Years Funded"
-                    @keypress="validate.isNumber($event)"
-                    v-model="years_funded"
+                    :value="customAssessment?.read_only_data?.years_funded ?? 0"
                   ></v-text-field>
                 </div>
               </div>
@@ -267,8 +307,7 @@
                     background-color="white"
                     hide-details
                     label="Living Costs"
-                    @keypress="validate.isNumber($event)"
-                    v-model="living_costs"
+                    v-model="customAssessment.living_costs"
                   ></v-text-field>
                 </div>
                 <div class="col-xs-12 col-lg-12">
@@ -278,8 +317,7 @@
                     background-color="white"
                     hide-details
                     label="Allowed Tuition"
-                    @keypress="validate.isNumber($event)"
-                    v-model="allowed_tuition"
+                    v-model="customAssessment.allowed_tuition"
                   ></v-text-field>
                 </div>
                 <div class="col-xs-12 col-lg-12">
@@ -289,8 +327,7 @@
                     background-color="white"
                     hide-details
                     label="Allowed Books"
-                    @keypress="validate.isNumber($event)"
-                    v-model="allowed_books"
+                    v-model="customAssessment.allowed_books"
                   ></v-text-field>
                 </div>
               </div>
@@ -302,8 +339,7 @@
                     background-color="white"
                     hide-details
                     label="Amount"
-                    @keypress="validate.isNumber($event)"
-                    v-model="amount"
+                    v-model="customAssessment.pre_leg_amount"
                   ></v-text-field>
                 </div>
                 <div class="col-xs-12 col-lg-12 line-jump-height d-flex align-center not-displayed-sx"></div>
@@ -317,13 +353,13 @@
               <div class="col-xs-12 col-sm-4 col-lg-4 nopadding d-flex flex-wrap mobile-low-margin">
                 <div class="col-xs-12 col-lg-12">
                   <v-text-field
+                    disabled
                     outlined
                     dense
                     background-color="white"
                     hide-details
                     label="Previous Weeks"
-                    @keypress="validate.isNumber($event)"
-                    v-model="previous_weeks"
+                    :value="customAssessment?.read_only_data?.previous_weeks ?? 0"
                   ></v-text-field>
                 </div>
                 <div class="col-xs-12 col-lg-12 line-jump-height d-flex align-center not-displayed-sx not-displayed-sx-md"></div>
@@ -331,13 +367,13 @@
               <div class="col-xs-12 col-sm-4 col-lg-4 nopadding d-flex flex-wrap mobile-low-margin">
                 <div class="col-xs-12 col-lg-12">
                   <v-text-field
+                    disabled
                     outlined
                     dense
                     background-color="white"
                     hide-details
                     label="Assessed Weeks"
-                    @keypress="validate.isNumber($event)"
-                    v-model="assessed_weeks"
+                    :value="customAssessment?.read_only_data?.assessed_weeks ?? 0"
                   ></v-text-field>
                 </div>
                 <div class="col-xs-12 col-lg-12 line-jump-height d-flex align-center not-displayed-sx not-displayed-sx-md"></div>
@@ -350,8 +386,7 @@
                     background-color="white"
                     hide-details
                     label="Allowed Weeks"
-                    @keypress="validate.isNumber($event)"
-                    v-model="allowed_weeks"
+                    v-model="customAssessment.weeks_allowed"
                   ></v-text-field>
                 </div>
                 <div class="col-xs-12 col-lg-12">
@@ -361,8 +396,7 @@
                     background-color="white"
                     hide-details
                     label="Weekly Amount"
-                    @keypress="validate.isNumber($event)"
-                    v-model="weekly_amount"
+                    v-model="customAssessment.weekly_amount"
                   ></v-text-field>
                 </div>
               </div>
@@ -374,7 +408,7 @@
               <div class="col-sm-4 col-lg-7 not-displayed-sx"></div>
               <div class="col-xs-12 col-sm-4 col-lg-5">
                 <v-btn 
-                  :disabled="showAdd"
+                  @click="recalcAssessment"
                   dense
                   color="blue" 
                   class="my-0"
@@ -394,31 +428,31 @@
                     hide-details
                     label="Travel Allowance"
                     @keypress="validate.isNumber($event)"
-                    v-model="travel_allowance"
+                    v-model="customAssessment.travel_allowance"
                   ></v-text-field>
                 </div>
                 <div class="col-xs-12 col-lg-12">
                   <v-text-field
+                    @keypress="validate.isNumber($event)"
                     outlined
                     dense
                     background-color="white"
                     hide-details
                     label="Airfare Amount"
-                    @keypress="validate.isNumber($event)"
-                    v-model="airfare_amount"
+                    v-model="customAssessment.airfare_amount"
                   ></v-text-field>
                 </div>
               </div>
               <div class="col-sm-6 col-lg-5 d-flex align-center nopadding-left mobile-custom-border-2">
                 <img class="not-displayed-sx" src="../../../../public/img/curly-brackets.png">
                 <v-text-field
+                  @keypress="validate.isNumber($event)"
                   outlined
                   dense
                   background-color="white"
                   hide-details
                   label="Disbursement Period 1, 2..."
-                  @keypress="validate.isNumber($event)"
-                  v-model="disbursement_period"
+                  v-model="customAssessment.air_travel_disbursement_period"
                 ></v-text-field>
               </div>
               <div class="col-sm-6 col-lg-7 low-margin">
@@ -428,8 +462,7 @@
                   background-color="white"
                   hide-details
                   label="No. of disbursements"
-                  @keypress="validate.isNumber($event)"
-                  v-model="no_of_disbursements"
+                  v-model="customAssessment.disbursements_required"
                 ></v-text-field>
               </div>
             </div>
@@ -443,7 +476,7 @@
                     hide-details
                     label="Adjust Amount"
                     @keypress="validate.isNumber($event)"
-                    v-model="adjust_amount"
+                    v-model="customAssessment.assessment_adj_amount"
                   ></v-text-field>
                 </div>
                 <div class="col-xs-12 col-lg-12">
@@ -453,26 +486,25 @@
                     background-color="white"
                     hide-details
                     label="Assessed Amount"
-                    @keypress="validate.isNumber($event)"
-                    v-model="assessed_amount"
+                    v-model="customAssessment.assessed_amount"
                   ></v-text-field>
                 </div>
                 <div class="col-xs-12 col-lg-12 low-margin mobile-noppading-bottom">
                   <v-text-field
+                    disabled
                     outlined
                     dense
                     background-color="white"
                     hide-details
                     label="Previous Disbursement"
-                    @keypress="validate.isNumber($event)"
-                    v-model="previous_disbursement"
+                    :value="customAssessment?.read_only_data?.previous_disbursement ?? 0"
                   ></v-text-field>
                 </div>
               </div>
               <div class="col-sm-4 col-lg-5 d-flex nopadding line-jump-height align-center low-margin">
                 <div class="col-xs-12 col-lg-12 height-fit-content mobile-noppading-top">
                   <v-btn 
-                    :disabled="showAdd"
+                    
                     dense
                     color="blue" 
                     class="my-0"
@@ -492,8 +524,7 @@
                     background-color="white"
                     hide-details
                     label="Over Award"
-                    @keypress="validate.isNumber($event)"
-                    v-model="over_award"
+                    v-model="customAssessment.over_award"
                   ></v-text-field>
                 </div>
                 <div class="col-xs-12 col-lg-12">
@@ -503,25 +534,26 @@
                     background-color="white"
                     hide-details
                     label="Over Disburse Period"
-                    @keypress="validate.isNumber($event)"
-                    v-model="over_disburse_period"
+                    v-model="customAssessment.over_award_disbursement_period"
                   ></v-text-field>
                 </div>
                 <div class="col-xs-12 col-lg-12">
                   <v-text-field
+                    disabled
                     outlined
                     dense
                     background-color="white"
                     hide-details
                     label="Net Amount"
-                    @keypress="validate.isNumber($event)"
-                    v-model="net_amount"
+                    :value="customAssessment?.read_only_data?.net_amount ?? 0"
                   ></v-text-field>
                 </div>
               </div>
               <div class="col-sm-4 col-lg-5 d-flex nopadding line-jump-height align-center justify-center">
                 <div class="col-xs-12 col-lg-12 height-fit-content d-flex justify-center">
-                  <v-switch label="Applied">
+                  <v-switch 
+                  v-model="customAssessment.over_award_applied_flg"
+                  label="Applied">
                   </v-switch>
                 </div>
               </div>
@@ -531,150 +563,137 @@
       </v-card>
     </div>
     <div class="col-lg-12">
-      <v-card class="default mb-5 bg-color-blue">
-        <v-card-title>Disbursement (s)</v-card-title>
-        <div class="col-xs-12 col-sm-12 col-lg-12 d-flex noppading-bottom">
-          <div class="col-xs-2 col-sm-2 col-lg-2 nopadding d-flex align-center justify-center">
-            <p class="nomargin">Disbursed Amt</p>
-          </div>
-          <div class="col-xs-1 col-sm-1 col-lg-1 nopadding d-flex align-center justify-center">
-            <p class="nomargin">Reference #</p>
-          </div>
-          <div class="col-xs-2 col-sm-2 col-lg-2 nopadding d-flex align-center justify-center">
-            <p class="nomargin">Disbursement Type</p>
-          </div>
-          <div class="col-xs-1 col-sm-1 col-lg-1 nopadding d-flex align-center justify-center">
-            <p class="nomargin">Issue Date</p>
-          </div>
-          <div class="col-xs-1 col-sm-1 col-lg-1 nopadding d-flex align-center justify-center">
-            <p class="nomargin">Tax Year</p>
-          </div>
-          <div class="col-xs-1 col-sm-1 col-lg-1 nopadding d-flex align-center justify-center">
-            <p class="nomargin">Due Date</p>
-          </div>
-          <div class="col-xs-3 col-sm-3 col-lg-3 nopadding d-flex align-center justify-center">
-            <p class="nomargin">Change Reason</p>
-          </div>
-          <div class="col-xs-1 col-sm-1 col-lg-1 nopadding d-flex align-center justify-center">
-            <p class="nomargin">Batch ID</p>
-          </div>
-        </div>
-        <div class="col-xs-12 col-sm-12 col-lg-12 d-flex low-margin noppading-top">
-          <div class="col-xs-2 col-sm-2 col-lg-2 nopadding">
-            <v-text-field
-              outlined
-              dense
-              background-color="white"
-              hide-details
-              @keypress="validate.isNumber($event)"
-              v-model="disbursed_amt"
-            ></v-text-field>
-          </div>
-          <div class="col-xs-1 col-sm-1 col-lg-1 nopadding">
-            <v-text-field
-              outlined
-              dense
-              background-color="white"
-              hide-details
-              @keypress="validate.isNumber($event)"
-              v-model="reference_number"
-            ></v-text-field>
-          </div>
-          <div class="col-xs-2 col-sm-2 col-lg-2 nopadding">
-            <v-select
-              :disabled="showAdd"
-              outlined
-              dense
-              background-color="white"
-              hide-details
-              v-model="disbursement_type"
-              item-text="DESCRIPTION"
-              item-value="REQUEST_TYPE_ID"
-            ></v-select>
-          </div>
-          <div class="col-xs-1 col-sm-1 col-lg-1 nopadding">
-            <v-text-field
-              outlined
-              dense
-              background-color="white"
-              hide-details
-              @keypress="validate.isNumber($event)"
-              v-model="issue_date"
-            ></v-text-field>
-          </div>
-          <div class="col-xs-1 col-sm-1 col-lg-1 nopadding">
-            <v-text-field
-              outlined
-              dense
-              background-color="white"
-              hide-details
-              @keypress="validate.isNumber($event)"
-              v-model="tax_year"
-            ></v-text-field>
-          </div>
-          <div class="col-xs-1 col-sm-1 col-lg-1 nopadding">
-            <v-text-field
-              outlined
-              dense
-              background-color="white"
-              hide-details
-              @keypress="validate.isNumber($event)"
-              v-model="due_date"
-            ></v-text-field>
-          </div>
-          <div class="col-xs-3 col-sm-3 col-lg-3 nopadding">
-            <v-select
-              :disabled="showAdd"
-              outlined
-              dense
-              background-color="white"
-              hide-details
-              v-model="disbursement_type"
-              item-text="DESCRIPTION"
-              item-value="REQUEST_TYPE_ID"
-            ></v-select>
-          </div>
-          <div class="col-xs-1 col-sm-1 col-lg-1 nopadding">
-            <v-text-field
-              outlined
-              dense
-              background-color="white"
-              hide-details
-              @keypress="validate.isNumber($event)"
-              v-model="family_size"
-            ></v-text-field>
-          </div>
-        </div>
-      </v-card>
+      <Disbursement
+      :assessmentId="customAssessment?.id"
+      :fundingRequestId="customAssessment?.funding_request_id"
+      v-on:showError="showError"
+      v-on:showSuccess="showSuccess"
+      ></Disbursement>
     </div>
   </div>
-      
-
-        
-
-
-
-
-
-
-
-
-
-
-
-
-        
-
-
 </template>
 <script>
 import store from "../../../store";
+import { mapGetters } from "vuex";
 import validator from "@/validator";
+import Disbursement from "./Disbursement.vue";
+
 export default {
   name: "Home",
+  data() {
+    return {
+      assessmentSelected: null,
+      assessed_date_menu: false,
+      classes_start_date_menu: false,
+      classes_end_date_menu: false,
+      effective_rate_date_menu: false,
+      mensaje: "",
+      isChanging: false,
+      programDivisionBack: null,
+    };
+  },
+  components: {
+    Disbursement,
+  },
   computed: {
+    ...mapGetters(["assessments", "cities", "programDivisions", "customAssessment", "selectedAssessment", "disbursements"]),
     application: function () {
       return store.getters.selectedApplication;
+    },
+    programDivision() {
+      return this.application?.program_division;
+    }
+  },
+  methods: {
+    ObjCompare(obj1, obj2) {
+      delete obj1.read_only_data;
+      delete obj2.read_only_data;
+
+      const Obj1_keys = Object.keys(obj1);
+      const Obj2_keys = Object.keys(obj2);
+
+      if (Obj1_keys.length !== Obj2_keys.length) {
+        return true;
+      }
+      for (let k of Obj1_keys) {
+        if (obj1[k] !== obj2[k]) {
+          return true;
+        }
+      }
+      return false;
+    },
+    cancelEdition() {
+      if (this.programDivisionBack !== null) {
+        delete this.customAssessment.program_division;
+        this.application.program_division = this.programDivisionBack;
+        this.programDivisionBack = null;
+      }
+      const selected = JSON.parse(JSON.stringify(this.selectedAssessment))
+      store.dispatch("setCustomAssessment", { ...selected });
+      const custom = JSON.parse(JSON.stringify(this.customAssessment));
+      this.isChanging = this.ObjCompare({ ...custom }, { ...selected });
+    },
+    updateAssessment() {
+      const custom = JSON.parse(JSON.stringify(this.customAssessment));
+
+      store.dispatch(
+          "updateApplication", 
+          ['program_division', this.application.program_division, this]
+        );
+
+      store.dispatch(
+          "updateAssessment",
+          {
+            data: custom,
+            application_id: this.application.id,
+            funding_request_id: custom.funding_request_id,
+            assessment_id: custom.id,
+            thisVal: this
+          }
+        );
+    },
+    recalcAssessment() {
+      const custom = JSON.parse(JSON.stringify(this.customAssessment));
+
+      store.dispatch(
+          "recalcAssessment",
+          {
+            application_id: this.application.id,
+            funding_request_id: custom.funding_request_id,
+            assessment_id: custom.id,
+          }
+        );
+    },
+    showSuccess(mgs) {
+      this.$emit("showSuccess", mgs);
+    },
+    showError(mgs) {
+      this.$emit("showError", mgs);
+    },
+  },
+  watch: {
+    customAssessment: {
+        deep: true,
+        handler(val, oldVal) {
+          const custom = JSON.parse(JSON.stringify(val));
+          const selected = JSON.parse(JSON.stringify(this.selectedAssessment))
+
+          this.isChanging = this.ObjCompare({ ...custom }, { ...selected });
+        },
+    },
+    programDivision(val, oldVal) {
+      const custom = JSON.parse(JSON.stringify(val));
+      const selected = JSON.parse(JSON.stringify(this.selectedAssessment))
+
+      if (this.programDivisionBack) {
+        this.isChanging = this.ObjCompare({ ...custom }, { ...selected });
+      }
+    },
+    disbursements: {
+      deep: true,
+        handler(val, oldVal) {
+          //alert("disbursement was updated");
+        },
     },
   },
   async created() {
@@ -685,6 +704,10 @@ export default {
       await store.dispatch("loadApplication", this.applicationId);
     }
     store.dispatch("setAppSidebar", true);
+    
+    store.dispatch("setCities");
+    store.dispatch("setProgramDivisions");
+    this.assessmentSelected = this.assessments?.[0].id || null;
   }
 };
 </script>

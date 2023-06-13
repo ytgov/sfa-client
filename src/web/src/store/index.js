@@ -1,9 +1,12 @@
 import Vue from "vue";
 import Vuex from "vuex";
 
+// Stores
 import auth from "./auth";
 import profile from "./profile";
 import institution from "./institution";
+
+// Modules
 import student from "@/modules/student/store";
 import province from "@/modules/province/store";
 import countries from "@/modules/countries/store";
@@ -39,6 +42,8 @@ import studyArea from "@/modules/study-area/store";
 import program from "@/modules/program/store";
 import cslClassification from "@/modules/csl-classification/store";
 import cslCode from "@/modules/csl-code/store";
+import accommodationType from "@/modules/accommodation-type/store";
+import requirementType from "@/modules/requirement-type/store";
 import citizenship from "@/modules/citizenship/store";
 import prestudyEmploymentStatus from "@/modules/prestudy-employment-status/store";
 import academicYear from "@/modules/academic-year/store";
@@ -51,7 +56,14 @@ import incomeType from "@/modules/document-status/store";
 import expenseCategory from "@/modules/expense-category/store";
 import equipmentCategory from "@/modules/equipment-category/store";
 import changeReason from "@/modules/change-reason/store";
+import assessment from "./assessment";
+import disbursement from "./disbursement";
 import adminCrud from "./adminCrud";
+
+// DTO Modules
+import cslft from "@/modules/cslft/store";
+
+// Config
 import axios from "axios";
 import { APPLICATION_URL, STUDENT_URL } from "../urls";
 
@@ -68,6 +80,7 @@ export default new Vuex.Store({
     selectedApplication: {},
     selectedApplicationId: 0,
     recentStudents: [],
+    recentApplications: [],
     yearOptions: [],
     monthOptions: [],
   },
@@ -77,6 +90,7 @@ export default new Vuex.Store({
     selectedStudent: (state) => state.selectedStudent,
     selectedApplication: (state) => state.selectedApplication,
     recentStudents: (state) => state.recentStudents,
+    recentApplications: (state) => state.recentApplications,
     yearOptions: (state) => state.yearOptions,
     monthOptions: (state) => state.monthOptions,
   },
@@ -97,6 +111,12 @@ export default new Vuex.Store({
       console.log("SET APPLICATION");
       state.selectedApplication = value;
       state.selectedApplicationId = value.id;
+
+      let isRecent = state.recentApplications.filter((r) => r.id == value.id);
+
+      if (isRecent.length == 0) {
+        state.recentApplications.unshift(value);
+      }
     },
     CLEAR_APPLICATION(state) {
       console.log("CLEARING APPLICATION");
@@ -332,7 +352,6 @@ export default new Vuex.Store({
           emitter.$emit("showError", err.data.messages[0].text);
         });
     },
-
     deleteEducation(state, vals) {
       let emitter = vals[0];
       let idToDelete = vals[1];
@@ -414,6 +433,5 @@ export default new Vuex.Store({
         });
     },
   },
-
-  modules: { auth, profile, institution, student, province, countries, cities, cslCode, addressType, indigenousLearner, Language, maritalStatus, studyField, parentalRelationship, firstNation, portalStatus, sex, studentCategory, applicationType, highSchool, ageDistribution, institutionLevel, assessmentType, batchGroup, educationLevel, status, statusReason, yukonGrantEligibility, disbursementType, reasonsForChange, fundingGroup, disabilityType, aboriginalStatus, disabilityService, relationships, studyArea, program, cslClassification, citizenship, prestudyEmploymentStatus, academicYear, agency, instructionType, programDivision, attendance, documentStatus, incomeType, expenseCategory, equipmentCategory, changeReason, adminCrud, }
+  modules: { auth, profile, institution, cslft, student, province, countries, cities, cslCode, addressType, indigenousLearner, Language, maritalStatus, studyField, parentalRelationship, firstNation, portalStatus, sex, studentCategory, applicationType, highSchool, ageDistribution, institutionLevel, assessmentType, batchGroup, educationLevel, status, statusReason, yukonGrantEligibility, disbursementType, reasonsForChange, fundingGroup, disabilityType, aboriginalStatus, disabilityService, relationships, studyArea, program, cslClassification, citizenship, prestudyEmploymentStatus, academicYear, agency, instructionType, programDivision, attendance, documentStatus, incomeType, expenseCategory, equipmentCategory, changeReason, assessment, disbursement, requirementType, adminCrud, }
 });

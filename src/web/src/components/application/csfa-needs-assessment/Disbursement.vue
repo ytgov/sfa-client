@@ -7,13 +7,27 @@
           </div>
           <v-card-title v-else>Disbursement (s)</v-card-title>
             
-            <div v-for="item, index in disbursements" :key="index">
+            <div v-for="item, index in disbursementsByAssessmentId" :key="index">
                 <div class="col-xs-12 col-sm-12 col-lg-12 d-flex noppading-bottom">
-                    <div class="col-xs-12 col-sm-12 col-lg-12 nopadding d-flex align-end justify-end">
-                        <v-btn :disabled="show" color="error" x-small fab class="my-0">
-                            <v-icon>mdi-minus</v-icon>
-                        </v-btn>
-                    </div>
+                  <div v-if="currentEditing?.id === item.id" class="col-xs-12 col-sm-12 col-lg-12 nopadding d-flex align-end justify-end">
+                    <v-btn color="success" x-small fab class="my-0" @click="saveDisbursement(item)">
+                        <v-icon>mdi-check</v-icon>
+                    </v-btn>
+                    <v-btn 
+                        color="warning ml-5" 
+                        x-small 
+                        fab 
+                        class="my-0" 
+                        @click="closeEditor(index)"
+                      >
+                      <v-icon>mdi-close</v-icon>
+                    </v-btn>
+                  </div>
+                  <div v-else class="col-xs-12 col-sm-12 col-lg-12 nopadding d-flex align-end justify-end">
+                      <v-btn :disabled="show || (currentEditing !== null && !(currentEditing?.id === item.id))" color="error" x-small fab class="my-0" @click="removeDisbursement(item.id)">
+                          <v-icon>mdi-minus</v-icon>
+                      </v-btn>
+                  </div>  
                 </div>
                 <div class="col-xs-12 col-sm-12 col-lg-12 d-flex noppading-bottom">
                     <div class="col-xs-2 col-sm-2 col-lg-2 nopadding d-flex align-center justify-center">
@@ -43,52 +57,117 @@
                 </div>
                 <div class="col-xs-12 col-sm-12 col-lg-12 d-flex low-margin noppading-top">
                     <div class="col-xs-2 col-sm-2 col-lg-2 nopadding">
-                        <v-text-field :disabled="show" outlined dense background-color="white" hide-details
-                            @keypress="validate.isNumber($event)" v-model="disbursed_amt"></v-text-field>
+                        <v-text-field :disabled="show || (currentEditing !== null && !(currentEditing?.id === item.id))" outlined dense background-color="white" hide-details @focus="editing({ ...item })" 
+                            @keypress="validate.isNumber($event)" v-model="item.disbursed_amount"></v-text-field>
                     </div>
                     <div class="col-xs-1 col-sm-1 col-lg-1 nopadding">
-                        <v-text-field :disabled="show" outlined dense background-color="white" hide-details
-                            @keypress="validate.isNumber($event)" v-model="reference_number"></v-text-field>
+                        <v-text-field :disabled="show || (currentEditing !== null && !(currentEditing?.id === item.id))" outlined dense background-color="white" hide-details @focus="editing({ ...item })" 
+                            @keypress="validate.isNumber($event)" v-model="item.transaction_number"></v-text-field>
                     </div>
                     <div class="col-xs-2 col-sm-2 col-lg-2 nopadding">
-                        <v-autocomplete :disabled="show" outlined dense background-color="white" hide-details
-                            v-model="disbursement_type" :items="disbursementTypes" item-text="description" item-value="id"></v-autocomplete>
+                        <v-autocomplete outlined dense background-color="white" hide-details @focus="editing({ ...item })" 
+                            v-model="item.disbursement_type_id" :items="disbursementTypes" item-text="description" item-value="id"></v-autocomplete>
                     </div>
                     <div class="col-xs-1 col-sm-1 col-lg-1 nopadding">
-                        <v-text-field :disabled="show" outlined dense background-color="white" hide-details
-                            @keypress="validate.isNumber($event)" v-model="issue_date"></v-text-field>
+                        <v-menu
+                          v-model="issue_date_menu"
+                          :disabled="show || (currentEditing !== null && !(currentEditing?.id === item.id))" 
+                          :close-on-content-click="false"
+                          transition="scale-transition"
+                          left
+                          nudge-top="26"
+                          offset-y
+                          min-width="auto"
+                          @focus="editing({ ...item })"
+                        >
+                          <template v-slot:activator="{ on, attrs }">
+                            <v-text-field
+                              :disabled="show || (currentEditing !== null && !(currentEditing?.id === item.id))" 
+                              @focus="editing({ ...item })"
+                              :value="item.issue_date?.slice(0, 10)"
+                              label="Assessed Date"
+                              hide-details
+                              readonly
+                              outlined
+                              dense
+                              background-color="white"
+                              v-bind="attrs"
+                              v-on="on"
+                            ></v-text-field>
+                          </template>
+                          <v-date-picker
+                            :value="item.issue_date?.slice(0, 10)"
+                            @input="e => {
+                              item.issue_date = e;
+                              issue_date_menu = false;
+                            }"
+                          ></v-date-picker>
+                        </v-menu>
+            
                     </div>
                     <div class="col-xs-1 col-sm-1 col-lg-1 nopadding">
-                        <v-text-field :disabled="show" outlined dense background-color="white" hide-details
-                            @keypress="validate.isNumber($event)" v-model="tax_year"></v-text-field>
+                        <v-text-field :disabled="show || (currentEditing !== null && !(currentEditing?.id === item.id))" outlined dense background-color="white" hide-details @focus="editing({ ...item })"
+                            @keypress="validate.isNumber($event)" v-model="item.tax_year"></v-text-field>
                     </div>
                     <div class="col-xs-1 col-sm-1 col-lg-1 nopadding">
-                        <v-text-field :disabled="show" outlined dense background-color="white" hide-details
-                            @keypress="validate.isNumber($event)" v-model="due_date"></v-text-field>
+                        <v-menu
+                          v-model="due_date_menu"
+                          :disabled="show || (currentEditing !== null && !(currentEditing?.id === item.id))" 
+                          :close-on-content-click="false"
+                          transition="scale-transition"
+                          left
+                          nudge-top="26"
+                          offset-y
+                          min-width="auto"
+                          @focus="editing({ ...item })"
+                        >
+                          <template v-slot:activator="{ on, attrs }">
+                            <v-text-field
+                              :disabled="show || (currentEditing !== null && !(currentEditing?.id === item.id))" 
+                              @focus="editing({ ...item })"
+                              :value="item.due_date?.slice(0, 10)"
+                              label="Assessed Date"
+                              hide-details
+                              readonly
+                              outlined
+                              dense
+                              background-color="white"
+                              v-bind="attrs"
+                              v-on="on"
+                            ></v-text-field>
+                          </template>
+                          <v-date-picker
+                            :value="item.due_date?.slice(0, 10)"
+                            @input="e => {
+                              item.due_date = e;
+                              due_date_menu = false;
+                            }"
+                          ></v-date-picker>
+                        </v-menu>
                     </div>
                     <div class="col-xs-3 col-sm-3 col-lg-3 nopadding">
-                        <v-autocomplete :disabled="show" outlined dense background-color="white" hide-details
-                            v-model="disbursement_type" :items="changeReasons" item-text="description" item-value="id"></v-autocomplete>
+                        <v-autocomplete :disabled="show || (currentEditing !== null && !(currentEditing?.id === item.id))" outlined dense background-color="white" hide-details @focus="editing({ ...item })"
+                            v-model="item.change_reason_id" :items="changeReasons" item-text="description" item-value="id"></v-autocomplete>
                     </div>
                     <div class="col-xs-1 col-sm-1 col-lg-1 nopadding">
-                        <v-text-field :disabled="show" outlined dense background-color="white" hide-details
-                            @keypress="validate.isNumber($event)" v-model="family_size"></v-text-field>
+                        <v-text-field :disabled="show || (currentEditing !== null && !(currentEditing?.id === item.id))" outlined dense background-color="white" hide-details
+                            @keypress="validate.isNumber($event)" @focus="editing({ ...item })" v-model="item.financial_batch_id"></v-text-field>
                     </div>
                     
                 </div>
             </div>
             <div class="col-xs-12 col-sm-12 col-lg-12 d-flex noppading-bottom">
               <div class="col-xs-12 col-sm-12 col-lg-12 nopadding d-flex align-end justify-end">
-                  <v-btn v-if="!!disbursements?.length && !show" @click="show = true" color="success" class="">
+                  <v-btn v-if="!!disbursementsByAssessmentId?.length && !show" @click="show = true" :disabled="show || currentEditing !== null" color="success" class="">
                     Add
                   </v-btn>
               </div>
             </div>
 
-            <div v-if="show || !disbursements?.length">
+            <div v-if="show || !disbursementsByAssessmentId?.length">
               <div class="col-xs-12 col-sm-12 col-lg-12 d-flex noppading-bottom">
                   <div class="col-xs-12 col-sm-12 col-lg-12 nopadding d-flex align-end justify-end">
-                      <v-btn color="success" x-small fab class="my-0">
+                      <v-btn color="success" x-small fab class="my-0"  @click="addDisbursement">
                           <v-icon>mdi-check</v-icon>
                       </v-btn>
                       <v-btn 
@@ -129,41 +208,99 @@
                   </div>
               </div>
               <div class="col-xs-12 col-sm-12 col-lg-12 d-flex low-margin noppading-top">
-                  <div class="col-xs-2 col-sm-2 col-lg-2 nopadding">
-                      <v-text-field outlined dense background-color="white" hide-details
-                          @keypress="validate.isNumber($event)" v-model="disbursed_amt"></v-text-field>
-                  </div>
-                  <div class="col-xs-1 col-sm-1 col-lg-1 nopadding">
-                      <v-text-field outlined dense background-color="white" hide-details
-                          @keypress="validate.isNumber($event)" v-model="reference_number"></v-text-field>
-                  </div>
-                  <div class="col-xs-2 col-sm-2 col-lg-2 nopadding">
-                      <v-autocomplete :disabled="showAdd" outlined dense background-color="white" hide-details
-                          v-model="disbursement_type" :items="disbursementTypes" item-text="description" item-value="id"></v-autocomplete>
-                  </div>
-                  <div class="col-xs-1 col-sm-1 col-lg-1 nopadding">
-                      <v-text-field outlined dense background-color="white" hide-details
-                          @keypress="validate.isNumber($event)" v-model="issue_date"></v-text-field>
-                  </div>
-                  <div class="col-xs-1 col-sm-1 col-lg-1 nopadding">
-                      <v-text-field outlined dense background-color="white" hide-details
-                          @keypress="validate.isNumber($event)" v-model="tax_year"></v-text-field>
-                  </div>
-                  <div class="col-xs-1 col-sm-1 col-lg-1 nopadding">
-                      <v-text-field outlined dense background-color="white" hide-details
-                          @keypress="validate.isNumber($event)" v-model="due_date"></v-text-field>
-                  </div>
-                  <div class="col-xs-3 col-sm-3 col-lg-3 nopadding">
-                      <v-autocomplete :disabled="showAdd" outlined dense background-color="white" hide-details
-                          v-model="disbursement_type" :items="changeReasons" item-text="description" item-value="id"></v-autocomplete>
-                  </div>
-                  <div class="col-xs-1 col-sm-1 col-lg-1 nopadding">
-                      <v-text-field outlined dense background-color="white" hide-details
-                          @keypress="validate.isNumber($event)" v-model="family_size"></v-text-field>
-                  </div>
-              </div>
+                <div class="col-xs-2 col-sm-2 col-lg-2 nopadding">
+                    <v-text-field outlined dense background-color="white" hide-details
+                        @keypress="validate.isNumber($event)" v-model="newDibursement.disbursed_amount"></v-text-field>
+                </div>
+                <div class="col-xs-1 col-sm-1 col-lg-1 nopadding">
+                    <v-text-field outlined dense background-color="white" hide-details
+                        @keypress="validate.isNumber($event)" v-model="newDibursement.transaction_number"></v-text-field>
+                </div>
+                <div class="col-xs-2 col-sm-2 col-lg-2 nopadding">
+                    <v-autocomplete  outlined dense background-color="white" hide-details
+                        v-model="newDibursement.disbursement_type_id" :items="disbursementTypes" item-text="description" item-value="id"></v-autocomplete>
+                </div>
+                <div class="col-xs-1 col-sm-1 col-lg-1 nopadding">
+                        <v-menu
+                          v-model="new_issue_date_menu" 
+                          :close-on-content-click="false"
+                          transition="scale-transition"
+                          left
+                          nudge-top="26"
+                          offset-y
+                          min-width="auto"
+                        >
+                          <template v-slot:activator="{ on, attrs }">
+                            <v-text-field
+                              :value="newDibursement.issue_date"
+                              label="Assessed Date"
+                              hide-details
+                              readonly
+                              outlined
+                              dense
+                              background-color="white"
+                              v-bind="attrs"
+                              v-on="on"
+                            ></v-text-field>
+                          </template>
+                          <v-date-picker
+                            :value="newDibursement.issue_date"
+                            @input="e => {
+                              newDibursement.issue_date = e;
+                              new_issue_date_menu = false;
+                            }"
+                          ></v-date-picker>
+                        </v-menu>
+                </div>
+                <div class="col-xs-1 col-sm-1 col-lg-1 nopadding">
+                    <v-text-field outlined dense background-color="white" hide-details
+                        @keypress="validate.isNumber($event)" v-model="newDibursement.tax_year"></v-text-field>
+                </div>
+                <div class="col-xs-1 col-sm-1 col-lg-1 nopadding">
+                        <v-menu
+                          v-model="new_due_date_menu"
+                          :close-on-content-click="false"
+                          transition="scale-transition"
+                          left
+                          nudge-top="26"
+                          offset-y
+                          min-width="auto"
+                        >
+                          <template v-slot:activator="{ on, attrs }">
+                            <v-text-field
+                              :value="newDibursement.due_date"
+                              label="Assessed Date"
+                              hide-details
+                              readonly
+                              outlined
+                              dense
+                              background-color="white"
+                              v-bind="attrs"
+                              v-on="on"
+                            ></v-text-field>
+                          </template>
+                          <v-date-picker
+                            :value="newDibursement.due_date"
+                            @input="e => {
+                              newDibursement.due_date = e;
+                              new_due_date_menu = false;
+                            }"
+                          ></v-date-picker>
+                        </v-menu>
+                </div>
+                <div class="col-xs-3 col-sm-3 col-lg-3 nopadding">
+                    <v-autocomplete outlined dense background-color="white" hide-details
+                        v-model="newDibursement.change_reason_id" :items="changeReasons" item-text="description" item-value="id"></v-autocomplete>
+                </div>
+                <div class="col-xs-1 col-sm-1 col-lg-1 nopadding">
+                    <v-text-field outlined dense background-color="white" hide-details
+                        @keypress="validate.isNumber($event)" v-model="newDibursement.financial_batch_id"></v-text-field>
+                </div>
+                
+            </div>
           </div>
         </v-card>
+        <confirm-dialog ref="confirm"></confirm-dialog>
     </div>
 </template>
 
@@ -175,24 +312,85 @@ import { mapGetters } from 'vuex';
 export default {
   name: "Home",
   props: {
-    disbursements: Array,
+    assessmentId: Number,
+    fundingRequestId: Number,
     smallTitle: {
       type: Boolean,
       default: false
     },
   },
+  watch: {
+    fundingRequestId() {
+      store.dispatch("getDisbursements", { funding_request_id: this.fundingRequestId });
+    }
+  },
   data() {
     return {
       show: false,
+      currentEditing: null,
+      newDibursement: {},
+      issue_date_menu: false,
+      new_issue_date_menu: false,
+      due_date_menu: false,
+      new_due_date_menu: false,
     };
   },
   methods: {
     setShow() {
+      this.newDibursement = {};
       this.show = !this.show;
+    },
+    editing(disbursement) {
+      
+      if (this.currentEditing === null) {
+        this.currentEditing = disbursement;
+      }
+
+    },
+    closeEditor(index) {
+
+      const list = [ ...this.disbursements ];
+      list[index] = { ...this.currentEditing };
+      store.dispatch("backDisbursement", list);
+
+      this.currentEditing = null;
+    },
+    saveDisbursement(item) {
+      store.dispatch("updateDisbursement", {
+        data: { ...item },
+        disbursement_id: item.id,
+        emiter: this
+      });
+    },
+    addDisbursement() {
+      store.dispatch("postDisbursement", {
+        data: { assessment_id: this.assessmentId, funding_request_id: this.fundingRequestId, ...this.newDibursement },
+        emiter: this
+      });
+    },
+    removeDisbursement(id) {
+      this.$refs.confirm.show(
+        "Are you sure?",
+        "Click 'Confirm' below to permanently remove this disbursement.",
+        () => {
+          store.dispatch("removeDisbursement", { emiter:this, disbursement_id: id, funding_request_id: this.fundingRequestId });
+        },
+        () => {}
+      );
+    },
+    showSuccess(mgs) {
+      this.$emit("showSuccess", mgs);
+    },
+    showError(mgs) {
+      this.$emit("showError", mgs);
     },
   },
   computed: {
-    ...mapGetters(['disbursementTypes', 'changeReasons']),
+    ...mapGetters(['disbursements', 'disbursementTypes', 'changeReasons']),
+    disbursementsByAssessmentId() {
+      const list = this.disbursements?.filter(d => d.assessment_id === this.assessmentId ) || [];
+      return list;
+    },
     application: function () {
       return store.getters.selectedApplication;
     },
@@ -207,6 +405,7 @@ export default {
     store.dispatch("setAppSidebar", true);
     store.dispatch("setChangeReasons");
     store.dispatch("setDisbursementTypes");
+    store.dispatch("getDisbursements", { funding_request_id: this.fundingRequestId });
   }
 };
 </script>

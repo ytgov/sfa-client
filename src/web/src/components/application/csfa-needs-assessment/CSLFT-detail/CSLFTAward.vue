@@ -406,7 +406,7 @@
 import store from "@/store";
 import validator from "@/validator";
 export default {
-  name: "Home",
+  name: "cslft-award",
   computed: {
     application: function () {
       return store.getters.selectedApplication;

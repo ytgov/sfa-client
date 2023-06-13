@@ -170,7 +170,10 @@ export class DocumentService {
     requirement_type_id: number,
     disability_requirement_id: string | number,
     person_id: string | number,
-    dependent_id: string | number
+    dependent_id: string | number,
+    comment: string = "",
+    source: string = "Portal",
+    status: number = 1
   ) {
     let fRef = {
       object_key: nanoid(),
@@ -178,7 +181,7 @@ export class DocumentService {
       bucket: AWS_S3_BUCKET,
       upload_date: new Date(),
       upload_user: email,
-      upload_source: "Portal",
+      upload_source: source,
       file_name: file.name,
       file_contents: file.data,
       student_id: parseInt(student_id.toString()),
@@ -187,8 +190,8 @@ export class DocumentService {
       requirement_type_id,
       mime_type: file.mimetype,
       file_size: file.size,
-      comment: "This is fake",
-      status: 1,
+      comment: comment,      
+      status: status,
       status_date: new Date(),
       disability_requirement_id,
       person_id,
