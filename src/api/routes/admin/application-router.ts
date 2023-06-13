@@ -416,7 +416,7 @@ applicationRouter.post("/:application_id/status",
 
 applicationRouter.post("/:application_id/student/:student_id/files", async (req: Request, res: Response) => {       
     const { student_id, application_id } = req.params;
-    const { requirement_type_id, disability_requirement_id, person_id, dependent_id, comment, email } = req.body;
+    const { requirement_type_id, disability_requirement_id, person_id, dependent_id, comment, email, status } = req.body;
               
     let finalEmail = ""; //req.user.email;
     if(!email) {
@@ -434,7 +434,7 @@ applicationRouter.post("/:application_id/student/:student_id/files", async (req:
       let files = Array.isArray(req.files.files) ? req.files.files : [req.files.files];
   
       for (let file of files) {        
-        await documentService.uploadApplicationDocument(finalEmail, student_id, application_id, file, requirement_type_id, disability_requirement_id, person_id, dependent_id, finalComment, source);
+        await documentService.uploadApplicationDocument(finalEmail, student_id, application_id, file, requirement_type_id, disability_requirement_id, person_id, dependent_id, finalComment, source, status);
       }      
       return res.json({ messages: [{ variant: "success", text: "Saved" }] })      
     }    
@@ -566,33 +566,6 @@ applicationRouter.put("/:application_id/status/:id",
 
     }
 );
-
-
-// applicationRouter.put("/:application_id/student/:student_id/files/:requirement_type_id",
-//     [param("application_id").isInt().notEmpty(), param("student_id").isInt().notEmpty(), param("requirement_type_id").isInt().notEmpty()],
-//     ReturnValidationErrors,
-//     async (req: Request, res: Response) => {                
-//         const { application_id, student_id, requirement_type_id } = req.params;
-//         const { data } = req.body;        
-//         try {
-            
-//             const resUpdate = await db("sfa.requirement_met")
-//                 .where({application_id, requirement_type_id})
-//                 .update({ ...data });                
-//             return resUpdate ?
-//                 res.json({ messages: [{ variant: "success", text: "Saved" }] })
-//                 :
-//                 res.json({ messages: [{ variant: "error", text: "Failed" }] });
-
-            
-//         } catch (error) {
-//             return res.json({ messages: [{ text: "Failed to update Funding Request", variant: "error" }] });
-//         }
-
-//     }
-// );
-
-
 
 applicationRouter.put("/:application_id/files/:requirement_type_id",
     [param("application_id").isInt().notEmpty(), param("requirement_type_id").isInt().notEmpty()],
