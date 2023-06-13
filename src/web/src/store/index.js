@@ -80,6 +80,7 @@ export default new Vuex.Store({
     selectedApplication: {},
     selectedApplicationId: 0,
     recentStudents: [],
+    recentApplications: [],
     yearOptions: [],
     monthOptions: [],
   },
@@ -89,6 +90,7 @@ export default new Vuex.Store({
     selectedStudent: (state) => state.selectedStudent,
     selectedApplication: (state) => state.selectedApplication,
     recentStudents: (state) => state.recentStudents,
+    recentApplications: (state) => state.recentApplications,
     yearOptions: (state) => state.yearOptions,
     monthOptions: (state) => state.monthOptions,
   },
@@ -109,6 +111,12 @@ export default new Vuex.Store({
       console.log("SET APPLICATION");
       state.selectedApplication = value;
       state.selectedApplicationId = value.id;
+
+      let isRecent = state.recentApplications.filter((r) => r.id == value.id);
+
+      if (isRecent.length == 0) {
+        state.recentApplications.unshift(value);
+      }
     },
     CLEAR_APPLICATION(state) {
       console.log("CLEARING APPLICATION");
