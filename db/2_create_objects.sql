@@ -1445,8 +1445,7 @@ CREATE TABLE sfa.requirement_met
     id                  INT IDENTITY PRIMARY KEY,
     application_id      INT  NOT NULL REFERENCES sfa.application,
     requirement_type_id INT  NULL REFERENCES sfa.requirement_type,
-    completed_date      DATE NULL,
-    comment             VARCHAR(1000) NULL;
+    completed_date      DATE NULL
 )
 
 CREATE TABLE sfa.communication_log
