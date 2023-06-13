@@ -562,33 +562,6 @@ applicationRouter.put("/:application_id/status/:id",
     }
 );
 
-
-// applicationRouter.put("/:application_id/student/:student_id/files/:requirement_type_id",
-//     [param("application_id").isInt().notEmpty(), param("student_id").isInt().notEmpty(), param("requirement_type_id").isInt().notEmpty()],
-//     ReturnValidationErrors,
-//     async (req: Request, res: Response) => {                
-//         const { application_id, student_id, requirement_type_id } = req.params;
-//         const { data } = req.body;        
-//         try {
-            
-//             const resUpdate = await db("sfa.requirement_met")
-//                 .where({application_id, requirement_type_id})
-//                 .update({ ...data });                
-//             return resUpdate ?
-//                 res.json({ messages: [{ variant: "success", text: "Saved" }] })
-//                 :
-//                 res.json({ messages: [{ variant: "error", text: "Failed" }] });
-
-            
-//         } catch (error) {
-//             return res.json({ messages: [{ text: "Failed to update Funding Request", variant: "error" }] });
-//         }
-
-//     }
-// );
-
-
-
 applicationRouter.put("/:application_id/files/:requirement_type_id",
     [param("application_id").isInt().notEmpty(), param("requirement_type_id").isInt().notEmpty()],
     ReturnValidationErrors,
