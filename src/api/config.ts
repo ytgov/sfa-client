@@ -59,10 +59,11 @@ export const AWS_S3_BUCKET = process.env.AWS_S3_BUCKET || "";
 export const AWS_S3_ACCESS_KEY = process.env.AWS_S3_ACCESS_KEY || "";
 export const AWS_S3_ACCESS_SECRET = process.env.AWS_S3_ACCESS_SECRET || "";
 export const AWS_S3_ENDPOINT = process.env.AWS_S3_ENDPOINT || "";
+export const AWS_S3_REGION = process.env.AWS_S3_REGION || "us-west";
 
 export const AWS_S3_CONFIG = {
   credentials: { accessKeyId: AWS_S3_ACCESS_KEY, secretAccessKey: AWS_S3_ACCESS_SECRET },
   endpoint: AWS_S3_ENDPOINT,
   forcePathStyle: true,
-  region: 'ca-1'
+  region: AWS_S3_REGION,
 };
