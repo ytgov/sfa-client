@@ -161,7 +161,7 @@ applicationRouter.get("/:id",
                     "sub.comment",
                     "sub.mime_type"
                 )                     
-                .fromRaw(`(SELECT fr.object_key, fr.object_key_pdf, fr.person_id, fr.dependent_id, fr.disability_requirement_id, fr.file_name, fr.upload_date, fr.status, t.id AS requirement_type_id, t.description, ds.completed_date, ds.comment, fr.mime_type, ROW_NUMBER() OVER (PARTITION BY fr.dependent_id, t.id, fr.person_id, fr.disability_requirement_id ORDER BY fr.upload_date DESC) AS row_num FROM sfa.request_requirement doc INNER JOIN sfa.request_type rt ON rt.id = doc.request_type_id INNER JOIN sfa.requirement_type t ON t.id = doc.requirement_type_id LEFT JOIN sfa.requirement_met ds ON ds.requirement_type_id = t.id LEFT JOIN sfa.file_reference fr ON fr.requirement_type_id = t.id AND fr.application_id = ds.application_id WHERE t.is_active = 1  AND ds.application_id = ${id}  AND (rt.id IN (SELECT request_type_id FROM sfa.funding_request WHERE application_id = ${id}) OR fr.object_key IS NOT NULL)) as sub`)
+                .fromRaw(`(SELECT fr.object_key, fr.object_key_pdf, fr.person_id, fr.dependent_id, fr.disability_requirement_id, fr.file_name, fr.upload_date, fr.status, t.id AS requirement_type_id, t.description, ds.completed_date, fr.comment, fr.mime_type, ROW_NUMBER() OVER (PARTITION BY fr.dependent_id, t.id, fr.person_id, fr.disability_requirement_id ORDER BY fr.upload_date DESC) AS row_num FROM sfa.request_requirement doc INNER JOIN sfa.request_type rt ON rt.id = doc.request_type_id INNER JOIN sfa.requirement_type t ON t.id = doc.requirement_type_id LEFT JOIN sfa.requirement_met ds ON ds.requirement_type_id = t.id LEFT JOIN sfa.file_reference fr ON fr.requirement_type_id = t.id AND fr.application_id = ds.application_id WHERE t.is_active = 1  AND ds.application_id = ${id}  AND (rt.id IN (SELECT request_type_id FROM sfa.funding_request WHERE application_id = ${id}) OR fr.object_key IS NOT NULL)) as sub`)
                 .where("sub.row_num", 1);             
         
 
@@ -181,7 +181,7 @@ applicationRouter.get("/:id",
                     "sub.comment",
                     "sub.mime_type"
                 )             
-                .fromRaw(`(SELECT fr.object_key, fr.object_key_pdf, fr.person_id, fr.dependent_id, fr.disability_requirement_id, fr.file_name, fr.upload_date, fr.status, t.id AS requirement_type_id, t.description, ds.completed_date, ds.comment, fr.mime_type, ROW_NUMBER() OVER (PARTITION BY fr.dependent_id, t.id, fr.person_id, fr.disability_requirement_id ORDER BY fr.upload_date DESC) AS row_num FROM sfa.file_reference fr INNER JOIN sfa.requirement_type t ON t.id = fr.requirement_type_id LEFT JOIN sfa.requirement_met ds ON ds.requirement_type_id = t.id AND ds.application_id = fr.application_id WHERE t.is_active = 1 AND fr.application_id = ${id}) AS sub`)  
+                .fromRaw(`(SELECT fr.object_key, fr.object_key_pdf, fr.person_id, fr.dependent_id, fr.disability_requirement_id, fr.file_name, fr.upload_date, fr.status, t.id AS requirement_type_id, t.description, ds.completed_date, fr.comment, fr.mime_type, ROW_NUMBER() OVER (PARTITION BY fr.dependent_id, t.id, fr.person_id, fr.disability_requirement_id ORDER BY fr.upload_date DESC) AS row_num FROM sfa.file_reference fr INNER JOIN sfa.requirement_type t ON t.id = fr.requirement_type_id LEFT JOIN sfa.requirement_met ds ON ds.requirement_type_id = t.id AND ds.application_id = fr.application_id WHERE t.is_active = 1 AND fr.application_id = ${id}) AS sub`)  
                 .where("sub.row_num", 1)
                 .andWhere(function() {
                     this.whereNotIn("sub.object_key", function() {
@@ -411,7 +411,7 @@ applicationRouter.post("/:application_id/status",
 
 applicationRouter.post("/:application_id/student/:student_id/files", async (req: Request, res: Response) => {       
     const { student_id, application_id } = req.params;
-    const { requirement_type_id, disability_requirement_id, person_id, dependent_id, comment, email } = req.body;
+    const { requirement_type_id, disability_requirement_id, person_id, dependent_id, comment, email, status } = req.body;
               
     let finalEmail = ""; //req.user.email;
     if(!email) {
@@ -429,7 +429,7 @@ applicationRouter.post("/:application_id/student/:student_id/files", async (req:
       let files = Array.isArray(req.files.files) ? req.files.files : [req.files.files];
   
       for (let file of files) {        
-        await documentService.uploadApplicationDocument(finalEmail, student_id, application_id, file, requirement_type_id, disability_requirement_id, person_id, dependent_id, finalComment, source);
+        await documentService.uploadApplicationDocument(finalEmail, student_id, application_id, file, requirement_type_id, disability_requirement_id, person_id, dependent_id, finalComment, source, status);
       }      
       return res.json({ messages: [{ variant: "success", text: "Saved" }] })      
     }    

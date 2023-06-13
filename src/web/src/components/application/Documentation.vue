@@ -129,7 +129,8 @@
                   background-color="white"
                   hide-details
                   label="Upload document"                  
-                  @change="uploadDoc(item, i)"                  
+                  v-model="documents[i]"     
+                  @change="uploadDoc(item, i)"                         
                 ></v-file-input>
               </div>
               <div class="col-md-1">
@@ -396,6 +397,7 @@ export default {
       formData.append('comment', this.documentationData.comment);
       formData.append("requirement_type_id", this.documentationData.description);
       formData.append("disability_requirement_id", null);
+      formData.append("status", this.documentationData.status);
       formData.append("person_id", null);
       formData.append("dependent_id", null);
       formData.append("email", this.username);      
@@ -556,16 +558,33 @@ export default {
     async updateStatus(itemToUpdate, refId, item) {            
       if(this.documentationData.comment === null && item.status === 3) {            
             this.$emit("showError", "If status is rejected, you must comment");
-      }          
+      } else {
+        try {
+        const resInsert = await axios.put(
+          APPLICATION_URL + `/${this.application.id}/student/${this.student.id}/files/${refId}`,
+            { data: { ...itemToUpdate } },
+          );
+          const message = resInsert?.data?.messages[0];
+          if (message?.variant === "success") {
+            this.$emit("showSuccess", message.text);
+          } else {
+            this.$emit("showError", message.text);
+          }
+          
+      } catch (error) {
+        this.$emit("showError", "Error to update");
+      } finally {
+        store.dispatch("loadApplication", this.applicationId);
+      }
+    }      
     },    
     async uploadDoc(item, i) {                                   
       this.uploadedDoc.push({id: i, file: event.target.files[0]});   
       
     },
-    async postDoc(item, i) {         
-      const index = this.uploadedDoc.findIndex(e => e.id === i);      
-      if(index !== -1) {           
-        let doc = this.uploadedDoc[index].file;
+    async postDoc(item, i) {                  
+      if(this.documents[i]) {          
+        let doc = this.documents[i][0];
         const formData = new FormData();      
 
         formData.append('files', doc);
@@ -582,8 +601,7 @@ export default {
       try {          
 
         let resInsert = await axios.post(APPLICATION_URL + `/${this.application.id}/student/${this.student.id}/files`, formData, {headers: {'Content-Type': 'multipart/form-data' },});                                         
-        let message = resInsert?.data?.messages[0];
-          
+        let message = resInsert?.data?.messages[0];                
         if (message?.variant === "success") {
           this.$emit("showSuccess", message.text);
         } else {
@@ -591,12 +609,13 @@ export default {
         }          
       } catch (error) {
         console.log(error)
+        this.documents[i] = undefined;
         this.$emit("showError", "Error to update");
       } finally {
-        this.uploadedDoc.splice(index, index);        
+        this.documents[i] = undefined;    
         store.dispatch("loadApplication", this.applicationId);        
       }    
-      }          
+      }        
     }
   },  
 };

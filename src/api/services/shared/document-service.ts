@@ -175,7 +175,8 @@ export class DocumentService {
     person_id: string | number,
     dependent_id: string | number,
     comment: string = "",
-    source: string = "Portal"
+    source: string = "Portal",
+    status: number = 1
   ) {
     let fRef = {
       object_key: nanoid(),
@@ -193,7 +194,7 @@ export class DocumentService {
       mime_type: file.mimetype,
       file_size: file.size,
       comment: comment,      
-      status: 1,
+      status: status,
       status_date: new Date(),
       disability_requirement_id,
       person_id,
