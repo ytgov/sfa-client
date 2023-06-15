@@ -294,7 +294,6 @@ export default {
           } else {
             this.$emit("showError", message.text);
           }
-          
       } catch (error) {
         this.$emit("showError", "Error to update");
       } finally {

@@ -1232,6 +1232,7 @@ CREATE TABLE sfa.application
     requires_credit_check          BIT            NOT NULL DEFAULT 0,
     last_checked_on                DATE           NULL,
     seen                           BIT            NOT NULL DEFAULT 0,
+    updated_at                     DATETIME       NULL,
 
 )
 

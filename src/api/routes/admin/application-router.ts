@@ -6,7 +6,7 @@ import { DocumentService } from "../../services/shared";
 import { ReturnValidationErrors } from "../../middleware";
 import { DB_CONFIG } from "../../config";
 import { Buffer } from 'buffer';
-import { functionsIn } from "lodash";
+import { functionsIn, orderBy } from "lodash";
 const db = knex(DB_CONFIG)
 export const applicationRouter = express.Router();
 export const portalStudentRouter = express.Router();
@@ -17,10 +17,12 @@ applicationRouter.get("/all", ReturnValidationErrors, async (req: Request, res: 
             let applications = await db("sfa.application")
                 .innerJoin("sfa.institution_campus", "application.institution_campus_id", "institution_campus.id")
                 .innerJoin("sfa.institution", "institution.id", "institution_campus.institution_id")
-                .select("application.*").select("institution.name as institution_name").limit(25);
+                .innerJoin("sfa.funding_request", "funding_request.application_id", "application.id")
+                .select("application.*").select("institution.name as institution_name").limit(25)
+                .where({ seen: false })
+                .orderBy('received_date', 'asc');
 
             for (let item of applications) {
-                console.log("TEM", item.id)
                 let student = await db("sfa.student")
                     .innerJoin("sfa.person", "student.person_id", "person.id")
                     .select("sfa.person.*")
@@ -579,6 +581,12 @@ applicationRouter.put("/:application_id/status/:id",
             const resUpdate = await db("sfa.funding_request")
                 .where({id, application_id})
                 .update({ ...data });
+            
+            if (resUpdate) {
+                await db("sfa.application")
+                    .where({ id: application_id})
+                    .update({ seen: true, updated_at: new Date().toISOString() });
+            }
 
             return resUpdate ?
                 res.json({ messages: [{ variant: "success", text: "Saved" }] })
@@ -587,6 +595,7 @@ applicationRouter.put("/:application_id/status/:id",
 
 
         } catch (error) {
+            console.log(error);
             return res.json({ messages: [{ text: "Failed to update Funding Request", variant: "error" }] });
         }
 
