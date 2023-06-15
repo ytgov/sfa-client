@@ -15,6 +15,7 @@ import Search from "../views/Search";
 import ApplicationDetails from "../components/application/ApplicationDetails";
 import FamilyInfo from "../components/application/family-info/FamilyInfo";
 import StudentDetails from "../components/student/StudentDetails";
+import CommunicationsLog from "../components/student/CommunicationsLog";
 import Status from "../components/application/Status";
 import AcademicYear from "../components/application/AcademicYear";
 import SFAFundingRequests from "../components/application/sfa-funding-requests/SFAFundingRequests";
@@ -297,6 +298,15 @@ const routes = [
     path: "/student/:id",
     name: "StudentDetails",
     component: StudentDetails,
+    meta: {
+      requiresAuth: true
+    }
+  },
+
+  {
+    path: "/communications-log/:id",
+    name: "CommunicationsLog",
+    component: CommunicationsLog,
     meta: {
       requiresAuth: true
     }
