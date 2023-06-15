@@ -20,7 +20,7 @@ applicationRouter.get("/all", ReturnValidationErrors, async (req: Request, res: 
                 .innerJoin("sfa.funding_request", "funding_request.application_id", "application.id")
                 .select("application.*").select("institution.name as institution_name").limit(25)
                 .where({ seen: false })
-                .orderBy('received_date', 'asc');
+                .orderBy('online_submit_date', 'asc');
 
             for (let item of applications) {
                 let student = await db("sfa.student")
