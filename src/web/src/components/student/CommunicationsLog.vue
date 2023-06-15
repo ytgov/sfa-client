@@ -382,7 +382,7 @@
       async addCommunication() {              
         try {            
           const bodyData = new FormData();          
-          bodyData.append("officer_id", this.email_officer);    
+          bodyData.append("officer_id", this.email_officer);
           bodyData.append("student_id", this.student.id);
           bodyData.append("request_type_id", this.communicationData.fundingType);
           bodyData.append("communication_type_id", this.communicationData.communicationType);
