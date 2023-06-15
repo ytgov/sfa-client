@@ -32,7 +32,7 @@ applicationRouter.get("/all", ReturnValidationErrors, async (req: Request, res: 
 
             return res.json({ data: applications });
         } catch (error) {
-            console.log(error)
+            console.log("/all-ERR: ", error);
             res.status(404).send(error);
         }
 
