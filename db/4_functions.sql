@@ -1541,3 +1541,58 @@ GO
 
 -- END FUNCTIONS TO ASSESSMENT_YG --
 
+CREATE OR ALTER FUNCTION sfa.fn_get_total_funded_years (
+	@student_id_p FLOAT(53)
+	,@application_id_p FLOAT(53)
+	)
+RETURNS FLOAT(53)
+AS
+BEGIN
+
+	DECLARE @v_funded_years_count FLOAT(53) = 0
+		,@v_pre_funded_years FLOAT(53) = 0
+
+	DECLARE c_years_funded CURSOR LOCAL
+	FOR
+	SELECT sum(a.years_funded_equivalent) AS years_funded
+	FROM sfa.assessment  AS a
+		inner join sfa.funding_request fr ON fr.id = a.funding_request_id
+		inner join sfa.application app ON app.ID = fr.application_id
+	WHERE app.student_id = @student_id_p
+		AND app.id <= @application_id_p
+		AND a.years_funded_equivalent IS NOT NULL
+		AND app.academic_year_id <= 2015
+
+	OPEN c_years_funded
+
+	FETCH c_years_funded
+	INTO @v_funded_years_count
+
+	CLOSE c_years_funded
+
+	DEALLOCATE c_years_funded
+
+	DECLARE c_pre_years_funded CURSOR LOCAL
+	FOR
+	SELECT student.pre_funding_years_used
+	FROM sfa.student
+	WHERE id = @student_id_p
+		AND pre_funding_years_used IS NOT NULL
+
+	OPEN c_pre_years_funded
+
+	FETCH c_pre_years_funded
+	INTO @v_pre_funded_years
+
+	CLOSE c_pre_years_funded
+
+	DEALLOCATE c_pre_years_funded
+
+	SET @v_funded_years_count = isnull(@v_funded_years_count, 0) + isnull(@v_pre_funded_years, 0)
+
+	IF @v_funded_years_count IS NULL
+		SET @v_funded_years_count = 0
+
+	RETURN @v_funded_years_count
+END
+GO

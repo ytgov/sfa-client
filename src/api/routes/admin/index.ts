@@ -1,6 +1,7 @@
 import express from "express";
 import { acadecicYearRouter } from "./academic-year-router";
 import { applicationRouter } from "./application-router";
+import { assessmentRouter } from "./assessment-router";
 import { institutionRouter } from "./institution-router";
 import { applicationTypeRouter } from "./application-type-router";
 import { studentRouter } from "./student-router";
@@ -36,6 +37,7 @@ import { studyAreaRouter } from "./study-area-router";
 import { relationshipRouter } from "./relationship-router";
 import { programRouter } from "./program-router";
 import { cslClassificationRouter } from "./csl-classification-router";
+import { accommodationTypeRouter } from "./accommodation-type-router";
 import { cslCodeRouter } from "./csl-code-router";
 import { communicationTypeRouter } from "./communication-type-router";
 import { requestTypeRouter } from "./request-type-router";
@@ -52,6 +54,7 @@ import { incomeTypeRouter } from "./income-type-router";
 import { equipmentCategoryRouter } from "./equipment-category-router";
 import { RequireServerAuth, RequireAdmin } from "../auth";
 import { changeReasonRouter } from "./change-reason-router";
+import { disbursementRouter } from "./disbursement";
 
 export const adminRouter = express.Router();
 //adminRouter.use("/", RequireServerAuth, RequireAdmin)
@@ -59,6 +62,7 @@ export const adminRouter = express.Router();
 adminRouter.use("/institution", institutionRouter);
 adminRouter.use("/academic-year", acadecicYearRouter);
 adminRouter.use("/application", applicationRouter);
+adminRouter.use("/assessment", assessmentRouter);
 adminRouter.use("/student", studentRouter);
 adminRouter.use("/province", provinceRouter);
 adminRouter.use("/countries", countriesRouter);
@@ -106,6 +110,7 @@ adminRouter.use("/expense-category", expenseCategoryRouter);
 adminRouter.use("/income-type", incomeTypeRouter);
 adminRouter.use("/equipment-category", equipmentCategoryRouter);
 adminRouter.use("/change-reason", changeReasonRouter);
+
 adminRouter.use("/communication-types", communicationTypeRouter);
 adminRouter.use("/request-types", requestTypeRouter);
 

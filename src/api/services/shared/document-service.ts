@@ -6,7 +6,6 @@ import {
   ListObjectsV2Command,
   PutObjectCommand,
   DeleteObjectCommand,
-  CopyObjectOutputFilterSensitiveLog,
 } from "@aws-sdk/client-s3";
 import { nanoid } from "nanoid";
 import { UploadedFile } from "express-fileupload";
@@ -137,8 +136,6 @@ export class DocumentService {
     person_id: string | number,
     dependent_id: string | number
   ) {
-    console.log("FILEDRAFT", file);
-
     let fRef = {
       object_key: nanoid(),
       object_key_pdf: nanoid(),
@@ -154,7 +151,7 @@ export class DocumentService {
       requirement_type_id,
       mime_type: file.mimetype,
       file_size: file.size,
-      comment: "This is fake",
+      comment: "",
       status: 1,
       status_date: new Date(),
       disability_requirement_id,

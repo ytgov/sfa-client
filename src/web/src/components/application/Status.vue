@@ -162,7 +162,14 @@
         </v-card-text>
       </v-card>
     </div>
-    <component v-if="!showFundings && assessmentTypeId" :is="assessmentTypeC" />
+    <component 
+      v-if="!showFundings && assessmentTypeId" 
+      :is="assessmentTypeC" 
+      v-on:close="showFundingStatus" 
+      v-on:showError="showError"
+      v-on:showSuccess="showSuccess"
+    ></component>
+    
   </div>
 </template>
 
@@ -181,7 +188,7 @@ import {
 import { mapGetters } from 'vuex';
 
 export default {
-  name: "Home",
+  name: "application-status",
   components: {
   },
   computed: {
@@ -262,7 +269,6 @@ export default {
     loadFundingTypes() {
       axios.get(FUNDING_TYPE_URL).then((resp) => {
         this.fundingTypeOptions = resp.data;
-        console.log(resp);
       });
     },
     loadStatus() {
@@ -294,6 +300,12 @@ export default {
       } finally {
         store.dispatch("loadApplication", this.applicationId);
       }
+    },
+    showSuccess(mgs) {
+      this.$emit("showSuccess", mgs);
+    },
+    showError(mgs) {
+      this.$emit("showError", mgs);
     },
   },
 };

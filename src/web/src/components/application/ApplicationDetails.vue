@@ -12,7 +12,8 @@
     <v-tabs-items v-model="tab" style="padding: 20px">
 
       <v-tab-item key="0">
-        <academic-year></academic-year>
+      <!-- TODO Review academic-year component -->
+      <!-- <academic-year></academic-year> -->
         <program-information-form
           v-on:showSuccess="showSuccess"
           v-on:showError="showError"

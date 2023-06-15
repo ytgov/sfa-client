@@ -131,6 +131,11 @@ applicationRouter.get("/:id",
             application.other_funding = await db("sfa.agency_assistance").where({ application_id: id }).orderBy("id");
             application.yea = await db("sfa.yea").where({ yukon_id: student.yukon_id }).orderBy("school_year");
             application.institution = await db("sfa.institution_campus").where({ id: application.institution_campus_id }).first();
+            application.main_institution = await db("sfa.institution_campus")
+                .innerJoin("sfa.institution", "institution.id", "institution_campus.institution_id")
+                .select("institution.*")
+                .where({ "institution_campus.id": application.institution_campus_id }).first();
+
             application.warning_code = await db("sfa.application as app").innerJoin("sfa.csl_code as warning", function () {
                 this.on("warning.id", "=", "csl_restriction_warn_id");
             }).select(
@@ -142,7 +147,7 @@ applicationRouter.get("/:id",
                 "warning.definition"
             ).where("app.id", id).first();
             application.fileRef = await db("sfa.file_reference").select().where({ application_id: id}).andWhere({student_id: application.student_id});    
-                         
+
             application.docCatalog = await db("sfa.requirement_type");
                                                                                     
             application.finalDocumentation = 
@@ -283,7 +288,7 @@ applicationRouter.get("/:id",
 
                 student.applications = await db("sfa.application")
                     .innerJoin("sfa.institution_campus", "application.institution_campus_id", "institution_campus.id")
-                    .innerJoin("sfa.institution", "institution_id", "institution_campus.institution_id")
+                    .innerJoin("sfa.institution", "institution.id", "institution_campus.institution_id")
                     .select("application.*").select("institution.name as institution_name")
                     .where({ student_id: student.id }).orderBy("academic_year_id", "desc");
 
@@ -1713,6 +1718,24 @@ applicationRouter.get("/:application_id/:funding_request_id/assessments",
                 const getAsessment = await db("sfa.assessment")
                 .where({ funding_request_id });
 
+                if (getAsessment?.length) {
+
+                    for (let item of getAsessment) {
+                        const readOnlyData = await db.raw(
+                            `SELECT 
+                            COALESCE(sfa.fn_get_previous_weeks_yg(${application.student_id},  ${application_id}), 0) AS previous_weeks,
+                            COALESCE(sfa.fn_get_allowed_weeks ('${moment(application.classes_start_date).format("YYYY-MM-DD")}', '${moment(application.classes_end_date).format("YYYY-MM-DD")}'), 0) AS assessed_weeks,
+                            COALESCE(sfa.fn_get_disbursed_amount_fct(${funding_request_id}, ${item.id}), 0) AS previous_disbursement,
+                            COALESCE(sfa.fn_net_amount(${funding_request_id},  ${item.id}), 0) AS net_amount,
+                            COALESCE(sfa.fn_get_total_funded_years ( ${application.student_id}, ${application_id}), 0) AS years_funded;
+                            `
+                        );
+                        
+                        item.read_only_data = readOnlyData?.[0] || {};
+                    }
+    
+                }
+
                 const listAssessment = getAsessment.map((a, index) => {
                     return {
                         name_assessment: `assessment ${index+1} - ${a.id}`,
@@ -1758,8 +1781,6 @@ applicationRouter.post("/:application_id/:funding_request_id/assessments",
                     db.transaction(async (trx) => {
 
                         const resSP = await db.raw(`EXEC sfa.sp_get_init_value ${funding_request_id}, ${application.id}, ${application.student_id};`);
-                        
-
                         return resSP?.[0]?.status
                             ? res.json({
                                 messages: [{ variant: "success" }],
@@ -1774,6 +1795,105 @@ applicationRouter.post("/:application_id/:funding_request_id/assessments",
                 } else {
                     return res.json({
                         messages: [{ variant: "error" }],
+                        data: [],
+                    });
+                }
+            }
+        } catch (error) {
+            console.log(error);
+            return res.status(409).send({ messages: [{ variant: "error", text: "Error to insert" }] });
+        }   
+    }
+);
+
+applicationRouter.get("/:application_id/:funding_request_id/assessments/:assessment_id/re-calc",
+    [
+        param("application_id").isInt().notEmpty(), 
+        param("funding_request_id").isInt().notEmpty(),
+        param("assessment_id").isInt().notEmpty(),
+    ], 
+    ReturnValidationErrors, 
+    async (req: Request, res: Response) => {
+        try {
+            const { assessment_id, application_id, funding_request_id } = req.params;
+
+            const application = await db("sfa.application")
+                .where({ id: application_id })
+                .first();
+
+            const  assessment = await db("sfa.assessment")
+                .where({ id: assessment_id })
+                .first();
+
+            if (application && (Number(assessment?.funding_request_id) === Number(funding_request_id))) {
+
+                const recalc = await db.raw(
+                    `SELECT * FROM sfa.fn_get_new_info(
+                        ${application_id},
+                        ${assessment_id},
+                        ${funding_request_id},
+                        ${application.student_id}
+                    );
+                    `
+                );
+                const calculateValues = recalc?.[0];
+                
+                calculateValues.destination_city_id = calculateValues.destination_city;
+
+                delete calculateValues.destination_city;
+                delete calculateValues.previous_disbursement;
+                
+                return res.json({
+                    messages: [{ variant: "success" }],
+                    data: [ calculateValues ],
+                });
+            } else {
+                return res.status(409).send({ messages: [{ variant: "error", text: "Error get data" }] });
+            }
+
+        } catch (error) {
+            console.log(error);
+            return res.status(409).send({ messages: [{ variant: "error", text: "Error get data" }] });
+        }   
+    }
+);
+
+applicationRouter.patch("/:application_id/:funding_request_id/assessments/:assessment_id",
+    [
+        param("application_id").isInt().notEmpty(), 
+        param("funding_request_id").isInt().notEmpty(),
+        param("assessment_id").isInt().notEmpty(),
+    ], 
+    ReturnValidationErrors, 
+    async (req: Request, res: Response) => {
+        try {
+            const { assessment_id, application_id, funding_request_id } = req.params;
+            const { data } = req.body;
+            
+            const application = await db("sfa.application")
+                .where({ id: application_id })
+                .first();
+
+            if (application) {
+
+                const fundingRequest = await db("sfa.funding_request")
+                    .where({ application_id })
+                    .where({ id: funding_request_id })
+                    .first();
+
+                if (fundingRequest) { // Create Assessment YG
+                    const resUpdate = await db("sfa.assessment")
+                        .where({ id: assessment_id, funding_request_id })
+                        .update({ ...data });
+
+                    return resUpdate ?
+                        res.json({ messages: [{ variant: "success", text: "Saved" }] })
+                        :
+                        res.json({ messages: [{ variant: "error", text: "Failed" }] });
+
+                } else {
+                    return res.json({
+                        messages: [{ variant: "error", text: "Error to insert" }],
                         data: [],
                     });
                 }
