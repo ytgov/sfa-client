@@ -118,7 +118,7 @@ communicationTypeRouter.put("/communications-log/:student_id",
         const {student_id} = req.params;
         const { request_type_id, communication_type_id, comments, communication_date, show_alert, id } = req.body;    
         let { officer_id } = req.body;           
-               
+                       
         
         
         try {
@@ -130,9 +130,7 @@ communicationTypeRouter.put("/communications-log/:student_id",
             if(!currentUser) {
               return res.json({ messages: [{ variant: "error", text: "Your user account is not registered, please get in touch with the administrator to solve the problem." }] });
             }
-            
-            console.log(currentUser.id);
-
+                        
             officer_id = currentUser.id;
 
             const resUpdate = await db("sfa.communication")
