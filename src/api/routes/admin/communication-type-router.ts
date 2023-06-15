@@ -31,7 +31,8 @@ communicationTypeRouter.get("/users", async (req: Request, res: Response) => {
   try {
     const user = await db("sfa.[user]")      
     .select(
-      "*",
+      "id", 
+      "email",
     );
 
     if (user) {      

@@ -457,6 +457,7 @@ export default new Vuex.Store({
         });
     },
   },
-  modules: { auth, profile, institution, cslft, student, province, countries, cities, cslCode, addressType, indigenousLearner, Language, maritalStatus, studyField, parentalRelationship, firstNation, portalStatus, sex, studentCategory, applicationType, highSchool, ageDistribution, institutionLevel, assessmentType, batchGroup, educationLevel, status, statusReason, yukonGrantEligibility, disbursementType, reasonsForChange, fundingGroup, disabilityType, aboriginalStatus, disabilityService, relationships, studyArea, program, cslClassification, citizenship, prestudyEmploymentStatus, academicYear, agency, instructionType, programDivision, attendance, documentStatus, incomeType, expenseCategory, equipmentCategory, changeReason, assessment, disbursement, requirementType, adminCrud, communicationType, requestType }
+
+  modules: { auth, profile, institution, student, province, countries, cities, cslCode, requirementType, addressType, indigenousLearner, Language, maritalStatus, studyField, parentalRelationship, firstNation, portalStatus, sex, studentCategory, applicationType, highSchool, ageDistribution, institutionLevel, assessmentType, batchGroup, educationLevel, status, statusReason, yukonGrantEligibility, disbursementType, reasonsForChange, fundingGroup, disabilityType, aboriginalStatus, disabilityService, relationships, studyArea, program, cslClassification, citizenship, prestudyEmploymentStatus, academicYear, agency, instructionType, programDivision, attendance, documentStatus, incomeType, expenseCategory, equipmentCategory, changeReason, assessment, adminCrud, communicationType, requestType }
 
 });
