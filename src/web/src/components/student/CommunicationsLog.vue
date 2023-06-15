@@ -220,8 +220,11 @@
     components: { ContactForm, ConsentForm, SfaInfoForm, VendorInfoForm },
     computed: {
       ...mapState(["selectedStudent"]),
-      username() {      
+      username() {
         return store.getters.fullName;
+      },
+      email_officer() {
+        return store.getters.email_officer;
       },
       student: function () {
         return store.getters.selectedStudent;
@@ -379,7 +382,7 @@
       async addCommunication() {                                    
         try {            
           const bodyData = new FormData();          
-          bodyData.append("officer_id", this.username);          
+          bodyData.append("officer_id", this.email_officer);
           bodyData.append("student_id", this.student.id);
           bodyData.append("request_type_id", this.communicationData.fundingType);
           bodyData.append("communication_type_id", this.communicationData.communicationType);
