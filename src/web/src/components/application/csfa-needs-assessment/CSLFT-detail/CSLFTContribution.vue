@@ -332,7 +332,7 @@
 import store from "@/store";
 import validator from "@/validator";
 export default {
-  name: "Home",
+  name: "cslft-contribution",
   computed: {
     application: function () {
       return store.getters.selectedApplication;

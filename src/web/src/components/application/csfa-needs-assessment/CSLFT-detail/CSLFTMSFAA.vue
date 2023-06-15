@@ -350,7 +350,7 @@
 import store from "@/store";
 import validator from "@/validator";
 export default {
-  name: "Home",
+  name: "cslft-msfaa",
   computed: {
     application: function () {
       return store.getters.selectedApplication;

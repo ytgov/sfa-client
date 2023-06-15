@@ -139,6 +139,7 @@ import { APPLICATION_URL } from '@/urls';
 import axios from 'axios';
 
 export default {
+  name: "pre-study-expenses-form",
   computed: {
     ...mapGetters(["expenseCategories"]),
     application: function () {

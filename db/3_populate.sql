@@ -182,9 +182,9 @@ INSERT
 INTO sfa.csl_classification (id, description)
 VALUES  ( 1, 'Single Dependent'),
         ( 2, 'Single Independent - 2 year workforce'),
-        ( 3, 'Single Independent - 4 year high school'),
-        ( 4, 'Married / Common Law'),
-        ( 5, 'Single Parent')
+        ( 3, 'Married / Common Law'),
+        ( 4, 'Single Parent')
+        ( 5, 'Single Independent - 4 year high school'),
 SET IDENTITY_INSERT sfa.csl_classification OFF
 
 SET IDENTITY_INSERT sfa.income_type ON

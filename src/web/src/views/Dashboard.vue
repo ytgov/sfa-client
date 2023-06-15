@@ -21,7 +21,7 @@
         </v-card>
 
         <div class="row">
-            <div class="col-md-6">
+            <div class="col-md-4">
                 <v-card class="mt-5" color="#fff2d5">
                     <v-card-title>Recently viewed Students:</v-card-title>
                     <v-card-text>
@@ -40,7 +40,26 @@
                     </v-card-text>
                 </v-card>
             </div>
-            <div class="col-md-6">
+            <div class="col-md-4">
+                <v-card class="mt-5" color="#fff2d5">
+                    <v-card-title>Recently viewed Applications:</v-card-title>
+                    <v-card-text>
+                      <p v-if="recentApplications.length == 0" class="mb-0">None yet</p>
+                        <ol v-if="recentApplications.length > 0">
+                            <li
+                                v-for="(item, idx) of recentApplications"
+                                :key="idx"
+                            >
+                                <router-link :to="`/application/${item.id}/personal`"
+                                    >{{getStudentName(item.student_id)}} - 
+                                    {{ item.academic_year_id}}: {{ item.main_institution.name }}
+                                </router-link>
+                            </li>
+                        </ol>
+                    </v-card-text>
+                </v-card>
+            </div>
+            <div class="col-md-4">
                 <v-card class="mt-5" color="#fff2d5">
                     <v-card-title>New Applications</v-card-title>
                     <v-card-text
@@ -122,7 +141,7 @@ import { STUDENT_SEARCH_URL } from "../urls";
 export default {
     name: "Home",
     computed: {
-        ...mapState(["recentStudents"]),
+        ...mapState(["recentStudents", "recentApplications"]),
     },
     data: () => ({
         search: "",
@@ -162,8 +181,15 @@ export default {
         },
         selectStudent(item) {
             this.selectedStudent = item;
-
             this.$router.push(`/student/${item.student_id}`);
+        },
+        getStudentName(studentId) {
+            let filteredStudent = this.recentStudents.find(student => student.id == studentId);
+            return `${filteredStudent.first_name} ${filteredStudent.last_name}`;
+        },
+        selectApplication(item) {
+            this.selectedApplication = item;
+            this.$router.push(`/application/${item.id}/personal`);
         },
     },
 };

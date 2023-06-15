@@ -99,12 +99,14 @@
 <script>
 import store from "../../../store";
 import validator from "@/validator";
-import CSLFTBase from "../csfa-needs-assessment/CSLFT-detail/CSLFTBase.vue";
-import CSLFTCosts from "../csfa-needs-assessment/CSLFT-detail/CSLFTCosts.vue";
-import CSLFTContribution from "../csfa-needs-assessment/CSLFT-detail/CSLFTContribution.vue";
-import CSLFTParental from "../csfa-needs-assessment/CSLFT-detail/CSLFTParental.vue";
-import CSLFTAward from "../csfa-needs-assessment/CSLFT-detail/CSLFTAward.vue";
-import CSLFTMSFAA from "../csfa-needs-assessment/CSLFT-detail/CSLFTMSFAA.vue";
+import { 
+  CSLFTBase, 
+  CSLFTCosts, 
+  CSLFTContribution, 
+  CSLFTParental, 
+  CSLFTAward, 
+  CSLFTMSFAA } from "@/components/application/csfa-needs-assessment/CSLFT-detail";
+
 export default {
   components: {
     CSLFTBase,
@@ -114,7 +116,8 @@ export default {
     CSLFTAward,
     CSLFTMSFAA,
   },
-  name: "Home",
+  name: "cslft-assessment",
+  props: ["request_type_id", "funding_request_id"],
   computed: {
     application: function () {
       return store.getters.selectedApplication;
@@ -123,6 +126,7 @@ export default {
   data: () => ({
     tab: 0,
     applicationId: -1,
+    showAdd: false
   }),
   watch: {
     student: function (val) {
