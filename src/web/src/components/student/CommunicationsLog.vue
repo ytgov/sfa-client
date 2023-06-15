@@ -88,7 +88,7 @@
         </div>
         <div class="row">     
           <div class="col-md-12">
-            <v-expansion-panels accordion>              
+            <v-expansion-panels accordion v-if="communicationsAccordion.length >= 1">              
                 <v-expansion-panel v-for="(item,i) of this.communicationsAccordion" :key="i" ref="panel">                
                 <v-expansion-panel-header>{{ `${(item.communication_date ? item.communication_date.slice(0, 10) : item.communication_date)} - ${getRequestName(item.request_type_id)} - ${getCommunicationType(item.communication_type_id)}`}}</v-expansion-panel-header>
                   <v-expansion-panel-content>
@@ -165,7 +165,10 @@
                           :disabled="disabledItems[i]"
                           label="Officer"                          
                           :value="checkUser(item.officer_id)"  
-                          required             
+                          required         
+                          @input="e => {
+                            item.officer_id = e;                            
+                          }"         
                         ></v-text-field>
                       </div>     
                       <div class="col-md-12">
@@ -287,12 +290,12 @@
         
         return `${year}-${month}-${day}`;
       },
-      checkUser(id) {
+      checkUser(id) {        
         for(let u of this.users) {
           if(id === u.id) {
             return u.email;
           }
-        }
+        }      
       },
       activateEdition(i) {          
         const newItems = this.disabledItems.slice();
@@ -356,7 +359,10 @@
             this.communicationsAccordion = [];
             resp.data.data.forEach((d) => {
               this.communicationsAccordion.push(d)                   
-          });            
+            });                        
+            for(let i = 0; i < this.communicationsAccordion.length; i++) {
+              this.disabledItems[i] = true;
+            }   
           } else {
             resp.data.data.forEach((d) => {                         
               this.communicationsAccordion.push(d) 
@@ -372,7 +378,7 @@
       },
       async addCommunication() {                                    
         try {            
-          const bodyData = new FormData();
+          const bodyData = new FormData();          
           bodyData.append("officer_id", this.username);          
           bodyData.append("student_id", this.student.id);
           bodyData.append("request_type_id", this.communicationData.fundingType);
@@ -400,12 +406,11 @@
           this.communicationData.communicationType = null, 
           this.communicationData.officer = null,
           this.communicationData.notes = null,
-          this.communicationData.date_menu = null      
+          this.communicationData.date_menu = null               
         }       
                            
       },
-      async modifyCommunication(item, i) {                    
-        
+      async modifyCommunication(item, i) {                                    
         try {            
           const bodyData = new FormData();          
           bodyData.append("officer_id", item.officer_id);
@@ -415,7 +420,7 @@
           bodyData.append("comments", item.comments);
           bodyData.append("communication_date", item.communication_date);
           bodyData.append("show_alert", 0);
-          bodyData.append("id", item.id);
+          bodyData.append("id", item.id);          
 
           const resInsert = await axios.put(COMMUNICATION_TYPES + `/communications-log/${this.student.id}`,
           bodyData, {headers: {'Content-Type': 'multipart/form-data' },});                        
@@ -438,9 +443,8 @@
           this.communicationData.notes = null,
           this.communicationData.date_menu = null      
           this.$refs.panel[i].toggle(false)          
-        }                        
+        }                          
       },
-
     },
   };
 </script>

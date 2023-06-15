@@ -77,7 +77,13 @@ async (req: Request, res: Response) => {
         const currentUser = await db("sfa.[user]")
             .select("id")
             .whereLike('email', `%${officer_id}%`)        
-            .first()        
+            .first();
+            
+            
+        if(!currentUser) {
+          return res.json({ messages: [{ variant: "error", text: "Your user account is not registered, please get in touch with the administrator to solve the problem." }] });
+        }
+        
         const { application_id } = req.params;
         const data = {
             officer_id: currentUser.id, 
@@ -109,13 +115,27 @@ communicationTypeRouter.put("/communications-log/:student_id",
     ReturnValidationErrors,
     async (req: Request, res: Response) => {                
         const {student_id} = req.params;
-        const { officer_id, request_type_id, communication_type_id, comments, communication_date, show_alert, id } = req.body;           
+        const { request_type_id, communication_type_id, comments, communication_date, show_alert, id } = req.body;    
+        let { officer_id } = req.body;           
+               
         
         
         try {
+            const currentUser = await db("sfa.[user]")
+            .select("id")
+            .whereLike('email', `%${officer_id}%`)        
+            .first()    
+
+            if(!currentUser) {
+              return res.json({ messages: [{ variant: "error", text: "Your user account is not registered, please get in touch with the administrator to solve the problem." }] });
+            }
             
+            console.log(currentUser.id);
+
+            officer_id = currentUser.id;
+
             const resUpdate = await db("sfa.communication")
-                .where({id})
+                .where({id})                             
                 .update({ officer_id, student_id, request_type_id, communication_type_id, comments, communication_date, show_alert });                
             return resUpdate ?
                 res.json({ messages: [{ variant: "success", text: "Saved" }] })
@@ -124,6 +144,7 @@ communicationTypeRouter.put("/communications-log/:student_id",
 
             
         } catch (error) {
+            console.log(error);
             return res.json({ messages: [{ text: "Failed to update Funding Request", variant: "error" }] });
         }
         
