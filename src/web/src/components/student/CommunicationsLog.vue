@@ -417,7 +417,7 @@
       async modifyCommunication(item, i) {                                    
         try {            
           const bodyData = new FormData();
-          bodyData.append("officer_id", this.email_officer);
+          bodyData.append("officer_id", item.officer_id);
           bodyData.append("student_id", item.student_id);
           bodyData.append("request_type_id", item.request_type_id);
           bodyData.append("communication_type_id", item.communication_type_id);
