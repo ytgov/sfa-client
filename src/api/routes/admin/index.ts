@@ -110,7 +110,8 @@ adminRouter.use("/expense-category", expenseCategoryRouter);
 adminRouter.use("/income-type", incomeTypeRouter);
 adminRouter.use("/equipment-category", equipmentCategoryRouter);
 adminRouter.use("/change-reason", changeReasonRouter);
-
 adminRouter.use("/communication-types", communicationTypeRouter);
 adminRouter.use("/request-types", requestTypeRouter);
+adminRouter.use("/accommodation-type", accommodationTypeRouter);
+adminRouter.use("/disbursement", disbursementRouter);
 
