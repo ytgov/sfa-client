@@ -28,7 +28,7 @@
                 :value="communicationData.date ? communicationData.date.toString().slice(0, 10) : communicationData.date"
                 ></v-text-field>
               </template>
-              <v-date-picker    
+              <v-date-picker                  
                 v-model="communicationData.date"    
                 @input="communicationData.date_menu = false"                     
               ></v-date-picker>
@@ -68,7 +68,7 @@
               hide-details
               label="Officer"
               disabled
-              v-model="this.username"  
+              v-model="this.email_officer"  
               required             
             ></v-text-field>
           </div>     
@@ -90,7 +90,7 @@
           <div class="col-md-12">
             <v-expansion-panels accordion v-if="communicationsAccordion.length >= 1">              
                 <v-expansion-panel v-for="(item,i) of this.communicationsAccordion" :key="i" ref="panel">                
-                <v-expansion-panel-header>{{ `${(item.communication_date ? item.communication_date.slice(0, 10) : item.communication_date)} - ${getRequestName(item.request_type_id)} - ${getCommunicationType(item.communication_type_id)}`}}</v-expansion-panel-header>
+                <v-expansion-panel-header><span style="font-size: 16px">{{ `${(item.communication_date ? item.communication_date.slice(0, 10) : item.communication_date)} - ${getRequestName(item.request_type_id)} - ${getCommunicationType(item.communication_type_id)}`}}</span></v-expansion-panel-header>
                   <v-expansion-panel-content>
                     <div class="row">
                       <div class="col-md-2">                        
@@ -186,7 +186,7 @@
                         <v-btn block color="primary" class="my-0" @click="activateEdition(i)">Edit</v-btn>
                       </div>
                       <div class="col-md-2">
-                        <v-btn block color="success" class="my-0" @click="modifyCommunication(item, i)">Save</v-btn>
+                        <v-btn block color="success" :disabled="disabledItems[i]" class="my-0" @click="modifyCommunication(item, i)">Save</v-btn>
                       </div>
                     </div>
                   </v-expansion-panel-content>
@@ -220,8 +220,11 @@
     components: { ContactForm, ConsentForm, SfaInfoForm, VendorInfoForm },
     computed: {
       ...mapState(["selectedStudent"]),
-      username() {      
+      username() {
         return store.getters.fullName;
+      },
+      email_officer() {
+        return store.getters.email_officer;
       },
       student: function () {
         return store.getters.selectedStudent;
@@ -252,7 +255,7 @@
       this.loadRequestTypes();
       this.loadCommunicationTypes();
       this.loadCommunication(0);
-      this.loadUsers();
+      this.loadUsers();      
       store.dispatch("setMonthOptions");
       store.dispatch("setYearOptions");
 
@@ -268,7 +271,7 @@
           store.dispatch("setAppSidebar", true);
         }
       }        
-      
+      console.log(this.$refs.panel[0].toggle(true));
     },   
     methods: {
       hendleEdition(i) {
@@ -353,7 +356,7 @@
         });
       },
       loadCommunication(flag) {       
-        const studentId  = this.$route.params.id;
+        const studentId  = this.$route.params.id;      
         axios.get(COMMUNICATION_TYPES + `/${studentId}`).then((resp) => {   
           if(flag === 1) {
             this.communicationsAccordion = [];
@@ -374,12 +377,12 @@
         });  
         for(let i = 0; i < this.communicationsAccordion.length; i++) {
           this.disabledItems[i] = true;
-        }       
+        }                  
       },
-      async addCommunication() {                                    
+      async addCommunication() {              
         try {            
           const bodyData = new FormData();          
-          bodyData.append("officer_id", this.username);          
+          bodyData.append("officer_id", this.email_officer);    
           bodyData.append("student_id", this.student.id);
           bodyData.append("request_type_id", this.communicationData.fundingType);
           bodyData.append("communication_type_id", this.communicationData.communicationType);
@@ -387,28 +390,29 @@
           bodyData.append("communication_date", this.communicationData.date);
           bodyData.append("show_alert", 0);
 
-          const resInsert = await axios.post(COMMUNICATION_TYPES + `/communications-log/${this.student.id}`,
+          if(this.communicationData.date && this.communicationData.fundingType && this.communicationData.communicationType && this.email_officer && this.communicationData.notes) {
+            const resInsert = await axios.post(COMMUNICATION_TYPES + `/communications-log/${this.student.id}`,
           bodyData, {headers: {'Content-Type': 'multipart/form-data' },});                        
           const message = resInsert?.data?.messages[0];                  
-          if (message?.variant === "success") {
-            this.$emit("showSuccess", message.text);
+            if (message?.variant === "success") {
+              this.$emit("showSuccess", message.text);
+              this.loadCommunication(1);
+              this.communicationData.date = null, 
+              this.communicationData.fundingType = null,
+              this.communicationData.communicationType = null, 
+              this.communicationData.officer = null,
+              this.communicationData.notes = null,
+              this.communicationData.date_menu = null      
+            } else {
+              this.$emit("showError", message.text);
+            }   
           } else {
-            this.$emit("showError", message.text);
-          }   
-              
+            this.$emit("showError", "Please fill-in all required fields");
+          }                      
         } catch (error) {
           console.log(error)
           this.$emit("showError", "Error to update inner");
-        } finally {          
-          this.loadCommunication(1);
-          this.communicationData.date = null, 
-          this.communicationData.fundingType = null,
-          this.communicationData.communicationType = null, 
-          this.communicationData.officer = null,
-          this.communicationData.notes = null,
-          this.communicationData.date_menu = null               
-        }       
-                           
+        }                                                
       },
       async modifyCommunication(item, i) {                                    
         try {            
@@ -426,7 +430,15 @@
           bodyData, {headers: {'Content-Type': 'multipart/form-data' },});                        
           const message = resInsert?.data?.messages[0];                  
           if (message?.variant === "success") {
-            this.$emit("showSuccess", message.text);            
+            this.$emit("showSuccess", message.text);       
+            this.loadCommunication(1);
+            this.communicationData.date = null, 
+            this.communicationData.fundingType = null,
+            this.communicationData.communicationType = null, 
+            this.communicationData.officer = null,
+            this.communicationData.notes = null,
+            this.communicationData.date_menu = null      
+            this.$refs.panel[i].toggle(false)       
           } else {
             this.$emit("showError", message.text);
           }   
@@ -434,16 +446,7 @@
         } catch (error) {
           console.log(error)
           this.$emit("showError", "Error to update inner");
-        } finally {          
-          this.loadCommunication(1);
-          this.communicationData.date = null, 
-          this.communicationData.fundingType = null,
-          this.communicationData.communicationType = null, 
-          this.communicationData.officer = null,
-          this.communicationData.notes = null,
-          this.communicationData.date_menu = null      
-          this.$refs.panel[i].toggle(false)          
-        }                          
+        }                     
       },
     },
   };

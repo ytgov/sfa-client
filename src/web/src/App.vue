@@ -255,6 +255,9 @@ export default {
       "selectedStudentId",
       "selectedStudent",
     ]),
+    email_officer() {
+      return store.getters.email_officer;
+    },
     username() {
       return store.getters.fullName;
     },
