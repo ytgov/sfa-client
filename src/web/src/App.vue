@@ -27,6 +27,21 @@
           </v-list-item-content>
         </v-list-item>
 
+        <v-list-item
+          link
+          nav
+          title="Communications Log"
+          :to="`/communications-log/${selectedStudentId}`"
+        >
+          <v-list-item-icon>
+            <v-icon>mdi-forum</v-icon>
+          </v-list-item-icon>
+          <v-list-item-content>
+            <v-list-item-title>Communications Log</v-list-item-title>
+          </v-list-item-content>
+        </v-list-item>
+
+
         <v-list-item class="px-0">
           <v-select
             dense

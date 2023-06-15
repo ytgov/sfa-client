@@ -37,6 +37,8 @@ import { relationshipRouter } from "./relationship-router";
 import { programRouter } from "./program-router";
 import { cslClassificationRouter } from "./csl-classification-router";
 import { cslCodeRouter } from "./csl-code-router";
+import { communicationTypeRouter } from "./communication-type-router";
+import { requestTypeRouter } from "./request-type-router";
 import { requirementTypeRouter } from "./requirement-type-router";
 import { citizenshipRouter } from "./citizenship-router";
 import { prestudyEmploymentRouter } from "./prestudy-employment-status-router";
@@ -104,3 +106,6 @@ adminRouter.use("/expense-category", expenseCategoryRouter);
 adminRouter.use("/income-type", incomeTypeRouter);
 adminRouter.use("/equipment-category", equipmentCategoryRouter);
 adminRouter.use("/change-reason", changeReasonRouter);
+adminRouter.use("/communication-types", communicationTypeRouter);
+adminRouter.use("/request-types", requestTypeRouter);
+

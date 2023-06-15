@@ -39,6 +39,8 @@ import studyArea from "@/modules/study-area/store";
 import program from "@/modules/program/store";
 import cslClassification from "@/modules/csl-classification/store";
 import cslCode from "@/modules/csl-code/store";
+import communicationType from "@/modules/communication-type/store";
+import requestType from "@/modules/request-type/store";
 import requirementType from "@/modules/requirement-type/store";
 import citizenship from "@/modules/citizenship/store";
 import prestudyEmploymentStatus from "@/modules/prestudy-employment-status/store";
@@ -416,6 +418,6 @@ export default new Vuex.Store({
     },
   },
 
-  modules: { auth, profile, institution, student, province, countries, cities, cslCode, requirementType, addressType, indigenousLearner, Language, maritalStatus, studyField, parentalRelationship, firstNation, portalStatus, sex, studentCategory, applicationType, highSchool, ageDistribution, institutionLevel, assessmentType, batchGroup, educationLevel, status, statusReason, yukonGrantEligibility, disbursementType, reasonsForChange, fundingGroup, disabilityType, aboriginalStatus, disabilityService, relationships, studyArea, program, cslClassification, citizenship, prestudyEmploymentStatus, academicYear, agency, instructionType, programDivision, attendance, documentStatus, incomeType, expenseCategory, equipmentCategory, changeReason, assessment, adminCrud, }
+  modules: { auth, profile, institution, student, province, countries, cities, cslCode, requirementType, addressType, indigenousLearner, Language, maritalStatus, studyField, parentalRelationship, firstNation, portalStatus, sex, studentCategory, applicationType, highSchool, ageDistribution, institutionLevel, assessmentType, batchGroup, educationLevel, status, statusReason, yukonGrantEligibility, disbursementType, reasonsForChange, fundingGroup, disabilityType, aboriginalStatus, disabilityService, relationships, studyArea, program, cslClassification, citizenship, prestudyEmploymentStatus, academicYear, agency, instructionType, programDivision, attendance, documentStatus, incomeType, expenseCategory, equipmentCategory, changeReason, assessment, adminCrud, communicationType, requestType }
 
 });
