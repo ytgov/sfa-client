@@ -12,6 +12,32 @@ export const applicationRouter = express.Router();
 export const portalStudentRouter = express.Router();
 const documentService = new DocumentService();
 
+applicationRouter.get("/all", ReturnValidationErrors, async (req: Request, res: Response) => {
+        try {
+            let applications = await db("sfa.application")
+                .innerJoin("sfa.institution_campus", "application.institution_campus_id", "institution_campus.id")
+                .innerJoin("sfa.institution", "institution.id", "institution_campus.institution_id")
+                .select("application.*").select("institution.name as institution_name").limit(25);
+
+            for (let item of applications) {
+                console.log("TEM", item.id)
+                let student = await db("sfa.student")
+                    .innerJoin("sfa.person", "student.person_id", "person.id")
+                    .select("sfa.person.*")
+                    .where({ "student.id": item.student_id }).first();
+
+
+                item.title = `${student.first_name} ${student.last_name} - ${item.academic_year_id}: ${item.institution_name}`;
+            }
+
+            return res.json({ data: applications });
+        } catch (error) {
+            console.log(error)
+            res.status(404).send(error);
+        }
+
+    });
+
 applicationRouter.post("/",
     [body("studentId").notEmpty(), body("academicYear").notEmpty(), body("institutionId").notEmpty()], ReturnValidationErrors,
     async (req: Request, res: Response) => {

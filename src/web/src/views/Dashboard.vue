@@ -62,10 +62,19 @@
             <div class="col-md-4">
                 <v-card class="mt-5" color="#fff2d5">
                     <v-card-title>New Applications</v-card-title>
-                    <v-card-text
-                        >Maybe use STATUS=ONLINE to filter and find items that
-                        may require action</v-card-text
-                    >
+                    <v-card-text>
+                        <p v-if="recentApplications.length == 0" class="mb-0">None yet</p>
+                        <ol v-if="recentApplications.length > 0">
+                            <li
+                                v-for="(item, idx) of newApplications"
+                                :key="idx"
+                            >
+                                <router-link :to="`/application/${item.id}/personal`">
+                                    {{ item.title }}
+                                </router-link>
+                            </li>
+                        </ol>
+                    </v-card-text>
                 </v-card>
             </div>
         </div>
@@ -136,7 +145,7 @@
 <script>
 import axios from "axios";
 import { mapState } from "vuex";
-import { STUDENT_SEARCH_URL } from "../urls";
+import { APPLICATION_URL, STUDENT_SEARCH_URL } from "../urls";
 
 export default {
     name: "Home",
@@ -151,6 +160,10 @@ export default {
         resultCount: 0,
         isSearching: false,
     }),
+    mounted: async () => {
+        axios.get(`${APPLICATION_URL}/all`)
+            .then(response => console.log(response));
+    },
     methods: {
         searchKeyUp(event) {
             if (event.key == "Enter") this.doSearch();

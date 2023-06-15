@@ -81,6 +81,7 @@ export default new Vuex.Store({
     selectedApplicationId: 0,
     recentStudents: [],
     recentApplications: [],
+    newApplications: [],
     yearOptions: [],
     monthOptions: [],
   },
@@ -91,6 +92,7 @@ export default new Vuex.Store({
     selectedApplication: (state) => state.selectedApplication,
     recentStudents: (state) => state.recentStudents,
     recentApplications: (state) => state.recentApplications,
+    newApplications: (state) => state.newApplications,
     yearOptions: (state) => state.yearOptions,
     monthOptions: (state) => state.monthOptions,
   },
@@ -117,6 +119,17 @@ export default new Vuex.Store({
       if (isRecent.length == 0) {
         state.recentApplications.unshift(value);
       }
+    },
+    SET_NEW_APPLICATIONS(state, value) {
+      console.log("SET NEW APPLICATION");
+      state.selectedApplication = value;
+      state.selectedApplicationId = value.id;
+
+      // let isRecent = state.newApplications.filter((r) => r.id == value.id);
+
+      // if (isRecent.length == 0) {
+      //   state.newApplications.unshift(value);
+      // }
     },
     CLEAR_APPLICATION(state) {
       console.log("CLEARING APPLICATION");
@@ -184,6 +197,15 @@ export default new Vuex.Store({
       }
 
       state.commit("SET_APPLICATION", resp.data.data);
+    },
+    async loadNewApplications(state, id) {
+      let resp = await axios.get(`${APPLICATION_URL}/${id}`);
+
+      if (!state.state.selectedStudent.id) {
+        this.dispatch("loadStudent", resp.data.data.student_id);
+      }
+
+      state.commit("SET_NEW_APPLICATION", resp.data.data);
     },
     async loadStudent(state, id) {
       if (state.state.selectedStudentId != id)
