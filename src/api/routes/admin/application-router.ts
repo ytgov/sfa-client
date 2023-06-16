@@ -46,7 +46,6 @@ applicationRouter.post("/",
         let { studentId, academicYear, institutionId } = req.body;
         let existing = await db("sfa.application").where({ student_id: studentId, academic_year: academicYear, institution_id: institutionId }).count("* as count").first();
 
-
         let newApp = {
             student_id: parseInt(studentId),
             academic_year_id: academicYear,
