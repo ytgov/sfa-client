@@ -1,20 +1,34 @@
 import axios from "axios";
 import _ from "lodash";
-import { DISBURSEMENT } from "@/urls";
+import { DISBURSEMENT, APPLICATION_URL } from "@/urls";
 
 const state = {
     disbursements: [],
+    previewDisbursementList: [],
+    isPreviewCharged: false
 };
 const getters = {
     disbursements: (state) => state.disbursements,
+    isPreviewCharged: (state) => state.isPreviewCharged,
+    previewDisbursementList: (state) => state.previewDisbursementList,
 };
 const mutations = {
     SET_DISBURSEMENTS(state, value) {
         state.disbursements = value;
     },
+    SET_IS_PREVIEW_CHARGED(state, value) {
+        state.isPreviewCharged = value;
+    },
+    SET_PREVIEW_DISBURSEMENT_LIST(state, value) {
+        state.previewDisbursementList = value;
+    },
 };
 
 const actions = {
+    setIsPreviewCharged(state, vals) {
+        state.commit("SET_IS_PREVIEW_CHARGED", vals);
+        state.commit("SET_PREVIEW_DISBURSEMENT_LIST", []);
+    },
     async backDisbursement(state, list) {
         try {
             state.commit("SET_DISBURSEMENTS", list);
@@ -46,6 +60,34 @@ const actions = {
         } finally {
         }
     },
+    async previewDisbursements(state, vals) {
+        try {
+            const thisVal = vals?.thisVal || {};
+
+            if (!vals.application_id && !vals?.assessment_id) {
+                return;
+            }
+
+            const res = await axios.get(
+                APPLICATION_URL + `/${vals.application_id}/assessment/${vals.assessment_id}/disburse`,
+            );
+
+            const message = res?.data?.messages[0];
+
+            if (message?.variant === "success") {
+                const data = res?.data?.data || [];
+                state.commit("SET_PREVIEW_DISBURSEMENT_LIST", [ ...data ]);
+                state.commit("SET_IS_PREVIEW_CHARGED", true);
+                thisVal?.$emit("showSuccess", "Correct Disburse");
+            } else {
+                thisVal?.$emit("showError", message.text || "Error to get Disburse");
+            }
+
+        } catch (error) {
+            console.log("Error to get disbursements", error);
+        } finally {
+        }
+    },
     async postDisbursement(state, vals) {
         
         const emiter = vals?.emiter || {};
@@ -55,18 +97,37 @@ const actions = {
                 return;
             }
 
-            const res = await axios.post(DISBURSEMENT, { data: vals.data });
-
-            if (res?.data?.success) {
-                emiter?.$emit("showSuccess", "Added!");
-                emiter?.setShow();
+            if (vals?.isList === "disburseList" && vals.data ) {
+                const res = await axios.post(DISBURSEMENT, { 
+                    data: [ ...vals.data ],
+                    isList:  vals.isList
+                });
+    
+                if (res?.data?.success) {
+                    emiter?.$emit("showSuccess", "Added!");
+                    emiter?.setShow(false);
+                } else {
+                    emiter?.$emit("showError", res.data?.message || "Fail to added");
+                }
             } else {
-                emiter?.$emit("showError", res.data?.message || "Fail to added");
+                const res = await axios.post(DISBURSEMENT, { data: vals.data, });
+    
+                if (res?.data?.success) {
+                    emiter?.$emit("showSuccess", "Added!");
+                    
+                    emiter?.setShow(false);
+                } else {
+                    emiter?.$emit("showError", res.data?.message || "Fail to added");
+                }
             }
 
         } catch (error) {
             console.log("Error to insert disbursement", error);
         } finally {
+            if (Array.isArray(vals.data)) {
+                this.dispatch('setIsPreviewCharged', false);
+                this.dispatch('getDisbursements', { funding_request_id: vals?.funding_request_id });
+            }
             if (!(vals?.data?.funding_request_id)) {
                 return;
             }

@@ -1,5 +1,6 @@
 <template>
   <div class="home yukon-grant-assessment">
+    {{isPreviewCharged}}
     <!-- <div class="row col-md-12 justify-space-between">
       <div class="col-md-4">
         <v-select
@@ -33,24 +34,46 @@
           <div class="col-xs-12 col-lg-4 nopadding d-flex">
             <div class="col-xs-4 col-sm-4">
               <v-btn 
-                :disabled="!isChanging"
+                :disabled="!isPreviewCharged && !isChanging"
                 dense
                 color="green" 
                 class="my-0"
                 block
-                @click="updateAssessment"
+                @click="e => {
+                  if (!customAssessment?.id) {
+                    addAssessment();
+                  } else {
+                    if (isPreviewCharged) {
+                      insertDisburse();
+                      updateAssessment();
+                    } else {
+                      updateAssessment();
+                    }
+                  }
+                }"
               >
               SAVE
               </v-btn>
             </div>
             <div class="col-xs-4 col-sm-4">
               <v-btn 
-                :disabled="!isChanging"
+                :disabled="!isPreviewCharged && !isChanging"
                 dense
                 color="orange" 
                 class="my-0"
                 block
-                @click="cancelEdition"
+                @click=" e => {
+                  if (!customAssessment?.id) {
+                    $emit('close');
+                  } else {
+                    if (isPreviewCharged) {
+                      $store.dispatch('setIsPreviewCharged', false);
+                      cancelEdition();
+                    } else {
+                      cancelEdition();
+                    }
+                  }
+                }"
               >
               CANCEL
               </v-btn>
@@ -407,7 +430,7 @@
             <div class="col-lg-12 nopadding d-flex line-jump-height">
               <div class="col-sm-4 col-lg-7 not-displayed-sx"></div>
               <div class="col-xs-12 col-sm-4 col-lg-5">
-                <v-btn 
+                <v-btn
                   @click="recalcAssessment"
                   dense
                   color="blue" 
@@ -504,7 +527,16 @@
               <div class="col-sm-4 col-lg-5 d-flex nopadding line-jump-height align-center low-margin">
                 <div class="col-xs-12 col-lg-12 height-fit-content mobile-noppading-top">
                   <v-btn 
-                    
+                    :disabled="isDisburseBlocked"
+                    @click="e => {
+                      if (!customAssessment?.id) {
+                        showAlert();
+                      } else {
+                        if (!isDisburseBlocked) {
+                          disburse();
+                        }
+                      }
+                    }"
                     dense
                     color="blue" 
                     class="my-0"
@@ -568,8 +600,10 @@
       :fundingRequestId="customAssessment?.funding_request_id"
       v-on:showError="showError"
       v-on:showSuccess="showSuccess"
+      v-on:blockDisburse="blockDisburse"
       ></Disbursement>
     </div>
+    <confirm-dialog ref="confirm"></confirm-dialog>
   </div>
 </template>
 <script>
@@ -589,14 +623,16 @@ export default {
       effective_rate_date_menu: false,
       mensaje: "",
       isChanging: false,
+      isDisburseChange: false,
       programDivisionBack: null,
+      isDisburseBlocked: false,
     };
   },
   components: {
     Disbursement,
   },
   computed: {
-    ...mapGetters(["assessments", "cities", "programDivisions", "customAssessment", "selectedAssessment", "disbursements"]),
+    ...mapGetters(["assessments", "cities", "programDivisions", "customAssessment", "selectedAssessment", "disbursements", "setIsPreviewCharged", "isPreviewCharged", "previewDisbursementList"]),
     application: function () {
       return store.getters.selectedApplication;
     },
@@ -633,6 +669,17 @@ export default {
       const custom = JSON.parse(JSON.stringify(this.customAssessment));
       this.isChanging = this.ObjCompare({ ...custom }, { ...selected });
     },
+    addAssessment() {
+      store.dispatch(
+        "postAssessment",
+        {
+          application_id: this.application.id,
+          funding_request_id: this.fundingRequestId,
+          thisVal: this
+        }
+      );
+      
+    },
     updateAssessment() {
       const custom = JSON.parse(JSON.stringify(this.customAssessment));
 
@@ -664,11 +711,50 @@ export default {
           }
         );
     },
+    disburse() {
+      store.dispatch(
+        "previewDisbursements",
+        {
+          application_id: this.application.id,
+          assessment_id: this.customAssessment.id,
+          thisVal: this
+        }
+      );
+    },
+    blockDisburse(value) {
+      this.isDisburseBlocked = value;
+    },
+    insertDisburse() {
+      if(this.isPreviewCharged && this.previewDisbursementList.length) {
+        store.dispatch("postDisbursement", {
+        data: [ ...this.previewDisbursementList ],
+        funding_request_id: this.customAssessment.funding_request_id,
+        isList: "disburseList",
+        emiter: this
+      });
+      } else {
+        !this.previewDisbursementList.length
+        ? this.showError("No disburse in list")
+        : this.showError("Something went wrong ")
+      }
+    },
     showSuccess(mgs) {
       this.$emit("showSuccess", mgs);
     },
     showError(mgs) {
       this.$emit("showError", mgs);
+    },
+    showAlert() {
+      this.$refs.confirm.show(
+        "Need to save assessment",
+        "You have to save the assessment to add the disbursement",
+        () => {
+          
+        },
+        () => {},
+        false,
+        "Accept"
+      );
     },
   },
   watch: {
@@ -692,7 +778,6 @@ export default {
     disbursements: {
       deep: true,
         handler(val, oldVal) {
-          //alert("disbursement was updated");
         },
     },
   },
@@ -708,6 +793,9 @@ export default {
     store.dispatch("setCities");
     store.dispatch("setProgramDivisions");
     this.assessmentSelected = this.assessments?.[0].id || null;
+  },
+  props: {
+    fundingRequestId: Number,
   }
 };
 </script>
