@@ -7,10 +7,10 @@
             <div class="col-md-6">
                 <v-row>
                     <div class="col-md-6">
-                        <v-btn block color="success" class="my-0">View YG/STA PDEC</v-btn>
+                        <v-btn block color="success" class="my-0" @click="showPDF(53)">View YG/STA PDEC</v-btn>
                     </div>
                     <div class="col-md-6">
-                        <v-btn block color="success" class="my-0">View CSFA PDEC</v-btn>
+                        <v-btn block color="success" class="my-0" @click="showPDF(51)">View CSFA PDEC</v-btn>
                     </div>
                 </v-row>
             </div>
@@ -99,12 +99,14 @@
             </div>
 
         </v-card>
+        <show-pdf ref="showPdf" class="on-top">
+        </show-pdf>
     </div>
 </template>
 <script>
 import { mapGetters } from 'vuex';
 import store from '@/store';
-import { APPLICATION_URL } from '@/urls';
+import { APPLICATION_URL, STUDENT_URL } from "@/urls";
 import axios from 'axios';
 
 export default {
@@ -115,6 +117,9 @@ export default {
         ...mapGetters(["cities", "provinces", "countries"]),
         application() {
             return store.getters.selectedApplication;
+        },
+        student: function () {
+            return store.getters.selectedStudent;
         },
     },
     data: () => ({
@@ -169,6 +174,17 @@ export default {
                 store.dispatch("loadApplication", this.application.id);
             }
         },
+        async showPDF(r_type) {      
+            try {              
+                let buf = await fetch(APPLICATION_URL + `/${this.application.id}/student/${this.student.id}/files/${r_type}`)           
+                .then((r) => r.arrayBuffer());                        
+                const blob = new Blob([buf], {type: 'application/pdf'});
+                const blobURL = URL.createObjectURL(blob) || "";                   
+                this.$refs.showPdf.showModal(blobURL);                                                                   
+            } catch (error) {
+                console.log(error);
+            }
+        }
     },
     props: {
         parent: Object,

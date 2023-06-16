@@ -158,7 +158,8 @@ INSERT
 INTO sfa.document_status (id, description)
 VALUES  ( 1, 'Pendieng'),
         ( 2, 'Approved'),
-        ( 3, 'Rejected')
+        ( 3, 'Rejected'),
+        ( 4, 'Replaced')
 SET IDENTITY_INSERT sfa.document_status OFF
 
 SET IDENTITY_INSERT sfa.program_division ON
@@ -774,6 +775,10 @@ INSERT
 INTO sfa.student_category (code, description, is_active)
 SELECT student_category_code, description, CASE WHEN is_active_flg = 'Y' THEN 1 ELSE 0 END
 FROM sfaadmin.student_category
+
+INSERT INTO sfa.student_category (code, description) VALUES ('IND','Independent')
+UPDATE sfa.student_category SET description = 'Dependent' WHERE id = 1
+UPDATE sfa.student_category SET is_active = 0 WHERE code IN ('MW','SDA','SDH','SIA','SIH')
 
 -- SFAADMIN.STUDENT_CONTRIBUTION
 INSERT
@@ -1573,10 +1578,28 @@ FROM [SFAADMIN].[ENTITLEMENT_ERROR]
          INNER JOIN sfa.disbursement ON [ENTITLEMENT_ERROR].disbursement_id = disbursement.id
 SET IDENTITY_INSERT sfa.entitlement_error OFF
 
+UPDATE sfa.expense_category SET notes = '(hardware, software, and supplies)' WHERE description like 'Computer%'
+UPDATE sfa.expense_category SET notes = '(enter the full cost before any subsidy amount you are eligible for) x (per month)' WHERE description like 'Day Care%'
+UPDATE sfa.expense_category SET notes = '(out of pocket costs greater then covered under any insurance plan). Specify your medical/dental/optical costs: x (per month)' WHERE description like 'Medical%'
+UPDATE sfa.expense_category SET notes = '(you may be required to provide supporting documentation) x (per month)' WHERE description like 'Alimony%'
+UPDATE sfa.expense_category SET notes = '(you may be required to provide supporting documentation) x (per month)' WHERE description like 'Child Support%'
+
+IF NOT EXISTS (SELECT * FROM sfa.expense_category WHERE description like 'Tuition%')
+BEGIN
+	INSERT INTO sfa.expense_category (description, notes, is_active, is_required, report_expense_category_id)
+	VALUES ('Tuition and compulsory fees', '(include even if someone else is paying on your behalf). Do not include residence fees', 1, 1, 10)
+END
+
+IF NOT EXISTS (SELECT * FROM sfa.expense_category WHERE description like 'Books%')
+BEGIN
+	INSERT INTO sfa.expense_category (description, notes, is_active, is_required, report_expense_category_id)
+	VALUES ('Books and supplies', '(e.g. books, pencils, pens, photocopy services, etc.)', 1, 1, 10)
+END
+
+UPDATE sfa.person_address SET is_active = 0 WHERE address1 IS NULL AND city_id IS NULL
+
 -- sfa.field_program
-SET IDENTITY_INSERT sfa.field_program ON
 INSERT
 INTO sfa.field_program (study_field_id, program_id, field_program_code)
 SELECT study_field_id, program_id,field_program_code
 FROM sfaadmin.field_program
-SET IDENTITY_INSERT sfa.field_program OFF

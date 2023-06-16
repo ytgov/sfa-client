@@ -955,7 +955,9 @@ CREATE TABLE sfa.expense_category
     id                         INT IDENTITY (1,1) PRIMARY KEY,
     report_expense_category_id INT           NULL REFERENCES sfa.report_expense_category,
     description                NVARCHAR(200) NOT NULL,
-    is_active                  BIT           NOT NULL DEFAULT 1
+    is_active                  BIT           NOT NULL DEFAULT 1,
+    notes                      NVARCHAR(700) NULL,
+    is_required                BIT           NOT NULL DEFAULT 0
 )
 
 -- SFAADMIN.EDUCATION
@@ -1107,6 +1109,7 @@ CREATE TABLE sfa.application
     spouse_id                      INT            NULL REFERENCES sfa.person,
     parent1_id                     INT            NULL REFERENCES sfa.person,
     parent2_id                     INT            NULL REFERENCES sfa.person,
+    primary_address_id             INT            NULL REFERENCES sfa.person_address,
     parent1_relationship_id        INT            NULL REFERENCES sfa.relationship,
     parent2_relationship_id        INT            NULL REFERENCES sfa.relationship,
     parent1_income                 NUMERIC(10, 2) NULL,
@@ -1442,7 +1445,8 @@ CREATE TABLE sfa.requirement_met
     id                  INT IDENTITY PRIMARY KEY,
     application_id      INT  NOT NULL REFERENCES sfa.application,
     requirement_type_id INT  NULL REFERENCES sfa.requirement_type,
-    completed_date      DATE NULL
+    completed_date      DATE NULL,
+    comment             VARCHAR(1000) NULL;
 )
 
 CREATE TABLE sfa.communication_log
@@ -1804,7 +1808,7 @@ CREATE TABLE sfa.file_reference (
     person_id INT NULL REFERENCES sfa.person,
     dependent_id INT NULL REFERENCES sfa.dependent,
     disability_requirement_id INT NULL REFERENCES sfa.disability_requirement,
-    status VARCHAR(50) NOT NULL,
+    status INT NULL REFERENCES sfa.document_status,
     status_date DATETIME2(0) NOT NULL,
     bucket VARCHAR(50) NOT NULL,
     file_name NVARCHAR(200) NOT NULL,

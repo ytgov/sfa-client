@@ -9,7 +9,7 @@
           <div class="col-md-6">
             <v-row>
                 <div class="col-md-6">
-                    <v-btn block color="success" class="my-0">View SPDEC</v-btn>
+                    <v-btn block color="success" class="my-0" @click="showPDF()">View SPDEC</v-btn>
                 </div>
                 <div class="col-md-6">
                     <v-btn block color="success" class="my-0">View spouse NOA</v-btn>
@@ -245,6 +245,8 @@
         </div>
       </v-card-text>
     </v-card>
+    <show-pdf ref="showPdf">
+    </show-pdf>
   </div>
 </template>
 
@@ -264,6 +266,9 @@ export default {
     },
     spouse() {
       return this.application?.spouse_info || {};
+    },
+    student: function () {
+      return store.getters.selectedStudent;
     },
   },
   data: () => ({
@@ -321,8 +326,18 @@ export default {
                 
       } finally {
         store.dispatch("loadApplication", this.application.id);
+      }      
+    },
+    async showPDF() {      
+      try {              
+          let buf = await fetch(APPLICATION_URL + `/${this.application.id}/student/${this.student.id}/files/52`)           
+            .then((r) => r.arrayBuffer());                        
+            const blob = new Blob([buf], {type: 'application/pdf'});
+            const blobURL = URL.createObjectURL(blob) || "";                   
+            this.$refs.showPdf.showModal(blobURL);                                                                   
+      } catch (error) {
+        console.log(error);
       }
-      
     }
   },
 };
