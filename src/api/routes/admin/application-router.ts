@@ -1559,6 +1559,130 @@ applicationRouter.get("/:application_id/:funding_request_id/assessments/:assessm
     }
 );
 
+applicationRouter.get("/:application_id/:funding_request_id/preview-assessment",
+    [
+        param("application_id").isInt().notEmpty(), 
+        param("funding_request_id").isInt().notEmpty(),
+    ], 
+    ReturnValidationErrors, 
+    async (req: Request, res: Response) => {
+        try {
+            const { application_id, funding_request_id } = req.params;
+
+            const application = await db("sfa.application")
+                .where({ id: application_id })
+                .first();
+
+            const  fundingRequest = await db("sfa.funding_request")
+                .where({ id: funding_request_id })
+                .first();
+
+            if (application && fundingRequest) {
+
+                const preview = await db.raw(
+                    `SELECT * FROM sfa.fn_get_new_info(
+                        ${application_id},
+                        -1,
+                        ${funding_request_id},
+                        ${application.student_id}
+                    );
+                    `
+                );
+                const calculateValues = preview?.[0];
+                
+                calculateValues.destination_city_id = calculateValues.destination_city;
+                const readOnlyData = await db.raw(
+                    `SELECT 
+                    COALESCE(sfa.fn_get_previous_weeks_yg(${application.student_id},  ${application_id}), 0) AS previous_weeks,
+                    COALESCE(sfa.fn_get_allowed_weeks ('${moment(application.classes_start_date).format("YYYY-MM-DD")}', '${moment(application.classes_end_date).format("YYYY-MM-DD")}'), 0) AS assessed_weeks,
+                    COALESCE(sfa.fn_get_disbursed_amount_fct(${funding_request_id}, -1), 0) AS previous_disbursement,
+                    COALESCE(sfa.fn_net_amount(${funding_request_id},  -1), 0) AS net_amount,
+                    COALESCE(sfa.fn_get_total_funded_years ( ${application.student_id}, ${application_id}), 0) AS years_funded;
+                    `
+                );
+                
+                calculateValues.read_only_data = readOnlyData?.[0] || {};
+
+                delete calculateValues.destination_city;
+                delete calculateValues.previous_disbursement;
+                
+                return res.json({
+                    messages: [{ variant: "success" }],
+                    data: [ calculateValues ],
+                });
+            } else {
+                return res.status(409).send({ messages: [{ variant: "error", text: "Error get data" }] });
+            }
+
+        } catch (error) {
+            console.log(error);
+            return res.status(409).send({ messages: [{ variant: "error", text: "Error get data" }] });
+        }   
+    }
+);
+
+applicationRouter.get("/:application_id/assessment/:assessment_id/disburse",
+    [
+        param("application_id").isInt().notEmpty(), 
+        param("assessment_id").isInt().notEmpty(),
+    ], 
+    ReturnValidationErrors, 
+    async (req: Request, res: Response) => {
+        try {
+            const { application_id, assessment_id } = req.params;
+
+            const application = await db("sfa.application")
+                .where({ id: application_id })
+                .first();
+
+            const  assessment = await db("sfa.assessment")
+                .where({ id: assessment_id })
+                .first();
+
+            if (application && assessment) {
+
+                const disbursements = await db.raw(
+                    `
+                        EXEC sfa.sp_disburse_button_yg
+                        ${application_id},
+                        ${assessment_id};
+                    `
+                );
+
+                if (disbursements?.length === 1 && disbursements[0]?.status === 0) {
+                    return res.json({
+                        messages: [{ variant: "error", text: disbursements[0].message }] 
+                    });
+                }
+
+                if (disbursements?.length && disbursements[0]?.status === 1) {
+                    const disbursementList = disbursements.map( (d: any) => {
+                        delete d.id;
+                        delete d.status;
+                        return {
+                            ...d,
+                        };
+                    });
+                    return res.json({
+                        messages: [{ variant: "success" }],
+                        data: [ ...disbursementList ],
+                    });
+                } else {
+                    return res.json({
+                        messages: [{ variant: "error", text: "Error to get data" }] });
+                }
+
+            } else {
+                return res.status(409).send({ messages: [{ variant: "error", text: "Application id or Assessment id is invalid" }] });
+            }
+
+        } catch (error) {
+            console.log(error);
+            return res.status(409).send({ messages: [{ variant: "error", text: "Error get data" }] });
+        }   
+    }
+);
+
 applicationRouter.patch("/:application_id/:funding_request_id/assessments/:assessment_id",
     [
         param("application_id").isInt().notEmpty(), 
@@ -1581,6 +1705,11 @@ applicationRouter.patch("/:application_id/:funding_request_id/assessments/:asses
                     .where({ application_id })
                     .where({ id: funding_request_id })
                     .first();
+
+                !data?.over_award_applied_flg
+                ? data.over_award_applied_flg = "No"
+                : data.over_award_applied_flg = "Yes"
+                
 
                 if (fundingRequest) { // Create Assessment YG
                     const resUpdate = await db("sfa.assessment")
