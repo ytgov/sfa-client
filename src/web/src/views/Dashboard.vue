@@ -62,10 +62,21 @@
             <div class="col-md-4">
                 <v-card class="mt-5" color="#fff2d5">
                     <v-card-title>New Applications</v-card-title>
-                    <v-card-text
-                        >Maybe use STATUS=ONLINE to filter and find items that
-                        may require action</v-card-text
-                    >
+                    <v-card-text>
+                        <p v-if="newApplications.length == 0" class="mb-0">None yet</p>
+                        <div v-if="loading">Loading...</div>
+                        <p v-if="newApplications.length == 0 && !loading" class="mb-0">None yet</p>
+                        <ol v-if="newApplications.length > 0">
+                            <li
+                                v-for="(item, idx) of newApplications"
+                                :key="idx"
+                            >
+                                <router-link :to="`/application/${item.id}/personal`">
+                                    {{ item.title }}
+                                </router-link>
+                            </li>
+                        </ol>
+                    </v-card-text>
                 </v-card>
             </div>
         </div>
@@ -136,7 +147,8 @@
 <script>
 import axios from "axios";
 import { mapState } from "vuex";
-import { STUDENT_SEARCH_URL } from "../urls";
+import { get } from 'lodash';
+import { APPLICATION_URL, STUDENT_SEARCH_URL } from "../urls";
 
 export default {
     name: "Home",
@@ -150,8 +162,28 @@ export default {
         searchResults: [],
         resultCount: 0,
         isSearching: false,
+        newApplications: [],
+        loading: true,
     }),
+    mounted () {
+        axios
+            .get(`${APPLICATION_URL}/all`)
+            .then((response) => {
+                this.newApplications = get(response, 'data.data', [])
+            })
+            .catch(error => console.log(error))
+            .finally(() => this.loading = false);
+    },
     methods: {
+        getData() {
+            axios
+                .get(`${APPLICATION_URL}/all`)
+                .then((response) => {
+                    this.newApplications = get(response, 'data.data', [])
+                })
+                .catch(error => console.log(error))
+                .finally(() => this.loading = false);
+        },
         searchKeyUp(event) {
             if (event.key == "Enter") this.doSearch();
         },
@@ -185,7 +217,7 @@ export default {
         },
         getStudentName(studentId) {
             let filteredStudent = this.recentStudents.find(student => student.id == studentId);
-            return `${filteredStudent.first_name} ${filteredStudent.last_name}`;
+            return `${get(filteredStudent, 'first_name', 'Not defined')} ${get(filteredStudent, 'last_name', '')}`;
         },
         selectApplication(item) {
             this.selectedApplication = item;
