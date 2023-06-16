@@ -898,6 +898,7 @@ CREATE OR ALTER FUNCTION sfa.fn_get_yg_assessment(@funding_request_id INT)
 RETURNS @assessment_record TABLE (
     funding_request_id INT,
     effective_rate_date  DATE, 
+    assessed_date  DATE, 
     classes_end_date  DATE,
     change_reason_comment TEXT,
     home_city_id INT, 
@@ -921,6 +922,7 @@ BEGIN
     INSERT INTO @assessment_record (
         funding_request_id,
         effective_rate_date , 
+        assessed_date , 
         classes_end_date,
         change_reason_comment,
         home_city_id, 
@@ -941,6 +943,7 @@ BEGIN
     SELECT
         funding_request_id,
         effective_rate_date , 
+        assessed_date , 
         classes_end_date,
         change_reason_comment,
         home_city_id, 
@@ -1065,6 +1068,8 @@ RETURNS
     funding_request_id INT,
     classes_end_date DATE,
 	classes_start_date DATE,
+    assessed_date DATE,
+	effective_rate_date DATE,
 	allowed_months FLOAT,
     weeks_allowed INT,
     home_city_id INT,
@@ -1235,6 +1240,8 @@ BEGIN
     funding_request_id,
     classes_end_date,
 	classes_start_date,
+    assessed_date,
+	effective_rate_date,
     allowed_months,
     weeks_allowed,
     home_city_id,
@@ -1252,6 +1259,8 @@ BEGIN
   ) VALUES(
     @funding_request_id,
     @classes_end_date,
+	@classes_start_date,
+    CAST(GETDATE() AS DATE),
 	@classes_start_date,
     @allowed_months,
     @weeks_allowed,
@@ -1280,7 +1289,8 @@ CREATE OR ALTER FUNCTION sfa.fn_get_assess_info (
 RETURNS
 @assessment_record TABLE (
     funding_request_id INT,
-    effective_rate_date  DATE, 
+    effective_rate_date  DATE,
+    assessed_date DATE,
     classes_end_date  DATE,
     change_reason_comment TEXT,
     home_city_id INT, 
@@ -1304,6 +1314,7 @@ BEGIN
     DECLARE @temp TABLE (
         funding_request_id INT,
         effective_rate_date  DATE, 
+        assessed_date DATE,
         classes_end_date  DATE,
         change_reason_comment TEXT,
         home_city_id INT, 
@@ -1324,7 +1335,8 @@ BEGIN
     
     INSERT INTO @temp (
         funding_request_id,
-        effective_rate_date , 
+        effective_rate_date ,
+        assessed_date,
         classes_end_date,
         change_reason_comment,
         home_city_id, 
@@ -1345,6 +1357,7 @@ BEGIN
     SELECT
         funding_request_id,
         effective_rate_date , 
+        assessed_date,
         classes_end_date,
         change_reason_comment,
         home_city_id, 
@@ -1366,6 +1379,7 @@ BEGIN
     INSERT INTO @assessment_record (
        funding_request_id,
        effective_rate_date , 
+       assessed_date,
        classes_end_date,
        change_reason_comment,
        home_city_id, 
@@ -1386,6 +1400,7 @@ BEGIN
     SELECT
         @funding_request_id,
         effective_rate_date , 
+        assessed_date,
         classes_end_date,
         change_reason_comment,
         home_city_id, 
@@ -1439,7 +1454,8 @@ BEGIN
 
                 UPDATE sfa.assessment
                 SET funding_request_id = t.funding_request_id,
-                    effective_rate_date = t.effective_rate_date, 
+                    effective_rate_date = t.effective_rate_date,
+                    assessed_date = t.assessed_date,
                     classes_end_date = t.classes_end_date,
                     change_reason_comment = t.change_reason_comment,
                     home_city_id = t.home_city_id, 
@@ -1516,6 +1532,8 @@ BEGIN
                     -- previous_disbursement = t.previous_disbursement,
                     assessed_amount = t.assessed_amount,
                     pre_leg_amount = t.pre_leg_amount,
+                    assessed_date = t.assessed_date,
+                    effective_rate_date = t.effective_rate_date,
                     assessment_type_id = 1
                 FROM (
                     SELECT * FROM sfa.fn_get_new_info (

@@ -1,6 +1,5 @@
 <template>
   <div class="home yukon-grant-assessment">
-    {{isPreviewCharged}}
     <!-- <div class="row col-md-12 justify-space-between">
       <div class="col-md-4">
         <v-select
