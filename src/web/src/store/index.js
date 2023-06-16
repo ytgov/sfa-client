@@ -123,15 +123,8 @@ export default new Vuex.Store({
       }
     },
     SET_NEW_APPLICATIONS(state, value) {
-      console.log("SET NEW APPLICATION");
       state.selectedApplication = value;
       state.selectedApplicationId = value.id;
-
-      // let isRecent = state.newApplications.filter((r) => r.id == value.id);
-
-      // if (isRecent.length == 0) {
-      //   state.newApplications.unshift(value);
-      // }
     },
     CLEAR_APPLICATION(state) {
       console.log("CLEARING APPLICATION");
@@ -202,11 +195,6 @@ export default new Vuex.Store({
     },
     async loadNewApplications(state) {
       let resp = await axios.get(`${APPLICATION_URL}/all`);
-
-      // if (!state.state.selectedStudent.id) {
-      //   this.dispatch("loadStudent", resp.data.data.student_id);
-      // }
-
       state.commit("SET_NEW_APPLICATION", resp.data.data);
     },
     async loadStudent(state, id) {
