@@ -3,10 +3,10 @@
     <h1>Application Basics</h1>
 
     <v-tabs v-model="tab" background-color="#fff2d5" color="primary">
-      <v-tab key="0">Program</v-tab>
-      <v-tab key="1">Residence History</v-tab>
-      <v-tab key="2">Education</v-tab>
-      <v-tab key="3">Demographics</v-tab>
+      <v-tab key="0">Program Details</v-tab>
+      <v-tab key="1">Residency</v-tab>
+      <v-tab key="2">Education History</v-tab>
+      <v-tab key="3">Statistical Info</v-tab>
     </v-tabs>
 
     <v-tabs-items v-model="tab" style="padding: 20px">

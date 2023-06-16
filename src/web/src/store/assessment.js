@@ -48,14 +48,15 @@ const actions = {
             
             if (message?.variant === "success") {
                 const data = res?.data?.data || [];
-
+                
                 if (!data.length) {
-                    this.dispatch('postAssessment', vals);
+                    this.dispatch('previewAssessment', vals);
                     return;
                 }
+                const over_award_flag = !!(data[0]?.over_award_applied_flg === "Yes");
 
-                state.commit("SET_SELECTED_ASSESSMENT", { ...data[0] });
-                state.commit("SET_CUSTOM_ASSESSMENT", { ...data[0] });
+                state.commit("SET_SELECTED_ASSESSMENT", { ...data[0], over_award_applied_flg: over_award_flag });
+                state.commit("SET_CUSTOM_ASSESSMENT", { ...data[0], over_award_applied_flg: over_award_flag });
                 state.commit("SET_READ_ONLY_DATA", { ...data[0]?.read_only_data });
 
                 state.commit("SET_ASSESSMENTS", data);
@@ -70,6 +71,7 @@ const actions = {
     },
     async postAssessment(state, vals) {
         try {
+            const thisVal = vals?.thisVal || {};
 
             if (!(vals?.application_id && vals?.funding_request_id)) {
                 return;
@@ -82,13 +84,15 @@ const actions = {
             const message = res?.data?.messages[0];
             
             if (message?.variant === "success") {
-                console.log("ASESSMENT INSERTED!");
+                thisVal?.$emit("showSuccess", "Added!");
             } else {
-                console.log("Error to get assessments");
+                thisVal?.$emit("showSuccess", "Error to add");
             }
 
         } catch (error) {
+            const thisVal = vals?.thisVal || {};
             console.log("Error to insert assessments", error);
+            thisVal?.$emit("showSuccess", "Error to insert");
         } finally {
             if (!(vals?.application_id && vals?.funding_request_id)) {
                 return;
@@ -157,6 +161,39 @@ const actions = {
                     return;
                 }
                 state.commit("SET_CUSTOM_ASSESSMENT", { ...this.getters.customAssessment, ...data[0] } );
+            } else {
+                console.log("Error to get assessments");
+            }
+
+        } catch (error) {
+            console.log("Error to get assessments", error);
+        } finally {
+        }
+    },
+
+    async previewAssessment(state, vals) {
+        try {
+
+            if (!(vals?.application_id && vals?.funding_request_id)) {
+                return;
+            }
+
+            const res = await axios.get(
+                APPLICATION_URL + `/${vals.application_id}/${vals.funding_request_id}/preview-assessment`,
+            );
+
+            const message = res?.data?.messages[0];
+            
+            if (message?.variant === "success") {
+                const data = res?.data?.data || [];
+
+                const over_award_flag = !!(data[0]?.over_award_applied_flg === "Yes");
+
+                state.commit("SET_SELECTED_ASSESSMENT", { ...data[0], over_award_applied_flg: over_award_flag,  id: 0 });
+                state.commit("SET_CUSTOM_ASSESSMENT", { ...data[0], over_award_applied_flg: over_award_flag });
+                state.commit("SET_READ_ONLY_DATA", { ...data[0]?.read_only_data });
+
+                state.commit("SET_ASSESSMENTS", data);
             } else {
                 console.log("Error to get assessments");
             }

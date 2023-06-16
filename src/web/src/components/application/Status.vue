@@ -165,6 +165,7 @@
     <component 
       v-if="!showFundings && assessmentTypeId" 
       :is="assessmentTypeC" 
+      :fundingRequestId="fundingRequestId"
       v-on:close="showFundingStatus" 
       v-on:showError="showError"
       v-on:showSuccess="showSuccess"
@@ -202,6 +203,7 @@ export default {
     },
   },
   data: () => ({
+    fundingRequestId: null,
     assessmentTypeId: null,
     showFundings: true,
     showAdd: false,
@@ -241,6 +243,7 @@ export default {
       this.showFundings = false;
       store.dispatch('getAssessments', { application_id: this.application.id, funding_request_id });
       this.assessmentTypeId = request_type_id;
+      this.fundingRequestId = funding_request_id;
     },
     showFundingStatus() {
 
@@ -294,7 +297,6 @@ export default {
           } else {
             this.$emit("showError", message.text);
           }
-          
       } catch (error) {
         this.$emit("showError", "Error to update");
       } finally {

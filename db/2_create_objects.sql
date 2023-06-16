@@ -1230,7 +1230,9 @@ CREATE TABLE sfa.application
     pers_or_prolong_disability     BIT            NOT NULL DEFAULT 0,
     disability_start_date          DATE           NULL,
     requires_credit_check          BIT            NOT NULL DEFAULT 0,
-    last_checked_on                DATE           NULL
+    last_checked_on                DATE           NULL,
+    seen                           BIT            NOT NULL DEFAULT 0,
+    updated_at                     DATETIME       NULL,
 
 )
 

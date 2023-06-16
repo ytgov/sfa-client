@@ -42,6 +42,8 @@ import studyArea from "@/modules/study-area/store";
 import program from "@/modules/program/store";
 import cslClassification from "@/modules/csl-classification/store";
 import cslCode from "@/modules/csl-code/store";
+import communicationType from "@/modules/communication-type/store";
+import requestType from "@/modules/request-type/store";
 import accommodationType from "@/modules/accommodation-type/store";
 import requirementType from "@/modules/requirement-type/store";
 import citizenship from "@/modules/citizenship/store";
@@ -81,6 +83,7 @@ export default new Vuex.Store({
     selectedApplicationId: 0,
     recentStudents: [],
     recentApplications: [],
+    newApplications: [],
     yearOptions: [],
     monthOptions: [],
   },
@@ -91,6 +94,7 @@ export default new Vuex.Store({
     selectedApplication: (state) => state.selectedApplication,
     recentStudents: (state) => state.recentStudents,
     recentApplications: (state) => state.recentApplications,
+    newApplications: (state) => state.newApplications,
     yearOptions: (state) => state.yearOptions,
     monthOptions: (state) => state.monthOptions,
   },
@@ -117,6 +121,10 @@ export default new Vuex.Store({
       if (isRecent.length == 0) {
         state.recentApplications.unshift(value);
       }
+    },
+    SET_NEW_APPLICATIONS(state, value) {
+      state.selectedApplication = value;
+      state.selectedApplicationId = value.id;
     },
     CLEAR_APPLICATION(state) {
       console.log("CLEARING APPLICATION");
@@ -184,6 +192,10 @@ export default new Vuex.Store({
       }
 
       state.commit("SET_APPLICATION", resp.data.data);
+    },
+    async loadNewApplications(state) {
+      let resp = await axios.get(`${APPLICATION_URL}/all`);
+      state.commit("SET_NEW_APPLICATION", resp.data.data);
     },
     async loadStudent(state, id) {
       if (state.state.selectedStudentId != id)
@@ -433,5 +445,7 @@ export default new Vuex.Store({
         });
     },
   },
-  modules: { auth, profile, institution, cslft, student, province, countries, cities, cslCode, addressType, indigenousLearner, Language, maritalStatus, studyField, parentalRelationship, firstNation, portalStatus, sex, studentCategory, applicationType, highSchool, ageDistribution, institutionLevel, assessmentType, batchGroup, educationLevel, status, statusReason, yukonGrantEligibility, disbursementType, reasonsForChange, fundingGroup, disabilityType, aboriginalStatus, disabilityService, relationships, studyArea, program, cslClassification, citizenship, prestudyEmploymentStatus, academicYear, agency, instructionType, programDivision, attendance, documentStatus, incomeType, expenseCategory, equipmentCategory, changeReason, assessment, disbursement, requirementType, adminCrud, }
+
+  modules: { auth, profile, institution, student, province, countries, cities, cslCode, requirementType, addressType, indigenousLearner, Language, maritalStatus, studyField, parentalRelationship, firstNation, portalStatus, sex, studentCategory, applicationType, highSchool, ageDistribution, institutionLevel, assessmentType, batchGroup, educationLevel, status, statusReason, yukonGrantEligibility, disbursementType, reasonsForChange, fundingGroup, disabilityType, aboriginalStatus, disabilityService, relationships, studyArea, program, cslClassification, citizenship, prestudyEmploymentStatus, academicYear, agency, instructionType, programDivision, attendance, documentStatus, incomeType, expenseCategory, equipmentCategory, changeReason, assessment, adminCrud, communicationType, disbursement, requestType }
+
 });

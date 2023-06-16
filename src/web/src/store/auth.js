@@ -3,11 +3,13 @@ import { AUTH_CHECK_URL, LOGOUT_URL } from "../urls";
 
 const state = {
     user: null,
-    fullName: ""
+    fullName: "",
+    email: "",
 };
 const getters = {
     isAuthenticated: state => !!state.user,
     fullName: state => state.fullName,
+    email_officer: state => state.email,
 };
 const actions = {
     async checkAuthentication({ commit }) {
@@ -31,10 +33,12 @@ const mutations = {
     setUser(state, user) {
         state.user = user;
         state.fullName = user.display_name;
+        state.email = user.email;
     },
     clearUser(state) {
         state.user = null;
         state.fullName = null;
+        state.email = null;
     }
 };
 

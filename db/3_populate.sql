@@ -182,9 +182,9 @@ INSERT
 INTO sfa.csl_classification (id, description)
 VALUES  ( 1, 'Single Dependent'),
         ( 2, 'Single Independent - 2 year workforce'),
-        ( 3, 'Single Independent - 4 year high school'),
-        ( 4, 'Married / Common Law'),
-        ( 5, 'Single Parent')
+        ( 3, 'Married / Common Law'),
+        ( 4, 'Single Parent')
+        ( 5, 'Single Independent - 4 year high school'),
 SET IDENTITY_INSERT sfa.csl_classification OFF
 
 SET IDENTITY_INSERT sfa.income_type ON
@@ -1213,7 +1213,7 @@ WHILE @@FETCH_STATUS = 0 BEGIN
                           taxes1_not_filed,
                           taxes2_not_filed, applied_other_funding, csl_restriction_warn_id, csl_restriction_reason_id,
                           courses_per_week,
-                          prestudy_start_date, prestudy_end_date)
+                          prestudy_start_date, prestudy_end_date, seen)
     VALUES (@history_detail_id, @student_id, COALESCE(@academic_year, DATEPART(YEAR, @created_date)),
             COALESCE(@institution_id, 0), @study_area_id, @program_id, @aboriginal_status_id,
             @marital_status_id, @category_id, @first_nation_id, @spouse_id, @parent1_id, @parent2_id, @parent1_income,
@@ -1254,7 +1254,7 @@ WHILE @@FETCH_STATUS = 0 BEGIN
             CASE WHEN @taxes_not_filed_yr2_flg = 'Y' THEN 1 ELSE 0 END,
             CASE WHEN @applied_other_funding_flg = 'Y' THEN 1 ELSE 0 END, @csl_restriction_warn_id,
             @csl_restriction_reason_id, @courses_per_week,
-            @prestudy_start_date, @prestudy_end_date)
+            @prestudy_start_date, @prestudy_end_date, 1)
 
     SET IDENTITY_INSERT sfa.application OFF
 
