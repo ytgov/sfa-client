@@ -220,7 +220,16 @@ export class DocumentService {
       ContentType: input.mime_type,
     });
 
-    await this.client.send(upload1Command);
+    console.log("S3 PUTCMD", upload1Command);
+
+    await this.client
+      .send(upload1Command)
+      .then((resp) => {
+        console.log("S3 PUTRES", resp);
+      })
+      .catch((err) => {
+        console.log("S3 PUTERR", err);
+      });
 
     // this feature is awaiting some sort of universal PDF conversion
     /* if (input.object_key_pdf) {
