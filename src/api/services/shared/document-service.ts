@@ -10,7 +10,7 @@ import {
 import { nanoid } from "nanoid";
 import { UploadedFile } from "express-fileupload";
 import { Readable } from "stream";
-import { DB_CONFIG, AWS_S3_CONFIG, AWS_S3_BUCKET } from "../../config";
+import { DB_CONFIG, AWS_S3_CONFIG, AWS_S3_BUCKET, AWS_S3_PATH } from "../../config";
 import { FileReference, FileReferenceBase, FileStatus } from "../../models";
 
 const db = knex(DB_CONFIG);
@@ -77,7 +77,7 @@ export class DocumentService {
     let docRef = await db<FileReference>("sfa.file_reference").where({ object_key }).first();
 
     if (docRef) {
-      const command = new GetObjectCommand({ Bucket: docRef.bucket, Key: docRef.object_key });
+      const command = new GetObjectCommand({ Bucket: docRef.bucket, Key: `${AWS_S3_PATH}/${docRef.object_key}` });
       const response = await this.client.send(command);
 
       if (response.Body) {
@@ -105,7 +105,7 @@ export class DocumentService {
     if (docRef) {
       let command1 = new DeleteObjectCommand({
         Bucket: docRef.bucket,
-        Key: docRef.object_key,
+        Key: `${AWS_S3_PATH}/${docRef.object_key}`,
       });
 
       await this.client.send(command1);
@@ -113,7 +113,7 @@ export class DocumentService {
       if (docRef.object_key_pdf) {
         let command2 = new DeleteObjectCommand({
           Bucket: docRef.bucket,
-          Key: docRef.object_key_pdf || "",
+          Key: `${AWS_S3_PATH}/${docRef.object_key_pdf || ""}`,
         });
 
         await this.client.send(command2);
@@ -190,7 +190,7 @@ export class DocumentService {
       requirement_type_id,
       mime_type: file.mimetype,
       file_size: file.size,
-      comment: comment,      
+      comment: comment,
       status: status,
       status_date: new Date(),
       disability_requirement_id,
@@ -215,7 +215,7 @@ export class DocumentService {
 
     let upload1Command = new PutObjectCommand({
       Bucket: input.bucket,
-      Key: input.object_key,
+      Key: `${AWS_S3_PATH}/${input.object_key}`,
       Body: input.file_contents,
       ContentType: input.mime_type,
     });
