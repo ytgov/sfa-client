@@ -2091,8 +2091,8 @@ BEGIN
 END;
 GO
 
--- Get Person Address By Application
-CREATE OR ALTER FUNCTION sfa.fn_get_person_address_by_application(@application_id INT, @address_type INT = 1)
+-- Get Parent Address By Application
+CREATE OR ALTER FUNCTION sfa.fn_get_parent_address_by_application(@application_id INT, @address_type INT = 1)
 RETURNS TABLE
 AS
 RETURN
