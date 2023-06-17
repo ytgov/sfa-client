@@ -2169,6 +2169,6 @@ BEGIN
 	WHERE fr.request_type_id IN (15,16,17,18,19,22,23,27,28,29,30,31,32,33,35,47)
 	AND fr.application_id = @application_id;
 
-	RETURN @amount;
+	RETURN COALESCE(@amount, 0);
 END;
 GO
