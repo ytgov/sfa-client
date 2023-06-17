@@ -2132,3 +2132,43 @@ BEGIN
 END;
 GO
 
+-- Get Total Grant Amount: disbursement_pck_1.get_total_grant_amount
+CREATE OR ALTER FUNCTION sfa.fn_get_total_grant_amount(@application_id INT)
+RETURNS FLOAT(8)
+AS
+BEGIN 
+
+    /* 2012-11-28 Lidwien SFA-340 - additions for SFA-657 new grant
+
+        Changed grant number to include new CSL grants (old ones kept to keep backwards compatible FT
+         15 - Canada Study Grant  Disability - old
+         16 - Canada Study Grant  Doctoral - old
+         17 - Canada Study Grant  Dependents - old
+         18 - Canada Study Grant  High Need Part Time - old
+         19 - Canada Millennium Bursary - old         
+         22 - Canada Access Grant for Students with Permanent Disabilities - old
+         23 - Canada Access Grant for Students from Low Income Families - old
+         27 - low income - old
+         28 - middle income - old
+         29 - permanent disabilities
+         30 - Grant for Services & Equipment for PD Students
+         32 - full time dependents
+         35 - grant for full time studentsPT
+         31 - grant for part time students 
+         33 - part time dependents
+         34 - permanent disabilities
+    */
+
+	DECLARE @amount FLOAT(8) = 0;
+
+	SELECT 
+		@amount = SUM(d.disbursed_amount)
+	FROM sfa.disbursement d
+		INNER JOIN sfa.funding_request fr
+			ON d.funding_request_id = fr.id
+	WHERE fr.request_type_id IN (15,16,17,18,19,22,23,27,28,29,30,31,32,33,35,47)
+	AND fr.application_id = @application_id;
+
+	RETURN @amount;
+END;
+GO
