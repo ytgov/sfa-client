@@ -1976,3 +1976,159 @@ BEGIN
 	RETURN @v_funded_years_count
 END
 GO
+
+-- Get Actual Expense
+CREATE OR ALTER FUNCTION sfa.fn_get_actual_expense(@period INT, @cat_id INT, @application_id INT)
+RETURNS NUMERIC(9,2)
+AS 
+BEGIN
+	DECLARE @amount NUMERIC(9,2);
+	SELECT 
+		@amount = COALESCE(e.amount, 0)
+	FROM sfa.expense e 
+	WHERE e.period_id = @period
+	AND e.category_id = @cat_id
+	AND e.application_id = @application_id;
+
+	RETURN @amount;
+END;
+GO
+
+-- Get Allowable Expense
+CREATE OR ALTER FUNCTION sfa.fn_get_allowable_expense(@period INT, @report_expense_cat_id INT, @application_id INT)
+RETURNS NUMERIC(9,2)
+AS 
+BEGIN
+	DECLARE @amount NUMERIC(9,2);
+	SELECT 
+		@amount = COALESCE(SUM(e.amount), 0)
+	FROM sfa.expense e 
+		INNER JOIN sfa.expense_category ec
+			ON e.category_id = ec.id 
+	WHERE e.period_id = @period
+	AND ec.report_expense_category_id = @report_expense_cat_id
+	AND e.application_id = @application_id;
+
+	RETURN @amount;
+END;
+GO
+
+-- Get Dependent Count
+CREATE OR ALTER FUNCTION sfa.fn_get_dependent_count(@application_id INT)
+RETURNS INT
+AS 
+BEGIN
+	DECLARE @count INT = 0;
+	SELECT 
+		@count = COUNT(*)
+	FROM sfa.dependent d 
+		INNER JOIN sfa.application a
+			ON d.student_id = a.student_id
+		INNER JOIN sfa.dependent_eligibility de 
+			ON d.id = de.dependent_id 
+			AND de.application_id = a.id
+			AND de.is_csl_eligible = 1
+	WHERE a.id = @application_id;
+
+	RETURN @count;
+END;
+GO
+
+-- Get Parent Dependent Count
+CREATE   FUNCTION sfa.fn_get_parent_dependent_count(@application_id INT, @attend_post_second BIT = NULL)
+RETURNS INT
+AS 
+BEGIN
+	DECLARE @count INT = 0;
+	
+	IF @application_id IS NULL
+	BEGIN
+		RETURN NULL;
+	END
+	ELSE IF @attend_post_second IS NULL
+	BEGIN
+		SELECT
+			@count = COUNT(pd.id)
+		FROM sfa.parent_dependent pd
+		WHERE pd.application_id = @application_id
+		AND pd.is_eligible = 1;
+	END
+	ELSE
+	BEGIN
+		SELECT
+			@count = COUNT(pd.id)
+		FROM sfa.parent_dependent pd
+		WHERE pd.application_id = @application_id
+		AND pd.is_eligible = 1
+		AND pd.is_attend_post_secondary = @attend_post_second;
+	END
+
+	RETURN @count;
+END;
+GO
+
+-- Get Parent Family Size
+CREATE   FUNCTION sfa.fn_get_parent_family_size(@application_id INT)
+RETURNS INT
+AS 
+BEGIN
+	DECLARE @count INT = 0;
+	DECLARE @p_count INT = 0;
+	
+	SELECT
+		@p_count = CASE WHEN p1.first_name IS NOT NULL AND p1.last_name IS NOT NULL THEN 1 ELSE 0 END +
+		CASE WHEN p2.first_name IS NOT NULL AND p2.last_name IS NOT NULL THEN 1 ELSE 0 END
+	FROM sfa.application a
+		LEFT JOIN sfa.person p1
+			ON p1.id = a.parent1_id
+		LEFT JOIN sfa.person p2
+			ON p2.id = a.parent2_id
+	WHERE a.id = @application_id;
+
+	SET @count = sfa.fn_get_parent_dependent_count(@application_id, DEFAULT);
+
+	RETURN @count + @p_count;
+END;
+GO
+
+-- Get Person Address By Application
+CREATE   FUNCTION sfa.fn_get_person_address_by_application(@application_id INT, @address_type INT = 1)
+RETURNS TABLE
+AS
+RETURN
+SELECT
+	CASE 
+		WHEN pav.person_id = a.parent1_id THEN 1 
+		WHEN pav.person_id = a.parent2_id THEN 2
+		ELSE NULL
+		END as parent,	
+	pav.*
+FROM sfa.application a
+	LEFT JOIN sfa.person_address_v pav
+		ON pav.person_id = a.parent1_id
+		OR pav.person_id = a.parent2_id 
+WHERE a.id = @application_id
+AND pav.address_type_id = @address_type;
+GO
+
+-- Get Province Desc
+CREATE   FUNCTION sfa.fn_get_province_desc(@province_id INT)
+RETURNS VARCHAR(50)
+AS 
+BEGIN
+	DECLARE @desc VARCHAR(50);
+	
+	IF @province_id IS NULL
+	BEGIN
+		RETURN NULL;
+	END
+	
+	SELECT 
+		@desc = p.description
+	FROM sfa.province p
+	WHERE p.id = @province_id;
+	
+	RETURN @desc;
+END;
+GO
+
