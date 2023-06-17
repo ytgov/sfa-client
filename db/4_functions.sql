@@ -2035,7 +2035,7 @@ END;
 GO
 
 -- Get Parent Dependent Count
-CREATE   FUNCTION sfa.fn_get_parent_dependent_count(@application_id INT, @attend_post_second BIT = NULL)
+CREATE OR ALTER FUNCTION sfa.fn_get_parent_dependent_count(@application_id INT, @attend_post_second BIT = NULL)
 RETURNS INT
 AS 
 BEGIN
@@ -2068,7 +2068,7 @@ END;
 GO
 
 -- Get Parent Family Size
-CREATE   FUNCTION sfa.fn_get_parent_family_size(@application_id INT)
+CREATE OR ALTER FUNCTION sfa.fn_get_parent_family_size(@application_id INT)
 RETURNS INT
 AS 
 BEGIN
@@ -2092,7 +2092,7 @@ END;
 GO
 
 -- Get Person Address By Application
-CREATE   FUNCTION sfa.fn_get_person_address_by_application(@application_id INT, @address_type INT = 1)
+CREATE OR ALTER FUNCTION sfa.fn_get_person_address_by_application(@application_id INT, @address_type INT = 1)
 RETURNS TABLE
 AS
 RETURN
@@ -2112,7 +2112,7 @@ AND pav.address_type_id = @address_type;
 GO
 
 -- Get Province Desc
-CREATE   FUNCTION sfa.fn_get_province_desc(@province_id INT)
+CREATE OR ALTER FUNCTION sfa.fn_get_province_desc(@province_id INT)
 RETURNS VARCHAR(50)
 AS 
 BEGIN
