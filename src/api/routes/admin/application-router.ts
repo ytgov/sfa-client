@@ -14,22 +14,40 @@ const documentService = new DocumentService();
 
 applicationRouter.get("/all", ReturnValidationErrors, async (req: Request, res: Response) => {
         try {
-            let applications = await db("sfa.application")
-                .innerJoin("sfa.institution_campus", "application.institution_campus_id", "institution_campus.id")
-                .innerJoin("sfa.institution", "institution.id", "institution_campus.institution_id")
-                .innerJoin("sfa.funding_request", "funding_request.application_id", "application.id")
-                .select("application.*").select("institution.name as institution_name").limit(25)
-                .where({ seen: false })
-                .orderBy('online_submit_date', 'asc');
+            const { filter } = req.query;
+            let applications;
+
+            if (!filter || filter == 'ALL') {
+                applications = await db("sfa.application")
+                    .innerJoin("sfa.institution_campus", "application.institution_campus_id", "institution_campus.id")
+                    .innerJoin("sfa.institution", "institution.id", "institution_campus.institution_id")
+                    .innerJoin("sfa.funding_request", "funding_request.application_id", "application.id")
+                    .innerJoin("sfa.student", "student.id", "application.student_id")
+                    .innerJoin("sfa.person", "student.person_id", "person.id")
+                    .select("application.*")
+                    .select("institution.name as institution_name")
+                    .select("person.first_name")
+                    .select("person.last_name").limit(25)
+                    .where({ seen: false })
+                    .orderBy('online_submit_date', 'asc');
+            } else {
+                applications = await db("sfa.application")
+                    .innerJoin("sfa.institution_campus", "application.institution_campus_id", "institution_campus.id")
+                    .innerJoin("sfa.institution", "institution.id", "institution_campus.institution_id")
+                    .innerJoin("sfa.funding_request", "funding_request.application_id", "application.id")
+                    .innerJoin("sfa.student", "student.id", "application.student_id")
+                    .innerJoin("sfa.person", "student.person_id", "person.id")
+                    .select("application.*")
+                    .select("institution.name as institution_name")
+                    .select("person.first_name")
+                    .select("person.last_name").limit(25)
+                    .whereLike('last_name', `${filter}%`)
+                    .andWhere({ seen: false })
+                    .orderBy('online_submit_date', 'asc');
+            }
 
             for (let item of applications) {
-                let student = await db("sfa.student")
-                    .innerJoin("sfa.person", "student.person_id", "person.id")
-                    .select("sfa.person.*")
-                    .where({ "student.id": item.student_id }).first();
-
-
-                item.title = `${student.first_name} ${student.last_name} - ${item.academic_year_id}: ${item.institution_name}`;
+                item.title = `${item.first_name} ${item.last_name} - ${item.academic_year_id}: ${item.institution_name}`;
             }
 
             return res.json({ data: applications });
@@ -39,6 +57,52 @@ applicationRouter.get("/all", ReturnValidationErrors, async (req: Request, res: 
         }
 
     });
+
+applicationRouter.get("/latest-updates", ReturnValidationErrors, async (req: Request, res: Response) => {
+    try {
+        const { filter } = req.query;
+        let applications;
+
+        if (!filter || filter == 'ALL') {
+            applications = await db("sfa.application")
+                .innerJoin("sfa.institution_campus", "application.institution_campus_id", "institution_campus.id")
+                .innerJoin("sfa.institution", "institution.id", "institution_campus.institution_id")
+                .innerJoin("sfa.funding_request", "funding_request.application_id", "application.id")
+                .innerJoin("sfa.student", "student.id", "application.student_id")
+                .innerJoin("sfa.person", "student.person_id", "person.id")
+                .select("application.*")
+                .select("institution.name as institution_name")
+                .select("person.first_name")
+                .select("person.last_name").limit(25)
+                .where({ seen: true })
+                .orderBy('updated_at', 'desc');
+        } else {
+            applications = await db("sfa.application")
+                .innerJoin("sfa.institution_campus", "application.institution_campus_id", "institution_campus.id")
+                .innerJoin("sfa.institution", "institution.id", "institution_campus.institution_id")
+                .innerJoin("sfa.funding_request", "funding_request.application_id", "application.id")
+                .innerJoin("sfa.student", "student.id", "application.student_id")
+                .innerJoin("sfa.person", "student.person_id", "person.id")
+                .select("application.*")
+                .select("institution.name as institution_name")
+                .select("person.first_name")
+                .select("person.last_name").limit(25)
+                .whereLike('last_name', `${filter}%`)
+                .andWhere({ seen: true })
+                .orderBy('updated_at', 'desc');
+        }
+
+        for (let item of applications) {
+            item.title = `${item.first_name} ${item.last_name} - ${item.academic_year_id}: ${item.institution_name}`;
+        }
+
+        return res.json({ data: applications });
+    } catch (error) {
+        console.log("/all-ERR: ", error);
+        res.status(404).send(error);
+    }
+
+});
 
 applicationRouter.post("/",
     [body("studentId").notEmpty(), body("academicYear").notEmpty(), body("institutionId").notEmpty()], ReturnValidationErrors,
