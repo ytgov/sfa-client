@@ -1849,3 +1849,35 @@ CREATE TABLE sfa.field_program (
     program_id INT NOT NULL REFERENCES sfa.program (id),
     field_program_code float(8) NULL
 );
+
+-- sfa.person_address_v
+CREATE VIEW sfa.person_address_v AS
+SELECT 
+	p.id as person_id,
+	p.language_id,
+	p.sex_id,
+	p.birth_city_id,
+	p.birth_province_id,
+	p.birth_country_id,
+	p.first_name,
+	p.last_name,
+	p.initials,
+	p.previous_last_name,
+	p.sin,
+	p.citizenship_code,
+	p.birth_date,
+	p.telephone,
+	p.email,
+	pa.id as person_address_id,	
+	pa.address_type_id,
+	pa.address1,
+	pa.address2,
+	pa.city_id,
+	pa.province_id,
+	pa.country_id,
+	pa.postal_code,
+	pa.notes,
+	pa.is_active
+FROM sfa.person p
+	LEFT JOIN sfa.person_address pa
+		ON p.id = pa.person_id;
