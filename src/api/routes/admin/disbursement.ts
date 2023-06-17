@@ -33,24 +33,58 @@ disbursementRouter.get("/funding-request/:funding_request_id",
 
 disbursementRouter.post("/",
     async (req: Request, res: Response) => {
-        const { data } = req.body;
+        const { data, isList = "" } = req.body;
 
         try {
-            if (!data.funding_request_id) return res.json({ success: false, message: "funding request id is required", });
+            if (!Array.isArray(data) && !data?.funding_request_id) return res.json({ success: false, message: "funding request id is required", });
 
-            const verify = await db("sfa.funding_request")
+            if (!Array.isArray(data)) {
+                const verify = await db("sfa.funding_request")
                 .where({ id: data.funding_request_id });
 
-            if (!verify?.length) return res.json({ success: false, message: `Funding Request not founded`, });
+                if (!verify?.length) return res.json({ success: false, message: `Funding Request not founded`, });
+            }
 
-            const resInsert = await db("sfa.disbursement")
+            if (Array.isArray(data) && isList === "disburseList") {
+                for (const item of data) {
+                    const resInsert = await db("sfa.disbursement")
+                        .insert({
+                            disbursement_type_id: item.disbursement_type_id,
+                            assessment_id: item.assessment_id,
+                            funding_request_id: item.funding_request_id,
+                            disbursed_amount: item.disbursed_amount,
+                            due_date: item.due_date,
+                            tax_year: item.tax_year,
+                            issue_date: item.issue_date,
+                            paid_amount: item.paid_amount,
+                            change_reason_id: item.change_reason_id,
+                            financial_batch_id: item.financial_batch_id,
+                            financial_batch_id_year: item.financial_batch_id_year,
+                            financial_batch_run_date: item.financial_batch_run_date,
+                            financial_batch_serial_no: item.financial_batch_serial_no,
+                            transaction_number: item.transaction_number,
+                            csl_cert_seq_number: item.csl_cert_seq_number,
+                            ecert_sent_date: item.ecert_sent_date,
+                            ecert_response_date: item.ecert_response_date,
+                            ecert_status: item.ecert_status,
+                            ecert_portal_status_id: item.ecert_portal_status_id
+                        
+                        })
+                        .returning("*");
+                }
+                return res.status(201).json({ success: true });
+            } else if (!Array.isArray(data)) {
+                const resInsert = await db("sfa.disbursement")
                 .insert({ ...data })
                 .returning("*");
 
-            if (resInsert) {
-                return res.status(201).json({ success: true, data: resInsert, });
+                if (resInsert) {
+                    return res.status(201).json({ success: true, data: resInsert, });
+                } else {
+                    return res.status(400).send();
+                }
             } else {
-                return res.status(400).send();
+                return res.status(201).json({ success: false, message: `the data type (Data) is wrong`, });
             }
 
         } catch (err) {

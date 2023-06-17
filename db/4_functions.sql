@@ -898,6 +898,7 @@ CREATE OR ALTER FUNCTION sfa.fn_get_yg_assessment(@funding_request_id INT)
 RETURNS @assessment_record TABLE (
     funding_request_id INT,
     effective_rate_date  DATE, 
+    assessed_date  DATE, 
     classes_end_date  DATE,
     change_reason_comment TEXT,
     home_city_id INT, 
@@ -921,6 +922,7 @@ BEGIN
     INSERT INTO @assessment_record (
         funding_request_id,
         effective_rate_date , 
+        assessed_date , 
         classes_end_date,
         change_reason_comment,
         home_city_id, 
@@ -941,6 +943,7 @@ BEGIN
     SELECT
         funding_request_id,
         effective_rate_date , 
+        assessed_date , 
         classes_end_date,
         change_reason_comment,
         home_city_id, 
@@ -1065,6 +1068,8 @@ RETURNS
     funding_request_id INT,
     classes_end_date DATE,
 	classes_start_date DATE,
+    assessed_date DATE,
+	effective_rate_date DATE,
 	allowed_months FLOAT,
     weeks_allowed INT,
     home_city_id INT,
@@ -1235,6 +1240,8 @@ BEGIN
     funding_request_id,
     classes_end_date,
 	classes_start_date,
+    assessed_date,
+	effective_rate_date,
     allowed_months,
     weeks_allowed,
     home_city_id,
@@ -1252,6 +1259,8 @@ BEGIN
   ) VALUES(
     @funding_request_id,
     @classes_end_date,
+	@classes_start_date,
+    CAST(GETDATE() AS DATE),
 	@classes_start_date,
     @allowed_months,
     @weeks_allowed,
@@ -1280,7 +1289,8 @@ CREATE OR ALTER FUNCTION sfa.fn_get_assess_info (
 RETURNS
 @assessment_record TABLE (
     funding_request_id INT,
-    effective_rate_date  DATE, 
+    effective_rate_date  DATE,
+    assessed_date DATE,
     classes_end_date  DATE,
     change_reason_comment TEXT,
     home_city_id INT, 
@@ -1304,6 +1314,7 @@ BEGIN
     DECLARE @temp TABLE (
         funding_request_id INT,
         effective_rate_date  DATE, 
+        assessed_date DATE,
         classes_end_date  DATE,
         change_reason_comment TEXT,
         home_city_id INT, 
@@ -1324,7 +1335,8 @@ BEGIN
     
     INSERT INTO @temp (
         funding_request_id,
-        effective_rate_date , 
+        effective_rate_date ,
+        assessed_date,
         classes_end_date,
         change_reason_comment,
         home_city_id, 
@@ -1345,6 +1357,7 @@ BEGIN
     SELECT
         funding_request_id,
         effective_rate_date , 
+        assessed_date,
         classes_end_date,
         change_reason_comment,
         home_city_id, 
@@ -1366,6 +1379,7 @@ BEGIN
     INSERT INTO @assessment_record (
        funding_request_id,
        effective_rate_date , 
+       assessed_date,
        classes_end_date,
        change_reason_comment,
        home_city_id, 
@@ -1386,6 +1400,7 @@ BEGIN
     SELECT
         @funding_request_id,
         effective_rate_date , 
+        assessed_date,
         classes_end_date,
         change_reason_comment,
         home_city_id, 
@@ -1439,7 +1454,8 @@ BEGIN
 
                 UPDATE sfa.assessment
                 SET funding_request_id = t.funding_request_id,
-                    effective_rate_date = t.effective_rate_date, 
+                    effective_rate_date = t.effective_rate_date,
+                    assessed_date = t.assessed_date,
                     classes_end_date = t.classes_end_date,
                     change_reason_comment = t.change_reason_comment,
                     home_city_id = t.home_city_id, 
@@ -1516,6 +1532,8 @@ BEGIN
                     -- previous_disbursement = t.previous_disbursement,
                     assessed_amount = t.assessed_amount,
                     pre_leg_amount = t.pre_leg_amount,
+                    assessed_date = t.assessed_date,
+                    effective_rate_date = t.effective_rate_date,
                     assessment_type_id = 1
                 FROM (
                     SELECT * FROM sfa.fn_get_new_info (
@@ -1535,6 +1553,368 @@ BEGIN
                 ROLLBACK TRANSACTION;
             END CATCH
             
+        END
+END
+GO
+
+-- DISBURSE BUTTON ASSESSMENT YG
+CREATE OR ALTER PROCEDURE sfa.sp_disburse_button_yg -- BUTTON FOR ASSESSMENT YG
+    @application_id INT,
+    @assessment_id INT
+AS 
+BEGIN
+    DECLARE @funding_request_id INT;
+    DECLARE @academic_year INT;
+
+
+    SELECT @academic_year = app.academic_year_id FROM sfa.application app
+    WHERE app.id = @application_id; --@application_id
+
+    DECLARE @air_travel_disbursement_period INT;
+    DECLARE @travel_allowance NUMERIC;
+    DECLARE @airfare_amount NUMERIC;
+    DECLARE @disbursements_required INT;
+    DECLARE @over_award_disbursement_period INT;
+    DECLARE @over_award FLOAT;
+    DECLARE @over_award_applied_flg VARCHAR(3);
+    DECLARE @years_funded_equivalent NUMERIC;
+    DECLARE @allowed_tuition NUMERIC;
+    DECLARE @living_costs NUMERIC;
+    DECLARE @allowed_books FLOAT;
+    DECLARE @weekly_amount NUMERIC;
+    DECLARE @assessment_adj_amount FLOAT;
+
+    SELECT
+    @air_travel_disbursement_period = a.air_travel_disbursement_period,
+    @travel_allowance = COALESCE(a.travel_allowance, 0),
+    @airfare_amount = COALESCE(a.airfare_amount, 0),
+    @disbursements_required = a.disbursements_required,
+    @over_award_disbursement_period = a.over_award_disbursement_period,
+    @over_award = a.over_award,
+    @over_award_applied_flg = a.over_award_applied_flg,
+    @years_funded_equivalent = a.years_funded_equivalent,
+    @funding_request_id = a.funding_request_id,
+    @allowed_tuition = COALESCE(a.allowed_tuition, 0),
+    @living_costs = COALESCE(a.living_costs, 0),
+    @allowed_books = COALESCE(a.allowed_books, 0),
+    @weekly_amount = COALESCE(a.weekly_amount, 0),
+    @assessment_adj_amount = a.assessment_adj_amount
+    FROM sfa.assessment a WHERE a.id = @assessment_id; -- @assessment_id
+
+    -- CHECK ALL
+    IF  (
+            (
+                @air_travel_disbursement_period IS NULL
+                AND ( @travel_allowance = 0 OR @travel_allowance IS NULL )
+                AND ( @airfare_amount = 0 OR @airfare_amount IS NULL ) 
+            )
+            OR ( @air_travel_disbursement_period <= @disbursements_required )
+            OR ( @disbursements_required = 0 )
+        ) 
+        AND
+        (
+            ( 
+                @over_award_disbursement_period IS NULL
+                AND ( @over_award = 0 OR @over_award IS NULL )
+                AND ( @over_award_applied_flg = 'No')
+            ) -- NO AIR TRAVEL
+            OR ( @over_award_disbursement_period <= @disbursements_required )
+            OR ( @disbursements_required = 0 )
+        )
+        AND 
+        (
+            ( @years_funded_equivalent IS NOT NULL AND @academic_year < 2016 )
+            OR (@academic_year > 2015 )
+        )
+        BEGIN
+            DECLARE @disbursement_id INT;
+            DECLARE @new_disbursement_id INT;
+
+            DECLARE @disbursement_temp TABLE
+            (
+                id                          INT,
+                disbursement_type_id        INT,
+                assessment_id               INT,
+                funding_request_id          INT,
+                disbursed_amount            NUMERIC,
+                due_date                    DATE,
+                tax_year                    INT,
+                issue_date                  DATE,
+                paid_amount                 NUMERIC,
+                change_reason_id            INT,
+                financial_batch_id          INT,
+                financial_batch_id_year     INT,
+                financial_batch_run_date    DATE,
+                financial_batch_serial_no   FLOAT,
+                transaction_number          VARCHAR(20),
+                csl_cert_seq_number         INT,
+                ecert_sent_date             DATE,
+                ecert_response_date         DATE,
+                ecert_status                VARCHAR(20),
+                ecert_portal_status_id      INT
+            )
+
+            SELECT @disbursement_id = MAX(d.id)
+            FROM sfa.disbursement d WHERE d.assessment_id = @assessment_id;
+            DECLARE @financial_batch_id INT;
+
+            IF  @disbursement_id IS NOT NULL
+                BEGIN
+                    BEGIN TRY
+                        BEGIN TRANSACTION
+                            INSERT INTO @disbursement_temp (
+                                disbursement_type_id,
+                                assessment_id,
+                                funding_request_id,
+                                disbursed_amount,
+                                due_date,
+                                tax_year,
+                                issue_date,
+                                paid_amount,
+                                change_reason_id,
+                                financial_batch_id,
+                                financial_batch_id_year,
+                                financial_batch_run_date,
+                                financial_batch_serial_no,
+                                transaction_number,
+                                csl_cert_seq_number,
+                                ecert_sent_date,
+                                ecert_response_date,
+                                ecert_status,
+                                ecert_portal_status_id
+                            )
+                            SELECT
+                                disbursement_type_id,
+                                assessment_id,
+                                funding_request_id,
+                                disbursed_amount,
+                                due_date,
+                                tax_year,
+                                issue_date,
+                                disbursed_amount, -- assigns disbursement_amount to paid_amount
+                                change_reason_id,
+                                financial_batch_id,
+                                financial_batch_id_year,
+                                financial_batch_run_date,
+                                financial_batch_serial_no,
+                                transaction_number,
+                                csl_cert_seq_number,
+                                ecert_sent_date,
+                                ecert_response_date,
+                                ecert_status,
+                                ecert_portal_status_id
+                            FROM sfa.disbursement
+                            WHERE id = (@disbursement_id);
+
+                            UPDATE @disbursement_temp
+                            SET disbursed_amount = COALESCE(sfa.fn_net_amount(@funding_request_id, @assessment_id), 0);
+                                -- :disbursement.paid_amount := :disbursement.disbursed_amount; -- we avoid this assignment;
+
+                            --UPDATE sfa.assessment
+                            --SET over_award_applied_flg = 'Yes'
+                            --WHERE id = @assessment_id;
+
+                        SELECT 1 AS status, d.* FROM @disbursement_temp AS d;
+                        COMMIT TRANSACTION
+                    END TRY
+                    BEGIN CATCH
+                        SELECT 0 as status, 'Error to insert' AS message;
+                        ROLLBACK TRANSACTION;
+                    END CATCH
+                END
+            ELSE IF COALESCE(sfa.fn_net_amount(@funding_request_id, @assessment_id), 0) >= 0
+                BEGIN
+                    BEGIN TRY
+                        BEGIN TRANSACTION
+                            DECLARE @v_amount_remaining NUMERIC;
+                            
+                            DECLARE @count INT = 1;
+
+                            SELECT @v_amount_remaining = sfa.fn_net_amount(@funding_request_id, @assessment_id);  -- accumulated amount for new leg calculations
+                    
+                        WHILE @count <= @disbursements_required
+                            BEGIN -- START LOOP
+                                INSERT INTO @disbursement_temp (
+                                    id,
+                                    funding_request_id,
+                                    assessment_id,
+                                    issue_date
+                                )
+                                VALUES(
+                                    @count,
+                                    @funding_request_id,
+                                    @assessment_id,
+                                    GETDATE()
+                                );
+
+                                IF @financial_batch_id IS NULL
+                                    BEGIN
+                                        IF @academic_year < 2016
+                                            BEGIN
+                                            -- SELECT '@academic_year < 2016' AS MESSAGE; 
+                                                UPDATE @disbursement_temp
+                                                SET disbursed_amount = ((@allowed_tuition + @living_costs + @allowed_books))
+                                                WHERE id = @count;
+                                            END					
+                                        ELSE
+                                            BEGIN
+                                            -- SELECT '@academic_year < 2016 -- ELSE' AS MESSAGE;
+                                                UPDATE @disbursement_temp
+                                                SET disbursed_amount = (@weekly_amount * sfa.fn_get_period_weeks(@application_id)) + (COALESCE(@assessment_adj_amount, 0) / COALESCE(@disbursements_required, 1) )
+                                                WHERE id = @count;
+                                            END
+
+                                        IF @count = @air_travel_disbursement_period
+                                            BEGIN
+                                            -- SELECT '@count = @air_travel_disbursement_period' AS MESSAGE;
+                                                UPDATE @disbursement_temp
+                                                SET disbursed_amount = (COALESCE(disbursed_amount, 0) + @travel_allowance + @airfare_amount)
+                                                WHERE id = @count;
+                                            END
+                                        -- Added substraction of over award - 2016-03-01 Lidwien SFA-551
+                                        IF @count = @over_award_disbursement_period and @over_award_applied_flg = 'No'
+                                            BEGIN
+                                            -- SELECT '@count = @over_award_disbursement_period and @over_award_applied_flg = No' AS MESSAGE;
+                                                UPDATE @disbursement_temp
+                                                SET disbursed_amount = COALESCE(disbursed_amount, 0) - COALESCE(@over_award, 0)
+                                                WHERE id = @count;
+                                                
+                                                -- UPDATE sfa.assessment
+                                                -- SET over_award_applied_flg = 'Yes'
+                                                -- WHERE id = @assessment_id;
+                                            END
+                                        IF @v_amount_remaining < (SELECT disbursed_amount FROM @disbursement_temp WHERE id = @count) -- if the final period is less than actual period weeks
+                                            BEGIN
+                                                -- SELECT '@v_amount_remaining < (SELECT disbursed_amount FROM @disbursement_temp WHERE id = @count)' AS MESSAGE;
+                                                UPDATE @disbursement_temp
+                                                SET disbursed_amount = @v_amount_remaining
+                                                WHERE id = @count;
+                                            END
+                                        ELSE IF @v_amount_remaining > (SELECT disbursed_amount FROM @disbursement_temp WHERE id = @count) AND @count = @disbursements_required -- if final period is more then actual period weeks
+                                            BEGIN
+                                                -- SELECT '@v_amount_remaining > (SELECT disbursed_amount FROM @disbursement_temp WHERE id = @count) AND @count = @disbursements_required ' AS MESSAGE;
+                                                UPDATE @disbursement_temp
+                                                SET disbursed_amount = @v_amount_remaining
+                                                WHERE id = @count;
+                                            END
+                                        
+                                        UPDATE @disbursement_temp
+                                        SET paid_amount = disbursed_amount
+                                        WHERE id = @count;
+
+                                        SET @v_amount_remaining = (SELECT paid_amount FROM @disbursement_temp WHERE id = @count)
+                                        
+                                        IF @v_amount_remaining >= 0
+                                        -- SELECT '@v_amount_remaining >= 0' AS MESSAGE;
+                                            BEGIN
+                                                UPDATE @disbursement_temp
+                                                SET disbursement_type_id = 1
+                                                WHERE id = @count;
+                                            END
+
+                                        --IF @count <> @disbursements_required 
+                                        --BEGIN
+                                            --SET @disbursement_type_id = 1;
+                                            --NEXT_RECORD();
+                                        --END++
+                                    END
+                                SET @count = @count + 1;
+                            END -- END LOOP
+                        
+                        SELECT 1 AS status, d.* FROM @disbursement_temp AS d;
+                        COMMIT TRANSACTION
+                    END TRY
+                    BEGIN CATCH
+                        SELECT 0 as status, 'Error to insert' AS message;
+                        ROLLBACK TRANSACTION;
+                    END CATCH
+                END
+            ELSE
+                BEGIN
+                    INSERT INTO @disbursement_temp
+                    (
+                        id,
+                        funding_request_id,
+                        assessment_id,
+                        issue_date
+                    )
+                    VALUES(
+                        -1,
+                        @funding_request_id,
+                        @assessment_id,
+                        GETDATE()
+                    );
+                    
+                    IF @financial_batch_id IS NULL
+                        BEGIN
+                            UPDATE @disbursement_temp
+                            SET disbursed_amount = COALESCE(sfa.fn_net_amount(@funding_request_id, @assessment_id), 0),
+                            paid_amount = COALESCE(sfa.fn_net_amount(@funding_request_id, @assessment_id), 0)
+                            WHERE id = -1;
+                        END	
+                    
+                    --ELSE
+                        --LAST_RECORD;					
+                        --CREATE_RECORD;
+            
+                        --:disbursement.disbursed_amount := :assessment.net_amount;
+                        --:disbursement.paid_amount := :disbursement.disbursed_amount;				
+                    --END IF;
+                    SELECT 1 AS status, d.* FROM @disbursement_temp AS d;	
+                END
+                -- :assessment.previous_disbursement := NVL(get_disbursed_amount(:assessment.funding_quest_id, :assessment.assessment_id),0); SHOW PREVIOUS DISBURSEMENT
+                -- :assessment.net_amount := get_net; SHOW NET_AMOUNT IN FRONT
+        END
+
+    ELSE IF 
+        @air_travel_disbursement_period > @disbursements_required 
+        AND ((@years_funded_equivalent IS NOT NULL AND @academic_year < 2016) OR (@academic_year > 2015)) 
+        BEGIN
+            -- SEND TO ENDPOINT
+            SELECT 0 as status, 
+            'The airfare and travel allowance disbursement period cannot be greater than the number of disbursements.' AS message;
+        END 
+
+    ELSE IF 
+        @air_travel_disbursement_period IS NULL AND (@travel_allowance > 0 OR @airfare_amount > 0) 
+        AND ((@years_funded_equivalent IS NOT NULL AND @academic_year < 2016) OR (@academic_year > 2015))
+        BEGIN
+            -- SEND TO ENDPOINT
+            SELECT 0 as status, 
+            'The airfare and travel allowance disbursement period must be entered.' AS message;
+            RETURN;
+        END
+
+    ELSE IF @over_award_disbursement_period > @disbursements_required
+        BEGIN
+            -- SEND TO ENDPOINT
+            SELECT 0 as status, 
+            'The over award disbursement period cannot be greater than the number of disbursements.' AS message;
+            RETURN;
+        END
+
+    ELSE IF COALESCE(@over_award_disbursement_period, 0) < 1  AND (@over_award > 0)
+        BEGIN
+            -- SEND TO ENDPOINT
+            SELECT 0 as status, 
+            'The over award disbursement period must be entered' AS message;
+            RETURN;
+        END
+
+    ELSE IF @years_funded_equivalent IS NULL AND @academic_year < 2016
+        BEGIN
+            -- SEND TO ENDPOINT
+            SELECT 0 as status, 
+            'The fraction of whole year must be entered' AS message;
+            RETURN;
+        END
+
+    ELSE
+        BEGIN
+            -- SEND TO ENDPOINT
+            SELECT 0 as status, 
+            'No Disbursement made, make sure over award applied checkbox is unchecked. ' AS message;
+            RETURN;
         END
 END
 GO

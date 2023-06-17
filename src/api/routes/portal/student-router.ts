@@ -30,6 +30,14 @@ portalStudentRouter.get("/:sub/addresses", async (req: Request, res: Response) =
   res.json({ data: [] });
 });
 
+portalStudentRouter.post("/feedback", async (req: Request, res: Response) => {
+  const { date, improve, text, url } = req.body;
+
+  console.log("FEEDBACK RECEIVED", date, improve, text, url);
+
+  res.json({ data: "success" });
+});
+
 portalStudentRouter.post("/:sub", async (req: Request, res: Response) => {
   const { sub } = req.params;
   const { date_of_birth, first_name, last_name, sin, email } = req.body;
