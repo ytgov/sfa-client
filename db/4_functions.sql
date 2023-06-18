@@ -2313,3 +2313,22 @@ BEGIN
 	RETURN COALESCE(@amount, 0);
 END;
 GO
+
+--Get Student Contribution: student_contribution_pck_1.get_student_contribution
+CREATE OR ALTER FUNCTION sfa.fn_get_student_contribution(@academic_year INT, @province_id INT, @student_category_id INT, @period_id INT)
+RETURNS FLOAT(8)
+AS
+BEGIN 
+	DECLARE @amount FLOAT(8) = 0;
+
+	SELECT
+		@amount = COALESCE(sc.contribution_amount, 0)
+	FROM sfa.student_contribution sc
+	WHERE sc.academic_year_id = @academic_year
+	AND sc.province_id = @province_id
+	AND sc.student_category_id = @student_category_id
+	AND sc.period_id = @period_id;
+	
+	RETURN COALESCE(@amount, 0);
+END;
+GO
