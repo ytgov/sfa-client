@@ -2188,4 +2188,21 @@ BEGIN
 	AND sla.student_category_id = @student_category_id;
 	
 	RETURN COALESCE(@amount, 0);
-END
+END;
+GO
+
+-- Get Max Discretionary: csl_lookup_pck_1.get_max_discretionary
+CREATE OR ALTER FUNCTION sfa.fn_get_max_discretionary(@academic_year INT)
+RETURNS FLOAT(8)
+AS
+BEGIN 
+	DECLARE @amount FLOAT(8) = 0;
+	
+	SELECT 
+		@amount = COALESCE(cl.discretionary_costs_max_amount, 0)
+	FROM sfa.csl_lookup cl
+	WHERE cl.academic_year_id = @academic_year;
+	
+	RETURN COALESCE(@amount, 0);
+END;
+GO
