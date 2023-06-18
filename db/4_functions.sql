@@ -2206,3 +2206,110 @@ BEGIN
 	RETURN COALESCE(@amount, 0);
 END;
 GO
+
+-- Get student category id by code.
+CREATE OR ALTER FUNCTION sfa.fn_get_student_category_code(@student_category_code VARCHAR(10))
+RETURNS VARCHAR(10)
+AS
+BEGIN 
+	DECLARE @code VARCHAR(10) = NULL;
+	
+	SELECT 
+		@code = sc.id 
+	FROM
+		sfa.student_category sc
+	WHERE
+		sc.code = @student_category_code
+	
+	RETURN @code;
+END;
+GO
+
+-- Get Public Transportation: csl_lookup_pck_1.get_public_transportation
+CREATE OR ALTER FUNCTION sfa.fn_get_public_transportation(@academic_year INT, @province_id INT, @student_category_id INT)
+RETURNS FLOAT(8)
+AS
+BEGIN 
+	DECLARE @amount FLOAT(8) = 0;
+	
+	SELECT 
+		@amount = COALESCE(sla.public_tranport_amount, 0)
+	FROM sfa.student_living_allowance sla
+	WHERE sla.academic_year_id = @academic_year
+	AND sla.province_id = @province_id
+	AND sla.student_category_id = @student_category_id;
+	
+	RETURN COALESCE(@amount, 0);
+END;
+GO
+
+-- Get Child Care: child_care_ceiling_pck_1.get_child_care
+CREATE OR ALTER FUNCTION sfa.fn_get_child_care(@academic_year INT, @province_id INT)
+RETURNS FLOAT(8)
+AS
+BEGIN 
+	DECLARE @amount FLOAT(8) = 0;
+	
+	SELECT 
+		@amount = COALESCE(ccc.max_amount, 0)
+	FROM sfa.child_care_ceiling ccc
+	WHERE ccc.academic_year_id = @academic_year
+	AND ccc.province_id = @province_id;
+	
+	RETURN COALESCE(@amount, 0);
+END;
+GO
+
+-- Get Actual Expense: expense_pck_1.get_actual_expense
+CREATE OR ALTER FUNCTION sfa.fn_get_actual_expense(@period_id INT, @category_id INT, @application_id INT)
+RETURNS FLOAT(8)
+AS
+BEGIN 
+	DECLARE @amount FLOAT(8) = 0;
+
+	SELECT TOP 1
+		@amount = COALESCE(e.amount, 0)
+	FROM sfa.expense e
+	WHERE e.period_id = @period_id
+	AND e.category_id = @category_id
+	AND e.application_id = @application_id
+	ORDER BY e.id DESC;
+	
+	RETURN COALESCE(@amount, 0);
+END;
+GO
+
+-- Get Prestudy Tax Rate: prestudy_tax_rate_pck_1.get_prestudy_tax_rate
+CREATE OR ALTER FUNCTION sfa.fn_get_prestudy_tax_rate(@academic_year INT, @income FLOAT(8))
+RETURNS FLOAT(8)
+AS
+BEGIN 
+	DECLARE @amount FLOAT(8) = 0;
+
+	SELECT
+		@amount = COALESCE(ptr.prestudy_tax_rate, 0)
+	FROM sfa.prestudy_tax_rate ptr
+	WHERE ptr.academic_year_id = @academic_year
+	AND @income BETWEEN ptr.from_income_amount AND ptr.to_income_amount;
+	
+	RETURN COALESCE(@amount, 0);
+END;
+GO
+
+-- Get Spouse Tax Rate: spouse_tax_rate_pck_1.get_spouse_tax_rate
+CREATE OR ALTER FUNCTION sfa.fn_get_spouse_tax_rate(@academic_year INT, @province_id INT, @income FLOAT(8))
+RETURNS FLOAT(8)
+AS
+BEGIN 
+	DECLARE @amount FLOAT(8) = 0;
+
+	SELECT
+		@amount = COALESCE(str.tax_rate, 0)
+	FROM sfa.spouse_tax_rate str
+	WHERE str.academic_year_id = @academic_year
+	AND str.province_id = @province_id
+	AND @income BETWEEN str.from_income_amount AND str.to_income_amount;
+	
+	RETURN COALESCE(@amount, 0);
+END;
+GO
