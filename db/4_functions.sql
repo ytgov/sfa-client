@@ -2172,3 +2172,20 @@ BEGIN
 	RETURN COALESCE(@amount, 0);
 END;
 GO
+
+-- Get Shelter Food Misc: student_living_allowance_pck_1.get_shelter_food_misc
+CREATE OR ALTER FUNCTION sfa.fn_get_shelter_food_misc(@academic_year INT, @province_id INT, @student_category_id INT)
+RETURNS FLOAT(8)
+AS
+BEGIN 
+	DECLARE @amount FLOAT(8) = 0;
+
+	SELECT
+		@amount = COALESCE(sla.shelter_amount, 0) + COALESCE(sla.food_amount, 0) + COALESCE(sla.misc_amount, 0)
+	FROM sfa.student_living_allowance sla
+	WHERE sla.academic_year_id = @academic_year
+	AND sla.province_id = @province_id
+	AND sla.student_category_id = @student_category_id;
+	
+	RETURN COALESCE(@amount, 0);
+END
