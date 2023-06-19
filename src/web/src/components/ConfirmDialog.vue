@@ -4,9 +4,9 @@
       <v-card-title>{{ title }}</v-card-title>
       <v-card-text>{{ message }}</v-card-text>
       <v-card-actions>
-        <v-btn color="primary" @click="doConfirm()">Confirm</v-btn>
+        <v-btn color="primary"  v-if="showConfirm" @click="doConfirm()">Confirm</v-btn>
         <v-spacer></v-spacer>
-        <v-btn color="secondary" @click="doDeny()">Cancel</v-btn>
+        <v-btn color="secondary" @click="doDeny()">{{messageButton}}</v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>
@@ -20,13 +20,17 @@ export default {
     dialogModel: null,
     confirmCallback: null,
     denyCallback: null,
+    showConfirm: true,
+    messageButton: "Cancel"
   }),
   methods: {
-    show(title, message, confirmCallback, denyCallback) {
+    show(title, message, confirmCallback, denyCallback, showConfirm = true, messageButton = "Cancel") {
       this.title = title;
       this.message = message;
       this.confirmCallback = confirmCallback;
       this.denyCallback = denyCallback;
+      this.showConfirm = showConfirm;
+      this.messageButton = messageButton;
       this.dialogModel = true;
     },
 

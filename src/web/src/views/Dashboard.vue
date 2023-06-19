@@ -19,9 +19,24 @@
                 <router-link to="/search">Advanced search</router-link>
             </v-card-text>
         </v-card>
-
+        <div class="row" style="margin: 0">
+            <div class="col-md-3" style="padding-left: 0">
+                <v-select
+                    outlined
+                    dense
+                    background-color="white"
+                    hide-details
+                    label="Select a filter"
+                    v-model="filter"
+                    item-text="name"
+                    item-value="code_name"
+                    :items="filters"
+                    @change="persistFilter"
+                ></v-select>
+            </div>
+        </div>
         <div class="row">
-            <div class="col-md-4">
+            <!-- <div class="col-md-4">
                 <v-card class="mt-5" color="#fff2d5">
                     <v-card-title>Recently viewed Students:</v-card-title>
                     <v-card-text>
@@ -39,7 +54,7 @@
                         </ol>
                     </v-card-text>
                 </v-card>
-            </div>
+            </div> -->
             <div class="col-md-4">
                 <v-card class="mt-5" color="#fff2d5">
                     <v-card-title>Recently viewed Applications:</v-card-title>
@@ -73,6 +88,24 @@
                             >
                                 <router-link :to="`/application/${item.id}/personal`">
                                     {{ item.title }}
+                                </router-link>
+                            </li>
+                        </ol>
+                    </v-card-text>
+                </v-card>
+            </div>
+            <div class="col-md-4">
+                <v-card class="mt-5" color="#fff2d5">
+                    <v-card-title>Recent updates or messages</v-card-title>
+                    <v-card-text>
+                      <p v-if="recentUpdated.length == 0" class="mb-0">None yet</p>
+                        <ol v-if="recentUpdated.length > 0">
+                            <li
+                                v-for="(item, idx) of recentUpdated"
+                                :key="idx"
+                            >
+                                <router-link :to="`/student/${item.id}`"
+                                    >{{ item.title }} - <span style="font-size: 10px">{{ getFormattedDate(item.updated_at) }}</span>
                                 </router-link>
                             </li>
                         </ol>
@@ -156,6 +189,7 @@ export default {
         ...mapState(["recentStudents", "recentApplications"]),
     },
     data: () => ({
+        filter: 'ALL',
         search: "",
         drawer: null,
         selectedStudent: null,
@@ -163,30 +197,183 @@ export default {
         resultCount: 0,
         isSearching: false,
         newApplications: [],
+        recentUpdated: [],
         loading: true,
+        filters: [
+            { 
+                name: "Select All",
+                code_name: "ALL",
+            },
+            { 
+                name: "Clear",
+                code_name: "CLEAR",
+            },
+            { divider: true },
+            { 
+                name: "A",
+                code_name: "A",
+            },
+            { 
+                name: "B",
+                code_name: "B",
+            },
+            { 
+                name: "C",
+                code_name: "C",
+            },
+            { 
+                name: "D",
+                code_name: "D",
+            },
+            { 
+                name: "E",
+                code_name: "E",
+            },
+            { 
+                name: "F",
+                code_name: "F",
+            },
+            { 
+                name: "G",
+                code_name: "G",
+            },
+            { 
+                name: "H",
+                code_name: "H",
+            },
+            { 
+                name: "I",
+                code_name: "I",
+            },
+            { 
+                name: "J",
+                code_name: "J",
+            },
+            { 
+                name: "K",
+                code_name: "K",
+            },
+            { 
+                name: "L",
+                code_name: "L",
+            },
+            { 
+                name: "M",
+                code_name: "M",
+            },
+            { 
+                name: "N",
+                code_name: "N",
+            },
+            { 
+                name: "O",
+                code_name: "O",
+            },
+            { 
+                name: "P",
+                code_name: "P",
+            },
+            { 
+                name: "Q",
+                code_name: "Q",
+            },
+            { 
+                name: "R",
+                code_name: "R",
+            },
+            { 
+                name: "S",
+                code_name: "S",
+            },
+            { 
+                name: "T",
+                code_name: "T",
+            },
+            { 
+                name: "U",
+                code_name: "U",
+            },
+            { 
+                name: "V",
+                code_name: "V",
+            },
+            { 
+                name: "W",
+                code_name: "W",
+            },
+            { 
+                name: "X",
+                code_name: "X",
+            },
+            { 
+                name: "Y",
+                code_name: "Y",
+            },
+            { 
+                name: "Z",
+                code_name: "Z",
+            },
+        ],
     }),
     mounted () {
+        if (localStorage.DASHBOARD_LASTNAME_FILTER) {
+            this.filter = localStorage.DASHBOARD_LASTNAME_FILTER;
+        }
+
         axios
-            .get(`${APPLICATION_URL}/all`)
+            .get(`${APPLICATION_URL}/all`, { 
+                    params: {
+                        filter: this.filter,
+                    }
+                })
             .then((response) => {
                 this.newApplications = get(response, 'data.data', [])
             })
             .catch(error => console.log(error))
             .finally(() => this.loading = false);
+
+        axios
+            .get(`${APPLICATION_URL}/latest-updates`, { 
+                    params: {
+                        filter: this.filter,
+                    }
+                })
+            .then((response) => {
+                this.recentUpdated = get(response, 'data.data', [])
+            })
+            .catch(error => console.log(error))
+            .finally(() => this.loading = false);
     },
     methods: {
+        getFormattedDate(date) {
+           return new Date(date).toLocaleDateString();
+        },
         getData() {
             axios
-                .get(`${APPLICATION_URL}/all`)
-                .then((response) => {
-                    this.newApplications = get(response, 'data.data', [])
+            .get(`${APPLICATION_URL}/all`, { 
+                    params: {
+                        filter: this.filter,
+                    }
                 })
-                .catch(error => console.log(error))
-                .finally(() => this.loading = false);
+            .then((response) => {
+                this.newApplications = get(response, 'data.data', [])
+            })
+            .catch(error => console.log(error))
+            .finally(() => this.loading = false);
         },
         searchKeyUp(event) {
             if (event.key == "Enter") this.doSearch();
         },
+        persistFilter(item_code_name) {
+            if(item_code_name == 'CLEAR') {
+                localStorage.setItem('DASHBOARD_LASTNAME_FILTER', 'ALL');
+                this.filter = 'ALL';
+            } else {
+                localStorage.setItem('DASHBOARD_LASTNAME_FILTER', item_code_name);
+            }
+
+            this.getData();          
+        },  
         doSearch() {
             this.drawer = true;
             this.selectedStudent = null;
