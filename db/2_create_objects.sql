@@ -1853,3 +1853,9 @@ CREATE TABLE sfa.field_program (
     program_id INT NOT NULL REFERENCES sfa.program (id),
     field_program_code float(8) NULL
 );
+
+CREATE TABLE sfa.in_school_status (
+	id INT IDENTITY (1, 1) PRIMARY KEY,
+	description NVARCHAR(500) NOT NULL,
+	is_active BIT NOT NULL DEFAULT 0,
+)
