@@ -68,3 +68,5 @@ export const AWS_S3_CONFIG = {
   forcePathStyle: true,
   region: AWS_S3_REGION,
 };
+
+export const SENTRY_DSN = process.env.SENTRY_DSN || "";
