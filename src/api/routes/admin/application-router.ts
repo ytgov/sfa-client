@@ -278,7 +278,22 @@ applicationRouter.get("/:id",
             .where("sfa.person.id", application.parent1_id )
             .orderBy( "sfa.person_address.address_type_id")
             .first();
-
+            
+            application.mailing_address = await db("sfa.person")
+            .leftJoin("sfa.person_address", "sfa.person.id", "sfa.person_address.person_id")
+            .select(
+                "sfa.person.*",
+                "sfa.person_address.id AS person_address_id",
+                "sfa.person_address.address_type_id",
+                "sfa.person_address.address1",
+                "sfa.person_address.address2",
+                "sfa.person_address.city_id",
+                "sfa.person_address.country_id",
+                "sfa.person_address.province_id",
+                "sfa.person_address.postal_code",
+            )
+            .where("sfa.person.id", application.student_id)
+            .first();
             application.parent2 = await db("sfa.person").where({ id: application.parent2_id }).first();
             application.spouse_info = await db("sfa.person").where({ id: application.spouse_id }).first();
             application.agencies_assistance = await db("sfa.agency_assistance").where({ application_id: application.id });    
@@ -339,7 +354,7 @@ applicationRouter.get("/:id",
 applicationRouter.put("/:id",
     [param("id").notEmpty()], ReturnValidationErrors, async (req: Request, res: Response) => {
         let { id } = req.params;
-
+        
         db("sfa.application").where({ id }).update(req.body)
             .then((result: any) => {
                 res.json({ messages: [{ variant: "success", text: "Application saved" }] })
@@ -868,18 +883,28 @@ applicationRouter.post("/:application_id/person-address",
 
         try {
             const { application_id } = req.params;
-            const { data, addressTypeId = 1, personAddressId = null } = req.body;
+            const { data, addressTypeId = 4 } = req.body;
+            let { personAddressId = null } = req.body;
                 
             if (!Object.keys(data).length) {
                 return res.json({ messages: [{ variant: "error", text: "data is required" }] });
             }
-            if (personAddressId) {
+            if (personAddressId) {       
+                let student_id = null;         
+                if(data.student_id) {
+                    student_id = data.student_id;                    
+                    delete data.student_id;
+                }    
+                
+                console.log(1)
                 const resInsertPA = await db("sfa.person_address")
-                    .insert({ ...data, address_type_id: addressTypeId, person_id: personAddressId, is_active: true })
+                //.insert({ ...data, address_type_id: addressTypeId, person_id: student_id, is_active: true })
+                    .insert({ ...data, address_type_id: addressTypeId, person_id: student_id, is_active: true })
                     .returning("*");
 
                 return res.json({ messages: [{ variant: "success", text: "Inserted" }] });
             } else {
+                console.log(2);
                 await db.transaction(async (trx) => {
                     const [resInsert] = await Promise.all(
                         [
@@ -890,7 +915,7 @@ applicationRouter.post("/:application_id/person-address",
                     )
 
                     if (resInsert) {
-                        
+                        console.log(3);
                         const resUpdateA = await trx("sfa.application")
                             .update("parent1_id", resInsert[0].id)
                             .where({ id: application_id })
@@ -927,6 +952,12 @@ applicationRouter.patch("/:person_address_id/person-address",
                 return res.json({ messages: [{ variant: "error", text: "data is required" }] });
             }
 
+            console.log(11);
+            let student_id = null;
+            if(data.student_id) {
+                student_id = data.student_id;
+                delete data.student_id;
+            }
             const resUpdate = await db("sfa.person_address")
                 .update({ ...data })
                 .where({ id: person_address_id })
