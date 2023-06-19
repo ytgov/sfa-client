@@ -15,7 +15,6 @@ const actions = {
     async checkAuthentication({ commit }) {
         await axios.get(AUTH_CHECK_URL)
             .then(resp => {
-                //console.log(resp.data.data)
                 commit("setUser", resp.data.data);
             }).catch(() => {
                 commit("clearUser");
