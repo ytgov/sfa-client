@@ -217,7 +217,7 @@ export class DocumentService {
       Bucket: input.bucket,
       Key: `${AWS_S3_PATH}/${input.object_key}`,
       Body: input.file_contents,
-      ContentType: input.mime_type,
+      //ContentType: input.mime_type,
     });
 
     console.log("S3 PUTCMD", upload1Command);
