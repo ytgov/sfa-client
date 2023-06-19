@@ -1233,6 +1233,10 @@ CREATE TABLE sfa.application
     last_checked_on                DATE           NULL,
     seen                           BIT            NOT NULL DEFAULT 0,
     updated_at                     DATETIME       NULL,
+    last_jurisdiction_id           INT            NULL REFERENCES sfa.province,
+    other_jurisdiction             NVARCHAR(255)  NULL,
+    spouse_last_jurisdiction_id    INT           NULL REFERENCES sfa.province,
+    spouse_other_jurisdiction      NVARCHAR(255)  NULL
 
 )
 

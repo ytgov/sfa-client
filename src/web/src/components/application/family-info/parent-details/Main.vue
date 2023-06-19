@@ -2,7 +2,7 @@
     <div>
         
         <MailingAddress 
-            :parent="parent1" 
+            :parent="mailingAddressParents" 
             v-on:showSuccess="showSuccess"
             v-on:showError="showError"
         />
@@ -53,6 +53,9 @@ export default {
         },
         parent2() {
             return this.application?.parent2 || {};
+        },
+        mailingAddressParents() {            
+            return this.application?.mailing_address || {};
         },
     },
     data: () => ({
