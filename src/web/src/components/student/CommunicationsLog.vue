@@ -267,8 +267,7 @@
           await store.dispatch("loadApplication", this.applicationId);
           store.dispatch("setAppSidebar", true);
         }
-      }        
-      console.log(this.$refs.panel[0].toggle(true));
+      }              
     },   
     methods: {
       hendleEdition(i) {
