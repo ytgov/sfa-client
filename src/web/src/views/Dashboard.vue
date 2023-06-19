@@ -78,7 +78,6 @@
                 <v-card class="mt-5" color="#fff2d5">
                     <v-card-title>New Applications</v-card-title>
                     <v-card-text>
-                        <p v-if="newApplications.length == 0" class="mb-0">None yet</p>
                         <div v-if="loading">Loading...</div>
                         <p v-if="newApplications.length == 0 && !loading" class="mb-0">None yet</p>
                         <ol v-if="newApplications.length > 0">
@@ -104,7 +103,7 @@
                                 v-for="(item, idx) of recentUpdated"
                                 :key="idx"
                             >
-                                <router-link :to="`/student/${item.id}`"
+                                <router-link :to="`/application/${item.id}/personal`"
                                     >{{ item.title }} - <span style="font-size: 10px">{{ getFormattedDate(item.updated_at) }}</span>
                                 </router-link>
                             </li>
@@ -346,7 +345,7 @@ export default {
     },
     methods: {
         getFormattedDate(date) {
-           return new Date(date).toLocaleDateString();
+            return new Date(date).toLocaleDateString();
         },
         getData() {
             axios
@@ -357,6 +356,18 @@ export default {
                 })
             .then((response) => {
                 this.newApplications = get(response, 'data.data', [])
+            })
+            .catch(error => console.log(error))
+            .finally(() => this.loading = false);
+
+            axios
+            .get(`${APPLICATION_URL}/latest-updates`, { 
+                    params: {
+                        filter: this.filter,
+                    }
+                })
+            .then((response) => {
+                this.recentUpdated = get(response, 'data.data', [])
             })
             .catch(error => console.log(error))
             .finally(() => this.loading = false);
