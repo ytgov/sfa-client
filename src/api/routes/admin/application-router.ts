@@ -895,16 +895,14 @@ applicationRouter.post("/:application_id/person-address",
                     student_id = data.student_id;                    
                     delete data.student_id;
                 }    
-                
-                console.log(1)
+                                
                 const resInsertPA = await db("sfa.person_address")
                 //.insert({ ...data, address_type_id: addressTypeId, person_id: student_id, is_active: true })
                     .insert({ ...data, address_type_id: addressTypeId, person_id: student_id, is_active: true })
                     .returning("*");
 
                 return res.json({ messages: [{ variant: "success", text: "Inserted" }] });
-            } else {
-                console.log(2);
+            } else {                
                 await db.transaction(async (trx) => {
                     const [resInsert] = await Promise.all(
                         [
@@ -914,8 +912,7 @@ applicationRouter.post("/:application_id/person-address",
                         ]
                     )
 
-                    if (resInsert) {
-                        console.log(3);
+                    if (resInsert) {                        
                         const resUpdateA = await trx("sfa.application")
                             .update("parent1_id", resInsert[0].id)
                             .where({ id: application_id })
@@ -951,8 +948,7 @@ applicationRouter.patch("/:person_address_id/person-address",
             if (!Object.keys(data).length) {
                 return res.json({ messages: [{ variant: "error", text: "data is required" }] });
             }
-
-            console.log(11);
+            
             let student_id = null;
             if(data.student_id) {
                 student_id = data.student_id;
