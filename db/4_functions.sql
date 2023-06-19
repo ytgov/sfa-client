@@ -1083,7 +1083,9 @@ RETURNS
     disbursements_required INT,
     previous_disbursement NUMERIC, -- IS NOT IN ASSESSMENT, IS IN CSL_NARS_HISTORY
     assessed_amount NUMERIC,
-    pre_leg_amount FLOAT
+    pre_leg_amount FLOAT,
+    previous_weeks INT,
+    assessed_weeks INT
 )
 AS
 BEGIN
@@ -1104,6 +1106,8 @@ BEGIN
     DECLARE @previous_disbursement NUMERIC; -- IS NOT IN ASSESSMENT, IS IN CSL_NARS_HISTORY
     DECLARE @assessed_amount NUMERIC;
     DECLARE @pre_leg_amount FLOAT;
+    DECLARE @previous_weeks INT;
+    DECLARE @assessed_weeks INT;
 
     DECLARE @disburse_required NUMERIC;
     DECLARE @disbursed_amt NUMERIC;
@@ -1118,15 +1122,17 @@ BEGIN
     FROM sfa.application app 
     WHERE app.id = @application_id;
 
-    SELECT @weeks_allowed = DATEDIFF(MONTH, @classes_start_date, @classes_end_date);
+    SELECT @allowed_months = DATEDIFF(MONTH, @classes_start_date, @classes_end_date),
+    @previous_weeks = COALESCE(sfa.fn_get_previous_weeks_yg(@student_id, @application_id), 0),
+    @assessed_weeks =  COALESCE(sfa.fn_get_allowed_weeks(@classes_start_date, @classes_end_date), 0) ;
 
-    IF COALESCE(sfa.fn_get_previous_weeks_yg(@student_id, @application_id), 0) + COALESCE(sfa.fn_get_allowed_weeks(@classes_start_date, @classes_end_date), 0) > 170
+    IF (@previous_weeks + @assessed_weeks) > 170
       BEGIN
-        SELECT @weeks_allowed = 170 - COALESCE(sfa.fn_get_previous_weeks_yg(@student_id, @application_id), 0);		
+        SELECT @weeks_allowed = 170 - @previous_weeks;		
       END
     ELSE
       BEGIN
-        SELECT @weeks_allowed = COALESCE(sfa.fn_get_previous_weeks_yg(@student_id, @application_id), 0);				
+        SELECT @weeks_allowed = @previous_weeks;				
       END
 
     SELECT 
@@ -1167,7 +1173,7 @@ BEGIN
     @allowed_books = book
     FROM sfa.fn_get_yg_cost (@program_division, @academic_year_id, 100);
 	
-	SELECT @disburse_required = sfa.fn_disbursments_required(@application_id, @assessment_id);
+	SELECT @disburse_required = sfa.fn_disbursments_required(@application_id, @assessment_id); 
 
 --f_alert.ok('New Info - ID: '||	:assessment.assessment_id||'  weekly amt: '||:assessment.weekly_amount); -- Lidwien debug
 
@@ -1255,7 +1261,9 @@ BEGIN
     disbursements_required,
     previous_disbursement,
     assessed_amount,
-    pre_leg_amount
+    pre_leg_amount,
+    previous_weeks,
+    assessed_weeks
   ) VALUES(
     @funding_request_id,
     @classes_end_date,
@@ -1275,7 +1283,9 @@ BEGIN
     @disbursements_required,
     @previous_disbursement,
     @assessed_amount,
-    @pre_leg_amount
+    @pre_leg_amount,
+    @previous_weeks,
+    @assessed_weeks
   )
   RETURN;
 END
