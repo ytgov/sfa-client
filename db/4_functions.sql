@@ -2324,6 +2324,23 @@ BEGIN
 END;
 GO
 
+-- Get Study Tax Rate: study_tax_rate_pck_1.get_study_tax_rate
+CREATE OR ALTER FUNCTION sfa.fn_get_study_tax_rate(@academic_year INT, @income FLOAT(8))
+RETURNS FLOAT(8)
+AS
+BEGIN 
+	DECLARE @amount FLOAT(8) = 0;
+
+	SELECT
+		@amount = COALESCE(str.study_tax_rate, 0)
+	FROM sfa.study_tax_rate str
+	WHERE str.academic_year_id = @academic_year
+	AND @income BETWEEN str.from_income_amount AND str.to_income_amount;
+	
+	RETURN COALESCE(@amount, 0);
+END;
+GO
+
 --Get Student Contribution: student_contribution_pck_1.get_student_contribution
 CREATE OR ALTER FUNCTION sfa.fn_get_student_contribution(@academic_year INT, @province_id INT, @student_category_id INT, @period_id INT)
 RETURNS FLOAT(8)
