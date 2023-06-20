@@ -273,22 +273,20 @@
                     <div class="col-md-12 text-no-wrap text-center text-subtitle-1">
                       In School Status  
                     </div>
-                    <v-text-field
-                      outlined 
-                      dense 
-                      background-color="white"
-                      :disabled="showAdd"
-                      oninput="
-                        if (this.value.length > 4) {
-                          this.value = this.value.slice(0, 4);
-                        }
-                      "
-                      @keypress="validate.isNumber($event)"
-                      @change="doSaveResidence('in_school', item.in_school, 'residenceInfo', item.id)"
-                      v-model="item.in_school"
-                      hide-details 
-                      label="In School"
-                    ></v-text-field>
+                    <v-select        
+                          append-icon                 
+                          outlined 
+                          dense 
+                          background-color="white"
+                          :items="inSchoolStatus"
+                          :disabled="showAdd"
+                          item-text="description"
+                          item-value="id"
+                          @change="doSaveResidence('in_school', item.in_school, 'residenceInfo', item.id)"
+                          v-model="item.in_school"
+                          hide-details 
+                          label="In School"                          
+                        ></v-select>
                   </div>
                   <div class="col-1 mt-13">
                     <v-btn
@@ -458,22 +456,20 @@
                   </div>
                   <div class="col-md-2">
                     <div class="col-md-12 text-no-wrap text-center text-subtitle-1">
-                      In School Status  
+                      In School Status
                     </div>
-                    <v-text-field
-                      outlined 
-                      dense 
-                      background-color="white"
-                      oninput="
-                        if (this.value.length > 4) {
-                          this.value = this.value.slice(0, 4);
-                        }
-                      "
-                      @keypress="validate.isNumber($event)"
-                      v-model="newRecord.in_school"
-                      hide-details 
-                      label="In School"
-                    ></v-text-field>
+                    <v-select          
+                          append-icon                
+                          outlined 
+                          dense 
+                          background-color="white"
+                          :items="inSchoolStatus"
+                          item-text="description"
+                          item-value="id"
+                          v-model="newRecord.in_school"
+                          hide-details 
+                          label="In School"                          
+                        ></v-select>
                   </div>
                   <div class="col-1 mt-13">
                   </div>
@@ -722,7 +718,7 @@ import validator from "@/validator";
 export default {
   name: "Home",
   computed: {
-    ...mapGetters(["monthOptions", "yearOptions", "cities", "provinces", "countries"]),
+    ...mapGetters(["monthOptions", "yearOptions", "cities", "provinces", "countries", "inSchoolStatus"]),    
     student: function () {
       return store.getters.selectedStudent;
     },
@@ -815,7 +811,8 @@ export default {
     store.dispatch("setProvinces");
     store.dispatch("setCountries");
     store.dispatch("setYearOptions");
-    store.dispatch("setMonthOptions");
+    store.dispatch("setMonthOptions");        
+    store.dispatch("setInSchoolStatus");
   },
   methods: {
     setClose() {
