@@ -10,8 +10,9 @@ import { portalRouter } from "./routes/portal";
 import * as config from "./config";
 import { doHealthCheck } from "./utils/health_check";
 import { configureAuthentication } from "./routes/auth";
-import { RequiresAuthentication } from "./middleware";
-import { CreateMigrationRoutes } from "./data/migrator";
+
+import * as Sentry from "@sentry/node";
+if (config.SENTRY_DSN.length > 0) Sentry.init({ dsn: config.SENTRY_DSN });
 
 const app = express();
 app.use(express.json()); // for parsing application/json

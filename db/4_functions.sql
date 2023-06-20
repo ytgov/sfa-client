@@ -619,16 +619,47 @@ BEGIN
     DECLARE @net_amount NUMERIC;
     DECLARE @funding_request_id INT;
     DECLARE @weeks_allowed NUMERIC;
+    DECLARE @previous_weeks INT;
+    DECLARE @assessed_weeks INT;
+    DECLARE @student_id INT;
+    DECLARE @classes_end_date DATE;
+	DECLARE @classes_start_date DATE;
+
+    SELECT 
+        @student_id = app.student_id,
+        @classes_end_date = app.classes_end_date,
+        @classes_start_date = app.classes_start_date
+    FROM sfa.application app
+    WHERE app.id = @application_id_p;
 
     SELECT @academic_year_id = academic_year_id , 
            @program_division = program_division
     FROM sfa.application 
     WHERE id = @application_id_p;
 
-    SELECT @funding_request_id = funding_request_id , 
-            @weeks_allowed = weeks_allowed
-    FROM sfa.assessment a 
-    WHERE id = @assessment_id_p; 
+    IF @assessment_id_p <= 0 
+        BEGIN
+            SELECT
+                @previous_weeks = COALESCE(sfa.fn_get_previous_weeks_yg(@student_id, @application_id_p), 0),
+                @assessed_weeks =  COALESCE(sfa.fn_get_allowed_weeks(@classes_start_date, @classes_end_date), 0);
+
+            IF (@previous_weeks + @assessed_weeks) > 170
+            BEGIN
+                SELECT @weeks_allowed = 170 - @previous_weeks;		
+            END
+            ELSE
+            BEGIN
+                SELECT @weeks_allowed = @previous_weeks;				
+            END
+        END
+    ELSE
+        BEGIN
+            SELECT  
+                @funding_request_id = funding_request_id , 
+                @weeks_allowed = weeks_allowed
+            FROM sfa.assessment a 
+            WHERE id = @assessment_id_p;
+        END
 
         IF @academic_year_id   < 2016   -- Pre Legislation
             BEGIN
@@ -1084,8 +1115,11 @@ RETURNS
     previous_disbursement NUMERIC, -- IS NOT IN ASSESSMENT, IS IN CSL_NARS_HISTORY
     assessed_amount NUMERIC,
     pre_leg_amount FLOAT,
-    previous_weeks INT,
-    assessed_weeks INT
+    over_award FLOAT,
+    assessment_adj_amount FLOAT,
+    over_award_disbursement_period INT,
+    years_funded_equivalent NUMERIC,
+    over_award_applied_flg VARCHAR(3)
 )
 AS
 BEGIN
@@ -1262,30 +1296,36 @@ BEGIN
     previous_disbursement,
     assessed_amount,
     pre_leg_amount,
-    previous_weeks,
-    assessed_weeks
+    over_award,
+    assessment_adj_amount,
+    over_award_disbursement_period,
+    years_funded_equivalent,
+    over_award_applied_flg
   ) VALUES(
     @funding_request_id,
     @classes_end_date,
 	@classes_start_date,
     CAST(GETDATE() AS DATE),
 	@classes_start_date,
-    @allowed_months,
-    @weeks_allowed,
+    COALESCE(@allowed_months, 0),
+    COALESCE(@weeks_allowed, 0),
     @home_city_id,
     @destination_city,
-    @travel_allowance,
-    @airfare_amount,
-    @weekly_amount,
-    @living_costs,
-    @allowed_tuition,
-    @allowed_books,
+    COALESCE(@travel_allowance, 0),
+    COALESCE(@airfare_amount, 0),
+    COALESCE(@weekly_amount, 0),
+    COALESCE(@living_costs, 0),
+    COALESCE(@allowed_tuition, 0),
+    COALESCE(@allowed_books, 0),
     @disbursements_required,
     @previous_disbursement,
-    @assessed_amount,
+    COALESCE(@assessed_amount, 0),
     @pre_leg_amount,
-    @previous_weeks,
-    @assessed_weeks
+    0, -- over_award FLOAT,
+    0, -- assessment_adj_amount FLOAT,
+    0, -- over_award_disbursement_period INT,
+    NULL, -- years_funded_equivalent NUMERIC,
+    'No' -- over_award_applied_flg VARCHAR(3)
   )
   RETURN;
 END
@@ -1316,7 +1356,12 @@ RETURNS
     disbursements_required INT, 
     air_travel_disbursement_period INT,
     assessed_amount NUMERIC, 
-    assessment_id INT
+    assessment_id INT,
+    over_award FLOAT,
+    assessment_adj_amount FLOAT,
+    over_award_disbursement_period INT,
+    years_funded_equivalent NUMERIC,
+    over_award_applied_flg VARCHAR(3)
 )
 AS
 BEGIN
@@ -1340,7 +1385,12 @@ BEGIN
         disbursements_required INT, 
         air_travel_disbursement_period INT,
         assessed_amount NUMERIC, 
-        assessment_id INT
+        assessment_id INT,
+        over_award FLOAT,
+        assessment_adj_amount FLOAT,
+        over_award_disbursement_period INT,
+        years_funded_equivalent NUMERIC,
+        over_award_applied_flg VARCHAR(3)
     );
     
     INSERT INTO @temp (
@@ -1405,7 +1455,12 @@ BEGIN
        disbursements_required, 
        air_travel_disbursement_period,
        assessed_amount,
-       assessment_id
+       assessment_id,
+       over_award,
+       assessment_adj_amount,
+       over_award_disbursement_period,
+       years_funded_equivalent,
+       over_award_applied_flg
     )
     SELECT
         @funding_request_id,
@@ -1416,17 +1471,22 @@ BEGIN
         home_city_id, 
         destination_city_id, 
         dependent_count,
-        allowed_months,
-        weeks_allowed, 
-        allowed_tuition, 
-        allowed_books,
-        living_costs, 
-        travel_allowance, 
-        airfare_amount,
+        COALESCE(allowed_months, 0),
+        COALESCE(weeks_allowed, 0),
+        COALESCE(allowed_tuition, 0),
+        COALESCE(allowed_books, 0),
+        COALESCE(living_costs, 0),
+        COALESCE(travel_allowance, 0),
+        COALESCE(airfare_amount, 0),
         disbursements_required, 
         air_travel_disbursement_period,
-        assessed_amount,
-        assessment_id
+        COALESCE(assessed_amount, 0),
+        assessment_id,
+        0, -- over_award FLOAT,
+        0, -- assessment_adj_amount FLOAT,
+        0, -- over_award_disbursement_period INT,
+        NULL, -- years_funded_equivalent NUMERIC,
+        'No' -- over_award_applied_flg VARCHAR(3)
     FROM @temp;
     RETURN;    
 END

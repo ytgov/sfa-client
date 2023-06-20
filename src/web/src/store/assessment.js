@@ -160,7 +160,9 @@ const actions = {
                     this.dispatch('postAssessment', vals);
                     return;
                 }
-                state.commit("SET_CUSTOM_ASSESSMENT", { ...this.getters.customAssessment, ...data[0] } );
+                const over_award_flag = !!(data[0]?.over_award_applied_flg === "Yes");
+
+                state.commit("SET_CUSTOM_ASSESSMENT", { ...this.getters.customAssessment, ...data[0], over_award_applied_flg: over_award_flag } );
             } else {
                 console.log("Error to get assessments");
             }
