@@ -1854,6 +1854,13 @@ CREATE TABLE sfa.field_program (
     field_program_code float(8) NULL
 );
 
+
+CREATE TABLE sfa.in_school_status (
+	id INT IDENTITY (1, 1) PRIMARY KEY,
+	description NVARCHAR(500) NOT NULL,
+	is_active BIT NOT NULL DEFAULT 0,
+);
+
 -- sfa.person_address_v
 CREATE VIEW sfa.person_address_v AS
 SELECT 
@@ -1885,3 +1892,4 @@ SELECT
 FROM sfa.person p
 	LEFT JOIN sfa.person_address pa
 		ON p.id = pa.person_id;
+

@@ -114,7 +114,7 @@
                     :items="provinces"
                     item-text="description"
                     item-value="id"
-                    label="Last Canadian jurisdiction where Parent has lived in for 12 continues months"
+                    label="Last Canadian jurisdiction where Spouse has lived in for 12 continues months"
                     v-model="application.spouse_last_jurisdiction_id"
                     @change="doSaveApp('spouse_last_jurisdiction_id', application.spouse_last_jurisdiction_id)"
                     >                    
