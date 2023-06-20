@@ -19,8 +19,8 @@
                 <router-link to="/search">Advanced search</router-link>
             </v-card-text>
         </v-card>
-        <div class="row" style="margin: 0">
-            <div class="col-md-3" style="padding-left: 0">
+        <div class="row" style="margin: 12px 0px 0px 0px">
+            <div class="col-md-3" style="padding: 8px 0px 8px 0px">
                 <v-select
                     outlined
                     dense
@@ -56,7 +56,7 @@
                 </v-card>
             </div> -->
             <div class="col-md-4">
-                <v-card class="mt-5" color="#fff2d5">
+                <v-card color="#fff2d5">
                     <v-card-title>Recently viewed Applications:</v-card-title>
                     <v-card-text>
                       <p v-if="recentApplications.length == 0" class="mb-0">None yet</p>
@@ -75,10 +75,9 @@
                 </v-card>
             </div>
             <div class="col-md-4">
-                <v-card class="mt-5" color="#fff2d5">
+                <v-card color="#fff2d5">
                     <v-card-title>New Applications</v-card-title>
                     <v-card-text>
-                        <p v-if="newApplications.length == 0" class="mb-0">None yet</p>
                         <div v-if="loading">Loading...</div>
                         <p v-if="newApplications.length == 0 && !loading" class="mb-0">None yet</p>
                         <ol v-if="newApplications.length > 0">
@@ -95,7 +94,7 @@
                 </v-card>
             </div>
             <div class="col-md-4">
-                <v-card class="mt-5" color="#fff2d5">
+                <v-card color="#fff2d5">
                     <v-card-title>Recent updates or messages</v-card-title>
                     <v-card-text>
                       <p v-if="recentUpdated.length == 0" class="mb-0">None yet</p>
@@ -104,7 +103,7 @@
                                 v-for="(item, idx) of recentUpdated"
                                 :key="idx"
                             >
-                                <router-link :to="`/student/${item.id}`"
+                                <router-link :to="`/application/${item.id}/personal`"
                                     >{{ item.title }} - <span style="font-size: 10px">{{ getFormattedDate(item.updated_at) }}</span>
                                 </router-link>
                             </li>
@@ -346,7 +345,7 @@ export default {
     },
     methods: {
         getFormattedDate(date) {
-           return new Date(date).toLocaleDateString();
+            return new Date(date).toLocaleDateString();
         },
         getData() {
             axios
@@ -357,6 +356,18 @@ export default {
                 })
             .then((response) => {
                 this.newApplications = get(response, 'data.data', [])
+            })
+            .catch(error => console.log(error))
+            .finally(() => this.loading = false);
+
+            axios
+            .get(`${APPLICATION_URL}/latest-updates`, { 
+                    params: {
+                        filter: this.filter,
+                    }
+                })
+            .then((response) => {
+                this.recentUpdated = get(response, 'data.data', [])
             })
             .catch(error => console.log(error))
             .finally(() => this.loading = false);

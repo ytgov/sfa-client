@@ -498,7 +498,6 @@
         </div>
       </v-card-text>
     </v-card>
-    <button type="button" @click="changeValue()">Testing Reactivity</button>
   </div>
 </template>
 <script>
@@ -521,9 +520,6 @@ export default {
     showAdd: false,
   }),
   methods: {
-    changeValue() {
-      store.state.cslft.cslft.base.assessed_type = 2;
-    }
   },
   async created() {
     store.dispatch("setCslClassifications");
