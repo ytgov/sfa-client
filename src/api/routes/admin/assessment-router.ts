@@ -112,3 +112,24 @@ assessmentRouter.delete("/:id", [param("id").isInt().notEmpty()], ReturnValidati
         }
     }
 );
+
+assessmentRouter.get("/cslft/assess-info/:id", 
+[param("id").isInt().notEmpty()], ReturnValidationErrors, 
+async (req: Request, res: Response) => {
+
+    const { id = null } = req.params;
+
+    try {
+        const results = await db.raw(`EXEC sfa.sp_get_assess_info_cslft ${id};`);
+
+        if (results) {
+            return res.status(200).json({ success: true, data: [...results], });
+        } else {
+            return res.status(404).send();
+        }
+
+    } catch (error: any) {
+        console.log(error);
+        return res.status(404).send();
+    }
+});
