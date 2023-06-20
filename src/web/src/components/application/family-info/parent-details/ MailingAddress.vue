@@ -23,7 +23,8 @@
                     hide-details 
                     label="Address line 1"
                     v-model="parent.address1"
-                    @change="update({ address1: parent.address1 })"
+                    @change="update({ address1: parent.address1 })"          
+                    @click="print(parent)"          
                 >
                 </v-text-field>
             </div>
@@ -98,6 +99,35 @@
                 </v-autocomplete>
             </div>
 
+            <div class="col-md-6">
+                <v-autocomplete 
+                    outlined 
+                    dense 
+                    background-color="white" 
+                    hide-details
+                    :items="provinces"
+                    item-text="description"
+                    item-value="id"
+                    label="Last Canadian jurisdiction where Parent has lived in for 12 continues months"
+                    v-model="application.last_jurisdiction_id"
+                    @change="update({ last_jurisdiction_id: application.last_jurisdiction_id }, 0)"
+                    >                    
+                </v-autocomplete>
+            </div>
+
+            <div class="col-md-6">
+                <v-text-field 
+                    outlined 
+                    dense 
+                    background-color="white" 
+                    hide-details 
+                    label="Other"
+                    v-model="application.other_jurisdiction"
+                    @change="update({ other_jurisdiction: application.other_jurisdiction }, 0)"
+                    >                    
+                </v-text-field>
+            </div>
+
         </v-card>
         <show-pdf ref="showPdf" class="on-top">
         </show-pdf>
@@ -128,32 +158,62 @@ export default {
     async created() {
         store.dispatch("setCities");
         store.dispatch("setProvinces");
-        store.dispatch("setCountries");
+        store.dispatch("setCountries");        
     },
     watch: {
 
     },
-    methods: {
-        async update(data) {
-            try {
-                if (this.parent?.id && this.parent?.person_address_id) {
-                    const resUpdate = await axios.patch(
-                        `${APPLICATION_URL}/${this.parent.person_address_id}/person-address`,
-                        { data }
-                    );
+    methods: {  
+        print(item) {            
+            console.log(this.application);
+            console.log(item);
+        },
+        async update(data, flag = 1) {    
+            if(flag) {
+                try {
+                    data.student_id = this.student.id;            
+                    if (this.parent?.id && this.parent?.person_address_id) {                    
+                        const resUpdate = await axios.patch(
+                            `${APPLICATION_URL}/${this.parent.person_address_id}/person-address`,
+                            { data }
+                        );
                     
-                    const message = resUpdate?.data?.messages[0];
+                        const message = resUpdate?.data?.messages[0];
 
-                    if (message?.variant === "success") {
-                        this.$emit("showSuccess", message.text);
-                        //this.setClose();
+                        if (message?.variant === "success") {
+                            this.$emit("showSuccess", message.text);
+                            //this.setClose();
+                        } else {
+                            this.$emit("showError", message.text);
+                        }
                     } else {
-                        this.$emit("showError", message.text);
+                        const resInsert = await axios.post(
+                            `${APPLICATION_URL}/${this.application.id}/person-address`,
+                            { data, personAddressId: this.parent?.id || null, }
+                        );
+                        
+                        const message = resInsert?.data?.messages[0];
+
+                        if (message?.variant === "success") {
+                            this.$emit("showSuccess", message.text);
+                            //this.setClose();
+                        } else {
+                            this.$emit("showError", message.text);
+                        }
                     }
-                } else {
-                    const resInsert = await axios.post(
-                        `${APPLICATION_URL}/${this.application.id}/person-address`,
-                        { data, personAddressId: this.parent?.id || null, }
+                } catch (error) {
+                    console.log(error);
+                    this.$emit("showError", "Error to insert");
+                    
+                } finally {
+                    store.dispatch("loadApplication", this.application.id);
+                }
+            } else {
+                console.log(this.application.id);
+                try {                    
+                    const resInsert = await axios.put(
+                        `${APPLICATION_URL}/${this.application.id}`,
+                        { ...data }
                     );
                     
                     const message = resInsert?.data?.messages[0];
@@ -163,16 +223,15 @@ export default {
                         //this.setClose();
                     } else {
                         this.$emit("showError", message.text);
-                    }
+                    }                    
+                } catch (error) {
+                    console.log(error);
+                    this.$emit("showError", "Error to insert");
+                    
+                } finally {
+                    store.dispatch("loadApplication", this.application.id);
                 }
-
-            } catch (error) {
-                console.log(error);
-                this.$emit("showError", "Error to insert");
-                
-            } finally {
-                store.dispatch("loadApplication", this.application.id);
-            }
+            }                            
         },
         async showPDF(r_type) {      
             try {              

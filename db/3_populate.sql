@@ -1578,6 +1578,12 @@ FROM [SFAADMIN].[ENTITLEMENT_ERROR]
          INNER JOIN sfa.disbursement ON [ENTITLEMENT_ERROR].disbursement_id = disbursement.id
 SET IDENTITY_INSERT sfa.entitlement_error OFF
 
+SET IDENTITY_INSERT sfa.in_school_status ON
+insert into sfa.in_school_status (id, description, is_active) values (0, 'Not in School', 1)
+insert into sfa.in_school_status (id, description, is_active) values (1, 'Full time', 1)
+insert into sfa.in_school_status (id, description, is_active) values (2, 'Part time', 1)
+SET IDENTITY_INSERT sfa.in_school_status OFF
+
 UPDATE sfa.expense_category SET notes = '(hardware, software, and supplies)' WHERE description like 'Computer%'
 UPDATE sfa.expense_category SET notes = '(enter the full cost before any subsidy amount you are eligible for) x (per month)' WHERE description like 'Day Care%'
 UPDATE sfa.expense_category SET notes = '(out of pocket costs greater then covered under any insurance plan). Specify your medical/dental/optical costs: x (per month)' WHERE description like 'Medical%'
