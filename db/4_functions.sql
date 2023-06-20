@@ -640,7 +640,7 @@ BEGIN
     IF @assessment_id_p <= 0 
         BEGIN
             SELECT
-                @previous_weeks = COALESCE(sfa.fn_get_previous_weeks_yg(@student_id, @application_id), 0),
+                @previous_weeks = COALESCE(sfa.fn_get_previous_weeks_yg(@student_id, @application_id_p), 0),
                 @assessed_weeks =  COALESCE(sfa.fn_get_allowed_weeks(@classes_start_date, @classes_end_date), 0);
 
             IF (@previous_weeks + @assessed_weeks) > 170
