@@ -165,7 +165,7 @@
     <component 
       v-if="!showFundings && assessmentTypeId" 
       :is="assessmentTypeC" 
-      :fundingRequestId="fundingRequestId"
+      :funding_request_id="fundingRequestId"
       v-on:close="showFundingStatus" 
       v-on:showError="showError"
       v-on:showSuccess="showSuccess"

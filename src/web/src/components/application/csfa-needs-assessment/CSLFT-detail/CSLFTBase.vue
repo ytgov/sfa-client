@@ -15,7 +15,7 @@
                     hide-details
                     label="Assessment Type"
                     :items="assessmentTypes"
-                    v-model="cslft.base.assessed_type"
+                    v-model="cslft.assessment_type_id"
                     item-text="description"
                     item-value="id"
                   ></v-select>
@@ -25,7 +25,7 @@
                 <div class="col-xs-12 col-lg-12">
                   <v-menu
                       :disabled="showAdd"
-                      v-model="cslft.base.assessed_date_menu"
+                      v-model="cslft.assessed_date_menu"
                       :close-on-content-click="false"
                       transition="scale-transition"
                       left
@@ -36,7 +36,7 @@
                       <template v-slot:activator="{ on, attrs }">
                         <v-text-field
                           :disabled="showAdd"
-                          v-model="cslft.base.assessed_date"
+                          v-model="cslft.assessed_date"
                           label="Assessed Date"
                           append-icon="mdi-calendar"
                           hide-details
@@ -50,8 +50,8 @@
                       </template>
                       <v-date-picker
                         :disabled="showAdd"
-                        v-model="cslft.base.assessed_date"
-                        @input="cslft.base.assessed_date_menu = false"
+                        v-model="cslft.assessed_date"
+                        @input="cslft.assessed_date_menu = false"
                       ></v-date-picker>
                   </v-menu>
                 </div>
@@ -67,7 +67,7 @@
                     hide-details
                     label="No. of Dependents"
                     @keypress="validate.isNumber($event)"
-                    v-model="cslft.base.no_dependents"
+                    v-model="cslft.dependent_count"
                   ></v-text-field>
                 </div>
               </div>
@@ -87,7 +87,7 @@
                   <div class="col-xs-12 col-lg-12">
                     <v-menu
                         :disabled="showAdd"
-                        v-model="cslft.base.pre_study_start_date_menu"
+                        v-model="cslft.pre_study_start_date_menu"
                         :close-on-content-click="false"
                         transition="scale-transition"
                         left
@@ -98,7 +98,7 @@
                       <template v-slot:activator="{ on, attrs }">
                         <v-text-field
                           :disabled="showAdd"
-                          v-model="cslft.base.pre_study_start_date"
+                          v-model="cslft.pstudy_start_date"
                           label="Start Date"
                           append-icon="mdi-calendar"
                           hide-details
@@ -112,15 +112,15 @@
                       </template>
                       <v-date-picker
                         :disabled="showAdd"
-                        v-model="cslft.base.pre_study_start_date"
-                        @input="cslft.base.pre_study_start_date_menu = false"
+                        v-model="cslft.pstudy_start_date"
+                        @input="cslft.pre_study_start_date_menu = false"
                       ></v-date-picker>
                     </v-menu>
                   </div>
                   <div class="col-xs-12 col-lg-12">
                     <v-menu
                         :disabled="showAdd"
-                        v-model="cslft.base.pre_study_end_date_menu"
+                        v-model="cslft.pre_study_end_date_menu"
                         :close-on-content-click="false"
                         transition="scale-transition"
                         left
@@ -131,7 +131,7 @@
                       <template v-slot:activator="{ on, attrs }">
                         <v-text-field
                           :disabled="showAdd"
-                          v-model="cslft.base.pre_study_end_date"
+                          v-model="cslft.pstudy_end_date"
                           label="End Date"
                           append-icon="mdi-calendar"
                           hide-details
@@ -145,8 +145,8 @@
                       </template>
                       <v-date-picker
                         :disabled="showAdd"
-                        v-model="cslft.base.pre_study_end_date"
-                        @input="cslft.base.pre_study_end_date_menu = false"
+                        v-model="cslft.pstudy_end_date"
+                        @input="cslft.pre_study_end_date_menu = false"
                       ></v-date-picker>
                     </v-menu>
                   </div>
@@ -164,7 +164,7 @@
                       hide-details
                       label="Pre-Study Province"
                       :items="provinces"
-                      v-model="cslft.base.pre_study_province"
+                      v-model="cslft.prestudy_province_id"
                       item-text="description"
                       item-value="id"
                     ></v-autocomplete>
@@ -178,7 +178,7 @@
                         hide-details
                         label="Pre-Study Wks"
                         @keypress="validate.isNumber($event)"
-                        v-model="cslft.base.pre_study_wks"
+                        v-model="cslft.pre_study_wks"
                       ></v-text-field>
                     </div>
                     <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6">
@@ -189,7 +189,7 @@
                         hide-details
                         label="Pre-Study Mon"
                         @keypress="validate.isNumber($event)"
-                        v-model="cslft.base.pre_study_mon"
+                        v-model="cslft.pre_study_mon"
                       ></v-text-field>
                     </div>
                   </div>
@@ -207,7 +207,7 @@
                         hide-details
                         label="Accommodation Type"
                         :items="accommodationTypes"
-                        v-model="cslft.base.pre_study_accommodation_type"
+                        v-model="cslft.prestudy_accom_code"
                         item-text="description"
                         item-value="id"
                       ></v-select>
@@ -222,7 +222,7 @@
                         hide-details
                         label="Pre-Study Classification"
                         :items="cslClassifications"
-                        v-model="cslft.base.pre_study_classification"
+                        v-model="cslft.prestudy_csl_classification"
                         item-text="description"
                         item-value="id"
                       ></v-select>
@@ -241,7 +241,7 @@
                   <div class="col-xs-12 col-lg-12">
                     <v-menu
                         :disabled="showAdd"
-                        v-model="cslft.base.study_start_date_menu"
+                        v-model="cslft.study_start_date_menu"
                         :close-on-content-click="false"
                         transition="scale-transition"
                         left
@@ -252,7 +252,7 @@
                       <template v-slot:activator="{ on, attrs }">
                         <v-text-field
                           :disabled="showAdd"
-                          v-model="cslft.base.study_start_date"
+                          v-model="cslft.classes_start_date"
                           label="Start Date"
                           append-icon="mdi-calendar"
                           hide-details
@@ -266,15 +266,15 @@
                       </template>
                       <v-date-picker
                         :disabled="showAdd"
-                        v-model="cslft.base.study_start_date"
-                        @input="cslft.base.study_start_date_menu = false"
+                        v-model="cslft.classes_start_date"
+                        @input="cslft.study_start_date_menu = false"
                       ></v-date-picker>
                     </v-menu>
                   </div>
                   <div class="col-xs-12 col-lg-12">
                     <v-menu
                         :disabled="showAdd"
-                        v-model="cslft.base.study_end_date_menu"
+                        v-model="cslft.study_end_date_menu"
                         :close-on-content-click="false"
                         transition="scale-transition"
                         left
@@ -285,7 +285,7 @@
                       <template v-slot:activator="{ on, attrs }">
                         <v-text-field
                           :disabled="showAdd"
-                          v-model="cslft.base.study_end_date"
+                          v-model="cslft.classes_end_date"
                           label="End Date"
                           append-icon="mdi-calendar"
                           hide-details
@@ -299,8 +299,8 @@
                       </template>
                       <v-date-picker
                         :disabled="showAdd"
-                        v-model="cslft.base.study_end_date"
-                        @input="cslft.base.study_end_date_menu = false"
+                        v-model="cslft.classes_end_date"
+                        @input="cslft.study_end_date_menu = false"
                       ></v-date-picker>
                     </v-menu>
                   </div>
@@ -318,7 +318,7 @@
                       hide-details
                       label="Study Province"
                       :items="provinces"
-                      v-model="cslft.base.study_province"
+                      v-model="cslft.study_province_id"
                       item-text="description"
                       item-value="id"
                     ></v-autocomplete>
@@ -332,7 +332,7 @@
                         hide-details
                         label="Study Weeks"
                         @keypress="validate.isNumber($event)"
-                        v-model="cslft.base.study_weeks"
+                        v-model="cslft.study_weeks"
                       ></v-text-field>
                     </div>
                     <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6">
@@ -343,7 +343,7 @@
                         hide-details
                         label="Study Months"
                         @keypress="validate.isNumber($event)"
-                        v-model="cslft.base.study_months"
+                        v-model="cslft.study_months"
                       ></v-text-field>
                     </div>
                   </div>
@@ -361,7 +361,7 @@
                         hide-details
                         label="Accommodation Type"
                         :items="accommodationTypes"
-                        v-model="cslft.base.study_accommodation_type"
+                        v-model="cslft.study_accom_code"
                         item-text="description"
                         item-value="id"
                       ></v-select>
@@ -376,7 +376,7 @@
                         hide-details
                         label="Study Classification"
                         :items="cslClassifications"
-                        v-model="cslft.base.study_classification"
+                        v-model="cslft.csl_classification"
                         item-text="description"
                         item-value="id"
                       ></v-select>
@@ -399,7 +399,7 @@
                       hide-details
                       label="Study Area"
                       :items="studyAreas"
-                      v-model="cslft.base.study_area"
+                      v-model="cslft.study_area_id"
                       item-text="description"
                       item-value="id"
                     ></v-autocomplete>
@@ -417,7 +417,7 @@
                       hide-details
                       label="Study Program"
                       :items="programs"
-                      v-model="cslft.base.study_program"
+                      v-model="cslft.program_id"
                       item-text="description"
                       item-value="id"
                     ></v-select>
@@ -435,7 +435,7 @@
                         hide-details
                         label="FOS Code"
                         @keypress="validate.isNumber($event)"
-                        v-model="cslft.base.fos_code"
+                        v-model="cslft.fos_code"
                       ></v-text-field>
                     </div>
                     <div class="col-xs-12 col-sm-6 col-lg-6">
@@ -446,7 +446,7 @@
                         hide-details
                         label="Period"
                         @keypress="validate.isNumber($event)"
-                        v-model="cslft.base.period"
+                        v-model="cslft.period"
                       ></v-text-field>
                     </div>
                   </div>
@@ -467,7 +467,7 @@
                       hide-details
                       label="Marital Status"
                       :items="maritalStatusList"
-                      v-model="cslft.base.marital_status"
+                      v-model="cslft.marital_status_id"
                       item-text="description"
                       item-value="id"
                     ></v-select>
@@ -486,7 +486,7 @@
                       hide-details
                       label="Spouse Province"
                       :items="provinces"
-                      v-model="cslft.base.spouse_province"
+                      v-model="cslft.spouse_province_id"
                       item-text="description"
                       item-value="id"
                     ></v-autocomplete>

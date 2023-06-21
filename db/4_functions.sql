@@ -710,21 +710,21 @@ BEGIN
 	
 END
 GO
--- ASSESSMENT_PCK - get_assessment_count_fct
-CREATE OR ALTER FUNCTION sfa.fn_get_assessment_count(@funding_request_id NUMERIC)
-RETURNS NUMERIC AS
-BEGIN
-    DECLARE @assess_count NUMERIC;
 
-    SELECT @assess_count = COUNT(id)
+-- ASSESSMENT_PCK - get_assessment_count_fct
+CREATE OR ALTER FUNCTION sfa.fn_get_assessment_count(@funding_request_id INT)
+RETURNS INT AS
+BEGIN
+    DECLARE @assess_count INT;
+
+    SELECT @assess_count = COALESCE(COUNT(id), 0)
     FROM sfa.assessment
     WHERE funding_request_id = @funding_request_id;
 
     RETURN @assess_count;
 
-END
+END;
 GO
-
 
 CREATE OR ALTER FUNCTION sfa.fn_get_previous_weeks_yg(@student_id_p INT,  @application_id_p INT) 
 RETURNS NUMERIC
@@ -2420,8 +2420,55 @@ BEGIN
 END;
 GO
 
+-- Get Assessment Info PRC
+CREATE OR ALTER FUNCTION sfa.fn_get_assessment_info_prc (@funding_request_id INT)
+RETURNS @data TABLE (
+	id INT,
+	assessed_amount FLOAT(8), 
+	assessment_type_id INT,
+	effective_rate_date DATE, 
+	classes_end_date DATE, 
+	home_city_id INT, 
+	destination_city_id INT,
+	dependent_count INT, 
+	weeks_allowed BIT, 
+	second_residence_rate FLOAT(8), 
+	weekly_amount FLOAT(8),
+	travel_allowance FLOAT(8),  
+	entitlement_days INT
+)
+AS 
+BEGIN
+	DECLARE @assess_id INT;
+
+	SELECT @assess_id = MAX(a.id)
+	FROM sfa.assessment a
+	WHERE a.funding_request_id = @funding_request_id;
+
+	INSERT INTO @data
+	SELECT
+		id,
+		assessed_amount, 
+		assessment_type_id,
+		effective_rate_date, 
+		classes_end_date, 
+		home_city_id, 
+		destination_city_id,
+		dependent_count, 
+		weeks_allowed, 
+		second_residence_rate, 
+		weekly_amount,
+		travel_allowance,  
+		entitlement_days
+	FROM sfa.assessment a 
+	WHERE a.id = @assess_id;
+
+	RETURN;
+END;
+GO
+
 CREATE OR ALTER PROCEDURE sfa.sp_get_assess_info_cslft(@funding_request_id INT)
-AS	
+AS
 	DECLARE @assess_count INT;
 	DECLARE @assessment_id INT;
 
@@ -2436,10 +2483,10 @@ AS
 		allowed_percent numeric(5,2),
 		allowed_tuition numeric(10,2),
 		assessed_amount numeric(10,2),
-		assessed_date date,
+		assessed_date VARCHAR(10),
 		change_reason_comment text,
 		dependent_count float,
-		effective_rate_date date,
+		effective_rate_date VARCHAR(10),
 		home_city_id int,
 		living_costs numeric(10,2),
 		travel_allowance numeric(10,2),
@@ -2450,10 +2497,10 @@ AS
 		disbursements_required int,
 		weeks_allowed float,
 		second_residence_rate float,
-		classes_end_date date,
+		classes_end_date VARCHAR(10),
 		prestudy_accom_code int,
 		prestudy_province_id int,
-		classes_start_date date,
+		classes_start_date VARCHAR(10),
 		airfare_amount numeric(10,2),
 		air_travel_disbursement_period int,
 		shelter_month float,
@@ -2467,8 +2514,8 @@ AS
 		pstudy_day_care_allow float,
 		pstudy_depend_food_allow float,
 		pstudy_depend_tran_allow float,
-		pstudy_start_date date,
-		pstudy_end_date date,
+		pstudy_start_date VARCHAR(10),
+		pstudy_end_date VARCHAR(10),
 		csl_assessed_need float,
 		study_province_id int,
 		csl_over_reason_id int,
@@ -2687,14 +2734,14 @@ AS
 			allowed_percent,
 			allowed_tuition,
 			assessed_amount,
-			assessed_date,
+			CONVERT(VARCHAR, assessed_date, 23),
 			assessment_adj_amount,
 			assessment_type_id,
 			asset_tax_rate,
 			books_supplies_cost,
 			change_reason_comment,
-			classes_end_date,
-			classes_start_date,
+			CONVERT(VARCHAR, classes_end_date, 23),
+			CONVERT(VARCHAR, classes_start_date,23),
 			csl_assessed_need,
 			csl_classification,
 			csl_full_amt_flag,
@@ -2710,7 +2757,7 @@ AS
 			disbursements_required,
 			discretionary_cost,
 			discretionary_cost_actual,
-			effective_rate_date,
+			CONVERT(VARCHAR, effective_rate_date, 23),
 			entitlement_days,
 			family_size,
 			funding_request_id,
@@ -2746,11 +2793,11 @@ AS
 			pstudy_day_care_allow,
 			pstudy_depend_food_allow,
 			pstudy_depend_tran_allow,
-			pstudy_end_date,
+			CONVERT(VARCHAR, pstudy_end_date, 23),
 			pstudy_expected_contrib,
 			pstudy_p_trans_month,
 			pstudy_shelter_month,
-			pstudy_start_date,
+			CONVERT(VARCHAR, pstudy_start_date, 23),
 			pstudy_x_trans_total,
 			r_trans_16wk,
 			relocation_total,
@@ -2846,7 +2893,7 @@ AS
 			@tuition_estimate FLOAT(8),
 			@student_ln150_income FLOAT(8),
 			@spouse_ln150_income FLOAT(8),
-			@prestudy_end_date DATETIME
+			@prestudy_end_date DATE
 		;
 	
 		-- Calculated vars
@@ -2999,8 +3046,8 @@ AS
 			@student_tax_rate FLOAT(8),
 			@spouse_gross_income FLOAT(8),
 			@spouse_tax_rate FLOAT(8),
-			@spouse_study_school_to DATETIME,
-			@spouse_study_school_from DATETIME,
+			@spouse_study_school_to DATE,
+			@spouse_study_school_from DATE,
 			@student_indigenous_learner VARCHAR(10),
 			@student_crown_ward_flg VARCHAR(10),
 			@perm_disabled_flag BIT,
@@ -3186,12 +3233,12 @@ AS
 			'NO',
 			'NO',
 			sfa.fn_get_dependent_count(@application_id),
-			@classes_end_date,
-			@classes_start_date,
+			CONVERT(VARCHAR, @classes_end_date, 23),
+			CONVERT(VARCHAR, @classes_start_date, 23),
 			DATEDIFF(ww, @classes_start_date, @classes_end_date),
 			DATEDIFF(mm, @classes_start_date, @classes_end_date),
-			@pstudy_start_date,
-			@pstudy_end_date,
+			CONVERT(VARCHAR, @pstudy_start_date, 23),
+			CONVERT(VARCHAR, @pstudy_end_date, 23),
 			@prestudy_province_id,
 			@prestudy_accom_code,
 			@marital_status_id,

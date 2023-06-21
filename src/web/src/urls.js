@@ -85,3 +85,8 @@ export const EQUIPMENT_CATEGORY =`${config.apiBaseUrl}/api/v2/admin/equipment-ca
 export const CHANGE_REASON =`${config.apiBaseUrl}/api/v2/admin/change-reason`;
 export const ACCOMMODATION_TYPE =`${config.apiBaseUrl}/api/v2/admin/accommodation-type`;
 export const DISBURSEMENT =`${config.apiBaseUrl}/api/v2/admin/disbursement`;
+export const ASSESSMENT = `${config.apiBaseUrl}/api/v2/admin/assessment`;
+
+// Modules
+export const CSLFT = `${ASSESSMENT}/cslft`;
+export const CSLFT_ASSESS_INFO = `${CSLFT}/assess-info`
