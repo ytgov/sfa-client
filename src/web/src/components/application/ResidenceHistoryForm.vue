@@ -748,8 +748,16 @@ export default {
         }
         if (a.from_year < b.from_year) {
           return 1;
-        }        
-        return 0;
+        }   
+        if(a.from_year === b.from_year) {
+          if (a.from_month > b.from_month) {
+            return -1;
+          }
+          if (a.from_month < b.from_month) {
+            return 1;
+          }  
+          return 0;
+        }  
       });
       return list;
     },
