@@ -39,7 +39,7 @@
               </div>
               <div class="col-md-6" v-else>
                 <div class="row">
-                  <h3 class="col-md-6 text-right text-subtitle-1">Add Canadian resident from</h3>
+                  <h3 class="col-md-6 text-right text-subtitle-1">Canadian resident from</h3>
                   <div class="col-md-3">
                     <v-select
                       outlined
@@ -104,7 +104,7 @@
               </div>
               <div class="col-md-6" v-else>
                 <div class="row">
-                  <h3 class="col-md-6 text-right text-subtitle-1">Add Yukon resident from</h3>
+                  <h3 class="col-md-6 text-right text-subtitle-1">Yukon resident from</h3>
                   <div class="col-md-3">
                     <v-select
                       outlined
