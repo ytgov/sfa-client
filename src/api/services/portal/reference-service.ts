@@ -110,24 +110,12 @@ export class ReferenceService {
     return db("income_type").withSchema(schema).where({ is_active: true }).select(["id", "description"]).orderBy("id");
   }
 
-  async getStudyFields(): Promise<any[]> {
-    let fields = await db("study_field")
-      .withSchema(schema)
-      .where({ is_active: true })
-      .select(["id", "description"])
-      .orderBy("description");
-    let areas = await db("study_area")
+  async getStudyAreas(): Promise<any[]> {
+    return db("study_area")
       .withSchema(schema)
       .where({ is_active: true, show_online: true })
-      .select(["id", "description", "study_field_id"])
+      .select(["id", "description"])
       .orderBy("description");
-
-    for (let field of fields) {
-      field.areas = areas.filter((a) => a.study_field_id == field.id);
-      field.areas.map((a: any) => delete a.study_field_id);
-    }
-
-    return fields;
   }
 
   async getPrograms(): Promise<any[]> {
@@ -151,6 +139,6 @@ export class ReferenceService {
       .withSchema(schema)
       .where({ is_active: true })
       .select(["id", "description", "notes", "is_required"])
-      .orderBy("description");
+      .orderByRaw("CASE WHEN description like 'Pre-Study%' THEN 0 ELSE 1 END, description");
   }
 }
