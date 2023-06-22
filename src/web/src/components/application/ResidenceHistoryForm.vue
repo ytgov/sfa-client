@@ -39,7 +39,7 @@
               </div>
               <div class="col-md-6" v-else>
                 <div class="row">
-                  <h3 class="col-md-6 text-right text-subtitle-1">Add Canadian resident from</h3>
+                  <h3 class="col-md-6 text-right text-subtitle-1">Canadian resident from</h3>
                   <div class="col-md-3">
                     <v-select
                       outlined
@@ -104,7 +104,7 @@
               </div>
               <div class="col-md-6" v-else>
                 <div class="row">
-                  <h3 class="col-md-6 text-right text-subtitle-1">Add Yukon resident from</h3>
+                  <h3 class="col-md-6 text-right text-subtitle-1">Yukon resident from</h3>
                   <div class="col-md-3">
                     <v-select
                       outlined
@@ -140,6 +140,177 @@
       </div>
       
       <div class="col-md-12">
+        <v-card class="default mb-5" v-if="showAdd || !filterList.length">
+          <v-card-text>
+            <div class="row">
+              <div class="col-md-5">
+                <div class="row">
+                  <div class="col-md-6">
+                    <div class="col-md-12 text-center text-subtitle-1">
+                      From yr/mon 
+                    </div>
+                    <div class="row">
+                      <div class="col-md-6">
+                        <v-select
+                          append-icon
+                          outlined 
+                          dense 
+                          background-color="white"
+                          v-model="newRecord.from_year"
+                          :items="yearOptions"
+                          hide-details label="From Year"
+                        ></v-select>
+                      </div>
+                      <div class="col-md-6">
+                        <v-select
+                          append-icon
+                          outlined 
+                          dense 
+                          background-color="white"
+                          :items="monthOptions"
+                          v-model="newRecord.from_month"
+                          hide-details label="From Month"
+                        ></v-select>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="col-md-12 text-center text-subtitle-1">
+                      To yr/mon 
+                    </div>
+                    <div class="row">
+                      <div class="col-md-6">
+                        <v-select
+                          append-icon
+                          outlined 
+                          dense 
+                          background-color="white"
+                          v-model="newRecord.to_year"
+                          :disabled="!newRecord.from_year"
+                          :items="yearOptions.filter(year => year.value >= newRecord.from_year)"
+                          hide-details label="To Year"
+                        ></v-select>
+                      </div>
+                      <div class="col-md-6">
+                        <v-select
+                          append-icon
+                          outlined 
+                          dense 
+                          background-color="white"
+                          :disabled="!newRecord.from_month"
+                          :items="
+                          newRecord.from_year === newRecord.to_year ? 
+                              monthOptions.filter(month => month.value >= newRecord.from_month)
+                              :
+                              monthOptions
+                          "
+                          v-model="newRecord.to_month"
+                          hide-details label="To Month"
+                        ></v-select>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-7">
+                <div class="row">
+                  <div class="col-md-2">
+                    <div class="col-md-12 text-center text-subtitle-1">
+                      City  
+                    </div>
+                    <v-autocomplete
+                      append-icon
+                      outlined 
+                      dense 
+                      background-color="white"
+                      v-model="newRecord.city_id"
+                      :items="cities"
+                      item-text="description"
+                      item-value="id"
+                      hide-details label="city"
+                    ></v-autocomplete>
+                  </div>
+                  <div class="col-md-2">
+                    <div class="col-md-12 text-no-wrap text-center text-subtitle-1">
+                      Province  
+                    </div>
+                    <v-autocomplete
+                      append-icon
+                      outlined 
+                      dense 
+                      background-color="white"
+                      v-model="newRecord.province_id"
+                      :items="provinces"
+                      item-text="description"
+                      item-value="id"
+                      hide-details label="Province"
+                    ></v-autocomplete>
+                  </div>
+                  <div class="col-md-2">
+                    <div class="col-md-12 text-center text-no-wrap text-subtitle-1">
+                      Country  
+                    </div>
+                    <v-autocomplete
+                      append-icon
+                      outlined 
+                      dense 
+                      background-color="white"
+                      v-model="newRecord.country_id"
+                      :items="countries"
+                      item-text="description"
+                      item-value="id"
+                      hide-details label="Country"
+                    ></v-autocomplete>
+                  </div>
+                  <div class="col-md-2">
+                    <div class="col-md-12 text-no-wrap text-center text-subtitle-1">
+                      In School Status
+                    </div>
+                    <v-select          
+                          append-icon                
+                          outlined 
+                          dense 
+                          background-color="white"
+                          :items="inSchoolStatus"
+                          item-text="description"
+                          item-value="id"
+                          v-model="newRecord.in_school"
+                          hide-details 
+                          label="In School"                          
+                        ></v-select>
+                  </div>
+                  <div class="col-1 mt-13">
+                  </div>
+                  <div class="col-1 mt-13">
+                    <v-btn
+                      color="error"
+                      x-small
+                      fab
+                      title="Remove"
+                      class="my-0 float-left"
+                      @click="setClose"
+                      v-if="filterList.length"
+                    >
+                    <v-icon>mdi-close</v-icon>
+                    </v-btn>
+                  </div>
+                  <div class="col-1 mt-13">
+                    <v-btn
+                      color="success"
+                      x-small
+                      fab
+                      title="Add"
+                      class="my-0"
+                      @click="doSaveResidence('data', { ...newRecord }, 'residenceInfo', null, true)"
+                    >
+                    <v-icon>mdi-plus</v-icon>
+                    </v-btn>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </v-card-text>
+        </v-card>
         <v-card class="default mb-5" v-for="item, index in filterList" :key="index">
           <v-card-text>
             <div class="row">
@@ -273,22 +444,20 @@
                     <div class="col-md-12 text-no-wrap text-center text-subtitle-1">
                       In School Status  
                     </div>
-                    <v-text-field
-                      outlined 
-                      dense 
-                      background-color="white"
-                      :disabled="showAdd"
-                      oninput="
-                        if (this.value.length > 4) {
-                          this.value = this.value.slice(0, 4);
-                        }
-                      "
-                      @keypress="validate.isNumber($event)"
-                      @change="doSaveResidence('in_school', item.in_school, 'residenceInfo', item.id)"
-                      v-model="item.in_school"
-                      hide-details 
-                      label="In School"
-                    ></v-text-field>
+                    <v-select        
+                          append-icon                 
+                          outlined 
+                          dense 
+                          background-color="white"
+                          :items="inSchoolStatus"
+                          :disabled="showAdd"
+                          item-text="description"
+                          item-value="id"
+                          @change="doSaveResidence('in_school', item.in_school, 'residenceInfo', item.id)"
+                          v-model="item.in_school"
+                          hide-details 
+                          label="In School"                          
+                        ></v-select>
                   </div>
                   <div class="col-1 mt-13">
                     <v-btn
@@ -299,7 +468,7 @@
                       title="Add"
                       class="my-0"
                       @click="setClose"
-                      v-if="(index+1) === filterList.length"
+                      v-if="(index) === 0"
                     >
                     <v-icon>mdi-plus</v-icon>
                     </v-btn>
@@ -333,180 +502,7 @@
               </div>
             </div>
           </v-card-text>
-        </v-card>
-        <v-card class="default mb-5" v-if="showAdd || !filterList.length">
-          <v-card-text>
-            <div class="row">
-              <div class="col-md-5">
-                <div class="row">
-                  <div class="col-md-6">
-                    <div class="col-md-12 text-center text-subtitle-1">
-                      From yr/mon 
-                    </div>
-                    <div class="row">
-                      <div class="col-md-6">
-                        <v-select
-                          append-icon
-                          outlined 
-                          dense 
-                          background-color="white"
-                          v-model="newRecord.from_year"
-                          :items="yearOptions"
-                          hide-details label="From Year"
-                        ></v-select>
-                      </div>
-                      <div class="col-md-6">
-                        <v-select
-                          append-icon
-                          outlined 
-                          dense 
-                          background-color="white"
-                          :items="monthOptions"
-                          v-model="newRecord.from_month"
-                          hide-details label="From Month"
-                        ></v-select>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="col-md-6">
-                    <div class="col-md-12 text-center text-subtitle-1">
-                      To yr/mon 
-                    </div>
-                    <div class="row">
-                      <div class="col-md-6">
-                        <v-select
-                          append-icon
-                          outlined 
-                          dense 
-                          background-color="white"
-                          v-model="newRecord.to_year"
-                          :disabled="!newRecord.from_year"
-                          :items="yearOptions.filter(year => year.value >= newRecord.from_year)"
-                          hide-details label="To Year"
-                        ></v-select>
-                      </div>
-                      <div class="col-md-6">
-                        <v-select
-                          append-icon
-                          outlined 
-                          dense 
-                          background-color="white"
-                          :disabled="!newRecord.from_month"
-                          :items="
-                          newRecord.from_year === newRecord.to_year ? 
-                              monthOptions.filter(month => month.value >= newRecord.from_month)
-                              :
-                              monthOptions
-                          "
-                          v-model="newRecord.to_month"
-                          hide-details label="To Month"
-                        ></v-select>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div class="col-md-7">
-                <div class="row">
-                  <div class="col-md-2">
-                    <div class="col-md-12 text-center text-subtitle-1">
-                      City  
-                    </div>
-                    <v-autocomplete
-                      append-icon
-                      outlined 
-                      dense 
-                      background-color="white"
-                      v-model="newRecord.city_id"
-                      :items="cities"
-                      item-text="description"
-                      item-value="id"
-                      hide-details label="city"
-                    ></v-autocomplete>
-                  </div>
-                  <div class="col-md-2">
-                    <div class="col-md-12 text-no-wrap text-center text-subtitle-1">
-                      Province  
-                    </div>
-                    <v-autocomplete
-                      append-icon
-                      outlined 
-                      dense 
-                      background-color="white"
-                      v-model="newRecord.province_id"
-                      :items="provinces"
-                      item-text="description"
-                      item-value="id"
-                      hide-details label="Province"
-                    ></v-autocomplete>
-                  </div>
-                  <div class="col-md-2">
-                    <div class="col-md-12 text-center text-no-wrap text-subtitle-1">
-                      Country  
-                    </div>
-                    <v-autocomplete
-                      append-icon
-                      outlined 
-                      dense 
-                      background-color="white"
-                      v-model="newRecord.country_id"
-                      :items="countries"
-                      item-text="description"
-                      item-value="id"
-                      hide-details label="Country"
-                    ></v-autocomplete>
-                  </div>
-                  <div class="col-md-2">
-                    <div class="col-md-12 text-no-wrap text-center text-subtitle-1">
-                      In School Status  
-                    </div>
-                    <v-text-field
-                      outlined 
-                      dense 
-                      background-color="white"
-                      oninput="
-                        if (this.value.length > 4) {
-                          this.value = this.value.slice(0, 4);
-                        }
-                      "
-                      @keypress="validate.isNumber($event)"
-                      v-model="newRecord.in_school"
-                      hide-details 
-                      label="In School"
-                    ></v-text-field>
-                  </div>
-                  <div class="col-1 mt-13">
-                  </div>
-                  <div class="col-1 mt-13">
-                    <v-btn
-                      color="error"
-                      x-small
-                      fab
-                      title="Remove"
-                      class="my-0 float-left"
-                      @click="setClose"
-                      v-if="filterList.length"
-                    >
-                    <v-icon>mdi-close</v-icon>
-                    </v-btn>
-                  </div>
-                  <div class="col-1 mt-13">
-                    <v-btn
-                      color="success"
-                      x-small
-                      fab
-                      title="Add"
-                      class="my-0"
-                      @click="doSaveResidence('data', { ...newRecord }, 'residenceInfo', null, true)"
-                    >
-                    <v-icon>mdi-plus</v-icon>
-                    </v-btn>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </v-card-text>
-        </v-card>
+        </v-card>        
       </div>
 
       <div class="col-md-12">
@@ -722,7 +718,7 @@ import validator from "@/validator";
 export default {
   name: "Home",
   computed: {
-    ...mapGetters(["monthOptions", "yearOptions", "cities", "provinces", "countries"]),
+    ...mapGetters(["monthOptions", "yearOptions", "cities", "provinces", "countries", "inSchoolStatus"]),    
     student: function () {
       return store.getters.selectedStudent;
     },
@@ -744,6 +740,25 @@ export default {
           && residence.to_month === null))
       ?.filter((residence) => !(residence.country_id === 1 && residence.province_id === 3 
         && residence.to_year === null && residence.to_month === null));
+        console.log("***", list);
+
+      list.sort((a, b) => {
+        if (a.from_year > b.from_year) {
+          return -1;
+        }
+        if (a.from_year < b.from_year) {
+          return 1;
+        }   
+        if(a.from_year === b.from_year) {
+          if (a.from_month > b.from_month) {
+            return -1;
+          }
+          if (a.from_month < b.from_month) {
+            return 1;
+          }  
+          return 0;
+        }  
+      });
       return list;
     },
     currentCanadianResident() {
@@ -815,7 +830,8 @@ export default {
     store.dispatch("setProvinces");
     store.dispatch("setCountries");
     store.dispatch("setYearOptions");
-    store.dispatch("setMonthOptions");
+    store.dispatch("setMonthOptions");        
+    store.dispatch("setInSchoolStatus");
   },
   methods: {
     setClose() {

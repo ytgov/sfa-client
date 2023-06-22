@@ -48,58 +48,77 @@
       </v-card-text>
     </v-card>
 
+    
     <v-card class="default mb-5">
       <v-card-title>Permanent Mailing Address</v-card-title>
       <v-card-text>
         <div class="row">
           <div class="col-md-6">
             <v-text-field outlined dense background-color="white" hide-details label="Address line 1"
-              v-model="student.permanentAddress.address1" @change="
-                doSaveStudent('address1', student.permanentAddress?.address1, 'addressInfo', student.permanentAddress.id, 'permanent')
-              "></v-text-field>
+              :value="student.permanentAddress?.address1" @change="
+                doSaveStudent('address1', student.permanentAddress?.address1, 'addressInfo', student.permanentAddress.id, 'permanent')                
+              "
+              @input="e => {
+                student.permanentAddress.address1 = e;                            
+              }"></v-text-field>
           </div>
           <div class="col-md-6">
             <v-text-field outlined dense background-color="white" hide-details label="Address line 2"
-              v-model="student.permanentAddress.address2" @change="
+              :value="student.permanentAddress?.address2" @change="
                 doSaveStudent('address2', student.permanentAddress.address2, 'addressInfo', student.permanentAddress.id, 'permanent')
-              "></v-text-field>
+              "
+              @input="e => {
+                student.permanentAddress.address2 = e;                            
+              }"></v-text-field>
           </div>
           <div class="col-md-3">
             <v-autocomplete outlined dense background-color="white" hide-details label="City" item-value="id"
-              item-text="description" :items="cityOptions" v-model="student.permanentAddress.city_id" @change="
+              item-text="description" :items="cityOptions" :value="student.permanentAddress?.city_id" @change="
                 doSaveStudent('city_id', student.permanentAddress.city_id, 'addressInfo', student.permanentAddress.id, 'permanent')
-              "></v-autocomplete>
+              "
+              @input="e => {
+                student.permanentAddress.city_id = e;                            
+              }"></v-autocomplete>
           </div>
           <div class="col-md-3">
             <v-autocomplete outlined dense background-color="white" hide-details label="Province"
               :items="provinceOptions" item-value="id" item-text="description"
-              v-model="student.permanentAddress.province_id" @change="
+              :value="student.permanentAddress?.province_id" @change="
                 doSaveStudent(
                   'province_id',
                   student.permanentAddress.province_id,
                   'addressInfo', student.permanentAddress.id, 'permanent'
                 )
-              "></v-autocomplete>
+              "
+              @input="e => {
+                student.permanentAddress.province_id = e;                            
+              }"></v-autocomplete>
           </div>
           <div class="col-md-3">
             <v-text-field outlined dense background-color="white" hide-details label="Postal code"
-              v-model="student.permanentAddress.postal_code" @change="
+              :value="student.permanentAddress?.postal_code" @change="
                 doSaveStudent(
                   'postal_code',
                   student.permanentAddress.postal_code,
                   'addressInfo', student.permanentAddress.id, 'permanent'
                 )
-              "></v-text-field>
+              "
+              @input="e => {
+                student.permanentAddress.postal_code = e;                            
+              }"></v-text-field>
           </div>
           <div class="col-md-3">
             <v-autocomplete outlined dense background-color="white" hide-details label="Country" :items="countryOptions"
-              item-value="id" item-text="description" v-model="student.permanentAddress.country_id" @change="
+              item-value="id" item-text="description" :value="student.permanentAddress?.country_id" @change="
                 doSaveStudent('country_id', student.permanentAddress.country_id, 'addressInfo', student.permanentAddress.id, 'permanent')
-              "></v-autocomplete>
+              "
+              @input="e => {
+                student.permanentAddress.country_id = e;                            
+              }"></v-autocomplete>
           </div>
           <div class="col-md-6">
             <v-text-field outlined dense background-color="white" hide-details label="Phone"
-              v-model="student.permanentAddress.telephone"
+              :value="student.permanentAddress?.telephone"
               oninput="
                 if (this.value.length > 12) this.value = this.value.slice(0, 12);
               "
@@ -112,11 +131,14 @@
                   $store.dispatch('loadStudent', student.id);
                   return $emit('showError', 'Invalid Telephone');
                 }
+              }"
+              @input="e => {
+                student.permanentAddress.telephone = e;                            
               }"></v-text-field>
           </div>
           <div class="col-md-6">
             <v-text-field outlined dense background-color="white" hide-details label="E-mail"
-              v-model="student.permanentAddress.email"
+              :value="student.permanentAddress?.email"
               @change="e => {
                 if (validate.email(student.permanentAddress.email) || 
                 !String(student.permanentAddress.email).length) {
@@ -125,56 +147,77 @@
                   $store.dispatch('loadStudent', student.id);
                   return $emit('showError', 'Invalid Email');
                 }
+              }"
+              @input="e => {
+                student.permanentAddress.email = e;                            
               }"></v-text-field>
           </div>
         </div>
       </v-card-text>
     </v-card>
-
+        
     <v-card class="default mb-5">
       <v-card-title>Mailing Address While at School</v-card-title>
       <v-card-text>
         <div class="row">
           <div class="col-md-6">
             <v-text-field outlined dense background-color="white" hide-details label="Address line 1"
-              v-model="student.temporalAddress.address1" @change="
+              :value="student.temporalAddress?.address1" @change="
                 doSaveStudent('address1', student.temporalAddress?.address1, 'addressInfo', student.temporalAddress.id, 'temporal')
-              "></v-text-field>
+              "
+              @input="e => {
+                student.temporalAddress.address1 = e;                            
+              }"></v-text-field>
           </div>
           <div class="col-md-6">
             <v-text-field outlined dense background-color="white" hide-details label="Address line 2"
-              v-model="student.temporalAddress.address2" @change="
+              :value="student.temporalAddress?.address2" @change="
                 doSaveStudent('address2', student.temporalAddress.address2, 'addressInfo', student.temporalAddress.id, 'temporal')
-              "></v-text-field>
+              "
+              @input="e => {
+                student.temporalAddress.address2 = e;                            
+              }"></v-text-field>
           </div>
           <div class="col-md-3">
             <v-autocomplete outlined dense background-color="white" hide-details label="City" item-value="id"
-              item-text="description" :items="cityOptions" v-model="student.temporalAddress.city_id" @change="
+              item-text="description" :items="cityOptions" :value="student.temporalAddress?.city_id" @change="
                 doSaveStudent('city_id', student.temporalAddress.city_id, 'addressInfo', student.temporalAddress.id, 'temporal')
-              "></v-autocomplete>
+              "
+              @input="e => {
+                student.temporalAddress.city_id = e;                            
+              }"></v-autocomplete>
           </div>
           <div class="col-md-3">
             <v-autocomplete outlined dense background-color="white" hide-details label="Province"
               :items="provinceOptions" item-value="id" item-text="description"
-              v-model="student.temporalAddress.province_id" @change="
+              :value="student.temporalAddress?.province_id" @change="
                 doSaveStudent('province_id', student.temporalAddress.province_id, 'addressInfo', student.temporalAddress.id, 'temporal')
-              "></v-autocomplete>
+              "
+              @input="e => {
+                student.temporalAddress.province_id = e;                            
+              }"></v-autocomplete>
           </div>
           <div class="col-md-3">
             <v-text-field outlined dense background-color="white" hide-details label="Postal code"
-              v-model="student.temporalAddress.postal_code" @change="
+              :value="student.temporalAddress?.postal_code" @change="
                 doSaveStudent('postal_code', student.temporalAddress.postal_code, 'addressInfo', student.temporalAddress.id, 'temporal')
-              "></v-text-field>
+              "
+              @input="e => {
+                student.temporalAddress.postal_code = e;                            
+              }"></v-text-field>
           </div>
           <div class="col-md-3">
             <v-autocomplete outlined dense background-color="white" hide-details label="Country" :items="countryOptions"
-              item-value="id" item-text="description" v-model="student.temporalAddress.country_id" @change="
+              item-value="id" item-text="description" :value="student.temporalAddress?.country_id" @change="
                 doSaveStudent('country_id', student.temporalAddress.country_id, 'addressInfo', student.temporalAddress.id, 'temporal')
-              "></v-autocomplete>
+              "
+              @input="e => {
+                student.temporalAddress.country_id = e;                            
+              }"></v-autocomplete>
           </div>
           <div class="col-md-6">
             <v-text-field outlined dense background-color="white" hide-details label="Phone"
-              v-model="student.temporalAddress.telephone"
+              :value="student.temporalAddress?.telephone"
               oninput="
                 if (this.value.length > 12) this.value = this.value.slice(0, 12);
               "
@@ -188,11 +231,14 @@
                   return $emit('showError', 'Invalid Telephone');
                 }
               }"
+              @input="e => {
+                student.temporalAddress.telephone = e;                            
+              }"
               ></v-text-field>
           </div>
           <div class="col-md-6">
             <v-text-field outlined dense background-color="white" hide-details label="E-mail"
-              v-model="student.temporalAddress.email"
+              :value="student.temporalAddress?.email"
               @change="e => {
                 if (validate.email(student.temporalAddress.email) || 
                 !String(student.temporalAddress.email).length) {
@@ -202,11 +248,15 @@
                   return $emit('showError', 'Invalid Email');
                 }
               }"
+              @input="e => {
+                student.temporalAddress.email = e;                            
+              }"
               ></v-text-field>
           </div>
         </div>
       </v-card-text>
-    </v-card>
+    </v-card>    
+
   </div>
 </template>
 <script>
@@ -219,7 +269,7 @@ import validator from "@/validator";
 export default {
   computed: {
     ...mapState(["selectedStudent"]),
-    student: function () {
+    student: function () {      
       return store.getters.selectedStudent;
     },
     application: function () {
@@ -258,6 +308,7 @@ export default {
     this.loadProvinces();
     this.loadCities();
     this.validate = { ...validator };
+    
   },
   methods: {
     loadCountries() {

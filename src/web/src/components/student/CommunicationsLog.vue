@@ -162,13 +162,10 @@
                           dense
                           background-color="white"
                           hide-details
-                          :disabled="disabledItems[i]"
+                          disabled
                           label="Officer"                          
                           :value="checkUser(item.officer_id)"  
-                          required         
-                          @input="e => {
-                            item.officer_id = e;                            
-                          }"         
+                          required                                   
                         ></v-text-field>
                       </div>     
                       <div class="col-md-12">
@@ -270,8 +267,7 @@
           await store.dispatch("loadApplication", this.applicationId);
           store.dispatch("setAppSidebar", true);
         }
-      }        
-      console.log(this.$refs.panel[0].toggle(true));
+      }              
     },   
     methods: {
       hendleEdition(i) {
@@ -379,7 +375,7 @@
           this.disabledItems[i] = true;
         }                  
       },
-      async addCommunication() {              
+      async addCommunication() {                     
         try {            
           const bodyData = new FormData();          
           bodyData.append("officer_id", this.email_officer);
@@ -412,12 +408,12 @@
         } catch (error) {
           console.log(error)
           this.$emit("showError", "Error to update inner");
-        }                                                
+        }                                              
       },
-      async modifyCommunication(item, i) {                                    
+      async modifyCommunication(item, i) {                      
         try {            
-          const bodyData = new FormData();
-          bodyData.append("officer_id", item.officer_id);
+          const bodyData = new FormData();          
+          bodyData.append("officer_id", this.email_officer);
           bodyData.append("student_id", item.student_id);
           bodyData.append("request_type_id", item.request_type_id);
           bodyData.append("communication_type_id", item.communication_type_id);
@@ -446,7 +442,7 @@
         } catch (error) {
           console.log(error)
           this.$emit("showError", "Error to update inner");
-        }                     
+        }                        
       },
     },
   };

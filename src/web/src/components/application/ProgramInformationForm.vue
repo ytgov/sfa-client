@@ -331,7 +331,7 @@
         </div>
         <div class="col-md-3">
           <div class="row justify-end">
-            <div class="col-md-9">
+            <!--div class="col-md-9">
               <v-text-field
                 outlined
                 dense
@@ -341,7 +341,7 @@
                 v-model="application.study_weeks_count"
                 @change="doSaveApp('study_weeks_count', application.study_weeks_count)"
               ></v-text-field>
-            </div>
+            </div-->
           </div>
         </div>  
       </v-card-text>
