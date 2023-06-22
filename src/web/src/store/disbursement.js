@@ -64,14 +64,29 @@ const actions = {
         try {
             const thisVal = vals?.thisVal || {};
 
-            if (!vals.application_id && !vals?.assessment_id) {
+            if (!vals?.data && !vals.application_id && !vals?.assessment_id) {
                 return;
             }
+            const assessmentData = {};
+            
+            for (const key in vals?.data) {
+                if (!vals.data[key] && vals.data[key] !== 0) {
+                    assessmentData[key] = null;
+                } else {
+                    assessmentData[key] = vals.data[key];
+                }
+            }
 
-            const res = await axios.get(
+            const over_award_flag = 
+                (!!assessmentData?.over_award_applied_flg === false || assessmentData?.over_award_applied_flg === "No")
+                ? "No"
+                : "Yes";
+
+            const res = await axios.post(
                 APPLICATION_URL + `/${vals.application_id}/assessment/${vals.assessment_id}/disburse`,
+                { data: { ...assessmentData, over_award_applied_flg: over_award_flag } }
             );
-
+            
             const message = res?.data?.messages[0];
 
             if (message?.variant === "success") {
@@ -114,7 +129,6 @@ const actions = {
     
                 if (res?.data?.success) {
                     emiter?.$emit("showSuccess", "Added!");
-                    
                     emiter?.setShow(false);
                 } else {
                     emiter?.$emit("showError", res.data?.message || "Fail to added");
