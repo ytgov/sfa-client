@@ -183,8 +183,8 @@ INTO sfa.csl_classification (id, description)
 VALUES  ( 1, 'Single Dependent'),
         ( 2, 'Single Independent - 2 year workforce'),
         ( 3, 'Married / Common Law'),
-        ( 4, 'Single Parent')
-        ( 5, 'Single Independent - 4 year high school'),
+        ( 4, 'Single Parent'),
+        ( 5, 'Single Independent - 4 year high school')
 SET IDENTITY_INSERT sfa.csl_classification OFF
 
 SET IDENTITY_INSERT sfa.income_type ON
@@ -1279,7 +1279,7 @@ FROM sfaadmin.agency_assistance
 SET IDENTITY_INSERT sfa.course_enrolled ON
 INSERT
 INTO sfa.course_enrolled (id, application_id, instruction_type_id, description, course_code)
-SELECT course_enrolled_id, history_detail_id, COALESCE(instruction_type_id, 1), course_description, course_code
+SELECT course_enrolled_id, history_detail_id, COALESCE(instruction_type_id, 1), COALESCE(course_description, 'Unknown'), course_code
 FROM sfaadmin.course_enrolled
 SET IDENTITY_INSERT sfa.course_enrolled OFF
 
