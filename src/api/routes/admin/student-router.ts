@@ -415,7 +415,7 @@ studentRouter.get("/:id",
 
                     const temporalAddress = await db("sfa.person_address")
                         .where({ person_id: student.person_id })
-                        .where({ address_type_id: 2 })
+                        .where({ address_type_id: 3 })
                         .orderBy("id", "DESC")
                         .first();
 
