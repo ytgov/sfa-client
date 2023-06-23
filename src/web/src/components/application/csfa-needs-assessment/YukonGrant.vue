@@ -729,6 +729,7 @@ export default {
         store.dispatch("postDisbursement", {
         data: [ ...this.previewDisbursementList ],
         funding_request_id: this.customAssessment.funding_request_id,
+        application_id: this.application.id, 
         isList: "disburseList",
         emiter: this
       });

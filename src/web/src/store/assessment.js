@@ -42,6 +42,7 @@ const actions = {
         try {
 
             if (!(vals?.application_id && vals?.funding_request_id)) {
+                alert("NOT PASSED")
                 return;
             }
 

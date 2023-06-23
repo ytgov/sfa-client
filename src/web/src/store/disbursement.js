@@ -58,6 +58,8 @@ const actions = {
         } catch (error) {
             console.log("Error to get disbursements", error);
         } finally {
+            
+            this.dispatch('getAssessments', { application_id: vals?.application_id, funding_request_id: vals.funding_request_id });
         }
     },
     async previewDisbursements(state, vals) {
