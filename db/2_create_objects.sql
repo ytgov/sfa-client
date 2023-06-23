@@ -1860,6 +1860,7 @@ CREATE TABLE sfa.in_school_status (
 	description NVARCHAR(500) NOT NULL,
 	is_active BIT NOT NULL DEFAULT 0,
 );
+GO
 
 -- sfa.person_address_v
 CREATE VIEW sfa.person_address_v AS

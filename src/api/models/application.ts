@@ -152,6 +152,9 @@ export function ApplicationFromDraft(draft: any): Application {
     online_submit_date: new Date(),
 
     //applied_other_funding: undefined,
+    is_disabled: draft.statistical.disability != "None",
+    is_perm_disabled: draft.statistical.disability == "Permanent",
+    is_minority: draft.statistical.visible_minority || false,
 
     //prestudy_start_date: undefined,
     //prestudy_end_date: undefined,
@@ -364,6 +367,7 @@ export function StudentFromDraft(draft: any): any {
     studentUpdate.high_school_id = educations[0].school;
     studentUpdate.high_school_left_year = educations[0].left_high_school.split("/")[0];
     studentUpdate.high_school_left_month = educations[0].left_high_school.split("/")[1];
+    studentUpdate.is_crown_ward = draft.statistical.crown_ward;
   }
 
   return studentUpdate;
