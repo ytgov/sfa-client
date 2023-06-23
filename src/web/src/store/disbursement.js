@@ -123,6 +123,7 @@ const actions = {
                 if (res?.data?.success) {
                     emiter?.$emit("showSuccess", "Added!");
                     emiter?.setShow(false);
+                    emiter.$emit("blockDisburse", false);
                 } else {
                     emiter?.$emit("showError", res.data?.message || "Fail to added");
                 }
@@ -142,12 +143,12 @@ const actions = {
         } finally {
             if (Array.isArray(vals.data)) {
                 this.dispatch('setIsPreviewCharged', false);
-                this.dispatch('getDisbursements', { funding_request_id: vals?.funding_request_id });
+                this.dispatch('getDisbursements', { application_id: vals?.application_id, funding_request_id: vals?.funding_request_id });
             }
             if (!(vals?.data?.funding_request_id)) {
                 return;
             }
-            this.dispatch('getDisbursements', { funding_request_id: vals?.data?.funding_request_id });
+            this.dispatch('getDisbursements', { application_id: vals?.application_id, funding_request_id: vals?.data?.funding_request_id });
         }
     },
     async updateDisbursement(state, vals) {
@@ -169,6 +170,7 @@ const actions = {
             if (res?.data?.success) {
                 emiter.$emit("showSuccess", "Added!");
                 emiter.currentEditing = null;
+                emiter.$emit("blockDisburse", false);
             } else {
                 emiter.$emit("showError", res.data?.message || "Fail to added");
             }
@@ -198,6 +200,7 @@ const actions = {
             if (res?.data?.success) {
                 emiter.$emit("showSuccess", "Deleted!");
                 emiter.currentEditing = null;
+                emiter.$emit("blockDisburse", false);
             } else {
                 emiter.$emit("showError", res.data?.message || "Fail to delete");
             }
