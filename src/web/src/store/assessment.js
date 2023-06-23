@@ -7,14 +7,19 @@ const state = {
     selectedAssessment: {},
     customAssessment: {},
     readOnlyData: {},
+    lastInsertedAssessmentId: null,
 };
 const getters = {
     assessments: (state) => state.assessments,
     selectedAssessment: (state) => state.selectedAssessment,
     readOnlyData: (state) => state.readOnlyData,
     customAssessment: (state) => state.customAssessment,
+    lastInsertedAssessmentId: (state) => state.lastInsertedAssessmentId,
 };
 const mutations = {
+    SET_LAST_INSERTED_ASSESSMENT_ID(state, value) {
+        state.lastInsertedAssessmentId = value;
+    },
     SET_ASSESSMENTS(state, value) {
         state.assessments = value;
     },
@@ -37,6 +42,7 @@ const actions = {
         try {
 
             if (!(vals?.application_id && vals?.funding_request_id)) {
+                alert("NOT PASSED")
                 return;
             }
 
@@ -79,6 +85,7 @@ const actions = {
 
             const res = await axios.post(
                 APPLICATION_URL + `/${vals.application_id}/${vals.funding_request_id}/assessments`,
+                { dataAssessment: { ...vals.dataAssessment } }
             );
 
             const message = res?.data?.messages[0];
@@ -98,6 +105,43 @@ const actions = {
                 return;
             }
             this.dispatch('getAssessments', vals);
+        }
+    },
+    async postAssessmentWithDisbursements(state, vals) {
+        try {
+            const thisVal = vals?.thisVal || {};
+
+            if (!(vals?.application_id && vals?.funding_request_id)) {
+                return;
+            }
+
+            const res = await axios.post(
+                APPLICATION_URL + `/${vals.application_id}/${vals.funding_request_id}/assessments-with-disburse`,
+                { 
+                    dataDisburse: vals.dataDisburse,
+                    dataAssessment: vals.dataAssessment
+                }
+            );
+
+            const message = res?.data?.messages[0];
+            
+            if (message?.variant === "success") {
+                thisVal?.$emit("showSuccess", "Both added!");
+            } else {
+                thisVal?.$emit("showSuccess", "Error to add");
+            }
+
+        } catch (error) {
+            const thisVal = vals?.thisVal || {};
+            console.log("Error to insert assessments", error);
+            thisVal?.$emit("showSuccess", "Error to insert");
+        } finally {
+            if (!(vals?.application_id && vals?.funding_request_id)) {
+                return;
+            }
+            this.dispatch('getAssessments', vals);
+            this.dispatch('setIsPreviewCharged', false);
+            this.dispatch('getDisbursements', { funding_request_id: vals?.funding_request_id });
         }
     },
     async updateAssessment(state, vals) {
@@ -205,6 +249,7 @@ const actions = {
         } finally {
         }
     },
+    
 };
 
 export default {

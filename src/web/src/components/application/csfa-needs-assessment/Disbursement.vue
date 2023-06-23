@@ -446,7 +446,7 @@ export default {
   },
   watch: {
     fundingRequestId() {
-      store.dispatch("getDisbursements", { funding_request_id: this.fundingRequestId });
+      store.dispatch("getDisbursements", { application_id: this.application.id, funding_request_id: this.fundingRequestId });
     }
   },
   data() {
@@ -486,12 +486,16 @@ export default {
       store.dispatch("updateDisbursement", {
         data: { ...item },
         disbursement_id: item.id,
+        application_id: this.application.id,
+        funding_request_id: this.fundingRequestId, 
         emiter: this
       });
     },
     addDisbursement() {
       store.dispatch("postDisbursement", {
         data: { assessment_id: this.assessmentId, funding_request_id: this.fundingRequestId, ...this.newDibursement },
+        application_id: this.application.id,
+        funding_request_id: this.fundingRequestId, 
         emiter: this
       });
     },
@@ -500,7 +504,7 @@ export default {
         "Are you sure?",
         "Click 'Confirm' below to permanently remove this disbursement.",
         () => {
-          store.dispatch("removeDisbursement", { emiter:this, disbursement_id: id, funding_request_id: this.fundingRequestId });
+          store.dispatch("removeDisbursement", {  application_id: this.application.id, emiter:this, disbursement_id: id, funding_request_id: this.fundingRequestId });
         },
         () => {}
       );
@@ -532,7 +536,7 @@ export default {
     store.dispatch("setAppSidebar", true);
     store.dispatch("setChangeReasons");
     store.dispatch("setDisbursementTypes");
-    store.dispatch("getDisbursements", { funding_request_id: this.fundingRequestId });
+    store.dispatch("getDisbursements", { application_id: this.application.id, funding_request_id: this.fundingRequestId });
   }
 };
 </script>
