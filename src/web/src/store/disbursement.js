@@ -58,20 +58,37 @@ const actions = {
         } catch (error) {
             console.log("Error to get disbursements", error);
         } finally {
+            
+            this.dispatch('getAssessments', { application_id: vals?.application_id, funding_request_id: vals.funding_request_id });
         }
     },
     async previewDisbursements(state, vals) {
         try {
             const thisVal = vals?.thisVal || {};
 
-            if (!vals.application_id && !vals?.assessment_id) {
+            if (!vals?.data && !vals.application_id && !vals?.assessment_id) {
                 return;
             }
+            const assessmentData = {};
+            
+            for (const key in vals?.data) {
+                if (!vals.data[key] && vals.data[key] !== 0) {
+                    assessmentData[key] = null;
+                } else {
+                    assessmentData[key] = vals.data[key];
+                }
+            }
 
-            const res = await axios.get(
+            const over_award_flag = 
+                (!!assessmentData?.over_award_applied_flg === false || assessmentData?.over_award_applied_flg === "No")
+                ? "No"
+                : "Yes";
+
+            const res = await axios.post(
                 APPLICATION_URL + `/${vals.application_id}/assessment/${vals.assessment_id}/disburse`,
+                { data: { ...assessmentData, over_award_applied_flg: over_award_flag } }
             );
-
+            
             const message = res?.data?.messages[0];
 
             if (message?.variant === "success") {
@@ -106,6 +123,7 @@ const actions = {
                 if (res?.data?.success) {
                     emiter?.$emit("showSuccess", "Added!");
                     emiter?.setShow(false);
+                    emiter.$emit("blockDisburse", false);
                 } else {
                     emiter?.$emit("showError", res.data?.message || "Fail to added");
                 }
@@ -114,7 +132,6 @@ const actions = {
     
                 if (res?.data?.success) {
                     emiter?.$emit("showSuccess", "Added!");
-                    
                     emiter?.setShow(false);
                 } else {
                     emiter?.$emit("showError", res.data?.message || "Fail to added");
@@ -126,12 +143,12 @@ const actions = {
         } finally {
             if (Array.isArray(vals.data)) {
                 this.dispatch('setIsPreviewCharged', false);
-                this.dispatch('getDisbursements', { funding_request_id: vals?.funding_request_id });
+                this.dispatch('getDisbursements', { application_id: vals?.application_id, funding_request_id: vals?.funding_request_id });
             }
             if (!(vals?.data?.funding_request_id)) {
                 return;
             }
-            this.dispatch('getDisbursements', { funding_request_id: vals?.data?.funding_request_id });
+            this.dispatch('getDisbursements', { application_id: vals?.application_id, funding_request_id: vals?.data?.funding_request_id });
         }
     },
     async updateDisbursement(state, vals) {
@@ -153,6 +170,7 @@ const actions = {
             if (res?.data?.success) {
                 emiter.$emit("showSuccess", "Added!");
                 emiter.currentEditing = null;
+                emiter.$emit("blockDisburse", false);
             } else {
                 emiter.$emit("showError", res.data?.message || "Fail to added");
             }
@@ -182,6 +200,7 @@ const actions = {
             if (res?.data?.success) {
                 emiter.$emit("showSuccess", "Deleted!");
                 emiter.currentEditing = null;
+                emiter.$emit("blockDisburse", false);
             } else {
                 emiter.$emit("showError", res.data?.message || "Fail to delete");
             }

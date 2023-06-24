@@ -594,8 +594,8 @@ BEGIN
             @over_award = COALESCE(over_award,0)
     FROM sfa.assessment
     WHERE id = @assessment_id_p;
-    
-    SET @net_amt = @assessed_amount - @previous_disbursement - @over_award ;
+
+    SET @net_amt = COALESCE(@assessed_amount, 0) - COALESCE(@previous_disbursement, 0) - COALESCE(@over_award, 0);
 
   IF @net_amt BETWEEN -1 AND 1 
   	BEGIN
@@ -1119,7 +1119,8 @@ RETURNS
     assessment_adj_amount FLOAT,
     over_award_disbursement_period INT,
     years_funded_equivalent NUMERIC,
-    over_award_applied_flg VARCHAR(3)
+    over_award_applied_flg VARCHAR(3),
+    air_travel_disbursement_period INT
 )
 AS
 BEGIN
@@ -1300,7 +1301,8 @@ BEGIN
     assessment_adj_amount,
     over_award_disbursement_period,
     years_funded_equivalent,
-    over_award_applied_flg
+    over_award_applied_flg,
+    air_travel_disbursement_period
   ) VALUES(
     @funding_request_id,
     @classes_end_date,
@@ -1325,7 +1327,8 @@ BEGIN
     0, -- assessment_adj_amount FLOAT,
     0, -- over_award_disbursement_period INT,
     NULL, -- years_funded_equivalent NUMERIC,
-    'No' -- over_award_applied_flg VARCHAR(3)
+    'No', -- over_award_applied_flg VARCHAR(3)
+    NULL
   )
   RETURN;
 END
@@ -1630,48 +1633,31 @@ GO
 -- DISBURSE BUTTON ASSESSMENT YG
 CREATE OR ALTER PROCEDURE sfa.sp_disburse_button_yg -- BUTTON FOR ASSESSMENT YG
     @application_id INT,
-    @assessment_id INT
+    @assessment_id INT,
+    @funding_request_id INT,
+    @air_travel_disbursement_period INT,
+    @travel_allowance NUMERIC,
+    @airfare_amount NUMERIC,
+    @disbursements_required INT,
+    @over_award_disbursement_period INT,
+    @over_award FLOAT,
+    @over_award_applied_flg VARCHAR(3),
+    @years_funded_equivalent NUMERIC,
+    @allowed_tuition NUMERIC,
+    @living_costs NUMERIC,
+    @allowed_books FLOAT,
+    @weekly_amount NUMERIC,
+    @assessment_adj_amount FLOAT,
+    @assessed_amount NUMERIC
+    
 AS 
 BEGIN
-    DECLARE @funding_request_id INT;
     DECLARE @academic_year INT;
 
 
     SELECT @academic_year = app.academic_year_id FROM sfa.application app
     WHERE app.id = @application_id; --@application_id
 
-    DECLARE @air_travel_disbursement_period INT;
-    DECLARE @travel_allowance NUMERIC;
-    DECLARE @airfare_amount NUMERIC;
-    DECLARE @disbursements_required INT;
-    DECLARE @over_award_disbursement_period INT;
-    DECLARE @over_award FLOAT;
-    DECLARE @over_award_applied_flg VARCHAR(3);
-    DECLARE @years_funded_equivalent NUMERIC;
-    DECLARE @allowed_tuition NUMERIC;
-    DECLARE @living_costs NUMERIC;
-    DECLARE @allowed_books FLOAT;
-    DECLARE @weekly_amount NUMERIC;
-    DECLARE @assessment_adj_amount FLOAT;
-
-    SELECT
-    @air_travel_disbursement_period = a.air_travel_disbursement_period,
-    @travel_allowance = COALESCE(a.travel_allowance, 0),
-    @airfare_amount = COALESCE(a.airfare_amount, 0),
-    @disbursements_required = a.disbursements_required,
-    @over_award_disbursement_period = a.over_award_disbursement_period,
-    @over_award = a.over_award,
-    @over_award_applied_flg = a.over_award_applied_flg,
-    @years_funded_equivalent = a.years_funded_equivalent,
-    @funding_request_id = a.funding_request_id,
-    @allowed_tuition = COALESCE(a.allowed_tuition, 0),
-    @living_costs = COALESCE(a.living_costs, 0),
-    @allowed_books = COALESCE(a.allowed_books, 0),
-    @weekly_amount = COALESCE(a.weekly_amount, 0),
-    @assessment_adj_amount = a.assessment_adj_amount
-    FROM sfa.assessment a WHERE a.id = @assessment_id; -- @assessment_id
-
-    -- CHECK ALL
     IF  (
             (
                 @air_travel_disbursement_period IS NULL
@@ -1699,6 +1685,7 @@ BEGIN
         BEGIN
             DECLARE @disbursement_id INT;
             DECLARE @new_disbursement_id INT;
+            DECLARE @net_amount INT;
 
             DECLARE @disbursement_temp TABLE
             (
@@ -1726,6 +1713,16 @@ BEGIN
 
             SELECT @disbursement_id = MAX(d.id)
             FROM sfa.disbursement d WHERE d.assessment_id = @assessment_id;
+
+            IF @assessment_id > 0
+                BEGIN 
+                    SELECT @net_amount = COALESCE(sfa.fn_net_amount(@funding_request_id, @assessment_id), 0);
+                END
+            ELSE
+                BEGIN
+                    SET @net_amount = COALESCE(@assessed_amount, 0) - COALESCE(@over_award, 0);
+                END
+
             DECLARE @financial_batch_id INT;
 
             IF  @disbursement_id IS NOT NULL
@@ -1777,7 +1774,7 @@ BEGIN
                             WHERE id = (@disbursement_id);
 
                             UPDATE @disbursement_temp
-                            SET disbursed_amount = COALESCE(sfa.fn_net_amount(@funding_request_id, @assessment_id), 0);
+                            SET disbursed_amount = @net_amount;
                                 -- :disbursement.paid_amount := :disbursement.disbursed_amount; -- we avoid this assignment;
 
                             --UPDATE sfa.assessment
@@ -1792,7 +1789,7 @@ BEGIN
                         ROLLBACK TRANSACTION;
                     END CATCH
                 END
-            ELSE IF COALESCE(sfa.fn_net_amount(@funding_request_id, @assessment_id), 0) >= 0
+            ELSE IF @net_amount >= 0
                 BEGIN
                     BEGIN TRY
                         BEGIN TRANSACTION
@@ -1800,7 +1797,7 @@ BEGIN
                             
                             DECLARE @count INT = 1;
 
-                            SELECT @v_amount_remaining = sfa.fn_net_amount(@funding_request_id, @assessment_id);  -- accumulated amount for new leg calculations
+                            SELECT @v_amount_remaining = @net_amount;  -- accumulated amount for new leg calculations
                     
                         WHILE @count <= @disbursements_required
                             BEGIN -- START LOOP
@@ -1918,8 +1915,8 @@ BEGIN
                     IF @financial_batch_id IS NULL
                         BEGIN
                             UPDATE @disbursement_temp
-                            SET disbursed_amount = COALESCE(sfa.fn_net_amount(@funding_request_id, @assessment_id), 0),
-                            paid_amount = COALESCE(sfa.fn_net_amount(@funding_request_id, @assessment_id), 0)
+                            SET disbursed_amount = @net_amount,
+                            paid_amount = @net_amount
                             WHERE id = -1;
                         END	
                     

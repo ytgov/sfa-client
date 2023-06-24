@@ -40,7 +40,11 @@
                 block
                 @click="e => {
                   if (!customAssessment?.id) {
-                    addAssessment();
+                    if (isPreviewCharged) {
+                      insertAssessmentWithDisbursement();
+                    } else {
+                      addAssessment();
+                    }
                   } else {
                     if (isPreviewCharged) {
                       insertDisburse();
@@ -64,13 +68,10 @@
                 @click=" e => {
                   if (!customAssessment?.id) {
                     $emit('close');
+                    $store.dispatch('setIsPreviewCharged', false);
                   } else {
-                    if (isPreviewCharged) {
                       $store.dispatch('setIsPreviewCharged', false);
                       cancelEdition();
-                    } else {
-                      cancelEdition();
-                    }
                   }
                 }"
               >
@@ -528,13 +529,11 @@
                   <v-btn 
                     :disabled="isDisburseBlocked"
                     @click="e => {
-                      if (!customAssessment?.id) {
-                        showAlert();
-                      } else {
+                      
                         if (!isDisburseBlocked) {
                           disburse();
                         }
-                      }
+                      
                     }"
                     dense
                     color="blue" 
@@ -674,6 +673,7 @@ export default {
         {
           application_id: this.application.id,
           funding_request_id: this.fundingRequestId,
+          dataAssessment: { ...this.customAssessment },
           thisVal: this
         }
       );
@@ -715,7 +715,8 @@ export default {
         "previewDisbursements",
         {
           application_id: this.application.id,
-          assessment_id: this.customAssessment.id,
+          assessment_id: this.customAssessment?.id || 0,
+          data: { ...this.customAssessment },
           thisVal: this
         }
       );
@@ -728,9 +729,28 @@ export default {
         store.dispatch("postDisbursement", {
         data: [ ...this.previewDisbursementList ],
         funding_request_id: this.customAssessment.funding_request_id,
+        application_id: this.application.id, 
         isList: "disburseList",
         emiter: this
       });
+      } else {
+        !this.previewDisbursementList.length
+        ? this.showError("No disburse in list")
+        : this.showError("Something went wrong ")
+      }
+    },
+    insertAssessmentWithDisbursement() {
+      if(this.isPreviewCharged && this.previewDisbursementList.length) {
+        store.dispatch(
+          "postAssessmentWithDisbursements",
+          {
+            application_id: this.application.id,
+            funding_request_id: this.fundingRequestId,
+            dataDisburse: [ ...this.previewDisbursementList ],
+            dataAssessment: { ...this.customAssessment },
+            thisVal: this
+          }
+        );
       } else {
         !this.previewDisbursementList.length
         ? this.showError("No disburse in list")
