@@ -872,7 +872,22 @@ CREATE TABLE sfa.student
     yea_expiry_date            DATE           NULL,
     adj_yg_funding_weeks       INT            NULL,
     adj_sta_upgrading_weeks    INT            NULL,
-    adj_outside_travel_cnt     INT            NULL
+    adj_outside_travel_cnt     INT            NULL,
+
+    yukon_resident_from_month  INT            NULL,
+    yukon_resident_from_year   INT            NULL,
+    canadian_resident_from_month INT          NULL,
+    canadian_resident_from_year INT           NULL,
+    old_ytid                   NVARCHAR(20)   NULL,
+    residence_comment          NVARCHAR(500)  NULL,
+    kin_first_name             NVARCHAR(30)   NULL,
+    kin_last_name              NVARCHAR(30)   NULL,
+    kin_address1               NVARCHAR(100)  NULL,
+    kin_address2               NVARCHAR(100)  NULL,
+    kin_city_id                INT            NULL,
+    kin_province_id            INT            NULL,
+    kin_country_id             INT            NULL,
+    kin_postal_code            NVARCHAR(20)   NULL
 )
 
 -- SFAADMIN.STUDENT_CONSENT
@@ -1155,7 +1170,12 @@ CREATE TABLE sfa.application
     prestudy_province_id           INT            NULL REFERENCES sfa.province,
     prestudy_bus                   BIT            NOT NULL DEFAULT 0,
     prestudy_distance              INT            NULL,
-    prestudy_employ_status_id      INT            NULL REFERENCES sfa.prestudy_employment_status,
+    prestudy_employ_status_id      INT            NULL REFERENCES sfa.prestudy_employment_status,    
+    prestudy_employed_from_date    DATE           NULL,
+    prestudy_employed_to_date      DATE           NULL,
+    prestudy_employer_name         NVARCHAR(200)  NULL,
+    prestudy_employer_city_id      INT            NULL REFERENCES sfa.city,
+    prestudy_employer_province_id  INT            NULL REFERENCES sfa.province,
     study_accom_code               INT            NULL,
     study_own_home                 BIT            NOT NULL DEFAULT 0,
     study_board_amount             NUMERIC(10, 2) NULL,
@@ -1235,9 +1255,11 @@ CREATE TABLE sfa.application
     updated_at                     DATETIME       NULL,
     last_jurisdiction_id           INT            NULL REFERENCES sfa.province,
     other_jurisdiction             NVARCHAR(255)  NULL,
-    spouse_last_jurisdiction_id    INT           NULL REFERENCES sfa.province,
-    spouse_other_jurisdiction      NVARCHAR(255)  NULL
-
+    spouse_last_jurisdiction_id    INT            NULL REFERENCES sfa.province,
+    spouse_other_jurisdiction      NVARCHAR(255)  NULL,
+    is_persist_disabled            BIT            NOT NULL DEFAULT 0,
+    persist_disabled_start_date    DATE           NULL,
+    is_cheques_to_institution      BIT            NOT NULL DEFAULT 0
 )
 
 CREATE TABLE sfa.income (
