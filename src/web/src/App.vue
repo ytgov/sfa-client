@@ -300,7 +300,6 @@ export default {
     this.hasSideBarAdmin = this.$route.path.startsWith("/administration");
 
     await store.dispatch("checkAuthentication");
-
     this.chosenApplication = this.selectedApplicationId;
   },
   watch: {

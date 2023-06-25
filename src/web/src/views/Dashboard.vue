@@ -64,7 +64,7 @@
                             <li
                                 v-for="(item, idx) of recentApplications"
                                 :key="idx"
-                            >
+                            >   <span>{{ JSON.stringify(item.first_name) }}</span>
                                 <router-link :to="`/application/${item.id}/personal`"
                                     >{{getStudentName(item.student_id)}} - 
                                     {{ item.academic_year_id}}: {{ item.main_institution.name }}

@@ -185,13 +185,17 @@ export default new Vuex.Store({
     clearStudent(state) {
       state.commit("CLEAR_STUDENT");
     },
+    clearApplication(state) {
+      state.commit("CLEAR_APPLICATION");
+    },
     async loadApplication(state, id) {
+      if (state.state.selectedApplicationId != id)
+        state.commit("CLEAR_APPLICATION");
       let resp = await axios.get(`${APPLICATION_URL}/${id}`);
 
       if (!state.state.selectedStudent.id) {
         this.dispatch("loadStudent", resp.data.data.student_id);
       }
-
       state.commit("SET_APPLICATION", resp.data.data);
     },
     async loadNewApplications(state) {
