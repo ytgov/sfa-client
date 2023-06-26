@@ -19,11 +19,11 @@ applicationRouter.get("/all", ReturnValidationErrors, async (req: Request, res: 
 
             if (!filter || filter == 'ALL') {
                 applications = await db("sfa.application")
-                    .innerJoin("sfa.institution_campus", "application.institution_campus_id", "institution_campus.id")
-                    .innerJoin("sfa.institution", "institution.id", "institution_campus.institution_id")
-                    .innerJoin("sfa.funding_request", "funding_request.application_id", "application.id")
-                    .innerJoin("sfa.student", "student.id", "application.student_id")
-                    .innerJoin("sfa.person", "student.person_id", "person.id")
+                    .leftJoin("sfa.institution_campus", "application.institution_campus_id", "institution_campus.id")
+                    .leftJoin("sfa.institution", "institution.id", "institution_campus.institution_id")
+                    // .leftJoin("sfa.funding_request", "funding_request.application_id", "application.id")
+                    .leftJoin("sfa.student", "student.id", "application.student_id")
+                    .leftJoin("sfa.person", "student.person_id", "person.id")
                     .select("application.*")
                     .select("institution.name as institution_name")
                     .select("person.first_name")
@@ -32,16 +32,17 @@ applicationRouter.get("/all", ReturnValidationErrors, async (req: Request, res: 
                     .orderBy('online_submit_date', 'asc');
             } else {
                 applications = await db("sfa.application")
-                    .innerJoin("sfa.institution_campus", "application.institution_campus_id", "institution_campus.id")
-                    .innerJoin("sfa.institution", "institution.id", "institution_campus.institution_id")
-                    .innerJoin("sfa.funding_request", "funding_request.application_id", "application.id")
-                    .innerJoin("sfa.student", "student.id", "application.student_id")
-                    .innerJoin("sfa.person", "student.person_id", "person.id")
+                    .leftJoin("sfa.institution_campus", "application.institution_campus_id", "institution_campus.id")
+                    .leftJoin("sfa.institution", "institution.id", "institution_campus.institution_id")
+                    // .leftJoin("sfa.funding_request", "funding_request.application_id", "application.id")
+                    .leftJoin("sfa.student", "student.id", "application.student_id")
+                    .leftJoin("sfa.person", "student.person_id", "person.id")
                     .select("application.*")
                     .select("institution.name as institution_name")
                     .select("person.first_name")
                     .select("person.last_name").limit(25)
                     .whereLike('last_name', `${filter}%`)
+                    // .andWhere({ "sfa.funding_request.status_id": 2 })
                     .andWhere({ seen: false })
                     .orderBy('online_submit_date', 'asc');
             }
@@ -65,30 +66,30 @@ applicationRouter.get("/latest-updates", ReturnValidationErrors, async (req: Req
 
         if (!filter || filter == 'ALL') {
             applications = await db("sfa.application")
-                .innerJoin("sfa.institution_campus", "application.institution_campus_id", "institution_campus.id")
-                .innerJoin("sfa.institution", "institution.id", "institution_campus.institution_id")
-                .innerJoin("sfa.funding_request", "funding_request.application_id", "application.id")
-                .innerJoin("sfa.student", "student.id", "application.student_id")
-                .innerJoin("sfa.person", "student.person_id", "person.id")
+                .leftJoin("sfa.institution_campus", "application.institution_campus_id", "institution_campus.id")
+                .leftJoin("sfa.institution", "institution.id", "institution_campus.institution_id")
+                .leftJoin("sfa.student", "student.id", "application.student_id")
+                .leftJoin("sfa.person", "student.person_id", "person.id")
                 .select("application.*")
                 .select("institution.name as institution_name")
                 .select("person.first_name")
                 .select("person.last_name").limit(25)
                 .where({ seen: true })
+                .whereNotNull('updated_at')
                 .orderBy('updated_at', 'desc');
         } else {
             applications = await db("sfa.application")
-                .innerJoin("sfa.institution_campus", "application.institution_campus_id", "institution_campus.id")
-                .innerJoin("sfa.institution", "institution.id", "institution_campus.institution_id")
-                .innerJoin("sfa.funding_request", "funding_request.application_id", "application.id")
-                .innerJoin("sfa.student", "student.id", "application.student_id")
-                .innerJoin("sfa.person", "student.person_id", "person.id")
+                .leftJoin("sfa.institution_campus", "application.institution_campus_id", "institution_campus.id")
+                .leftJoin("sfa.institution", "institution.id", "institution_campus.institution_id")
+                .leftJoin("sfa.student", "student.id", "application.student_id")
+                .leftJoin("sfa.person", "student.person_id", "person.id")
                 .select("application.*")
                 .select("institution.name as institution_name")
                 .select("person.first_name")
                 .select("person.last_name").limit(25)
                 .whereLike('last_name', `${filter}%`)
                 .andWhere({ seen: true })
+                .whereNotNull('updated_at')
                 .orderBy('updated_at', 'desc');
         }
 
@@ -407,6 +408,11 @@ applicationRouter.get("/:id",
                 }
 
                 application.student = student;
+
+                await db("sfa.application")
+                    .where({ id: application.id})
+                    .update({ seen: true });
+
                 return res.json({ data: application });
             }
         }
