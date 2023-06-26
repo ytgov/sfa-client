@@ -649,7 +649,7 @@ BEGIN
             END
             ELSE
             BEGIN
-                SELECT @weeks_allowed = @previous_weeks;				
+                SELECT @weeks_allowed = @assessed_weeks;				
             END
         END
     ELSE
@@ -1167,7 +1167,7 @@ BEGIN
       END
     ELSE
       BEGIN
-        SELECT @weeks_allowed = @previous_weeks;				
+        SELECT @weeks_allowed = @assessed_weeks;				
       END
 
     SELECT 
