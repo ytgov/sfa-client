@@ -71,22 +71,25 @@ export default {
     AcademicYear,
   computed: {
     ...mapState(["selectedStudent"]),
+    ...mapState(["selectedApplication"]),
   },
   data: () => ({
     tab: 0,
     applicationId: -1,
   }),
   async created() {
+    await store.dispatch("clearApplication");
+    await store.dispatch("clearStudent");
     this.applicationId = this.$route.params.id;
-    let storeApp = store.getters.selectedApplication;
+    
+    if (this.$route.path.indexOf("/application/") >= 0) {
 
-    if (this.$route.path.indexOf("/student/") >= 0) {
       //console.log("LOADING STUDENT BASED ON URL");
-      await store.dispatch("loadStudent", this.applicationId);
+      await store.dispatch("loadApplication", this.applicationId);
       store.dispatch("setAppSidebar", true);
     } else {
       if (this.applicationId != storeApp.HISTORY_DETAIL_ID) {
-        //console.log("LOADING APPLICTION BASED ON URL");
+        console.log("ENTRE APPLICTION BASED ON URL");
         await store.dispatch("loadApplication", this.applicationId);
         store.dispatch("setAppSidebar", true);
       }
@@ -96,9 +99,9 @@ export default {
     student: function (val) {
       if (val) this.updateView(val);
     },
-    //selectedStudent: function (val) {
-    //console.log("WATCH selectedStudent", val);
-    //},
+    selectedApplication: function (val) {
+      console.log("WATCH selectedApplication", val);
+    },
   },
   methods: {
     showSuccess(mgs) {

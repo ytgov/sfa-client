@@ -104,6 +104,35 @@
               v-currency="{ currency: 'USD', locale: 'en' }"
             ></v-text-field>
           </div>
+
+          <div class="col-md-6">
+                <v-autocomplete 
+                    outlined 
+                    dense 
+                    background-color="white" 
+                    hide-details
+                    :items="provinces"
+                    item-text="description"
+                    item-value="id"
+                    label="Last Canadian jurisdiction where Spouse has lived in for 12 continues months"
+                    v-model="application.spouse_last_jurisdiction_id"
+                    @change="doSaveApp('spouse_last_jurisdiction_id', application.spouse_last_jurisdiction_id)"
+                    >                    
+                </v-autocomplete>
+            </div>
+
+            <div class="col-md-6">
+                <v-text-field 
+                    outlined 
+                    dense 
+                    background-color="white" 
+                    hide-details 
+                    label="Other"
+                    v-model="application.spouse_other_jurisdiction"
+                    @change="doSaveApp('spouse_other_jurisdiction', application.spouse_other_jurisdiction)"
+                    >                    
+                </v-text-field>
+            </div>
         </div>
       </v-card-text>
     </v-card>
@@ -260,7 +289,7 @@ import validator from "@/validator";
 export default {
   name: "Home",
   computed: {
-    ...mapGetters(['prestudyEmployments']),
+    ...mapGetters(['prestudyEmployments', "provinces"]),
     application: function () {
       return store.getters.selectedApplication;
     },

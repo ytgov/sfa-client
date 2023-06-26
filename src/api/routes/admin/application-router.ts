@@ -19,11 +19,11 @@ applicationRouter.get("/all", ReturnValidationErrors, async (req: Request, res: 
 
             if (!filter || filter == 'ALL') {
                 applications = await db("sfa.application")
-                    .innerJoin("sfa.institution_campus", "application.institution_campus_id", "institution_campus.id")
-                    .innerJoin("sfa.institution", "institution.id", "institution_campus.institution_id")
-                    .innerJoin("sfa.funding_request", "funding_request.application_id", "application.id")
-                    .innerJoin("sfa.student", "student.id", "application.student_id")
-                    .innerJoin("sfa.person", "student.person_id", "person.id")
+                    .leftJoin("sfa.institution_campus", "application.institution_campus_id", "institution_campus.id")
+                    .leftJoin("sfa.institution", "institution.id", "institution_campus.institution_id")
+                    // .leftJoin("sfa.funding_request", "funding_request.application_id", "application.id")
+                    .leftJoin("sfa.student", "student.id", "application.student_id")
+                    .leftJoin("sfa.person", "student.person_id", "person.id")
                     .select("application.*")
                     .select("institution.name as institution_name")
                     .select("person.first_name")
@@ -32,16 +32,17 @@ applicationRouter.get("/all", ReturnValidationErrors, async (req: Request, res: 
                     .orderBy('online_submit_date', 'asc');
             } else {
                 applications = await db("sfa.application")
-                    .innerJoin("sfa.institution_campus", "application.institution_campus_id", "institution_campus.id")
-                    .innerJoin("sfa.institution", "institution.id", "institution_campus.institution_id")
-                    .innerJoin("sfa.funding_request", "funding_request.application_id", "application.id")
-                    .innerJoin("sfa.student", "student.id", "application.student_id")
-                    .innerJoin("sfa.person", "student.person_id", "person.id")
+                    .leftJoin("sfa.institution_campus", "application.institution_campus_id", "institution_campus.id")
+                    .leftJoin("sfa.institution", "institution.id", "institution_campus.institution_id")
+                    // .leftJoin("sfa.funding_request", "funding_request.application_id", "application.id")
+                    .leftJoin("sfa.student", "student.id", "application.student_id")
+                    .leftJoin("sfa.person", "student.person_id", "person.id")
                     .select("application.*")
                     .select("institution.name as institution_name")
                     .select("person.first_name")
                     .select("person.last_name").limit(25)
                     .whereLike('last_name', `${filter}%`)
+                    // .andWhere({ "sfa.funding_request.status_id": 2 })
                     .andWhere({ seen: false })
                     .orderBy('online_submit_date', 'asc');
             }
@@ -65,30 +66,30 @@ applicationRouter.get("/latest-updates", ReturnValidationErrors, async (req: Req
 
         if (!filter || filter == 'ALL') {
             applications = await db("sfa.application")
-                .innerJoin("sfa.institution_campus", "application.institution_campus_id", "institution_campus.id")
-                .innerJoin("sfa.institution", "institution.id", "institution_campus.institution_id")
-                .innerJoin("sfa.funding_request", "funding_request.application_id", "application.id")
-                .innerJoin("sfa.student", "student.id", "application.student_id")
-                .innerJoin("sfa.person", "student.person_id", "person.id")
+                .leftJoin("sfa.institution_campus", "application.institution_campus_id", "institution_campus.id")
+                .leftJoin("sfa.institution", "institution.id", "institution_campus.institution_id")
+                .leftJoin("sfa.student", "student.id", "application.student_id")
+                .leftJoin("sfa.person", "student.person_id", "person.id")
                 .select("application.*")
                 .select("institution.name as institution_name")
                 .select("person.first_name")
                 .select("person.last_name").limit(25)
                 .where({ seen: true })
+                .whereNotNull('updated_at')
                 .orderBy('updated_at', 'desc');
         } else {
             applications = await db("sfa.application")
-                .innerJoin("sfa.institution_campus", "application.institution_campus_id", "institution_campus.id")
-                .innerJoin("sfa.institution", "institution.id", "institution_campus.institution_id")
-                .innerJoin("sfa.funding_request", "funding_request.application_id", "application.id")
-                .innerJoin("sfa.student", "student.id", "application.student_id")
-                .innerJoin("sfa.person", "student.person_id", "person.id")
+                .leftJoin("sfa.institution_campus", "application.institution_campus_id", "institution_campus.id")
+                .leftJoin("sfa.institution", "institution.id", "institution_campus.institution_id")
+                .leftJoin("sfa.student", "student.id", "application.student_id")
+                .leftJoin("sfa.person", "student.person_id", "person.id")
                 .select("application.*")
                 .select("institution.name as institution_name")
                 .select("person.first_name")
                 .select("person.last_name").limit(25)
                 .whereLike('last_name', `${filter}%`)
                 .andWhere({ seen: true })
+                .whereNotNull('updated_at')
                 .orderBy('updated_at', 'desc');
         }
 
@@ -341,7 +342,22 @@ applicationRouter.get("/:id",
             .where("sfa.person.id", application.parent1_id )
             .orderBy( "sfa.person_address.address_type_id")
             .first();
-
+            
+            application.mailing_address = await db("sfa.person")
+            .leftJoin("sfa.person_address", "sfa.person.id", "sfa.person_address.person_id")
+            .select(
+                "sfa.person.*",
+                "sfa.person_address.id AS person_address_id",
+                "sfa.person_address.address_type_id",
+                "sfa.person_address.address1",
+                "sfa.person_address.address2",
+                "sfa.person_address.city_id",
+                "sfa.person_address.country_id",
+                "sfa.person_address.province_id",
+                "sfa.person_address.postal_code",
+            )
+            .where("sfa.person.id", application.student_id)
+            .first();
             application.parent2 = await db("sfa.person").where({ id: application.parent2_id }).first();
             application.spouse_info = await db("sfa.person").where({ id: application.spouse_id }).first();
             application.agencies_assistance = await db("sfa.agency_assistance").where({ application_id: application.id });    
@@ -392,6 +408,11 @@ applicationRouter.get("/:id",
                 }
 
                 application.student = student;
+
+                await db("sfa.application")
+                    .where({ id: application.id})
+                    .update({ seen: true });
+
                 return res.json({ data: application });
             }
         }
@@ -402,7 +423,7 @@ applicationRouter.get("/:id",
 applicationRouter.put("/:id",
     [param("id").notEmpty()], ReturnValidationErrors, async (req: Request, res: Response) => {
         let { id } = req.params;
-
+        
         db("sfa.application").where({ id }).update(req.body)
             .then((result: any) => {
                 res.json({ messages: [{ variant: "success", text: "Application saved" }] })
@@ -931,18 +952,26 @@ applicationRouter.post("/:application_id/person-address",
 
         try {
             const { application_id } = req.params;
-            const { data, addressTypeId = 1, personAddressId = null } = req.body;
+            const { data, addressTypeId = 4 } = req.body;
+            let { personAddressId = null } = req.body;
                 
             if (!Object.keys(data).length) {
                 return res.json({ messages: [{ variant: "error", text: "data is required" }] });
             }
-            if (personAddressId) {
+            if (personAddressId) {       
+                let student_id = null;         
+                if(data.student_id) {
+                    student_id = data.student_id;                    
+                    delete data.student_id;
+                }    
+                                
                 const resInsertPA = await db("sfa.person_address")
-                    .insert({ ...data, address_type_id: addressTypeId, person_id: personAddressId, is_active: true })
+                //.insert({ ...data, address_type_id: addressTypeId, person_id: student_id, is_active: true })
+                    .insert({ ...data, address_type_id: addressTypeId, person_id: student_id, is_active: true })
                     .returning("*");
 
                 return res.json({ messages: [{ variant: "success", text: "Inserted" }] });
-            } else {
+            } else {                
                 await db.transaction(async (trx) => {
                     const [resInsert] = await Promise.all(
                         [
@@ -952,8 +981,7 @@ applicationRouter.post("/:application_id/person-address",
                         ]
                     )
 
-                    if (resInsert) {
-                        
+                    if (resInsert) {                        
                         const resUpdateA = await trx("sfa.application")
                             .update("parent1_id", resInsert[0].id)
                             .where({ id: application_id })
@@ -989,7 +1017,12 @@ applicationRouter.patch("/:person_address_id/person-address",
             if (!Object.keys(data).length) {
                 return res.json({ messages: [{ variant: "error", text: "data is required" }] });
             }
-
+            
+            let student_id = null;
+            if(data.student_id) {
+                student_id = data.student_id;
+                delete data.student_id;
+            }
             const resUpdate = await db("sfa.person_address")
                 .update({ ...data })
                 .where({ id: person_address_id })

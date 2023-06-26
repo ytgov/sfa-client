@@ -2043,3 +2043,359 @@ BEGIN
 	RETURN @v_funded_years_count
 END
 GO
+
+-- Get Actual Expense
+CREATE OR ALTER FUNCTION sfa.fn_get_actual_expense(@period INT, @cat_id INT, @application_id INT)
+RETURNS NUMERIC(9,2)
+AS 
+BEGIN
+	DECLARE @amount NUMERIC(9,2);
+	SELECT 
+		@amount = COALESCE(e.amount, 0)
+	FROM sfa.expense e 
+	WHERE e.period_id = @period
+	AND e.category_id = @cat_id
+	AND e.application_id = @application_id;
+
+	RETURN @amount;
+END;
+GO
+
+-- Get Allowable Expense
+CREATE OR ALTER FUNCTION sfa.fn_get_allowable_expense(@period INT, @report_expense_cat_id INT, @application_id INT)
+RETURNS NUMERIC(9,2)
+AS 
+BEGIN
+	DECLARE @amount NUMERIC(9,2);
+	SELECT 
+		@amount = COALESCE(SUM(e.amount), 0)
+	FROM sfa.expense e 
+		INNER JOIN sfa.expense_category ec
+			ON e.category_id = ec.id 
+	WHERE e.period_id = @period
+	AND ec.report_expense_category_id = @report_expense_cat_id
+	AND e.application_id = @application_id;
+
+	RETURN @amount;
+END;
+GO
+
+-- Get Dependent Count
+CREATE OR ALTER FUNCTION sfa.fn_get_dependent_count(@application_id INT)
+RETURNS INT
+AS 
+BEGIN
+	DECLARE @count INT = 0;
+	SELECT 
+		@count = COUNT(*)
+	FROM sfa.dependent d 
+		INNER JOIN sfa.application a
+			ON d.student_id = a.student_id
+		INNER JOIN sfa.dependent_eligibility de 
+			ON d.id = de.dependent_id 
+			AND de.application_id = a.id
+			AND de.is_csl_eligible = 1
+	WHERE a.id = @application_id;
+
+	RETURN @count;
+END;
+GO
+
+-- Get Parent Dependent Count
+CREATE OR ALTER FUNCTION sfa.fn_get_parent_dependent_count(@application_id INT, @attend_post_second BIT = NULL)
+RETURNS INT
+AS 
+BEGIN
+	DECLARE @count INT = 0;
+	
+	IF @application_id IS NULL
+	BEGIN
+		RETURN NULL;
+	END
+	ELSE IF @attend_post_second IS NULL
+	BEGIN
+		SELECT
+			@count = COUNT(pd.id)
+		FROM sfa.parent_dependent pd
+		WHERE pd.application_id = @application_id
+		AND pd.is_eligible = 1;
+	END
+	ELSE
+	BEGIN
+		SELECT
+			@count = COUNT(pd.id)
+		FROM sfa.parent_dependent pd
+		WHERE pd.application_id = @application_id
+		AND pd.is_eligible = 1
+		AND pd.is_attend_post_secondary = @attend_post_second;
+	END
+
+	RETURN @count;
+END;
+GO
+
+-- Get Parent Family Size
+CREATE OR ALTER FUNCTION sfa.fn_get_parent_family_size(@application_id INT)
+RETURNS INT
+AS 
+BEGIN
+	DECLARE @count INT = 0;
+	DECLARE @p_count INT = 0;
+	
+	SELECT
+		@p_count = CASE WHEN p1.first_name IS NOT NULL AND p1.last_name IS NOT NULL THEN 1 ELSE 0 END +
+		CASE WHEN p2.first_name IS NOT NULL AND p2.last_name IS NOT NULL THEN 1 ELSE 0 END
+	FROM sfa.application a
+		LEFT JOIN sfa.person p1
+			ON p1.id = a.parent1_id
+		LEFT JOIN sfa.person p2
+			ON p2.id = a.parent2_id
+	WHERE a.id = @application_id;
+
+	SET @count = sfa.fn_get_parent_dependent_count(@application_id, DEFAULT);
+
+	RETURN @count + @p_count;
+END;
+GO
+
+-- Get Parent Address By Application
+CREATE OR ALTER FUNCTION sfa.fn_get_parent_address_by_application(@application_id INT, @address_type INT = 1)
+RETURNS TABLE
+AS
+RETURN
+SELECT
+	CASE 
+		WHEN pav.person_id = a.parent1_id THEN 1 
+		WHEN pav.person_id = a.parent2_id THEN 2
+		ELSE NULL
+		END as parent,	
+	pav.*
+FROM sfa.application a
+	LEFT JOIN sfa.person_address_v pav
+		ON pav.person_id = a.parent1_id
+		OR pav.person_id = a.parent2_id 
+WHERE a.id = @application_id
+AND pav.address_type_id = @address_type;
+GO
+
+-- Get Province Desc
+CREATE OR ALTER FUNCTION sfa.fn_get_province_desc(@province_id INT)
+RETURNS VARCHAR(50)
+AS 
+BEGIN
+	DECLARE @desc VARCHAR(50);
+	
+	IF @province_id IS NULL
+	BEGIN
+		RETURN NULL;
+	END
+	
+	SELECT 
+		@desc = p.description
+	FROM sfa.province p
+	WHERE p.id = @province_id;
+	
+	RETURN @desc;
+END;
+GO
+
+-- Get Total Grant Amount: disbursement_pck_1.get_total_grant_amount
+CREATE OR ALTER FUNCTION sfa.fn_get_total_grant_amount(@application_id INT)
+RETURNS FLOAT(8)
+AS
+BEGIN 
+
+    /* 2012-11-28 Lidwien SFA-340 - additions for SFA-657 new grant
+
+        Changed grant number to include new CSL grants (old ones kept to keep backwards compatible FT
+         15 - Canada Study Grant  Disability - old
+         16 - Canada Study Grant  Doctoral - old
+         17 - Canada Study Grant  Dependents - old
+         18 - Canada Study Grant  High Need Part Time - old
+         19 - Canada Millennium Bursary - old         
+         22 - Canada Access Grant for Students with Permanent Disabilities - old
+         23 - Canada Access Grant for Students from Low Income Families - old
+         27 - low income - old
+         28 - middle income - old
+         29 - permanent disabilities
+         30 - Grant for Services & Equipment for PD Students
+         32 - full time dependents
+         35 - grant for full time studentsPT
+         31 - grant for part time students 
+         33 - part time dependents
+         34 - permanent disabilities
+    */
+
+	DECLARE @amount FLOAT(8) = 0;
+
+	SELECT 
+		@amount = SUM(d.disbursed_amount)
+	FROM sfa.disbursement d
+		INNER JOIN sfa.funding_request fr
+			ON d.funding_request_id = fr.id
+	WHERE fr.request_type_id IN (15,16,17,18,19,22,23,27,28,29,30,31,32,33,35,47)
+	AND fr.application_id = @application_id;
+
+	RETURN COALESCE(@amount, 0);
+END;
+GO
+
+-- Get Shelter Food Misc: student_living_allowance_pck_1.get_shelter_food_misc
+CREATE OR ALTER FUNCTION sfa.fn_get_shelter_food_misc(@academic_year INT, @province_id INT, @student_category_id INT)
+RETURNS FLOAT(8)
+AS
+BEGIN 
+	DECLARE @amount FLOAT(8) = 0;
+
+	SELECT
+		@amount = COALESCE(sla.shelter_amount, 0) + COALESCE(sla.food_amount, 0) + COALESCE(sla.misc_amount, 0)
+	FROM sfa.student_living_allowance sla
+	WHERE sla.academic_year_id = @academic_year
+	AND sla.province_id = @province_id
+	AND sla.student_category_id = @student_category_id;
+	
+	RETURN COALESCE(@amount, 0);
+END;
+GO
+
+-- Get Max Discretionary: csl_lookup_pck_1.get_max_discretionary
+CREATE OR ALTER FUNCTION sfa.fn_get_max_discretionary(@academic_year INT)
+RETURNS FLOAT(8)
+AS
+BEGIN 
+	DECLARE @amount FLOAT(8) = 0;
+	
+	SELECT 
+		@amount = COALESCE(cl.discretionary_costs_max_amount, 0)
+	FROM sfa.csl_lookup cl
+	WHERE cl.academic_year_id = @academic_year;
+	
+	RETURN COALESCE(@amount, 0);
+END;
+GO
+
+-- Get student category id by code.
+CREATE OR ALTER FUNCTION sfa.fn_get_student_category_code(@student_category_code VARCHAR(10))
+RETURNS VARCHAR(10)
+AS
+BEGIN 
+	DECLARE @code VARCHAR(10) = NULL;
+	
+	SELECT 
+		@code = sc.id 
+	FROM
+		sfa.student_category sc
+	WHERE
+		sc.code = @student_category_code
+	
+	RETURN @code;
+END;
+GO
+
+-- Get Public Transportation: csl_lookup_pck_1.get_public_transportation
+CREATE OR ALTER FUNCTION sfa.fn_get_public_transportation(@academic_year INT, @province_id INT, @student_category_id INT)
+RETURNS FLOAT(8)
+AS
+BEGIN 
+	DECLARE @amount FLOAT(8) = 0;
+	
+	SELECT 
+		@amount = COALESCE(sla.public_tranport_amount, 0)
+	FROM sfa.student_living_allowance sla
+	WHERE sla.academic_year_id = @academic_year
+	AND sla.province_id = @province_id
+	AND sla.student_category_id = @student_category_id;
+	
+	RETURN COALESCE(@amount, 0);
+END;
+GO
+
+-- Get Child Care: child_care_ceiling_pck_1.get_child_care
+CREATE OR ALTER FUNCTION sfa.fn_get_child_care(@academic_year INT, @province_id INT)
+RETURNS FLOAT(8)
+AS
+BEGIN 
+	DECLARE @amount FLOAT(8) = 0;
+	
+	SELECT 
+		@amount = COALESCE(ccc.max_amount, 0)
+	FROM sfa.child_care_ceiling ccc
+	WHERE ccc.academic_year_id = @academic_year
+	AND ccc.province_id = @province_id;
+	
+	RETURN COALESCE(@amount, 0);
+END;
+GO
+
+-- Get Actual Expense: expense_pck_1.get_actual_expense
+CREATE OR ALTER FUNCTION sfa.fn_get_actual_expense(@period_id INT, @category_id INT, @application_id INT)
+RETURNS FLOAT(8)
+AS
+BEGIN 
+	DECLARE @amount FLOAT(8) = 0;
+
+	SELECT TOP 1
+		@amount = COALESCE(e.amount, 0)
+	FROM sfa.expense e
+	WHERE e.period_id = @period_id
+	AND e.category_id = @category_id
+	AND e.application_id = @application_id
+	ORDER BY e.id DESC;
+	
+	RETURN COALESCE(@amount, 0);
+END;
+GO
+
+-- Get Prestudy Tax Rate: prestudy_tax_rate_pck_1.get_prestudy_tax_rate
+CREATE OR ALTER FUNCTION sfa.fn_get_prestudy_tax_rate(@academic_year INT, @income FLOAT(8))
+RETURNS FLOAT(8)
+AS
+BEGIN 
+	DECLARE @amount FLOAT(8) = 0;
+
+	SELECT
+		@amount = COALESCE(ptr.prestudy_tax_rate, 0)
+	FROM sfa.prestudy_tax_rate ptr
+	WHERE ptr.academic_year_id = @academic_year
+	AND @income BETWEEN ptr.from_income_amount AND ptr.to_income_amount;
+	
+	RETURN COALESCE(@amount, 0);
+END;
+GO
+
+-- Get Spouse Tax Rate: spouse_tax_rate_pck_1.get_spouse_tax_rate
+CREATE OR ALTER FUNCTION sfa.fn_get_spouse_tax_rate(@academic_year INT, @province_id INT, @income FLOAT(8))
+RETURNS FLOAT(8)
+AS
+BEGIN 
+	DECLARE @amount FLOAT(8) = 0;
+
+	SELECT
+		@amount = COALESCE(str.tax_rate, 0)
+	FROM sfa.spouse_tax_rate str
+	WHERE str.academic_year_id = @academic_year
+	AND str.province_id = @province_id
+	AND @income BETWEEN str.from_income_amount AND str.to_income_amount;
+	
+	RETURN COALESCE(@amount, 0);
+END;
+GO
+
+--Get Student Contribution: student_contribution_pck_1.get_student_contribution
+CREATE OR ALTER FUNCTION sfa.fn_get_student_contribution(@academic_year INT, @province_id INT, @student_category_id INT, @period_id INT)
+RETURNS FLOAT(8)
+AS
+BEGIN 
+	DECLARE @amount FLOAT(8) = 0;
+
+	SELECT
+		@amount = COALESCE(sc.contribution_amount, 0)
+	FROM sfa.student_contribution sc
+	WHERE sc.academic_year_id = @academic_year
+	AND sc.province_id = @province_id
+	AND sc.student_category_id = @student_category_id
+	AND sc.period_id = @period_id;
+	
+	RETURN COALESCE(@amount, 0);
+END;
+GO
