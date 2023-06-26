@@ -2422,854 +2422,160 @@ GO
 
 -- Get Assessment Info PRC
 CREATE OR ALTER FUNCTION sfa.fn_get_assessment_info_prc (@funding_request_id INT)
-RETURNS @data TABLE (
-	id INT,
-	assessed_amount FLOAT(8), 
-	assessment_type_id INT,
-	effective_rate_date DATE, 
-	classes_end_date DATE, 
-	home_city_id INT, 
-	destination_city_id INT,
-	dependent_count INT, 
-	weeks_allowed BIT, 
-	second_residence_rate FLOAT(8), 
-	weekly_amount FLOAT(8),
-	travel_allowance FLOAT(8),  
-	entitlement_days INT
-)
+RETURNS INT
 AS 
 BEGIN
 	DECLARE @assess_id INT;
 
-	SELECT @assess_id = MAX(a.id)
+	SELECT @assess_id = MAX(id)
 	FROM sfa.assessment a
 	WHERE a.funding_request_id = @funding_request_id;
-
-	INSERT INTO @data
-	SELECT
-		id,
-		assessed_amount, 
-		assessment_type_id,
-		effective_rate_date, 
-		classes_end_date, 
-		home_city_id, 
-		destination_city_id,
-		dependent_count, 
-		weeks_allowed, 
-		second_residence_rate, 
-		weekly_amount,
-		travel_allowance,  
-		entitlement_days
-	FROM sfa.assessment a 
-	WHERE a.id = @assess_id;
-
-	RETURN;
+	
+	RETURN @assess_id;
 END;
 GO
 
-CREATE OR ALTER PROCEDURE sfa.sp_get_assess_info_cslft(@funding_request_id INT)
+-- Get Max Books
+CREATE OR ALTER FUNCTION sfa.fn_get_max_books(@academic_year_id INT)
+RETURNS FLOAT(8)
 AS
-	DECLARE @assess_count INT;
-	DECLARE @assessment_id INT;
+BEGIN 
+	DECLARE @amount FLOAT(8) = 0;
 
-	SET @assess_count = sfa.fn_get_assessment_count(@funding_request_id);
+	SELECT 
+	@amount = cl.books_max_amount 
+	FROM sfa.csl_lookup cl 
+	WHERE cl.academic_year_id = @academic_year_id;
+	
+	RETURN COALESCE(@amount, 0);
+END;
+GO
 
-	--Create temp table from assessment.
-	DROP TABLE IF EXISTS #t_assessment;
-	CREATE TABLE #t_assessment (
-		id int,
-		allowed_books float,
-		allowed_months float,
-		allowed_percent numeric(5,2),
-		allowed_tuition numeric(10,2),
-		assessed_amount numeric(10,2),
-		assessed_date VARCHAR(10),
-		change_reason_comment text,
-		dependent_count float,
-		effective_rate_date VARCHAR(10),
-		home_city_id int,
-		living_costs numeric(10,2),
-		travel_allowance numeric(10,2),
-		weekly_amount numeric(10,2),
-		assessment_type_id int,
-		destination_city_id int,
-		funding_request_id int,
-		disbursements_required int,
-		weeks_allowed float,
-		second_residence_rate float,
-		classes_end_date VARCHAR(10),
-		prestudy_accom_code int,
-		prestudy_province_id int,
-		classes_start_date VARCHAR(10),
-		airfare_amount numeric(10,2),
-		air_travel_disbursement_period int,
-		shelter_month float,
-		p_trans_month float,
-		r_trans_16wk float,
-		day_care_allowable float,
-		depend_food_allowable float,
-		depend_tran_allowable float,
-		pstudy_shelter_month float,
-		pstudy_p_trans_month float,
-		pstudy_day_care_allow float,
-		pstudy_depend_food_allow float,
-		pstudy_depend_tran_allow float,
-		pstudy_start_date VARCHAR(10),
-		pstudy_end_date VARCHAR(10),
-		csl_assessed_need float,
-		study_province_id int,
-		csl_over_reason_id int,
-		csl_non_reason_id int,
-		over_award float,
-		student_tax_rate float,
-		spouse_tax_rate float,
-		spouse_pstudy_tax_rate float,
-		stud_pstudy_tax_rate float,
-		parent1_income float,
-		parent2_income float,
-		parent1_tax_paid float,
-		parent2_tax_paid float,
-		books_supplies_cost float,
-		tuition_estimate float,
-		uncapped_costs_total float,
-		uncapped_pstudy_total float,
-		day_care_actual float,
-		stud_pstudy_gross float,
-		spouse_pstudy_gross float,
-		pstudy_day_care_actual float,
-		student_gross_income float,
-		spouse_gross_income float,
-		prestudy_csl_classification int,
-		marital_status_id int,
-		spouse_province_id int,
-		study_accom_code float,
-		csl_classification int,
-		family_size float,
-		parent_ps_depend_count float,
-		parent_province varchar(100),
-		discretionary_cost float,
-		discretionary_cost_actual float,
-		study_distance float,
-		prestudy_distance float,
-		prestudy_bus_flag float,
-		study_bus_flag float,
-		study_living_w_spouse_flag float,
-		prestudy_living_w_spouse_flag float,
-		csl_full_amt_flag float,
-		study_area_id int,
-		program_id int,
-		period varchar(3),
-		csl_request_amount float,
-		return_uncashable_cert float,
-		years_funded_equivalent numeric(5,2),
-		study_weeks float,
-		study_months float,
-		pstudy_expected_contrib float,
-		spouse_expected_income float,
-		asset_tax_rate float,
-		x_trans_total float,
-		relocation_total float,
-		pstudy_x_trans_total float,
-		married_pstudy numeric(10,2),
-		married_study numeric(10,2),
-		married_assets numeric(10,2),
-		entitlement_days float,
-		parent_contribution_override numeric(10,2),
-		total_grant_awarded numeric(10,2),
-		over_award_disbursement_period int,
-		over_award_applied_flg varchar(3),
-		pre_leg_amount float,
-		assessment_adj_amount float,
-		student_ln150_income float,
-		student_contribution float,
-		student_contrib_exempt varchar(3),
-		spouse_contrib_exempt varchar(3),
-		spouse_contribution float,
-		spouse_ln150_income float,
-		student_contribution_review varchar(3),
-		spouse_contribution_review varchar(3),
-		parent_contribution_review varchar(3),
-		student_family_size float,
-		student_expected_contribution float,
-		student_previous_contribution float,
-		spouse_expected_contribution float,
-		spouse_previous_contribution float,
-		student_contribution_override float,
-		spouse_contribution_override float,
-		new_calc BIT
-	);
-		
-	IF @assess_count > 0
-	BEGIN
-		SELECT 
-			@assessment_id = id
-		FROM sfa.fn_get_assessment_info_prc(@funding_request_id);
-			
-		INSERT INTO #t_assessment (
-			air_travel_disbursement_period,
-			airfare_amount,
-			allowed_books,
-			allowed_months,
-			allowed_percent,
-			allowed_tuition,
-			assessed_amount,
-			assessed_date,
-			assessment_adj_amount,
-			assessment_type_id,
-			asset_tax_rate,
-			books_supplies_cost,
-			change_reason_comment,
-			classes_end_date,
-			classes_start_date,
-			csl_assessed_need,
-			csl_classification,
-			csl_full_amt_flag,
-			csl_non_reason_id,
-			csl_over_reason_id,
-			csl_request_amount,
-			day_care_actual,
-			day_care_allowable,
-			depend_food_allowable,
-			depend_tran_allowable,
-			dependent_count,
-			destination_city_id,
-			disbursements_required,
-			discretionary_cost,
-			discretionary_cost_actual,
-			effective_rate_date,
-			entitlement_days,
-			family_size,
-			funding_request_id,
-			home_city_id,
-			id,
-			living_costs,
-			marital_status_id,
-			married_assets,
-			married_pstudy,
-			married_study,
-			over_award,
-			over_award_applied_flg,
-			over_award_disbursement_period,
-			p_trans_month,
-			parent1_income,
-			parent1_tax_paid,
-			parent2_income,
-			parent2_tax_paid,
-			parent_contribution_override,
-			parent_contribution_review,
-			parent_province,
-			parent_ps_depend_count,
-			period,
-			pre_leg_amount,
-			prestudy_accom_code,
-			prestudy_bus_flag,
-			prestudy_csl_classification,
-			prestudy_distance,
-			prestudy_living_w_spouse_flag,
-			prestudy_province_id,
-			program_id,
-			pstudy_day_care_actual,
-			pstudy_day_care_allow,
-			pstudy_depend_food_allow,
-			pstudy_depend_tran_allow,
-			pstudy_end_date,
-			pstudy_expected_contrib,
-			pstudy_p_trans_month,
-			pstudy_shelter_month,
-			pstudy_start_date,
-			pstudy_x_trans_total,
-			r_trans_16wk,
-			relocation_total,
-			return_uncashable_cert,
-			second_residence_rate,
-			shelter_month,
-			spouse_contrib_exempt,
-			spouse_contribution,
-			spouse_contribution_override,
-			spouse_contribution_review,
-			spouse_expected_contribution,
-			spouse_expected_income,
-			spouse_gross_income,
-			spouse_ln150_income,
-			spouse_previous_contribution,
-			spouse_province_id,
-			spouse_pstudy_gross,
-			spouse_pstudy_tax_rate,
-			spouse_tax_rate,
-			stud_pstudy_gross,
-			stud_pstudy_tax_rate,
-			student_contrib_exempt,
-			student_contribution,
-			student_contribution_override,
-			student_contribution_review,
-			student_expected_contribution,
-			student_family_size,
-			student_gross_income,
-			student_ln150_income,
-			student_previous_contribution,
-			student_tax_rate,
-			study_accom_code,
-			study_area_id,
-			study_bus_flag,
-			study_distance,
-			study_living_w_spouse_flag,
-			study_months,
-			study_province_id,
-			study_weeks,
-			total_grant_awarded,
-			travel_allowance,
-			tuition_estimate,
-			uncapped_costs_total,
-			uncapped_pstudy_total,
-			weekly_amount,
-			weeks_allowed,
-			x_trans_total,
-			years_funded_equivalent
-		)
-		SELECT
-			air_travel_disbursement_period,
-			airfare_amount,
-			allowed_books,
-			allowed_months,
-			allowed_percent,
-			allowed_tuition,
-			assessed_amount,
-			CONVERT(VARCHAR, assessed_date, 23),
-			assessment_adj_amount,
-			assessment_type_id,
-			asset_tax_rate,
-			books_supplies_cost,
-			change_reason_comment,
-			CONVERT(VARCHAR, classes_end_date, 23),
-			CONVERT(VARCHAR, classes_start_date,23),
-			csl_assessed_need,
-			csl_classification,
-			csl_full_amt_flag,
-			csl_non_reason_id,
-			csl_over_reason_id,
-			csl_request_amount,
-			day_care_actual,
-			day_care_allowable,
-			depend_food_allowable,
-			depend_tran_allowable,
-			dependent_count,
-			destination_city_id,
-			disbursements_required,
-			discretionary_cost,
-			discretionary_cost_actual,
-			CONVERT(VARCHAR, effective_rate_date, 23),
-			entitlement_days,
-			family_size,
-			funding_request_id,
-			home_city_id,
-			id,
-			living_costs,
-			marital_status_id,
-			married_assets,
-			married_pstudy,
-			married_study,
-			over_award,
-			over_award_applied_flg,
-			over_award_disbursement_period,
-			p_trans_month,
-			parent1_income,
-			parent1_tax_paid,
-			parent2_income,
-			parent2_tax_paid,
-			parent_contribution_override,
-			parent_contribution_review,
-			parent_province,
-			parent_ps_depend_count,
-			period,
-			pre_leg_amount,
-			prestudy_accom_code,
-			prestudy_bus_flag,
-			prestudy_csl_classification,
-			prestudy_distance,
-			prestudy_living_w_spouse_flag,
-			prestudy_province_id,
-			program_id,
-			pstudy_day_care_actual,
-			pstudy_day_care_allow,
-			pstudy_depend_food_allow,
-			pstudy_depend_tran_allow,
-			CONVERT(VARCHAR, pstudy_end_date, 23),
-			pstudy_expected_contrib,
-			pstudy_p_trans_month,
-			pstudy_shelter_month,
-			CONVERT(VARCHAR, pstudy_start_date, 23),
-			pstudy_x_trans_total,
-			r_trans_16wk,
-			relocation_total,
-			return_uncashable_cert,
-			second_residence_rate,
-			shelter_month,
-			spouse_contrib_exempt,
-			spouse_contribution,
-			spouse_contribution_override,
-			spouse_contribution_review,
-			spouse_expected_contribution,
-			spouse_expected_income,
-			spouse_gross_income,
-			spouse_ln150_income,
-			spouse_previous_contribution,
-			spouse_province_id,
-			spouse_pstudy_gross,
-			spouse_pstudy_tax_rate,
-			spouse_tax_rate,
-			stud_pstudy_gross,
-			stud_pstudy_tax_rate,
-			student_contrib_exempt,
-			student_contribution,
-			student_contribution_override,
-			student_contribution_review,
-			student_expected_contribution,
-			student_family_size,
-			student_gross_income,
-			student_ln150_income,
-			student_previous_contribution,
-			student_tax_rate,
-			study_accom_code,
-			study_area_id,
-			study_bus_flag,
-			study_distance,
-			study_living_w_spouse_flag,
-			study_months,
-			study_province_id,
-			study_weeks,
-			total_grant_awarded,
-			travel_allowance,
-			tuition_estimate,
-			uncapped_costs_total,
-			uncapped_pstudy_total,
-			weekly_amount,
-			weeks_allowed,
-			x_trans_total,
-			years_funded_equivalent
-		FROM sfa.assessment a
-		WHERE a.id = @assessment_id;
-	
-		SELECT
-			*
-		FROM #t_assessment;
-	END
-	ELSE
-	BEGIN		
-		-- Assessment values
-		DECLARE 
-			@application_id INT,
-			@academic_year INT,
-			@classes_end_date DATE,
-			@classes_start_date DATE,
-			@pstudy_start_date DATE,
-			@pstudy_end_date DATE,
-			@books_supplies_cost FLOAT(8),
-			@csl_classification INT,
-			@csl_full_amt_flag FLOAT(8),
-			@csl_request_amount FLOAT(8),
-			@day_care_actual FLOAT(8),
-			@discretionary_cost_actual FLOAT(8),
-			@family_size FLOAT(8),
-			@marital_status_id INT,
-			@parent1_income FLOAT(8),
-			@parent1_tax_paid FLOAT(8),
-			@parent2_income FLOAT(8),
-			@parent2_tax_paid FLOAT(8),
-			@parent_province VARCHAR(100),
-			@parent_ps_depend_count FLOAT(8),
-			@prestudy_accom_code INT,
-			@prestudy_bus_flag FLOAT(8),
-			@prestudy_csl_classification INT,
-			@prestudy_distance FLOAT(8),
-			@prestudy_province_id INT,
-			@program_id INT,
-			@study_accom_code FLOAT(8),
-			@study_area_id INT,
-			@study_bus_flag FLOAT(8),
-			@study_distance FLOAT(8),
-			@study_living_w_spouse_flag FLOAT(8),
-			@study_province_id INT,
-			@total_grant_awarded NUMERIC(9, 2),
-			@tuition_estimate FLOAT(8),
-			@student_ln150_income FLOAT(8),
-			@spouse_ln150_income FLOAT(8),
-			@prestudy_end_date DATE
-		;
-	
-		-- Calculated vars
-		DECLARE
-			@prestudy_prov INT,
-			@study_prov INT,
-			@spouse_prov INT,
-			@study_category_id INT = NULL,
-			@prestudy_category_id INT = NULL,
-			@spouse_expected_income FLOAT(8) = 0,
-			@spouse_province_id INT,
-			@study_months INT,
-			@period VARCHAR(5),
-			@shelter_month INT,
-			@discretionary_cost FLOAT(8),
-			@dependent_count INT,
-			@depend_food_allowable FLOAT(8),
-			@day_care_allowable FLOAT(8),
-			@depend_tran_allowable FLOAT(8),
-			@p_trans_month INT,
-			@pstudy_day_care_actual FLOAT(8)
-		;
-				
-		SELECT 
-			@application_id = a.id,
-			@academic_year = a.academic_year_id,
-			@classes_end_date = a.classes_end_date,
-			@classes_start_date = a.classes_start_date,
-			@pstudy_start_date = a.prestudy_start_date,
-			@pstudy_end_date = a.prestudy_end_date,
-			@prestudy_province_id = a.prestudy_province_id,
-			@prestudy_accom_code = a.prestudy_accom_code,
-			@marital_status_id = a.marital_status_id,
-			@study_area_id = a.study_area_id,
-			@program_id = a.program_id,
-			@study_province_id = a.study_province_id,
-			@study_accom_code = a.study_accom_code,
-			@prestudy_csl_classification = a.prestudy_csl_classification,
-			@csl_classification = a.csl_classification,
-			@tuition_estimate = a.tuition_estimate_amount,
-			@books_supplies_cost = (SELECT 
-									CASE WHEN cl.books_max_amount > a.books_supplies_cost THEN a.books_supplies_cost ELSE cl.books_max_amount END 
-									FROM sfa.csl_lookup cl WHERE cl.academic_year_id = a.academic_year_id),
-			@study_distance = a.study_distance,
-			@prestudy_distance = a.prestudy_distance,
-			@parent1_income = a.parent1_income,
-			@parent2_income = a.parent2_income,
-			@study_living_w_spouse_flag = a.study_living_w_spouse,
-			@parent1_tax_paid = a.parent1_tax_paid,
-			@parent2_tax_paid = a.parent2_tax_paid,
-			@csl_request_amount = fr.csl_request_amount,
-			@csl_full_amt_flag = fr.is_csl_full_amount,
-			@discretionary_cost_actual = sfa.fn_get_allowable_expense(2,7,a.id) + sfa.fn_get_allowable_expense(2,11,a.id),
-			@day_care_actual = sfa.fn_get_actual_expense(2,3,a.id),
-			@study_bus_flag = a.study_bus,
-			@prestudy_bus_flag = a.prestudy_bus,
-			@family_size = sfa.fn_get_parent_family_size(a.id),
-			@parent_ps_depend_count = sfa.fn_get_parent_dependent_count(a.id, 1),
-			@parent_province = (SELECT sfa.fn_get_province_desc(province_id) FROM sfa.fn_get_parent_address_by_application(a.id, 2) WHERE parent = 1),
-			@total_grant_awarded = sfa.fn_get_total_grant_amount(a.id),
-			@student_ln150_income = a.student_ln150_income,
-			@spouse_ln150_income = a.spouse_ln150_income
-		FROM sfa.application a
-			INNER JOIN sfa.funding_request fr
-				ON fr.application_id = a.id
-		WHERE fr.id = @funding_request_id;
-	
-		IF @pstudy_start_date IS NULL
-		BEGIN
-			SET @pstudy_end_date = EOMONTH(@classes_start_date, -1);
-			SET @pstudy_start_date = DATEADD(dd, 1, DATEADD(mm, -4, @prestudy_end_date));
-		END;			
-		
-		/* Determine if the study province is in Canada.  If not set the study
-		province to the prestudy province. */	
-		IF @prestudy_province_id NOT IN (1,2,3,4,5,6,7,8,9,10,11,12,13)
-		BEGIN
-			SELECT
-				@prestudy_prov = p.id
-			FROM sfa.province p
-			WHERE p.description = 'Yukon';
-		END
-		ELSE
-		BEGIN
-			SET @prestudy_prov = @prestudy_province_id
-		END;
-	
-		IF @study_province_id NOT IN (1,2,3,4,5,6,7,8,9,10,11,12,13)
-		BEGIN
-			SET	@study_prov = @prestudy_prov;
-		END
-		ELSE
-		BEGIN
-			SET @study_prov = @study_province_id;
-		END;
-		
-		IF @marital_status_id = 3 OR @marital_status_id = 4
-		BEGIN 
-			IF @study_living_w_spouse_flag = 1
-			BEGIN
-				SET @spouse_province_id = @study_province_id;
-			
-				SET @spouse_prov = CASE
-										WHEN @spouse_province_id NOT IN (1,2,3,4,5,6,7,8,9,10,11,12,13) THEN @study_prov
-										ELSE @spouse_province_id
-								   END;
-			END
-			ELSE
-			BEGIN
-				SET @spouse_province_id = @prestudy_province_id;
-			
-				SET @spouse_prov = CASE 
-										WHEN @spouse_province_id NOT IN (1,2,3,4,5,6,7,8,9,10,11,12,13) THEN @prestudy_prov									
-										ELSE @spouse_province_id
-								   END;
-			END;
-		END;
-				
-		SET @period = CASE WHEN @study_months <= 4 THEN 'S' ELSE 'P' END;
-	
-		/* Cost Tab */
-		SET @shelter_month = sfa.fn_get_shelter_food_misc(@academic_year, @study_prov, @study_category_id);
-		SET @discretionary_cost = sfa.fn_get_max_discretionary(@academic_year);
-	
-		IF (
-			@study_category_id = sfa.fn_get_student_category_id('SP') OR @study_category_id = sfa.fn_get_student_category_id('M')
-		   ) AND @dependent_count > 0
-		BEGIN
-			SET @depend_food_allowable = sfa.fn_get_shelter_food_misc(@academic_year, @study_prov, sfa.fn_get_student_category_id('DEP')) * @dependent_count;
-			SET @day_care_allowable = sfa.fn_get_child_care(@academic_year, @study_prov) * @dependent_count;
-		
-			IF @study_bus_flag = 1
-			BEGIN
-				SET @depend_tran_allowable = sfa.fn_get_public_transportation(@academic_year, @study_prov, sfa.fn_get_student_category_id('DEP')) * @dependent_count;			
-				SET @p_trans_month = sfa.fn_get_public_transportation(@academic_year, @study_prov, @study_category_id);
-			END;
-		END;
-	
-		DECLARE
-			@stud_pstudy_gross FLOAT(8),
-			@stud_pstudy_tax_rate FLOAT(8),
-			@pstudy_months INT,
-			@spouse_pstudy_tax_rate FLOAT(8),
-			@pstudy_depend_food_allow FLOAT(8),
-			@pstudy_day_care_allow FLOAT(8),
-			@pstudy_depend_tran_allow FLOAT(8),
-			@pstudy_p_trans_month INT,
-			@pstudy_shelter_month INT,
-			@student_gross_income FLOAT(8),
-			@student_tax_rate FLOAT(8),
-			@spouse_gross_income FLOAT(8),
-			@spouse_tax_rate FLOAT(8),
-			@spouse_study_school_to DATE,
-			@spouse_study_school_from DATE,
-			@student_indigenous_learner VARCHAR(10),
-			@student_crown_ward_flg VARCHAR(10),
-			@perm_disabled_flag BIT,
-			@student_contrib_exempt VARCHAR(10),
-			@spouse_contrib_exempt VARCHAR(10),
-			@asset_tax_rate FLOAT(8),
-			@calculated_award FLOAT(8),
-			@recovered_overaward FLOAT(8),
-			@assessment_amount FLOAT(8),
-			@net_amount FLOAT(8),
-			@previous_disbursement FLOAT(8),
-			@return_uncashable_cert FLOAT(8)
-		;
-	
-		IF @academic_year < 2017
-		BEGIN
-			SET @pstudy_day_care_actual = sfa.fn_get_actual_expense(1,3,@application_id);
-			
-			/* PreStudy Tab */
-			-- added divide gross by pstudy months as rate is based on monthly amount, not yearly SFA 481 2014-06-06 Lidwien
-			DECLARE @pstudy_student_monthly_amt FLOAT(8) = 0;
-			IF @stud_pstudy_gross <> 0
-			BEGIN
-			      SET @pstudy_student_monthly_amt = @stud_pstudy_gross / @pstudy_months;
-			END;
-			
-			SET @stud_pstudy_tax_rate = sfa.fn_get_prestudy_tax_rate(@academic_year, @pstudy_student_monthly_amt); 
-			      
-			IF @prestudy_category_id = sfa.fn_get_student_category_id('SP') OR @prestudy_category_id = sfa.fn_get_student_category_id('M')
-			BEGIN
-				-- added divide gross by pstudy months as rate is based on monthly amount, not yearly SFA 481 2014-06-06 Lidwien
-				DECLARE @pstudy_spouse_monthly_amt FLOAT(8) = 0;
-				IF @stud_pstudy_gross <> 0
-				BEGIN
-			    	SET @pstudy_spouse_monthly_amt = @stud_pstudy_gross / @pstudy_months;
-			  	END;
-			
-			  	SET @spouse_pstudy_tax_rate = sfa.fn_get_spouse_tax_rate(@academic_year, @prestudy_prov, @pstudy_spouse_monthly_amt); -- added divide by pstudy months as rate is based on monthly
-			   	IF @dependent_count > 0
-			   	BEGIN
-				   	SET @pstudy_depend_food_allow = sfa.fn_get_shelter_food_misc(@academic_year, @prestudy_prov, sfa.fn_get_student_category_id('DEP')) * @dependent_count;
-				   	SET @pstudy_day_care_allow = sfa.fn_get_child_care(@academic_year, @prestudy_prov) * @dependent_count;
-				   	IF @prestudy_bus_flag > 1
-				   	BEGIN
-					   	SET @pstudy_depend_tran_allow = sfa.fn_get_public_transportation(@academic_year, @prestudy_prov, sfa.fn_get_student_category_id('DEP')) * @dependent_count;
-					END;
-			   	END;
-			END;
-		
-			IF @prestudy_bus_flag > 1
-		   	BEGIN
-			   	SET @pstudy_p_trans_month = sfa.fn_get_public_transportation(@academic_year, @prestudy_prov, @prestudy_category_id);
-			END;
-		
-			SET @pstudy_shelter_month = sfa.fn_get_shelter_food_misc(@academic_year, @prestudy_prov, @prestudy_category_id);
-		
-		
-			/* Study Tab */
-			DECLARE @study_student_monthly_amt FLOAT(8) = 0;
-			IF @student_gross_income <> 0
-			BEGIN
-               	SET @study_student_monthly_amt = @student_gross_income/ @study_months;
-			END;
-    
-			SET @student_tax_rate = sfa.fn_get_study_tax_rate(@academic_year, @study_student_monthly_amt); 
-                 
-			IF @study_category_id = sfa.fn_get_student_category_id('SP') OR @study_category_id = sfa.fn_get_student_category_id('M')
-			BEGIN
-				-- added divide gross by pstudy months as rate is based on monthly amount, not yearly SFA 481 2014-06-06 Lidwien
-				DECLARE @study_spouse_monthly_amt FLOAT(8) = 0;
-				IF @spouse_gross_income <> 0
-				BEGIN
-					SET @study_spouse_monthly_amt = @spouse_gross_income/ @study_months;
-				END;
-			
-				SET @spouse_tax_rate = sfa.fn_get_spouse_tax_rate(@academic_year, @spouse_prov, @study_spouse_monthly_amt); -- added divide by study months as rate is based on monthly
- 
-				-- Added condition for Spouse start and end post secondary dates. If they exist, there is no expected income for spouse				
-				IF @spouse_study_school_to IS NULL AND @spouse_study_school_from IS NULL
-				BEGIN		
-					SET @spouse_expected_income = sfa.fn_get_student_contribution(@academic_year, @spouse_prov, @study_category_id, 2) * @study_months;
-	     		END;  
-			END;		
-		END
-		ELSE
-		BEGIN
-			DECLARE @student_cppd_count INT = 0;
-			SELECT 
-				@student_cppd_count = COUNT(i.id)	      	
-	      	FROM sfa.income i
-     		WHERE i.application_id = @application_id
-	       	AND i.income_type_id = 3; 
-	         
-	        IF @student_indigenous_learner = 'Yes' OR @student_crown_ward_flg = 'Yes' OR @perm_disabled_flag = 1 OR COALESCE(@dependent_count, 0) > 0 OR COALESCE(@student_cppd_count,0) > 0
-	        BEGIN
-				SET @student_contrib_exempt = 'Yes';
-	        END;
-	       
-	       	DECLARE @spouse_exempt_count INT = 0;
-			SELECT 
-				@spouse_exempt_count = COUNT(i.id)	      	
-	      	FROM sfa.income i
-     		WHERE i.application_id = @application_id
-			AND i.income_type_id IN (2,3,21);  
-               
- 			IF @spouse_exempt_count > 0 OR COALESCE(@spouse_study_school_from, CONVERT(DATETIME, '19000101',112)) <> CONVERT(DATETIME, '19000101',112)
- 			BEGIN
-				SET @spouse_contrib_exempt = 'Yes';
-			END;   			  
-		END;
-	
-		SET @asset_tax_rate = 0;
-	
-		/* Get Award */
-		DECLARE @valMin FLOAT(8) = @calculated_award - COALESCE(@recovered_overaward, 0);
-		IF @csl_full_amt_flag = 0
-		BEGIN
-			SELECT
-			@valMin = (
-				SELECT MIN(MyValue) - COALESCE(@recovered_overaward, 0)
-				FROM (VALUES (@calculated_award), (@csl_request_amount)) AS AllValues(MyValue)
-			);
-		END;
-	
-		SELECT
-		@assessment_amount = CASE WHEN @valMin > 0 THEN @valMin ELSE 0 END;
-	
-		/* Get Net */
-		SET @net_amount = @assessment_amount - @previous_disbursement + @return_uncashable_cert;
-	
-		IF @net_amount BETWEEN -250 AND 0
-		BEGIN
-			SET @net_amount = 0;
-		END;
-		
-		-- Get New Info
-		INSERT INTO #t_assessment (
-			id, 
-			assessment_type_id, 
-			new_calc,
-			student_contrib_exempt,
-			spouse_contrib_exempt,
-			dependent_count,
-			classes_end_date,
-			classes_start_date,
-			study_weeks,
-			study_months,
-			pstudy_start_date,
-			pstudy_end_date,
-			prestudy_province_id,
-			prestudy_accom_code,
-			marital_status_id,
-			study_area_id,
-			program_id,
-			study_province_id,
-			study_accom_code,
-			prestudy_csl_classification,
-			csl_classification,
-			tuition_estimate,
-			books_supplies_cost,
-			study_distance,
-			prestudy_distance,
-			parent1_income,
-			parent2_income,
-			study_living_w_spouse_flag,
-			parent1_tax_paid,
-			parent2_tax_paid,
-			csl_request_amount,
-			csl_full_amt_flag,
-			discretionary_cost_actual,
-			day_care_actual,
-			study_bus_flag,
-			prestudy_bus_flag,
-			family_size,
-			parent_ps_depend_count,
-			parent_province,
-			total_grant_awarded
-		)
-		VALUES (
-			0, 
-			1, 
-			1,
-			'NO',
-			'NO',
-			sfa.fn_get_dependent_count(@application_id),
-			CONVERT(VARCHAR, @classes_end_date, 23),
-			CONVERT(VARCHAR, @classes_start_date, 23),
-			DATEDIFF(ww, @classes_start_date, @classes_end_date),
-			DATEDIFF(mm, @classes_start_date, @classes_end_date),
-			CONVERT(VARCHAR, @pstudy_start_date, 23),
-			CONVERT(VARCHAR, @pstudy_end_date, 23),
-			@prestudy_province_id,
-			@prestudy_accom_code,
-			@marital_status_id,
-			@study_area_id,
-			@program_id,
-			@study_province_id,
-			@study_accom_code,
-			@prestudy_csl_classification,
-			@csl_classification,
-			@tuition_estimate,
-			@books_supplies_cost,
-			@study_distance,
-			@prestudy_distance,
-			@parent1_income,
-			@parent2_income,
-			@study_living_w_spouse_flag,
-			@parent1_tax_paid,
-			@parent2_tax_paid,
-			@csl_request_amount,
-			@csl_full_amt_flag,
-			@discretionary_cost_actual,
-			@day_care_actual,
-			@study_bus_flag,
-			@prestudy_bus_flag,
-			@family_size,
-			@parent_ps_depend_count,
-			@parent_province,
-			@total_grant_awarded
-		);			
-	END
-			
-	SELECT *
-	FROM #t_assessment;
+-- Get Previous Assessment
+CREATE OR ALTER PROCEDURE sfa.sp_get_previous_assessment(@assessment_id INT)
+AS
+BEGIN 
+	SELECT
+		air_travel_disbursement_period,
+		airfare_amount,
+		allowed_books,
+		allowed_months,
+		allowed_percent,
+		allowed_tuition,
+		assessed_amount,
+		assessed_date,
+		assessment_adj_amount,
+		assessment_type_id,
+		asset_tax_rate,
+		books_supplies_cost,
+		change_reason_comment,
+		classes_end_date,
+		classes_start_date,
+		csl_assessed_need,
+		csl_classification,
+		csl_full_amt_flag,
+		csl_non_reason_id,
+		csl_over_reason_id,
+		csl_request_amount,
+		day_care_actual,
+		day_care_allowable,
+		depend_food_allowable,
+		depend_tran_allowable,
+		dependent_count,
+		destination_city_id,
+		disbursements_required,
+		discretionary_cost,
+		discretionary_cost_actual,
+		effective_rate_date,
+		entitlement_days,
+		family_size,
+		funding_request_id,
+		home_city_id,
+		id,
+		living_costs,
+		marital_status_id,
+		married_assets,
+		married_pstudy,
+		married_study,
+		over_award,
+		over_award_applied_flg,
+		over_award_disbursement_period,
+		p_trans_month,
+		parent1_income,
+		parent1_tax_paid,
+		parent2_income,
+		parent2_tax_paid,
+		parent_contribution_override,
+		parent_contribution_review,
+		parent_province,
+		parent_ps_depend_count,
+		period,
+		pre_leg_amount,
+		prestudy_accom_code,
+		prestudy_bus_flag,
+		prestudy_csl_classification,
+		prestudy_distance,
+		prestudy_living_w_spouse_flag,
+		prestudy_province_id,
+		program_id,
+		pstudy_day_care_actual,
+		pstudy_day_care_allow,
+		pstudy_depend_food_allow,
+		pstudy_depend_tran_allow,
+		pstudy_end_date,
+		pstudy_expected_contrib,
+		pstudy_p_trans_month,
+		pstudy_shelter_month,
+		pstudy_start_date,
+		pstudy_x_trans_total,
+		r_trans_16wk,
+		relocation_total,
+		return_uncashable_cert,
+		second_residence_rate,
+		shelter_month,
+		spouse_contrib_exempt,
+		spouse_contribution,
+		spouse_contribution_override,
+		spouse_contribution_review,
+		spouse_expected_contribution,
+		spouse_expected_income,
+		spouse_gross_income,
+		spouse_ln150_income,
+		spouse_previous_contribution,
+		spouse_province_id,
+		spouse_pstudy_gross,
+		spouse_pstudy_tax_rate,
+		spouse_tax_rate,
+		stud_pstudy_gross,
+		stud_pstudy_tax_rate,
+		student_contrib_exempt,
+		student_contribution,
+		student_contribution_override,
+		student_contribution_review,
+		student_expected_contribution,
+		student_family_size,
+		student_gross_income,
+		student_ln150_income,
+		student_previous_contribution,
+		student_tax_rate,
+		study_accom_code,
+		study_area_id,
+		study_bus_flag,
+		study_distance,
+		study_living_w_spouse_flag,
+		study_months,
+		study_province_id,
+		study_weeks,
+		total_grant_awarded,
+		travel_allowance,
+		tuition_estimate,
+		uncapped_costs_total,
+		uncapped_pstudy_total,
+		weekly_amount,
+		weeks_allowed,
+		x_trans_total,
+		years_funded_equivalent
+	FROM sfa.assessment a
+	WHERE a.id = @assessment_id;
+END;
 GO

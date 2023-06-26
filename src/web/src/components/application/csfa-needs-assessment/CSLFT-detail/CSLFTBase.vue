@@ -520,6 +520,9 @@ export default {
     showAdd: false,
   }),
   methods: {
+    formatDate(value) {
+      return moment(value).format("yyyy-mm-dd");
+    }
   },
   async created() {
     store.dispatch("setCslClassifications");

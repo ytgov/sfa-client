@@ -142,8 +142,8 @@ const actions = {
     },
     async getCslftAssessInfo(state, funding_request_id) {
         const res = await axios.get(`${CSLFT_ASSESS_INFO}/${funding_request_id}`);
-        if (res?.data?.success) {            
-            state.commit("getCslftAssessInfo", ...res.data.data);
+        if (res?.data?.success) {                        
+            state.commit("getCslftAssessInfo", res.data.data);
         }
     }
 };

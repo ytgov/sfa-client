@@ -3,6 +3,7 @@ import { body, param } from "express-validator";
 import knex from "knex";
 import { ReturnValidationErrors } from "../../middleware";
 import { DB_CONFIG } from "../../config";
+import { AssessmentCslftRepository } from "../../repositories";
 
 const db = knex(DB_CONFIG)
 export const assessmentRouter = express.Router();
@@ -117,13 +118,19 @@ assessmentRouter.get("/cslft/assess-info/:id",
 [param("id").isInt().notEmpty()], ReturnValidationErrors, 
 async (req: Request, res: Response) => {
 
-    const { id = null } = req.params;
-
+    const assessmentClsftRepo = new AssessmentCslftRepository(db);
+    const { id = undefined } = req.params;
+    let results = undefined;
+    
     try {
-        const results = await db.raw(`EXEC sfa.sp_get_assess_info_cslft ${id};`);
 
+        if (id) {
+            //results = await assessmentClsftRepo.getAssessInfoCslft(parseInt(id));
+            results = await assessmentClsftRepo.getAssessInfoCslft2(parseInt(id));
+        }
+        
         if (results) {
-            return res.status(200).json({ success: true, data: [...results], });
+            return res.status(200).json({ success: true, data: results, });
         } else {
             return res.status(404).send();
         }
