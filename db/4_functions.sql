@@ -1986,6 +1986,48 @@ BEGIN
 END
 GO
 
+CREATE OR ALTER FUNCTION sfa.check_deadline_fct (@application_id INT, @request_type_id INT)
+RETURNS VARCHAR(50) AS
+BEGIN
+    DECLARE @start_date DATE;
+    DECLARE @weeks NUMERIC;
+    DECLARE @training_days NUMERIC;
+    DECLARE @all_days NUMERIC;
+    DECLARE @weekend_days NUMERIC;
+    DECLARE @message VARCHAR(50);
+
+    SET @weeks = 0;
+    SET @training_days = 0;
+    SET @message = 'OK';
+
+    SELECT @start_date = classes_start_date
+    FROM sfa.application app
+    WHERE app.id = @application_id;
+
+    IF @start_date IS NOT NULL
+    BEGIN
+        IF @request_type_id = 1
+            BEGIN
+                SET @all_days = DATEDIFF(DAY, @start_date, CAST(SYSDATETIME() AS DATE));
+                SET @weekend_days = ROUND(( (@all_days + 1)/7 ) * 2, 0);
+                SET @training_days = @all_days + 1 - @weekend_days;
+            END
+        ELSE 
+            BEGIN
+                SET @all_days = DATEDIFF(DAY, @start_date, CAST(SYSDATETIME() AS DATE));
+                SET @weeks = ROUND(((@all_days) + 1)/7 + 0.9999, 0);
+            END
+        
+        IF @weeks > 6 OR @training_days > 14
+            BEGIN
+                SET @message = 'This student may have exceeded the deadline.';
+            END
+    END
+
+    RETURN @message;
+END
+GO
+
 -- END FUNCTIONS TO ASSESSMENT_YG --
 
 CREATE OR ALTER FUNCTION sfa.fn_get_total_funded_years (
