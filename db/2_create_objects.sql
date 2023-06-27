@@ -1454,6 +1454,12 @@ CREATE TABLE sfa.requirement_met
     completed_date      DATE NULL
 )
 
+CREATE TABLE sfa.accommodation_type (
+	id int NOT NULL IDENTITY(1,1),
+	description nvarchar(200) NOT NULL,
+	is_active bit NOT NULL DEFAULT (1)
+)
+
 CREATE TABLE sfa.communication_log
 (
     id              INT IDENTITY PRIMARY KEY,
