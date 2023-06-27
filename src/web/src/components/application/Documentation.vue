@@ -46,10 +46,11 @@
                       background-color="white"
                       v-bind="attrs"
                       v-on="on"
+                      
                     ></v-text-field>
                   </template>
                   <v-date-picker
-                    :value="formatDate(item.completed_date)"
+                    :value="formatDate(item.completed_date)"                    
                     @input="e => {
                       item.completed_date = e;
                       item.completed_date_menu = false;
@@ -100,8 +101,9 @@
                   dense
                   background-color="white"
                   hide-details
-                  label="Status"
+                  label="Status"                  
                   v-model="item.status"
+                  :disabled="!item.object_key"
                   :items="documentStatusList"
                   item-text="description"
                   item-value="id"
@@ -116,6 +118,7 @@
                   dense
                   background-color="white"
                   hide-details
+                  :disabled="!item.object_key"
                   label="Comment"
                   v-model="item.comment"    
                   @change="updateComment({comment: item.comment}, item.requirement_type_id, item)" 
@@ -170,7 +173,7 @@
                 </v-btn> 
               </div>
               <div class="col-md-12">
-                <v-divider horizontal v-if="(i) < application.finalDocumentation3.length - 1"></v-divider>
+                <v-divider horizontal v-if="(i) < application.finalDocumentation5.length - 1"></v-divider>
               </div>                        
               
             </div>            
@@ -278,7 +281,7 @@
                   outlined
                   dense
                   background-color="white"
-                  hide-details
+                  hide-details                  
                   label="Status"
                   v-model="documentationData.status"
                   :items="documentStatusList"
@@ -352,6 +355,7 @@ export default {
       "Official Transcript - Original document (must be mailed)",
     ],
     file: null,
+    statusDisabled: true,
     uploadedDoc: [],
     documents: [],
     documents2: [],    
@@ -456,6 +460,7 @@ export default {
             this.$emit("showError", "Error to update");
           } finally {
             store.dispatch("loadApplication", this.applicationId);
+            this.documentationData.comment = "";
           }                     
     },
 
@@ -555,7 +560,7 @@ export default {
       }
       
     },
-    async updateStatus(itemToUpdate, refId, item) {            
+    async updateStatus(itemToUpdate, refId, item) {                      
       if(this.documentationData.comment === null && item.status === 3) {            
             this.$emit("showError", "If status is rejected, you must comment");
       } else {
@@ -578,11 +583,12 @@ export default {
       }
     }      
     },    
-    async uploadDoc(item, i) {                                   
+    async uploadDoc(item, i) {    
+      this.statusDisabled = false;                               
       this.uploadedDoc.push({id: i, file: event.target.files[0]});   
       
     },
-    async postDoc(item, i) {                  
+    async postDoc(item, i) {           
       if(this.documents[i]) {          
         let doc = this.documents[i][0];
         const formData = new FormData();      

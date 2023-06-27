@@ -364,6 +364,16 @@ applicationRouter.get("/:id",
                 }
                 idx++;
             }
+
+            application.finalDocumentation5.sort((a: any, b: any) => {
+                if (a.description < b.description) {
+                    return -1;
+                  }
+                  if (a.description > b.description) {
+                    return 1;
+                  }                                  
+                  return 0;
+            })
             
 
             application.reason_code = await db("sfa.application as app").innerJoin("sfa.csl_code as reason", function () {
