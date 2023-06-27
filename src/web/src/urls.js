@@ -40,6 +40,7 @@ export const COUNTRIES=`${config.apiBaseUrl}/api/v2/admin/countries`;
 export const CITIES=`${config.apiBaseUrl}/api/v2/admin/cities`;
 export const CSL_CODES = `${config.apiBaseUrl}/api/v2/admin/csl-codes`;
 export const COMMUNICATION_TYPES = `${config.apiBaseUrl}/api/v2/admin/communication-types`;
+export const IN_SCHOOL_STATUS = `${config.apiBaseUrl}/api/v2/admin/in-school-status`;
 export const REQUEST_TYPES = `${config.apiBaseUrl}/api/v2/admin/request-types`;
 export const REQUIREMENT_TYPE = `${config.apiBaseUrl}/api/v2/admin/requirement-type`;
 export const ADDRESS_TYPE=`${config.apiBaseUrl}/api/v2/admin/address-type`;

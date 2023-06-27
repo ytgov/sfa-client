@@ -183,8 +183,8 @@ INTO sfa.csl_classification (id, description)
 VALUES  ( 1, 'Single Dependent'),
         ( 2, 'Single Independent - 2 year workforce'),
         ( 3, 'Married / Common Law'),
-        ( 4, 'Single Parent')
-        ( 5, 'Single Independent - 4 year high school'),
+        ( 4, 'Single Parent'),
+        ( 5, 'Single Independent - 4 year high school')
 SET IDENTITY_INSERT sfa.csl_classification OFF
 
 SET IDENTITY_INSERT sfa.income_type ON
@@ -1279,7 +1279,7 @@ FROM sfaadmin.agency_assistance
 SET IDENTITY_INSERT sfa.course_enrolled ON
 INSERT
 INTO sfa.course_enrolled (id, application_id, instruction_type_id, description, course_code)
-SELECT course_enrolled_id, history_detail_id, COALESCE(instruction_type_id, 1), course_description, course_code
+SELECT course_enrolled_id, history_detail_id, COALESCE(instruction_type_id, 1), COALESCE(course_description, 'Unknown'), course_code
 FROM sfaadmin.course_enrolled
 SET IDENTITY_INSERT sfa.course_enrolled OFF
 
@@ -1578,6 +1578,12 @@ FROM [SFAADMIN].[ENTITLEMENT_ERROR]
          INNER JOIN sfa.disbursement ON [ENTITLEMENT_ERROR].disbursement_id = disbursement.id
 SET IDENTITY_INSERT sfa.entitlement_error OFF
 
+SET IDENTITY_INSERT sfa.in_school_status ON
+insert into sfa.in_school_status (id, description, is_active) values (0, 'Not in School', 1)
+insert into sfa.in_school_status (id, description, is_active) values (1, 'Full time', 1)
+insert into sfa.in_school_status (id, description, is_active) values (2, 'Part time', 1)
+SET IDENTITY_INSERT sfa.in_school_status OFF
+
 UPDATE sfa.expense_category SET notes = '(hardware, software, and supplies)' WHERE description like 'Computer%'
 UPDATE sfa.expense_category SET notes = '(enter the full cost before any subsidy amount you are eligible for) x (per month)' WHERE description like 'Day Care%'
 UPDATE sfa.expense_category SET notes = '(out of pocket costs greater then covered under any insurance plan). Specify your medical/dental/optical costs: x (per month)' WHERE description like 'Medical%'
@@ -1603,3 +1609,259 @@ INSERT
 INTO sfa.field_program (study_field_id, program_id, field_program_code)
 SELECT study_field_id, program_id,field_program_code
 FROM sfaadmin.field_program
+
+
+UPDATE sfa.requirement_type SET is_active = 1, show_online = 1 WHERE id = 1;
+UPDATE sfa.requirement_type SET is_active = 0, show_online = 1 WHERE id = 2;
+UPDATE sfa.requirement_type SET is_active = 0, show_online = 0 WHERE id = 3;
+UPDATE sfa.requirement_type SET is_active = 0, show_online = 1 WHERE id = 4;
+UPDATE sfa.requirement_type SET is_active = 0, show_online = 0 WHERE id = 6;
+UPDATE sfa.requirement_type SET is_active = 0, show_online = 0 WHERE id = 7;
+UPDATE sfa.requirement_type SET is_active = 1, show_online = 1 WHERE id = 11;
+UPDATE sfa.requirement_type SET is_active = 1, show_online = 1 WHERE id = 12;
+UPDATE sfa.requirement_type SET is_active = 0, show_online = 0 WHERE id = 13;
+UPDATE sfa.requirement_type SET is_active = 0, show_online = 0 WHERE id = 14;
+UPDATE sfa.requirement_type SET is_active = 0, show_online = 0 WHERE id = 17;
+UPDATE sfa.requirement_type SET is_active = 0, show_online = 0 WHERE id = 18;
+UPDATE sfa.requirement_type SET is_active = 1, show_online = 1 WHERE id = 19;
+UPDATE sfa.requirement_type SET is_active = 1, show_online = 1 WHERE id = 20;
+UPDATE sfa.requirement_type SET is_active = 0, show_online = 1 WHERE id = 21;
+UPDATE sfa.requirement_type SET is_active = 0, show_online = 1 WHERE id = 22;
+UPDATE sfa.requirement_type SET is_active = 0, show_online = 1 WHERE id = 23;
+UPDATE sfa.requirement_type SET is_active = 0, show_online = 0 WHERE id = 24;
+UPDATE sfa.requirement_type SET is_active = 0, show_online = 1 WHERE id = 25;
+UPDATE sfa.requirement_type SET is_active = 0, show_online = 1 WHERE id = 26;
+UPDATE sfa.requirement_type SET is_active = 0, show_online = 1 WHERE id = 27;
+UPDATE sfa.requirement_type SET is_active = 0, show_online = 0 WHERE id = 28;
+UPDATE sfa.requirement_type SET is_active = 0, show_online = 0 WHERE id = 29;
+UPDATE sfa.requirement_type SET is_active = 0, show_online = 0 WHERE id = 30;
+UPDATE sfa.requirement_type SET is_active = 0, show_online = 1 WHERE id = 31;
+UPDATE sfa.requirement_type SET is_active = 1, show_online = 1 WHERE id = 32;
+UPDATE sfa.requirement_type SET is_active = 0, show_online = 1 WHERE id = 33;
+UPDATE sfa.requirement_type SET is_active = 0, show_online = 1 WHERE id = 34;
+UPDATE sfa.requirement_type SET is_active = 0, show_online = 1 WHERE id = 35;
+UPDATE sfa.requirement_type SET is_active = 0, show_online = 0 WHERE id = 36;
+UPDATE sfa.requirement_type SET is_active = 0, show_online = 1 WHERE id = 37;
+UPDATE sfa.requirement_type SET is_active = 0, show_online = 1 WHERE id = 38;
+UPDATE sfa.requirement_type SET is_active = 1, show_online = 1 WHERE id = 39;
+UPDATE sfa.requirement_type SET is_active = 1, show_online = 1 WHERE id = 40;
+UPDATE sfa.requirement_type SET is_active = 0, show_online = 0 WHERE id = 41;
+UPDATE sfa.requirement_type SET is_active = 0, show_online = 0 WHERE id = 42;
+UPDATE sfa.requirement_type SET is_active = 0, show_online = 0 WHERE id = 43;
+UPDATE sfa.requirement_type SET is_active = 1, show_online = 1 WHERE id = 44;
+UPDATE sfa.requirement_type SET is_active = 1, show_online = 1 WHERE id = 45;
+UPDATE sfa.requirement_type SET is_active = 1, show_online = 1 WHERE id = 46;
+UPDATE sfa.requirement_type SET is_active = 0, show_online = 0 WHERE id = 47;
+UPDATE sfa.requirement_type SET is_active = 1, show_online = 1 WHERE id = 48;
+UPDATE sfa.requirement_type SET is_active = 0, show_online = 0 WHERE id = 49;
+UPDATE sfa.requirement_type SET is_active = 0, show_online = 1 WHERE id = 50;
+UPDATE sfa.requirement_type SET is_active = 1, show_online = 1 WHERE id = 51;
+UPDATE sfa.requirement_type SET is_active = 1, show_online = 1 WHERE id = 52;
+UPDATE sfa.requirement_type SET is_active = 1, show_online = 1 WHERE id = 53;
+UPDATE sfa.requirement_type SET is_active = 0, show_online = 0 WHERE id = 54;
+UPDATE sfa.requirement_type SET is_active = 0, show_online = 1 WHERE id = 55;
+UPDATE sfa.requirement_type SET is_active = 0, show_online = 0 WHERE id = 56;
+UPDATE sfa.requirement_type SET is_active = 0, show_online = 0 WHERE id = 57;
+UPDATE sfa.requirement_type SET is_active = 0, show_online = 0 WHERE id = 58;
+UPDATE sfa.requirement_type SET is_active = 0, show_online = 0 WHERE id = 59;
+UPDATE sfa.requirement_type SET is_active = 0, show_online = 1 WHERE id = 60;
+UPDATE sfa.requirement_type SET is_active = 0, show_online = 1 WHERE id = 61;
+UPDATE sfa.requirement_type SET is_active = 1, show_online = 1 WHERE id = 68;
+UPDATE sfa.requirement_type SET is_active = 1, show_online = 1 WHERE id = 69;
+UPDATE sfa.requirement_type SET is_active = 0, show_online = 0 WHERE id = 70;
+UPDATE sfa.requirement_type SET is_active = 0, show_online = 0 WHERE id = 71;
+UPDATE sfa.requirement_type SET is_active = 0, show_online = 1 WHERE id = 72;
+UPDATE sfa.requirement_type SET is_active = 1, show_online = 1 WHERE id = 73;
+UPDATE sfa.requirement_type SET is_active = 0, show_online = 0 WHERE id = 74;
+UPDATE sfa.requirement_type SET is_active = 0, show_online = 1 WHERE id = 75;
+UPDATE sfa.requirement_type SET is_active = 1, show_online = 1 WHERE id = 76;
+UPDATE sfa.requirement_type SET is_active = 0, show_online = 0 WHERE id = 77;
+UPDATE sfa.requirement_type SET is_active = 0, show_online = 0 WHERE id = 78;
+UPDATE sfa.requirement_type SET is_active = 1, show_online = 1 WHERE id = 79;
+UPDATE sfa.requirement_type SET is_active = 0, show_online = 1 WHERE id = 80;
+UPDATE sfa.requirement_type SET is_active = 0, show_online = 0 WHERE id = 81;
+UPDATE sfa.requirement_type SET is_active = 0, show_online = 0 WHERE id = 82;
+UPDATE sfa.requirement_type SET is_active = 0, show_online = 0 WHERE id = 83;
+UPDATE sfa.requirement_type SET is_active = 0, show_online = 1 WHERE id = 84;
+UPDATE sfa.requirement_type SET is_active = 0, show_online = 1 WHERE id = 85;
+UPDATE sfa.requirement_type SET is_active = 0, show_online = 1 WHERE id = 86;
+UPDATE sfa.requirement_type SET is_active = 0, show_online = 1 WHERE id = 87;
+UPDATE sfa.requirement_type SET is_active = 0, show_online = 1 WHERE id = 89;
+UPDATE sfa.requirement_type SET is_active = 1, show_online = 1 WHERE id = 91;
+
+UPDATE sfa.agency SET is_active = 1 WHERE id = 2;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 3;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 5;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 6;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 7;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 8;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 10;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 12;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 13;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 15;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 17;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 19;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 20;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 21;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 22;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 23;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 24;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 25;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 26;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 27;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 28;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 29;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 30;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 31;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 32;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 33;
+UPDATE sfa.agency SET is_active = 0 WHERE id = 34;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 35;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 36;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 37;
+UPDATE sfa.agency SET is_active = 0 WHERE id = 38;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 39;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 40;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 41;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 42;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 43;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 44;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 45;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 46;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 47;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 48;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 49;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 50;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 51;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 52;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 53;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 55;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 56;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 57;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 58;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 59;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 60;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 61;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 62;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 63;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 64;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 65;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 67;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 68;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 69;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 70;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 71;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 72;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 74;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 75;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 76;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 77;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 78;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 79;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 80;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 81;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 82;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 83;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 84;
+UPDATE sfa.agency SET is_active = 0 WHERE id = 85;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 86;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 88;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 89;
+UPDATE sfa.agency SET is_active = 0 WHERE id = 90;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 91;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 93;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 94;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 95;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 96;
+UPDATE sfa.agency SET is_active = 0 WHERE id = 97;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 98;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 99;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 100;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 101;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 102;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 103;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 104;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 105;
+UPDATE sfa.agency SET is_active = 0 WHERE id = 106;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 107;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 108;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 109;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 110;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 111;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 112;
+UPDATE sfa.agency SET is_active = 0 WHERE id = 113;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 114;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 115;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 116;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 117;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 118;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 119;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 120;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 121;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 122;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 123;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 124;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 125;
+UPDATE sfa.agency SET is_active = 0 WHERE id = 126;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 127;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 128;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 129;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 131;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 132;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 133;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 134;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 135;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 136;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 137;
+UPDATE sfa.agency SET is_active = 0 WHERE id = 138;
+UPDATE sfa.agency SET is_active = 0 WHERE id = 139;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 140;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 141;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 142;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 143;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 144;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 145;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 146;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 147;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 148;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 149;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 150;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 151;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 152;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 153;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 154;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 155;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 156;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 157;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 158;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 159;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 161;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 162;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 163;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 164;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 165;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 168;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 169;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 170;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 171;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 172;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 173;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 174;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 175;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 176;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 177;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 178;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 179;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 180;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 181;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 182;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 183;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 184;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 185;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 186;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 187;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 188;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 189;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 190;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 191;
+UPDATE sfa.agency SET is_active = 1 WHERE id = 192;
