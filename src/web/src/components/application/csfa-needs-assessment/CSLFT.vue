@@ -145,6 +145,8 @@ export default {
     },
   },
   async created() {
+    const frId = this.$props.funding_request_id;
+    console.log(frId);
     this.validate = validator;
     this.applicationId = this.$route.params.id;
     let storeApp = store.getters.selectedApplication;
@@ -152,6 +154,7 @@ export default {
       await store.dispatch("loadApplication", this.applicationId);
     }
     store.dispatch("setAppSidebar", true);
+    store.dispatch("getCslftAssessInfo", frId);
   }
 };
 </script>

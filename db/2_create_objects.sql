@@ -1863,7 +1863,7 @@ CREATE TABLE sfa.in_school_status (
 GO
 
 -- sfa.person_address_v
-CREATE VIEW sfa.person_address_v AS
+CREATE OR ALTER VIEW sfa.person_address_v AS
 SELECT 
 	p.id as person_id,
 	p.language_id,
@@ -1894,3 +1894,11 @@ FROM sfa.person p
 	LEFT JOIN sfa.person_address pa
 		ON p.id = pa.person_id;
 
+-- sfa.application_funding_request_v source
+CREATE OR ALTER VIEW sfa.application_funding_request_v AS
+SELECT 
+	a.*,
+	fr.id AS funding_request_id
+FROM sfa.application a
+	INNER JOIN sfa.funding_request fr 
+		ON fr.application_id = a.id;
