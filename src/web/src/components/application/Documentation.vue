@@ -7,9 +7,9 @@
         <div class="row">
           <div class="col-md-12">
             <h3>Documentation</h3>
-            <div v-for="(item, i) of this.application.finalDocumentation3" :key="i" class="row">                       
+            <div v-for="(item, i) of this.application.finalDocumentation5" :key="i" class="row">                       
               
-              <div class="col-md-4">
+              <div class="col-md-6">
                 <v-select
                   outlined
                   dense
@@ -23,39 +23,8 @@
                   item-value="description"                  
                 ></v-select>
               </div>
-              <div class="col-md-2">
-                <v-menu
-                  v-model="item.upload_date_menu"
-                  :close-on-content-click="false"
-                  transition="scale-transition"
-                  left
-                  nudge-top="26"
-                  offset-y
-                  min-width="auto"
-                >
-                  <template v-slot:activator="{ on, attrs }">
-                    <v-text-field
-                      :value="item.upload_date ? item.upload_date.toString().slice(0, 10) : item.upload_date"
-                      label="Received date"
-                      append-icon="mdi-calendar"
-                      hide-details
-                      readonly
-                      disabled
-                      outlined
-                      dense
-                      background-color="white"
-                      v-bind="attrs"
-                      v-on="on"
-                    ></v-text-field>
-                  </template>
-                  <v-date-picker
-                    v-model="item.upload_date"                    
-                    @input="item.upload_date_menu = false"
-                  ></v-date-picker>
-                </v-menu>
-              </div>
 
-              <div class="col-md-2">
+              <div class="col-md-6">
                 <v-menu
                   v-model="item.completed_date_menu"
                   :close-on-content-click="false"
@@ -91,6 +60,40 @@
               </div>
 
               <div class="col-md-3">
+                <v-menu
+                  v-model="item.upload_date_menu"
+                  :close-on-content-click="false"
+                  transition="scale-transition"
+                  left
+                  nudge-top="26"
+                  offset-y
+                  min-width="auto"
+                >
+                  <template v-slot:activator="{ on, attrs }">
+                    <v-text-field
+                      :value="item.upload_date ? item.upload_date.toString().slice(0, 10) : item.upload_date"
+                      label="Received date"
+                      append-icon="mdi-calendar"
+                      hide-details
+                      readonly
+                      disabled
+                      outlined
+                      dense
+                      background-color="white"
+                      v-bind="attrs"
+                      v-on="on"
+                    ></v-text-field>
+                  </template>
+                  <v-date-picker
+                    v-model="item.upload_date"                    
+                    @input="item.upload_date_menu = false"
+                  ></v-date-picker>
+                </v-menu>
+              </div>
+
+             
+
+              <div class="col-md-3">
                 
                 <v-autocomplete
                   outlined
@@ -107,7 +110,7 @@
                
                 
               </div>
-              <div class="col-md-4">
+              <div class="col-md-3">
                 <v-text-field
                   outlined
                   dense
@@ -118,30 +121,7 @@
                   @change="updateComment({comment: item.comment}, item.requirement_type_id, item)" 
                   required             
                 ></v-text-field>
-              </div>
-              <div class="col-md-3">
-                <v-file-input       
-                  ref="fileInput"           
-                  multiple
-                  truncate-length="15"
-                  outlined
-                  dense
-                  background-color="white"
-                  hide-details
-                  label="Upload document"                  
-                  v-model="documents[i]"     
-                  @change="uploadDoc(item, i)"                         
-                ></v-file-input>
-              </div>
-              <div class="col-md-1">
-                <v-btn
-                  class="mt-0"
-                  color="primary"                                          
-                  @click="postDoc(item, i)"       
-                  >
-                  Upload file
-                </v-btn> 
-              </div>
+              </div>            
               <div class="col-md-1" v-if="item.file_name && item.upload_date">
                 <h4 style="font-size: 16px; font-weight: 700;">{{ item.file_name }}</h4>
               </div>
@@ -164,8 +144,34 @@
                   >
                   Download
                 </v-btn>  
-              </div>     
+              </div>  
               
+              <div class="col-md-6">
+                <v-file-input       
+                  ref="fileInput"           
+                  multiple
+                  truncate-length="15"
+                  outlined
+                  dense
+                  background-color="white"
+                  hide-details
+                  label="Upload document"                  
+                  v-model="documents[i]"     
+                  @change="uploadDoc(item, i)"                         
+                ></v-file-input>
+              </div>
+              <div class="col-md-1">
+                <v-btn
+                  class="mt-0"
+                  color="primary"                                          
+                  @click="postDoc(item, i)"       
+                  >
+                  Upload file
+                </v-btn> 
+              </div>
+              <div class="col-md-12">
+                <v-divider horizontal v-if="(i) < application.finalDocumentation3.length - 1"></v-divider>
+              </div>                        
               
             </div>            
           </div>
@@ -190,7 +196,7 @@
             </div>
 
             
-            <div class="col-md-4">
+            <div class="col-md-6">
                 <v-select
                   outlined
                   dense
@@ -203,7 +209,37 @@
                   item-value="id"
                 ></v-select>
               </div>
-              <div class="col-md-2">
+              <div class="col-md-6">
+                <v-menu
+                  v-model="documentationData.completed_date_menu"
+                  :close-on-content-click="false"
+                  transition="scale-transition"
+                  left
+                  nudge-top="26"
+                  offset-y
+                  min-width="auto"
+                >
+                  <template v-slot:activator="{ on, attrs }">
+                    <v-text-field
+                      v-model="documentationData.completed_date"
+                      label="Completed date"
+                      append-icon="mdi-calendar"
+                      hide-details
+                      readonly                      
+                      outlined
+                      dense
+                      background-color="white"
+                      v-bind="attrs"
+                      v-on="on"
+                    ></v-text-field>
+                  </template>
+                  <v-date-picker
+                    v-model="documentationData.completed_date"
+                    @input="documentationData.completed_date_menu = false"                    
+                  ></v-date-picker>
+                </v-menu>
+              </div>
+              <div class="col-md-4">
                 <v-menu
                   v-model="documentationData.received_date_menu"
                   :close-on-content-click="false"
@@ -234,38 +270,9 @@
                 </v-menu>
               </div>
 
-              <div class="col-md-2">
-                <v-menu
-                  v-model="documentationData.completed_date_menu"
-                  :close-on-content-click="false"
-                  transition="scale-transition"
-                  left
-                  nudge-top="26"
-                  offset-y
-                  min-width="auto"
-                >
-                  <template v-slot:activator="{ on, attrs }">
-                    <v-text-field
-                      v-model="documentationData.completed_date"
-                      label="Completed date"
-                      append-icon="mdi-calendar"
-                      hide-details
-                      readonly                      
-                      outlined
-                      dense
-                      background-color="white"
-                      v-bind="attrs"
-                      v-on="on"
-                    ></v-text-field>
-                  </template>
-                  <v-date-picker
-                    v-model="documentationData.completed_date"
-                    @input="documentationData.completed_date_menu = false"                    
-                  ></v-date-picker>
-                </v-menu>
-              </div>
+           
 
-              <div class="col-md-3">
+              <div class="col-md-4">
                 
                 <v-autocomplete
                   outlined
@@ -279,18 +286,7 @@
                   item-value="id"                  
                 ></v-autocomplete>                               
               </div>
-              <div class="col-md-4">
-                <v-file-input
-                  multiple
-                  truncate-length="15"
-                  outlined
-                  dense
-                  background-color="white"
-                  hide-details
-                  label="Upload document"     
-                  @change="checkFile"
-                ></v-file-input>
-              </div>
+            
               <div class="col-md-4">
                 <v-text-field
                   outlined
@@ -301,6 +297,19 @@
                   v-model="documentationData.comment"                      
                   required             
                 ></v-text-field>
+              </div>
+
+              <div class="col-md-6">
+                <v-file-input
+                  multiple
+                  truncate-length="15"
+                  outlined
+                  dense
+                  background-color="white"
+                  hide-details
+                  label="Upload document"     
+                  @change="checkFile"
+                ></v-file-input>
               </div>
 
         </v-card>
@@ -453,17 +462,7 @@ export default {
     formatDate(date) {
       if (!date) return null; 
       
-      const formattedDate = new Date(date);
-      
-      if (isNaN(formattedDate.getTime())) {
-        return null;
-      }
-      
-      const year = formattedDate.getFullYear();
-      const month = ("0" + (formattedDate.getMonth() + 1)).slice(-2);
-      const day = ("0" + formattedDate.getDate()).slice(-2);
-      
-      return `${year}-${month}-${day}`;
+      return date.toString().slice(0, 10);
     },
     
     setClose() {               
@@ -516,6 +515,7 @@ export default {
     },
     async updateReqMet(itemToUpdate, refId) {      
       try {
+                
         const resInsert = await axios.put(
           APPLICATION_URL + `/${this.application.id}/files/${refId}`,
             { data: { ...itemToUpdate }, type: "date"  },
@@ -525,11 +525,11 @@ export default {
           if (message?.variant === "success") {
             this.$emit("showSuccess", message.text);
           } else {
-            this.$emit("showError", message.text);
+            this.$emit("showError", message.text);            
           }
           
       } catch (error) {
-        this.$emit("showError", "Error to update");
+        this.$emit("showError", "Error to update");        
       } finally {
         store.dispatch("loadApplication", this.applicationId);
       }
