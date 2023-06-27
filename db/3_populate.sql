@@ -1610,6 +1610,11 @@ INTO sfa.field_program (study_field_id, program_id, field_program_code)
 SELECT study_field_id, program_id,field_program_code
 FROM sfaadmin.field_program
 
+SET IDENTITY_INSERT sfa.accommodation_type ON
+INSERT INTO [sfa].[accommodation_type] (id, description) VALUES (1, 'Living at Parents')
+INSERT INTO [sfa].[accommodation_type] (id, description) VALUES (2, 'Living on Own')
+INSERT INTO [sfa].[accommodation_type] (id, description) VALUES (3, 'Both')
+SET IDENTITY_INSERT sfa.accommodation_type OFF
 
 UPDATE sfa.requirement_type SET is_active = 1, show_online = 1 WHERE id = 1;
 UPDATE sfa.requirement_type SET is_active = 0, show_online = 1 WHERE id = 2;

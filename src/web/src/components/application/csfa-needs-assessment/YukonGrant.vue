@@ -285,7 +285,7 @@
                 <div class="col-xs-12 col-lg-12 line-jump-height d-flex align-center not-displayed-sx"></div>
               </div>
             </div>
-            <div class="col-xs-12 col-lg-12 nopadding d-flex mobile-column-flex low-margin flex-wrap">
+            <div v-if="application?.academic_year_id < 2016"  class="col-xs-12 col-lg-12 nopadding d-flex mobile-column-flex low-margin flex-wrap">
               <div class="col-xs-12 col-lg-12 nopadding">
                 <v-card-title>Pre Legislation Method</v-card-title>
               </div>
@@ -405,6 +405,7 @@
                 <div class="col-xs-12 col-lg-12">
                   <v-text-field
                     outlined
+                    disabled
                     dense
                     background-color="white"
                     hide-details
@@ -415,6 +416,7 @@
                 <div class="col-xs-12 col-lg-12">
                   <v-text-field
                     outlined
+                    disabled
                     dense
                     background-color="white"
                     hide-details
@@ -445,6 +447,7 @@
               <div class="col-sm-6 col-lg-7 nopadding d-flex flex-wrap mobile-custom-border">
                 <div class="col-xs-12 col-lg-12">
                   <v-text-field
+                    disabled
                     outlined
                     dense
                     background-color="white"
@@ -456,6 +459,7 @@
                 </div>
                 <div class="col-xs-12 col-lg-12">
                   <v-text-field
+                    disabled
                     @keypress="validate.isNumber($event)"
                     outlined
                     dense
@@ -504,6 +508,7 @@
                 </div>
                 <div class="col-xs-12 col-lg-12">
                   <v-text-field
+                    disabled
                     outlined
                     dense
                     background-color="white"
