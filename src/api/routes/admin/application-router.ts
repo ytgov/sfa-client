@@ -340,8 +340,7 @@ applicationRouter.get("/:id",
                 );
             })
             .leftJoin("sfa.file_reference as fr", function () {
-                this.on("fr.requirement_type_id", "=", "t.id")
-                .andOn("fr.application_id", "=", "ds.application_id")
+                this.on("fr.requirement_type_id", "=", "t.id")                
                 .andOn("fr.application_id", "=", db.raw(id));
             });
                 
