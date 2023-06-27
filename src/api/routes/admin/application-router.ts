@@ -2269,3 +2269,50 @@ applicationRouter.patch("/:application_id/:funding_request_id/assessments/:asses
         }   
     }
 );
+
+applicationRouter.get("/:application_id/request-type/:request_type_id/deadline-check",
+    [
+        param("application_id").isInt().notEmpty(), 
+        param("request_type_id").isInt().notEmpty(),
+    ], 
+    ReturnValidationErrors, 
+    async (req: Request, res: Response) => {
+        try {
+            const { application_id, request_type_id } = req.params;
+
+            const application = await db("sfa.application")
+                .where({ id: application_id })
+                .first();
+
+            const  requestType = await db("sfa.request_type")
+                .where({ id: request_type_id })
+                .first();
+
+            if (application && requestType) {
+
+                const checkDeadline = await db.raw(
+                    `SELECT sfa.check_deadline_fct (
+                        ${application_id},
+                        ${request_type_id}
+                    ) as message;
+                    `
+                );
+                   
+                return checkDeadline?.[0].message === "OK"
+                    ? res.json({
+                        messages: [{ variant: "success", text: "OK"}],
+                    })
+                    :  res.json({
+                        messages: [{ variant: "error", text: checkDeadline?.[0]?.message || "Error to check deadline"}],
+                        data: [  ],
+                    });
+            } else {
+                return res.status(409).send({ messages: [{ variant: "error", text: "application or funding request no valid" }] });
+            }
+
+        } catch (error) {
+            console.log(error);
+            return res.status(409).send({ messages: [{ variant: "error", text: "Error get data" }] });
+        }   
+    }
+);
