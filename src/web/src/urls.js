@@ -85,3 +85,4 @@ export const EQUIPMENT_CATEGORY =`${config.apiBaseUrl}/api/v2/admin/equipment-ca
 export const CHANGE_REASON =`${config.apiBaseUrl}/api/v2/admin/change-reason`;
 export const ACCOMMODATION_TYPE =`${config.apiBaseUrl}/api/v2/admin/accommodation-type`;
 export const DISBURSEMENT =`${config.apiBaseUrl}/api/v2/admin/disbursement`;
+export const USERS_URL = `${config.apiBaseUrl}/api/v2/admin/users`;
