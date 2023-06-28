@@ -58,7 +58,7 @@ app.get("/_status", (req: Request, res: Response) => {
 app.use("/api/v1/data", RequireActive, sfaDomainRouter);
 app.use("/api/v2/reference", RequireActive, referenceRouter);
 app.use("/api/v2/admin", RequireActive, adminRouter);
-app.use(RequireActive, legacyRouter);
+app.use(legacyRouter);
 
 app.use("/api/portal", portalRouter);
 
