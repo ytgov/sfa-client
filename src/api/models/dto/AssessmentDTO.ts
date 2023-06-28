@@ -125,4 +125,8 @@ export interface AssessmentDTO {
     recovered_overaward?: number;
     net_amount?: number;
     previous_disbursement?: number;
+    field_program_code?: number;
+    previous_cert?: number;
+    student_exemption?: number;
+    spouse_exemption?: number;
 }

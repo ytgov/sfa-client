@@ -2618,3 +2618,160 @@ BEGIN
 	WHERE a.id = @assessment_id;
 END;
 GO
+
+-- Get application by funding request
+CREATE OR ALTER PROCEDURE sfa.sp_get_application_by_funding_request(@funding_request_id INT)
+AS
+BEGIN
+	SELECT 
+		a.*
+	FROM sfa.application a
+		INNER JOIN sfa.funding_request fr 
+			ON fr.application_id = a.id
+	WHERE fr.id = @funding_request_id;
+END;
+GO
+
+-- Get field program code
+CREATE OR ALTER FUNCTION sfa.fn_get_field_program_code(@study_are_id INT, @program_id INT)
+RETURNS INT
+AS
+BEGIN 
+	DECLARE @result INT = NULL;
+
+	SELECT TOP 1
+		@result = fp.field_program_code
+	FROM sfa.field_program fp
+		INNER JOIN sfa.study_area sa
+			ON fp.study_field_id = sa.study_field_id
+	WHERE sa.id = @study_are_id
+	AND fp.program_id = @program_id;
+	
+	RETURN @result;
+END;
+GO
+
+-- Get CSL overaward
+CREATE OR ALTER FUNCTION sfa.fn_get_csl_overaward(@student_id INT, @funding_request_id INT)
+RETURNS FLOAT(8)
+AS
+BEGIN 
+	DECLARE
+		@request INT,
+		@overaward FLOAT(8);
+	
+	SELECT
+		@overaward = COALESCE(a.over_award, 0)
+	FROM sfa.assessment a
+		INNER JOIN sfa.funding_request fr
+			ON fr.id = a.funding_request_id
+			AND fr.id < @funding_request_id
+		INNER JOIN sfa.application app
+			ON fr.application_id = app.id
+	WHERE a.assessment_type_id = 3 
+	AND app.student_id = @student_id
+	ORDER BY a.id DESC;	
+
+	SELECT
+		@request = COUNT(fr.id)
+	FROM sfa.funding_request fr
+		INNER JOIN sfa.application a
+			ON fr.application_id = a.id
+			AND a.student_id = @student_id
+	WHERE fr.id <= @funding_request_id
+	AND fr.request_type_id = 4;
+
+	IF @request = 1
+	BEGIN
+		SELECT 
+			@overaward = COALESCE(s.pre_over_award_amount, 0)
+		FROM sfa.student s
+		WHERE s.id = @student_id;
+	END
+	
+	RETURN @overaward;	
+END;
+GO
+
+-- Get Previous Disbursed
+CREATE OR ALTER FUNCTION sfa.fn_get_previous_disbursed_amount(@funding_request_id INT, @assessment_id INT)
+RETURNS FLOAT(8)
+AS 
+BEGIN
+	DECLARE  @disbursed_amt FLOAT(8);
+
+    SELECT @disbursed_amt = SUM(COALESCE(d.disbursed_amount, 0))
+    FROM sfa.disbursement d
+    WHERE d.funding_request_id = @funding_request_id
+    AND d.assessment_id < @assessment_id;
+
+    RETURN COALESCE(@disbursed_amt, 0);
+
+END;
+GO
+
+-- Get Shelter Amount
+CREATE OR ALTER FUNCTION sfa.fn_get_shelter_amount(@academic_year_id INT, @province_id INT, @student_category_id INT)
+RETURNS FLOAT(8)
+AS 
+BEGIN
+	DECLARE  @amt FLOAT(8);
+
+    SELECT @amt = COALESCE(sla.shelter_amount, 0)
+	FROM sfa.student_living_allowance sla
+	WHERE sla.academic_year_id = @academic_year_id
+	AND sla.province_id = @province_id
+	AND sla.student_category_id = @student_category_id
+    
+    RETURN COALESCE(@amt, 0);
+
+END;
+GO
+
+-- Get Mileage Rate
+CREATE OR ALTER FUNCTION sfa.fn_get_mileage_rate(@academic_year_id INT)
+RETURNS FLOAT(8)
+AS 
+BEGIN
+	DECLARE  @amt FLOAT(8);
+
+    SELECT @amt = COALESCE(cl.mileage_rate, 0)
+    FROM sfa.csl_lookup cl
+    WHERE cl.academic_year_id = @academic_year_id;
+    
+    RETURN COALESCE(@amt, 0);
+
+END;
+GO
+
+-- Get Max Relocation
+CREATE OR ALTER FUNCTION sfa.fn_get_max_relocation(@academic_year_id INT)
+RETURNS FLOAT(8)
+AS 
+BEGIN
+	DECLARE  @amt FLOAT(8);
+
+    SELECT @amt = COALESCE(cl.relocation_max_amount, 0)
+    FROM sfa.csl_lookup cl
+    WHERE cl.academic_year_id = @academic_year_id;
+    
+    RETURN COALESCE(@amt, 0);
+
+END;
+GO
+
+-- Get Max Return Transport
+CREATE OR ALTER FUNCTION sfa.fn_get_max_return_transport(@academic_year_id INT)
+RETURNS FLOAT(8)
+AS 
+BEGIN
+	DECLARE  @amt FLOAT(8);
+
+    SELECT @amt = COALESCE(cl.return_transport_max_amount, 0)
+    FROM sfa.csl_lookup cl
+    WHERE cl.academic_year_id = @academic_year_id;
+    
+    RETURN COALESCE(@amt, 0);
+
+END;
+GO

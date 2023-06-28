@@ -1,17 +1,18 @@
 import { Knex } from "knex";
+import { ScalarResult } from "models/repository";
 
 export abstract class BaseRepository {
 
     /**
      * Main Db
      */
-    readonly mainDb: Knex<any, unknown>;
+    protected readonly mainDb: Knex<any, unknown>;
 
     constructor(maindb: Knex<any, unknown>) {
         this.mainDb = maindb;
     }
 
-    loadResults<T>(data: Array<any>): Array<T> {
+    protected loadResults<T>(data: Array<unknown>): Array<T> {
         const result: Array<T> = [];
         if (Array.isArray(data)) {
             data.forEach((row) => {                  
@@ -21,12 +22,20 @@ export abstract class BaseRepository {
         return result;
     }
 
-    async getScalarValue<T>(funcName: string, args: Array<string | number>, schema: string = "sfa"): Promise<T> {
-        let result = undefined;
-        result = await this.mainDb.raw(`SELECT ${schema}.${funcName}(${args.join(',')}) as result;`);
-        if (result) {
-            return result[0].result as T;    
+    protected singleResult<T>(data: Array<unknown>): T {
+        let result = {} as T;
+        if (Array.isArray(data)) {
+            result = data[0] as T;
         }
         return result;
+    }
+
+    protected async getScalarValue<T>(funcName: string, args: Array<string | number>, schema: string = "sfa"): Promise<T> {
+        const query = await this.mainDb.raw(`SELECT ${schema}.${funcName}(${args.join(',')}) as result;`);
+        if (query) {
+            const result = this.singleResult(query) as ScalarResult<T>;
+            return result.result as T;
+        }
+        return {} as T;
     }
 }
