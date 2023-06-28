@@ -341,8 +341,7 @@ applicationRouter.get("/:id",
                 );
             })
             .leftJoin("sfa.file_reference as fr", function () {
-                this.on("fr.requirement_type_id", "=", "t.id")
-                .andOn("fr.application_id", "=", "ds.application_id")
+                this.on("fr.requirement_type_id", "=", "t.id")                
                 .andOn("fr.application_id", "=", db.raw(id));
             });
                 
@@ -365,6 +364,16 @@ applicationRouter.get("/:id",
                 }
                 idx++;
             }
+
+            application.finalDocumentation5.sort((a: any, b: any) => {
+                if (a.description < b.description) {
+                    return -1;
+                  }
+                  if (a.description > b.description) {
+                    return 1;
+                  }                                  
+                  return 0;
+            })
             
 
             application.reason_code = await db("sfa.application as app").innerJoin("sfa.csl_code as reason", function () {
