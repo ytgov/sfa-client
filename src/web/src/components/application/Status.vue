@@ -15,7 +15,7 @@
 
       <h1>Funding Status</h1>
     </div>
-    <div class="col-md-12"  v-if="showFundings">
+    <div class="col-md-12"  v-if="!assessmentComponent && showFundings">
       <v-card class="default mb-5" v-for="item, index in application.funding_requests" :key="index">
         <v-card-text>
           <div class="row">
@@ -69,9 +69,13 @@
             </div>
             <div class="col-md-3">
               <v-btn 
-                :disabled="showAdd"
+                :disabled="
+                  !(item?.status_id === 6 
+                  || item?.status_id === 7 
+                  || item?.status_id === 40)
+                "
                 dense
-                color="blue" 
+                color="blue"
                 class="my-0"
                 @click="showAssessment(item?.request_type_id || null, item?.id || null)"
                 block
@@ -163,8 +167,8 @@
       </v-card>
     </div>
     <component 
-      v-if="!showFundings && assessmentTypeId" 
-      :is="assessmentTypeC" 
+      v-if="assessmentComponent && !showFundings && assessmentTypeId" 
+      :is="assessmentComponent" 
       :fundingRequestId="fundingRequestId"
       v-on:close="showFundingStatus" 
       v-on:showError="showError"
@@ -194,10 +198,6 @@ export default {
   },
   computed: {
     ...mapGetters(['assessments']),
-    assessmentTypeC() {
-      const id = this.assessmentTypeId;
-      return assessmentType(id);
-    },
     application: function () {
       return store.getters.selectedApplication;
     },
@@ -205,6 +205,7 @@ export default {
   data: () => ({
     fundingRequestId: null,
     assessmentTypeId: null,
+    assessmentComponent: null,
     showFundings: true,
     showAdd: false,
     applicationId: -1,
@@ -239,15 +240,28 @@ export default {
     store.dispatch("setAppSidebar", true);
   },
   methods: {
+    async assessmentTypeC() {
+      this.assessmentComponent = await assessmentType(
+        this.assessmentTypeId, 
+        this.application.id, 
+        this.fundingRequestId, 
+        this.application.academic_year_id, 
+        this
+      );
+    },
     showAssessment(request_type_id, funding_request_id) {
       this.showFundings = false;
       store.dispatch('getAssessments', { application_id: this.application.id, funding_request_id });
       this.assessmentTypeId = request_type_id;
       this.fundingRequestId = funding_request_id;
+      this.assessmentTypeC();
     },
     showFundingStatus() {
 
       this.showFundings = true;
+      this.assessmentTypeId = null;
+      this.fundingRequestId = null;
+      this.assessmentComponent = null;
     },
     setClose() {
       this.newRecord = {
@@ -312,3 +326,8 @@ export default {
   },
 };
 </script>
+<style>
+.v-select__selection.v-select__selection--comma.v-select__selection--disabled{
+  color:rgba(0,0,0,.87)!important;
+}
+</style>

@@ -1476,6 +1476,12 @@ CREATE TABLE sfa.requirement_met
     completed_date      DATE NULL
 )
 
+CREATE TABLE sfa.accommodation_type (
+	id int NOT NULL IDENTITY(1,1),
+	description nvarchar(200) NOT NULL,
+	is_active bit NOT NULL DEFAULT (1)
+)
+
 CREATE TABLE sfa.communication_log
 (
     id              INT IDENTITY PRIMARY KEY,
@@ -1885,7 +1891,7 @@ CREATE TABLE sfa.in_school_status (
 GO
 
 -- sfa.person_address_v
-CREATE VIEW sfa.person_address_v AS
+CREATE OR ALTER VIEW sfa.person_address_v AS
 SELECT 
 	p.id as person_id,
 	p.language_id,
@@ -1917,6 +1923,15 @@ FROM sfa.person p
 		ON p.id = pa.person_id;
 
 
+-- sfa.application_funding_request_v source
+CREATE OR ALTER VIEW sfa.application_funding_request_v AS
+SELECT 
+	a.*,
+	fr.id AS funding_request_id
+FROM sfa.application a
+	INNER JOIN sfa.funding_request fr 
+		ON fr.application_id = a.id;
+
 CREATE TABLE sfa.portal_feedback (
 	id INT IDENTITY (1, 1) PRIMARY KEY,
     create_date DATETIME2(0) NOT NULL,
@@ -1943,3 +1958,4 @@ IF COL_LENGTH('sfa.user', 'roles') IS NULL
 BEGIN
     ALTER TABLE sfa.[user] ADD roles NVARCHAR(100) NULL;
 END
+

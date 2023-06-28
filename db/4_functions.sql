@@ -710,21 +710,21 @@ BEGIN
 	
 END
 GO
--- ASSESSMENT_PCK - get_assessment_count_fct
-CREATE OR ALTER FUNCTION sfa.fn_get_assessment_count(@funding_request_id NUMERIC)
-RETURNS NUMERIC AS
-BEGIN
-    DECLARE @assess_count NUMERIC;
 
-    SELECT @assess_count = COUNT(id)
+-- ASSESSMENT_PCK - get_assessment_count_fct
+CREATE OR ALTER FUNCTION sfa.fn_get_assessment_count(@funding_request_id INT)
+RETURNS INT AS
+BEGIN
+    DECLARE @assess_count INT;
+
+    SELECT @assess_count = COALESCE(COUNT(id), 0)
     FROM sfa.assessment
     WHERE funding_request_id = @funding_request_id;
 
     RETURN @assess_count;
 
-END
+END;
 GO
-
 
 CREATE OR ALTER FUNCTION sfa.fn_get_previous_weeks_yg(@student_id_p INT,  @application_id_p INT) 
 RETURNS NUMERIC
@@ -1986,6 +1986,48 @@ BEGIN
 END
 GO
 
+CREATE OR ALTER FUNCTION sfa.check_deadline_fct (@application_id INT, @request_type_id INT)
+RETURNS VARCHAR(50) AS
+BEGIN
+    DECLARE @start_date DATE;
+    DECLARE @weeks NUMERIC;
+    DECLARE @training_days NUMERIC;
+    DECLARE @all_days NUMERIC;
+    DECLARE @weekend_days NUMERIC;
+    DECLARE @message VARCHAR(50);
+
+    SET @weeks = 0;
+    SET @training_days = 0;
+    SET @message = 'OK';
+
+    SELECT @start_date = classes_start_date
+    FROM sfa.application app
+    WHERE app.id = @application_id;
+
+    IF @start_date IS NOT NULL
+    BEGIN
+        IF @request_type_id = 1
+            BEGIN
+                SET @all_days = DATEDIFF(DAY, @start_date, CAST(SYSDATETIME() AS DATE));
+                SET @weekend_days = ROUND(( (@all_days + 1)/7 ) * 2, 0);
+                SET @training_days = @all_days + 1 - @weekend_days;
+            END
+        ELSE 
+            BEGIN
+                SET @all_days = DATEDIFF(DAY, @start_date, CAST(SYSDATETIME() AS DATE));
+                SET @weeks = ROUND(((@all_days) + 1)/7 + 0.9999, 0);
+            END
+        
+        IF @weeks > 6 OR @training_days > 14
+            BEGIN
+                SET @message = 'This student may have exceeded the deadline.';
+            END
+    END
+
+    RETURN @message;
+END
+GO
+
 -- END FUNCTIONS TO ASSESSMENT_YG --
 
 CREATE OR ALTER FUNCTION sfa.fn_get_total_funded_years (
@@ -2229,7 +2271,7 @@ BEGIN
 	DECLARE @amount FLOAT(8) = 0;
 
 	SELECT 
-		@amount = SUM(d.disbursed_amount)
+		@amount = COALESCE(SUM(d.disbursed_amount), 0)
 	FROM sfa.disbursement d
 		INNER JOIN sfa.funding_request fr
 			ON d.funding_request_id = fr.id
@@ -2381,6 +2423,23 @@ BEGIN
 END;
 GO
 
+-- Get Study Tax Rate: study_tax_rate_pck_1.get_study_tax_rate
+CREATE OR ALTER FUNCTION sfa.fn_get_study_tax_rate(@academic_year INT, @income FLOAT(8))
+RETURNS FLOAT(8)
+AS
+BEGIN 
+	DECLARE @amount FLOAT(8) = 0;
+
+	SELECT
+		@amount = COALESCE(str.study_tax_rate, 0)
+	FROM sfa.study_tax_rate str
+	WHERE str.academic_year_id = @academic_year
+	AND @income BETWEEN str.from_income_amount AND str.to_income_amount;
+	
+	RETURN COALESCE(@amount, 0);
+END;
+GO
+
 --Get Student Contribution: student_contribution_pck_1.get_student_contribution
 CREATE OR ALTER FUNCTION sfa.fn_get_student_contribution(@academic_year INT, @province_id INT, @student_category_id INT, @period_id INT)
 RETURNS FLOAT(8)
@@ -2397,5 +2456,165 @@ BEGIN
 	AND sc.period_id = @period_id;
 	
 	RETURN COALESCE(@amount, 0);
+END;
+GO
+
+-- Get Assessment Info PRC
+CREATE OR ALTER FUNCTION sfa.fn_get_assessment_info_prc (@funding_request_id INT)
+RETURNS INT
+AS 
+BEGIN
+	DECLARE @assess_id INT;
+
+	SELECT @assess_id = MAX(id)
+	FROM sfa.assessment a
+	WHERE a.funding_request_id = @funding_request_id;
+	
+	RETURN @assess_id;
+END;
+GO
+
+-- Get Max Books
+CREATE OR ALTER FUNCTION sfa.fn_get_max_books(@academic_year_id INT)
+RETURNS FLOAT(8)
+AS
+BEGIN 
+	DECLARE @amount FLOAT(8) = 0;
+
+	SELECT 
+	@amount = cl.books_max_amount 
+	FROM sfa.csl_lookup cl 
+	WHERE cl.academic_year_id = @academic_year_id;
+	
+	RETURN COALESCE(@amount, 0);
+END;
+GO
+
+-- Get Previous Assessment
+CREATE OR ALTER PROCEDURE sfa.sp_get_previous_assessment(@assessment_id INT)
+AS
+BEGIN 
+	SELECT
+		air_travel_disbursement_period,
+		airfare_amount,
+		allowed_books,
+		allowed_months,
+		allowed_percent,
+		allowed_tuition,
+		assessed_amount,
+		assessed_date,
+		assessment_adj_amount,
+		assessment_type_id,
+		asset_tax_rate,
+		books_supplies_cost,
+		change_reason_comment,
+		classes_end_date,
+		classes_start_date,
+		csl_assessed_need,
+		csl_classification,
+		csl_full_amt_flag,
+		csl_non_reason_id,
+		csl_over_reason_id,
+		csl_request_amount,
+		day_care_actual,
+		day_care_allowable,
+		depend_food_allowable,
+		depend_tran_allowable,
+		dependent_count,
+		destination_city_id,
+		disbursements_required,
+		discretionary_cost,
+		discretionary_cost_actual,
+		effective_rate_date,
+		entitlement_days,
+		family_size,
+		funding_request_id,
+		home_city_id,
+		id,
+		living_costs,
+		marital_status_id,
+		married_assets,
+		married_pstudy,
+		married_study,
+		over_award,
+		over_award_applied_flg,
+		over_award_disbursement_period,
+		p_trans_month,
+		parent1_income,
+		parent1_tax_paid,
+		parent2_income,
+		parent2_tax_paid,
+		parent_contribution_override,
+		parent_contribution_review,
+		parent_province,
+		parent_ps_depend_count,
+		period,
+		pre_leg_amount,
+		prestudy_accom_code,
+		prestudy_bus_flag,
+		prestudy_csl_classification,
+		prestudy_distance,
+		prestudy_living_w_spouse_flag,
+		prestudy_province_id,
+		program_id,
+		pstudy_day_care_actual,
+		pstudy_day_care_allow,
+		pstudy_depend_food_allow,
+		pstudy_depend_tran_allow,
+		pstudy_end_date,
+		pstudy_expected_contrib,
+		pstudy_p_trans_month,
+		pstudy_shelter_month,
+		pstudy_start_date,
+		pstudy_x_trans_total,
+		r_trans_16wk,
+		relocation_total,
+		return_uncashable_cert,
+		second_residence_rate,
+		shelter_month,
+		spouse_contrib_exempt,
+		spouse_contribution,
+		spouse_contribution_override,
+		spouse_contribution_review,
+		spouse_expected_contribution,
+		spouse_expected_income,
+		spouse_gross_income,
+		spouse_ln150_income,
+		spouse_previous_contribution,
+		spouse_province_id,
+		spouse_pstudy_gross,
+		spouse_pstudy_tax_rate,
+		spouse_tax_rate,
+		stud_pstudy_gross,
+		stud_pstudy_tax_rate,
+		student_contrib_exempt,
+		student_contribution,
+		student_contribution_override,
+		student_contribution_review,
+		student_expected_contribution,
+		student_family_size,
+		student_gross_income,
+		student_ln150_income,
+		student_previous_contribution,
+		student_tax_rate,
+		study_accom_code,
+		study_area_id,
+		study_bus_flag,
+		study_distance,
+		study_living_w_spouse_flag,
+		study_months,
+		study_province_id,
+		study_weeks,
+		total_grant_awarded,
+		travel_allowance,
+		tuition_estimate,
+		uncapped_costs_total,
+		uncapped_pstudy_total,
+		weekly_amount,
+		weeks_allowed,
+		x_trans_total,
+		years_funded_equivalent
+	FROM sfa.assessment a
+	WHERE a.id = @assessment_id;
 END;
 GO
