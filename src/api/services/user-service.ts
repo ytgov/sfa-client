@@ -9,6 +9,8 @@ export class UserService {
   }
 
   async getByEmail(email: string): Promise<User | undefined> {
+    console.log(this.knex("sfa.user").where({ email }).first().toSQL().toNative());
+
     return this.knex("sfa.user").where({ email }).first();
   }
 
