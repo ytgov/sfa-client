@@ -64,9 +64,16 @@ export function configureAuthentication(app: Express) {
   app.use(auth(config));
 
   app.use("/", async (req, res, next) => {
+    console.log("OIDC", req.oidc.isAuthenticated());
+
     if (req.oidc && req.oidc.isAuthenticated()) {
       let user = AuthUser.fromOpenId(req.oidc.user);
+
+      console.log("USER", user)
+
       let dbUser = await db.getBySub(user.sub);
+      
+      console.log("dbUser", dbUser)
 
       if (dbUser) {
         req.user = { ...dbUser, ...user };
