@@ -7,6 +7,7 @@ export interface AuthUser {
   email: string;
   email_verified: boolean;
   sub: string;
+  is_active?: boolean;
 }
 
 export namespace AuthUser {
