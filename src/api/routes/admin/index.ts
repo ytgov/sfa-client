@@ -56,6 +56,7 @@ import { equipmentCategoryRouter } from "./equipment-category-router";
 import { RequireServerAuth, RequireAdmin } from "../auth";
 import { changeReasonRouter } from "./change-reason-router";
 import { disbursementRouter } from "./disbursement";
+import { usersRouter } from "./users-router";
 
 export const adminRouter = express.Router();
 //adminRouter.use("/", RequireServerAuth, RequireAdmin)
@@ -116,4 +117,4 @@ adminRouter.use("/communication-types", communicationTypeRouter);
 adminRouter.use("/request-types", requestTypeRouter);
 adminRouter.use("/accommodation-type", accommodationTypeRouter);
 adminRouter.use("/disbursement", disbursementRouter);
-
+adminRouter.use("/users", usersRouter);
