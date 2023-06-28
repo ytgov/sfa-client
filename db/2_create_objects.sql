@@ -1916,3 +1916,30 @@ FROM sfa.person p
 	LEFT JOIN sfa.person_address pa
 		ON p.id = pa.person_id;
 
+
+CREATE TABLE sfa.portal_feedback (
+	id INT IDENTITY (1, 1) PRIMARY KEY,
+    create_date DATETIME2(0) NOT NULL,
+    url NVARCHAR(500) NOT NULL,
+	feedback TEXT NULL,
+	improve TEXT NULL,
+	acknowledge_user NVARCHAR(100) NULL,
+    acknowledge_date DATETIME2(0) NULL
+)
+
+-- add columns to the sfa.user table if they aren't already there
+
+IF COL_LENGTH('sfa.user', 'sub') IS NULL
+BEGIN
+    ALTER TABLE sfa.[user] ADD sub NVARCHAR(100) NULL;
+END
+
+IF COL_LENGTH('sfa.user', 'ynet_id') IS NULL
+BEGIN
+    ALTER TABLE sfa.[user] ADD ynet_id NVARCHAR(20) NULL;
+END
+
+IF COL_LENGTH('sfa.user', 'roles') IS NULL
+BEGIN
+    ALTER TABLE sfa.[user] ADD roles NVARCHAR(100) NULL;
+END
