@@ -129,4 +129,9 @@ export interface AssessmentDTO {
     previous_cert?: number;
     student_exemption?: number;
     spouse_exemption?: number;
+    vehicle_deduction?: number;
+    rrsp_student_ann_deduct?: number;
+    rrsp_spouse_ann_deduct?: number;
+    parent_msol?: number;
+    parent_weekly_contrib?: number;
 }

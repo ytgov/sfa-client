@@ -2775,3 +2775,35 @@ BEGIN
 
 END;
 GO
+
+-- Get Vehicle deduction amount
+CREATE OR ALTER FUNCTION sfa.fn_get_vehicle_deduction_amount(@academic_year_id INT)
+RETURNS FLOAT(8)
+AS 
+BEGIN
+	DECLARE  @amt FLOAT(8);
+
+    SELECT @amt = COALESCE(cl.vehicle_deduction_amount, 0)
+    FROM sfa.csl_lookup cl
+    WHERE cl.academic_year_id = @academic_year_id;
+    
+    RETURN COALESCE(@amt, 0);
+
+END;
+GO
+
+-- Get RRSP Deduction Yearly Amount
+CREATE OR ALTER FUNCTION sfa.fn_get_rrsp_deduction_yearly_amount(@academic_year_id INT)
+RETURNS FLOAT(8)
+AS 
+BEGIN
+	DECLARE  @amt FLOAT(8);
+
+    SELECT @amt = COALESCE(cl.rrsp_deduction_yearly_amount, 0)
+    FROM sfa.csl_lookup cl
+    WHERE cl.academic_year_id = @academic_year_id;
+    
+    RETURN COALESCE(@amt, 0);
+
+END;
+GO

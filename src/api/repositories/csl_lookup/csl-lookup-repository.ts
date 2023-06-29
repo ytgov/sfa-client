@@ -70,4 +70,24 @@ export class CslLookupRepository extends BaseRepository {
         return result;
     }
 
+    async getVehicleDeductionAmount(academic_year_id?: number): Promise<number> {
+        let result = 0;
+
+        if (academic_year_id) {
+            result = await this.getScalarValue<number>("fn_get_vehicle_deduction_amount", [academic_year_id]);
+        }
+
+        return result;
+    }
+
+    async getRRSPDeductionYearlyAmount(academic_year_id?: number): Promise<number> {
+        let result = 0;
+
+        if (academic_year_id) {
+            result = await this.getScalarValue<number>("fn_get_rrsp_deduction_yearly_amount", [academic_year_id]);
+        }
+
+        return result;
+    }
+
 }

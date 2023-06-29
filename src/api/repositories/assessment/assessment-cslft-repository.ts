@@ -32,6 +32,7 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
     // Globals
     private assessment: Partial<AssessmentDTO> = {};
     private application: Partial<ApplicationDTO> = {};
+    private student: Partial<StudentDTO> = {};
     private new_calc: boolean = false;
     private study_code?: number;
     private prestudy_code?: number;
@@ -103,6 +104,7 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
 
         if (funding_request_id) {
             this.application = await this.applicationRepo.getApplicationByFundingRequetId(funding_request_id);
+            this.student = await this.studentRepo.getStudentById(this.application.student_id);
             if (!this.assessment.id) {
                 const assess_count = await this.getAssessmentCount(funding_request_id);
             
@@ -145,13 +147,14 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
         ];
 
         /**
-         * @todo Try to get all the values with a Promise.All
+         * @todo Try to get all the values with a Promise.All OR Create a single function to return the catalog.
          */
         const studyCodes: Record<string, number> = { 
             'SP': await this.studentRepo.getStudentCategoryId("'SP'"),
             'M': await this.studentRepo.getStudentCategoryId("'M'"),
             'DEP': await this.studentRepo.getStudentCategoryId("'DEP'"),
             'SDA': await this.studentRepo.getStudentCategoryId("'SDA'"),
+            'SDH': await this.studentRepo.getStudentCategoryId("'SDH'"),
             'MW': await this.studentRepo.getStudentCategoryId("'MW'")
         };
 
@@ -223,17 +226,24 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
         }
 
         // Assets Tab
-        if (academicYearValidation(2017)) {
-            /**
-             * @todo Complete this section next.
-             * @link https://docs.google.com/document/d/1aKyZJEr5bamxZc5vvT3LProGZpAmJ6QV/edit#bookmark=id.f0ze7ui2m2ow
-             */
+        if (academicYearValidation(2017)) {            
+            this.assessment.vehicle_deduction = await this.cslLookupRepo.getVehicleDeductionAmount(this.application.academic_year_id);
+            this.assessment.rrsp_student_ann_deduct = await this.cslLookupRepo.getRRSPDeductionYearlyAmount(this.application.academic_year_id);
+            this.assessment.rrsp_spouse_ann_deduct = this.assessment.rrsp_student_ann_deduct;
+        }
+
+        /**
+         * @todo Complete this section next.
+         * @link https://docs.google.com/document/d/1aKyZJEr5bamxZc5vvT3LProGZpAmJ6QV/edit#bookmark=id.f0ze7ui2m2ow
+         */
+        // Parent Tab
+        if (this.study_code === studyCodes.SDA || this.study_code === studyCodes.SDH) {
+            
         }
     }
 
     async getNewInfo(funding_request_id: number): Promise<void> {
 
-        const student: StudentDTO = await this.studentRepo.getStudentById(this.application.student_id);
         const funding_request: FundingRequestDTO = await this.fundingRequestRepo.getFudningRequestById(funding_request_id);
 
         if (!this.assessment.id) {
@@ -422,7 +432,7 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
             const sccResult = await incomeQuery([3]); 
             student_cppd_count = parseInt(sccResult.count.toString());                                   
 
-            if (student.indigenous_learner_id === 1 || student.is_crown_ward || this.application.is_perm_disabled || this.assessment.dependent_count > 0 || student_cppd_count > 0) {
+            if (this.student.indigenous_learner_id === 1 || this.student.is_crown_ward || this.application.is_perm_disabled || this.assessment.dependent_count > 0 || student_cppd_count > 0) {
                 this.assessment.student_contrib_exempt = "Yes";
             }
             
