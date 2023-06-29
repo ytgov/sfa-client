@@ -1914,6 +1914,7 @@ applicationRouter.get("/:application_id/:funding_request_id/assessments",
                 .where({ id: application_id })
                 .first();
 
+                console.log("🚀 ~ file: application-router.ts:1931 ~ item:", application)
             const fundingRequest = await db("sfa.funding_request")
                 .where({ application_id })
                 .where({ id: funding_request_id })
@@ -1927,6 +1928,10 @@ applicationRouter.get("/:application_id/:funding_request_id/assessments",
                 if (getAsessment?.length) {
 
                     for (let item of getAsessment) {
+                        // if (!item.classes_end_date || !item.classes_start_date) {
+                            
+                            
+                        // }
                         const readOnlyData = await db.raw(
                             `SELECT 
                             COALESCE(sfa.fn_get_previous_weeks_yg(${application.student_id},  ${application_id}), 0) AS previous_weeks,
@@ -1975,20 +1980,22 @@ applicationRouter.post("/:application_id/:funding_request_id/assessments",
             const application = await db("sfa.application")
                 .where({ id: application_id })
                 .first();
-
+            
             if (application) {
 
                 const fundingRequest = await db("sfa.funding_request")
                     .where({ application_id })
                     .where({ id: funding_request_id })
                     .first();
-
+                    
+    
                 if (fundingRequest?.request_type_id === 2) { // Create Assessment YG
 
                     db.transaction(async (trx) => {
 
                         const resSP = await db.raw(`EXEC sfa.sp_get_init_value ${funding_request_id}, ${application.id}, ${application.student_id};`);
                         
+        
                         if (resSP?.[0]?.status) {
                             if (dataAssessment) {
                                 delete dataAssessment.read_only_data;
