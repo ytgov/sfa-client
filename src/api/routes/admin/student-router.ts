@@ -6,7 +6,7 @@ import { ReturnValidationErrors, ReturnValidationErrorsCustomMessage } from "../
 import { DB_CONFIG } from "../../config";
 import { first, orderBy } from "lodash";
 import axios from "axios";
-let { RequireServerAuth, RequireAdmin } = require("../auth")
+let { RequireActive, RequireAdmin } = require("../auth")
 
 const db = knex(DB_CONFIG)
 
@@ -166,7 +166,7 @@ studentRouter.patch("/:person_id/person",
     }
 );
 
-studentRouter.post("/search",
+studentRouter.post("/search", RequireActive,
     async (req: Request, res: Response) => {
         let { terms } = req.body;
         terms = terms.toLowerCase().trim()

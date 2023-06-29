@@ -81,7 +81,7 @@ export default {
         { icon: 'fa-solid fa-list-check', title: 'Assessment', path:'/administration/assessment-type', subItems: SubRoutesSideBar.assessment},
         { icon: 'fa-solid fa-clipboard-check', title: 'Application', path:'/administration/study-field', subItems: SubRoutesSideBar.application},
         { icon: 'fa-solid fa-calendar-days', title: 'Academic Year', path:''},
-        { icon: 'fa-solid fa-user', title: 'Officer Table', path:''},
+        { icon: 'fa-solid fa-user', title: 'Officer Table', path:'/administration/officers'},
       ],
       currentLink: null,
       position: null

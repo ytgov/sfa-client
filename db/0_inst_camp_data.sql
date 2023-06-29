@@ -2095,7 +2095,7 @@ INSERT [dbo].[inst_camp] ([INSTITUTION_ID], [NAME], [INSTITUTION_CODE], [IS_ACTI
 GO
 INSERT [dbo].[inst_camp] ([INSTITUTION_ID], [NAME], [INSTITUTION_CODE], [IS_ACTIVE_FLG], [INSTITUTION], [CAMPUS], [Status], [NEW_ID], [CAMP_ID]) VALUES (1623, N'Youth With A Mission - Montana', N'', 0, N'Youth With A Mission', N'Montana', NULL, 810, 1042)
 GO
-INSERT [dbo].[inst_camp] ([INSTITUTION_ID], [NAME], [INSTITUTION_CODE], [IS_ACTIVE_FLG], [INSTITUTION], [CAMPUS], [Status], [NEW_ID], [CAMP_ID]) VALUES (5326, N'Yukon University', N'LUAA', 1, N'Yukon University', NULL, NULL, 811, 1061)
+INSERT [dbo].[inst_camp] ([INSTITUTION_ID], [NAME], [INSTITUTION_CODE], [IS_ACTIVE_FLG], [INSTITUTION], [CAMPUS], [Status], [NEW_ID], [CAMP_ID]) VALUES (5326, N'Yukon University-Old', N'LVAA', 0, N'Yukon University', NULL, NULL, 811, 1061)
 GO
 INSERT [dbo].[inst_camp] ([INSTITUTION_ID], [NAME], [INSTITUTION_CODE], [IS_ACTIVE_FLG], [INSTITUTION], [CAMPUS], [Status], [NEW_ID], [CAMP_ID]) VALUES (475, N'Yukon College Carcross - DO NOT USE', N'LVAA', 0, N'Yukon University', N'Carcross', N'Do Not Use', 811, 1043)
 GO
@@ -2138,4 +2138,6 @@ GO
 INSERT [dbo].[inst_camp] ([INSTITUTION_ID], [NAME], [INSTITUTION_CODE], [IS_ACTIVE_FLG], [INSTITUTION], [CAMPUS], [Status], [NEW_ID], [CAMP_ID]) VALUES (2273, N'Zeneba Academy of Esthetics - DEDESIGNATED', N'BPGX', 0, N'Zeneba Academy of Esthetics', NULL, N'Dedesignated', 813, 1063)
 GO
 INSERT [dbo].[inst_camp] ([INSTITUTION_ID], [NAME], [INSTITUTION_CODE], [IS_ACTIVE_FLG], [INSTITUTION], [CAMPUS], [Status], [NEW_ID], [CAMP_ID]) VALUES (5169, N'Zurich Hochschule der Kunst', N'QWBX', 1, N'Zurich Hochschule der Kunst', NULL, NULL, 814, 1064)
+GO
+INSERT [dbo].[inst_camp] ([INSTITUTION_ID], [NAME], [INSTITUTION_CODE], [IS_ACTIVE_FLG], [INSTITUTION], [CAMPUS], [Status], [NEW_ID], [CAMP_ID]) VALUES (5580, N'Yukon University', N'LUAA', 1, N'Yukon University', NULL, NULL, 811, 1065)
 GO
