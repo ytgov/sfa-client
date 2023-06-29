@@ -320,7 +320,7 @@ export function FundingFromDraft(draft: any): any[] {
         funding.push({
           //application_type_id,
           request_type_id,
-          status_id: 1,
+          status_id: 32, // Online status per Mariazel
           received_date: new Date(),
           status_date: new Date(),
           entering_first_year: draft.program_details.year_entering == 1,

@@ -90,3 +90,5 @@ export const ASSESSMENT = `${config.apiBaseUrl}/api/v2/admin/assessment`;
 // Modules
 export const CSLFT = `${ASSESSMENT}/cslft`;
 export const CSLFT_ASSESS_INFO = `${CSLFT}/assess-info`
+
+export const USERS_URL = `${config.apiBaseUrl}/api/v2/admin/users`;

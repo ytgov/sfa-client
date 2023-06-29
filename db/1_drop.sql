@@ -21,6 +21,7 @@ DROP TABLE IF EXISTS sfa.in_school_status
 DROP TABLE IF EXISTS sfa.file_reference
 DROP TABLE IF EXISTS sfa.student_auth
 DROP TABLE IF EXISTS sfa.application_draft
+DROP TABLE IF EXISTS sfa.portal_feedback
 
 DROP TABLE IF EXISTS sfa.entitlement_error
 DROP TABLE IF EXISTS sfa.disbursement
