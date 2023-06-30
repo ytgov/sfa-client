@@ -8,11 +8,6 @@
           <v-card-title v-else>Disbursement (s)</v-card-title>
             
             <div v-for="item, index in disbursementsByAssessmentId" :key="index">
-              {{ isPreviewCharged }}
-              {{ show }}
-              {{ currentEditing !== null  }}
-              {{ currentEditing?.id === item.id }}
-              {{ isPreviewCharged || show || (currentEditing !== null && !(currentEditing?.id === item.id)) }}
                 <div v-if="item?.id" class="col-xs-12 col-sm-12 col-lg-12 d-flex noppading-bottom">
                   <div v-if="currentEditing?.id === item.id" class="col-xs-12 col-sm-12 col-lg-12 nopadding d-flex align-end justify-end">
                     <v-btn 
