@@ -17,9 +17,10 @@ const documentService = new DocumentService();
 applicationRouter.get("/all", ReturnValidationErrors, async (req: Request, res: Response) => {
         try {
             const { filter } = req.query;
+
             let applications;
 
-            if (!filter || filter == 'ALL') {
+            if (!filter || filter == undefined) {
                 applications = await db("sfa.application")
                     .leftJoin("sfa.institution_campus", "application.institution_campus_id", "institution_campus.id")
                     .leftJoin("sfa.institution", "institution.id", "institution_campus.institution_id")
@@ -48,7 +49,7 @@ applicationRouter.get("/all", ReturnValidationErrors, async (req: Request, res: 
                 .select("application.academic_year_id")
                 .select("person.first_name")
                 .select("person.last_name").limit(25)
-                .whereLike('last_name', `${filter}%`)
+                .whereLike('last_name', `[${filter}]%`)
                 .andWhere("funding_request.status_id", 32 )
                 .groupBy("application.id", "application.online_submit_date","institution.name","person.first_name","person.last_name","application.academic_year_id")
                 .orderBy('online_submit_date', 'asc');
@@ -71,7 +72,7 @@ applicationRouter.get("/latest-updates", ReturnValidationErrors, async (req: Req
         const { filter } = req.query;
         let applications;
 
-        if (!filter || filter == 'ALL') {
+        if (!filter || filter == undefined) {
             applications = await db("sfa.application")
                 .leftJoin("sfa.institution_campus", "application.institution_campus_id", "institution_campus.id")
                 .leftJoin("sfa.institution", "institution.id", "institution_campus.institution_id")
@@ -94,7 +95,7 @@ applicationRouter.get("/latest-updates", ReturnValidationErrors, async (req: Req
                 .select("institution.name as institution_name")
                 .select("person.first_name")
                 .select("person.last_name").limit(25)
-                .whereLike('last_name', `${filter}%`)
+                .whereLike('last_name', `[${filter}]%`)
                 .andWhere({ seen: true })
                 .whereNotNull('updated_at')
                 .orderBy('updated_at', 'desc');
