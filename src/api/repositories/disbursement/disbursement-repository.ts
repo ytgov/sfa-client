@@ -15,4 +15,24 @@ export class DisbursementRepository extends BaseRepository {
 
         return result;
     }
+
+    async getDisbursedAmount(funding_request_id?: number, assessment_id?: number): Promise<number> {
+        let result = 0;
+
+        if (funding_request_id && assessment_id) {
+            result = await this.getScalarValue<number>("fn_get_disbursed_amount_fct", [funding_request_id, assessment_id]);
+        }
+
+        return result;
+    }
+
+    async getPreviousDisbursedAmount(funding_request_id?: number, assessment_id?: number): Promise<number> {
+        let result = 0;
+
+        if (funding_request_id && assessment_id) {
+            result = await this.getScalarValue<number>("fn_get_previous_disbursed_amount", [funding_request_id, assessment_id]);
+        }
+
+        return result;
+    }
 }

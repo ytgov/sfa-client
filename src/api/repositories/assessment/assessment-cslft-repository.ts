@@ -11,9 +11,11 @@ import { ProvinceRepository } from "../province";
 import { DisbursementRepository } from "../disbursement";
 import { ChildCareCeilingRepository } from "../child_care_ceiling";
 import { TaxRateRepository } from "../tax_rate";
+import { FieldProgramRepository } from "../field_program";
 
 export class AssessmentCslftRepository extends AssessmentBaseRepository {
 
+    // Repos
     private applicationRepo: ApplicationRepository;
     private studentRepo: StudentRepository;
     private studentLivingAllowanceRepo: StudentLivingAllowanceRepository;
@@ -25,11 +27,17 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
     private disbursementRepo: DisbursementRepository;
     private childCareCeilingRepo: ChildCareCeilingRepository;
     private taxRateRepo: TaxRateRepository;
+    private fieldProgramRepo: FieldProgramRepository;
+
+    // Globals
     private assessment: Partial<AssessmentDTO> = {};
     private application: Partial<ApplicationDTO> = {};
+    private student: Partial<StudentDTO> = {};
     private new_calc: boolean = false;
     private study_code?: number;
     private prestudy_code?: number;
+    private assessment_id?: number;
+    private assess_id?: number;
 
     constructor(maindb: Knex<any, unknown>) {
         super(maindb);
@@ -44,6 +52,17 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
         this.childCareCeilingRepo = new ChildCareCeilingRepository(maindb);
         this.taxRateRepo = new TaxRateRepository(maindb);
         this.studentContributionRepo = new StudentContributionRepository(maindb);
+        this.fieldProgramRepo = new FieldProgramRepository(maindb);
+    }
+
+    getNetAmount(assessed_amount?: number, previous_disbursement?: number, return_uncashable_cert?: number): number {
+        let result = (assessed_amount ?? 0) - (previous_disbursement ?? 0) + (return_uncashable_cert ?? 0);
+
+        if (result >= -250 && result <= 0) {
+            result = 0;
+        }
+
+        return result;
     }
 
     async getPreviousAssessment(assessment_id?: number): Promise<void> {
@@ -78,41 +97,153 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
 
         return result;
     }
-
+    
     async getAssessInfoCslft(funding_request_id?: number): Promise<AssessmentDTO | undefined> {
-        let results = [];
-        if (funding_request_id) {
-            results = await this.mainDb.raw(`EXEC sfa.sp_get_assess_info_cslft ${funding_request_id};`);
-            const allAssessments = this.loadResults<AssessmentDTO>(results);
-            this.assessment = allAssessments[0] ?? {};
-        }
-        return this.assessment;
-    }
-
-    async getAssessInfoCslft2(funding_request_id?: number): Promise<AssessmentDTO | undefined> {
 
         let assess_id: number | undefined = undefined;        
 
         if (funding_request_id) {
             this.application = await this.applicationRepo.getApplicationByFundingRequetId(funding_request_id);
-            const assess_count = await this.getAssessmentCount(funding_request_id);
+            this.student = await this.studentRepo.getStudentById(this.application.student_id);
+            if (!this.assessment.id) {
+                const assess_count = await this.getAssessmentCount(funding_request_id);
             
-            if (assess_count !== undefined && assess_count > 0) {
-                assess_id = await this.getAssessmentInfoPrc(funding_request_id);
-    
-                await this.getPreviousAssessment(assess_id);
+                if (assess_count !== undefined && assess_count > 0) {
+                    assess_id = await this.getAssessmentInfoPrc(funding_request_id);
+        
+                    await this.getPreviousAssessment(assess_id);
+                }
+                else {
+                    await this.getNewInfo(funding_request_id);
+                }
             }
             else {
-                await this.getNewInfo(funding_request_id);
+                this.assessment_id = this.assessment.id;
             }
+
+            if (!this.assessment.program_id && !this.assessment.study_area_id) {
+                this.assessment.field_program_code = await this.fieldProgramRepo.getFieldProgramCode(this.assessment.study_area_id, this.assessment.program_id);
+            }
+
+            this.assessment.recovered_overaward = await this.getCslOveraward(this.application.student_id, this.assessment.id);
+
+            assess_id = (((this.assessment_id ?? 0) < (this.assess_id ?? 0) && !this.assessment.id) || this.assess_id === 0) ? this.assessment_id : this.assess_id;
+
+            const disbursed_amt = await this.disbursementRepo.getDisbursedAmount(funding_request_id, assess_id);
+            this.assessment.previous_disbursement = disbursed_amt > 0 ? disbursed_amt : 0;
+
+            this.assessment.previous_cert = await this.disbursementRepo.getPreviousDisbursedAmount(funding_request_id, this.assessment.id);
+
+            this.assessment.net_amount = this.getNetAmount(this.assessment.assessed_amount, this.assessment.previous_disbursement, this.assessment.return_uncashable_cert);
+
         }
 
         return this.assessment;
     }
 
+    async getLookupValues(): Promise<void> {
+        const canadianProvinces = [
+            1,2,3,4,5,6,7,8,9,10,11,12,13
+        ];
+
+        /**
+         * @todo Try to get all the values with a Promise.All OR Create a single function to return the catalog.
+         */
+        const studyCodes: Record<string, number> = { 
+            'SP': await this.studentRepo.getStudentCategoryId("'SP'"),
+            'M': await this.studentRepo.getStudentCategoryId("'M'"),
+            'DEP': await this.studentRepo.getStudentCategoryId("'DEP'"),
+            'SDA': await this.studentRepo.getStudentCategoryId("'SDA'"),
+            'SDH': await this.studentRepo.getStudentCategoryId("'SDH'"),
+            'MW': await this.studentRepo.getStudentCategoryId("'MW'")
+        };
+
+        let max_x_trans: number = 0;
+        let calc_x_trans: number = 0;
+        let prestudy_prov = this.assessment.prestudy_province_id;
+        let study_prov = this.assessment.study_province_id;
+        if (!canadianProvinces.includes(this.assessment.prestudy_province_id ?? 0)) {
+            prestudy_prov = 3;
+        }
+
+        if (!canadianProvinces.includes(this.assessment.study_province_id ?? 0)) {
+            study_prov = prestudy_prov;
+        }
+
+        // Cost Tab
+        if (this.assessment.study_distance ?? 0 > 0) {
+            max_x_trans = await this.studentLivingAllowanceRepo.getShelterAmount(this.application.academic_year_id, study_prov, studyCodes.SDA) * (this.assessment.study_months ?? 0);  
+            
+            calc_x_trans = (this.assessment.study_distance ?? 0) * 2 * await this.cslLookupRepo.getMileageRate(this.application.academic_year_id) * (this.assessment.study_weeks ?? 0) * 5;
+
+            this.assessment.x_trans_total = Math.round(Math.min(max_x_trans, calc_x_trans));
+        }
+
+        if (this.assessment.study_province_id !== this.assessment.prestudy_province_id) {
+            if (!this.assessment.relocation_total || this.assessment.relocation_total === 0) {
+                this.assessment.relocation_total = await this.cslLookupRepo.getMaxRelocation(this.application.academic_year_id);
+            }
+
+            if ((!(this.assessment.study_living_w_spouse_flag ?? false) && this.assessment.csl_classification === 3) || (this.assessment.prestudy_accom_code ?? 0) === 1 && (!this.assessment.r_trans_16wk || this.assessment.r_trans_16wk === 0)) {
+                this.assessment.r_trans_16wk = await this.cslLookupRepo.getMaxReturnTransport(this.application.academic_year_id);
+            }
+        }
+
+        // Prestudy and Study Tab
+        const academicYearValidation = (year: number): boolean => {
+            if (this.application.academic_year_id && this.application.academic_year_id < year) {
+                return true;
+            }
+            return false;
+        };
+        if (academicYearValidation(2017)) {
+            if (this.assessment.prestudy_distance ?? 0 > 0) {
+                max_x_trans = await this.studentLivingAllowanceRepo.getShelterAmount(this.application.academic_year_id, prestudy_prov, studyCodes.SDA) * (this.assessment.pstudy_months ?? 0);  
+            
+                calc_x_trans = (this.assessment.prestudy_distance ?? 0) * 2 * await this.cslLookupRepo.getMileageRate(this.application.academic_year_id) * (this.assessment.pstudy_weeks ?? 0) * 5; 
+
+                this.assessment.pstudy_x_trans_total = Math.round(Math.min(max_x_trans, calc_x_trans));
+            }
+
+            let prestudy_code: number | undefined = this.prestudy_code;
+            if (this.prestudy_code === studyCodes.M && (this.assessment.dependent_count ?? 0) > 0) {
+                prestudy_code = studyCodes.MW;
+            }
+            this.assessment.pstudy_expected_contrib = await this.studentContributionRepo.getStudentContribution(this.application.academic_year_id, prestudy_prov, prestudy_code, 1) * (this.assessment.pstudy_months ?? 0);
+
+            const student_exemption = await this.cslLookupRepo.getStudentExemptAmount(this.application.academic_year_id);
+            let student_exemption_modifier = (this.assessment.study_weeks ?? 0);
+            let spouse_exemption_modifier = Math.min(student_exemption_modifier, moment(this.application.spouse_study_school_to).diff(this.application.spouse_study_school_from, "week"));
+            if (academicYearValidation(2004)) {                
+                student_exemption_modifier = 1;
+                spouse_exemption_modifier = 1;
+            }
+            this.assessment.student_exemption = student_exemption * student_exemption_modifier;
+
+            if (this.application.spouse_study_school_to && this.application.spouse_study_school_from) {
+                this.assessment.spouse_exemption = student_exemption * spouse_exemption_modifier;
+            }
+        }
+
+        // Assets Tab
+        if (academicYearValidation(2017)) {            
+            this.assessment.vehicle_deduction = await this.cslLookupRepo.getVehicleDeductionAmount(this.application.academic_year_id);
+            this.assessment.rrsp_student_ann_deduct = await this.cslLookupRepo.getRRSPDeductionYearlyAmount(this.application.academic_year_id);
+            this.assessment.rrsp_spouse_ann_deduct = this.assessment.rrsp_student_ann_deduct;
+        }
+
+        /**
+         * @todo Complete this section next.
+         * @link https://docs.google.com/document/d/1aKyZJEr5bamxZc5vvT3LProGZpAmJ6QV/edit#bookmark=id.f0ze7ui2m2ow
+         */
+        // Parent Tab
+        if (this.study_code === studyCodes.SDA || this.study_code === studyCodes.SDH) {
+            
+        }
+    }
+
     async getNewInfo(funding_request_id: number): Promise<void> {
 
-        const student: StudentDTO = await this.studentRepo.getStudentById(this.application.student_id);
         const funding_request: FundingRequestDTO = await this.fundingRequestRepo.getFudningRequestById(funding_request_id);
 
         if (!this.assessment.id) {
@@ -301,7 +432,7 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
             const sccResult = await incomeQuery([3]); 
             student_cppd_count = parseInt(sccResult.count.toString());                                   
 
-            if (student.indigenous_learner_id === 1 || student.is_crown_ward || this.application.is_perm_disabled || this.assessment.dependent_count > 0 || student_cppd_count > 0) {
+            if (this.student.indigenous_learner_id === 1 || this.student.is_crown_ward || this.application.is_perm_disabled || this.assessment.dependent_count > 0 || student_cppd_count > 0) {
                 this.assessment.student_contrib_exempt = "Yes";
             }
             
@@ -321,12 +452,8 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
         else {
             this.assessment.assessed_amount = Math.max((this.assessment.calculated_award ?? 0) - (this.assessment.recovered_overaward ?? 0), 0);
         }
-
-        this.assessment.net_amount = this.assessment.assessed_amount - (this.assessment.previous_disbursement ?? 0) + (this.assessment.return_uncashable_cert ?? 0);
-
-        if (this.assessment.net_amount >= -250 && this.assessment.net_amount <= 0) {
-            this.assessment.net_amount = 0;
-        }
+        
+        this.assessment.net_amount = this.getNetAmount(this.assessment.assessed_amount, this.assessment.previous_disbursement, this.assessment.return_uncashable_cert);
 
     }
 }

@@ -123,6 +123,18 @@ export interface AssessmentDTO {
     years_funded_equivalent?: number;
     calculated_award?: number;
     recovered_overaward?: number;
-    net_amount?: number;
-    previous_disbursement?: number;
+    net_amount?: number;// calculated value, not a field
+    previous_disbursement?: number;// calculated value, not a field
+    field_program_code?: number;
+    previous_cert?: number;
+    student_exemption?: number;
+    spouse_exemption?: number;
+    vehicle_deduction?: number;
+    rrsp_student_ann_deduct?: number;
+    rrsp_spouse_ann_deduct?: number;
+    parent_msol?: number;
+    parent_weekly_contrib?: number;
+    previous_weeks?: number;// calculated value, not a field
+    assessed_weeks?: number;// calculated value, not a field
+    years_funded?: number;// calculated value, not a field
 }
