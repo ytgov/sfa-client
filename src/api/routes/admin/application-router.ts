@@ -7,6 +7,8 @@ import { ReturnValidationErrors } from "../../middleware";
 import { DB_CONFIG } from "../../config";
 import { Buffer } from 'buffer';
 import { functionsIn, indexOf, orderBy, parseInt } from "lodash";
+import { AssessmentYukonGrant } from "../../repositories/assessment";
+
 const db = knex(DB_CONFIG)
 export const applicationRouter = express.Router();
 export const portalStudentRouter = express.Router();
@@ -15,36 +17,42 @@ const documentService = new DocumentService();
 applicationRouter.get("/all", ReturnValidationErrors, async (req: Request, res: Response) => {
         try {
             const { filter } = req.query;
+
             let applications;
 
-            if (!filter || filter == 'ALL') {
+            if (!filter || filter == undefined) {
                 applications = await db("sfa.application")
                     .leftJoin("sfa.institution_campus", "application.institution_campus_id", "institution_campus.id")
                     .leftJoin("sfa.institution", "institution.id", "institution_campus.institution_id")
-                    // .leftJoin("sfa.funding_request", "funding_request.application_id", "application.id")
-                    .leftJoin("sfa.student", "student.id", "application.student_id")
-                    .leftJoin("sfa.person", "student.person_id", "person.id")
-                    .select("application.*")
+                    .innerJoin("sfa.funding_request", "funding_request.application_id", "application.id")
+                    .innerJoin("sfa.student", "student.id", "application.student_id")
+                    .innerJoin("sfa.person", "student.person_id", "person.id")
+                    .select("application.id")
+                    .select("application.online_submit_date")
                     .select("institution.name as institution_name")
+                    .select("application.academic_year_id")
                     .select("person.first_name")
                     .select("person.last_name").limit(25)
-                    .where({ seen: false })
+                    .where("funding_request.status_id", 32 )
+                    .groupBy("application.id", "application.online_submit_date","institution.name","person.first_name","person.last_name","application.academic_year_id")
                     .orderBy('online_submit_date', 'asc');
             } else {
                 applications = await db("sfa.application")
-                    .leftJoin("sfa.institution_campus", "application.institution_campus_id", "institution_campus.id")
-                    .leftJoin("sfa.institution", "institution.id", "institution_campus.institution_id")
-                    // .leftJoin("sfa.funding_request", "funding_request.application_id", "application.id")
-                    .leftJoin("sfa.student", "student.id", "application.student_id")
-                    .leftJoin("sfa.person", "student.person_id", "person.id")
-                    .select("application.*")
-                    .select("institution.name as institution_name")
-                    .select("person.first_name")
-                    .select("person.last_name").limit(25)
-                    .whereLike('last_name', `${filter}%`)
-                    // .andWhere({ "sfa.funding_request.status_id": 2 })
-                    .andWhere({ seen: false })
-                    .orderBy('online_submit_date', 'asc');
+                .leftJoin("sfa.institution_campus", "application.institution_campus_id", "institution_campus.id")
+                .leftJoin("sfa.institution", "institution.id", "institution_campus.institution_id")
+                .innerJoin("sfa.funding_request", "funding_request.application_id", "application.id")
+                .innerJoin("sfa.student", "student.id", "application.student_id")
+                .innerJoin("sfa.person", "student.person_id", "person.id")
+                .select("application.id")
+                .select("application.online_submit_date")
+                .select("institution.name as institution_name")
+                .select("application.academic_year_id")
+                .select("person.first_name")
+                .select("person.last_name").limit(25)
+                .whereLike('last_name', `[${filter}]%`)
+                .andWhere("funding_request.status_id", 32 )
+                .groupBy("application.id", "application.online_submit_date","institution.name","person.first_name","person.last_name","application.academic_year_id")
+                .orderBy('online_submit_date', 'asc');
             }
 
             for (let item of applications) {
@@ -64,7 +72,7 @@ applicationRouter.get("/latest-updates", ReturnValidationErrors, async (req: Req
         const { filter } = req.query;
         let applications;
 
-        if (!filter || filter == 'ALL') {
+        if (!filter || filter == undefined) {
             applications = await db("sfa.application")
                 .leftJoin("sfa.institution_campus", "application.institution_campus_id", "institution_campus.id")
                 .leftJoin("sfa.institution", "institution.id", "institution_campus.institution_id")
@@ -87,7 +95,7 @@ applicationRouter.get("/latest-updates", ReturnValidationErrors, async (req: Req
                 .select("institution.name as institution_name")
                 .select("person.first_name")
                 .select("person.last_name").limit(25)
-                .whereLike('last_name', `${filter}%`)
+                .whereLike('last_name', `[${filter}]%`)
                 .andWhere({ seen: true })
                 .whereNotNull('updated_at')
                 .orderBy('updated_at', 'desc');
@@ -341,7 +349,8 @@ applicationRouter.get("/:id",
                 );
             })
             .leftJoin("sfa.file_reference as fr", function () {
-                this.on("fr.requirement_type_id", "=", "t.id")                
+                this.on("fr.requirement_type_id", "=", "t.id")
+                .andOn("fr.application_id", "=", "ds.application_id")
                 .andOn("fr.application_id", "=", db.raw(id));
             });
                 
@@ -2336,7 +2345,7 @@ applicationRouter.patch("/:application_id/:funding_request_id/assessments/:asses
     async (req: Request, res: Response) => {
         try {
             const { assessment_id, application_id, funding_request_id } = req.params;
-            const { data } = req.body;
+            const { data, disburseList } = req.body;
             
             const application = await db("sfa.application")
                 .where({ id: application_id })
@@ -2355,11 +2364,16 @@ applicationRouter.patch("/:application_id/:funding_request_id/assessments/:asses
                 
 
                 if (fundingRequest) { // Create Assessment YG
-                    const resUpdate = await db("sfa.assessment")
-                        .where({ id: assessment_id, funding_request_id })
-                        .update({ ...data });
+                    const assessmentYG = new AssessmentYukonGrant(db);
+                    
+                    const resAssessment = await assessmentYG.updateAssessmentYG(
+                            data, 
+                            disburseList, 
+                            Number(assessment_id),
+                            Number(funding_request_id)
+                        );
 
-                    return resUpdate ?
+                    return resAssessment ?
                         res.json({ messages: [{ variant: "success", text: "Saved" }] })
                         :
                         res.json({ messages: [{ variant: "error", text: "Failed" }] });
@@ -2417,6 +2431,47 @@ applicationRouter.get("/:application_id/request-type/:request_type_id/deadline-c
             } else {
                 return res.status(409).send({ messages: [{ variant: "error", text: "application or funding request no valid" }] });
             }
+
+        } catch (error) {
+            console.log(error);
+            return res.status(409).send({ messages: [{ variant: "error", text: "Error get data" }] });
+        }   
+    }
+);
+
+applicationRouter.post("/:application_id/update-preview",
+    [
+        param("application_id").isInt().notEmpty(),
+    ], 
+    ReturnValidationErrors, 
+    async (req: Request, res: Response) => {
+        try {
+            const { application_id } = req.params;
+            const { data, disburseAmountList } = req.body;
+
+            const application = await db("sfa.application")
+                .where({ id: application_id })
+                .first();
+
+            const  assessmentMethods = new AssessmentYukonGrant(db);
+            
+            const results: any = await assessmentMethods.getRefreshAssessmentData(data, disburseAmountList, application.student_id, Number(application_id));
+            
+            if (results) {
+                results.read_only_data.previous_weeks = results.previous_weeks;
+                results.read_only_data.assessed_weeks = results.assessed_weeks;
+                results.read_only_data.previous_disbursement = results.previous_disbursement;
+                results.read_only_data.net_amount = results.net_amount;
+                results.read_only_data.years_funded = results.years_funded;
+
+                delete results.previous_weeks;
+                delete results.assessed_weeks;
+                delete results.previous_disbursement;
+                delete results.net_amount;
+                delete results.years_funded;
+            }
+
+            return res.json({ messages: [{ variant: "success", text: "ok"}], data: [ results ] });
 
         } catch (error) {
             console.log(error);

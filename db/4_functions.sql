@@ -2619,6 +2619,7 @@ BEGIN
 END;
 GO
 
+
 -- Get application by funding request
 CREATE OR ALTER PROCEDURE sfa.sp_get_application_by_funding_request(@funding_request_id INT)
 AS
@@ -2805,5 +2806,54 @@ BEGIN
     
     RETURN COALESCE(@amt, 0);
 
-END;
+END
+GO
+
+--GET_HOME_CITY
+CREATE OR ALTER FUNCTION sfa.fn_get_home_city (@student_id INT)
+RETURNS INT AS
+BEGIN
+DECLARE @home_city_id INT;
+    SELECT  @home_city_id = pa.city_id
+    FROM sfa.student s
+    INNER JOIN sfa.person p ON p.id = s.person_id 
+    INNER JOIN sfa.person_address pa ON pa.person_id = p.id
+    WHERE s.id = @student_id
+    AND pa.address_type_id = 1;
+
+    RETURN @home_city_id;
+END
+GO
+-- GET_INSTITUTION_CITY
+CREATE OR ALTER FUNCTION sfa.fn_get_institution_city (@application_id INT)
+RETURNS INT AS
+BEGIN
+DECLARE @destination_city INT;
+
+    SELECT 
+    @destination_city = ic.address_city_id
+    FROM sfa.application app
+    INNER JOIN sfa.institution_campus ic ON app.institution_campus_id = ic.id
+    WHERE app.id = @application_id;
+
+    RETURN @destination_city;
+END
+GO
+-- yg_cost_pck.get_weekly_rate_fct - GET_WEEKLY_AMOUNT
+CREATE OR ALTER FUNCTION sfa.fn_get_weekly_amount (@application_id INT)
+RETURNS NUMERIC AS
+BEGIN
+DECLARE @weekly_amount NUMERIC;
+
+    SELECT TOP 1 @weekly_amount = COALESCE(yc.weekly_amount, 0)
+    FROM sfa.yg_cost yc
+    WHERE yc.academic_year_id = (
+        SELECT app.academic_year_id
+        FROM sfa.application app
+        WHERE app.id = @application_id
+      )
+    AND yc.allowed_percent = 100;
+
+    RETURN @weekly_amount;
+END
 GO

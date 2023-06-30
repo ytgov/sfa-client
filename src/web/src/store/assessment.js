@@ -154,19 +154,22 @@ const actions = {
             if (!Object.keys(vals?.data).length) {
                 return;
             }
+            if (!vals?.disburseList?.length) {
+                return;
+            }
 
-            const dataFormated = _.omit(vals.data, ['id', 'name_assessment', 'program_division', 'read_only_data']);
+            const dataFormated = _.omit(vals.data, ['name_assessment', 'program_division', 'read_only_data']);
 
             const res = await axios.patch(
                 APPLICATION_URL + `/${vals.application_id}/${vals.funding_request_id}/assessments/${vals.assessment_id}`,
-                { data: { ...dataFormated } }
+                { data: { ...dataFormated }, disburseList: vals.disburseList }
             );
 
             const message = res?.data?.messages[0];
             
             if (message?.variant === "success") {
+                console.log("success updateAssessment");
                 thisVal?.$emit("showSuccess", message.text);
-                console.log("ASESSMENT UPDATED!");
             } else {
                 thisVal?.$emit("showError", message?.text || "Error to update");
                 console.log("Error to update assessments");
@@ -180,7 +183,10 @@ const actions = {
             if (!(vals?.application_id && vals?.funding_request_id)) {
                 return;
             }
-            this.dispatch('getAssessments', vals);
+            
+            this.dispatch('getDisbursements', {application_id: vals.application_id, funding_request_id:vals.funding_request_id });
+            this.dispatch('setIsPreviewCharged', false);
+            vals?.thisVal.$refs.disburseComponent.saveEdition();
         }
     },
     async recalcAssessment(state, vals) {
@@ -239,6 +245,37 @@ const actions = {
                 state.commit("SET_READ_ONLY_DATA", { ...data[0]?.read_only_data });
 
                 state.commit("SET_ASSESSMENTS", data);
+            } else {
+                console.log("Error to get assessments");
+            }
+
+        } catch (error) {
+            console.log("Error to get assessments", error);
+        } finally {
+        }
+    },
+
+    async refreshAssessment(state, vals) {
+        try {
+
+            if (!(vals?.application_id)) {
+                return;
+            }
+
+            const res = await axios.post(
+                APPLICATION_URL + `/${vals.application_id}/update-preview`,
+                { data: vals.data, disburseAmountList: vals.disburseAmountList }
+            );
+            
+            const message = res?.data?.messages[0];
+            
+            if (message?.variant === "success") {
+                const data = res?.data?.data || [];
+
+                const over_award_flag = !!(data[0]?.over_award_applied_flg === "Yes");
+
+                state.commit("SET_CUSTOM_ASSESSMENT", { ...data[0], over_award_applied_flg: over_award_flag });
+                state.commit("SET_READ_ONLY_DATA", { ...data[0]?.read_only_data });
             } else {
                 console.log("Error to get assessments");
             }
