@@ -123,6 +123,9 @@ export interface AssessmentDTO {
     years_funded_equivalent?: number;
     calculated_award?: number;
     recovered_overaward?: number;
-    net_amount?: number;
-    previous_disbursement?: number;
+    net_amount?: number; // calculated value, not a field
+    previous_disbursement?: number;// calculated value, not a field
+    previous_weeks?: number;// calculated value, not a field
+    assessed_weeks?: number;// calculated value, not a field
+    years_funded?: number;// calculated value, not a field
 }
