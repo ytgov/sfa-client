@@ -323,6 +323,7 @@ export default {
       await store.dispatch("loadApplication", this.applicationId);
     }
     store.dispatch("setAppSidebar", true);
+    console.log("🚀 ~ file: YukonExcellenceAwards.vue:318 ~ application:", application)
   }
 };
 </script>
