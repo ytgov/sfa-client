@@ -405,7 +405,7 @@ export default {
             try {
                 const resInsert = await axios.post(
                     APPLICATION_URL+`/${this.application.id}/status`,
-                    { request_type_id: 3, received_date: new Date(),},
+                    { status_id: 3,request_type_id: 3, received_date: new Date(),},
                 );
                 const message = resInsert?.data?.messages[0];
 

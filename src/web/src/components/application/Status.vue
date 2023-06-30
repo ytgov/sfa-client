@@ -326,3 +326,8 @@ export default {
   },
 };
 </script>
+<style>
+.v-select__selection.v-select__selection--comma.v-select__selection--disabled{
+  color:rgba(0,0,0,.87)!important;
+}
+</style>

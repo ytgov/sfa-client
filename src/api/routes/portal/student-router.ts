@@ -35,6 +35,21 @@ portalStudentRouter.post("/feedback", async (req: Request, res: Response) => {
 
   console.log("FEEDBACK RECEIVED", date, improve, text, url);
 
+  
+
+/* 
+  CREATE TABLE sfa.portal_feedback (
+    id INT IDENTITY (1, 1) PRIMARY KEY,
+      create_date DATETIME2(0) NOT NULL,
+      url NVARCHAR(500) NOT NULL,
+    feedback TEXT NULL,
+    improve TEXT NULL,
+    acknowledge_user NVARCHAR(100) NULL,
+      acknowledge_date DATETIME2(0) NULL
+  )
+   */
+
+
   res.json({ data: "success" });
 });
 

@@ -62,6 +62,7 @@ import changeReason from "@/modules/change-reason/store";
 import assessment from "./assessment";
 import disbursement from "./disbursement";
 import adminCrud from "./adminCrud";
+import officers from "@/modules/officer/store";
 
 // DTO Modules
 import cslft from "@/modules/cslft/store";
@@ -451,6 +452,6 @@ export default new Vuex.Store({
     },
   },
 
-  modules: { auth, profile, institution, student, province, countries, cities, cslCode, requirementType, addressType, indigenousLearner, Language, maritalStatus, studyField, parentalRelationship, firstNation, portalStatus, sex, studentCategory, applicationType, highSchool, ageDistribution, institutionLevel, assessmentType, batchGroup, educationLevel, status, statusReason, yukonGrantEligibility, disbursementType, reasonsForChange, fundingGroup, disabilityType, aboriginalStatus, disabilityService, relationships, studyArea, program, cslClassification, citizenship, prestudyEmploymentStatus, academicYear, agency, instructionType, programDivision, attendance, documentStatus, incomeType, expenseCategory, equipmentCategory, changeReason, assessment, adminCrud, communicationType, disbursement, requestType, inSchoolStatus, cslft, accommodationType }
+  modules: { auth, profile, institution, student, province, countries, cities, cslCode, requirementType, addressType, indigenousLearner, Language, maritalStatus, studyField, parentalRelationship, firstNation, portalStatus, sex, studentCategory, applicationType, highSchool, ageDistribution, institutionLevel, assessmentType, batchGroup, educationLevel, status, statusReason, yukonGrantEligibility, disbursementType, reasonsForChange, fundingGroup, disabilityType, aboriginalStatus, disabilityService, relationships, studyArea, program, cslClassification, citizenship, prestudyEmploymentStatus, academicYear, agency, instructionType, programDivision, attendance, documentStatus, incomeType, expenseCategory, equipmentCategory, changeReason, assessment, adminCrud, communicationType, disbursement, requestType, inSchoolStatus, cslft, accommodationType, officers }
 
 });
