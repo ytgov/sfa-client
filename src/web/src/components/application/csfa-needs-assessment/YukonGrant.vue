@@ -33,7 +33,7 @@
           <div class="col-xs-12 col-lg-4 nopadding d-flex">
             <div class="col-xs-4 col-sm-4">
               <v-btn 
-                :disabled="!isPreviewCharged && !isChanging"
+                :disabled="!isPreviewCharged && !isChanging && !editingDisburse"
                 dense
                 color="green" 
                 class="my-0"
@@ -46,12 +46,7 @@
                       addAssessment();
                     }
                   } else {
-                    if (isPreviewCharged) {
-                      insertDisburse();
-                      updateAssessment();
-                    } else {
-                      updateAssessment();
-                    }
+                    updateAssessment();
                   }
                 }"
               >
@@ -60,7 +55,7 @@
             </div>
             <div class="col-xs-4 col-sm-4">
               <v-btn 
-                :disabled="!isPreviewCharged && !isChanging"
+                :disabled="!isPreviewCharged && !isChanging && !editingDisburse"
                 dense
                 color="orange" 
                 class="my-0"
@@ -120,6 +115,7 @@
                       ></v-text-field>
                     </template>
                     <v-date-picker
+                    @change="refreshData"
                       :value="customAssessment.assessed_date?.slice(0, 10)"
                       @input="e => {
                         customAssessment.assessed_date = e;
@@ -153,6 +149,7 @@
                       ></v-text-field>
                     </template>
                     <v-date-picker
+                      @change="refreshData"
                       :value="customAssessment.effective_rate_date?.slice(0, 10)"
                       @input="e => {
                         customAssessment.effective_rate_date = e;
@@ -209,6 +206,7 @@
                         ></v-text-field>
                       </template>
                       <v-date-picker
+                        @change="refreshData"
                         :value="customAssessment.classes_start_date?.slice(0, 10)"
                         @input="e => {
                           customAssessment.classes_start_date = e;
@@ -242,6 +240,7 @@
                     ></v-text-field>
                     </template>
                     <v-date-picker
+                      @change="refreshData"
                       :value="customAssessment.classes_end_date?.slice(0, 10)"
                       @input="e => {
                         customAssessment.classes_end_date = e;
@@ -263,6 +262,7 @@
                     background-color="white"
                     hide-details
                     label="Home Community"
+                    @change="refreshData"
                     v-model="customAssessment.home_city_id"
                     :items="cities"
                     item-text="description"
@@ -276,6 +276,7 @@
                     background-color="white"
                     hide-details
                     label="Destination City"
+                    @change="refreshData"
                     v-model="customAssessment.destination_city_id"
                     :items="cities"
                     item-text="description"
@@ -604,6 +605,8 @@
       v-on:showError="showError"
       v-on:showSuccess="showSuccess"
       v-on:blockDisburse="blockDisburse"
+      v-on:currentEditing="currentEditing"
+      ref="disburseComponent"
       ></Disbursement>
     </div>
     <confirm-dialog ref="confirm"></confirm-dialog>
@@ -629,6 +632,7 @@ export default {
       isDisburseChange: false,
       programDivisionBack: null,
       isDisburseBlocked: false,
+      editingDisburse: false,
     };
   },
   components: {
@@ -671,6 +675,7 @@ export default {
       store.dispatch("setCustomAssessment", { ...selected });
       const custom = JSON.parse(JSON.stringify(this.customAssessment));
       this.isChanging = this.ObjCompare({ ...custom }, { ...selected });
+      this.$refs.disburseComponent.closeEditor();
     },
     addAssessment() {
       store.dispatch(
@@ -692,10 +697,13 @@ export default {
           ['program_division', this.application.program_division, this]
         );
 
+      const filterDisbursements = this.disbursements.filter(d => d.assessment_id === custom?.id) || [];
+
       store.dispatch(
           "updateAssessment",
           {
             data: custom,
+            disburseList: [ ...this.previewDisbursementList, ...filterDisbursements ],
             application_id: this.application.id,
             funding_request_id: custom.funding_request_id,
             assessment_id: custom.id,
@@ -727,6 +735,12 @@ export default {
       );
     },
     blockDisburse(value) {
+      if (!value) {
+        this.refreshData();
+      }
+      this.editingDisburse = value;
+    },
+    currentEditing(value) {
       this.isDisburseBlocked = value;
     },
     insertDisburse() {
@@ -780,6 +794,28 @@ export default {
         "Accept"
       );
     },
+    refreshData() {
+      const previewDisburseAmountsList = this.previewDisbursementList?.map(d => {
+        return Number(d.disbursed_amount);
+      }) || [];
+
+      const disburseFilter = this.disbursements?.filter(d => d.assessment_id === this.customAssessment?.id )
+      let disburseAmountsList = [];
+      
+      if (disburseFilter?.length) {
+        disburseAmountsList = disburseFilter.map(d => {
+          return Number(d.disbursed_amount);
+        }) || [];
+      }
+      
+      
+
+      store.dispatch("refreshAssessment", { 
+        application_id: this.application.id, 
+        data: { ...this.customAssessment },
+        disburseAmountList: [ ...previewDisburseAmountsList, ...disburseAmountsList ],
+      });
+    },
   },
   watch: {
     customAssessment: {
@@ -802,6 +838,7 @@ export default {
     disbursements: {
       deep: true,
         handler(val, oldVal) {
+          
         },
     },
   },

@@ -26,4 +26,14 @@ export class AssessmentBaseRepository extends BaseRepository {
 
         return count;
     }
+
+    async getCslOveraward(student_id?: number, funding_request_id?: number): Promise<number> {
+        let result = 0;
+
+        if (student_id && funding_request_id) {
+            result = await this.getScalarValue<number>("fn_get_csl_overaward", [student_id, funding_request_id]);
+        }
+
+        return result;
+    }
 }
