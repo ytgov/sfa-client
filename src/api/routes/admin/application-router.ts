@@ -7,6 +7,8 @@ import { ReturnValidationErrors } from "../../middleware";
 import { DB_CONFIG } from "../../config";
 import { Buffer } from 'buffer';
 import { functionsIn, orderBy } from "lodash";
+import { AssessmentYukonGrant } from "../../repositories/assessment";
+
 const db = knex(DB_CONFIG)
 export const applicationRouter = express.Router();
 export const portalStudentRouter = express.Router();
@@ -2261,7 +2263,7 @@ applicationRouter.patch("/:application_id/:funding_request_id/assessments/:asses
     async (req: Request, res: Response) => {
         try {
             const { assessment_id, application_id, funding_request_id } = req.params;
-            const { data } = req.body;
+            const { data, disburseList } = req.body;
             
             const application = await db("sfa.application")
                 .where({ id: application_id })
@@ -2280,11 +2282,16 @@ applicationRouter.patch("/:application_id/:funding_request_id/assessments/:asses
                 
 
                 if (fundingRequest) { // Create Assessment YG
-                    const resUpdate = await db("sfa.assessment")
-                        .where({ id: assessment_id, funding_request_id })
-                        .update({ ...data });
+                    const assessmentYG = new AssessmentYukonGrant(db);
+                    
+                    const resAssessment = await assessmentYG.updateAssessmentYG(
+                            data, 
+                            disburseList, 
+                            Number(assessment_id),
+                            Number(funding_request_id)
+                        );
 
-                    return resUpdate ?
+                    return resAssessment ?
                         res.json({ messages: [{ variant: "success", text: "Saved" }] })
                         :
                         res.json({ messages: [{ variant: "error", text: "Failed" }] });
@@ -2342,6 +2349,47 @@ applicationRouter.get("/:application_id/request-type/:request_type_id/deadline-c
             } else {
                 return res.status(409).send({ messages: [{ variant: "error", text: "application or funding request no valid" }] });
             }
+
+        } catch (error) {
+            console.log(error);
+            return res.status(409).send({ messages: [{ variant: "error", text: "Error get data" }] });
+        }   
+    }
+);
+
+applicationRouter.post("/:application_id/update-preview",
+    [
+        param("application_id").isInt().notEmpty(),
+    ], 
+    ReturnValidationErrors, 
+    async (req: Request, res: Response) => {
+        try {
+            const { application_id } = req.params;
+            const { data, disburseAmountList } = req.body;
+
+            const application = await db("sfa.application")
+                .where({ id: application_id })
+                .first();
+
+            const  assessmentMethods = new AssessmentYukonGrant(db);
+            
+            const results: any = await assessmentMethods.getRefreshAssessmentData(data, disburseAmountList, application.student_id, Number(application_id));
+            
+            if (results) {
+                results.read_only_data.previous_weeks = results.previous_weeks;
+                results.read_only_data.assessed_weeks = results.assessed_weeks;
+                results.read_only_data.previous_disbursement = results.previous_disbursement;
+                results.read_only_data.net_amount = results.net_amount;
+                results.read_only_data.years_funded = results.years_funded;
+
+                delete results.previous_weeks;
+                delete results.assessed_weeks;
+                delete results.previous_disbursement;
+                delete results.net_amount;
+                delete results.years_funded;
+            }
+
+            return res.json({ messages: [{ variant: "success", text: "ok"}], data: [ results ] });
 
         } catch (error) {
             console.log(error);
