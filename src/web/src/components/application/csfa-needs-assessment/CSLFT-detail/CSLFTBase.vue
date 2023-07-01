@@ -252,7 +252,7 @@
                       <template v-slot:activator="{ on, attrs }">
                         <v-text-field
                           :disabled="showAdd"
-                          v-model="cslft.classes_start_date"
+                          v-model="classes_start_date_formatted"
                           label="Start Date"
                           append-icon="mdi-calendar"
                           hide-details
@@ -504,24 +504,28 @@
 import store from "@/store";
 import validator from "@/validator";
 import { mapGetters, mapState } from 'vuex';
+import moment from "moment";
 
 export default {
   name: "cslft-base",
   computed: {
-    ...mapGetters(["cslClassifications", "accommodationTypes", "maritalStatusList", "studyAreas", "provinces", "assessmentTypes", "programs"]),
+    ...mapGetters(["cslClassifications", "accommodationTypes", "maritalStatusList", "studyAreas", "provinces", "assessmentTypes", "programs", "cslft"]),
     ...mapState({
       cslft: state => state.cslft.cslft
     }),
     application: function () {
       return store.getters.selectedApplication;
     },
+    classes_start_date_formatted : function() {
+      return this.formatDate(this.cslft.classes_start_date);
+    }
   },
   data: () => ({
     showAdd: false,
   }),
   methods: {
     formatDate(value) {
-      return moment(value).format("yyyy-mm-dd");
+      return moment(value).format("YYYY-MM-DD");
     }
   },
   async created() {

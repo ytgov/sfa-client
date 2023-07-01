@@ -1,5 +1,6 @@
 import axios from "axios";
-import { CSLFT_ASSESS_INFO } from "../../../urls";
+import { CSLFT_ASSESS_INFO } from "@/urls";
+import moment from "moment";
 
 const state = {
     funding_request: {},
@@ -142,12 +143,20 @@ const actions = {
     },
     async getCslftAssessInfo(state, funding_request_id) {
         const res = await axios.get(`${CSLFT_ASSESS_INFO}/${funding_request_id}`);
+        console.log(res);
         if (res?.data?.success) {                        
             state.commit("getCslftAssessInfo", res.data.data);
         }
     }
 };
-const getters = {};
+const getters = {
+    classes_start_date_formatted (state) {
+        return moment(state.classes_start_date).format("yyyy-mm-dd");
+    },
+    classes_end_date_formatted (state) {
+        return moment(state.classes_end_date).format("yyyy-mm-dd");
+    }
+};
 
 export default {
     state,

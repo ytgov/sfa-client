@@ -24,7 +24,7 @@ export class ApplicationRepository extends BaseRepository {
         return this.application;
     }
 
-    async getApplicationByFundingRequetId(funding_request_id: number | undefined): Promise<ApplicationDTO> {
+    async getApplicationByFundingRequestId(funding_request_id: number | undefined): Promise<ApplicationDTO> {
 
         if (funding_request_id) {
             const result = await this.mainDb.raw(`EXEC sfa.sp_get_application_by_funding_request @funding_request_id = ${funding_request_id}`);

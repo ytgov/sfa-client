@@ -2806,7 +2806,7 @@ BEGIN
     
     RETURN COALESCE(@amt, 0);
 
-END
+END;
 GO
 
 --GET_HOME_CITY
@@ -2837,8 +2837,9 @@ DECLARE @destination_city INT;
     WHERE app.id = @application_id;
 
     RETURN @destination_city;
-END
+END;
 GO
+
 -- yg_cost_pck.get_weekly_rate_fct - GET_WEEKLY_AMOUNT
 CREATE OR ALTER FUNCTION sfa.fn_get_weekly_amount (@application_id INT)
 RETURNS NUMERIC AS
@@ -2855,5 +2856,37 @@ DECLARE @weekly_amount NUMERIC;
     AND yc.allowed_percent = 100;
 
     RETURN @weekly_amount;
-END
+END;
+GO
+
+-- Get Person Address
+CREATE OR ALTER FUNCTION sfa.fn_get_person_address(@person_id INT, @address_type INT = 1)
+RETURNS TABLE
+AS
+RETURN
+SELECT TOP 1
+	pa.*
+FROM sfa.person p
+	LEFT JOIN sfa.person_address pa
+		ON pa.person_id = p.id 
+WHERE p.id = @person_id
+AND pa.address_type_id = @address_type;
+GO
+
+-- Get Standard Living Amount
+CREATE OR ALTER FUNCTION sfa.fn_get_standard_living_amount(@academic_year_id INT, @province_id INT, @family_size INT)
+RETURNS FLOAT(8)
+AS 
+BEGIN
+	DECLARE  @amt FLOAT(8);
+
+    SELECT @amt = COALESCE(sol.standard_living_amount, 0)
+    FROM sfa.standard_of_living sol
+    WHERE sol.academic_year_id = @academic_year_id
+   	AND sol.province_id = @province_id
+   	AND sol.family_size = @family_size;
+    
+    RETURN COALESCE(@amt, 0);
+
+END;
 GO

@@ -1,0 +1,1 @@
+export * from "./standard-of-living-repository";

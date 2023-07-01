@@ -1,6 +1,6 @@
 import { Knex } from "knex";
 import moment from "moment";
-import { AssessmentDTO, ApplicationDTO, StudentDTO, FundingRequestDTO } from "models";
+import {AssessmentDTO, ApplicationDTO, StudentDTO, FundingRequestDTO, PersonAddressDTO} from "models";
 import { AssessmentBaseRepository } from "./assessment-base-repository";
 import { ApplicationRepository } from "../application";
 import { StudentRepository, StudentLivingAllowanceRepository, StudentContributionRepository } from "../student";
@@ -12,6 +12,8 @@ import { DisbursementRepository } from "../disbursement";
 import { ChildCareCeilingRepository } from "../child_care_ceiling";
 import { TaxRateRepository } from "../tax_rate";
 import { FieldProgramRepository } from "../field_program";
+import { PersonRepository } from "../person";
+import {StandardOfLivingRepository} from "../standard_of_living";
 
 export class AssessmentCslftRepository extends AssessmentBaseRepository {
 
@@ -28,6 +30,8 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
     private childCareCeilingRepo: ChildCareCeilingRepository;
     private taxRateRepo: TaxRateRepository;
     private fieldProgramRepo: FieldProgramRepository;
+    private personRepo: PersonRepository;
+    private standardLivingRepo: StandardOfLivingRepository;
 
     // Globals
     private assessment: Partial<AssessmentDTO> = {};
@@ -53,6 +57,8 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
         this.taxRateRepo = new TaxRateRepository(maindb);
         this.studentContributionRepo = new StudentContributionRepository(maindb);
         this.fieldProgramRepo = new FieldProgramRepository(maindb);
+        this.personRepo = new PersonRepository(maindb);
+        this.standardLivingRepo = new StandardOfLivingRepository(maindb);
     }
 
     getNetAmount(assessed_amount?: number, previous_disbursement?: number, return_uncashable_cert?: number): number {
@@ -103,7 +109,7 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
         let assess_id: number | undefined = undefined;        
 
         if (funding_request_id) {
-            this.application = await this.applicationRepo.getApplicationByFundingRequetId(funding_request_id);
+            this.application = await this.applicationRepo.getApplicationByFundingRequestId(funding_request_id);
             this.student = await this.studentRepo.getStudentById(this.application.student_id);
             if (!this.assessment.id) {
                 const assess_count = await this.getAssessmentCount(funding_request_id);
@@ -232,13 +238,17 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
             this.assessment.rrsp_spouse_ann_deduct = this.assessment.rrsp_student_ann_deduct;
         }
 
-        /**
-         * @todo Complete this section next.
-         * @link https://docs.google.com/document/d/1aKyZJEr5bamxZc5vvT3LProGZpAmJ6QV/edit#bookmark=id.f0ze7ui2m2ow
-         */
         // Parent Tab
         if (this.study_code === studyCodes.SDA || this.study_code === studyCodes.SDH) {
-            
+            const mailing_address: PersonAddressDTO = await this.personRepo.getPersonAddress(this.student.person_id, 2);
+            if (mailing_address && mailing_address.province_id) {
+                this.assessment.parent_msol = await this.standardLivingRepo.getStandardLivingAmount(this.application.academic_year_id, mailing_address.province_id, this.assessment.family_size ?? 0);
+
+                /**
+                 * @todo Continue here
+                 * @link https://docs.google.com/document/d/1aKyZJEr5bamxZc5vvT3LProGZpAmJ6QV/edit#bookmark=id.a3tt9cc10r0h
+                 */
+            }
         }
     }
 
