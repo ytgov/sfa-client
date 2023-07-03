@@ -1,5 +1,6 @@
 import { Knex } from "knex";
 import { BaseRepository } from "../base-repository";
+import { ScalarResult } from "models/repository";
 
 export class AssessmentBaseRepository extends BaseRepository {
     constructor(maindb: Knex<any, unknown>) {
@@ -35,5 +36,20 @@ export class AssessmentBaseRepository extends BaseRepository {
         }
 
         return result;
+    }
+
+    async countIncomeTypeByApplication(income_type_id: number, application_id?: number): Promise<number> {
+        if (application_id) {
+            const query = await this.mainDb
+            .count<ScalarResult<number>>("id", { as: "result"})
+            .from("sfa.income")
+            .where({
+                income_type_id,
+                application_id
+            });
+        
+            return query.result;
+        }
+        return 0;
     }
 }

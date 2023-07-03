@@ -9,3 +9,4 @@ export * from "./child_care_ceiling";
 export * from "./expense";
 export * from "./province";
 export * from "./tax_rate";
+export * from "./parent";

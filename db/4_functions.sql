@@ -2890,3 +2890,19 @@ BEGIN
 
 END;
 GO
+
+-- Get Parent Contribution
+CREATE OR ALTER FUNCTION sfa.fn_get_parent_contribution_amount(@academic_year_id INT, @discretionary_amount FLOAT(8))
+RETURNS FLOAT(8) AS
+BEGIN
+    DECLARE @amount FLOAT(8) = 0;
+    
+    SELECT 
+		@amount = ROUND((pcf.add_amount + ((@discretionary_amount - pcf.subtract_amount) * (pcf.percentage/100)))/pcf.divide_by, 2) 
+	FROM sfa.parent_contribution_formula pcf
+	WHERE pcf.academic_year_id = @academic_year_id
+	AND @discretionary_amount BETWEEN pcf.income_from_amount AND pcf.income_to_amount;
+
+    RETURN COALESCE(@amount, 0);
+END;
+GO

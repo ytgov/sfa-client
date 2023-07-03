@@ -14,6 +14,7 @@ import { TaxRateRepository } from "../tax_rate";
 import { FieldProgramRepository } from "../field_program";
 import { PersonRepository } from "../person";
 import {StandardOfLivingRepository} from "../standard_of_living";
+import { ParentRepository } from "repositories/parent";
 
 export class AssessmentCslftRepository extends AssessmentBaseRepository {
 
@@ -32,6 +33,7 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
     private fieldProgramRepo: FieldProgramRepository;
     private personRepo: PersonRepository;
     private standardLivingRepo: StandardOfLivingRepository;
+    private parentRepo: ParentRepository;
 
     // Globals
     private assessment: Partial<AssessmentDTO> = {};
@@ -59,7 +61,15 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
         this.fieldProgramRepo = new FieldProgramRepository(maindb);
         this.personRepo = new PersonRepository(maindb);
         this.standardLivingRepo = new StandardOfLivingRepository(maindb);
+        this.parentRepo = new ParentRepository(maindb);
     }
+
+    academicYearValidation = (year: number): boolean => {
+        if (this.application.academic_year_id && this.application.academic_year_id < year) {
+            return true;
+        }
+        return false;
+    };
 
     getNetAmount(assessed_amount?: number, previous_disbursement?: number, return_uncashable_cert?: number): number {
         let result = (assessed_amount ?? 0) - (previous_disbursement ?? 0) + (return_uncashable_cert ?? 0);
@@ -147,7 +157,7 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
         return this.assessment;
     }
 
-    async getLookupValues(): Promise<void> {
+    async getLookupValues(funding_request_id: number): Promise<void> {
         const canadianProvinces = [
             1,2,3,4,5,6,7,8,9,10,11,12,13
         ];
@@ -196,13 +206,7 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
         }
 
         // Prestudy and Study Tab
-        const academicYearValidation = (year: number): boolean => {
-            if (this.application.academic_year_id && this.application.academic_year_id < year) {
-                return true;
-            }
-            return false;
-        };
-        if (academicYearValidation(2017)) {
+        if (this.academicYearValidation(2017)) {
             if (this.assessment.prestudy_distance ?? 0 > 0) {
                 max_x_trans = await this.studentLivingAllowanceRepo.getShelterAmount(this.application.academic_year_id, prestudy_prov, studyCodes.SDA) * (this.assessment.pstudy_months ?? 0);  
             
@@ -220,7 +224,7 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
             const student_exemption = await this.cslLookupRepo.getStudentExemptAmount(this.application.academic_year_id);
             let student_exemption_modifier = (this.assessment.study_weeks ?? 0);
             let spouse_exemption_modifier = Math.min(student_exemption_modifier, moment(this.application.spouse_study_school_to).diff(this.application.spouse_study_school_from, "week"));
-            if (academicYearValidation(2004)) {                
+            if (this.academicYearValidation(2004)) {                
                 student_exemption_modifier = 1;
                 spouse_exemption_modifier = 1;
             }
@@ -232,7 +236,7 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
         }
 
         // Assets Tab
-        if (academicYearValidation(2017)) {            
+        if (this.academicYearValidation(2017)) {            
             this.assessment.vehicle_deduction = await this.cslLookupRepo.getVehicleDeductionAmount(this.application.academic_year_id);
             this.assessment.rrsp_student_ann_deduct = await this.cslLookupRepo.getRRSPDeductionYearlyAmount(this.application.academic_year_id);
             this.assessment.rrsp_spouse_ann_deduct = this.assessment.rrsp_student_ann_deduct;
@@ -248,8 +252,104 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
                  * @todo Continue here
                  * @link https://docs.google.com/document/d/1aKyZJEr5bamxZc5vvT3LProGZpAmJ6QV/edit#bookmark=id.a3tt9cc10r0h
                  */
+                if ((this.assessment.parent_discretionary_income ?? 0) > 0) {
+                    this.assessment.parent_weekly_contrib = await this.parentRepo.getParentContributionAmount(this.application.academic_year_id, Math.round(this.assessment.parent_discretionary_income ?? 0));
+                }
             }
         }
+
+        // Calculate previous disbursment amount.
+        const assess_id = (((this.assessment_id ?? 0) < (this.assess_id ?? 0) && !this.assessment.id) || this.assess_id === 0) ? this.assessment_id : this.assess_id;
+
+        const disbursed_amt = await this.disbursementRepo.getDisbursedAmount(funding_request_id, assess_id);
+        this.assessment.previous_disbursement = disbursed_amt > 0 ? disbursed_amt : 0;
+
+        this.assessment.net_amount = this.getNetAmount(this.assessment.assessed_amount, this.assessment.previous_disbursement, this.assessment.return_uncashable_cert);
+
+        // Cost Tab
+        this.assessment.p_trans_month = this.assessment.p_trans_month ?? 0;
+        this.assessment.r_trans_16wk = this.assessment.r_trans_16wk ?? 0;
+		this.assessment.day_care_allowable = this.assessment.day_care_allowable ?? 0;
+        this.assessment.depend_food_allowable = this.assessment.depend_food_allowable ?? 0;
+        this.assessment.depend_tran_allowable = this.assessment.depend_tran_allowable ?? 0;
+        this.assessment.x_trans_total = this.assessment.x_trans_total ?? 0;
+        this.assessment.relocation_total = this.assessment.relocation_total ?? 0;
+        this.assessment.day_care_actual = this.assessment.day_care_actual ?? 0;
+
+        if (this.academicYearValidation(2017)) {
+            // Pre Study Tab	
+            this.assessment.pstudy_shelter_month = this.assessment.pstudy_shelter_month ?? 0;
+            this.assessment.pstudy_p_trans_month = this.assessment.pstudy_p_trans_month ?? 0;
+            this.assessment.pstudy_day_care_allow = this.assessment.pstudy_day_care_allow ?? 0;
+            this.assessment.pstudy_dep_food_allow = this.assessment.pstudy_dep_food_allow ?? 0;
+            this.assessment.pstudy_dep_tran_allow = this.assessment.pstudy_dep_tran_allow ?? 0;
+            this.assessment.pstudy_x_trans_total = this.assessment.pstudy_x_trans_total ?? 0;
+            this.assessment.pstudy_day_care_actual = this.assessment.pstudy_day_care_actual ?? 0;
+            this.assessment.spouse_pstudy_tax_rate = this.assessment.spouse_pstudy_tax_rate ?? 0;
+            // Study Tab	
+            this.assessment.spouse_expected_income = this.assessment.spouse_expected_income ?? 0;
+            this.assessment.spouse_tax_rate = this.assessment.spouse_tax_rate ?? 0;
+            this.assessment.spouse_exemption = this.assessment.spouse_exemption ?? 0;
+        }
+
+    }
+
+    async getContribDisplayValues(): Promise<void> {
+
+        const student_cppd_count = await this.countIncomeTypeByApplication(3, this.application.id);
+
+        if (this.application.is_perm_disabled) {
+            this.assessment.student_exemption_reason = "Is Disabled";
+        }
+
+        if (student_cppd_count > 0) {
+            this.assessment.student_exemption_reason = "Receives CPP Disability";
+        }
+
+        if (this.assessment.dependent_count && this.assessment.dependent_count > 0) {
+            this.assessment.student_exemption_reason = "Has Dependents";
+        }
+
+        if (this.student.is_crown_ward) {
+            this.assessment.student_exemption_reason = "Crown Ward";
+        }
+
+        if (this.student.indigenous_learner_id && this.student.indigenous_learner_id > 0) {
+            this.assessment.student_exemption_reason = "Indigenous Learner";
+        }
+
+        // Spouse exempt reason
+        const spouse_sa_count = await this.countIncomeTypeByApplication(21, this.application.id);
+        const spouse_ie_count = await this.countIncomeTypeByApplication(2, this.application.id);
+        const spouse_cppd_count = await this.countIncomeTypeByApplication(3, this.application.id);
+
+        if (spouse_sa_count > 0) {
+            this.assessment.spouse_exemption_reason = "Receives SA";
+        }
+
+        if (spouse_cppd_count > 0) {
+            this.assessment.spouse_exemption_reason = "Receives CPP Disability";
+        }
+
+        if (spouse_ie_count > 0) {
+            this.assessment.spouse_exemption_reason = "Receives IE";
+        }
+
+        if (this.application.spouse_study_school_from) {
+            this.assessment.spouse_exemption_reason = "Is a student";
+        }
+
+        /**
+         * @todo Continue here
+         * @link https://docs.google.com/document/d/1aKyZJEr5bamxZc5vvT3LProGZpAmJ6QV/edit?pli=1#bookmark=id.ybgmca9cplpy
+         */
+    }
+
+    async getMsfaaInfo(info_type: string): Promise<void> {
+        /**
+         * @todo Complete this section.
+         * @link https://docs.google.com/document/d/1aKyZJEr5bamxZc5vvT3LProGZpAmJ6QV/edit?pli=1#bookmark=id.cua76h7kh2cj
+         */
     }
 
     async getNewInfo(funding_request_id: number): Promise<void> {
