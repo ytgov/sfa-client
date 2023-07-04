@@ -2317,7 +2317,7 @@ END;
 GO
 
 -- Get student category id by code.
-CREATE OR ALTER FUNCTION sfa.fn_get_student_category_code(@student_category_code VARCHAR(10))
+CREATE OR ALTER FUNCTION sfa.fn_get_student_category_id(@student_category_code VARCHAR(10))
 RETURNS VARCHAR(10)
 AS
 BEGIN 

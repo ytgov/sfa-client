@@ -431,6 +431,7 @@ import store from "@/store";
 import validator from "@/validator";
 import { mapState } from "vuex";
 import { ref } from "vue";
+import {NumbersHelper} from "@/utilities";
 
 export default {
   name: "cslft-costs",
@@ -438,11 +439,13 @@ export default {
     const isTotal = ref(true);
     const uncapped_total = ref(0);
     const unassigned_amount = ref(0);
+    const numHelper = new NumbersHelper();
 
     return {
       isTotal,
       uncapped_total,
       unassigned_amount,
+      numHelper,
     }
   },
   computed: {
@@ -453,40 +456,40 @@ export default {
       return store.getters.selectedApplication;
     },
     scholastic_total: function() {
-      return Math.round((this.cslft.tuition_estimate ?? 0) + (this.cslft.books_supplies_cost ?? 0));
+      return Math.round(this.numHelper.getNum(this.cslft.tuition_estimate) + this.numHelper.getNum(this.cslft.books_supplies_cost));
     },
     shelter_total: function() {
-      return Math.round((this.cslft.shelter_month ?? 0) * (this.cslft.study_months ?? 0));
+      return Math.round(this.numHelper.getNum(this.cslft.shelter_month) * this.numHelper.getNum(this.cslft.study_months));
     },
     p_trans_total: function() {
-      return Math.round((this.cslft.p_trans_month ?? 0) * (this.cslft.study_months ?? 0));
+      return Math.round(this.numHelper.getNum(this.cslft.p_trans_month) * this.numHelper.getNum(this.cslft.study_months));
     },
     r_trans_total: function() {
-      return Math.round((this.cslft.r_trans_16wk ?? 0) * store.getters.cslft_get_r_trans_multiplier);
+      return Math.round(this.numHelper.getNum(this.cslft.r_trans_16wk) * this.numHelper.getNum(store.getters.cslft_get_r_trans_multiplier));
     },
     day_care_total: function() {
-      return Math.round(Math.min((this.cslft.day_care_allowable ?? 0), (this.cslft.day_care_actual ?? 0)) * (this.cslft.study_months ?? 0));
+      return Math.round(Math.min(this.numHelper.getNum(this.cslft.day_care_allowable), this.numHelper.getNum(this.cslft.day_care_actual)) * this.numHelper.getNum(this.cslft.study_months));
     },
     dependent_shelter_total: function() {
-      return Math.round((this.cslft.depend_food_allowable ?? 0) * (this.cslft.study_months));
+      return Math.round(this.numHelper.getNum(this.cslft.depend_food_allowable) * this.numHelper.getNum(this.cslft.study_months));
     },
     dependent_trans_total: function() {
-      return Math.round((this.cslft.depend_tran_allowable ?? 0) * (this.cslft.study_months));
+      return Math.round(this.numHelper.getNum(this.cslft.depend_tran_allowable) * this.numHelper.getNum(this.cslft.study_months));
     },
     discretionary_total: function() {
-      return Math.round(Math.min((this.cslft.discretionary_cost ?? 0), (this.cslft.discretionary_cost_actual ?? 0)));
+      return Math.round(Math.min(this.numHelper.getNum(this.cslft.discretionary_cost), this.numHelper.getNum(this.cslft.discretionary_cost_actual)));
     },
     x_trans_total: function() {
-      return Math.round(this.cslft.x_trans_total ?? 0);
+      return Math.round(this.numHelper.getNum(this.cslft.x_trans_total));
     },
     relocation_total: function() {
-      return Math.round(this.cslft.relocation_total ?? 0);
+      return Math.round(this.numHelper.getNum(this.cslft.relocation_total));
     },
     capped_expenses_total: function() {
       return Math.round(this.shelter_total + this.p_trans_total + this.r_trans_total + this.day_care_total + this.dependent_trans_total + this.dependent_shelter_total + this.discretionary_total + this.x_trans_total + this.relocation_total);
     },
     uncapped_expenses_total: function() {
-      return isNaN(parseFloat(this.uncapped_total)) ? 0 : parseFloat(this.uncapped_total);
+      return this.numHelper.getNum(this.uncapped_total);
     },
     study_cost_total: function() {
       return Math.round(this.scholastic_total + this.capped_expenses_total + this.uncapped_expenses_total);
