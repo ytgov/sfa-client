@@ -13,7 +13,7 @@
                   hide-details
                   label="Family Size"
                   @keypress="validate.isNumber($event)"
-                  v-model="family_size"
+                  v-model="cslft.family_size"
                 ></v-text-field>
               </div>
             </div>
@@ -25,8 +25,8 @@
             <div class="col-xs-12 col-sm-12 col-md-12 nopadding col-lg-12 d-flex">
               <div class="col-xs-12 col-sm-4 col-lg-4 nopadding d-flex flex-wrap mobile-low-margin">
                 <div class="col-xs-12 col-lg-12 nopadding height-fit-content d-flex justify-center">
-                  <v-switch label="Exempt">
-                    </v-switch>
+                  <v-switch label="Exempt" v-model="student_exempt_flag">
+                  </v-switch>
                 </div>
               </div>
               <div class="col-xs-12 col-sm-6 col-lg-6 nopadding d-flex flex-wrap mobile-low-margin">
@@ -36,7 +36,8 @@
                     dense
                     background-color="white"
                     hide-details
-                    v-model="exempt_txt"
+                    :disabled="!student_exempt_flag"
+                    v-model="cslft.student_exemption_reason"
                   ></v-text-field>
                 </div>
               </div>
@@ -51,7 +52,7 @@
                     hide-details
                     label="Gross Income"
                     @keypress="validate.isNumber($event)"
-                    v-model="gross_income"
+                    v-model="cslft.student_ln150_income"
                   ></v-text-field>
                 </div>
               </div>
@@ -66,7 +67,7 @@
                     hide-details
                     label="Expeted Contribution"
                     @keypress="validate.isNumber($event)"
-                    v-model="expected_contribution"
+                    v-model="cslft.student_expected_contribution"
                   ></v-text-field>
                 </div>
               </div>
@@ -81,7 +82,7 @@
                     hide-details
                     label="Previous Contribution"
                     @keypress="validate.isNumber($event)"
-                    v-model="previous_contribution"
+                    v-model="cslft.student_previous_contribution"
                   ></v-text-field>
                 </div>
               </div>
@@ -96,7 +97,7 @@
                     hide-details
                     label="Net Contributuion"
                     @keypress="validate.isNumber($event)"
-                    v-model="net_contribution"
+                    v-model="cslft.student_contribution"
                   ></v-text-field>
                 </div>
               </div>
@@ -111,7 +112,7 @@
                     hide-details
                     label="Contribution Override"
                     @keypress="validate.isNumber($event)"
-                    v-model="contribution_override"
+                    v-model="cslft.student_contribution_override"
                   ></v-text-field>
                 </div>
               </div>
@@ -137,7 +138,7 @@
                   hide-details
                   label="Family Income"
                   @keypress="validate.isNumber($event)"
-                  v-model="family_income"
+                  v-model="cslft.family_income"
                 ></v-text-field>
               </div>
             </div>
@@ -149,7 +150,7 @@
             <div class="col-xs-12 col-sm-12 col-md-12 nopadding col-lg-12 d-flex">
               <div class="col-xs-12 col-sm-4 col-lg-4 nopadding d-flex flex-wrap mobile-low-margin">
                 <div class="col-xs-12 col-lg-12 nopadding height-fit-content d-flex justify-center">
-                  <v-switch label="Exempt">
+                  <v-switch label="Exempt" v-model="spouse_exempt_flag">
                   </v-switch>
                 </div>
               </div>
@@ -160,7 +161,8 @@
                     dense
                     background-color="white"
                     hide-details
-                    v-model="exempt_txt"
+                    :disabled="!spouse_exempt_flag"
+                    v-model="cslft.spouse_exemption_reason"
                   ></v-text-field>
                 </div>
               </div>
@@ -175,7 +177,7 @@
                     hide-details
                     label="Gross Income"
                     @keypress="validate.isNumber($event)"
-                    v-model="spouse_gross_income"
+                    v-model="cslft.spouse_ln150_income"
                   ></v-text-field>
                 </div>
               </div>
@@ -190,7 +192,7 @@
                     hide-details
                     label="Expeted Contribution"
                     @keypress="validate.isNumber($event)"
-                    v-model="spouse_expected_contribution"
+                    v-model="cslft.spouse_expected_contribution"
                   ></v-text-field>
                 </div>
               </div>
@@ -205,7 +207,7 @@
                     hide-details
                     label="Previous Contribution"
                     @keypress="validate.isNumber($event)"
-                    v-model="spouse_previous_contribution"
+                    v-model="cslft.spouse_previous_contribution"
                   ></v-text-field>
                 </div>
               </div>
@@ -220,7 +222,7 @@
                     hide-details
                     label="Net Contributuion"
                     @keypress="validate.isNumber($event)"
-                    v-model="spouse_net_contribution"
+                    v-model="cslft.spouse_contribution"
                   ></v-text-field>
                 </div>
               </div>
@@ -235,7 +237,7 @@
                     hide-details
                     label="Contribution Override"
                     @keypress="validate.isNumber($event)"
-                    v-model="spouse_contribution_override"
+                    v-model="cslft.spouse_contribution_override"
                   ></v-text-field>
                 </div>
               </div>
@@ -243,8 +245,8 @@
             <div class="col-xs-12 col-sm-12 col-md-12 nopadding col-lg-12 d-flex">
               <div class="col-xs-12 col-sm-4 col-lg-4 nopadding d-flex flex-wrap mobile-low-margin">
                 <div class="col-xs-12 col-lg-12 nopadding height-fit-content d-flex justify-center">
-                  <v-switch label="Reduce on Re-Assess">
-                    </v-switch>
+                  <v-switch label="Reduce on Re-Assess" v-model="cslft.spouse_contribution_review">
+                  </v-switch>
                 </div>
               </div>
             </div>
@@ -318,7 +320,8 @@
                   background-color="white"
                   hide-details
                   @keypress="validate.isNumber($event)"
-                  v-model="combined_contribution"
+                  :disabled="true"
+                  v-model="cslft.combined_contribution"
                 ></v-text-field>
               </div>
             </div>
@@ -331,9 +334,23 @@
 <script>
 import store from "@/store";
 import validator from "@/validator";
+import {mapState} from "vuex";
+import {ref} from "vue";
 export default {
   name: "cslft-contribution",
+  setup() {
+    const student_exempt_flag = ref(false);
+    const spouse_exempt_flag = ref(false);
+
+    return {
+      student_exempt_flag,
+      spouse_exempt_flag,
+    }
+  },
   computed: {
+    ...mapState({
+      cslft: state => state.cslft.cslft
+    }),
     application: function () {
       return store.getters.selectedApplication;
     },

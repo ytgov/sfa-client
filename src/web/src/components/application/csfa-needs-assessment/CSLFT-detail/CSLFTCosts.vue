@@ -337,36 +337,14 @@
                   <div class="col-xs-2 col-sm-2 col-lg-2 nopadding d-flex align-center justify-center">
                     <div class="col-xs-9 col-sm-9 col-lg-9 nopadding xs-md-low-margin">
                       <div class="col-xs-12 col-lg-12 nopadding">
-                        <v-text-field outlined dense background-color="white" hide-details @keypress="validate.isNumber($event)" v-model="cslft.assessed_amount"></v-text-field>
+                        <v-text-field outlined dense background-color="white" hide-details @keypress="validate.isNumber($event)" v-model="unassigned_amount"></v-text-field>
                       </div>
                     </div>
                   </div>
                   <div class="col-xs-2 col-sm-2 col-lg-2 nopadding d-flex align-center justify-center">
                     <div class="col-xs-9 col-sm-9 col-lg-9 nopadding xs-md-low-margin">
                       <div class="col-xs-12 col-lg-12 nopadding">
-                        <v-text-field outlined dense background-color="white" hide-details @keypress="validate.isNumber($event)" v-model="cslft.assessed_amount"></v-text-field>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="col-xs-2 col-sm-2 col-lg-2 nopadding d-flex align-center justify-center"></div>
-                </div>
-              </div>
-              <div class="col-xs-12 col-lg-12 nopadding d-flex mobile-column-flex">
-                <div class="col-xs-12 col-sm-12 col-lg-12 d-flex noppading-bottom margin-left">
-                  <div class="col-xs-2 col-sm-2 col-lg-2 nopadding d-flex align-center justify-start"></div>
-                  <div class="col-xs-2 col-sm-2 col-lg-2 nopadding d-flex align-center justify-start"></div>
-                  <div class="col-xs-2 col-sm-2 col-lg-2 nopadding d-flex align-center justify-center"></div>
-                  <div class="col-xs-2 col-sm-2 col-lg-2 nopadding d-flex align-center justify-center">
-                    <div class="col-xs-9 col-sm-9 col-lg-9 nopadding xs-md-low-margin">
-                      <div class="col-xs-12 col-lg-12 nopadding">
-                        <v-text-field outlined dense background-color="white" hide-details @keypress="validate.isNumber($event)" v-model="cslft.assessed_amount"></v-text-field>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="col-xs-2 col-sm-2 col-lg-2 nopadding d-flex align-center justify-center">
-                    <div class="col-xs-9 col-sm-9 col-lg-9 nopadding xs-md-low-margin">
-                      <div class="col-xs-12 col-lg-12 nopadding">
-                        <v-text-field outlined dense background-color="white" hide-details @keypress="validate.isNumber($event)" v-model="cslft.assessed_amount"></v-text-field>
+                        <v-text-field outlined dense background-color="white" hide-details @keypress="validate.isNumber($event)" v-model="unassigned_amount"></v-text-field>
                       </div>
                     </div>
                   </div>
@@ -381,21 +359,43 @@
                   <div class="col-xs-2 col-sm-2 col-lg-2 nopadding d-flex align-center justify-center">
                     <div class="col-xs-9 col-sm-9 col-lg-9 nopadding xs-md-low-margin">
                       <div class="col-xs-12 col-lg-12 nopadding">
-                        <v-text-field outlined dense background-color="white" hide-details @keypress="validate.isNumber($event)" v-model="cslft.assessed_amount"></v-text-field>
+                        <v-text-field outlined dense background-color="white" hide-details @keypress="validate.isNumber($event)" v-model="unassigned_amount"></v-text-field>
                       </div>
                     </div>
                   </div>
                   <div class="col-xs-2 col-sm-2 col-lg-2 nopadding d-flex align-center justify-center">
                     <div class="col-xs-9 col-sm-9 col-lg-9 nopadding xs-md-low-margin">
                       <div class="col-xs-12 col-lg-12 nopadding">
-                        <v-text-field outlined dense background-color="white" hide-details @keypress="validate.isNumber($event)" v-model="cslft.assessed_amount"></v-text-field>
+                        <v-text-field outlined dense background-color="white" hide-details @keypress="validate.isNumber($event)" v-model="unassigned_amount"></v-text-field>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-xs-2 col-sm-2 col-lg-2 nopadding d-flex align-center justify-center"></div>
+                </div>
+              </div>
+              <div class="col-xs-12 col-lg-12 nopadding d-flex mobile-column-flex">
+                <div class="col-xs-12 col-sm-12 col-lg-12 d-flex noppading-bottom margin-left">
+                  <div class="col-xs-2 col-sm-2 col-lg-2 nopadding d-flex align-center justify-start"></div>
+                  <div class="col-xs-2 col-sm-2 col-lg-2 nopadding d-flex align-center justify-start"></div>
+                  <div class="col-xs-2 col-sm-2 col-lg-2 nopadding d-flex align-center justify-center"></div>
+                  <div class="col-xs-2 col-sm-2 col-lg-2 nopadding d-flex align-center justify-center">
+                    <div class="col-xs-9 col-sm-9 col-lg-9 nopadding xs-md-low-margin">
+                      <div class="col-xs-12 col-lg-12 nopadding">
+                        <v-text-field outlined dense background-color="white" hide-details @keypress="validate.isNumber($event)" v-model="unassigned_amount"></v-text-field>
                       </div>
                     </div>
                   </div>
                   <div class="col-xs-2 col-sm-2 col-lg-2 nopadding d-flex align-center justify-center">
                     <div class="col-xs-9 col-sm-9 col-lg-9 nopadding xs-md-low-margin">
                       <div class="col-xs-12 col-lg-12 nopadding">
-                        <v-text-field outlined dense background-color="white" hide-details @keypress="validate.isNumber($event)" v-model="cslft.assessed_amount"></v-text-field>
+                        <v-text-field outlined dense background-color="white" hide-details @keypress="validate.isNumber($event)" v-model="unassigned_amount"></v-text-field>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-xs-2 col-sm-2 col-lg-2 nopadding d-flex align-center justify-center">
+                    <div class="col-xs-9 col-sm-9 col-lg-9 nopadding xs-md-low-margin">
+                      <div class="col-xs-12 col-lg-12 nopadding">
+                        <v-text-field outlined dense background-color="white" hide-details @keypress="validate.isNumber($event)" v-model="uncapped_total"></v-text-field>
                       </div>
                     </div>
                   </div>
@@ -413,7 +413,7 @@
                   <div class="col-xs-2 col-sm-2 col-lg-2 nopadding d-flex align-center justify-center">
                     <div class="col-xs-9 col-sm-9 col-lg-9 nopadding xs-md-low-margin">
                       <div class="col-xs-12 col-lg-12 nopadding">
-                        <v-text-field outlined dense background-color="white" hide-details @keypress="validate.isNumber($event)" v-model="cslft.assessed_amount"></v-text-field>
+                        <v-text-field outlined dense background-color="white" hide-details @keypress="validate.isNumber($event)" v-model="study_cost_total" :disabled="isTotal"></v-text-field>
                       </div>
                     </div>
                   </div>
@@ -436,9 +436,13 @@ export default {
   name: "cslft-costs",
   setup() {
     const isTotal = ref(true);
+    const uncapped_total = ref(0);
+    const unassigned_amount = ref(0);
 
     return {
       isTotal,
+      uncapped_total,
+      unassigned_amount,
     }
   },
   computed: {
@@ -472,8 +476,20 @@ export default {
     discretionary_total: function() {
       return Math.round(Math.min((this.cslft.discretionary_cost ?? 0), (this.cslft.discretionary_cost_actual ?? 0)));
     },
+    x_trans_total: function() {
+      return Math.round(this.cslft.x_trans_total ?? 0);
+    },
+    relocation_total: function() {
+      return Math.round(this.cslft.relocation_total ?? 0);
+    },
     capped_expenses_total: function() {
-      return this.shelter_total + this.p_trans_total + this.r_trans_total + this.day_care_total + this.dependent_trans_total + this.dependent_shelter_total + this.discretionary_total;
+      return Math.round(this.shelter_total + this.p_trans_total + this.r_trans_total + this.day_care_total + this.dependent_trans_total + this.dependent_shelter_total + this.discretionary_total + this.x_trans_total + this.relocation_total);
+    },
+    uncapped_expenses_total: function() {
+      return isNaN(parseFloat(this.uncapped_total)) ? 0 : parseFloat(this.uncapped_total);
+    },
+    study_cost_total: function() {
+      return Math.round(this.scholastic_total + this.capped_expenses_total + this.uncapped_expenses_total);
     }
   },
   async created() {

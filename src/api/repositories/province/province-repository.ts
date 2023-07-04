@@ -21,4 +21,19 @@ export class ProvinceRepository extends BaseRepository {
 
         return "";
     }
+
+    async getProvinceId(application_id?: number, address_type_id: number = 2, parent_id: number = 1): Promise<number> {
+        let data: ScalarResult<number> = {} as ScalarResult<number>;
+
+        if (application_id && address_type_id && parent_id) {
+            const result = await this.mainDb.raw(`SELECT province_id AS result FROM sfa.fn_get_parent_address_by_application(${application_id}, ${address_type_id}) WHERE parent = ${parent_id};`);
+            data = this.singleResult(result);
+        }
+
+        if (data) {
+            return data.result;
+        }
+
+        return 0;
+    }
 }

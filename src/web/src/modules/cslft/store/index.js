@@ -125,6 +125,10 @@ const state = {
         weeks_allowed: null,
         x_trans_total: null,
         years_funded_equivalent: null,
+        combined_contribution: null,
+        parent_msol: null,
+        parent_discretionary_income: null,
+        parent_weekly_contrib: null,
     }
 };
 const mutations = {

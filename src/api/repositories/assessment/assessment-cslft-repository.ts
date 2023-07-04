@@ -44,6 +44,8 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
     private prestudy_code?: number;
     private assessment_id?: number;
     private assess_id?: number;
+    private study_period_id: number = 2;
+    private prestudy_period_id: number = 1;
 
     constructor(maindb: Knex<any, unknown>) {
         super(maindb);
@@ -114,6 +116,46 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
         return result;
     }
 
+    async setIdGlobals(): Promise<void> {
+        const studyCodes: Record<string, number> = {
+            'SP': await this.studentRepo.getStudentCategoryId("'SP'"),
+            'M': await this.studentRepo.getStudentCategoryId("'M'"),
+            'DEP': await this.studentRepo.getStudentCategoryId("'DEP'"),
+            'SDA': await this.studentRepo.getStudentCategoryId("'SDA'"),
+            'SDH': await this.studentRepo.getStudentCategoryId("'SDH'"),
+            'MW': await this.studentRepo.getStudentCategoryId("'MW'"),
+            'SIH': await this.studentRepo.getStudentCategoryId("'SIH'"),
+            'SIA': await this.studentRepo.getStudentCategoryId("'SIA'"),
+        };
+
+        const assignCode = (csl_classification: number, accom_code: number): number | undefined => {
+            if (csl_classification === 1 && accom_code === 1) {
+                return studyCodes.SDH;
+            }
+            else if (csl_classification === 1 && accom_code === 2) {
+                return studyCodes.SDA;
+            }
+            else if ([2,5].includes(csl_classification) && accom_code === 1) {
+                return studyCodes.SIH;
+            }
+            else if ([2,5].includes(csl_classification ?? 0) && accom_code === 2) {
+                return studyCodes.SIA;
+            }
+            else if (csl_classification === 3) {
+                return studyCodes.M;
+            }
+            else if (csl_classification === 4) {
+                return studyCodes.SP;
+            }
+            else {
+                return undefined;
+            }
+        }
+
+        this.study_code = assignCode(this.assessment.csl_classification ?? 0, this.assessment.study_accom_code ?? 0);
+        this.prestudy_code = assignCode(this.assessment.prestudy_csl_classification ?? 0, this.assessment.prestudy_accom_code ?? 0);
+    }
+
     async getAssessInfoCslft(funding_request_id?: number): Promise<AssessmentDTO> {
 
         let assess_id: number | undefined = undefined;        
@@ -137,6 +179,8 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
                 this.assessment_id = this.assessment.id;
             }
 
+            await this.setIdGlobals();
+
             if (!this.assessment.program_id && !this.assessment.study_area_id) {
                 this.assessment.field_program_code = await this.fieldProgramRepo.getFieldProgramCode(this.assessment.study_area_id, this.assessment.program_id);
             }
@@ -154,7 +198,7 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
 
             await this.getLookupValues(funding_request_id);
 
-            this.getCombinedContribution();
+            await this.getContribDisplayValues();
         }
 
         return this.assessment;
@@ -358,11 +402,11 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
 
     getCombinedContribution(): void {
         let combined: number = this.assessment.student_contribution ?? 0;
-        if (this.assessment.student_contribution_override || this.assessment.student_contribution_review === "Yes") {
+        if (this.assessment.student_contribution_override || this.assessment.student_contribution_review) {
             combined = this.assessment.student_contribution_override ?? 0;
         }
 
-        if (this.assessment.spouse_contribution_override || this.assessment.spouse_contribution_review === "Yes") {
+        if (this.assessment.spouse_contribution_override || this.assessment.spouse_contribution_review) {
             combined = combined + (this.assessment.spouse_contribution_override ?? 0);
         }
         else {
@@ -435,7 +479,7 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
         this.assessment.prestudy_bus_flag = this.application.prestudy_bus;
         this.assessment.family_size = await this.getParentFamilySize(this.application.id);
         this.assessment.parent_ps_depend_count = await this.getParentDependentCount(this.application.id, true);
-        this.assessment.parent_province = await this.provinceRepo.getProvinceDesc(this.application.id);
+        this.assessment.parent_province = await this.provinceRepo.getProvinceId(this.application.id);
         this.assessment.total_grant_awarded = await this.disbursementRepo.getTotalGrantAmount(this.application.id);
 
         const canadianProvinces = [

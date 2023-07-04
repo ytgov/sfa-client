@@ -405,9 +405,13 @@
 <script>
 import store from "@/store";
 import validator from "@/validator";
+import {mapState} from "vuex";
 export default {
   name: "cslft-award",
   computed: {
+    ...mapState({
+      cslft: state => state.cslft.cslft
+    }),
     application: function () {
       return store.getters.selectedApplication;
     },
