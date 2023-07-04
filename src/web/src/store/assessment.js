@@ -15,10 +15,14 @@ const getters = {
     readOnlyData: (state) => state.readOnlyData,
     customAssessment: (state) => state.customAssessment,
     lastInsertedAssessmentId: (state) => state.lastInsertedAssessmentId,
+    selectedFundingId: (state) => state.funding_request_id,
 };
 const mutations = {
     SET_LAST_INSERTED_ASSESSMENT_ID(state, value) {
         state.lastInsertedAssessmentId = value;
+    },
+    SET_SELECTED_FUNDING_ID(state, value) {
+        state.funding_request_id = value;
     },
     SET_ASSESSMENTS(state, value) {
         state.assessments = value;
@@ -44,7 +48,7 @@ const actions = {
             if (!(vals?.application_id && vals?.funding_request_id)) {
                 return;
             }
-
+            state.commit("SET_SELECTED_FUNDING_ID", vals.funding_request_id);
             const res = await axios.get(
                 APPLICATION_URL + `/${vals.application_id}/${vals.funding_request_id}/assessments`,
             );
@@ -63,7 +67,7 @@ const actions = {
                 state.commit("SET_SELECTED_ASSESSMENT", { ...data[0], over_award_applied_flg: over_award_flag });
                 state.commit("SET_CUSTOM_ASSESSMENT", { ...data[0], over_award_applied_flg: over_award_flag });
                 state.commit("SET_READ_ONLY_DATA", { ...data[0]?.read_only_data });
-
+                state.commit("SET_ASSESSMENTS", data);
                 state.commit("SET_ASSESSMENTS", data);
             } else {
                 console.log("Error to get assessments");

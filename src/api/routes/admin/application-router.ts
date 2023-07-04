@@ -477,14 +477,26 @@ applicationRouter.get("/:id",
                     student.birth_date = moment(student.birth_date).utc(false).format("YYYY-MM-DD");
                 }
 
+                const readOnlyData = await db.raw(
+                    `SELECT 
+                    COALESCE(sfa.fn_get_yea_total(${student.yukon_id}), 0) AS yea_earned,
+                    COALESCE(sfa.fn_get_system_yea_used(${student.id}), 0) AS yea_used
+                    `
+                );
+
+                application.calculated_data = readOnlyData?.[0] || {};;
                 application.student = student;
+
 
                 await db("sfa.application")
                     .where({ id: application.id})
                     .update({ seen: true });
 
+
                 return res.json({ data: application });
             }
+
+            
         }
 
         res.status(404).send();
@@ -1923,7 +1935,6 @@ applicationRouter.get("/:application_id/:funding_request_id/assessments",
                 .where({ id: application_id })
                 .first();
 
-                console.log("🚀 ~ file: application-router.ts:1931 ~ item:", application)
             const fundingRequest = await db("sfa.funding_request")
                 .where({ application_id })
                 .where({ id: funding_request_id })
