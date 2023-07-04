@@ -115,7 +115,7 @@
                       ></v-text-field>
                     </template>
                     <v-date-picker
-                    @change="refreshData"
+                      @change="refreshData"
                       :value="customAssessment.assessed_date?.slice(0, 10)"
                       @input="e => {
                         customAssessment.assessed_date = e;
