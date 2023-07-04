@@ -5,7 +5,7 @@
         <div class="col-lg-12 nopadding d-flex flex-wrap low-margin">
           <v-card-title class="col-xs-12 col-lg-8">Assessment - Yukon Excellence Awards</v-card-title>
           <div class="col-xs-12 col-lg-4 nopadding d-flex">
-            <div class="col-xs-4 col-sm-4">
+            <div class="col-xs-4 col-sm-4 ">
               <v-btn 
                 :disabled="!isPreviewCharged && !isChanging && !editingDisburse"
                 dense
@@ -27,7 +27,7 @@
                 SAVE
               </v-btn>
             </div>
-            <div class="col-xs-4 col-sm-4">
+            <div class="col-xs-4 col-sm-4 ">
               <v-btn 
                 :disabled="!isPreviewCharged && !isChanging && !editingDisburse"
                 dense
@@ -47,7 +47,7 @@
                 CANCEL
               </v-btn>
             </div>
-            <div class="col-xs-4 col-sm-4">
+            <div class="col-xs-4 col-sm-4 ">
               <v-btn 
                 @click="$emit('close')"
                 dense
