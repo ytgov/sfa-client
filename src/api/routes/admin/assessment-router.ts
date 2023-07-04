@@ -4,6 +4,7 @@ import knex from "knex";
 import { ReturnValidationErrors } from "../../middleware";
 import { DB_CONFIG } from "../../config";
 import { AssessmentCslftRepository } from "../../repositories";
+import {AssessmentDTO} from "../../models";
 
 const db = knex(DB_CONFIG)
 export const assessmentRouter = express.Router();
@@ -120,15 +121,15 @@ async (req: Request, res: Response) => {
 
     const assessmentClsftRepo = new AssessmentCslftRepository(db);
     const { id = undefined } = req.params;
-    let results = undefined;
+    let results: Partial<AssessmentDTO> = {};
     
     try {
 
         if (id) {
             results = await assessmentClsftRepo.getAssessInfoCslft(parseInt(id));
         }
-        
-        if (results) {
+
+        if (Object.keys(results).length > 0) {
             return res.status(200).json({ success: true, data: results, });
         } else {
             return res.status(404).send();

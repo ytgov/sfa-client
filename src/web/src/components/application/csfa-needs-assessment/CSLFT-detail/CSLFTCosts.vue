@@ -24,7 +24,7 @@
               </div>
               <div class="col-xs-12 col-sm-2 col-lg-2 nopadding xs-md-low-margin">
                 <div class="col-xs-12 col-lg-12">
-                  <v-text-field outlined dense background-color="white" hide-details @keypress="validate.isNumber($event)" v-model="cslft.assessed_amount"></v-text-field>
+                  <v-text-field outlined dense background-color="white" hide-details @keypress="validate.isNumber($event)" v-model="scholastic_total" :disabled="isTotal"></v-text-field>
                 </div>
               </div>
             </div>
@@ -67,7 +67,7 @@
                     <h3 class="nomargin col-xs-3 col-sm-3 col-lg-3 nopadding">T3</h3>
                     <div class="col-xs-9 col-sm-9 col-lg-9 nopadding xs-md-low-margin">
                       <div class="col-xs-12 col-lg-12 nopadding">
-                        <v-text-field outlined dense background-color="white" hide-details @keypress="validate.isNumber($event)" v-model="cslft.assessed_amount"></v-text-field>
+                        <v-text-field outlined dense background-color="white" hide-details @keypress="validate.isNumber($event)" v-model="cslft.shelter_month"></v-text-field>
                       </div>
                     </div>
                   </div>
@@ -75,7 +75,7 @@
                   <div class="col-xs-2 col-sm-2 col-lg-2 nopadding d-flex align-center justify-center">
                     <div class="col-xs-9 col-sm-9 col-lg-9 nopadding xs-md-low-margin">
                       <div class="col-xs-12 col-lg-12 nopadding">
-                        <v-text-field outlined dense background-color="white" hide-details @keypress="validate.isNumber($event)" v-model="cslft.assessed_amount"></v-text-field>
+                        <v-text-field outlined dense background-color="white" hide-details @keypress="validate.isNumber($event)" v-model="shelter_total" :disabled="isTotal"></v-text-field>
                       </div>
                     </div>
                   </div>
@@ -94,7 +94,7 @@
                     <h3 class="nomargin col-xs-3 col-sm-3 col-lg-3 nopadding">T3</h3>
                     <div class="col-xs-9 col-sm-9 col-lg-9 nopadding xs-md-low-margin">
                       <div class="col-xs-12 col-lg-12 nopadding">
-                        <v-text-field outlined dense background-color="white" hide-details @keypress="validate.isNumber($event)" v-model="cslft.assessed_amount"></v-text-field>
+                        <v-text-field outlined dense background-color="white" hide-details @keypress="validate.isNumber($event)" v-model="cslft.p_trans_month"></v-text-field>
                       </div>
                     </div>
                   </div>
@@ -102,7 +102,7 @@
                   <div class="col-xs-2 col-sm-2 col-lg-2 nopadding d-flex align-center justify-center">
                     <div class="col-xs-9 col-sm-9 col-lg-9 nopadding xs-md-low-margin">
                       <div class="col-xs-12 col-lg-12 nopadding">
-                        <v-text-field outlined dense background-color="white" hide-details @keypress="validate.isNumber($event)" v-model="cslft.assessed_amount"></v-text-field>
+                        <v-text-field outlined dense background-color="white" hide-details @keypress="validate.isNumber($event)" v-model="p_trans_total" :disabled="isTotal"></v-text-field>
                       </div>
                     </div>
                   </div>
@@ -122,7 +122,7 @@
                   <div class="col-xs-2 col-sm-2 col-lg-2 nopadding d-flex align-center justify-center">
                     <div class="col-xs-9 col-sm-9 col-lg-9 nopadding xs-md-low-margin">
                       <div class="col-xs-12 col-lg-12 nopadding">
-                        <v-text-field outlined dense background-color="white" hide-details @keypress="validate.isNumber($event)" v-model="cslft.assessed_amount"></v-text-field>
+                        <v-text-field outlined dense background-color="white" hide-details @keypress="validate.isNumber($event)" v-model="cslft.x_trans_total"></v-text-field>
                       </div>
                     </div>
                   </div>
@@ -140,7 +140,7 @@
                   <div class="col-xs-2 col-sm-2 col-lg-2 nopadding d-flex align-center justify-end ">
                     <div class="col-xs-9 col-sm-9 col-lg-9 nopadding xs-md-low-margin">
                       <div class="col-xs-12 col-lg-12 nopadding">
-                        <v-text-field outlined dense background-color="white" hide-details @keypress="validate.isNumber($event)" v-model="cslft.assessed_amount"></v-text-field>
+                        <v-text-field outlined dense background-color="white" hide-details @keypress="validate.isNumber($event)" v-model="cslft.r_trans_16wk"></v-text-field>
                       </div>
                     </div>
                   </div>
@@ -148,7 +148,7 @@
                   <div class="col-xs-2 col-sm-2 col-lg-2 nopadding d-flex align-center justify-center">
                     <div class="col-xs-9 col-sm-9 col-lg-9 nopadding xs-md-low-margin">
                       <div class="col-xs-12 col-lg-12 nopadding">
-                        <v-text-field outlined dense background-color="white" hide-details @keypress="validate.isNumber($event)" v-model="cslft.assessed_amount"></v-text-field>
+                        <v-text-field outlined dense background-color="white" hide-details @keypress="validate.isNumber($event)" v-model="r_trans_total" :disabled="isTotal"></v-text-field>
                       </div>
                     </div>
                   </div>
@@ -170,7 +170,7 @@
                   <div class="col-xs-2 col-sm-2 col-lg-2 nopadding d-flex align-center justify-center">
                     <div class="col-xs-9 col-sm-9 col-lg-9 nopadding xs-md-low-margin">
                       <div class="col-xs-12 col-lg-12 nopadding">
-                        <v-text-field outlined dense background-color="white" hide-details @keypress="validate.isNumber($event)" v-model="cslft.assessed_amount"></v-text-field>
+                        <v-text-field outlined dense background-color="white" hide-details @keypress="validate.isNumber($event)" v-model="cslft.relocation_total"></v-text-field>
                       </div>
                     </div>
                   </div>
@@ -189,21 +189,21 @@
                     <h3 class="nomargin col-xs-3 col-sm-3 col-lg-3 nopadding">T4</h3>
                     <div class="col-xs-9 col-sm-9 col-lg-9 nopadding xs-md-low-margin">
                       <div class="col-xs-12 col-lg-12 nopadding">
-                        <v-text-field outlined dense background-color="white" hide-details @keypress="validate.isNumber($event)" v-model="cslft.assessed_amount"></v-text-field>
+                        <v-text-field outlined dense background-color="white" hide-details @keypress="validate.isNumber($event)" v-model="cslft.day_care_allowable"></v-text-field>
                       </div>
                     </div>
                   </div>
                   <div class="col-xs-2 col-sm-2 col-lg-2 nopadding d-flex align-center justify-center">
                     <div class="col-xs-9 col-sm-9 col-lg-9 nopadding xs-md-low-margin">
                       <div class="col-xs-12 col-lg-12 nopadding">
-                        <v-text-field outlined dense background-color="white" hide-details @keypress="validate.isNumber($event)" v-model="cslft.assessed_amount"></v-text-field>
+                        <v-text-field outlined dense background-color="white" hide-details @keypress="validate.isNumber($event)" v-model="cslft.day_care_actual"></v-text-field>
                       </div>
                     </div>
                   </div>
                   <div class="col-xs-2 col-sm-2 col-lg-2 nopadding d-flex align-center justify-center">
                     <div class="col-xs-9 col-sm-9 col-lg-9 nopadding xs-md-low-margin">
                       <div class="col-xs-12 col-lg-12 nopadding">
-                        <v-text-field outlined dense background-color="white" hide-details @keypress="validate.isNumber($event)" v-model="cslft.assessed_amount"></v-text-field>
+                        <v-text-field outlined dense background-color="white" hide-details @keypress="validate.isNumber($event)" v-model="day_care_total" :disabled="isTotal"></v-text-field>
                       </div>
                     </div>
                   </div>
@@ -222,7 +222,7 @@
                     <h3 class="nomargin col-xs-3 col-sm-3 col-lg-3 nopadding">T3</h3>
                     <div class="col-xs-9 col-sm-9 col-lg-9 nopadding xs-md-low-margin">
                       <div class="col-xs-12 col-lg-12 nopadding">
-                        <v-text-field outlined dense background-color="white" hide-details @keypress="validate.isNumber($event)" v-model="cslft.assessed_amount"></v-text-field>
+                        <v-text-field outlined dense background-color="white" hide-details @keypress="validate.isNumber($event)" v-model="cslft.depend_food_allowable"></v-text-field>
                       </div>
                     </div>
                   </div>
@@ -230,7 +230,7 @@
                   <div class="col-xs-2 col-sm-2 col-lg-2 nopadding d-flex align-center justify-center">
                     <div class="col-xs-9 col-sm-9 col-lg-9 nopadding xs-md-low-margin">
                       <div class="col-xs-12 col-lg-12 nopadding">
-                        <v-text-field outlined dense background-color="white" hide-details @keypress="validate.isNumber($event)" v-model="cslft.assessed_amount"></v-text-field>
+                        <v-text-field outlined dense background-color="white" hide-details @keypress="validate.isNumber($event)" v-model="dependent_shelter_total" :disabled="isTotal"></v-text-field>
                       </div>
                     </div>
                   </div>
@@ -249,7 +249,7 @@
                     <h3 class="nomargin col-xs-3 col-sm-3 col-lg-3 nopadding">T3</h3>
                     <div class="col-xs-9 col-sm-9 col-lg-9 nopadding xs-md-low-margin">
                       <div class="col-xs-12 col-lg-12 nopadding">
-                        <v-text-field outlined dense background-color="white" hide-details @keypress="validate.isNumber($event)" v-model="cslft.assessed_amount"></v-text-field>
+                        <v-text-field outlined dense background-color="white" hide-details @keypress="validate.isNumber($event)" v-model="cslft.depend_tran_allowable"></v-text-field>
                       </div>
                     </div>
                   </div>
@@ -257,7 +257,7 @@
                   <div class="col-xs-2 col-sm-2 col-lg-2 nopadding d-flex align-center justify-center">
                     <div class="col-xs-9 col-sm-9 col-lg-9 nopadding xs-md-low-margin">
                       <div class="col-xs-12 col-lg-12 nopadding">
-                        <v-text-field outlined dense background-color="white" hide-details @keypress="validate.isNumber($event)" v-model="cslft.assessed_amount"></v-text-field>
+                        <v-text-field outlined dense background-color="white" hide-details @keypress="validate.isNumber($event)" v-model="dependent_trans_total" :disabled="isTotal"></v-text-field>
                       </div>
                     </div>
                   </div>
@@ -275,28 +275,28 @@
                   <div class="col-xs-2 col-sm-2 col-lg-2 nopadding d-flex align-center justify-end ">
                     <div class="col-xs-9 col-sm-9 col-lg-9 nopadding xs-md-low-margin">
                       <div class="col-xs-12 col-lg-12 nopadding">
-                        <v-text-field outlined dense background-color="white" hide-details @keypress="validate.isNumber($event)" v-model="cslft.assessed_amount"></v-text-field>
+                        <v-text-field outlined dense background-color="white" hide-details @keypress="validate.isNumber($event)" v-model="cslft.discretionary_cost"></v-text-field>
                       </div>
                     </div>
                   </div>
                   <div class="col-xs-2 col-sm-2 col-lg-2 nopadding d-flex align-center justify-center">
                     <div class="col-xs-9 col-sm-9 col-lg-9 nopadding xs-md-low-margin">
                       <div class="col-xs-12 col-lg-12 nopadding">
-                        <v-text-field outlined dense background-color="white" hide-details @keypress="validate.isNumber($event)" v-model="cslft.assessed_amount"></v-text-field>
+                        <v-text-field outlined dense background-color="white" hide-details @keypress="validate.isNumber($event)" v-model="cslft.discretionary_cost_actual"></v-text-field>
                       </div>
                     </div>
                   </div>
                   <div class="col-xs-2 col-sm-2 col-lg-2 nopadding d-flex align-center justify-center">
                     <div class="col-xs-9 col-sm-9 col-lg-9 nopadding xs-md-low-margin">
                       <div class="col-xs-12 col-lg-12 nopadding">
-                        <v-text-field outlined dense background-color="white" hide-details @keypress="validate.isNumber($event)" v-model="cslft.assessed_amount"></v-text-field>
+                        <v-text-field outlined dense background-color="white" hide-details @keypress="validate.isNumber($event)" v-model="discretionary_total" :disabled="isTotal"></v-text-field>
                       </div>
                     </div>
                   </div>
                   <div class="col-xs-2 col-sm-2 col-lg-2 nopadding d-flex align-center justify-center">
                     <div class="col-xs-9 col-sm-9 col-lg-9 nopadding xs-md-low-margin">
                       <div class="col-xs-12 col-lg-12 nopadding">
-                        <v-text-field outlined dense background-color="white" hide-details @keypress="validate.isNumber($event)" v-model="cslft.assessed_amount"></v-text-field>
+                        <v-text-field outlined dense background-color="white" hide-details @keypress="validate.isNumber($event)" v-model="capped_expenses_total" :disabled="isTotal"></v-text-field>
                       </div>
                     </div>
                   </div>
@@ -430,9 +430,17 @@
 import store from "@/store";
 import validator from "@/validator";
 import { mapState } from "vuex";
+import { ref } from "vue";
 
 export default {
   name: "cslft-costs",
+  setup() {
+    const isTotal = ref(true);
+
+    return {
+      isTotal,
+    }
+  },
   computed: {
     ...mapState({
       cslft: state => state.cslft.cslft
@@ -440,12 +448,39 @@ export default {
     application: function () {
       return store.getters.selectedApplication;
     },
+    scholastic_total: function() {
+      return Math.round((this.cslft.tuition_estimate ?? 0) + (this.cslft.books_supplies_cost ?? 0));
+    },
+    shelter_total: function() {
+      return Math.round((this.cslft.shelter_month ?? 0) * (this.cslft.study_months ?? 0));
+    },
+    p_trans_total: function() {
+      return Math.round((this.cslft.p_trans_month ?? 0) * (this.cslft.study_months ?? 0));
+    },
+    r_trans_total: function() {
+      return Math.round((this.cslft.r_trans_16wk ?? 0) * store.getters.cslft_get_r_trans_multiplier);
+    },
+    day_care_total: function() {
+      return Math.round(Math.min((this.cslft.day_care_allowable ?? 0), (this.cslft.day_care_actual ?? 0)) * (this.cslft.study_months ?? 0));
+    },
+    dependent_shelter_total: function() {
+      return Math.round((this.cslft.depend_food_allowable ?? 0) * (this.cslft.study_months));
+    },
+    dependent_trans_total: function() {
+      return Math.round((this.cslft.depend_tran_allowable ?? 0) * (this.cslft.study_months));
+    },
+    discretionary_total: function() {
+      return Math.round(Math.min((this.cslft.discretionary_cost ?? 0), (this.cslft.discretionary_cost_actual ?? 0)));
+    },
+    capped_expenses_total: function() {
+      return this.shelter_total + this.p_trans_total + this.r_trans_total + this.day_care_total + this.dependent_trans_total + this.dependent_shelter_total + this.discretionary_total;
+    }
   },
   async created() {
     this.validate = validator;
     this.applicationId = this.$route.params.id;
     let storeApp = store.getters.selectedApplication;
-    if (this.applicationId != storeApp.HISTORY_DETAIL_ID) {
+    if (this.applicationId !== storeApp.HISTORY_DETAIL_ID) {
       await store.dispatch("loadApplication", this.applicationId);
     }
   }

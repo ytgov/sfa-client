@@ -132,9 +132,6 @@ export default {
     student: function (val) {
       if (val) this.updateView(val);
     },
-    //selectedStudent: function (val) {
-    //console.log("WATCH selectedStudent", val);
-    //},
   },
   methods: {
     showSuccess(mgs) {

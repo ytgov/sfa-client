@@ -14,7 +14,7 @@ import { TaxRateRepository } from "../tax_rate";
 import { FieldProgramRepository } from "../field_program";
 import { PersonRepository } from "../person";
 import {StandardOfLivingRepository} from "../standard_of_living";
-import { ParentRepository } from "repositories/parent";
+import { ParentRepository } from "../parent";
 
 export class AssessmentCslftRepository extends AssessmentBaseRepository {
 
@@ -113,8 +113,8 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
 
         return result;
     }
-    
-    async getAssessInfoCslft(funding_request_id?: number): Promise<AssessmentDTO | undefined> {
+
+    async getAssessInfoCslft(funding_request_id?: number): Promise<AssessmentDTO> {
 
         let assess_id: number | undefined = undefined;        
 
@@ -152,6 +152,9 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
 
             this.assessment.net_amount = this.getNetAmount(this.assessment.assessed_amount, this.assessment.previous_disbursement, this.assessment.return_uncashable_cert);
 
+            await this.getLookupValues(funding_request_id);
+
+            this.getCombinedContribution();
         }
 
         return this.assessment;
@@ -248,17 +251,13 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
             if (mailing_address && mailing_address.province_id) {
                 this.assessment.parent_msol = await this.standardLivingRepo.getStandardLivingAmount(this.application.academic_year_id, mailing_address.province_id, this.assessment.family_size ?? 0);
 
-                /**
-                 * @todo Continue here
-                 * @link https://docs.google.com/document/d/1aKyZJEr5bamxZc5vvT3LProGZpAmJ6QV/edit#bookmark=id.a3tt9cc10r0h
-                 */
                 if ((this.assessment.parent_discretionary_income ?? 0) > 0) {
                     this.assessment.parent_weekly_contrib = await this.parentRepo.getParentContributionAmount(this.application.academic_year_id, Math.round(this.assessment.parent_discretionary_income ?? 0));
                 }
             }
         }
 
-        // Calculate previous disbursment amount.
+        // Calculate previous disbursement amount.
         const assess_id = (((this.assessment_id ?? 0) < (this.assess_id ?? 0) && !this.assessment.id) || this.assess_id === 0) ? this.assessment_id : this.assess_id;
 
         const disbursed_amt = await this.disbursementRepo.getDisbursedAmount(funding_request_id, assess_id);
@@ -339,10 +338,38 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
             this.assessment.spouse_exemption_reason = "Is a student";
         }
 
-        /**
-         * @todo Continue here
-         * @link https://docs.google.com/document/d/1aKyZJEr5bamxZc5vvT3LProGZpAmJ6QV/edit?pli=1#bookmark=id.ybgmca9cplpy
-         */
+        this.getCombinedContribution();
+
+        // Family Size and Income
+        switch (this.assessment.csl_classification) {
+            case 1:
+                this.assessment.family_income = (this.assessment.parent1_income ?? 0) + (this.assessment.parent2_income ?? 0);
+                break;
+            case 4:
+                this.assessment.family_income = (this.assessment.student_ln150_income ?? 0);
+                break;
+            case 3:
+                this.assessment.family_income = (this.assessment.student_ln150_income ?? 0) + (this.assessment.spouse_ln150_income ?? 0);
+                break;
+            default:
+                this.assessment.family_income = (this.assessment.student_ln150_income ?? 0);
+        }
+    }
+
+    getCombinedContribution(): void {
+        let combined: number = this.assessment.student_contribution ?? 0;
+        if (this.assessment.student_contribution_override || this.assessment.student_contribution_review === "Yes") {
+            combined = this.assessment.student_contribution_override ?? 0;
+        }
+
+        if (this.assessment.spouse_contribution_override || this.assessment.spouse_contribution_review === "Yes") {
+            combined = combined + (this.assessment.spouse_contribution_override ?? 0);
+        }
+        else {
+            combined = combined + (this.assessment.spouse_contribution ?? 0);
+        }
+
+        this.assessment.combined_contribution = combined;
     }
 
     async getMsfaaInfo(info_type: string): Promise<void> {

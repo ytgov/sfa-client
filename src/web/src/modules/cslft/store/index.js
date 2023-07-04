@@ -133,7 +133,22 @@ const mutations = {
     },
     loadFundingRequest(state, funding_request) {
         state.funding_request = funding_request;
-    }
+    },
+    setCslftClassesStartDate(state, value) {
+        state.cslft.classes_start_date = moment(value).format();
+    },
+    setCslftClassesEndDate(state, value) {
+        state.cslft.classes_end_date = moment(value).format();
+    },
+    setCslftAssessDate(state, value) {
+        state.cslft.assessed_date = moment(value).format();
+    },
+    setCslftPrestudyStartDate(state, value) {
+        state.cslft.pstudy_start_date = moment(value).format();
+    },
+    setCslftPrestudyEndDate(state, value) {
+        state.cslft.pstudy_end_date = moment(value).format();
+    },
 };
 const actions = {
     async loadFundingRequest(state, funding_request) {
@@ -147,14 +162,70 @@ const actions = {
         if (res?.data?.success) {                        
             state.commit("getCslftAssessInfo", res.data.data);
         }
+    },
+    async setClsftFieldDate(state, name, value) {
+        if (value) {
+            switch (name) {
+                case "classes_start_date":
+                    state.commit("setCslftClassesStartDate", value);
+                    break;
+                case "classes_end_date":
+                    state.commit("setCslftClassesEndDate", value);
+                    break;
+                case "assess_date":
+                    state.commit("setCslftAssessDate", value);
+                    break;
+                case "pstudy_start_date":
+                    state.commit("setCslftPrestudyStartDate", value);
+                    break;
+                case "pstudy_end_date":
+                    state.commit("setCslftPrestudyEndDate", value);
+                    break;
+            }
+        }
     }
 };
 const getters = {
-    classes_start_date_formatted (state) {
-        return moment(state.classes_start_date).format("yyyy-mm-dd");
+    cslft_classes_start_date_formatted (state) {
+        if (state.cslft.classes_start_date) {
+            return moment(state.cslft.classes_start_date).format("YYYY-MM-DD");
+        }
+        return state.cslft.classes_start_date;
     },
-    classes_end_date_formatted (state) {
-        return moment(state.classes_end_date).format("yyyy-mm-dd");
+    cslft_classes_end_date_formatted (state) {
+        if (state.cslft.classes_end_date) {
+            return moment(state.cslft.classes_end_date).format("YYYY-MM-DD");
+        }
+        return state.cslft.classes_end_date;
+    },
+    cslft_assess_date_formatted(state) {
+        if (state.cslft.assessed_date) {
+            return moment(state.cslft.assessed_date).format('YYYY-MM-DD');
+        }
+        return state.cslft.assessed_date;
+    },
+    cslft_pstudy_start_date_formatted(state) {
+        if (state.cslft.pstudy_start_date) {
+            return moment(state.cslft.pstudy_start_date).format('YYYY-MM-DD');
+        }
+        return state.cslft.pstudy_start_date;
+    },
+    cslft_pstudy_end_date_formatted(state) {
+        if (state.cslft.pstudy_end_date) {
+            return moment(state.cslft.pstudy_end_date).format('YYYY-MM-DD');
+        }
+        return state.cslft.pstudy_end_date;
+    },
+    cslft_get_r_trans_multiplier(state) {
+        let multiplier = 0;
+        if (state.cslft.study_weeks >= 1 && state.cslft.study_weeks < 24) {
+            multiplier = 1;
+        }
+        else if (state.cslft.study_weeks >= 24) {
+            multiplier = 2;
+        }
+
+        return multiplier;
     }
 };
 
