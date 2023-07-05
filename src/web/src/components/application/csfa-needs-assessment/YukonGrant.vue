@@ -64,9 +64,13 @@
                   if (!customAssessment?.id) {
                     $emit('close');
                     $store.dispatch('setIsPreviewCharged', false);
+                    $store.dispatch('getDisbursements', { application_id: this.application.id, funding_request_id: customAssessment?.funding_request_id });
+                    editingDisburse = false;
                   } else {
-                      $store.dispatch('setIsPreviewCharged', false);
-                      cancelEdition();
+                    $store.dispatch('setIsPreviewCharged', false);
+                    $store.dispatch('getDisbursements', { application_id: this.application.id, funding_request_id: customAssessment?.funding_request_id });
+                    editingDisburse = false;
+                    cancelEdition();
                   }
                 }"
               >
@@ -735,10 +739,9 @@ export default {
       );
     },
     blockDisburse(value) {
-      if (!value) {
-        this.refreshData();
+      if (!this.editingDisburse) {
+        this.editingDisburse = value;
       }
-      this.editingDisburse = value;
     },
     currentEditing(value) {
       this.isDisburseBlocked = value;
@@ -838,7 +841,7 @@ export default {
     disbursements: {
       deep: true,
         handler(val, oldVal) {
-          
+
         },
     },
   },
