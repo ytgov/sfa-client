@@ -22,4 +22,5 @@ export interface IAssessmentCalculated {
     spouse_exemption?: number;
     spouse_exemption_reason?: string;
     vehicle_deduction?: number;
+    other_income?: number;
 }

@@ -15,6 +15,7 @@ import { FieldProgramRepository } from "../field_program";
 import { PersonRepository } from "../person";
 import {StandardOfLivingRepository} from "../standard_of_living";
 import { ParentRepository } from "../parent";
+import {DependentRepository} from "../dependent";
 
 export class AssessmentCslftRepository extends AssessmentBaseRepository {
 
@@ -34,6 +35,7 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
     private personRepo: PersonRepository;
     private standardLivingRepo: StandardOfLivingRepository;
     private parentRepo: ParentRepository;
+    private dependentRepo: DependentRepository;
 
     // Globals
     private assessment: Partial<AssessmentDTO> = {};
@@ -64,13 +66,11 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
         this.personRepo = new PersonRepository(maindb);
         this.standardLivingRepo = new StandardOfLivingRepository(maindb);
         this.parentRepo = new ParentRepository(maindb);
+        this.dependentRepo = new DependentRepository(maindb);
     }
 
     academicYearValidation = (year: number): boolean => {
-        if (this.application.academic_year_id && this.application.academic_year_id < year) {
-            return true;
-        }
-        return false;
+        return !!(this.application.academic_year_id && this.application.academic_year_id < year);
     };
 
     getNetAmount(assessed_amount?: number, previous_disbursement?: number, return_uncashable_cert?: number): number {
@@ -114,6 +114,45 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
         }
 
         return result;
+    }
+
+    async getOtherIncomeAmount(application_id?: number, academic_year_id?: number): Promise<number> {
+        let result = 0;
+
+        if (application_id && academic_year_id) {
+            result = await this.getScalarValue<number>("fn_get_other_income_amount", [application_id, academic_year_id]);
+        }
+
+        return result;
+    }
+
+    async getCalculatedValues(): Promise<void> {
+
+        // Get the study expenses.
+        this.assessment.uncapped_costs_total = await this.getExpenseAmount(this.application.id, 2);
+    }
+
+    async getContributionValues(): Promise<void> {
+        const max_weeks = 8/12*52;
+
+        if (this.assessment.csl_classification === 1) {
+            this.assessment.student_family_size = await this.getParentFamilySize(this.application.id);
+            this.assessment.family_income = (this.assessment.parent1_income ?? 0) + (this.assessment.parent2_income ?? 0);
+        }
+        else if (this.assessment.csl_classification === 4) {
+            this.assessment.student_family_size = await this.dependentRepo.getCslDependentCount(this.application.id) + 1;
+            this.assessment.family_income = (this.assessment.student_ln150_income ?? 0);
+        }
+        else if (this.assessment.csl_classification === 3) {
+            this.assessment.student_family_size = await this.dependentRepo.getCslDependentCount(this.application.id) + 2;
+            this.assessment.family_income = (this.assessment.student_ln150_income ?? 0) + (this.assessment.spouse_ln150_income ?? 0);
+        }
+        else {
+            this.assessment.student_family_size = 1;
+            this.assessment.family_income = (this.assessment.student_ln150_income ?? 0);
+        }
+
+        const family_size = this.assessment.student_family_size > 7 ? 7 : this.assessment.student_family_size;
     }
 
     async setIdGlobals(): Promise<void> {
@@ -199,6 +238,15 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
             await this.getLookupValues(funding_request_id);
 
             await this.getContribDisplayValues();
+
+            if (this.new_calc) {
+                this.new_calc = false;
+                await this.getCalculatedValues();
+
+                if (this.application.academic_year_id && this.application.academic_year_id >= 2017) {
+                    await this.getContributionValues();
+                }
+            }
         }
 
         return this.assessment;

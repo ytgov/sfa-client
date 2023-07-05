@@ -2949,3 +2949,42 @@ BEGIN
 	RETURN COALESCE(@amount, 0) + @exempt;
 END;
 GO
+
+-- Get Expense Amount
+CREATE OR ALTER FUNCTION sfa.fn_get_expense_amount(@application_id INT, @period_id INT)
+RETURNS FLOAT(8)
+AS
+BEGIN 
+	DECLARE @amount FLOAT(8) = 0;
+	
+	SELECT 
+		@amount = COALESCE(SUM(e.amount),0)
+	FROM sfa.expense e
+	WHERE e.application_id = @application_id
+	AND e.period_id = @period_id;
+	
+	RETURN COALESCE(@amount, 0);
+END;
+GO
+
+-- Get CSL Dependent Count
+CREATE OR ALTER FUNCTION sfa.fn_get_csl_dependent_count(@application_id INT)
+RETURNS INT
+AS
+BEGIN 
+	DECLARE @count INT = 0;
+	
+	SELECT 
+		@count = COALESCE(COUNT(d.id), 0)
+	FROM sfa.dependent d
+		INNER JOIN sfa.application a
+			ON d.student_id = a.student_id
+		INNER JOIN sfa.dependent_eligibility de
+			ON de.dependent_id = d.id
+			AND de.application_id = a.id
+			AND de.is_csl_eligible = 1
+	WHERE a.id = @application_id;
+
+	RETURN COALESCE(@count, 0);
+END;
+GO

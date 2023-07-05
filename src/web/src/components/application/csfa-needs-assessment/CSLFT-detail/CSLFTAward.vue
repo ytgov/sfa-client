@@ -401,7 +401,6 @@
         </div>
       </v-card>
     </div>
-    {{ cslft_get_resources_total }}
   </div>
 </template>
 <script>

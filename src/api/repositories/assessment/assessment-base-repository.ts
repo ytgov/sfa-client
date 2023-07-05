@@ -52,4 +52,14 @@ export class AssessmentBaseRepository extends BaseRepository {
         }
         return 0;
     }
+
+    async getExpenseAmount(application_id?: number, period_id?: number): Promise<number> {
+        let result = 0;
+
+        if (application_id && period_id) {
+            result = await this.getScalarValue<number>("fn_get_expense_amount", [application_id, period_id]);
+        }
+
+        return result;
+    }
 }
