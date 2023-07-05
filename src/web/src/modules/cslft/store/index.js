@@ -1,6 +1,9 @@
 import axios from "axios";
 import { CSLFT_ASSESS_INFO } from "@/urls";
 import moment from "moment";
+import {NumbersHelper} from "@/utilities";
+import store from "@/store";
+const numHelper = new NumbersHelper();
 
 const state = {
     funding_request: {},
@@ -138,6 +141,9 @@ const mutations = {
     loadFundingRequest(state, funding_request) {
         state.funding_request = funding_request;
     },
+    setTotalStudyCost(state, value) {
+      state.cslft.total_study_cost = value;
+    },
     setCslftClassesStartDate(state, value) {
         state.cslft.classes_start_date = moment(value).format();
     },
@@ -162,10 +168,12 @@ const actions = {
     },
     async getCslftAssessInfo(state, funding_request_id) {
         const res = await axios.get(`${CSLFT_ASSESS_INFO}/${funding_request_id}`);
-        console.log(res);
-        if (res?.data?.success) {                        
+        if (res?.data?.success) {
             state.commit("getCslftAssessInfo", res.data.data);
         }
+    },
+    async setTotalStudyCost(state, value) {
+      state.commit("setTotalStudyCost", value);
     },
     async setClsftFieldDate(state, name, value) {
         if (value) {
@@ -230,6 +238,57 @@ const getters = {
         }
 
         return multiplier;
+    },
+    cslft_scholastic_total(state) {
+        return Math.round(numHelper.getNum(state.cslft.tuition_estimate) + numHelper.getNum(state.cslft.books_supplies_cost));
+    },
+    cslft_shelter_total(state) {
+        return Math.round(numHelper.getNum(state.cslft.shelter_month) * numHelper.getNum(state.cslft.study_months));
+    },
+    cslft_p_trans_total(state) {
+        return Math.round(numHelper.getNum(state.cslft.p_trans_month) * numHelper.getNum(state.cslft.study_months));
+    },
+    cslft_r_trans_total(state, getters) {
+        return Math.round(numHelper.getNum(state.cslft.r_trans_16wk) * numHelper.getNum(getters.cslft_get_r_trans_multiplier));
+    },
+    cslft_day_care_total(state) {
+        return Math.round(Math.min(numHelper.getNum(state.cslft.day_care_allowable), numHelper.getNum(state.cslft.day_care_actual)) * numHelper.getNum(state.cslft.study_months));
+    },
+    cslft_dependent_shelter_total(state) {
+        return Math.round(numHelper.getNum(state.cslft.depend_food_allowable) * numHelper.getNum(state.cslft.study_months));
+    },
+    cslft_dependent_trans_total(state) {
+        return Math.round(numHelper.getNum(state.cslft.depend_tran_allowable) * numHelper.getNum(state.cslft.study_months));
+    },
+    cslft_discretionary_total(state) {
+        return Math.round(Math.min(numHelper.getNum(state.cslft.discretionary_cost), numHelper.getNum(state.cslft.discretionary_cost_actual)));
+    },
+    cslft_x_trans_total(state) {
+        return Math.round(numHelper.getNum(state.cslft.x_trans_total));
+    },
+    cslft_relocation_total(state) {
+        return Math.round(numHelper.getNum(state.cslft.relocation_total));
+    },
+    cslft_capped_expenses_total(state, getters) {
+        return Math.round(getters.cslft_shelter_total + getters.cslft_p_trans_total + getters.cslft_r_trans_total + getters.cslft_day_care_total + getters.cslft_dependent_trans_total + getters.cslft_dependent_shelter_total + getters.cslft_discretionary_total + getters.cslft_x_trans_total + getters.cslft_relocation_total);
+    },
+    cslft_uncapped_expenses_total(state) {
+        return numHelper.getNum(state.cslft.uncapped_costs_total);
+    },
+    cslft_study_cost_total(state, getters) {
+        return Math.round(getters.cslft_scholastic_total + getters.cslft_capped_expenses_total + getters.cslft_uncapped_expenses_total);
+    },
+    cslft_application_academic_year_id(state, getters, rootState, rootGetters) {
+      return rootState.selectedApplication.academic_year_id;
+    },
+    cslft_get_resources_total(state, getters) {
+        const academic_year_id = getters.cslft_application_academic_year_id;
+        if (academic_year_id < 2017) {
+            return Math.round(1);
+        }
+        else {
+            return Math.round(0);
+        }
     }
 };
 

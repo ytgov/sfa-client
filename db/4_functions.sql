@@ -2906,3 +2906,46 @@ BEGIN
     RETURN COALESCE(@amount, 0);
 END;
 GO
+
+-- Get Income Amount
+CREATE OR ALTER FUNCTION sfa.fn_get_other_income_amount(@application_id INT, @academic_year_id INT)
+RETURNS FLOAT(8)
+AS
+BEGIN 
+	DECLARE @amount FLOAT(8) = 0;
+	DECLARE @exempt FLOAT(8) = 0;
+
+	SELECT 
+		@exempt = @exempt + COALESCE(SUM(i.amount), 0)
+	FROM sfa.income i 
+		INNER JOIN sfa.income_type it
+			ON it.id = i.income_type_id
+	WHERE i.application_id = @application_id
+	AND it.id = 16
+	AND i.amount IS NOT NULL
+	AND it.assess_as_asset = 1;
+
+	IF @academic_year_id >= 2004
+	BEGIN
+		
+		SELECT
+			@exempt = CASE WHEN (@exempt - COALESCE(cl.merit_exempt_amount,0)) > 0 THEN (@exempt - COALESCE(cl.merit_exempt_amount,0)) ELSE 0 END
+		FROM sfa.csl_lookup cl
+		WHERE cl.academic_year_id = @academic_year_id;
+		
+	END	
+
+	SELECT 
+		@amount = COALESCE(SUM(i.amount), 0)
+	FROM sfa.income i 
+		INNER JOIN sfa.income_type it
+			ON it.id = i.income_type_id
+	WHERE i.application_id = @application_id
+	AND it.id <> 16
+	AND i.amount IS NOT NULL
+	AND it.assess_as_asset = 1;
+
+	
+	RETURN COALESCE(@amount, 0) + @exempt;
+END;
+GO

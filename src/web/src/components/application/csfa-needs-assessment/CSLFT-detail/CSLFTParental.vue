@@ -285,12 +285,16 @@ import store from "@/store";
 import validator from "@/validator";
 import {mapGetters, mapState} from "vuex";
 import {ref} from "vue";
+import {NumbersHelper} from "@/utilities";
 export default {
   name: "cslft-parental",
   setup() {
     const isTotal = ref(true);
+    const numHelper = new NumbersHelper();
+
     return {
       isTotal,
+      numHelper,
     }
   },
   computed: {
@@ -302,19 +306,19 @@ export default {
       return store.getters.selectedApplication;
     },
     total_income: function() {
-      return Math.round((this.cslft.parent1_income ?? 0) + (this.cslft.parent2_income ?? 0));
+      return Math.round(this.numHelper.getNum(this.cslft.parent1_income) + this.numHelper.getNum(this.cslft.parent2_income));
     },
     total_tax: function() {
-      return Math.round((this.cslft.parent1_tax_paid ?? 0) + (this.cslft.parent2_tax_paid ?? 0));
+      return Math.round(this.numHelper.getNum(this.cslft.parent1_tax_paid) + this.numHelper.getNum(this.cslft.parent2_tax_paid));
     },
     net_income: function() {
       return Math.round(this.total_income + this.total_tax);
     },
     calculated_parental_contribution: function() {
-      return Math.round((this.cslft.parent_weekly_contrib ?? 0) * (this.cslft.study_weeks ?? 0) / (this.cslft.parent_ps_depend_count ?? 0));
+      return Math.round(this.numHelper.getNum(this.cslft.parent_weekly_contrib) * this.numHelper.getNum(this.cslft.study_weeks) / this.numHelper.getNum(this.cslft.parent_ps_depend_count));
     },
     total_contribution: function() {
-      return Math.round(Math.max((this.cslft.parent_contribution_override ?? 0), this.calculated_parental_contribution));
+      return Math.round(Math.max(this.numHelper.getNum(this.cslft.parent_contribution_override), this.numHelper.getNum(this.calculated_parental_contribution)));
     }
   },
   async created() {

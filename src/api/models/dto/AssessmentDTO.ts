@@ -81,7 +81,7 @@ export interface AssessmentDTO extends IAssessmentCalculated{
     return_uncashable_cert?: number;
     second_residence_rate?: number;
     shelter_month?: number;
-    spouse_contrib_exempt?: string;
+    spouse_contrib_exempt?: boolean;
     spouse_contribution?: number;
     spouse_contribution_override?: number;
     spouse_contribution_review?: boolean;
@@ -96,7 +96,7 @@ export interface AssessmentDTO extends IAssessmentCalculated{
     spouse_tax_rate?: number;
     stud_pstudy_gross?: number;
     stud_pstudy_tax_rate?: number;
-    student_contrib_exempt?: string;
+    student_contrib_exempt?: boolean;
     student_contribution?: number;
     student_contribution_override?: number;
     student_contribution_review?: boolean;

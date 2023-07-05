@@ -13,6 +13,7 @@
                   hide-details
                   label="Family Size"
                   @keypress="validate.isNumber($event)"
+                  :disabled="isTotal"
                   v-model="cslft.family_size"
                 ></v-text-field>
               </div>
@@ -25,7 +26,7 @@
             <div class="col-xs-12 col-sm-12 col-md-12 nopadding col-lg-12 d-flex">
               <div class="col-xs-12 col-sm-4 col-lg-4 nopadding d-flex flex-wrap mobile-low-margin">
                 <div class="col-xs-12 col-lg-12 nopadding height-fit-content d-flex justify-center">
-                  <v-switch label="Exempt" v-model="student_exempt_flag">
+                  <v-switch label="Exempt" v-model="cslft.student_contrib_exempt">
                   </v-switch>
                 </div>
               </div>
@@ -36,7 +37,7 @@
                     dense
                     background-color="white"
                     hide-details
-                    :disabled="!student_exempt_flag"
+                    :disabled="isTotal"
                     v-model="cslft.student_exemption_reason"
                   ></v-text-field>
                 </div>
@@ -138,6 +139,7 @@
                   hide-details
                   label="Family Income"
                   @keypress="validate.isNumber($event)"
+                  :disabled="isTotal"
                   v-model="cslft.family_income"
                 ></v-text-field>
               </div>
@@ -150,7 +152,7 @@
             <div class="col-xs-12 col-sm-12 col-md-12 nopadding col-lg-12 d-flex">
               <div class="col-xs-12 col-sm-4 col-lg-4 nopadding d-flex flex-wrap mobile-low-margin">
                 <div class="col-xs-12 col-lg-12 nopadding height-fit-content d-flex justify-center">
-                  <v-switch label="Exempt" v-model="spouse_exempt_flag">
+                  <v-switch label="Exempt" v-model="cslft.spouse_contrib_exempt">
                   </v-switch>
                 </div>
               </div>
@@ -161,7 +163,7 @@
                     dense
                     background-color="white"
                     hide-details
-                    :disabled="!spouse_exempt_flag"
+                    :disabled="isTotal"
                     v-model="cslft.spouse_exemption_reason"
                   ></v-text-field>
                 </div>
@@ -339,12 +341,11 @@ import {ref} from "vue";
 export default {
   name: "cslft-contribution",
   setup() {
-    const student_exempt_flag = ref(false);
-    const spouse_exempt_flag = ref(false);
+    const isTotal = ref(true);
 
     return {
-      student_exempt_flag,
-      spouse_exempt_flag,
+      isTotal,
+      validate: validator
     }
   },
   computed: {
@@ -356,7 +357,6 @@ export default {
     },
   },
   async created() {
-    this.validate = validator;
     this.applicationId = this.$route.params.id;
     let storeApp = store.getters.selectedApplication;
     if (this.applicationId != storeApp.HISTORY_DETAIL_ID) {

@@ -15,7 +15,8 @@
                       hide-details
                       label="Total Study Cost"
                       @keypress="validate.isNumber($event)"
-                      v-model="total_study_cost"
+                      :disabled="isTotal"
+                      v-model="cslft_study_cost_total"
                     ></v-text-field>
                   </div>
                   <div class="col-xs-12 col-lg-12">
@@ -394,27 +395,41 @@
               background-color="white"
               hide-details
               @keypress="validate.isNumber($event)"
-              v-model="family_size"
+              v-model="cslft.family_size"
             ></v-text-field>
           </div>
         </div>
       </v-card>
     </div>
+    {{ cslft_get_resources_total }}
   </div>
 </template>
 <script>
 import store from "@/store";
 import validator from "@/validator";
-import {mapState} from "vuex";
+import {mapGetters, mapState} from "vuex";
+import {ref} from "vue";
 export default {
   name: "cslft-award",
+  setup() {
+    const isTotal = ref(true);
+
+    return {
+      isTotal,
+    }
+  },
   computed: {
     ...mapState({
       cslft: state => state.cslft.cslft
     }),
+    ...mapGetters([
+        "cslft_study_cost_total",
+        "cslft_application_academic_year_id",
+        "cslft_get_resources_total"
+    ]),
     application: function () {
       return store.getters.selectedApplication;
-    },
+    }
   },
   async created() {
     this.validate = validator;

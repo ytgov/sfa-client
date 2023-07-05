@@ -432,8 +432,8 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
             this.assessment.assessment_type_id = 1;
         }
 
-        this.assessment.student_contrib_exempt = "No";
-        this.assessment.spouse_contrib_exempt = "No";
+        this.assessment.student_contrib_exempt = false;
+        this.assessment.spouse_contrib_exempt = false;
 
         this.assessment.dependent_count = await this.getScalarValue<number>("fn_get_dependent_count", [this.application.id ?? 0])
         this.assessment.classes_start_date = this.application.classes_start_date;
@@ -614,7 +614,7 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
             student_cppd_count = parseInt(sccResult.count.toString());                                   
 
             if (this.student.indigenous_learner_id === 1 || this.student.is_crown_ward || this.application.is_perm_disabled || this.assessment.dependent_count > 0 || student_cppd_count > 0) {
-                this.assessment.student_contrib_exempt = "Yes";
+                this.assessment.student_contrib_exempt = true;
             }
             
             let spouse_exempt_count = 0;
@@ -622,9 +622,11 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
             spouse_exempt_count = parseInt(secResult.count.toString());
 
             if (spouse_exempt_count > 0 || this.application.spouse_study_school_from) {
-                this.assessment.spouse_contrib_exempt = "Yes";
+                this.assessment.spouse_contrib_exempt = true;
             }
         }
+
+        this.assessment.asset_tax_rate = 0;
 
         // Calculate the total
         if (!this.assessment.csl_full_amt_flag) {

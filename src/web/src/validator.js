@@ -12,10 +12,6 @@ const validator = {
         const regex = /^\d{4}$/g;
         return regex.test(year) && Number(year) > 1949;
     },
-    year: function (year) {
-        const regex = /^\d{4}$/g;
-        return regex.test(year) && Number(year) > 1949;
-    },
     isLess: function (a, b) {
         return Number(a) <= Number(b);
     },
@@ -24,9 +20,9 @@ const validator = {
     },
     isNumber(evt) {
         evt = (evt) ? evt : window.event;
-        var charCode = (evt.which) ? evt.which : evt.keyCode;
+        const charCode = (evt.which) ? evt.which : evt.keyCode;
         if ((charCode > 31 && (charCode < 48 || charCode > 57)) && charCode !== 46) {
-            evt.preventDefault();;
+            evt.preventDefault();
         } else {
             return true;
         }
@@ -40,7 +36,7 @@ const validator = {
         }
     },
     SIN(sin) {
-        var check, even, tot;
+        let check, even, tot;
         console.log(sin);
         if (typeof sin === 'number') {
             sin = sin.toString();
