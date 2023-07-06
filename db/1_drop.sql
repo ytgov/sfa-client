@@ -145,4 +145,5 @@ DROP TABLE IF EXISTS sfa.income_type
 DROP TABLE IF EXISTS sfa.equipment_category
 DROP TABLE IF EXISTS sfa.equipment_required
 DROP TABLE IF EXISTS sfa.vendor_update
---DROP TABLE sfa.user
+DROP TABLE IF EXISTS sfa.accommodation_type
+--DROP TABLE sfa.[user]
