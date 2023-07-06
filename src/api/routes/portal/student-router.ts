@@ -24,6 +24,19 @@ portalStudentRouter.get("/:sub/addresses", async (req: Request, res: Response) =
 
   if (student) {
     let list = await studentService.getAddresses(student.person_id);
+
+    for (let item of list) {
+      item.address_display = `${item.city_name || ""} ${item.province_name || ""} ${item.postal_code || ""}`.trim();
+
+      if (item.address2)
+        item.address_display = `${item.address2}
+${item.address_display}`;
+
+      if (item.address1)
+        item.address_display = `${item.address1}
+${item.address_display}`;
+    }
+
     return res.json({ data: list });
   }
 
@@ -33,22 +46,12 @@ portalStudentRouter.get("/:sub/addresses", async (req: Request, res: Response) =
 portalStudentRouter.post("/feedback", async (req: Request, res: Response) => {
   const { date, improve, text, url } = req.body;
 
-  console.log("FEEDBACK RECEIVED", date, improve, text, url);
-
-  
-
-/* 
-  CREATE TABLE sfa.portal_feedback (
-    id INT IDENTITY (1, 1) PRIMARY KEY,
-      create_date DATETIME2(0) NOT NULL,
-      url NVARCHAR(500) NOT NULL,
-    feedback TEXT NULL,
-    improve TEXT NULL,
-    acknowledge_user NVARCHAR(100) NULL,
-      acknowledge_date DATETIME2(0) NULL
-  )
-   */
-
+  await studentService.saveFeedback({
+    create_date: new Date(),
+    url,
+    feedback: text,
+    improve,
+  });
 
   res.json({ data: "success" });
 });
@@ -69,6 +72,38 @@ portalStudentRouter.post("/:sub", async (req: Request, res: Response) => {
   } else {
     res.json({ data: student });
   }
+});
+
+portalStudentRouter.put("/:sub", async (req: Request, res: Response) => {
+  const { sub } = req.params;
+  const { email, telephone, address } = req.body;
+
+  let student = await studentService.getBySub(sub);
+
+  console.log("SAVING STUDENT EDIT", address);
+
+  let addressUpdate = {
+    person_id: student.person_id,
+    id: address.id,
+    address_type_id: 1, // Home Address
+    address1: address.first,
+    address2: address.second,
+    city_id: address.city,
+    province_id: address.region,
+    postal_code: address.postal,
+  };
+
+  if (student) {
+    let result = await studentService.update(sub, {
+      person_id: student.person_id,
+      email,
+      telephone,
+      address: addressUpdate,
+    });
+
+    return res.json({ data: result });
+  }
+  res.status(404).send();
 });
 
 portalStudentRouter.post("/:sub/link", async (req: Request, res: Response) => {
@@ -97,11 +132,12 @@ portalStudentRouter.post("/:sub/link", async (req: Request, res: Response) => {
 });
 
 //uploads a document
-portalStudentRouter.post("/:student_id/draft/:application_id/files", async (req: Request, res: Response) => {
-  const { student_id, application_id } = req.params;
+portalStudentRouter.post("/:sub/draft/:application_id/files", async (req: Request, res: Response) => {
+  const { sub, application_id } = req.params;
   const { requirement_type_id, disability_requirement_id, person_id, dependent_id } = req.body;
 
-  let email = "michael@icefoganalytics.com"; //req.user.email;
+  let student = await studentService.getBySub(sub);
+  let email = student.email;
 
   if (req.files) {
     let files = Array.isArray(req.files.files) ? req.files.files : [req.files.files];
@@ -109,7 +145,7 @@ portalStudentRouter.post("/:student_id/draft/:application_id/files", async (req:
     for (let file of files) {
       await documentService.uploadDraftDocument(
         email,
-        student_id,
+        sub,
         application_id,
         file,
         requirement_type_id,
@@ -124,11 +160,12 @@ portalStudentRouter.post("/:student_id/draft/:application_id/files", async (req:
 });
 
 //uploads a document
-portalStudentRouter.post("/:student_id/application/:application_id/files", async (req: Request, res: Response) => {
-  const { student_id, application_id } = req.params;
+portalStudentRouter.post("/:sub/application/:application_id/files", async (req: Request, res: Response) => {
+  const { sub, application_id } = req.params;
   const { requirement_type_id, disability_requirement_id, person_id, dependent_id } = req.body;
 
-  let email = "michael@icefoganalytics.com"; //req.user.email;
+  let student = await studentService.getBySub(sub);
+  let email = student.email;
 
   if (req.files) {
     let files = Array.isArray(req.files.files) ? req.files.files : [req.files.files];
@@ -136,7 +173,7 @@ portalStudentRouter.post("/:student_id/application/:application_id/files", async
     for (let file of files) {
       await documentService.uploadApplicationDocument(
         email,
-        student_id,
+        sub,
         application_id,
         file,
         requirement_type_id,
