@@ -60,6 +60,7 @@ portalStudentRouter.post("/:sub", async (req: Request, res: Response) => {
   const { sub } = req.params;
   const { date_of_birth, first_name, last_name, sin, email } = req.body;
 
+  console.log("REQUEST TO CREATE STUDENT")
   let student = await studentService.getBySub(sub);
 
   if (!student) {
@@ -70,6 +71,7 @@ portalStudentRouter.post("/:sub", async (req: Request, res: Response) => {
 
     return res.json({ data: result });
   } else {
+    console.log("* STUDENT EXISTS FOR THIS SUB")
     res.json({ data: student });
   }
 });
@@ -79,8 +81,6 @@ portalStudentRouter.put("/:sub", async (req: Request, res: Response) => {
   const { email, telephone, address } = req.body;
 
   let student = await studentService.getBySub(sub);
-
-  console.log("SAVING STUDENT EDIT", address);
 
   let addressUpdate = {
     person_id: student.person_id,
