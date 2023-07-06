@@ -23,4 +23,7 @@ export interface IAssessmentCalculated {
     spouse_exemption_reason?: string;
     vehicle_deduction?: number;
     other_income?: number;
+    financial_investments?: number;
+    rrsp_student_gross?: number;
+    rrsp_spouse_gross?: number;
 }

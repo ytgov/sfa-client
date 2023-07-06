@@ -2988,3 +2988,74 @@ BEGIN
 	RETURN COALESCE(@count, 0);
 END;
 GO
+
+-- Get Investment Total Amount.
+CREATE OR ALTER FUNCTION sfa.fn_get_investment_total_amount(@application_id INT, @ownership_id INT, @is_rrsp BIT)
+RETURNS FLOAT(8)
+AS
+BEGIN 
+	DECLARE @amount FLOAT(8) = 0;
+	
+	SELECT
+		@amount = COALESCE(SUM(i.market_value),0)
+	FROM sfa.investment i 
+		INNER JOIN sfa.ownership o
+			ON i.ownership_id = o.id
+	WHERE i.application_id = @application_id 
+	AND i.market_value IS NOT NULL
+	AND i.is_rrsp = @is_rrsp
+	AND o.id = @ownership_id;
+	
+	RETURN COALESCE(@amount, 0);
+END;
+GO
+
+-- Get grant Amount
+CREATE OR ALTER FUNCTION sfa.fn_get_grant_amount(@application_id INT, @request_type_id INT)
+RETURNS FLOAT(8)
+AS
+BEGIN 
+	DECLARE @amount FLOAT(8) = 0;
+	
+	SELECT 
+		@amount = COALESCE(SUM(d.disbursed_amount), 0)
+	FROM sfa.disbursement d
+		INNER JOIN sfa.funding_request fr
+			ON d.funding_request_id = fr.id
+	WHERE fr.request_type_id = @request_type_id
+	AND fr.application_id = @application_id;
+	
+	RETURN COALESCE(@amount, 0);
+END;
+GO
+
+-- Get Income Threshold Amount.
+CREATE OR ALTER FUNCTION sfa.fn_get_income_threshold_amount(@family_size INT, @academic_year_id INT)
+RETURNS FLOAT(8)
+AS
+BEGIN 
+	DECLARE @amount FLOAT(8) = 0;
+	
+	SELECT 
+		@amount = COALESCE(SUM(ct.income_threshold), 0)
+	FROM sfa.csg_threshold ct
+	WHERE ct.academic_year_id = @academic_year_id
+	AND ct.family_size = @family_size
+		
+	RETURN COALESCE(@amount, 0);
+END;
+GO
+
+-- Get CSL Lookup Contrib Percentages
+CREATE OR ALTER FUNCTION sfa.fn_get_csl_lookup_contrib_pct(@academic_year_id INT)
+RETURNS TABLE
+AS
+RETURN
+SELECT
+	COALESCE(cl.student_contrib_percent, 0)/100 AS student_contrib_percent,
+	COALESCE(cl.spouse_contrib_percent, 0)/100 AS spouse_contrib_percent,
+	COALESCE(cl.low_income_student_contrib_amount, 0) AS low_income_student_contrib_amount,
+	COALESCE(cl.student_contrib_max_amount, 0) AS student_contrib_max_amount
+FROM sfa.csl_lookup cl
+WHERE cl.academic_year_id = @academic_year_id;
+GO

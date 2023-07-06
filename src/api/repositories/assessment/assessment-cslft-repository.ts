@@ -16,6 +16,8 @@ import { PersonRepository } from "../person";
 import {StandardOfLivingRepository} from "../standard_of_living";
 import { ParentRepository } from "../parent";
 import {DependentRepository} from "../dependent";
+import {InvestmentRepository} from "../investment";
+import {CsgThresholdRepository} from "../csg_threshold";
 
 export class AssessmentCslftRepository extends AssessmentBaseRepository {
 
@@ -36,6 +38,8 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
     private standardLivingRepo: StandardOfLivingRepository;
     private parentRepo: ParentRepository;
     private dependentRepo: DependentRepository;
+    private investmentRepo: InvestmentRepository;
+    private csgThresholdRepo: CsgThresholdRepository;
 
     // Globals
     private assessment: Partial<AssessmentDTO> = {};
@@ -67,6 +71,8 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
         this.standardLivingRepo = new StandardOfLivingRepository(maindb);
         this.parentRepo = new ParentRepository(maindb);
         this.dependentRepo = new DependentRepository(maindb);
+        this.investmentRepo = new InvestmentRepository(maindb);
+        this.csgThresholdRepo = new CsgThresholdRepository(maindb);
     }
 
     academicYearValidation = (year: number): boolean => {
@@ -130,6 +136,21 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
 
         // Get the study expenses.
         this.assessment.uncapped_costs_total = await this.getExpenseAmount(this.application.id, 2);
+
+        // Financial investments
+        const student_investment_total: number = await this.investmentRepo.getInvestmentTotalAmount(this.application.id, 1, false);
+        const spouse_investment_total: number = await this.investmentRepo.getInvestmentTotalAmount(this.application.id, 2, false);
+        this.assessment.financial_investments = student_investment_total + spouse_investment_total;
+
+        this.assessment.rrsp_student_gross = await this.investmentRepo.getInvestmentTotalAmount(this.application.id, 1, true);
+        this.assessment.rrsp_spouse_gross = await this.investmentRepo.getInvestmentTotalAmount(this.application.id, 2, true);
+        // Skip calculation of vehicle assessment. IS NOT BEING USED.
+
+        this.assessment.other_income = await this.getOtherIncomeAmount(this.application.id, this.application.academic_year_id);
+
+        const totalGrantAmount = await this.disbursementRepo.getTotalGrantAmount(this.application.id)
+        const grantAmount = await this.disbursementRepo.getGrantAmount(this.application.id, 30);
+        this.assessment.total_grant_awarded = totalGrantAmount - grantAmount;
     }
 
     async getContributionValues(): Promise<void> {
@@ -153,6 +174,19 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
         }
 
         const family_size = this.assessment.student_family_size > 7 ? 7 : this.assessment.student_family_size;
+        const income_threshold = await this.csgThresholdRepo.getIncomeThresholdAmount(this.application.academic_year_id, family_size);
+
+        const cslLookupContribTable = await this.cslLookupRepo.getContribPct(this.application.academic_year_id);
+
+        if (this.assessment.family_income <= income_threshold) {
+            this.assessment.student_expected_contribution = Math.round(Math.min(cslLookupContribTable.low_income_student_contrib_amount ?? 0, (((cslLookupContribTable.low_income_student_contrib_amount ?? 0) / (8*12/52)) * (this.assessment.study_weeks ?? 0))));
+        }
+        /**
+         * @todo Continue with else statement.
+         * @link https://docs.google.com/document/d/1aKyZJEr5bamxZc5vvT3LProGZpAmJ6QV/edit?pli=1#bookmark=id.yhhj36ygtwm8
+         */
+
+        await this.getContribDisplayValues();
     }
 
     async setIdGlobals(): Promise<void> {
