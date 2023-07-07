@@ -3059,3 +3059,95 @@ SELECT
 FROM sfa.csl_lookup cl
 WHERE cl.academic_year_id = @academic_year_id;
 GO
+
+-- Get Student previous contrib amount.
+CREATE OR ALTER FUNCTION sfa.fn_get_student_previous_contrib_amount(@assessment_id INT, @academic_year_id INT, @student_id INT)
+RETURNS FLOAT(8)
+AS 
+BEGIN
+	DECLARE  @amt FLOAT(8);
+
+	SELECT
+		@amt = COALESCE(SUM(a.student_contribution), 0)
+	FROM sfa.assessment a
+	WHERE a.id < @assessment_id
+	AND a.student_contrib_exempt <> 'Yes'
+	AND a.assessment_type_id IN (1,2)
+	AND a.id IN (
+		SELECT 
+			a2.id 
+		FROM sfa.assessment a2 
+			INNER JOIN sfa.funding_request fr
+				ON a2.funding_request_id = fr.id
+				AND fr.request_type_id IN (4,5)
+				AND fr.status_id IN (6,7)
+			INNER JOIN sfa.application a3
+				ON fr.application_id = a3.id
+				AND a3.student_id = @student_id
+				AND a3.academic_year_id = @academic_year_id
+	)
+	AND a.id IN (
+		SELECT
+			d.assessment_id 
+		FROM sfa.disbursement d 
+		WHERE (SELECT SUM(d2.disbursed_amount) FROM sfa.disbursement d2 WHERE d2.id = d.id GROUP BY d2.id) <> 0
+	)
+	AND a.id NOT IN (
+		SELECT
+			a4.id 
+		FROM sfa.assessment a4
+		WHERE a4.funding_request_id = a.funding_request_id 
+	);
+	
+	
+	
+    RETURN COALESCE(@amt, 0);
+
+END;
+GO
+
+-- Get Spouse previous contrib amount
+CREATE OR ALTER FUNCTION sfa.fn_get_spouse_previous_contrib_amount(@assessment_id INT, @academic_year_id INT, @student_id INT)
+RETURNS FLOAT(8)
+AS 
+BEGIN
+	DECLARE  @amt FLOAT(8);
+
+	SELECT
+		@amt = COALESCE(SUM(a.spouse_contribution), 0)
+	FROM sfa.assessment a
+	WHERE a.id < @assessment_id
+	AND a.spouse_contrib_exempt <> 'Yes'
+	AND a.assessment_type_id IN (1,2)
+	AND a.id IN (
+		SELECT 
+			a2.id 
+		FROM sfa.assessment a2 
+			INNER JOIN sfa.funding_request fr
+				ON a2.funding_request_id = fr.id
+				AND fr.request_type_id IN (4,5)
+				AND fr.status_id IN (6,7)
+			INNER JOIN sfa.application a3
+				ON fr.application_id = a3.id
+				AND a3.student_id = @student_id
+				AND a3.academic_year_id = @academic_year_id
+	)
+	AND a.id IN (
+		SELECT
+			d.assessment_id 
+		FROM sfa.disbursement d 
+		WHERE (SELECT SUM(d2.disbursed_amount) FROM sfa.disbursement d2 WHERE d2.id = d.id GROUP BY d2.id) <> 0
+	)
+	AND a.id NOT IN (
+		SELECT
+			a4.id 
+		FROM sfa.assessment a4
+		WHERE a4.funding_request_id = a.funding_request_id 
+	);
+	
+	
+	
+    RETURN COALESCE(@amt, 0);
+
+END;
+GO

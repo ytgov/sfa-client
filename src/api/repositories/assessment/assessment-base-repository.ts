@@ -62,4 +62,24 @@ export class AssessmentBaseRepository extends BaseRepository {
 
         return result;
     }
+
+    async getStudentPreviousContribAmount(assessment_id?: number, academic_year_id?: number, student_id?: number): Promise<number> {
+        let result = 0;
+
+        if (assessment_id && academic_year_id && student_id) {
+            result = await this.getScalarValue<number>("fn_get_student_previous_contrib_amount", [assessment_id, academic_year_id, student_id]);
+        }
+
+        return result;
+    }
+
+    async getSpousePreviousContribAmount(assessment_id?: number, academic_year_id?: number, student_id?: number): Promise<number> {
+        let result = 0;
+
+        if (assessment_id && academic_year_id && student_id) {
+            result = await this.getScalarValue<number>("fn_get_spouse_previous_contrib_amount", [assessment_id, academic_year_id, student_id]);
+        }
+
+        return result;
+    }
 }

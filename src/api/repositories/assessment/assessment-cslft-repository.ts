@@ -13,11 +13,12 @@ import { ChildCareCeilingRepository } from "../child_care_ceiling";
 import { TaxRateRepository } from "../tax_rate";
 import { FieldProgramRepository } from "../field_program";
 import { PersonRepository } from "../person";
-import {StandardOfLivingRepository} from "../standard_of_living";
+import { StandardOfLivingRepository } from "../standard_of_living";
 import { ParentRepository } from "../parent";
-import {DependentRepository} from "../dependent";
-import {InvestmentRepository} from "../investment";
-import {CsgThresholdRepository} from "../csg_threshold";
+import { DependentRepository } from "../dependent";
+import { InvestmentRepository } from "../investment";
+import { CsgThresholdRepository } from "../csg_threshold";
+import { NumbersHelper } from "../../utils/NumbersHelper";
 
 export class AssessmentCslftRepository extends AssessmentBaseRepository {
 
@@ -53,8 +54,12 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
     private study_period_id: number = 2;
     private prestudy_period_id: number = 1;
 
+    // Utils
+    private numHelper: NumbersHelper;
+
     constructor(maindb: Knex<any, unknown>) {
         super(maindb);
+        this.numHelper = new NumbersHelper();
         this.applicationRepo = new ApplicationRepository(maindb);
         this.studentRepo = new StudentRepository(maindb);
         this.studentLivingAllowanceRepo = new StudentLivingAllowanceRepository(maindb);
@@ -179,12 +184,29 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
         const cslLookupContribTable = await this.cslLookupRepo.getContribPct(this.application.academic_year_id);
 
         if (this.assessment.family_income <= income_threshold) {
-            this.assessment.student_expected_contribution = Math.round(Math.min(cslLookupContribTable.low_income_student_contrib_amount ?? 0, (((cslLookupContribTable.low_income_student_contrib_amount ?? 0) / (8*12/52)) * (this.assessment.study_weeks ?? 0))));
+            this.assessment.student_expected_contribution = this.numHelper.round(Math.min(cslLookupContribTable.low_income_student_contrib_amount ?? 0, (((cslLookupContribTable.low_income_student_contrib_amount ?? 0) / (8*12/52)) * (this.assessment.study_weeks ?? 0))));
         }
-        /**
-         * @todo Continue with else statement.
-         * @link https://docs.google.com/document/d/1aKyZJEr5bamxZc5vvT3LProGZpAmJ6QV/edit?pli=1#bookmark=id.yhhj36ygtwm8
-         */
+        else {
+            const weekly_student_contrib = ((cslLookupContribTable.low_income_student_contrib_amount ?? 0)/(8*12/52)) + ((((this.assessment.family_income ?? 0) - income_threshold)/(8*12/52))*(cslLookupContribTable.student_contrib_percent ?? 0));
+            const weekly_calc = (weekly_student_contrib * Math.min((this.assessment.study_weeks ?? 0), max_weeks)) ?? 0;
+            this.assessment.student_expected_contribution = this.numHelper.round(Math.min(weekly_calc, cslLookupContribTable.student_contrib_max_amount ?? 0));
+        }
+
+        this.assessment.student_previous_contribution = await this.getStudentPreviousContribAmount(this.assessment.id, this.application.academic_year_id, this.application.student_id);
+        this.assessment.student_contribution = this.assessment.student_contrib_exempt ? 0 : ((this.assessment.student_expected_contribution ?? 0) - (this.assessment.student_previous_contribution));
+
+        if (this.assessment.csl_classification === 3 && this.assessment.family_income > income_threshold) {
+            const weekly_spouse_contrib = (cslLookupContribTable.spouse_contrib_percent ?? 0) * (((this.assessment.family_income ?? 0) - income_threshold)/(8*12/52));
+            this.assessment.spouse_expected_contribution = this.numHelper.round(weekly_spouse_contrib * Math.min((this.assessment.study_weeks ?? 0), max_weeks));
+            this.assessment.spouse_previous_contribution = await this.getSpousePreviousContribAmount(this.assessment.id, this.application.academic_year_id, this.application.student_id);
+
+            this.assessment.spouse_contribution = this.assessment.spouse_contrib_exempt ? 0 : this.numHelper.round(((this.assessment.spouse_expected_contribution ?? 0) - (this.assessment.spouse_previous_contribution)));
+        }
+        else {
+            this.assessment.spouse_expected_contribution = 0;
+            this.assessment.spouse_previous_contribution = 0;
+            this.assessment.spouse_contribution = 0;
+        }
 
         await this.getContribDisplayValues();
     }
@@ -321,7 +343,7 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
             
             calc_x_trans = (this.assessment.study_distance ?? 0) * 2 * await this.cslLookupRepo.getMileageRate(this.application.academic_year_id) * (this.assessment.study_weeks ?? 0) * 5;
 
-            this.assessment.x_trans_total = Math.round(Math.min(max_x_trans, calc_x_trans));
+            this.assessment.x_trans_total = this.numHelper.round(Math.min(max_x_trans, calc_x_trans));
         }
 
         if (this.assessment.study_province_id !== this.assessment.prestudy_province_id) {
@@ -341,7 +363,7 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
             
                 calc_x_trans = (this.assessment.prestudy_distance ?? 0) * 2 * await this.cslLookupRepo.getMileageRate(this.application.academic_year_id) * (this.assessment.pstudy_weeks ?? 0) * 5; 
 
-                this.assessment.pstudy_x_trans_total = Math.round(Math.min(max_x_trans, calc_x_trans));
+                this.assessment.pstudy_x_trans_total = this.numHelper.round(Math.min(max_x_trans, calc_x_trans));
             }
 
             let prestudy_code: number | undefined = this.prestudy_code;
@@ -378,7 +400,7 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
                 this.assessment.parent_msol = await this.standardLivingRepo.getStandardLivingAmount(this.application.academic_year_id, mailing_address.province_id, this.assessment.family_size ?? 0);
 
                 if ((this.assessment.parent_discretionary_income ?? 0) > 0) {
-                    this.assessment.parent_weekly_contrib = await this.parentRepo.getParentContributionAmount(this.application.academic_year_id, Math.round(this.assessment.parent_discretionary_income ?? 0));
+                    this.assessment.parent_weekly_contrib = await this.parentRepo.getParentContributionAmount(this.application.academic_year_id, this.numHelper.round(this.assessment.parent_discretionary_income ?? 0));
                 }
             }
         }
