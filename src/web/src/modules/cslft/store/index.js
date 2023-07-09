@@ -1,5 +1,5 @@
 import axios from "axios";
-import { CSLFT_ASSESS_INFO } from "@/urls";
+import {CSL_LOOKUP, CSLFT_ASSESS_INFO} from "@/urls";
 import moment from "moment";
 import {NumbersHelper} from "@/utilities";
 import store from "@/store";
@@ -132,6 +132,28 @@ const state = {
         parent_msol: null,
         parent_discretionary_income: null,
         parent_weekly_contrib: null,
+    },
+    csl_lookup: {
+        id: null,
+        academic_year_id: null,
+        return_transport_max_amount: null,
+        allowable_weekly_amount: null,
+        student_exempt_amount: null,
+        vehicle_deduction_amount: null,
+        rrsp_deduction_yearly_amount: null,
+        relocation_max_amount: null,
+        mileage_rate: null,
+        discretionary_costs_max_amount: null,
+        merit_exempt_amount: null,
+        books_max_amount: null,
+        student_contrib_percent: null,
+        spouse_contrib_percent: null,
+        csg_8_month_amount: null,
+        csg_pt_yearly_amount: null,
+        low_income_student_contrib_amount: null,
+        student_contrib_max_amount: null,
+        csl_pt_max_amount: null,
+        csl_pt_wk_misc_amount: null,
     }
 };
 const mutations = {
@@ -140,6 +162,9 @@ const mutations = {
     },
     loadFundingRequest(state, funding_request) {
         state.funding_request = funding_request;
+    },
+    loadCslLookup(state, csl_lookup) {
+      state.csl_lookup = csl_lookup;
     },
     setTotalStudyCost(state, value) {
       state.cslft.total_study_cost = value;
@@ -170,6 +195,12 @@ const actions = {
         const res = await axios.get(`${CSLFT_ASSESS_INFO}/${funding_request_id}`);
         if (res?.data?.success) {
             state.commit("getCslftAssessInfo", res.data.data);
+        }
+    },
+    async getCslLookup(state, academic_year_id) {
+        const res = await axios.get(`${CSL_LOOKUP}/year/${academic_year_id}`);
+        if (res?.data?.success) {
+            state.commit("loadCslLookup", res.data.data);
         }
     },
     async setTotalStudyCost(state, value) {
@@ -289,6 +320,21 @@ const getters = {
         else {
             return Math.round(0);
         }
+    },
+    cslft_assess_needed(state, getters) {
+        return numHelper.round(Math.max(getters.cslft_study_cost_total - getters.cslft_get_resources_total, 0));
+    },
+    cslft_assess_needed_sixty_pct(state, getters) {
+        return numHelper.round(getters.cslft_assess_needed * 0.6);
+    },
+    cslft_max_allowable(state) {
+        return numHelper.round(numHelper.getNum(state.csl_lookup.allowable_weekly_amount) * state.cslft.study_weeks);
+    },
+    cslft_calculated_award(state, getters) {
+        return Math.max(0, numHelper.round(Math.min(getters.cslft_assess_needed_sixty_pct - numHelper.getNum(state.cslft.total_grant_awarded, getters.cslft_max_allowable))));
+    },
+    cslft_recovered_overaward(state) {
+        return 0;
     }
 };
 

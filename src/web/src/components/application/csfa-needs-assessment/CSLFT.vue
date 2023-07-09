@@ -148,6 +148,7 @@ export default {
     let storeApp = store.getters.selectedApplication;
     if (this.applicationId != storeApp.HISTORY_DETAIL_ID) {
       await store.dispatch("loadApplication", this.applicationId);
+      await store.dispatch("getCslLookup", this.application.academic_year_id);
     }
     store.dispatch("setAppSidebar", true);
     store.dispatch("getCslftAssessInfo", frId);

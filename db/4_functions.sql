@@ -3151,3 +3151,98 @@ BEGIN
 
 END;
 GO
+
+-- Get Assessment By Funding Request Id
+CREATE OR ALTER PROCEDURE sfa.sp_get_assessment_by_funding_request(@funding_request_id INT)
+AS
+BEGIN
+	SELECT 
+		a.*
+	FROM sfa.assessment a 
+	WHERE a.funding_request_id = @funding_request_id;
+END;
+GO
+
+-- Get Max Weekly Allowable Amount
+CREATE OR ALTER FUNCTION sfa.fn_get_max_weekly_allowable_amount(@academic_year_id INT)
+RETURNS FLOAT(8)
+AS 
+BEGIN
+	DECLARE  @amt FLOAT(8);
+
+	SELECT 
+		@amt = COALESCE(cl.allowable_weekly_amount, 0)
+	FROM sfa.csl_lookup cl
+	WHERE cl.academic_year_id = @academic_year_id
+		
+    RETURN COALESCE(@amt, 0);
+
+END;
+GO
+
+-- Get Csl Lookup By Year
+CREATE OR ALTER FUNCTION sfa.fn_get_csl_lookup_by_year(@academic_year_id INT)
+RETURNS TABLE
+AS
+RETURN
+SELECT TOP 1
+	*
+FROM sfa.csl_lookup cl
+WHERE cl.academic_year_id = @academic_year_id;
+GO
+
+-- Get Msfaa By Student Id
+CREATE OR ALTER PROCEDURE sfa.sp_get_msfaa_by_student_id(@student_id INT)
+AS
+BEGIN
+	SELECT 
+		m.*
+	FROM sfa.msfaa m 
+	WHERE m.student_id = @student_id
+	AND m.id = (
+		SELECT MAX(m2.id)
+		FROM sfa.msfaa m2
+		WHERE m2.student_id = m.student_id
+		AND m2.is_full_time = 1
+	);
+END;
+GO
+
+-- Get Msfaa Student Fulltime Count
+CREATE OR ALTER FUNCTION sfa.fn_get_msfaa_student_fulltime_count(@student_id INT)
+RETURNS INT
+AS
+BEGIN 
+	DECLARE @result INT = 0;
+
+	SELECT
+		@result = COALESCE(COUNT(m.id), 0)
+	FROM sfa.msfaa m
+	WHERE m.student_id = @student_id
+	AND m.is_full_time = 1;
+	
+	RETURN COALESCE(@result, 0);
+END;
+GO
+
+-- Get MSFAA application by student id
+CREATE OR ALTER PROCEDURE sfa.sp_get_msfaa_application_by_student_id(@student_id INT)
+AS
+BEGIN
+	SELECT 
+		m.id AS msfaa_id,
+		a.id AS application_id,
+		a.classes_end_date,
+		m.msfaa_status
+	FROM sfa.msfaa m
+		INNER JOIN sfa.application a
+			ON m.application_id = a.id
+	WHERE m.student_id = @student_id
+	AND m.id = (
+		SELECT MAX(m2.id)
+		FROM sfa.msfaa m2
+		WHERE m2.student_id = m.student_id
+		AND m2.is_full_time = 1
+	);
+END;
+GO

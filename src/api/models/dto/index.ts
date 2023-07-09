@@ -6,3 +6,5 @@ export * from "./FundingRequestDTO";
 export * from "./DisbursementDTO";
 export * from "./PersonAddressDTO";
 export * from "./CslLookupDTO";
+export * from "./CslReasonDTO";
+export * from "./MsfaaDTO";

@@ -306,19 +306,19 @@ export default {
       return store.getters.selectedApplication;
     },
     total_income: function() {
-      return Math.round(this.numHelper.getNum(this.cslft.parent1_income) + this.numHelper.getNum(this.cslft.parent2_income));
+      return this.numHelper.round(this.numHelper.getNum(this.cslft.parent1_income) + this.numHelper.getNum(this.cslft.parent2_income));
     },
     total_tax: function() {
-      return Math.round(this.numHelper.getNum(this.cslft.parent1_tax_paid) + this.numHelper.getNum(this.cslft.parent2_tax_paid));
+      return this.numHelper.round(this.numHelper.getNum(this.cslft.parent1_tax_paid) + this.numHelper.getNum(this.cslft.parent2_tax_paid));
     },
     net_income: function() {
-      return Math.round(this.total_income + this.total_tax);
+      return this.numHelper.round(this.total_income + this.total_tax);
     },
     calculated_parental_contribution: function() {
-      return Math.round(this.numHelper.getNum(this.cslft.parent_weekly_contrib) * this.numHelper.getNum(this.cslft.study_weeks) / this.numHelper.getNum(this.cslft.parent_ps_depend_count));
+      return this.numHelper.round(this.numHelper.getNum(this.cslft.parent_weekly_contrib) * this.numHelper.getNum(this.cslft.study_weeks) / this.numHelper.getNum(this.cslft.parent_ps_depend_count));
     },
     total_contribution: function() {
-      return Math.round(Math.max(this.numHelper.getNum(this.cslft.parent_contribution_override), this.numHelper.getNum(this.calculated_parental_contribution)));
+      return this.numHelper.round(Math.max(this.numHelper.getNum(this.cslft.parent_contribution_override), this.numHelper.getNum(this.calculated_parental_contribution)));
     }
   },
   async created() {

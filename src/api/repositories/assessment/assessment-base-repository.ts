@@ -1,10 +1,24 @@
 import { Knex } from "knex";
 import { BaseRepository } from "../base-repository";
 import { ScalarResult } from "models/repository";
+import { AssessmentDTO} from "models";
 
 export class AssessmentBaseRepository extends BaseRepository {
     constructor(maindb: Knex<any, unknown>) {
         super(maindb);
+    }
+
+    async getAssessmentByFundingRequestId(funding_request_id: number | undefined): Promise<AssessmentDTO> {
+        let assessment: Partial<AssessmentDTO> = {};
+
+        if (funding_request_id) {
+            const result = await this.mainDb.raw(`EXEC sfa.sp_get_assessment_by_funding_request @funding_request_id = ${funding_request_id}`);
+            if (Array.isArray(result) && result.length > 0) {
+                assessment = this.singleResult(result);
+            }
+        }
+
+        return assessment;
     }
 
     async getAssessmentInfoPrc(funding_request_id?: number): Promise<number | undefined> {
@@ -12,7 +26,6 @@ export class AssessmentBaseRepository extends BaseRepository {
         
         if (funding_request_id) {
             assessment_id = await this.getScalarValue<number>("fn_get_assessment_info_prc", [funding_request_id]);
-            console.log("Assessment Id: ", assessment_id);
         }
 
         return assessment_id;

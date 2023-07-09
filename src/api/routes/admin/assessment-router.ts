@@ -119,14 +119,14 @@ assessmentRouter.get("/cslft/assess-info/:id",
 [param("id").isInt().notEmpty()], ReturnValidationErrors, 
 async (req: Request, res: Response) => {
 
-    const assessmentClsftRepo = new AssessmentCslftRepository(db);
+    const assessmentCslftRepo = new AssessmentCslftRepository(db);
     const { id = undefined } = req.params;
     let results: Partial<AssessmentDTO> = {};
     
     try {
 
         if (id) {
-            results = await assessmentClsftRepo.getAssessInfoCslft(parseInt(id));
+            results = await assessmentCslftRepo.getAssessInfoCslft(parseInt(id));
         }
 
         if (Object.keys(results).length > 0) {
