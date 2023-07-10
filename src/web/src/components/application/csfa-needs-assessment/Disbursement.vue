@@ -172,7 +172,7 @@
 
             <div v-for="item, index in previewDisbursementList" :key="index">
               
-              <div class="col-xs-12 col-sm-12 col-lg-12 d-flex noppading-bottom">
+              <!-- <div class="col-xs-12 col-sm-12 col-lg-12 d-flex noppading-bottom">
                 <div class="col-xs-12 col-sm-12 col-lg-12 nopadding d-flex align-end justify-end">
                   <v-btn 
                       color="warning ml-5" 
@@ -184,10 +184,10 @@
                     <v-icon>mdi-close</v-icon>
                   </v-btn>
                 </div>
-              </div>
+              </div> -->
 
               <div class="col-xs-12 col-sm-12 col-lg-12 d-flex low-margin noppading-top">
-                  <div class="col-xs-2 col-sm-2 col-lg-2 nopadding">
+                  <div class="col-xs-1 col-sm-1 col-lg-1 nopadding">
                       <v-text-field outlined dense background-color="white" hide-details 
                           @keypress="validate.isNumber($event)" v-model="item.disbursed_amount" @change=" e => {
                             $emit('blockDisburse', true);
@@ -281,7 +281,17 @@
                       <v-text-field outlined dense background-color="white" hide-details
                           @keypress="validate.isNumber($event)" v-model="item.financial_batch_id" ></v-text-field>
                   </div>
-                  
+                  <div class="col-xs-1 col-sm-1 col-lg-1 nopadding d-flex align-end justify-end">
+                    <v-btn 
+                        color="warning ml-5" 
+                        x-small 
+                        fab 
+                        class="my-1" 
+                        @click="cancelDisbursement(index)"
+                        >
+                      <v-icon>mdi-close</v-icon>
+                    </v-btn>
+                  </div>
               </div>
           </div>
           
