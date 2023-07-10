@@ -108,7 +108,7 @@ portalStudentRouter.put("/:sub", async (req: Request, res: Response) => {
 
 portalStudentRouter.post("/:sub/link", async (req: Request, res: Response) => {
   const { sub } = req.params;
-  const { sin, date_of_birth, first_name, last_name, email_address, home_phone, home_postal, portal_id } = req.body;
+  const { sin, date_of_birth, first_name, last_name, email_address, home_phone, home_postal, year_completed } = req.body;
 
   let student = await studentService.getBySub(sub);
 
@@ -121,7 +121,7 @@ portalStudentRouter.post("/:sub/link", async (req: Request, res: Response) => {
       email_address,
       home_phone,
       home_postal,
-      portal_id,
+      year_completed,
       sub
     );
 

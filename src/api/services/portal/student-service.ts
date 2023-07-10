@@ -39,7 +39,7 @@ export class PortalStudentService {
 
     let person = await db("person").withSchema(schema).insert(student).returning("*");
 
-    console.log("* PERSON CREATED", person)
+    console.log("* PERSON CREATED", person);
 
     if (person && person[0].id) {
       let studentCr = {
@@ -49,13 +49,12 @@ export class PortalStudentService {
         is_active: true,
       } as Student_Create;
 
-
       let newStudent = await db("student").withSchema(schema).insert(studentCr).returning("*");
-      console.log("* STUDENT CREATED", newStudent)
+      console.log("* STUDENT CREATED", newStudent);
 
       if (newStudent && newStudent[0].id) {
         await db("student_auth").withSchema(schema).insert({ student_id: newStudent[0].id, sub });
-        console.log("* PERSON LINKED TO AUTH AND STUDENT")
+        console.log("* PERSON LINKED TO AUTH AND STUDENT");
       }
 
       return newStudent[0];
@@ -72,7 +71,7 @@ export class PortalStudentService {
     email_address: string,
     home_phone: string,
     home_postal: string,
-    portal_id: string,
+    year_completed: string,
     sub: string
   ): Promise<boolean> {
     let sinMatch = (
@@ -105,7 +104,18 @@ export class PortalStudentService {
         .distinct()
     ).map((i) => i.id);
 
-    //let portalMatch = await db("person").withSchema(schema).where({ portal_id });
+    if (year_completed) {
+      year_completed = year_completed.substring(0, 4);
+    }
+
+    let yearMatch = (
+      await db("person")
+        .withSchema(schema)
+        .innerJoin("student", "student.person_id", "person.id")
+        .where({ high_school_left_year: year_completed })
+        .select("student.id")
+        .distinct()
+    ).map((i) => i.id);
 
     let phoneMatch = (
       await db("person")
@@ -138,7 +148,14 @@ export class PortalStudentService {
     ).map((i) => i.id);
 
     if (sinMatch.length == 0) {
-      let fullList = [nameMatch, dobMatch, phoneMatch.length > 20 ? [] : phoneMatch, postalMatch, emailMatch];
+      let fullList = [
+        nameMatch,
+        dobMatch,
+        phoneMatch.length > 20 ? [] : phoneMatch,
+        postalMatch,
+        emailMatch,
+        yearMatch,
+      ];
       let flat = fullList.flatMap((e) => e);
       let counts = countBy(flat);
       let flatCount = Object.entries(counts).map(([key, val]) => ({ key, val }));
