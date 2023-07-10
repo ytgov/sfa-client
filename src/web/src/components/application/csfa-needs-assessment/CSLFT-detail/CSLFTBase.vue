@@ -36,7 +36,7 @@
                       <template v-slot:activator="{ on, attrs }">
                         <v-text-field
                           :disabled="showAdd"
-                          v-model="cslft.assessed_date"
+                          v-model="cslft_assessed_date_formatted"
                           label="Assessed Date"
                           append-icon="mdi-calendar"
                           hide-details
@@ -509,7 +509,7 @@ import moment from "moment";
 export default {
   name: "cslft-base",
   computed: {
-    ...mapGetters(["cslClassifications", "accommodationTypes", "maritalStatusList", "studyAreas", "provinces", "assessmentTypes", "programs",]),
+    ...mapGetters(["cslClassifications", "accommodationTypes", "maritalStatusList", "studyAreas", "provinces", "assessmentTypes", "programs", "cslft_assessed_date_formatted"]),
     ...mapState({
       cslft: state => state.cslft.cslft
     }),

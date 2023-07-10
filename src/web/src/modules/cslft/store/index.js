@@ -169,6 +169,9 @@ const mutations = {
     setTotalStudyCost(state, value) {
       state.cslft.total_study_cost = value;
     },
+    setCslftAssessedDate(state, value) {
+        state.cslft.assessed_date = moment(value).format();
+    },
     setCslftClassesStartDate(state, value) {
         state.cslft.classes_start_date = moment(value).format();
     },
@@ -195,6 +198,13 @@ const actions = {
         const res = await axios.get(`${CSLFT_ASSESS_INFO}/${funding_request_id}`);
         if (res?.data?.success) {
             state.commit("getCslftAssessInfo", res.data.data);
+        }
+    },
+    async getCslftRecalc({ commit, getters }) {
+        const assessment = getters.cslft_get_assessment;
+        const res = await axios.get(`${CSLFT}/${assessment.funding_request_id}/recalc`);
+        if (res?.data?.success) {
+            commit("getCslftAssessInfo", res.data.data);
         }
     },
     async saveCslftAssessment({ getters }, vm) {
@@ -243,6 +253,9 @@ const actions = {
     async setClsftFieldDate(state, name, value) {
         if (value) {
             switch (name) {
+                case "assessed_date":
+                    state.commit("setCslftAssessedDate", value);
+                    break;
                 case "classes_start_date":
                     state.commit("setCslftClassesStartDate", value);
                     break;
@@ -264,7 +277,13 @@ const actions = {
 };
 const getters = {
     cslft_get_assessment(state) {
-      return state.cslft;w
+      return state.cslft;
+    },
+    cslft_assessed_date_formatted (state) {
+        if (state.cslft.assessed_date) {
+            return moment(state.cslft.assessed_date).format("YYYY-MM-DD");
+        }
+        return state.cslft.assessed_date;
     },
     cslft_classes_start_date_formatted (state) {
         if (state.cslft.classes_start_date) {

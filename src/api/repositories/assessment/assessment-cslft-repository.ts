@@ -215,8 +215,6 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
             this.assessment.student_expected_contribution = this.numHelper.round(Math.min(weekly_calc, cslLookupContribTable.student_contrib_max_amount ?? 0));
         }
 
-        console.log(this.assessment.student_expected_contribution);
-
         this.assessment.student_previous_contribution = await this.getStudentPreviousContribAmount(this.assessment.id, this.application.academic_year_id, this.application.student_id);
         this.assessment.student_contribution = this.assessment.student_contrib_exempt ? 0 : ((this.assessment.student_expected_contribution ?? 0) - (this.assessment.student_previous_contribution));
 
@@ -276,16 +274,22 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
         this.prestudy_code = assignCode(this.assessment.prestudy_csl_classification ?? 0, this.assessment.prestudy_accom_code ?? 0);
     }
 
-    async getAssessInfoCslft(funding_request_id?: number): Promise<AssessmentDTO> {
-
-        let assess_id: number | undefined = undefined;        
-
+    async loadData(funding_request_id: number): Promise<void> {
         if (funding_request_id) {
             this.funding_request = await this.fundingRequestRepo.getFundingRequestById(funding_request_id);
             this.application = await this.applicationRepo.getApplicationByFundingRequestId(funding_request_id);
             this.student = await this.studentRepo.getStudentById(this.application.student_id);
             this.assessment = await this.getAssessmentByFundingRequestId(funding_request_id);
             this.msfaa = await this.msfaaRepo.getMsfaaByStudentId(this.student.id);
+        }
+    }
+
+    async getAssessInfoCslft(funding_request_id?: number): Promise<AssessmentDTO> {
+
+        let assess_id: number | undefined = undefined;        
+
+        if (funding_request_id) {
+            await this.loadData(funding_request_id);
             if (!this.assessment.id) {
                 const assess_count = await this.getAssessmentCount(funding_request_id);
             
@@ -824,7 +828,47 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
 
     }
 
-    async saveAssessment(assessment: AssessmentDTO): Promise<void> {
-        console.log(assessment);
+    async executeRecalc(funding_request_id: number): Promise<AssessmentDTO> {
+
+        await this.loadData(funding_request_id);
+        await this.getNewInfo();
+
+        await this.setIdGlobals();
+
+        if (!this.assessment.program_id && !this.assessment.study_area_id) {
+            this.assessment.field_program_code = await this.fieldProgramRepo.getFieldProgramCode(this.assessment.study_area_id, this.assessment.program_id);
+        }
+
+        this.assessment.recovered_overaward = await this.getCslOveraward(this.application.student_id, this.assessment.id);
+
+        const assess_id = (((this.assessment_id ?? 0) < (this.assess_id ?? 0) && !this.assessment.id) || this.assess_id === 0) ? this.assessment_id : this.assess_id;
+
+        const disbursed_amt = await this.disbursementRepo.getDisbursedAmount(funding_request_id, assess_id);
+        this.assessment.previous_disbursement = disbursed_amt > 0 ? disbursed_amt : 0;
+
+        this.assessment.previous_cert = await this.disbursementRepo.getPreviousDisbursedAmount(funding_request_id, this.assessment.id);
+
+        await this.getLookupValues(funding_request_id);
+
+        await this.getCalculatedValues();
+
+        await this.getContributionValues();
+
+        return this.assessment;
+    }
+
+    async insertAssessment(assessment: AssessmentDTO): Promise<any[]> {
+        const filtered = this.getAssessmentTable(assessment);
+        return this.mainDb(this.mainTable).insert(filtered).returning("*");
+    }
+
+    async updateAssessment(id: number, assessment: AssessmentDTO): Promise<any[]> {
+        const filtered = this.getAssessmentTable(assessment);
+        return this.mainDb(this.mainTable)
+            .update(filtered)
+            .where({
+                id: id
+            })
+            .returning("*");
     }
 }

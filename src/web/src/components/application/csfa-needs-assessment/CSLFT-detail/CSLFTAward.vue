@@ -125,6 +125,7 @@
                         color="blue" 
                         class="my-0"
                         block
+                        @click="executeRecalc"
                       >
                       RE-CALC
                     </v-btn>
@@ -447,6 +448,11 @@ export default {
     application: function () {
       return store.getters.selectedApplication;
     }
+  },
+  methods: {
+    executeRecalc() {
+      store.dispatch("getCslftRecalc");
+    },
   },
   async created() {
     this.validate = validator;

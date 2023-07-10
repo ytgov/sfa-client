@@ -4,6 +4,8 @@ import { ScalarResult } from "models/repository";
 import { AssessmentDTO} from "models";
 
 export class AssessmentBaseRepository extends BaseRepository {
+    protected mainTable = "sfa.assessment";
+
     constructor(maindb: Knex<any, unknown>) {
         super(maindb);
     }

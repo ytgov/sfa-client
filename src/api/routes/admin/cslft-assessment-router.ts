@@ -47,8 +47,7 @@ assessmentCslftRouter.post("/",
         };
 
         try {
-            const filtered = assessmentRepo.getAssessmentTable(newApp);
-            const newRow = await db(mainTable).insert(filtered).returning("*");
+            const newRow = await assessmentRepo.insertAssessment(newApp);
 
             if (newRow && newRow.length == 1) {
                 return res.json({ data: { id: newRow[0].id }, messages: [{ text: "Assessment created", variant: "success" }] });
@@ -64,10 +63,10 @@ assessmentCslftRouter.post("/",
 );
 
 assessmentCslftRouter.put("/:id",
-    [param("id").notEmpty(), body("assessment").notEmpty()], ReturnValidationErrors,
+    [param("id").isInt().notEmpty(), body("assessment").notEmpty()], ReturnValidationErrors,
     async (req: Request, res: Response) => {
         const { ...assessment } = req.body.assessment;
-        const id = req.params.id;
+        const id: number = parseInt(req.params.id);
 
         const assessmentRepo = new AssessmentCslftRepository(db);
         let newApp: AssessmentDTO = {
@@ -75,13 +74,7 @@ assessmentCslftRouter.put("/:id",
         };
 
         try {
-            const filtered = assessmentRepo.getAssessmentTable(newApp);
-            const updateRow = await db(mainTable)
-                .update(filtered)
-                .where({
-                    id: id
-                })
-                .returning("*");
+            const updateRow = await assessmentRepo.updateAssessment(id, newApp);
 
             if (updateRow && updateRow.length == 1) {
                 return res.json({ data: { id: updateRow[0].id }, messages: [{ text: "Assessment updated", variant: "success" }] });
@@ -92,6 +85,32 @@ assessmentCslftRouter.put("/:id",
         catch (err) {
             console.log(err);
             return res.json({ messages: [{ text: `Saved failed`, variant: "error" }] })
+        }
+    }
+);
+
+assessmentCslftRouter.get("/:funding_request_id/recalc",
+    [param("funding_request_id").isInt().notEmpty()], ReturnValidationErrors,
+    async (req: Request, res: Response) => {
+        const assessmentCslftRepo = new AssessmentCslftRepository(db);
+        const { funding_request_id = undefined } = req.params;
+        let results: Partial<AssessmentDTO> = {};
+
+        try {
+
+            if (funding_request_id) {
+                results = await assessmentCslftRepo.executeRecalc(parseInt(funding_request_id));
+            }
+
+            if (Object.keys(results).length > 0) {
+                return res.status(200).json({ success: true, data: results, });
+            } else {
+                return res.status(404).send();
+            }
+
+        } catch (error: any) {
+            console.log(error);
+            return res.status(404).send();
         }
     }
 );
