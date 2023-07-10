@@ -2318,7 +2318,7 @@ END;
 GO
 
 -- Get student category id by code.
-CREATE OR ALTER FUNCTION sfa.fn_get_student_category_code(@student_category_code VARCHAR(10))
+CREATE OR ALTER FUNCTION sfa.fn_get_student_category_id(@student_category_code VARCHAR(10))
 RETURNS VARCHAR(10)
 AS
 BEGIN 
@@ -2905,6 +2905,346 @@ BEGIN
 	AND @discretionary_amount BETWEEN pcf.income_from_amount AND pcf.income_to_amount;
 
     RETURN COALESCE(@amount, 0);
+END;
+GO
+
+-- Get Income Amount
+CREATE OR ALTER FUNCTION sfa.fn_get_other_income_amount(@application_id INT, @academic_year_id INT)
+RETURNS FLOAT(8)
+AS
+BEGIN 
+	DECLARE @amount FLOAT(8) = 0;
+	DECLARE @exempt FLOAT(8) = 0;
+
+	SELECT 
+		@exempt = @exempt + COALESCE(SUM(i.amount), 0)
+	FROM sfa.income i 
+		INNER JOIN sfa.income_type it
+			ON it.id = i.income_type_id
+	WHERE i.application_id = @application_id
+	AND it.id = 16
+	AND i.amount IS NOT NULL
+	AND it.assess_as_asset = 1;
+
+	IF @academic_year_id >= 2004
+	BEGIN
+		
+		SELECT
+			@exempt = CASE WHEN (@exempt - COALESCE(cl.merit_exempt_amount,0)) > 0 THEN (@exempt - COALESCE(cl.merit_exempt_amount,0)) ELSE 0 END
+		FROM sfa.csl_lookup cl
+		WHERE cl.academic_year_id = @academic_year_id;
+		
+	END	
+
+	SELECT 
+		@amount = COALESCE(SUM(i.amount), 0)
+	FROM sfa.income i 
+		INNER JOIN sfa.income_type it
+			ON it.id = i.income_type_id
+	WHERE i.application_id = @application_id
+	AND it.id <> 16
+	AND i.amount IS NOT NULL
+	AND it.assess_as_asset = 1;
+
+	
+	RETURN COALESCE(@amount, 0) + @exempt;
+END;
+GO
+
+-- Get Expense Amount
+CREATE OR ALTER FUNCTION sfa.fn_get_expense_amount(@application_id INT, @period_id INT)
+RETURNS FLOAT(8)
+AS
+BEGIN 
+	DECLARE @amount FLOAT(8) = 0;
+	
+	SELECT 
+		@amount = COALESCE(SUM(e.amount),0)
+	FROM sfa.expense e
+	WHERE e.application_id = @application_id
+	AND e.period_id = @period_id;
+	
+	RETURN COALESCE(@amount, 0);
+END;
+GO
+
+-- Get CSL Dependent Count
+CREATE OR ALTER FUNCTION sfa.fn_get_csl_dependent_count(@application_id INT)
+RETURNS INT
+AS
+BEGIN 
+	DECLARE @count INT = 0;
+	
+	SELECT 
+		@count = COALESCE(COUNT(d.id), 0)
+	FROM sfa.dependent d
+		INNER JOIN sfa.application a
+			ON d.student_id = a.student_id
+		INNER JOIN sfa.dependent_eligibility de
+			ON de.dependent_id = d.id
+			AND de.application_id = a.id
+			AND de.is_csl_eligible = 1
+	WHERE a.id = @application_id;
+
+	RETURN COALESCE(@count, 0);
+END;
+GO
+
+-- Get Investment Total Amount.
+CREATE OR ALTER FUNCTION sfa.fn_get_investment_total_amount(@application_id INT, @ownership_id INT, @is_rrsp BIT)
+RETURNS FLOAT(8)
+AS
+BEGIN 
+	DECLARE @amount FLOAT(8) = 0;
+	
+	SELECT
+		@amount = COALESCE(SUM(i.market_value),0)
+	FROM sfa.investment i 
+		INNER JOIN sfa.ownership o
+			ON i.ownership_id = o.id
+	WHERE i.application_id = @application_id 
+	AND i.market_value IS NOT NULL
+	AND i.is_rrsp = @is_rrsp
+	AND o.id = @ownership_id;
+	
+	RETURN COALESCE(@amount, 0);
+END;
+GO
+
+-- Get grant Amount
+CREATE OR ALTER FUNCTION sfa.fn_get_grant_amount(@application_id INT, @request_type_id INT)
+RETURNS FLOAT(8)
+AS
+BEGIN 
+	DECLARE @amount FLOAT(8) = 0;
+	
+	SELECT 
+		@amount = COALESCE(SUM(d.disbursed_amount), 0)
+	FROM sfa.disbursement d
+		INNER JOIN sfa.funding_request fr
+			ON d.funding_request_id = fr.id
+	WHERE fr.request_type_id = @request_type_id
+	AND fr.application_id = @application_id;
+	
+	RETURN COALESCE(@amount, 0);
+END;
+GO
+
+-- Get Income Threshold Amount.
+CREATE OR ALTER FUNCTION sfa.fn_get_income_threshold_amount(@family_size INT, @academic_year_id INT)
+RETURNS FLOAT(8)
+AS
+BEGIN 
+	DECLARE @amount FLOAT(8) = 0;
+	
+	SELECT 
+		@amount = COALESCE(SUM(ct.income_threshold), 0)
+	FROM sfa.csg_threshold ct
+	WHERE ct.academic_year_id = @academic_year_id
+	AND ct.family_size = @family_size
+		
+	RETURN COALESCE(@amount, 0);
+END;
+GO
+
+-- Get CSL Lookup Contrib Percentages
+CREATE OR ALTER FUNCTION sfa.fn_get_csl_lookup_contrib_pct(@academic_year_id INT)
+RETURNS TABLE
+AS
+RETURN
+SELECT
+	COALESCE(cl.student_contrib_percent, 0)/100 AS student_contrib_percent,
+	COALESCE(cl.spouse_contrib_percent, 0)/100 AS spouse_contrib_percent,
+	COALESCE(cl.low_income_student_contrib_amount, 0) AS low_income_student_contrib_amount,
+	COALESCE(cl.student_contrib_max_amount, 0) AS student_contrib_max_amount
+FROM sfa.csl_lookup cl
+WHERE cl.academic_year_id = @academic_year_id;
+GO
+
+-- Get Student previous contrib amount.
+CREATE OR ALTER FUNCTION sfa.fn_get_student_previous_contrib_amount(@assessment_id INT, @academic_year_id INT, @student_id INT)
+RETURNS FLOAT(8)
+AS 
+BEGIN
+	DECLARE  @amt FLOAT(8);
+
+	SELECT
+		@amt = COALESCE(SUM(a.student_contribution), 0)
+	FROM sfa.assessment a
+	WHERE a.id < @assessment_id
+	AND a.student_contrib_exempt <> 'Yes'
+	AND a.assessment_type_id IN (1,2)
+	AND a.id IN (
+		SELECT 
+			a2.id 
+		FROM sfa.assessment a2 
+			INNER JOIN sfa.funding_request fr
+				ON a2.funding_request_id = fr.id
+				AND fr.request_type_id IN (4,5)
+				AND fr.status_id IN (6,7)
+			INNER JOIN sfa.application a3
+				ON fr.application_id = a3.id
+				AND a3.student_id = @student_id
+				AND a3.academic_year_id = @academic_year_id
+	)
+	AND a.id IN (
+		SELECT
+			d.assessment_id 
+		FROM sfa.disbursement d 
+		WHERE (SELECT SUM(d2.disbursed_amount) FROM sfa.disbursement d2 WHERE d2.id = d.id GROUP BY d2.id) <> 0
+	)
+	AND a.id NOT IN (
+		SELECT
+			a4.id 
+		FROM sfa.assessment a4
+		WHERE a4.funding_request_id = a.funding_request_id 
+	);
+	
+	
+	
+    RETURN COALESCE(@amt, 0);
+
+END;
+GO
+
+-- Get Spouse previous contrib amount
+CREATE OR ALTER FUNCTION sfa.fn_get_spouse_previous_contrib_amount(@assessment_id INT, @academic_year_id INT, @student_id INT)
+RETURNS FLOAT(8)
+AS 
+BEGIN
+	DECLARE  @amt FLOAT(8);
+
+	SELECT
+		@amt = COALESCE(SUM(a.spouse_contribution), 0)
+	FROM sfa.assessment a
+	WHERE a.id < @assessment_id
+	AND a.spouse_contrib_exempt <> 'Yes'
+	AND a.assessment_type_id IN (1,2)
+	AND a.id IN (
+		SELECT 
+			a2.id 
+		FROM sfa.assessment a2 
+			INNER JOIN sfa.funding_request fr
+				ON a2.funding_request_id = fr.id
+				AND fr.request_type_id IN (4,5)
+				AND fr.status_id IN (6,7)
+			INNER JOIN sfa.application a3
+				ON fr.application_id = a3.id
+				AND a3.student_id = @student_id
+				AND a3.academic_year_id = @academic_year_id
+	)
+	AND a.id IN (
+		SELECT
+			d.assessment_id 
+		FROM sfa.disbursement d 
+		WHERE (SELECT SUM(d2.disbursed_amount) FROM sfa.disbursement d2 WHERE d2.id = d.id GROUP BY d2.id) <> 0
+	)
+	AND a.id NOT IN (
+		SELECT
+			a4.id 
+		FROM sfa.assessment a4
+		WHERE a4.funding_request_id = a.funding_request_id 
+	);
+	
+	
+	
+    RETURN COALESCE(@amt, 0);
+
+END;
+GO
+
+-- Get Assessment By Funding Request Id
+CREATE OR ALTER PROCEDURE sfa.sp_get_assessment_by_funding_request(@funding_request_id INT)
+AS
+BEGIN
+	SELECT 
+		a.*
+	FROM sfa.assessment a 
+	WHERE a.funding_request_id = @funding_request_id;
+END;
+GO
+
+-- Get Max Weekly Allowable Amount
+CREATE OR ALTER FUNCTION sfa.fn_get_max_weekly_allowable_amount(@academic_year_id INT)
+RETURNS FLOAT(8)
+AS 
+BEGIN
+	DECLARE  @amt FLOAT(8);
+
+	SELECT 
+		@amt = COALESCE(cl.allowable_weekly_amount, 0)
+	FROM sfa.csl_lookup cl
+	WHERE cl.academic_year_id = @academic_year_id
+		
+    RETURN COALESCE(@amt, 0);
+
+END;
+GO
+
+-- Get Csl Lookup By Year
+CREATE OR ALTER FUNCTION sfa.fn_get_csl_lookup_by_year(@academic_year_id INT)
+RETURNS TABLE
+AS
+RETURN
+SELECT TOP 1
+	*
+FROM sfa.csl_lookup cl
+WHERE cl.academic_year_id = @academic_year_id;
+GO
+
+-- Get Msfaa By Student Id
+CREATE OR ALTER PROCEDURE sfa.sp_get_msfaa_by_student_id(@student_id INT)
+AS
+BEGIN
+	SELECT 
+		m.*
+	FROM sfa.msfaa m 
+	WHERE m.student_id = @student_id
+	AND m.id = (
+		SELECT MAX(m2.id)
+		FROM sfa.msfaa m2
+		WHERE m2.student_id = m.student_id
+		AND m2.is_full_time = 1
+	);
+END;
+GO
+
+-- Get Msfaa Student Fulltime Count
+CREATE OR ALTER FUNCTION sfa.fn_get_msfaa_student_fulltime_count(@student_id INT)
+RETURNS INT
+AS
+BEGIN 
+	DECLARE @result INT = 0;
+
+	SELECT
+		@result = COALESCE(COUNT(m.id), 0)
+	FROM sfa.msfaa m
+	WHERE m.student_id = @student_id
+	AND m.is_full_time = 1;
+	
+	RETURN COALESCE(@result, 0);
+END;
+GO
+
+-- Get MSFAA application by student id
+CREATE OR ALTER PROCEDURE sfa.sp_get_msfaa_application_by_student_id(@student_id INT)
+AS
+BEGIN
+	SELECT 
+		m.id AS msfaa_id,
+		a.id AS application_id,
+		a.classes_end_date,
+		m.msfaa_status
+	FROM sfa.msfaa m
+		INNER JOIN sfa.application a
+			ON m.application_id = a.id
+	WHERE m.student_id = @student_id
+	AND m.id = (
+		SELECT MAX(m2.id)
+		FROM sfa.msfaa m2
+		WHERE m2.student_id = m.student_id
+		AND m2.is_full_time = 1
+	);
 END;
 GO
 

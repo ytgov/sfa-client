@@ -7,6 +7,9 @@ yarn-error.log*
 lerna-debug.log*
 .DS_Store
 
+# IDE settings
+.idea
+
 # Development database
 db/backups
 db/data

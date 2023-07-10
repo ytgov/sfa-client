@@ -15,7 +15,8 @@
                       hide-details
                       label="Total Study Cost"
                       @keypress="validate.isNumber($event)"
-                      v-model="total_study_cost"
+                      :disabled="isTotal"
+                      v-model="cslft_study_cost_total"
                     ></v-text-field>
                   </div>
                   <div class="col-xs-12 col-lg-12">
@@ -26,7 +27,8 @@
                       hide-details
                       label="Total Resources"
                       @keypress="validate.isNumber($event)"
-                      v-model="total_resources"
+                      :disabled="isTotal"
+                      v-model="cslft_get_resources_total"
                     ></v-text-field>
                   </div>
                   <div class="col-xs-12 col-lg-12">
@@ -37,7 +39,8 @@
                       hide-details
                       label="Assessed Need"
                       @keypress="validate.isNumber($event)"
-                      v-model="assessed_need"
+                      :disabled="isTotal"
+                      v-model="cslft_assess_needed"
                     ></v-text-field>
                   </div>
                   <div class="col-xs-12 col-lg-12">
@@ -48,7 +51,8 @@
                       hide-details
                       label="60% of Assessed Need"
                       @keypress="validate.isNumber($event)"
-                      v-model="sixty_percent_assessed_need"
+                      :disabled="isTotal"
+                      v-model="cslft_assess_needed_sixty_pct"
                     ></v-text-field>
                   </div>
                 </div>
@@ -64,7 +68,7 @@
                       hide-details
                       label="Total Grant"
                       @keypress="validate.isNumber($event)"
-                      v-model="total_grant"
+                      v-model="cslft.total_grant_awarded"
                     ></v-text-field>
                   </div>
                 </div>
@@ -82,7 +86,8 @@
                       hide-details
                       label="Max. Allowable"
                       @keypress="validate.isNumber($event)"
-                      v-model="max_allowable"
+                      :disabled="isTotal"
+                      v-model="cslft_max_allowable"
                     ></v-text-field>
                   </div>
                 </div>
@@ -100,7 +105,8 @@
                       hide-details
                       label="Calculated Award"
                       @keypress="validate.isNumber($event)"
-                      v-model="calculated_award"
+                      :disabled="isTotal"
+                      v-model="cslft_calculated_award"
                     ></v-text-field>
                   </div>
                 </div>
@@ -119,6 +125,7 @@
                         color="blue" 
                         class="my-0"
                         block
+                        @click="executeRecalc"
                       >
                       RE-CALC
                     </v-btn>
@@ -139,7 +146,7 @@
                       hide-details
                       label="Requested Amount"
                       @keypress="validate.isNumber($event)"
-                      v-model="requested_amount"
+                      v-model="cslft.csl_request_amount"
                     ></v-text-field>
                   </div>
                   <div class="col-xs-12 col-lg-12">
@@ -150,7 +157,8 @@
                       hide-details
                       label="Outstanding Overaward"
                       @keypress="validate.isNumber($event)"
-                      v-model="outstanding_overaward"
+                      :disabled="isTotal"
+                      v-model="cslft.recovered_overaward"
                     ></v-text-field>
                   </div>
                 </div>
@@ -170,7 +178,7 @@
                       hide-details
                       label="Returned/Uncashable Cert"
                       @keypress="validate.isNumber($event)"
-                      v-model="returned_uncashable_cert"
+                      v-model="cslft.returned_uncashable_cert"
                     ></v-text-field>
                   </div>
                 </div>
@@ -186,7 +194,8 @@
                       hide-details
                       label="Actual Award"
                       @keypress="validate.isNumber($event)"
-                      v-model="actual_award"
+                      :disabled="isTotal"
+                      v-model="cslft.assessed_amount"
                     ></v-text-field>
                   </div>
                 </div>
@@ -223,9 +232,10 @@
                       background-color="white"
                       hide-details
                       label="Non-Award Reason"
-                      v-model="assessed_type"
-                      item-text="DESCRIPTION"
-                      item-value="REQUEST_TYPE_ID"
+                      v-model="cslft.csl_non_reason_id"
+                      :items="cslReasonNonAward"
+                      item-text="name"
+                      item-value="id"
                     ></v-select>
                   </div>
                   <div class="col-xs-12 col-lg-12">
@@ -236,9 +246,10 @@
                       background-color="white"
                       hide-details
                       label="Over-Award Reason"
-                      v-model="assessed_type"
-                      item-text="DESCRIPTION"
-                      item-value="REQUEST_TYPE_ID"
+                      v-model="cslft.csl_over_reason_id"
+                      :items="cslReasonOverAward"
+                      item-text="name"
+                      item-value="id"
                     ></v-select>
                   </div>
                 </div>
@@ -253,7 +264,8 @@
                       hide-details
                       label="Previous Cert"
                       @keypress="validate.isNumber($event)"
-                      v-model="previous_cert"
+                      :disabled="isTotal"
+                      v-model="cslft.previous_cert"
                     ></v-text-field>
                   </div>
                   <div class="col-xs-12 col-lg-12 line-jump-height not-displayed-sx"></div>
@@ -275,7 +287,8 @@
                       hide-details
                       label="Previous Disbursements"
                       @keypress="validate.isNumber($event)"
-                      v-model="previous_disbursements"
+                      :disabled="isTotal"
+                      v-model="cslft.previous_disbursement"
                     ></v-text-field>
                   </div>
                   <div class="col-xs-12 col-lg-12">
@@ -286,7 +299,8 @@
                       hide-details
                       label="Net Amount"
                       @keypress="validate.isNumber($event)"
-                      v-model="net_amount"
+                      :disabled="isTotal"
+                      v-model="cslft.net_amount"
                     ></v-text-field>
                   </div>
                 </div>
@@ -394,7 +408,7 @@
               background-color="white"
               hide-details
               @keypress="validate.isNumber($event)"
-              v-model="family_size"
+              v-model="cslft.family_size"
             ></v-text-field>
           </div>
         </div>
@@ -405,20 +419,50 @@
 <script>
 import store from "@/store";
 import validator from "@/validator";
+import {mapGetters, mapState} from "vuex";
+import {ref} from "vue";
 export default {
   name: "cslft-award",
+  setup() {
+    const isTotal = ref(true);
+
+    return {
+      isTotal,
+    }
+  },
   computed: {
+    ...mapState({
+      cslft: state => state.cslft.cslft
+    }),
+    ...mapGetters([
+        "cslft_study_cost_total",
+        "cslft_application_academic_year_id",
+        "cslft_get_resources_total",
+        "cslft_assess_needed",
+        "cslft_assess_needed_sixty_pct",
+        "cslft_max_allowable",
+        "cslft_calculated_award",
+        "cslReasonNonAward",
+        "cslReasonOverAward",
+    ]),
     application: function () {
       return store.getters.selectedApplication;
+    }
+  },
+  methods: {
+    executeRecalc() {
+      store.dispatch("getCslftRecalc");
     },
   },
   async created() {
     this.validate = validator;
     this.applicationId = this.$route.params.id;
     let storeApp = store.getters.selectedApplication;
-    if (this.applicationId != storeApp.HISTORY_DETAIL_ID) {
+    if (this.applicationId !== storeApp.HISTORY_DETAIL_ID) {
       await store.dispatch("loadApplication", this.applicationId);
     }
+    store.dispatch("setCslReasonNonAward");
+    store.dispatch("setCslReasonOverAward");
   }
 };
 </script>

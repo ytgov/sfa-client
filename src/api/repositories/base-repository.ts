@@ -22,8 +22,8 @@ export abstract class BaseRepository {
         return result;
     }
 
-    protected singleResult<T>(data: Array<unknown>): T {
-        let result = {} as T;
+    protected singleResult<T>(data: Array<unknown>): Partial<T> {
+        let result: Partial<T> = {};
         if (Array.isArray(data)) {
             result = data[0] as T;
         }
