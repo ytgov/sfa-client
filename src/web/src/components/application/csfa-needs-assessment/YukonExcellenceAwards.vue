@@ -391,8 +391,7 @@ export default {
         }) || [];
       }
       
-      
-
+    
       store.dispatch("refreshAssessment", { 
         application_id: this.application.id, 
         data: { ...this.customAssessment },

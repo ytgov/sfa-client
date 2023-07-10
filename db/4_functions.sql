@@ -2857,3 +2857,55 @@ DECLARE @weekly_amount NUMERIC;
     RETURN @weekly_amount;
 END
 GO
+
+-- DISBURSE BUTTON ASSESSMENT YG
+CREATE OR ALTER PROCEDURE sfa.sp_disburse_button_yea -- BUTTON FOR ASSESSMENT YEA
+    @disbursement_disbursement_id INT,
+    @yea_funding_request_yea_request_type VARCHAR(50),
+    @assessment_assessment_id INT,
+    @assessment_funding_quest_id INT,
+    @assessment_net_amount DECIMAL(18, 2),
+    @disbursement_Tax_Year INT OUTPUT,
+    @disbursement_assessment_id INT OUTPUT,
+    @disbursement_funding_request_id INT OUTPUT,
+    @disbursement_disbursed_amount DECIMAL(18, 2) OUTPUT,
+    @disbursement_paid_amount DECIMAL(18, 2) OUTPUT,
+    @disbursement_disbursement_type_id INT OUTPUT,
+    @history_detail_yea_tot_receipt_amount DECIMAL(18, 2) OUTPUT
+AS
+BEGIN
+    IF @disbursement_disbursement_id IS NULL
+    BEGIN
+        IF @disbursement_disbursement_id IS NOT NULL
+        BEGIN
+            -- LAST_RECORD;
+            -- NEXT_RECORD;
+        END;
+        
+        SET @disbursement_Tax_Year = YEAR(GETDATE());
+        SET @disbursement_assessment_id = @assessment_assessment_id;
+        SET @disbursement_funding_request_id = @assessment_funding_quest_id;
+        
+        SET @disbursement_disbursed_amount = @assessment_net_amount;
+        SET @disbursement_paid_amount = @assessment_net_amount;
+
+        IF @yea_funding_request_yea_request_type = 'Direct'
+        BEGIN
+            SET @disbursement_disbursement_type_id = 3; -- "Paid to Institution"
+        END
+        ELSE
+        BEGIN
+            SET @disbursement_disbursement_type_id = 1; -- "Cheque"
+        END;
+        
+        COMMIT;
+    END;
+
+    SET @history_detail_yea_tot_receipt_amount = NULL;
+
+    -- get_new_info;
+    
+    -- recalculate('TOTAL_YEA_USED');
+    
+    RETURN 0; -- Return an appropriate value or modify the return type accordingly
+END;
