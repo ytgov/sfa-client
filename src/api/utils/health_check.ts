@@ -1,4 +1,4 @@
-import { DB_CONFIG } from "../config";
+import { DB_CONFIG, IMAGE_TAG } from "../config";
 import { Response } from "express";
 import knex from "knex";
 import { DocumentService, EmailService } from "../services/shared";
@@ -16,6 +16,7 @@ export async function doHealthCheck(res: Response) {
     email.connection;
 
   return res.json({
+    version: IMAGE_TAG,
     application_date: new Date(),
     health_good,
     database,

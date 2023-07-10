@@ -70,3 +70,4 @@ export const AWS_S3_CONFIG = {
 };
 
 export const SENTRY_DSN = process.env.SENTRY_DSN || "";
+export const IMAGE_TAG = process.env.IMAGE_TAG || "";

@@ -26,6 +26,7 @@ WORKDIR /home/node/app
 
 ENV NODE_ENV=production
 ENV NODE_TLS_REJECT_UNAUTHORIZED=0
+ARG IMAGE_TAG=0.0.0
 
 RUN npm run build
 CMD [ "node", "./dist/index.js" ]
