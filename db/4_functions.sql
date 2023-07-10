@@ -769,7 +769,8 @@ BEGIN
     OPEN  transportation_cur;
     FETCH NEXT FROM transportation_cur INTO @res_v  
     CLOSE  transportation_cur;
-    
+    DEALLOCATE transportation_cur;
+
     IF @res_v > 0
         BEGIN
         	RETURN @res_v;
@@ -1869,7 +1870,7 @@ BEGIN
                                         SET paid_amount = disbursed_amount
                                         WHERE id = @count;
 
-                                        SET @v_amount_remaining = (SELECT paid_amount FROM @disbursement_temp WHERE id = @count)
+                                        SET @v_amount_remaining = @v_amount_remaining - (SELECT paid_amount FROM @disbursement_temp WHERE id = @count)
                                         
                                         IF @v_amount_remaining >= 0
                                         -- SELECT '@v_amount_remaining >= 0' AS MESSAGE;
@@ -2806,10 +2807,17 @@ BEGIN
     
     RETURN COALESCE(@amt, 0);
 
+<<<<<<< HEAD
 END
 GO
 
 --GET_HOME_CITY
+=======
+END;
+GO
+
+--GET_HOME_CITY OR pr_get_home_city_id_fct
+>>>>>>> 98b8a984f5c2170615852f55ca2085c17bb5e5f4
 CREATE OR ALTER FUNCTION sfa.fn_get_home_city (@student_id INT)
 RETURNS INT AS
 BEGIN
@@ -2837,8 +2845,9 @@ DECLARE @destination_city INT;
     WHERE app.id = @application_id;
 
     RETURN @destination_city;
-END
+END;
 GO
+
 -- yg_cost_pck.get_weekly_rate_fct - GET_WEEKLY_AMOUNT
 CREATE OR ALTER FUNCTION sfa.fn_get_weekly_amount (@application_id INT)
 RETURNS NUMERIC AS
@@ -2855,6 +2864,108 @@ DECLARE @weekly_amount NUMERIC;
     AND yc.allowed_percent = 100;
 
     RETURN @weekly_amount;
+END;
+GO
+
+-- Get Person Address
+CREATE OR ALTER FUNCTION sfa.fn_get_person_address(@person_id INT, @address_type INT = 1)
+RETURNS TABLE
+AS
+RETURN
+SELECT TOP 1
+	pa.*
+FROM sfa.person p
+	LEFT JOIN sfa.person_address pa
+		ON pa.person_id = p.id 
+WHERE p.id = @person_id
+AND pa.address_type_id = @address_type;
+GO
+
+-- Get Standard Living Amount
+CREATE OR ALTER FUNCTION sfa.fn_get_standard_living_amount(@academic_year_id INT, @province_id INT, @family_size INT)
+RETURNS FLOAT(8)
+AS 
+BEGIN
+	DECLARE  @amt FLOAT(8);
+
+    SELECT @amt = COALESCE(sol.standard_living_amount, 0)
+    FROM sfa.standard_of_living sol
+    WHERE sol.academic_year_id = @academic_year_id
+   	AND sol.province_id = @province_id
+   	AND sol.family_size = @family_size;
+    
+    RETURN COALESCE(@amt, 0);
+
+END;
+GO
+
+-- Get Parent Contribution
+CREATE OR ALTER FUNCTION sfa.fn_get_parent_contribution_amount(@academic_year_id INT, @discretionary_amount FLOAT(8))
+RETURNS FLOAT(8) AS
+BEGIN
+    DECLARE @amount FLOAT(8) = 0;
+    
+    SELECT 
+		@amount = ROUND((pcf.add_amount + ((@discretionary_amount - pcf.subtract_amount) * (pcf.percentage/100)))/pcf.divide_by, 2) 
+	FROM sfa.parent_contribution_formula pcf
+	WHERE pcf.academic_year_id = @academic_year_id
+	AND @discretionary_amount BETWEEN pcf.income_from_amount AND pcf.income_to_amount;
+
+    RETURN COALESCE(@amount, 0);
+END;
+GO
+
+-- FILE : ASSESSMENT_SFA  --- pr_get_dependent_count_fct --- PROCEDURE: SFAADMIN.DEPENDENT_PCK$GET_DEPENDENT_COUNT_FCT$IMPL
+CREATE OR ALTER FUNCTION sfa.fn_get_dependent_count_sta_fct(
+   @application_id INT
+)
+RETURNS INT
+AS
+	BEGIN
+        DECLARE @return_value_argument INT;
+		DECLARE @res_v_dependent_count INT;
+
+		DECLARE
+		 dependent_cur CURSOR LOCAL FOR 
+		   SELECT count_big(*) AS dependent_count
+		   FROM sfa.dependent  AS d
+		   INNER JOIN sfa.application AS h ON h.student_id = d.student_id
+		   INNER JOIN sfa.dependent_eligibility  AS de ON de.dependent_id = d.id
+		   WHERE 
+		      de.application_id = h.id AND 
+		      de.is_eligible = 1 AND 
+		      h.id = @application_id;
+        
+		OPEN dependent_cur
+		FETCH dependent_cur
+			INTO @res_v_dependent_count
+		CLOSE dependent_cur
+		DEALLOCATE dependent_cur
+		
+        SET @return_value_argument = @res_v_dependent_count
+		RETURN @return_value_argument
+	END
+GO
+
+-- FILE : ASSESSMENT_SFA  --- FUNCTION: GET_SECOND_RESIDENCE
+CREATE OR ALTER FUNCTION sfa.fn_get_second_residence_sta
+/*This function returns the value of the second residence rate*/
+(
+	@applitacion_id INT 
+)
+RETURNS FLOAT(8)
+BEGIN
+	DECLARE
+		@second_res_amt FLOAT(8);
+	DECLARE
+		@academic_year_id INT;
+	DECLARE
+		@return_value_argument INT;
+	SELECT @academic_year_id = app.academic_year_id
+		FROM sfa.application app
+	WHERE app.id = @applitacion_id
+	EXEC @second_res_amt = sfa.pr_get_residence_rate_sta @academic_year_id, @return_value_argument OUT;
+	RETURN @second_res_amt
 END
 GO
 
@@ -2909,3 +3020,211 @@ BEGIN
     
     RETURN 0; -- Return an appropriate value or modify the return type accordingly
 END;
+CREATE OR ALTER PROCEDURE sfa.pr_get_travel_allowance_sta
+   @home_city_id INT,
+   @school_city_id INT,
+   @return_value_argument_tq float(53) OUTPUT
+AS 
+   BEGIN
+     DECLARE
+        @res_v_travel_allowance float(53)
+     DECLARE
+         transportation_cur CURSOR LOCAL FOR 
+           SELECT isnull(tr.travel_allowance_amount, 0) AS travel_allowance
+           FROM sfa.transportation tr
+           WHERE tr.home_city_id = @home_city_id AND tr.institution_city_id = @school_city_id
+     OPEN transportation_cur
+     FETCH transportation_cur
+         INTO @res_v_travel_allowance
+     CLOSE transportation_cur
+     DEALLOCATE transportation_cur
+     IF @res_v_travel_allowance > 0
+        BEGIN
+           SET @return_value_argument_tq = @res_v_travel_allowance
+           RETURN @return_value_argument_tq
+        END
+     ELSE 
+        BEGIN
+           SET @return_value_argument_tq = 0
+           RETURN @return_value_argument_tq
+        END
+	END
+GO
+
+-- FILE : ASSESSMENT_STA  --- FUNCTION: GET_TRAVEL_ALLOWANCE
+CREATE OR ALTER FUNCTION sfa.fn_get_travel_allowance_sta
+/*This function gets the travel allowance based on the home city and school city*/
+(
+	@student_id INT,
+    @application_id INT
+)
+RETURNS NUMERIC(10,2)
+BEGIN
+	DECLARE @trav_allow NUMERIC(10,2);
+	DECLARE @home_city_id INT;
+	DECLARE @school_city_id INT;
+
+	SELECT @home_city_id = sfa.fn_get_home_city(@student_id);
+	SELECT @school_city_id = sfa.fn_get_institution_city(@application_id);
+
+	SELECT @trav_allow = sfa.fn_get_travel_allowance(@home_city_id, @school_city_id);
+
+	RETURN @trav_allow
+END
+GO
+
+-- FILE : ASSESSMENT_SFA  --- FUNCTION: GET_OTHER_INST_TOTAL
+CREATE OR ALTER FUNCTION sfa.fn_get_other_inst_total_sta
+/*This function calculates the assessed amount based on the weekly amount, second residence amount entitlement days and tavel allowance*/
+(
+	@weekly_amount INT,
+	@assessment_second_residence_rate float(8),
+	@assessment_entitlement_days float(8),
+	@travel_allowance float(53)
+)
+RETURNS FLOAT(53)
+AS
+BEGIN
+	DECLARE @assessed_total float(53);
+    
+	SELECT @assessed_total = (((@weekly_amount + @assessment_second_residence_rate)/5 * @assessment_entitlement_days) + @travel_allowance)
+	RETURN @assessed_total
+END 
+GO
+
+-- FILE : ASSESSMENT_SFA  --- FUNCTION: GET_NET
+CREATE FUNCTION sfa.fn_get_net_sta(@assessment_assessed_amount DECIMAL(10, 2), @assessment_previous_disbursement DECIMAL(10, 2))
+RETURNS DECIMAL(10, 2)
+AS
+BEGIN
+  DECLARE @net_amt DECIMAL(10, 2);
+  
+  SET @net_amt = @assessment_assessed_amount - @assessment_previous_disbursement;
+  
+  IF @net_amt BETWEEN -1 AND 1
+  BEGIN
+    SET @net_amt = 0;
+  END;
+  
+  RETURN @net_amt;
+END
+GO
+
+-- FILE : ASSESSMENT_SFA  --- FUNCTION: GET_WEEKS_ALLOWED
+CREATE FUNCTION sfa.fn_get_weeks_allowed_sta
+(
+    @previous_weeks FLOAT,
+    @assessed_weeks FLOAT,
+    @prev_weeks_curr_yr FLOAT
+)
+RETURNS FLOAT
+AS
+BEGIN
+    DECLARE @v_weeks FLOAT;
+
+    IF ISNULL(@previous_weeks, 0) + ISNULL(@assessed_weeks, 0) > 170
+    BEGIN
+        SET @v_weeks = 170 - ISNULL(@previous_weeks, 0);
+    END
+    ELSE IF ISNULL(@prev_weeks_curr_yr, 0) > 0 AND ISNULL(@prev_weeks_curr_yr, 0) + ISNULL(@assessed_weeks, 0) > 40
+    BEGIN
+        SET @v_weeks = 40 - @prev_weeks_curr_yr;
+    END
+    ELSE
+    BEGIN
+        SET @v_weeks = ISNULL(@assessed_weeks, 0);
+    END
+
+    IF @v_weeks > 40
+    BEGIN
+        SET @v_weeks = 40;
+    END
+
+    RETURN @v_weeks;
+END
+GO
+
+-- FILE : ASSESSMENT_STA  --- FUNCTION: SFAADMIN.STA_LOOKUP_PCK$GET_WEEKLY_RATE_FCT$IMPL  
+CREATE OR ALTER PROCEDURE sfa.pr_get_weekly_rate_sta
+   @dependent_count_p INT,
+   @academic_year_id_p INT,
+   @return_value_argument INT OUTPUT
+AS 
+	BEGIN
+		DECLARE
+		@res_v_weekly_rate INT
+		DECLARE
+		 weekly_rate_cur CURSOR LOCAL FOR 
+		   SELECT 
+		      CASE @dependent_count_p
+		         WHEN 0 THEN st.dependent_0_amount
+		         WHEN 1 THEN st.dependent_1_amount
+		         WHEN 2 THEN st.dependent_2_amount
+		         WHEN 3 THEN st.dependent_3_amount
+		         ELSE st.dependent_4_amount
+		      END AS weekly_rate
+		   FROM sfa.sta_lookup st
+		   WHERE st.academic_year_id = @academic_year_id_p
+		OPEN weekly_rate_cur
+		FETCH weekly_rate_cur
+			INTO @res_v_weekly_rate
+		CLOSE weekly_rate_cur
+		DEALLOCATE weekly_rate_cur
+		SET @return_value_argument = @res_v_weekly_rate
+		RETURN @return_value_argument
+	END
+GO
+
+-- FILE : ASSESSMENT_SFA  --- PROCEDURE: SFAADMIN.DEPENDENT_PCK$GET_DEPENDENT_COUNT_FCT$IMPL
+CREATE OR ALTER PROCEDURE sfa.pr_get_dependent_count_sta
+   @application_id INT,
+   @return_value_argument INT OUTPUT
+AS 
+	BEGIN
+		DECLARE
+		@res_v_dependent_count INT
+		DECLARE
+		 dependent_cur CURSOR LOCAL FOR 
+		   SELECT count_big(*) AS dependent_count
+		   FROM sfa.dependent  AS d
+		   INNER JOIN sfa.application AS h ON h.student_id = d.student_id
+		   INNER JOIN sfa.dependent_eligibility  AS de ON de.dependent_id = d.id
+		   WHERE 
+		      de.application_id = h.id AND 
+		      de.is_eligible = 1 AND 
+		      h.id = @application_id
+		OPEN dependent_cur
+		FETCH dependent_cur
+			INTO @res_v_dependent_count
+		CLOSE dependent_cur
+		DEALLOCATE dependent_cur
+			SET @return_value_argument = @res_v_dependent_count
+		RETURN @return_value_argument
+	END
+GO
+
+-- FILE : ASSESSMENT_SFA  --- FUNCTION: GET_WEEKLY_AMOUNT
+CREATE OR ALTER FUNCTION sfa.fn_get_weekly_amount_sta
+/*This function returns the base weekly amount*/
+(
+	@application_id INT
+)
+RETURNS NUMERIC
+AS 
+BEGIN
+	DECLARE @wk_amt NUMERIC(10,2);
+	DECLARE @dependent_count INT;
+	DECLARE @return_value_argument INT;
+	DECLARE @return_value_argument_wk INT;
+	DECLARE @academic_year_id INT;
+	SELECT @academic_year_id = app.academic_year_id
+	FROM
+		sfa.application app
+	WHERE app.id = @application_id
+	EXEC @dependent_count = sfa.pr_get_dependent_count_sta @application_id,@return_value_argument OUT;
+	EXEC @wk_amt = sfa.pr_get_weekly_rate_sta @dependent_count,@academic_year_id,@return_value_argument_wk OUT;
+	RETURN @wk_amt
+END
+GO
+
+

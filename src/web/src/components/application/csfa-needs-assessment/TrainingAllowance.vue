@@ -179,7 +179,7 @@
               </div>
               <div class="col-xs-12 col-lg-8 nopadding">
                 <div class="col-xs-12 col-lg-12">
-                  <v-select
+                  <v-autocomplete
                     :disabled="showAdd"
                     outlined
                     dense
@@ -189,17 +189,17 @@
                     v-model="home_community"
                     item-text="DESCRIPTION"
                     item-value="REQUEST_TYPE_ID"
-                  ></v-select>
+                  ></v-autocomplete>
                 </div>
                 <div class="col-xs-12 col-lg-12">
-                  <v-text-field
+                  <v-autocomplete
                     outlined
                     dense
                     background-color="white"
                     hide-details
                     label="Institution Community"
                     v-model="institution_community"
-                  ></v-text-field>
+                  ></v-autocomplete>
                 </div>
                 <div class="col-xs-12 col-lg-6">
                   <v-text-field
