@@ -1,24 +1,33 @@
-import { Knex } from "knex";
+import {Knex} from "knex";
 import moment from "moment";
-import {AssessmentDTO, ApplicationDTO, StudentDTO, FundingRequestDTO, PersonAddressDTO, MsfaaDTO} from "models";
-import { AssessmentBaseRepository } from "./assessment-base-repository";
-import { ApplicationRepository } from "../application";
-import { StudentRepository, StudentLivingAllowanceRepository, StudentContributionRepository } from "../student";
-import { FundingRequestRepository } from "../funding_request";
-import { CslLookupRepository } from "../csl_lookup";
-import { ExpenseRepository } from "../expense";
-import { ProvinceRepository } from "../province";
-import { DisbursementRepository } from "../disbursement";
-import { ChildCareCeilingRepository } from "../child_care_ceiling";
-import { TaxRateRepository } from "../tax_rate";
-import { FieldProgramRepository } from "../field_program";
-import { PersonRepository } from "../person";
-import { StandardOfLivingRepository } from "../standard_of_living";
-import { ParentRepository } from "../parent";
-import { DependentRepository } from "../dependent";
-import { InvestmentRepository } from "../investment";
-import { CsgThresholdRepository } from "../csg_threshold";
-import { NumbersHelper } from "../../utils/NumbersHelper";
+import {
+    ApplicationDTO,
+    assessmentColumns,
+    AssessmentDTO,
+    AssessmentTable,
+    FundingRequestDTO,
+    MsfaaDTO,
+    PersonAddressDTO,
+    StudentDTO
+} from "../../models";
+import {AssessmentBaseRepository} from "./assessment-base-repository";
+import {ApplicationRepository} from "../application";
+import {StudentContributionRepository, StudentLivingAllowanceRepository, StudentRepository} from "../student";
+import {FundingRequestRepository} from "../funding_request";
+import {CslLookupRepository} from "../csl_lookup";
+import {ExpenseRepository} from "../expense";
+import {ProvinceRepository} from "../province";
+import {DisbursementRepository} from "../disbursement";
+import {ChildCareCeilingRepository} from "../child_care_ceiling";
+import {TaxRateRepository} from "../tax_rate";
+import {FieldProgramRepository} from "../field_program";
+import {PersonRepository} from "../person";
+import {StandardOfLivingRepository} from "../standard_of_living";
+import {ParentRepository} from "../parent";
+import {DependentRepository} from "../dependent";
+import {InvestmentRepository} from "../investment";
+import {CsgThresholdRepository} from "../csg_threshold";
+import {NumbersHelper} from "../../utils/NumbersHelper";
 import {MsfaaRepository} from "../msfaa";
 
 export class AssessmentCslftRepository extends AssessmentBaseRepository {
@@ -83,6 +92,15 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
         this.investmentRepo = new InvestmentRepository(maindb);
         this.csgThresholdRepo = new CsgThresholdRepository(maindb);
         this.msfaaRepo = new MsfaaRepository(maindb);
+    }
+
+    getAssessmentTable(assessment: AssessmentDTO): AssessmentTable {
+        return Object.keys(assessment)
+            .filter(key => assessmentColumns.includes(key as keyof AssessmentTable))
+            .reduce((obj: any, key) => {
+                obj[key as keyof AssessmentTable] = assessment[key as keyof AssessmentTable];
+                return obj as AssessmentTable;
+            }, {});
     }
 
     academicYearValidation = (year: number): boolean => {
@@ -318,6 +336,10 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
                     await this.getContributionValues();
                 }
             }
+
+            this.assessment.student_contribution_review = this.assessment.assessment_type_id === 2;
+            this.assessment.spouse_contribution_review = this.assessment.assessment_type_id === 2;
+            this.assessment.parent_contribution_review = this.assessment.assessment_type_id === 2;
         }
 
         return this.assessment;

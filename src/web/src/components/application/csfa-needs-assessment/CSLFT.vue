@@ -12,6 +12,7 @@
                 color="green" 
                 class="my-0"
                 block
+                @click="saveAssessment"
               >
               SAVE
               </v-btn>
@@ -106,6 +107,7 @@ import {
   CSLFTParental, 
   CSLFTAward, 
   CSLFTMSFAA } from "@/components/application/csfa-needs-assessment/CSLFT-detail";
+import {mapGetters} from "vuex";
 
 export default {
   components: {
@@ -140,6 +142,9 @@ export default {
     showError(mgs) {
       this.$emit("showError", mgs);
     },
+    saveAssessment() {
+      store.dispatch("saveCslftAssessment", this);
+    }
   },
   async created() {
     const frId = this.$props.fundingRequestId;    

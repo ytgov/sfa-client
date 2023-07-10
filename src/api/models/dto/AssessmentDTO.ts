@@ -1,4 +1,4 @@
-import {IAssessmentCalculated} from "./calculated/Assessment";
+import { IAssessmentCalculated } from "./calculated/Assessment";
 
 export interface AssessmentDTO extends IAssessmentCalculated{
     air_travel_disbursement_period?: number;
@@ -36,13 +36,11 @@ export interface AssessmentDTO extends IAssessmentCalculated{
     family_size?: number;
     funding_request_id?: number;
     home_city_id?: number;
-    id?: number;
     living_costs?: number;
     marital_status_id?: number;
     married_assets?: number;
     married_pstudy?: number;
     married_study?: number;
-    new_calc?: boolean;
     over_award?: number;
     over_award_applied_flg?: string;
     over_award_disbursement_period?: number;
@@ -74,8 +72,6 @@ export interface AssessmentDTO extends IAssessmentCalculated{
     pstudy_shelter_month?: number;
     pstudy_start_date?: Date;
     pstudy_x_trans_total?: number;
-    pstudy_months?: number;
-    pstudy_weeks?: number;
     r_trans_16wk?: number;
     relocation_total?: number;
     return_uncashable_cert?: number;
@@ -124,3 +120,126 @@ export interface AssessmentDTO extends IAssessmentCalculated{
     x_trans_total?: number;
     years_funded_equivalent?: number;
 }
+
+export type AssessmentTable = Omit<AssessmentDTO, keyof IAssessmentCalculated>;
+
+export const assessmentColumns: (keyof AssessmentTable)[] = [
+    "air_travel_disbursement_period",
+    "airfare_amount",
+    "allowed_books",
+    "allowed_months",
+    "allowed_percent",
+    "allowed_tuition",
+    "assessed_amount",
+    "assessed_date",
+    "assessment_adj_amount",
+    "assessment_type_id",
+    "asset_tax_rate",
+    "books_supplies_cost",
+    "change_reason_comment",
+    "classes_end_date",
+    "classes_start_date",
+    "csl_assessed_need",
+    "csl_classification",
+    "csl_full_amt_flag",
+    "csl_non_reason_id",
+    "csl_over_reason_id",
+    "csl_request_amount",
+    "day_care_actual",
+    "day_care_allowable",
+    "depend_food_allowable",
+    "depend_tran_allowable",
+    "dependent_count",
+    "destination_city_id",
+    "disbursements_required",
+    "discretionary_cost",
+    "discretionary_cost_actual",
+    "effective_rate_date",
+    "entitlement_days",
+    "family_size",
+    "funding_request_id",
+    "home_city_id",
+    "living_costs",
+    "marital_status_id",
+    "married_assets",
+    "married_pstudy",
+    "married_study",
+    "over_award",
+    "over_award_applied_flg",
+    "over_award_disbursement_period",
+    "p_trans_month",
+    "parent1_income",
+    "parent1_tax_paid",
+    "parent2_income",
+    "parent2_tax_paid",
+    "parent_contribution_override",
+    "parent_contribution_review",
+    "parent_province",
+    "parent_ps_depend_count",
+    "period",
+    "pre_leg_amount",
+    "prestudy_accom_code",
+    "prestudy_bus_flag",
+    "prestudy_csl_classification",
+    "prestudy_distance",
+    "prestudy_living_w_spouse_flag",
+    "prestudy_province_id",
+    "program_id",
+    "pstudy_day_care_actual",
+    "pstudy_day_care_allow",
+    "pstudy_depend_food_allow",
+    "pstudy_depend_tran_allow",
+    "pstudy_end_date",
+    "pstudy_expected_contrib",
+    "pstudy_p_trans_month",
+    "pstudy_shelter_month",
+    "pstudy_start_date",
+    "pstudy_x_trans_total",
+    "r_trans_16wk",
+    "relocation_total",
+    "return_uncashable_cert",
+    "second_residence_rate",
+    "shelter_month",
+    "spouse_contrib_exempt",
+    "spouse_contribution",
+    "spouse_contribution_override",
+    "spouse_contribution_review",
+    "spouse_expected_contribution",
+    "spouse_expected_income",
+    "spouse_gross_income",
+    "spouse_ln150_income",
+    "spouse_previous_contribution",
+    "spouse_province_id",
+    "spouse_pstudy_gross",
+    "spouse_pstudy_tax_rate",
+    "spouse_tax_rate",
+    "stud_pstudy_gross",
+    "stud_pstudy_tax_rate",
+    "student_contrib_exempt",
+    "student_contribution",
+    "student_contribution_override",
+    "student_contribution_review",
+    "student_expected_contribution",
+    "student_family_size",
+    "student_gross_income",
+    "student_ln150_income",
+    "student_previous_contribution",
+    "student_tax_rate",
+    "study_accom_code",
+    "study_area_id",
+    "study_bus_flag",
+    "study_distance",
+    "study_living_w_spouse_flag",
+    "study_months",
+    "study_province_id",
+    "study_weeks",
+    "total_grant_awarded",
+    "travel_allowance",
+    "tuition_estimate",
+    "uncapped_costs_total",
+    "uncapped_pstudy_total",
+    "weekly_amount",
+    "weeks_allowed",
+    "x_trans_total",
+    "years_funded_equivalent",
+];

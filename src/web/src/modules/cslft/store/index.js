@@ -1,5 +1,5 @@
 import axios from "axios";
-import {CSL_LOOKUP, CSLFT_ASSESS_INFO} from "@/urls";
+import {CSL_LOOKUP, CSLFT, CSLFT_ASSESS_INFO, STUDENT_URL} from "@/urls";
 import moment from "moment";
 import {NumbersHelper} from "@/utilities";
 import store from "@/store";
@@ -197,6 +197,40 @@ const actions = {
             state.commit("getCslftAssessInfo", res.data.data);
         }
     },
+    async saveCslftAssessment({ getters }, vm) {
+        const assessment = getters.cslft_get_assessment;
+        const body = {
+            assessment: assessment
+        };
+
+        let resAction = undefined;
+        if (assessment.id) {
+            resAction = await axios.put(
+                `${CSLFT}/${assessment.id}`,
+                body
+            );
+        }
+        else {
+            resAction = await axios.post(
+                `${CSLFT}`,
+                body
+            );
+        }
+
+        const message = resAction?.data?.messages[0];
+
+        if (message?.variant === "success") {
+            vm.$emit("showSuccess", message.text);
+            if (vm?.setClose && vm.showAdd) {
+                vm.setClose();
+            }
+            if (!vm?.filteredList) {
+                vm.newRecord = {};
+            }
+        } else {
+            vm.$emit("showError", message.text);
+        }
+    },
     async getCslLookup(state, academic_year_id) {
         const res = await axios.get(`${CSL_LOOKUP}/year/${academic_year_id}`);
         if (res?.data?.success) {
@@ -229,6 +263,9 @@ const actions = {
     }
 };
 const getters = {
+    cslft_get_assessment(state) {
+      return state.cslft;w
+    },
     cslft_classes_start_date_formatted (state) {
         if (state.cslft.classes_start_date) {
             return moment(state.cslft.classes_start_date).format("YYYY-MM-DD");

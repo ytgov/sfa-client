@@ -3,11 +3,11 @@ import { body, param } from "express-validator";
 import knex from "knex";
 import { ReturnValidationErrors } from "../../middleware";
 import { DB_CONFIG } from "../../config";
-import { AssessmentCslftRepository } from "../../repositories";
-import {AssessmentDTO} from "../../models";
+import { assessmentCslftRouter } from "./cslft-assessment-router";
 
 const db = knex(DB_CONFIG)
 export const assessmentRouter = express.Router();
+assessmentRouter.use("/cslft", assessmentCslftRouter);
 const mainTable = "sfa.assessment";
 
 assessmentRouter.get("/:id", 
@@ -114,29 +114,3 @@ assessmentRouter.delete("/:id", [param("id").isInt().notEmpty()], ReturnValidati
         }
     }
 );
-
-assessmentRouter.get("/cslft/assess-info/:id", 
-[param("id").isInt().notEmpty()], ReturnValidationErrors, 
-async (req: Request, res: Response) => {
-
-    const assessmentCslftRepo = new AssessmentCslftRepository(db);
-    const { id = undefined } = req.params;
-    let results: Partial<AssessmentDTO> = {};
-    
-    try {
-
-        if (id) {
-            results = await assessmentCslftRepo.getAssessInfoCslft(parseInt(id));
-        }
-
-        if (Object.keys(results).length > 0) {
-            return res.status(200).json({ success: true, data: results, });
-        } else {
-            return res.status(404).send();
-        }
-
-    } catch (error: any) {
-        console.log(error);
-        return res.status(404).send();
-    }
-});
