@@ -3266,7 +3266,7 @@ AS
 		   INNER JOIN sfa.dependent_eligibility  AS de ON de.dependent_id = d.id
 		   WHERE 
 		      de.application_id = h.id AND 
-		      de.is_eligible = 1 AND 
+		      de.is_csl_eligible = 1 AND 
 		      h.id = @application_id;
         
 		OPEN dependent_cur
@@ -3375,7 +3375,7 @@ END
 GO
 
 -- FILE : ASSESSMENT_SFA  --- FUNCTION: GET_NET
-CREATE FUNCTION sfa.fn_get_net_sta(@assessment_assessed_amount DECIMAL(10, 2), @assessment_previous_disbursement DECIMAL(10, 2))
+CREATE OR ALTER FUNCTION sfa.fn_get_net_sta(@assessment_assessed_amount DECIMAL(10, 2), @assessment_previous_disbursement DECIMAL(10, 2))
 RETURNS DECIMAL(10, 2)
 AS
 BEGIN
@@ -3393,7 +3393,7 @@ END
 GO
 
 -- FILE : ASSESSMENT_SFA  --- FUNCTION: GET_WEEKS_ALLOWED
-CREATE FUNCTION sfa.fn_get_weeks_allowed_sta
+CREATE OR ALTER FUNCTION sfa.fn_get_weeks_allowed_sta
 (
     @previous_weeks FLOAT,
     @assessed_weeks FLOAT,
@@ -3473,7 +3473,7 @@ AS
 		   INNER JOIN sfa.dependent_eligibility  AS de ON de.dependent_id = d.id
 		   WHERE 
 		      de.application_id = h.id AND 
-		      de.is_eligible = 1 AND 
+		      de.is_csl_eligible = 1 AND 
 		      h.id = @application_id
 		OPEN dependent_cur
 		FETCH dependent_cur
