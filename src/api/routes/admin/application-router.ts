@@ -478,14 +478,26 @@ applicationRouter.get("/:id",
                     student.birth_date = moment(student.birth_date).utc(false).format("YYYY-MM-DD");
                 }
 
+                const readOnlyData = await db.raw(
+                    `SELECT 
+                    COALESCE(sfa.fn_get_yea_total(${student.yukon_id}), 0) AS yea_earned,
+                    COALESCE(sfa.fn_get_system_yea_used(${student.id}), 0) AS yea_used
+                    `
+                );
+
+                application.calculated_data = readOnlyData?.[0] || {};;
                 application.student = student;
+
 
                 await db("sfa.application")
                     .where({ id: application.id})
                     .update({ seen: true });
 
+
                 return res.json({ data: application });
             }
+
+            
         }
 
         res.status(404).send();
@@ -1937,6 +1949,10 @@ applicationRouter.get("/:application_id/:funding_request_id/assessments",
                 if (getAsessment?.length) {
 
                     for (let item of getAsessment) {
+                        // if (!item.classes_end_date || !item.classes_start_date) {
+                            
+                            
+                        // }
                         const readOnlyData = await db.raw(
                             `SELECT 
                             COALESCE(sfa.fn_get_previous_weeks_yg(${application.student_id},  ${application_id}), 0) AS previous_weeks,
@@ -1985,20 +2001,22 @@ applicationRouter.post("/:application_id/:funding_request_id/assessments",
             const application = await db("sfa.application")
                 .where({ id: application_id })
                 .first();
-
+            
             if (application) {
 
                 const fundingRequest = await db("sfa.funding_request")
                     .where({ application_id })
                     .where({ id: funding_request_id })
                     .first();
-
+                    
+    
                 if (fundingRequest?.request_type_id === 2) { // Create Assessment YG
 
                     db.transaction(async (trx) => {
 
                         const resSP = await db.raw(`EXEC sfa.sp_get_init_value ${funding_request_id}, ${application.id}, ${application.student_id};`);
                         
+        
                         if (resSP?.[0]?.status) {
                             if (dataAssessment) {
                                 delete dataAssessment.read_only_data;

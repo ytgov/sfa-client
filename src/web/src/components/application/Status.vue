@@ -233,9 +233,9 @@ export default {
     this.applicationId = this.$route.params.id;
     let storeApp = store.getters.selectedApplication;
 
-    if (this.applicationId != storeApp.HISTORY_DETAIL_ID) {
+    // if (this.applicationId != storeApp.HISTORY_DETAIL_ID) {
       await store.dispatch("loadApplication", this.applicationId);
-    }
+    // }
 
     store.dispatch("setAppSidebar", true);
   },
