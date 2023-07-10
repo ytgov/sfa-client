@@ -117,7 +117,7 @@ export default {
     CSLFTMSFAA,
   },
   name: "cslft-assessment",
-  props: ["request_type_id", "funding_request_id"],
+  props: ["request_type_id", "fundingRequestId"],
   computed: {
     application: function () {
       return store.getters.selectedApplication;
@@ -145,8 +145,7 @@ export default {
     },
   },
   async created() {
-    const frId = this.$props.funding_request_id;
-    console.log(frId);
+    const frId = this.$props.fundingRequestId;    
     this.validate = validator;
     this.applicationId = this.$route.params.id;
     let storeApp = store.getters.selectedApplication;

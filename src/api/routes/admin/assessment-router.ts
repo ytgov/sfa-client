@@ -125,8 +125,7 @@ async (req: Request, res: Response) => {
     try {
 
         if (id) {
-            //results = await assessmentClsftRepo.getAssessInfoCslft(parseInt(id));
-            results = await assessmentClsftRepo.getAssessInfoCslft2(parseInt(id));
+            results = await assessmentClsftRepo.getAssessInfoCslft(parseInt(id));
         }
         
         if (results) {
