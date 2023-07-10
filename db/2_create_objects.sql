@@ -1921,7 +1921,7 @@ SELECT
 FROM sfa.person p
 	LEFT JOIN sfa.person_address pa
 		ON p.id = pa.person_id;
-
+GO
 
 -- sfa.application_funding_request_v source
 CREATE OR ALTER VIEW sfa.application_funding_request_v AS
@@ -1931,6 +1931,7 @@ SELECT
 FROM sfa.application a
 	INNER JOIN sfa.funding_request fr 
 		ON fr.application_id = a.id;
+GO
 
 CREATE TABLE sfa.portal_feedback (
 	id INT IDENTITY (1, 1) PRIMARY KEY,
