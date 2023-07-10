@@ -29,6 +29,36 @@ const actions = {
         state.commit("SET_IS_PREVIEW_CHARGED", vals);
         state.commit("SET_PREVIEW_DISBURSEMENT_LIST", []);
     },
+    addItemPreviewDisbursementList(state, vals) {
+        state.commit("SET_PREVIEW_DISBURSEMENT_LIST", 
+        [ 
+            ...state.state.previewDisbursementList, 
+            {
+                disbursement_type_id: null,
+                disbursed_amount: 0,
+                due_date: null,
+                tax_year: null,
+                issue_date: null,
+                transaction_number: null,
+                change_reason_id: null,
+                financial_batch_id: null,
+            },
+
+        ]);
+        state.commit("SET_IS_PREVIEW_CHARGED", true);
+    },
+    cancelItemPreviewDisbursementList(state, vals) {
+        const previewList = [ ...state.state.previewDisbursementList ];
+
+        if (vals?.index > -1) {
+            previewList.splice(vals.index, 1);
+          }
+        if (!previewList.length) {
+            this.dispatch("setIsPreviewCharged", false);
+        } else {
+            state.commit("SET_PREVIEW_DISBURSEMENT_LIST", [ ...previewList ]);
+        }
+    },
     async backDisbursement(state, list) {
         try {
             state.commit("SET_DISBURSEMENTS", list);
@@ -96,6 +126,7 @@ const actions = {
                 state.commit("SET_PREVIEW_DISBURSEMENT_LIST", [ ...data ]);
                 state.commit("SET_IS_PREVIEW_CHARGED", true);
                 thisVal?.$emit("showSuccess", "Correct Disburse");
+                thisVal?.refreshData();;
             } else {
                 thisVal?.$emit("showError", message.text || "Error to get Disburse");
             }

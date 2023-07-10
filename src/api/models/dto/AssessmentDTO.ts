@@ -137,4 +137,5 @@ export interface AssessmentDTO {
     previous_weeks?: number;// calculated value, not a field
     assessed_weeks?: number;// calculated value, not a field
     years_funded?: number;// calculated value, not a field
+    previous_upgrade_weeks?: number;// calculated value, not a field - used in STA
 }
