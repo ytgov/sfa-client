@@ -216,7 +216,7 @@ applicationRouter.get("/:id",
         .first();
 
         if (application) {
-            let student = await db("sfa.student").where({ id: application.student_id }).first();
+            const student = await db("sfa.student").where({ id: application.student_id }).first();
             application.prev_pre_leg_weeks = application.prev_pre_leg_weeks ?? 22;
             application.funded_years_used_preleg_chg = application.funded_years_used_preleg_chg ?? 22;
 
@@ -412,7 +412,7 @@ applicationRouter.get("/:id",
             .where("sfa.person.id", application.parent1_id )
             .orderBy( "sfa.person_address.address_type_id")
             .first();
-            
+
             application.mailing_address = await db("sfa.person")
             .leftJoin("sfa.person_address", "sfa.person.id", "sfa.person_address.person_id")
             .select(
@@ -426,7 +426,8 @@ applicationRouter.get("/:id",
                 "sfa.person_address.province_id",
                 "sfa.person_address.postal_code",
             )
-            .where("sfa.person.id", application.student_id)
+            .where("sfa.person.id", student.person_id)
+                .andWhere('sfa.person_address.address_type_id', 2)
             .first();
             application.parent2 = await db("sfa.person").where({ id: application.parent2_id }).first();
             application.spouse_info = await db("sfa.person").where({ id: application.spouse_id }).first();
@@ -477,14 +478,26 @@ applicationRouter.get("/:id",
                     student.birth_date = moment(student.birth_date).utc(false).format("YYYY-MM-DD");
                 }
 
+                const readOnlyData = await db.raw(
+                    `SELECT 
+                    COALESCE(sfa.fn_get_yea_total(${student.yukon_id}), 0) AS yea_earned,
+                    COALESCE(sfa.fn_get_system_yea_used(${student.id}), 0) AS yea_used
+                    `
+                );
+
+                application.calculated_data = readOnlyData?.[0] || {};;
                 application.student = student;
+
 
                 await db("sfa.application")
                     .where({ id: application.id})
                     .update({ seen: true });
 
+
                 return res.json({ data: application });
             }
+
+            
         }
 
         res.status(404).send();
@@ -1936,6 +1949,10 @@ applicationRouter.get("/:application_id/:funding_request_id/assessments",
                 if (getAsessment?.length) {
 
                     for (let item of getAsessment) {
+                        // if (!item.classes_end_date || !item.classes_start_date) {
+                            
+                            
+                        // }
                         const readOnlyData = await db.raw(
                             `SELECT 
                             COALESCE(sfa.fn_get_previous_weeks_yg(${application.student_id},  ${application_id}), 0) AS previous_weeks,
@@ -1984,20 +2001,22 @@ applicationRouter.post("/:application_id/:funding_request_id/assessments",
             const application = await db("sfa.application")
                 .where({ id: application_id })
                 .first();
-
+            
             if (application) {
 
                 const fundingRequest = await db("sfa.funding_request")
                     .where({ application_id })
                     .where({ id: funding_request_id })
                     .first();
-
+                    
+    
                 if (fundingRequest?.request_type_id === 2) { // Create Assessment YG
 
                     db.transaction(async (trx) => {
 
                         const resSP = await db.raw(`EXEC sfa.sp_get_init_value ${funding_request_id}, ${application.id}, ${application.student_id};`);
                         
+        
                         if (resSP?.[0]?.status) {
                             if (dataAssessment) {
                                 delete dataAssessment.read_only_data;
@@ -2162,7 +2181,7 @@ applicationRouter.get("/:application_id/:funding_request_id/assessments/:assessm
                 .where({ id: assessment_id })
                 .first();
 
-            if (application && (Number(assessment?.funding_request_id) === Number(funding_request_id))) {
+            if (application) {
 
                 const recalc = await db.raw(
                     `SELECT * FROM sfa.fn_get_new_info(

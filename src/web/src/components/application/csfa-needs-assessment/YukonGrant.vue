@@ -64,9 +64,13 @@
                   if (!customAssessment?.id) {
                     $emit('close');
                     $store.dispatch('setIsPreviewCharged', false);
+                    $store.dispatch('getDisbursements', { application_id: this.application.id, funding_request_id: customAssessment?.funding_request_id });
+                    editingDisburse = false;
                   } else {
-                      $store.dispatch('setIsPreviewCharged', false);
-                      cancelEdition();
+                    $store.dispatch('setIsPreviewCharged', false);
+                    $store.dispatch('getDisbursements', { application_id: this.application.id, funding_request_id: customAssessment?.funding_request_id });
+                    editingDisburse = false;
+                    cancelEdition();
                   }
                 }"
               >
@@ -115,7 +119,7 @@
                       ></v-text-field>
                     </template>
                     <v-date-picker
-                    @change="refreshData"
+                      @change="refreshData"
                       :value="customAssessment.assessed_date?.slice(0, 10)"
                       @input="e => {
                         customAssessment.assessed_date = e;
@@ -719,7 +723,7 @@ export default {
           {
             application_id: this.application.id,
             funding_request_id: custom.funding_request_id,
-            assessment_id: custom.id,
+            assessment_id: custom.id || 0,
           }
         );
     },
@@ -735,10 +739,9 @@ export default {
       );
     },
     blockDisburse(value) {
-      if (!value) {
-        this.refreshData();
+      if (!this.editingDisburse) {
+        this.editingDisburse = value;
       }
-      this.editingDisburse = value;
     },
     currentEditing(value) {
       this.isDisburseBlocked = value;
@@ -838,7 +841,7 @@ export default {
     disbursements: {
       deep: true,
         handler(val, oldVal) {
-          
+
         },
     },
   },

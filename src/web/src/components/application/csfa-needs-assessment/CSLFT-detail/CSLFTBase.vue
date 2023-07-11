@@ -36,7 +36,7 @@
                       <template v-slot:activator="{ on, attrs }">
                         <v-text-field
                           :disabled="showAdd"
-                          v-model="cslft.assessed_date"
+                          v-model="assessed_date_formatted"
                           label="Assessed Date"
                           append-icon="mdi-calendar"
                           hide-details
@@ -50,7 +50,7 @@
                       </template>
                       <v-date-picker
                         :disabled="showAdd"
-                        v-model="cslft.assessed_date"
+                        v-model="assessed_date"
                         @input="cslft.assessed_date_menu = false"
                       ></v-date-picker>
                   </v-menu>
@@ -98,7 +98,7 @@
                       <template v-slot:activator="{ on, attrs }">
                         <v-text-field
                           :disabled="showAdd"
-                          v-model="cslft.pstudy_start_date"
+                          v-model="pstudy_start_date_formatted"
                           label="Start Date"
                           append-icon="mdi-calendar"
                           hide-details
@@ -112,7 +112,7 @@
                       </template>
                       <v-date-picker
                         :disabled="showAdd"
-                        v-model="cslft.pstudy_start_date"
+                        v-model="pstudy_start_date"
                         @input="cslft.pre_study_start_date_menu = false"
                       ></v-date-picker>
                     </v-menu>
@@ -131,7 +131,7 @@
                       <template v-slot:activator="{ on, attrs }">
                         <v-text-field
                           :disabled="showAdd"
-                          v-model="cslft.pstudy_end_date"
+                          v-model="pstudy_end_date_formatted"
                           label="End Date"
                           append-icon="mdi-calendar"
                           hide-details
@@ -145,7 +145,7 @@
                       </template>
                       <v-date-picker
                         :disabled="showAdd"
-                        v-model="cslft.pstudy_end_date"
+                        v-model="pstudy_end_date"
                         @input="cslft.pre_study_end_date_menu = false"
                       ></v-date-picker>
                     </v-menu>
@@ -252,7 +252,7 @@
                       <template v-slot:activator="{ on, attrs }">
                         <v-text-field
                           :disabled="showAdd"
-                          v-model="cslft.classes_start_date"
+                          v-model="classes_start_date_formatted"
                           label="Start Date"
                           append-icon="mdi-calendar"
                           hide-details
@@ -266,7 +266,7 @@
                       </template>
                       <v-date-picker
                         :disabled="showAdd"
-                        v-model="cslft.classes_start_date"
+                        v-model="classes_start_date"
                         @input="cslft.study_start_date_menu = false"
                       ></v-date-picker>
                     </v-menu>
@@ -285,7 +285,7 @@
                       <template v-slot:activator="{ on, attrs }">
                         <v-text-field
                           :disabled="showAdd"
-                          v-model="cslft.classes_end_date"
+                          v-model="classes_end_date_formatted"
                           label="End Date"
                           append-icon="mdi-calendar"
                           hide-details
@@ -299,7 +299,7 @@
                       </template>
                       <v-date-picker
                         :disabled="showAdd"
-                        v-model="cslft.classes_end_date"
+                        v-model="classes_end_date"
                         @input="cslft.study_end_date_menu = false"
                       ></v-date-picker>
                     </v-menu>
@@ -504,24 +504,75 @@
 import store from "@/store";
 import validator from "@/validator";
 import { mapGetters, mapState } from 'vuex';
+import moment from "moment";
 
 export default {
   name: "cslft-base",
   computed: {
-    ...mapGetters(["cslClassifications", "accommodationTypes", "maritalStatusList", "studyAreas", "provinces", "assessmentTypes", "programs"]),
+    ...mapGetters([
+      "cslClassifications", 
+      "accommodationTypes", 
+      "maritalStatusList", 
+      "studyAreas", 
+      "provinces", 
+      "assessmentTypes", 
+      "programs",
+    ]),
     ...mapState({
       cslft: state => state.cslft.cslft
     }),
     application: function () {
       return store.getters.selectedApplication;
     },
+    classes_start_date_formatted: function() {
+      const val = store.getters.cslft_classes_start_date_formatted;
+      this.classes_start_date = val;
+      return val;
+    },
+    classes_end_date_formatted: function() {
+      const val = store.getters.cslft_classes_end_date_formatted;
+      this.classes_end_date = val;
+      return val;
+    },
+    assessed_date_formatted: function() {
+      const val = store.getters.cslft_assessed_date_formatted;
+      this.assessed_date = val;
+      return val;
+    },
+    pstudy_start_date_formatted: function() {
+      const val = store.getters.cslft_pstudy_start_date_formatted;
+      this.pstudy_start_date = val;
+      return val;
+    },
+    pstudy_end_date_formatted: function() {
+      const val = store.getters.cslft_pstudy_end_date_formatted;
+      this.pstudy_end_date = val;
+      return val;
+    }
   },
   data: () => ({
     showAdd: false,
+    classes_start_date: null,
+    classes_end_date: null,
+    assessed_date: null,
+    pstudy_start_date: null,
+    pstudy_end_date: null
   }),
-  methods: {
-    formatDate(value) {
-      return moment(value).format("yyyy-mm-dd");
+  watch: {
+    classes_start_date: function(val) {
+      store.dispatch("setCslftFieldDate", {name: "classes_start_date", val});
+    },
+    classes_end_date: function(val) {
+      store.dispatch("setCslftFieldDate", {name: "classes_end_date", val});
+    },
+    assessed_date: function(val) {
+      store.dispatch("setCslftFieldDate", {name: "assessed_date", val});
+    },
+    pstudy_start_date: function(val) {
+      store.dispatch("setCslftFieldDate", {name: "pstudy_start_date", val});
+    },
+    pstudy_end_date: function(val) {
+      store.dispatch("setCslftFieldDate", {name: "pstudy_end_date", val});
     }
   },
   async created() {

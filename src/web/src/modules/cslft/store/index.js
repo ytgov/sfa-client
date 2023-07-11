@@ -1,5 +1,10 @@
 import axios from "axios";
-import { CSLFT_ASSESS_INFO } from "../../../urls";
+import {CSL_LOOKUP, CSLFT, CSLFT_ASSESS_INFO, STUDENT_URL} from "@/urls";
+import moment from "moment";
+import { NumbersHelper, DateHelper } from "@/utilities";
+import store from "@/store";
+const numHelper = new NumbersHelper();
+const dateHelper = new DateHelper();
 
 const state = {
     funding_request: {},
@@ -124,6 +129,54 @@ const state = {
         weeks_allowed: null,
         x_trans_total: null,
         years_funded_equivalent: null,
+        combined_contribution: null,
+        parent_msol: null,
+        parent_discretionary_income: null,
+        parent_weekly_contrib: null,
+    },
+    csl_lookup: {
+        id: null,
+        academic_year_id: null,
+        return_transport_max_amount: null,
+        allowable_weekly_amount: null,
+        student_exempt_amount: null,
+        vehicle_deduction_amount: null,
+        rrsp_deduction_yearly_amount: null,
+        relocation_max_amount: null,
+        mileage_rate: null,
+        discretionary_costs_max_amount: null,
+        merit_exempt_amount: null,
+        books_max_amount: null,
+        student_contrib_percent: null,
+        spouse_contrib_percent: null,
+        csg_8_month_amount: null,
+        csg_pt_yearly_amount: null,
+        low_income_student_contrib_amount: null,
+        student_contrib_max_amount: null,
+        csl_pt_max_amount: null,
+        csl_pt_wk_misc_amount: null,
+    },
+    cslft_disbursement: {
+        id: null,
+        disbursement_type_id: null,
+        assessment_id: null,
+        funding_request_id: null,
+        disbursed_amount: null,
+        due_date: null,
+        tax_year: null,
+        issue_date: null,
+        paid_amount: null,
+        change_reason_id: null,
+        financial_batch_id: null,
+        financial_batch_id_year: null,
+        financial_batch_run_date: null,
+        financial_batch_serial_no: null,
+        transaction_number: null,
+        csl_cert_seq_number: null,
+        ecert_sent_date: null,
+        ecert_response_date: null,
+        ecert_status: null,
+        ecert_portal_status_id: null,
     }
 };
 const mutations = {
@@ -132,7 +185,28 @@ const mutations = {
     },
     loadFundingRequest(state, funding_request) {
         state.funding_request = funding_request;
-    }
+    },
+    loadCslLookup(state, csl_lookup) {
+      state.csl_lookup = csl_lookup;
+    },
+    setTotalStudyCost(state, value) {
+      state.cslft.total_study_cost = value;
+    },
+    setCslftAssessedDate(state, value) {
+        state.cslft.assessed_date = moment(value).format();
+    },
+    setCslftClassesStartDate(state, value) {
+        state.cslft.classes_start_date = moment(value).format();
+    },
+    setCslftClassesEndDate(state, value) {
+        state.cslft.classes_end_date = moment(value).format();
+    },
+    setCslftPrestudyStartDate(state, value) {
+        state.cslft.pstudy_start_date = moment(value).format();
+    },
+    setCslftPrestudyEndDate(state, value) {
+        state.cslft.pstudy_end_date = moment(value).format();
+    },
 };
 const actions = {
     async loadFundingRequest(state, funding_request) {
@@ -142,12 +216,195 @@ const actions = {
     },
     async getCslftAssessInfo(state, funding_request_id) {
         const res = await axios.get(`${CSLFT_ASSESS_INFO}/${funding_request_id}`);
-        if (res?.data?.success) {                        
+        if (res?.data?.success) {
             state.commit("getCslftAssessInfo", res.data.data);
+        }
+    },
+    async getCslftRecalc({ commit, getters }) {
+        const assessment = getters.cslft_get_assessment;
+        const body = {
+            assessment: assessment
+        };
+        const res = await axios.post(`${CSLFT}/${assessment.funding_request_id}/recalc`, body);
+        if (res?.data?.success) {
+            commit("getCslftAssessInfo", res.data.data);
+        }
+    },
+    async saveCslftAssessment({ getters, dispatch }, vm) {
+        const assessment = getters.cslft_get_assessment;
+        const body = {
+            assessment: assessment
+        };
+
+        let resAction = undefined;
+        if (assessment.id) {
+            resAction = await axios.put(
+                `${CSLFT}/${assessment.id}`,
+                body
+            );
+        }
+        else {
+            resAction = await axios.post(
+                `${CSLFT}`,
+                body
+            );
+        }
+
+        const message = resAction?.data?.messages[0];
+
+        if (message?.variant === "success") {
+            vm.$emit("showSuccess", message.text);
+            dispatch("getCslftAssessInfo", assessment.funding_request_id);
+            if (vm?.setClose && vm.showAdd) {
+                vm.setClose();
+            }
+            if (!vm?.filteredList) {
+                vm.newRecord = {};
+            }
+        } else {
+            vm.$emit("showError", message.text);
+        }
+    },
+    async getCslLookup(state, academic_year_id) {
+        const res = await axios.get(`${CSL_LOOKUP}/year/${academic_year_id}`);
+        if (res?.data?.success) {
+            state.commit("loadCslLookup", res.data.data);
+        }
+    },
+    async setTotalStudyCost(state, value) {
+      state.commit("setTotalStudyCost", value);
+    },
+    async setCslftFieldDate(state, { name, val }) {
+        if (val) {
+            switch (name) {
+                case "assessed_date":
+                    state.commit("setCslftAssessedDate", val);
+                    break;
+                case "classes_start_date":
+                    state.commit("setCslftClassesStartDate", val);
+                    break;
+                case "classes_end_date":
+                    state.commit("setCslftClassesEndDate", val);
+                    break;
+                case "pstudy_start_date":
+                    state.commit("setCslftPrestudyStartDate", val);
+                    break;
+                case "pstudy_end_date":
+                    state.commit("setCslftPrestudyEndDate", val);
+                    break;
+            }
         }
     }
 };
-const getters = {};
+const getters = {
+    cslft_get_assessment(state) {
+      return state.cslft;
+    },
+    cslft_assessed_date_formatted (state) {
+        if (state.cslft.assessed_date) {
+            return dateHelper.getDateFromUTC(state.cslft.assessed_date);
+        }
+        return state.cslft.assessed_date;
+    },
+    cslft_classes_start_date_formatted (state) {
+        if (state.cslft.classes_start_date) {
+            return dateHelper.getDateFromUTC(state.cslft.classes_start_date);
+        }
+        return state.cslft.classes_start_date;
+    },
+    cslft_classes_end_date_formatted (state) {
+        if (state.cslft.classes_end_date) {
+            return dateHelper.getDateFromUTC(state.cslft.classes_end_date);
+        }
+        return state.cslft.classes_end_date;
+    },
+    cslft_pstudy_start_date_formatted(state) {
+        if (state.cslft.pstudy_start_date) {
+            return dateHelper.getDateFromUTC(state.cslft.pstudy_start_date);
+        }
+        return state.cslft.pstudy_start_date;
+    },
+    cslft_pstudy_end_date_formatted(state) {
+        if (state.cslft.pstudy_end_date) {
+            return dateHelper.getDateFromUTC(state.cslft.pstudy_end_date);
+        }
+        return state.cslft.pstudy_end_date;
+    },
+    cslft_get_r_trans_multiplier(state) {
+        let multiplier = 0;
+        if (state.cslft.study_weeks >= 1 && state.cslft.study_weeks < 24) {
+            multiplier = 1;
+        }
+        else if (state.cslft.study_weeks >= 24) {
+            multiplier = 2;
+        }
+
+        return multiplier;
+    },
+    cslft_scholastic_total(state) {
+        return Math.round(numHelper.getNum(state.cslft.tuition_estimate) + numHelper.getNum(state.cslft.books_supplies_cost));
+    },
+    cslft_shelter_total(state) {
+        return Math.round(numHelper.getNum(state.cslft.shelter_month) * numHelper.getNum(state.cslft.study_months));
+    },
+    cslft_p_trans_total(state) {
+        return Math.round(numHelper.getNum(state.cslft.p_trans_month) * numHelper.getNum(state.cslft.study_months));
+    },
+    cslft_r_trans_total(state, getters) {
+        return Math.round(numHelper.getNum(state.cslft.r_trans_16wk) * numHelper.getNum(getters.cslft_get_r_trans_multiplier));
+    },
+    cslft_day_care_total(state) {
+        return Math.round(Math.min(numHelper.getNum(state.cslft.day_care_allowable), numHelper.getNum(state.cslft.day_care_actual)) * numHelper.getNum(state.cslft.study_months));
+    },
+    cslft_dependent_shelter_total(state) {
+        return Math.round(numHelper.getNum(state.cslft.depend_food_allowable) * numHelper.getNum(state.cslft.study_months));
+    },
+    cslft_dependent_trans_total(state) {
+        return Math.round(numHelper.getNum(state.cslft.depend_tran_allowable) * numHelper.getNum(state.cslft.study_months));
+    },
+    cslft_discretionary_total(state) {
+        return Math.round(Math.min(numHelper.getNum(state.cslft.discretionary_cost), numHelper.getNum(state.cslft.discretionary_cost_actual)));
+    },
+    cslft_x_trans_total(state) {
+        return Math.round(numHelper.getNum(state.cslft.x_trans_total));
+    },
+    cslft_relocation_total(state) {
+        return Math.round(numHelper.getNum(state.cslft.relocation_total));
+    },
+    cslft_capped_expenses_total(state, getters) {
+        return Math.round(getters.cslft_shelter_total + getters.cslft_p_trans_total + getters.cslft_r_trans_total + getters.cslft_day_care_total + getters.cslft_dependent_trans_total + getters.cslft_dependent_shelter_total + getters.cslft_discretionary_total + getters.cslft_x_trans_total + getters.cslft_relocation_total);
+    },
+    cslft_uncapped_expenses_total(state) {
+        return numHelper.getNum(state.cslft.uncapped_costs_total);
+    },
+    cslft_study_cost_total(state, getters) {
+        return Math.round(getters.cslft_scholastic_total + getters.cslft_capped_expenses_total + getters.cslft_uncapped_expenses_total);
+    },
+    cslft_application_academic_year_id(state, getters, rootState, rootGetters) {
+      return rootState.selectedApplication.academic_year_id;
+    },
+    cslft_get_resources_total(state, getters) {
+        const academic_year_id = getters.cslft_application_academic_year_id;
+        if (academic_year_id < 2017) {
+            return Math.round(1);
+        }
+        else {
+            return Math.round(0);
+        }
+    },
+    cslft_assess_needed(state, getters) {
+        return numHelper.round(Math.max(getters.cslft_study_cost_total - getters.cslft_get_resources_total, 0));
+    },
+    cslft_assess_needed_sixty_pct(state, getters) {
+        return numHelper.round(getters.cslft_assess_needed * 0.6);
+    },
+    cslft_max_allowable(state) {
+        return numHelper.round(numHelper.getNum(state.csl_lookup.allowable_weekly_amount) * state.cslft.study_weeks);
+    },
+    cslft_calculated_award(state, getters) {
+        return Math.max(0, numHelper.round(Math.min(getters.cslft_assess_needed_sixty_pct - numHelper.getNum(state.cslft.total_grant_awarded, getters.cslft_max_allowable))));
+    },
+};
 
 export default {
     state,
