@@ -1,15 +1,15 @@
-import {ValidationHelper} from "@/utilities/ValidationHelper";
+import { ValidationHelper } from "./ValidationHelper";
 
 export class NumbersHelper {
 
     validationHelper;
+    
     constructor() {
         this.validationHelper = new ValidationHelper();
     }
+
     getNum(input) {
-        console.log(input);
         if (this.validationHelper.isNullOrEmpty(input) || isNaN(input)) {
-            console.log("will return 0");
             return 0;
         }
 
