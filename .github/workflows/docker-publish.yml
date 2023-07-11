@@ -1,8 +1,10 @@
-name: Docker
+name: Build and Push
 
 on:
   push:
-    branches: [ main, test ]
+    branches: [main, test]
+    # Publish semver tags as releases.
+    tags: ["v*.*.*", "v*.*.*.*"]
 
 env:
   REGISTRY: ghcr.io
@@ -27,14 +29,17 @@ jobs:
         uses: amitsingh-007/next-release-tag@v4.0.0
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          tag_prefix: 'v'
-          tag_template: 'yyyy.mm.dd.i'
+          tag_prefix: "v"
+          tag_template: "yyyy.mm.dd.i"
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v3
         with:
           context: .
           push: true
-          build-args: |
-            IMAGE_TAG=${{ steps.generate_release_tag.outputs.next_release_tag }}
           tags: ghcr.io/${{ github.repository }}:${{ steps.generate_release_tag.outputs.next_release_tag }}
+
+      - name: Create release
+        uses: ncipollo/release-action@v1
+        with:
+          tag: ${{ steps.generate_release_tag.outputs.next_release_tag }}
