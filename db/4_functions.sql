@@ -594,8 +594,8 @@ BEGIN
             @over_award = COALESCE(over_award,0)
     FROM sfa.assessment
     WHERE id = @assessment_id_p;
-    
-    SET @net_amt = @assessed_amount - @previous_disbursement - @over_award ;
+
+    SET @net_amt = COALESCE(@assessed_amount, 0) - COALESCE(@previous_disbursement, 0) - COALESCE(@over_award, 0);
 
   IF @net_amt BETWEEN -1 AND 1 
   	BEGIN
@@ -619,16 +619,47 @@ BEGIN
     DECLARE @net_amount NUMERIC;
     DECLARE @funding_request_id INT;
     DECLARE @weeks_allowed NUMERIC;
+    DECLARE @previous_weeks INT;
+    DECLARE @assessed_weeks INT;
+    DECLARE @student_id INT;
+    DECLARE @classes_end_date DATE;
+	DECLARE @classes_start_date DATE;
+
+    SELECT 
+        @student_id = app.student_id,
+        @classes_end_date = app.classes_end_date,
+        @classes_start_date = app.classes_start_date
+    FROM sfa.application app
+    WHERE app.id = @application_id_p;
 
     SELECT @academic_year_id = academic_year_id , 
            @program_division = program_division
     FROM sfa.application 
     WHERE id = @application_id_p;
 
-    SELECT @funding_request_id = funding_request_id , 
-            @weeks_allowed = weeks_allowed
-    FROM sfa.assessment a 
-    WHERE id = @assessment_id_p; 
+    IF @assessment_id_p <= 0 
+        BEGIN
+            SELECT
+                @previous_weeks = COALESCE(sfa.fn_get_previous_weeks_yg(@student_id, @application_id_p), 0),
+                @assessed_weeks =  COALESCE(sfa.fn_get_allowed_weeks(@classes_start_date, @classes_end_date), 0);
+
+            IF (@previous_weeks + @assessed_weeks) > 170
+            BEGIN
+                SELECT @weeks_allowed = 170 - @previous_weeks;		
+            END
+            ELSE
+            BEGIN
+                SELECT @weeks_allowed = @assessed_weeks;				
+            END
+        END
+    ELSE
+        BEGIN
+            SELECT  
+                @funding_request_id = funding_request_id , 
+                @weeks_allowed = weeks_allowed
+            FROM sfa.assessment a 
+            WHERE id = @assessment_id_p;
+        END
 
         IF @academic_year_id   < 2016   -- Pre Legislation
             BEGIN
@@ -679,21 +710,21 @@ BEGIN
 	
 END
 GO
--- ASSESSMENT_PCK - get_assessment_count_fct
-CREATE OR ALTER FUNCTION sfa.fn_get_assessment_count(@funding_request_id NUMERIC)
-RETURNS NUMERIC AS
-BEGIN
-    DECLARE @assess_count NUMERIC;
 
-    SELECT @assess_count = COUNT(id)
+-- ASSESSMENT_PCK - get_assessment_count_fct
+CREATE OR ALTER FUNCTION sfa.fn_get_assessment_count(@funding_request_id INT)
+RETURNS INT AS
+BEGIN
+    DECLARE @assess_count INT;
+
+    SELECT @assess_count = COALESCE(COUNT(id), 0)
     FROM sfa.assessment
     WHERE funding_request_id = @funding_request_id;
 
     RETURN @assess_count;
 
-END
+END;
 GO
-
 
 CREATE OR ALTER FUNCTION sfa.fn_get_previous_weeks_yg(@student_id_p INT,  @application_id_p INT) 
 RETURNS NUMERIC
@@ -738,7 +769,8 @@ BEGIN
     OPEN  transportation_cur;
     FETCH NEXT FROM transportation_cur INTO @res_v  
     CLOSE  transportation_cur;
-    
+    DEALLOCATE transportation_cur;
+
     IF @res_v > 0
         BEGIN
         	RETURN @res_v;
@@ -1084,8 +1116,12 @@ RETURNS
     previous_disbursement NUMERIC, -- IS NOT IN ASSESSMENT, IS IN CSL_NARS_HISTORY
     assessed_amount NUMERIC,
     pre_leg_amount FLOAT,
-    previous_weeks INT,
-    assessed_weeks INT
+    over_award FLOAT,
+    assessment_adj_amount FLOAT,
+    over_award_disbursement_period INT,
+    years_funded_equivalent NUMERIC,
+    over_award_applied_flg VARCHAR(3),
+    air_travel_disbursement_period INT
 )
 AS
 BEGIN
@@ -1132,7 +1168,7 @@ BEGIN
       END
     ELSE
       BEGIN
-        SELECT @weeks_allowed = @previous_weeks;				
+        SELECT @weeks_allowed = @assessed_weeks;				
       END
 
     SELECT 
@@ -1262,30 +1298,38 @@ BEGIN
     previous_disbursement,
     assessed_amount,
     pre_leg_amount,
-    previous_weeks,
-    assessed_weeks
+    over_award,
+    assessment_adj_amount,
+    over_award_disbursement_period,
+    years_funded_equivalent,
+    over_award_applied_flg,
+    air_travel_disbursement_period
   ) VALUES(
     @funding_request_id,
     @classes_end_date,
 	@classes_start_date,
     CAST(GETDATE() AS DATE),
 	@classes_start_date,
-    @allowed_months,
-    @weeks_allowed,
+    COALESCE(@allowed_months, 0),
+    COALESCE(@weeks_allowed, 0),
     @home_city_id,
     @destination_city,
-    @travel_allowance,
-    @airfare_amount,
-    @weekly_amount,
-    @living_costs,
-    @allowed_tuition,
-    @allowed_books,
+    COALESCE(@travel_allowance, 0),
+    COALESCE(@airfare_amount, 0),
+    COALESCE(@weekly_amount, 0),
+    COALESCE(@living_costs, 0),
+    COALESCE(@allowed_tuition, 0),
+    COALESCE(@allowed_books, 0),
     @disbursements_required,
     @previous_disbursement,
-    @assessed_amount,
+    COALESCE(@assessed_amount, 0),
     @pre_leg_amount,
-    @previous_weeks,
-    @assessed_weeks
+    0, -- over_award FLOAT,
+    0, -- assessment_adj_amount FLOAT,
+    0, -- over_award_disbursement_period INT,
+    NULL, -- years_funded_equivalent NUMERIC,
+    'No', -- over_award_applied_flg VARCHAR(3)
+    NULL
   )
   RETURN;
 END
@@ -1316,7 +1360,12 @@ RETURNS
     disbursements_required INT, 
     air_travel_disbursement_period INT,
     assessed_amount NUMERIC, 
-    assessment_id INT
+    assessment_id INT,
+    over_award FLOAT,
+    assessment_adj_amount FLOAT,
+    over_award_disbursement_period INT,
+    years_funded_equivalent NUMERIC,
+    over_award_applied_flg VARCHAR(3)
 )
 AS
 BEGIN
@@ -1340,7 +1389,12 @@ BEGIN
         disbursements_required INT, 
         air_travel_disbursement_period INT,
         assessed_amount NUMERIC, 
-        assessment_id INT
+        assessment_id INT,
+        over_award FLOAT,
+        assessment_adj_amount FLOAT,
+        over_award_disbursement_period INT,
+        years_funded_equivalent NUMERIC,
+        over_award_applied_flg VARCHAR(3)
     );
     
     INSERT INTO @temp (
@@ -1405,7 +1459,12 @@ BEGIN
        disbursements_required, 
        air_travel_disbursement_period,
        assessed_amount,
-       assessment_id
+       assessment_id,
+       over_award,
+       assessment_adj_amount,
+       over_award_disbursement_period,
+       years_funded_equivalent,
+       over_award_applied_flg
     )
     SELECT
         @funding_request_id,
@@ -1416,17 +1475,22 @@ BEGIN
         home_city_id, 
         destination_city_id, 
         dependent_count,
-        allowed_months,
-        weeks_allowed, 
-        allowed_tuition, 
-        allowed_books,
-        living_costs, 
-        travel_allowance, 
-        airfare_amount,
+        COALESCE(allowed_months, 0),
+        COALESCE(weeks_allowed, 0),
+        COALESCE(allowed_tuition, 0),
+        COALESCE(allowed_books, 0),
+        COALESCE(living_costs, 0),
+        COALESCE(travel_allowance, 0),
+        COALESCE(airfare_amount, 0),
         disbursements_required, 
         air_travel_disbursement_period,
-        assessed_amount,
-        assessment_id
+        COALESCE(assessed_amount, 0),
+        assessment_id,
+        0, -- over_award FLOAT,
+        0, -- assessment_adj_amount FLOAT,
+        0, -- over_award_disbursement_period INT,
+        NULL, -- years_funded_equivalent NUMERIC,
+        'No' -- over_award_applied_flg VARCHAR(3)
     FROM @temp;
     RETURN;    
 END
@@ -1570,48 +1634,31 @@ GO
 -- DISBURSE BUTTON ASSESSMENT YG
 CREATE OR ALTER PROCEDURE sfa.sp_disburse_button_yg -- BUTTON FOR ASSESSMENT YG
     @application_id INT,
-    @assessment_id INT
+    @assessment_id INT,
+    @funding_request_id INT,
+    @air_travel_disbursement_period INT,
+    @travel_allowance NUMERIC,
+    @airfare_amount NUMERIC,
+    @disbursements_required INT,
+    @over_award_disbursement_period INT,
+    @over_award FLOAT,
+    @over_award_applied_flg VARCHAR(3),
+    @years_funded_equivalent NUMERIC,
+    @allowed_tuition NUMERIC,
+    @living_costs NUMERIC,
+    @allowed_books FLOAT,
+    @weekly_amount NUMERIC,
+    @assessment_adj_amount FLOAT,
+    @assessed_amount NUMERIC
+    
 AS 
 BEGIN
-    DECLARE @funding_request_id INT;
     DECLARE @academic_year INT;
 
 
     SELECT @academic_year = app.academic_year_id FROM sfa.application app
     WHERE app.id = @application_id; --@application_id
 
-    DECLARE @air_travel_disbursement_period INT;
-    DECLARE @travel_allowance NUMERIC;
-    DECLARE @airfare_amount NUMERIC;
-    DECLARE @disbursements_required INT;
-    DECLARE @over_award_disbursement_period INT;
-    DECLARE @over_award FLOAT;
-    DECLARE @over_award_applied_flg VARCHAR(3);
-    DECLARE @years_funded_equivalent NUMERIC;
-    DECLARE @allowed_tuition NUMERIC;
-    DECLARE @living_costs NUMERIC;
-    DECLARE @allowed_books FLOAT;
-    DECLARE @weekly_amount NUMERIC;
-    DECLARE @assessment_adj_amount FLOAT;
-
-    SELECT
-    @air_travel_disbursement_period = a.air_travel_disbursement_period,
-    @travel_allowance = COALESCE(a.travel_allowance, 0),
-    @airfare_amount = COALESCE(a.airfare_amount, 0),
-    @disbursements_required = a.disbursements_required,
-    @over_award_disbursement_period = a.over_award_disbursement_period,
-    @over_award = a.over_award,
-    @over_award_applied_flg = a.over_award_applied_flg,
-    @years_funded_equivalent = a.years_funded_equivalent,
-    @funding_request_id = a.funding_request_id,
-    @allowed_tuition = COALESCE(a.allowed_tuition, 0),
-    @living_costs = COALESCE(a.living_costs, 0),
-    @allowed_books = COALESCE(a.allowed_books, 0),
-    @weekly_amount = COALESCE(a.weekly_amount, 0),
-    @assessment_adj_amount = a.assessment_adj_amount
-    FROM sfa.assessment a WHERE a.id = @assessment_id; -- @assessment_id
-
-    -- CHECK ALL
     IF  (
             (
                 @air_travel_disbursement_period IS NULL
@@ -1639,6 +1686,7 @@ BEGIN
         BEGIN
             DECLARE @disbursement_id INT;
             DECLARE @new_disbursement_id INT;
+            DECLARE @net_amount INT;
 
             DECLARE @disbursement_temp TABLE
             (
@@ -1666,6 +1714,16 @@ BEGIN
 
             SELECT @disbursement_id = MAX(d.id)
             FROM sfa.disbursement d WHERE d.assessment_id = @assessment_id;
+
+            IF @assessment_id > 0
+                BEGIN 
+                    SELECT @net_amount = COALESCE(sfa.fn_net_amount(@funding_request_id, @assessment_id), 0);
+                END
+            ELSE
+                BEGIN
+                    SET @net_amount = COALESCE(@assessed_amount, 0) - COALESCE(@over_award, 0);
+                END
+
             DECLARE @financial_batch_id INT;
 
             IF  @disbursement_id IS NOT NULL
@@ -1717,7 +1775,7 @@ BEGIN
                             WHERE id = (@disbursement_id);
 
                             UPDATE @disbursement_temp
-                            SET disbursed_amount = COALESCE(sfa.fn_net_amount(@funding_request_id, @assessment_id), 0);
+                            SET disbursed_amount = @net_amount;
                                 -- :disbursement.paid_amount := :disbursement.disbursed_amount; -- we avoid this assignment;
 
                             --UPDATE sfa.assessment
@@ -1732,7 +1790,7 @@ BEGIN
                         ROLLBACK TRANSACTION;
                     END CATCH
                 END
-            ELSE IF COALESCE(sfa.fn_net_amount(@funding_request_id, @assessment_id), 0) >= 0
+            ELSE IF @net_amount >= 0
                 BEGIN
                     BEGIN TRY
                         BEGIN TRANSACTION
@@ -1740,7 +1798,7 @@ BEGIN
                             
                             DECLARE @count INT = 1;
 
-                            SELECT @v_amount_remaining = sfa.fn_net_amount(@funding_request_id, @assessment_id);  -- accumulated amount for new leg calculations
+                            SELECT @v_amount_remaining = @net_amount;  -- accumulated amount for new leg calculations
                     
                         WHILE @count <= @disbursements_required
                             BEGIN -- START LOOP
@@ -1812,7 +1870,7 @@ BEGIN
                                         SET paid_amount = disbursed_amount
                                         WHERE id = @count;
 
-                                        SET @v_amount_remaining = (SELECT paid_amount FROM @disbursement_temp WHERE id = @count)
+                                        SET @v_amount_remaining = @v_amount_remaining - (SELECT paid_amount FROM @disbursement_temp WHERE id = @count)
                                         
                                         IF @v_amount_remaining >= 0
                                         -- SELECT '@v_amount_remaining >= 0' AS MESSAGE;
@@ -1858,8 +1916,8 @@ BEGIN
                     IF @financial_batch_id IS NULL
                         BEGIN
                             UPDATE @disbursement_temp
-                            SET disbursed_amount = COALESCE(sfa.fn_net_amount(@funding_request_id, @assessment_id), 0),
-                            paid_amount = COALESCE(sfa.fn_net_amount(@funding_request_id, @assessment_id), 0)
+                            SET disbursed_amount = @net_amount,
+                            paid_amount = @net_amount
                             WHERE id = -1;
                         END	
                     
@@ -1926,6 +1984,48 @@ BEGIN
             'No Disbursement made, make sure over award applied checkbox is unchecked. ' AS message;
             RETURN;
         END
+END
+GO
+
+CREATE OR ALTER FUNCTION sfa.check_deadline_fct (@application_id INT, @request_type_id INT)
+RETURNS VARCHAR(50) AS
+BEGIN
+    DECLARE @start_date DATE;
+    DECLARE @weeks NUMERIC;
+    DECLARE @training_days NUMERIC;
+    DECLARE @all_days NUMERIC;
+    DECLARE @weekend_days NUMERIC;
+    DECLARE @message VARCHAR(50);
+
+    SET @weeks = 0;
+    SET @training_days = 0;
+    SET @message = 'OK';
+
+    SELECT @start_date = classes_start_date
+    FROM sfa.application app
+    WHERE app.id = @application_id;
+
+    IF @start_date IS NOT NULL
+    BEGIN
+        IF @request_type_id = 1
+            BEGIN
+                SET @all_days = DATEDIFF(DAY, @start_date, CAST(SYSDATETIME() AS DATE));
+                SET @weekend_days = ROUND(( (@all_days + 1)/7 ) * 2, 0);
+                SET @training_days = @all_days + 1 - @weekend_days;
+            END
+        ELSE 
+            BEGIN
+                SET @all_days = DATEDIFF(DAY, @start_date, CAST(SYSDATETIME() AS DATE));
+                SET @weeks = ROUND(((@all_days) + 1)/7 + 0.9999, 0);
+            END
+        
+        IF @weeks > 6 OR @training_days > 14
+            BEGIN
+                SET @message = 'This student may have exceeded the deadline.';
+            END
+    END
+
+    RETURN @message;
 END
 GO
 
@@ -2172,7 +2272,7 @@ BEGIN
 	DECLARE @amount FLOAT(8) = 0;
 
 	SELECT 
-		@amount = SUM(d.disbursed_amount)
+		@amount = COALESCE(SUM(d.disbursed_amount), 0)
 	FROM sfa.disbursement d
 		INNER JOIN sfa.funding_request fr
 			ON d.funding_request_id = fr.id
@@ -2218,7 +2318,7 @@ END;
 GO
 
 -- Get student category id by code.
-CREATE OR ALTER FUNCTION sfa.fn_get_student_category_code(@student_category_code VARCHAR(10))
+CREATE OR ALTER FUNCTION sfa.fn_get_student_category_id(@student_category_code VARCHAR(10))
 RETURNS VARCHAR(10)
 AS
 BEGIN 
@@ -2324,6 +2424,23 @@ BEGIN
 END;
 GO
 
+-- Get Study Tax Rate: study_tax_rate_pck_1.get_study_tax_rate
+CREATE OR ALTER FUNCTION sfa.fn_get_study_tax_rate(@academic_year INT, @income FLOAT(8))
+RETURNS FLOAT(8)
+AS
+BEGIN 
+	DECLARE @amount FLOAT(8) = 0;
+
+	SELECT
+		@amount = COALESCE(str.study_tax_rate, 0)
+	FROM sfa.study_tax_rate str
+	WHERE str.academic_year_id = @academic_year
+	AND @income BETWEEN str.from_income_amount AND str.to_income_amount;
+	
+	RETURN COALESCE(@amount, 0);
+END;
+GO
+
 --Get Student Contribution: student_contribution_pck_1.get_student_contribution
 CREATE OR ALTER FUNCTION sfa.fn_get_student_contribution(@academic_year INT, @province_id INT, @student_category_id INT, @period_id INT)
 RETURNS FLOAT(8)
@@ -2342,3 +2459,1054 @@ BEGIN
 	RETURN COALESCE(@amount, 0);
 END;
 GO
+
+-- Get Assessment Info PRC
+CREATE OR ALTER FUNCTION sfa.fn_get_assessment_info_prc (@funding_request_id INT)
+RETURNS INT
+AS 
+BEGIN
+	DECLARE @assess_id INT;
+
+	SELECT @assess_id = MAX(id)
+	FROM sfa.assessment a
+	WHERE a.funding_request_id = @funding_request_id;
+	
+	RETURN @assess_id;
+END;
+GO
+
+-- Get Max Books
+CREATE OR ALTER FUNCTION sfa.fn_get_max_books(@academic_year_id INT)
+RETURNS FLOAT(8)
+AS
+BEGIN 
+	DECLARE @amount FLOAT(8) = 0;
+
+	SELECT 
+	@amount = cl.books_max_amount 
+	FROM sfa.csl_lookup cl 
+	WHERE cl.academic_year_id = @academic_year_id;
+	
+	RETURN COALESCE(@amount, 0);
+END;
+GO
+
+-- Get Previous Assessment
+CREATE OR ALTER PROCEDURE sfa.sp_get_previous_assessment(@assessment_id INT)
+AS
+BEGIN 
+	SELECT
+		air_travel_disbursement_period,
+		airfare_amount,
+		allowed_books,
+		allowed_months,
+		allowed_percent,
+		allowed_tuition,
+		assessed_amount,
+		assessed_date,
+		assessment_adj_amount,
+		assessment_type_id,
+		asset_tax_rate,
+		books_supplies_cost,
+		change_reason_comment,
+		classes_end_date,
+		classes_start_date,
+		csl_assessed_need,
+		csl_classification,
+		csl_full_amt_flag,
+		csl_non_reason_id,
+		csl_over_reason_id,
+		csl_request_amount,
+		day_care_actual,
+		day_care_allowable,
+		depend_food_allowable,
+		depend_tran_allowable,
+		dependent_count,
+		destination_city_id,
+		disbursements_required,
+		discretionary_cost,
+		discretionary_cost_actual,
+		effective_rate_date,
+		entitlement_days,
+		family_size,
+		funding_request_id,
+		home_city_id,
+		id,
+		living_costs,
+		marital_status_id,
+		married_assets,
+		married_pstudy,
+		married_study,
+		over_award,
+		over_award_applied_flg,
+		over_award_disbursement_period,
+		p_trans_month,
+		parent1_income,
+		parent1_tax_paid,
+		parent2_income,
+		parent2_tax_paid,
+		parent_contribution_override,
+		parent_contribution_review,
+		parent_province,
+		parent_ps_depend_count,
+		period,
+		pre_leg_amount,
+		prestudy_accom_code,
+		prestudy_bus_flag,
+		prestudy_csl_classification,
+		prestudy_distance,
+		prestudy_living_w_spouse_flag,
+		prestudy_province_id,
+		program_id,
+		pstudy_day_care_actual,
+		pstudy_day_care_allow,
+		pstudy_depend_food_allow,
+		pstudy_depend_tran_allow,
+		pstudy_end_date,
+		pstudy_expected_contrib,
+		pstudy_p_trans_month,
+		pstudy_shelter_month,
+		pstudy_start_date,
+		pstudy_x_trans_total,
+		r_trans_16wk,
+		relocation_total,
+		return_uncashable_cert,
+		second_residence_rate,
+		shelter_month,
+		spouse_contrib_exempt,
+		spouse_contribution,
+		spouse_contribution_override,
+		spouse_contribution_review,
+		spouse_expected_contribution,
+		spouse_expected_income,
+		spouse_gross_income,
+		spouse_ln150_income,
+		spouse_previous_contribution,
+		spouse_province_id,
+		spouse_pstudy_gross,
+		spouse_pstudy_tax_rate,
+		spouse_tax_rate,
+		stud_pstudy_gross,
+		stud_pstudy_tax_rate,
+		student_contrib_exempt,
+		student_contribution,
+		student_contribution_override,
+		student_contribution_review,
+		student_expected_contribution,
+		student_family_size,
+		student_gross_income,
+		student_ln150_income,
+		student_previous_contribution,
+		student_tax_rate,
+		study_accom_code,
+		study_area_id,
+		study_bus_flag,
+		study_distance,
+		study_living_w_spouse_flag,
+		study_months,
+		study_province_id,
+		study_weeks,
+		total_grant_awarded,
+		travel_allowance,
+		tuition_estimate,
+		uncapped_costs_total,
+		uncapped_pstudy_total,
+		weekly_amount,
+		weeks_allowed,
+		x_trans_total,
+		years_funded_equivalent
+	FROM sfa.assessment a
+	WHERE a.id = @assessment_id;
+END;
+GO
+
+
+-- Get application by funding request
+CREATE OR ALTER PROCEDURE sfa.sp_get_application_by_funding_request(@funding_request_id INT)
+AS
+BEGIN
+	SELECT 
+		a.*
+	FROM sfa.application a
+		INNER JOIN sfa.funding_request fr 
+			ON fr.application_id = a.id
+	WHERE fr.id = @funding_request_id;
+END;
+GO
+
+-- Get field program code
+CREATE OR ALTER FUNCTION sfa.fn_get_field_program_code(@study_are_id INT, @program_id INT)
+RETURNS INT
+AS
+BEGIN 
+	DECLARE @result INT = NULL;
+
+	SELECT TOP 1
+		@result = fp.field_program_code
+	FROM sfa.field_program fp
+		INNER JOIN sfa.study_area sa
+			ON fp.study_field_id = sa.study_field_id
+	WHERE sa.id = @study_are_id
+	AND fp.program_id = @program_id;
+	
+	RETURN @result;
+END;
+GO
+
+-- Get CSL overaward
+CREATE OR ALTER FUNCTION sfa.fn_get_csl_overaward(@student_id INT, @funding_request_id INT)
+RETURNS FLOAT(8)
+AS
+BEGIN 
+	DECLARE
+		@request INT,
+		@overaward FLOAT(8);
+	
+	SELECT
+		@overaward = COALESCE(a.over_award, 0)
+	FROM sfa.assessment a
+		INNER JOIN sfa.funding_request fr
+			ON fr.id = a.funding_request_id
+			AND fr.id < @funding_request_id
+		INNER JOIN sfa.application app
+			ON fr.application_id = app.id
+	WHERE a.assessment_type_id = 3 
+	AND app.student_id = @student_id
+	ORDER BY a.id DESC;	
+
+	SELECT
+		@request = COUNT(fr.id)
+	FROM sfa.funding_request fr
+		INNER JOIN sfa.application a
+			ON fr.application_id = a.id
+			AND a.student_id = @student_id
+	WHERE fr.id <= @funding_request_id
+	AND fr.request_type_id = 4;
+
+	IF @request = 1
+	BEGIN
+		SELECT 
+			@overaward = COALESCE(s.pre_over_award_amount, 0)
+		FROM sfa.student s
+		WHERE s.id = @student_id;
+	END
+	
+	RETURN @overaward;	
+END;
+GO
+
+-- Get Previous Disbursed
+CREATE OR ALTER FUNCTION sfa.fn_get_previous_disbursed_amount(@funding_request_id INT, @assessment_id INT)
+RETURNS FLOAT(8)
+AS 
+BEGIN
+	DECLARE  @disbursed_amt FLOAT(8);
+
+    SELECT @disbursed_amt = SUM(COALESCE(d.disbursed_amount, 0))
+    FROM sfa.disbursement d
+    WHERE d.funding_request_id = @funding_request_id
+    AND d.assessment_id < @assessment_id;
+
+    RETURN COALESCE(@disbursed_amt, 0);
+
+END;
+GO
+
+-- Get Shelter Amount
+CREATE OR ALTER FUNCTION sfa.fn_get_shelter_amount(@academic_year_id INT, @province_id INT, @student_category_id INT)
+RETURNS FLOAT(8)
+AS 
+BEGIN
+	DECLARE  @amt FLOAT(8);
+
+    SELECT @amt = COALESCE(sla.shelter_amount, 0)
+	FROM sfa.student_living_allowance sla
+	WHERE sla.academic_year_id = @academic_year_id
+	AND sla.province_id = @province_id
+	AND sla.student_category_id = @student_category_id
+    
+    RETURN COALESCE(@amt, 0);
+
+END;
+GO
+
+-- Get Mileage Rate
+CREATE OR ALTER FUNCTION sfa.fn_get_mileage_rate(@academic_year_id INT)
+RETURNS FLOAT(8)
+AS 
+BEGIN
+	DECLARE  @amt FLOAT(8);
+
+    SELECT @amt = COALESCE(cl.mileage_rate, 0)
+    FROM sfa.csl_lookup cl
+    WHERE cl.academic_year_id = @academic_year_id;
+    
+    RETURN COALESCE(@amt, 0);
+
+END;
+GO
+
+-- Get Max Relocation
+CREATE OR ALTER FUNCTION sfa.fn_get_max_relocation(@academic_year_id INT)
+RETURNS FLOAT(8)
+AS 
+BEGIN
+	DECLARE  @amt FLOAT(8);
+
+    SELECT @amt = COALESCE(cl.relocation_max_amount, 0)
+    FROM sfa.csl_lookup cl
+    WHERE cl.academic_year_id = @academic_year_id;
+    
+    RETURN COALESCE(@amt, 0);
+
+END;
+GO
+
+-- Get Max Return Transport
+CREATE OR ALTER FUNCTION sfa.fn_get_max_return_transport(@academic_year_id INT)
+RETURNS FLOAT(8)
+AS 
+BEGIN
+	DECLARE  @amt FLOAT(8);
+
+    SELECT @amt = COALESCE(cl.return_transport_max_amount, 0)
+    FROM sfa.csl_lookup cl
+    WHERE cl.academic_year_id = @academic_year_id;
+    
+    RETURN COALESCE(@amt, 0);
+
+END;
+GO
+
+-- Get Vehicle deduction amount
+CREATE OR ALTER FUNCTION sfa.fn_get_vehicle_deduction_amount(@academic_year_id INT)
+RETURNS FLOAT(8)
+AS 
+BEGIN
+	DECLARE  @amt FLOAT(8);
+
+    SELECT @amt = COALESCE(cl.vehicle_deduction_amount, 0)
+    FROM sfa.csl_lookup cl
+    WHERE cl.academic_year_id = @academic_year_id;
+    
+    RETURN COALESCE(@amt, 0);
+
+END;
+GO
+
+-- Get RRSP Deduction Yearly Amount
+CREATE OR ALTER FUNCTION sfa.fn_get_rrsp_deduction_yearly_amount(@academic_year_id INT)
+RETURNS FLOAT(8)
+AS 
+BEGIN
+	DECLARE  @amt FLOAT(8);
+
+    SELECT @amt = COALESCE(cl.rrsp_deduction_yearly_amount, 0)
+    FROM sfa.csl_lookup cl
+    WHERE cl.academic_year_id = @academic_year_id;
+    
+    RETURN COALESCE(@amt, 0);
+
+END;
+GO
+
+--GET_HOME_CITY OR pr_get_home_city_id_fct
+CREATE OR ALTER FUNCTION sfa.fn_get_home_city (@student_id INT)
+RETURNS INT AS
+BEGIN
+DECLARE @home_city_id INT;
+    SELECT  @home_city_id = pa.city_id
+    FROM sfa.student s
+    INNER JOIN sfa.person p ON p.id = s.person_id 
+    INNER JOIN sfa.person_address pa ON pa.person_id = p.id
+    WHERE s.id = @student_id
+    AND pa.address_type_id = 1;
+
+    RETURN @home_city_id;
+END
+GO
+-- GET_INSTITUTION_CITY
+CREATE OR ALTER FUNCTION sfa.fn_get_institution_city (@application_id INT)
+RETURNS INT AS
+BEGIN
+DECLARE @destination_city INT;
+
+    SELECT 
+    @destination_city = ic.address_city_id
+    FROM sfa.application app
+    INNER JOIN sfa.institution_campus ic ON app.institution_campus_id = ic.id
+    WHERE app.id = @application_id;
+
+    RETURN @destination_city;
+END;
+GO
+
+-- yg_cost_pck.get_weekly_rate_fct - GET_WEEKLY_AMOUNT
+CREATE OR ALTER FUNCTION sfa.fn_get_weekly_amount (@application_id INT)
+RETURNS NUMERIC AS
+BEGIN
+DECLARE @weekly_amount NUMERIC;
+
+    SELECT TOP 1 @weekly_amount = COALESCE(yc.weekly_amount, 0)
+    FROM sfa.yg_cost yc
+    WHERE yc.academic_year_id = (
+        SELECT app.academic_year_id
+        FROM sfa.application app
+        WHERE app.id = @application_id
+      )
+    AND yc.allowed_percent = 100;
+
+    RETURN @weekly_amount;
+END;
+GO
+
+-- Get Person Address
+CREATE OR ALTER FUNCTION sfa.fn_get_person_address(@person_id INT, @address_type INT = 1)
+RETURNS TABLE
+AS
+RETURN
+SELECT TOP 1
+	pa.*
+FROM sfa.person p
+	LEFT JOIN sfa.person_address pa
+		ON pa.person_id = p.id 
+WHERE p.id = @person_id
+AND pa.address_type_id = @address_type;
+GO
+
+-- Get Standard Living Amount
+CREATE OR ALTER FUNCTION sfa.fn_get_standard_living_amount(@academic_year_id INT, @province_id INT, @family_size INT)
+RETURNS FLOAT(8)
+AS 
+BEGIN
+	DECLARE  @amt FLOAT(8);
+
+    SELECT @amt = COALESCE(sol.standard_living_amount, 0)
+    FROM sfa.standard_of_living sol
+    WHERE sol.academic_year_id = @academic_year_id
+   	AND sol.province_id = @province_id
+   	AND sol.family_size = @family_size;
+    
+    RETURN COALESCE(@amt, 0);
+
+END;
+GO
+
+-- Get Parent Contribution
+CREATE OR ALTER FUNCTION sfa.fn_get_parent_contribution_amount(@academic_year_id INT, @discretionary_amount FLOAT(8))
+RETURNS FLOAT(8) AS
+BEGIN
+    DECLARE @amount FLOAT(8) = 0;
+    
+    SELECT 
+		@amount = ROUND((pcf.add_amount + ((@discretionary_amount - pcf.subtract_amount) * (pcf.percentage/100)))/pcf.divide_by, 2) 
+	FROM sfa.parent_contribution_formula pcf
+	WHERE pcf.academic_year_id = @academic_year_id
+	AND @discretionary_amount BETWEEN pcf.income_from_amount AND pcf.income_to_amount;
+
+    RETURN COALESCE(@amount, 0);
+END;
+GO
+
+-- Get Income Amount
+CREATE OR ALTER FUNCTION sfa.fn_get_other_income_amount(@application_id INT, @academic_year_id INT)
+RETURNS FLOAT(8)
+AS
+BEGIN 
+	DECLARE @amount FLOAT(8) = 0;
+	DECLARE @exempt FLOAT(8) = 0;
+
+	SELECT 
+		@exempt = @exempt + COALESCE(SUM(i.amount), 0)
+	FROM sfa.income i 
+		INNER JOIN sfa.income_type it
+			ON it.id = i.income_type_id
+	WHERE i.application_id = @application_id
+	AND it.id = 16
+	AND i.amount IS NOT NULL
+	AND it.assess_as_asset = 1;
+
+	IF @academic_year_id >= 2004
+	BEGIN
+		
+		SELECT
+			@exempt = CASE WHEN (@exempt - COALESCE(cl.merit_exempt_amount,0)) > 0 THEN (@exempt - COALESCE(cl.merit_exempt_amount,0)) ELSE 0 END
+		FROM sfa.csl_lookup cl
+		WHERE cl.academic_year_id = @academic_year_id;
+		
+	END	
+
+	SELECT 
+		@amount = COALESCE(SUM(i.amount), 0)
+	FROM sfa.income i 
+		INNER JOIN sfa.income_type it
+			ON it.id = i.income_type_id
+	WHERE i.application_id = @application_id
+	AND it.id <> 16
+	AND i.amount IS NOT NULL
+	AND it.assess_as_asset = 1;
+
+	
+	RETURN COALESCE(@amount, 0) + @exempt;
+END;
+GO
+
+-- Get Expense Amount
+CREATE OR ALTER FUNCTION sfa.fn_get_expense_amount(@application_id INT, @period_id INT)
+RETURNS FLOAT(8)
+AS
+BEGIN 
+	DECLARE @amount FLOAT(8) = 0;
+	
+	SELECT 
+		@amount = COALESCE(SUM(e.amount),0)
+	FROM sfa.expense e
+	WHERE e.application_id = @application_id
+	AND e.period_id = @period_id;
+	
+	RETURN COALESCE(@amount, 0);
+END;
+GO
+
+-- Get CSL Dependent Count
+CREATE OR ALTER FUNCTION sfa.fn_get_csl_dependent_count(@application_id INT)
+RETURNS INT
+AS
+BEGIN 
+	DECLARE @count INT = 0;
+	
+	SELECT 
+		@count = COALESCE(COUNT(d.id), 0)
+	FROM sfa.dependent d
+		INNER JOIN sfa.application a
+			ON d.student_id = a.student_id
+		INNER JOIN sfa.dependent_eligibility de
+			ON de.dependent_id = d.id
+			AND de.application_id = a.id
+			AND de.is_csl_eligible = 1
+	WHERE a.id = @application_id;
+
+	RETURN COALESCE(@count, 0);
+END;
+GO
+
+-- Get Investment Total Amount.
+CREATE OR ALTER FUNCTION sfa.fn_get_investment_total_amount(@application_id INT, @ownership_id INT, @is_rrsp BIT)
+RETURNS FLOAT(8)
+AS
+BEGIN 
+	DECLARE @amount FLOAT(8) = 0;
+	
+	SELECT
+		@amount = COALESCE(SUM(i.market_value),0)
+	FROM sfa.investment i 
+		INNER JOIN sfa.ownership o
+			ON i.ownership_id = o.id
+	WHERE i.application_id = @application_id 
+	AND i.market_value IS NOT NULL
+	AND i.is_rrsp = @is_rrsp
+	AND o.id = @ownership_id;
+	
+	RETURN COALESCE(@amount, 0);
+END;
+GO
+
+-- Get grant Amount
+CREATE OR ALTER FUNCTION sfa.fn_get_grant_amount(@application_id INT, @request_type_id INT)
+RETURNS FLOAT(8)
+AS
+BEGIN 
+	DECLARE @amount FLOAT(8) = 0;
+	
+	SELECT 
+		@amount = COALESCE(SUM(d.disbursed_amount), 0)
+	FROM sfa.disbursement d
+		INNER JOIN sfa.funding_request fr
+			ON d.funding_request_id = fr.id
+	WHERE fr.request_type_id = @request_type_id
+	AND fr.application_id = @application_id;
+	
+	RETURN COALESCE(@amount, 0);
+END;
+GO
+
+-- Get Income Threshold Amount.
+CREATE OR ALTER FUNCTION sfa.fn_get_income_threshold_amount(@family_size INT, @academic_year_id INT)
+RETURNS FLOAT(8)
+AS
+BEGIN 
+	DECLARE @amount FLOAT(8) = 0;
+	
+	SELECT 
+		@amount = COALESCE(SUM(ct.income_threshold), 0)
+	FROM sfa.csg_threshold ct
+	WHERE ct.academic_year_id = @academic_year_id
+	AND ct.family_size = @family_size
+		
+	RETURN COALESCE(@amount, 0);
+END;
+GO
+
+-- Get CSL Lookup Contrib Percentages
+CREATE OR ALTER FUNCTION sfa.fn_get_csl_lookup_contrib_pct(@academic_year_id INT)
+RETURNS TABLE
+AS
+RETURN
+SELECT
+	COALESCE(cl.student_contrib_percent, 0)/100 AS student_contrib_percent,
+	COALESCE(cl.spouse_contrib_percent, 0)/100 AS spouse_contrib_percent,
+	COALESCE(cl.low_income_student_contrib_amount, 0) AS low_income_student_contrib_amount,
+	COALESCE(cl.student_contrib_max_amount, 0) AS student_contrib_max_amount
+FROM sfa.csl_lookup cl
+WHERE cl.academic_year_id = @academic_year_id;
+GO
+
+-- Get Student previous contrib amount.
+CREATE OR ALTER FUNCTION sfa.fn_get_student_previous_contrib_amount(@assessment_id INT, @academic_year_id INT, @student_id INT)
+RETURNS FLOAT(8)
+AS 
+BEGIN
+	DECLARE  @amt FLOAT(8);
+
+	SELECT
+		@amt = COALESCE(SUM(a.student_contribution), 0)
+	FROM sfa.assessment a
+	WHERE a.id < @assessment_id
+	AND a.student_contrib_exempt <> 'Yes'
+	AND a.assessment_type_id IN (1,2)
+	AND a.id IN (
+		SELECT 
+			a2.id 
+		FROM sfa.assessment a2 
+			INNER JOIN sfa.funding_request fr
+				ON a2.funding_request_id = fr.id
+				AND fr.request_type_id IN (4,5)
+				AND fr.status_id IN (6,7)
+			INNER JOIN sfa.application a3
+				ON fr.application_id = a3.id
+				AND a3.student_id = @student_id
+				AND a3.academic_year_id = @academic_year_id
+	)
+	AND a.id IN (
+		SELECT
+			d.assessment_id 
+		FROM sfa.disbursement d 
+		WHERE (SELECT SUM(d2.disbursed_amount) FROM sfa.disbursement d2 WHERE d2.id = d.id GROUP BY d2.id) <> 0
+	)
+	AND a.id NOT IN (
+		SELECT
+			a4.id 
+		FROM sfa.assessment a4
+		WHERE a4.funding_request_id = a.funding_request_id 
+	);
+	
+	
+	
+    RETURN COALESCE(@amt, 0);
+
+END;
+GO
+
+-- Get Spouse previous contrib amount
+CREATE OR ALTER FUNCTION sfa.fn_get_spouse_previous_contrib_amount(@assessment_id INT, @academic_year_id INT, @student_id INT)
+RETURNS FLOAT(8)
+AS 
+BEGIN
+	DECLARE  @amt FLOAT(8);
+
+	SELECT
+		@amt = COALESCE(SUM(a.spouse_contribution), 0)
+	FROM sfa.assessment a
+	WHERE a.id < @assessment_id
+	AND a.spouse_contrib_exempt <> 'Yes'
+	AND a.assessment_type_id IN (1,2)
+	AND a.id IN (
+		SELECT 
+			a2.id 
+		FROM sfa.assessment a2 
+			INNER JOIN sfa.funding_request fr
+				ON a2.funding_request_id = fr.id
+				AND fr.request_type_id IN (4,5)
+				AND fr.status_id IN (6,7)
+			INNER JOIN sfa.application a3
+				ON fr.application_id = a3.id
+				AND a3.student_id = @student_id
+				AND a3.academic_year_id = @academic_year_id
+	)
+	AND a.id IN (
+		SELECT
+			d.assessment_id 
+		FROM sfa.disbursement d 
+		WHERE (SELECT SUM(d2.disbursed_amount) FROM sfa.disbursement d2 WHERE d2.id = d.id GROUP BY d2.id) <> 0
+	)
+	AND a.id NOT IN (
+		SELECT
+			a4.id 
+		FROM sfa.assessment a4
+		WHERE a4.funding_request_id = a.funding_request_id 
+	);
+	
+	
+	
+    RETURN COALESCE(@amt, 0);
+
+END;
+GO
+
+-- Get Assessment By Funding Request Id
+CREATE OR ALTER PROCEDURE sfa.sp_get_assessment_by_funding_request(@funding_request_id INT)
+AS
+BEGIN
+	SELECT 
+		a.*
+	FROM sfa.assessment a 
+	WHERE a.funding_request_id = @funding_request_id;
+END;
+GO
+
+-- Get Max Weekly Allowable Amount
+CREATE OR ALTER FUNCTION sfa.fn_get_max_weekly_allowable_amount(@academic_year_id INT)
+RETURNS FLOAT(8)
+AS 
+BEGIN
+	DECLARE  @amt FLOAT(8);
+
+	SELECT 
+		@amt = COALESCE(cl.allowable_weekly_amount, 0)
+	FROM sfa.csl_lookup cl
+	WHERE cl.academic_year_id = @academic_year_id
+		
+    RETURN COALESCE(@amt, 0);
+
+END;
+GO
+
+-- Get Csl Lookup By Year
+CREATE OR ALTER FUNCTION sfa.fn_get_csl_lookup_by_year(@academic_year_id INT)
+RETURNS TABLE
+AS
+RETURN
+SELECT TOP 1
+	*
+FROM sfa.csl_lookup cl
+WHERE cl.academic_year_id = @academic_year_id;
+GO
+
+-- Get Msfaa By Student Id
+CREATE OR ALTER PROCEDURE sfa.sp_get_msfaa_by_student_id(@student_id INT)
+AS
+BEGIN
+	SELECT 
+		m.*
+	FROM sfa.msfaa m 
+	WHERE m.student_id = @student_id
+	AND m.id = (
+		SELECT MAX(m2.id)
+		FROM sfa.msfaa m2
+		WHERE m2.student_id = m.student_id
+		AND m2.is_full_time = 1
+	);
+END;
+GO
+
+-- Get Msfaa Student Fulltime Count
+CREATE OR ALTER FUNCTION sfa.fn_get_msfaa_student_fulltime_count(@student_id INT)
+RETURNS INT
+AS
+BEGIN 
+	DECLARE @result INT = 0;
+
+	SELECT
+		@result = COALESCE(COUNT(m.id), 0)
+	FROM sfa.msfaa m
+	WHERE m.student_id = @student_id
+	AND m.is_full_time = 1;
+	
+	RETURN COALESCE(@result, 0);
+END;
+GO
+
+-- Get MSFAA application by student id
+CREATE OR ALTER PROCEDURE sfa.sp_get_msfaa_application_by_student_id(@student_id INT)
+AS
+BEGIN
+	SELECT 
+		m.id AS msfaa_id,
+		a.id AS application_id,
+		a.classes_end_date,
+		m.msfaa_status
+	FROM sfa.msfaa m
+		INNER JOIN sfa.application a
+			ON m.application_id = a.id
+	WHERE m.student_id = @student_id
+	AND m.id = (
+		SELECT MAX(m2.id)
+		FROM sfa.msfaa m2
+		WHERE m2.student_id = m.student_id
+		AND m2.is_full_time = 1
+	);
+END;
+GO
+
+-- FILE : ASSESSMENT_SFA  --- pr_get_dependent_count_fct --- PROCEDURE: SFAADMIN.DEPENDENT_PCK$GET_DEPENDENT_COUNT_FCT$IMPL
+CREATE OR ALTER FUNCTION sfa.fn_get_dependent_count_sta_fct(
+   @application_id INT
+)
+RETURNS INT
+AS
+	BEGIN
+        DECLARE @return_value_argument INT;
+		DECLARE @res_v_dependent_count INT;
+
+		DECLARE
+		 dependent_cur CURSOR LOCAL FOR 
+		   SELECT count_big(*) AS dependent_count
+		   FROM sfa.dependent  AS d
+		   INNER JOIN sfa.application AS h ON h.student_id = d.student_id
+		   INNER JOIN sfa.dependent_eligibility  AS de ON de.dependent_id = d.id
+		   WHERE 
+		      de.application_id = h.id AND 
+		      de.is_csl_eligible = 1 AND 
+		      h.id = @application_id;
+        
+		OPEN dependent_cur
+		FETCH dependent_cur
+			INTO @res_v_dependent_count
+		CLOSE dependent_cur
+		DEALLOCATE dependent_cur
+		
+        SET @return_value_argument = @res_v_dependent_count
+		RETURN @return_value_argument
+	END
+GO
+
+-- FILE : ASSESSMENT_SFA  --- FUNCTION: GET_SECOND_RESIDENCE
+CREATE OR ALTER FUNCTION sfa.fn_get_second_residence_sta
+/*This function returns the value of the second residence rate*/
+(
+	@applitacion_id INT 
+)
+RETURNS FLOAT(8)
+BEGIN
+	DECLARE
+		@second_res_amt FLOAT(8);
+	DECLARE
+		@academic_year_id INT;
+	DECLARE
+		@return_value_argument INT;
+	SELECT @academic_year_id = app.academic_year_id
+		FROM sfa.application app
+	WHERE app.id = @applitacion_id
+	EXEC @second_res_amt = sfa.pr_get_residence_rate_sta @academic_year_id, @return_value_argument OUT;
+	RETURN @second_res_amt
+END
+GO
+
+CREATE OR ALTER PROCEDURE sfa.pr_get_travel_allowance_sta
+   @home_city_id INT,
+   @school_city_id INT,
+   @return_value_argument_tq float(53) OUTPUT
+AS 
+   BEGIN
+     DECLARE
+        @res_v_travel_allowance float(53)
+     DECLARE
+         transportation_cur CURSOR LOCAL FOR 
+           SELECT isnull(tr.travel_allowance_amount, 0) AS travel_allowance
+           FROM sfa.transportation tr
+           WHERE tr.home_city_id = @home_city_id AND tr.institution_city_id = @school_city_id
+     OPEN transportation_cur
+     FETCH transportation_cur
+         INTO @res_v_travel_allowance
+     CLOSE transportation_cur
+     DEALLOCATE transportation_cur
+     IF @res_v_travel_allowance > 0
+        BEGIN
+           SET @return_value_argument_tq = @res_v_travel_allowance
+           RETURN @return_value_argument_tq
+        END
+     ELSE 
+        BEGIN
+           SET @return_value_argument_tq = 0
+           RETURN @return_value_argument_tq
+        END
+	END
+GO
+
+-- FILE : ASSESSMENT_STA  --- FUNCTION: GET_TRAVEL_ALLOWANCE
+CREATE OR ALTER FUNCTION sfa.fn_get_travel_allowance_sta
+/*This function gets the travel allowance based on the home city and school city*/
+(
+	@student_id INT,
+    @application_id INT
+)
+RETURNS NUMERIC(10,2)
+BEGIN
+	DECLARE @trav_allow NUMERIC(10,2);
+	DECLARE @home_city_id INT;
+	DECLARE @school_city_id INT;
+
+	SELECT @home_city_id = sfa.fn_get_home_city(@student_id);
+	SELECT @school_city_id = sfa.fn_get_institution_city(@application_id);
+
+	SELECT @trav_allow = sfa.fn_get_travel_allowance(@home_city_id, @school_city_id);
+
+	RETURN @trav_allow
+END
+GO
+
+-- FILE : ASSESSMENT_SFA  --- FUNCTION: GET_OTHER_INST_TOTAL
+CREATE OR ALTER FUNCTION sfa.fn_get_other_inst_total_sta
+/*This function calculates the assessed amount based on the weekly amount, second residence amount entitlement days and tavel allowance*/
+(
+	@weekly_amount INT,
+	@assessment_second_residence_rate float(8),
+	@assessment_entitlement_days float(8),
+	@travel_allowance float(53)
+)
+RETURNS FLOAT(53)
+AS
+BEGIN
+	DECLARE @assessed_total float(53);
+    
+	SELECT @assessed_total = (((@weekly_amount + @assessment_second_residence_rate)/5 * @assessment_entitlement_days) + @travel_allowance)
+	RETURN @assessed_total
+END 
+GO
+
+-- FILE : ASSESSMENT_SFA  --- FUNCTION: GET_NET
+CREATE OR ALTER FUNCTION sfa.fn_get_net_sta(@assessment_assessed_amount DECIMAL(10, 2), @assessment_previous_disbursement DECIMAL(10, 2))
+RETURNS DECIMAL(10, 2)
+AS
+BEGIN
+  DECLARE @net_amt DECIMAL(10, 2);
+  
+  SET @net_amt = @assessment_assessed_amount - @assessment_previous_disbursement;
+  
+  IF @net_amt BETWEEN -1 AND 1
+  BEGIN
+    SET @net_amt = 0;
+  END;
+  
+  RETURN @net_amt;
+END
+GO
+
+-- FILE : ASSESSMENT_SFA  --- FUNCTION: GET_WEEKS_ALLOWED
+CREATE OR ALTER FUNCTION sfa.fn_get_weeks_allowed_sta
+(
+    @previous_weeks FLOAT,
+    @assessed_weeks FLOAT,
+    @prev_weeks_curr_yr FLOAT
+)
+RETURNS FLOAT
+AS
+BEGIN
+    DECLARE @v_weeks FLOAT;
+
+    IF ISNULL(@previous_weeks, 0) + ISNULL(@assessed_weeks, 0) > 170
+    BEGIN
+        SET @v_weeks = 170 - ISNULL(@previous_weeks, 0);
+    END
+    ELSE IF ISNULL(@prev_weeks_curr_yr, 0) > 0 AND ISNULL(@prev_weeks_curr_yr, 0) + ISNULL(@assessed_weeks, 0) > 40
+    BEGIN
+        SET @v_weeks = 40 - @prev_weeks_curr_yr;
+    END
+    ELSE
+    BEGIN
+        SET @v_weeks = ISNULL(@assessed_weeks, 0);
+    END
+
+    IF @v_weeks > 40
+    BEGIN
+        SET @v_weeks = 40;
+    END
+
+    RETURN @v_weeks;
+END
+GO
+
+-- FILE : ASSESSMENT_STA  --- FUNCTION: SFAADMIN.STA_LOOKUP_PCK$GET_WEEKLY_RATE_FCT$IMPL  
+CREATE OR ALTER PROCEDURE sfa.pr_get_weekly_rate_sta
+   @dependent_count_p INT,
+   @academic_year_id_p INT,
+   @return_value_argument INT OUTPUT
+AS 
+	BEGIN
+		DECLARE
+		@res_v_weekly_rate INT
+		DECLARE
+		 weekly_rate_cur CURSOR LOCAL FOR 
+		   SELECT 
+		      CASE @dependent_count_p
+		         WHEN 0 THEN st.dependent_0_amount
+		         WHEN 1 THEN st.dependent_1_amount
+		         WHEN 2 THEN st.dependent_2_amount
+		         WHEN 3 THEN st.dependent_3_amount
+		         ELSE st.dependent_4_amount
+		      END AS weekly_rate
+		   FROM sfa.sta_lookup st
+		   WHERE st.academic_year_id = @academic_year_id_p
+		OPEN weekly_rate_cur
+		FETCH weekly_rate_cur
+			INTO @res_v_weekly_rate
+		CLOSE weekly_rate_cur
+		DEALLOCATE weekly_rate_cur
+		SET @return_value_argument = @res_v_weekly_rate
+		RETURN @return_value_argument
+	END
+GO
+
+-- FILE : ASSESSMENT_SFA  --- PROCEDURE: SFAADMIN.DEPENDENT_PCK$GET_DEPENDENT_COUNT_FCT$IMPL
+CREATE OR ALTER PROCEDURE sfa.pr_get_dependent_count_sta
+   @application_id INT,
+   @return_value_argument INT OUTPUT
+AS 
+	BEGIN
+		DECLARE
+		@res_v_dependent_count INT
+		DECLARE
+		 dependent_cur CURSOR LOCAL FOR 
+		   SELECT count_big(*) AS dependent_count
+		   FROM sfa.dependent  AS d
+		   INNER JOIN sfa.application AS h ON h.student_id = d.student_id
+		   INNER JOIN sfa.dependent_eligibility  AS de ON de.dependent_id = d.id
+		   WHERE 
+		      de.application_id = h.id AND 
+		      de.is_csl_eligible = 1 AND 
+		      h.id = @application_id
+		OPEN dependent_cur
+		FETCH dependent_cur
+			INTO @res_v_dependent_count
+		CLOSE dependent_cur
+		DEALLOCATE dependent_cur
+			SET @return_value_argument = @res_v_dependent_count
+		RETURN @return_value_argument
+	END
+GO
+
+-- FILE : ASSESSMENT_SFA  --- FUNCTION: GET_WEEKLY_AMOUNT
+CREATE OR ALTER FUNCTION sfa.fn_get_weekly_amount_sta
+/*This function returns the base weekly amount*/
+(
+	@application_id INT
+)
+RETURNS NUMERIC
+AS 
+BEGIN
+	DECLARE @wk_amt NUMERIC(10,2);
+	DECLARE @dependent_count INT;
+	DECLARE @return_value_argument INT;
+	DECLARE @return_value_argument_wk INT;
+	DECLARE @academic_year_id INT;
+	SELECT @academic_year_id = app.academic_year_id
+	FROM
+		sfa.application app
+	WHERE app.id = @application_id
+	EXEC @dependent_count = sfa.pr_get_dependent_count_sta @application_id,@return_value_argument OUT;
+	EXEC @wk_amt = sfa.pr_get_weekly_rate_sta @dependent_count,@academic_year_id,@return_value_argument_wk OUT;
+	RETURN @wk_amt
+END
+GO
+
+

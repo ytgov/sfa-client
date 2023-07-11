@@ -39,6 +39,8 @@ export const PROVINCE=`${config.apiBaseUrl}/api/v2/admin/province`;
 export const COUNTRIES=`${config.apiBaseUrl}/api/v2/admin/countries`;
 export const CITIES=`${config.apiBaseUrl}/api/v2/admin/cities`;
 export const CSL_CODES = `${config.apiBaseUrl}/api/v2/admin/csl-codes`;
+export const CSL_LOOKUP = `${config.apiBaseUrl}/api/v2/admin/csl-lookup`;
+export const CSL_REASON = `${config.apiBaseUrl}/api/v2/admin/csl-reason`;
 export const COMMUNICATION_TYPES = `${config.apiBaseUrl}/api/v2/admin/communication-types`;
 export const IN_SCHOOL_STATUS = `${config.apiBaseUrl}/api/v2/admin/in-school-status`;
 export const REQUEST_TYPES = `${config.apiBaseUrl}/api/v2/admin/request-types`;
@@ -85,3 +87,10 @@ export const EQUIPMENT_CATEGORY =`${config.apiBaseUrl}/api/v2/admin/equipment-ca
 export const CHANGE_REASON =`${config.apiBaseUrl}/api/v2/admin/change-reason`;
 export const ACCOMMODATION_TYPE =`${config.apiBaseUrl}/api/v2/admin/accommodation-type`;
 export const DISBURSEMENT =`${config.apiBaseUrl}/api/v2/admin/disbursement`;
+export const ASSESSMENT = `${config.apiBaseUrl}/api/v2/admin/assessment`;
+
+// Modules
+export const CSLFT = `${ASSESSMENT}/cslft`;
+export const CSLFT_ASSESS_INFO = `${CSLFT}/assess-info`
+
+export const USERS_URL = `${config.apiBaseUrl}/api/v2/admin/users`;

@@ -1,0 +1,32 @@
+export interface StudentDTO {
+    id: number;
+    person_id: number;
+    high_school_id: number;
+    education_level_id: number;
+    indigenous_learner_id: number;
+    vendor_id: string
+    yukon_id: string
+    checked_for_yukon_id: boolean;
+    national_id: string
+    locator_number: string
+    is_crown_ward: boolean;
+    high_school_final_grade: string
+    high_school_left_year: number;
+    high_school_left_month: number;
+    pre_funded_year: number;
+    pre_funding_years_used: number;
+    csl_letter_date: Date;
+    csl_warn_code: string
+    pre_over_award_amount: number
+    pre_yea_awards_used_amount: number
+    user_name: string
+    user_password: string
+    is_active: boolean;
+    is_first_logon_flg: string
+    last_logon_date: Date;
+    last_pw_change_date: Date;
+    yea_expiry_date: Date;
+    adj_yg_funding_weeks: number;
+    adj_sta_upgrading_weeks: number;
+    adj_outside_travel_cnt: number;
+}

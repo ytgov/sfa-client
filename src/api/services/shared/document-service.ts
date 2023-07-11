@@ -1,30 +1,43 @@
 import knex from "knex";
-import {
-  S3Client,
-  ListBucketsCommand,
-  GetObjectCommand,
-  ListObjectsV2Command,
-  PutObjectCommand,
-  DeleteObjectCommand,
-} from "@aws-sdk/client-s3";
 import { nanoid } from "nanoid";
 import { UploadedFile } from "express-fileupload";
 import { Readable } from "stream";
-import { DB_CONFIG, AWS_S3_CONFIG, AWS_S3_BUCKET } from "../../config";
+import {
+  DB_CONFIG,
+  AWS_S3_BUCKET,
+  AWS_S3_PATH,
+  AWS_S3_ACCESS_SECRET,
+  AWS_S3_ACCESS_KEY,
+  AWS_S3_REGION,
+  AWS_S3_ENDPOINT,
+} from "../../config";
 import { FileReference, FileReferenceBase, FileStatus } from "../../models";
+import { S3Worker } from "../../utils/document-storage";
 
 const db = knex(DB_CONFIG);
 
 export class DocumentService {
-  readonly client: S3Client;
+  readonly s3Helper: S3Worker;
 
   constructor() {
-    this.client = new S3Client(AWS_S3_CONFIG);
+    this.s3Helper = new S3Worker(
+      AWS_S3_ENDPOINT,
+      AWS_S3_ACCESS_KEY,
+      AWS_S3_ACCESS_SECRET,
+      AWS_S3_BUCKET,
+      AWS_S3_REGION
+    );
   }
 
   async verify(): Promise<any> {
     try {
-      const command = new ListBucketsCommand({});
+      let list = await this.s3Helper.listFiles();
+
+      //console.log(list);
+
+      return { connection: true, bucket_exists: true };
+
+      /*   const command = new ListBucketsCommand({});
       const bucketList = await this.client.send(command);
 
       if (bucketList.Buckets && bucketList.Buckets.length > 0) {
@@ -42,7 +55,7 @@ export class DocumentService {
         }
       } else {
         return { connection: true, bucket_exists: false };
-      }
+      } */
     } catch (e) {
       return { connection: false, e };
     }
@@ -77,11 +90,10 @@ export class DocumentService {
     let docRef = await db<FileReference>("sfa.file_reference").where({ object_key }).first();
 
     if (docRef) {
-      const command = new GetObjectCommand({ Bucket: docRef.bucket, Key: docRef.object_key });
-      const response = await this.client.send(command);
+      const response = await this.s3Helper.download(`${AWS_S3_PATH}/${docRef.object_key}`);
 
       if (response.Body) {
-        docRef.file_contents = await streamToBuffer(response.Body as Readable);
+        docRef.file_contents = response.Body; // = await streamToBuffer(response.Body as Readable);
         return docRef;
       }
     }
@@ -103,20 +115,10 @@ export class DocumentService {
     let docRef = await db<FileReferenceBase>("sfa.file_reference").where({ object_key }).first();
 
     if (docRef) {
-      let command1 = new DeleteObjectCommand({
-        Bucket: docRef.bucket,
-        Key: docRef.object_key,
-      });
-
-      await this.client.send(command1);
+      this.s3Helper.delete(`${AWS_S3_PATH}/${docRef.object_key}`);
 
       if (docRef.object_key_pdf) {
-        let command2 = new DeleteObjectCommand({
-          Bucket: docRef.bucket,
-          Key: docRef.object_key_pdf || "",
-        });
-
-        await this.client.send(command2);
+        this.s3Helper.delete(`${AWS_S3_PATH}/${docRef.object_key_pdf || ""}`);
       }
 
       await db("sfa.file_reference").where({ object_key }).delete();
@@ -190,7 +192,7 @@ export class DocumentService {
       requirement_type_id,
       mime_type: file.mimetype,
       file_size: file.size,
-      comment: comment,      
+      comment: comment,
       status: status,
       status_date: new Date(),
       disability_requirement_id,
@@ -213,14 +215,7 @@ export class DocumentService {
   async uploadFile(input: FileReference): Promise<FileReference> {
     await db("sfa.file_reference").insert(forInsert(input));
 
-    let upload1Command = new PutObjectCommand({
-      Bucket: input.bucket,
-      Key: input.object_key,
-      Body: input.file_contents,
-      ContentType: input.mime_type,
-    });
-
-    await this.client.send(upload1Command);
+    await this.s3Helper.upload(`${AWS_S3_PATH}/${input.object_key}`, input.file_contents);
 
     // this feature is awaiting some sort of universal PDF conversion
     /* if (input.object_key_pdf) {

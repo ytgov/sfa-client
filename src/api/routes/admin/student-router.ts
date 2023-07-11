@@ -6,7 +6,7 @@ import { ReturnValidationErrors, ReturnValidationErrorsCustomMessage } from "../
 import { DB_CONFIG } from "../../config";
 import { first, orderBy } from "lodash";
 import axios from "axios";
-let { RequireServerAuth, RequireAdmin } = require("../auth")
+let { RequireActive, RequireAdmin } = require("../auth")
 
 const db = knex(DB_CONFIG)
 
@@ -166,7 +166,7 @@ studentRouter.patch("/:person_id/person",
     }
 );
 
-studentRouter.post("/search",
+studentRouter.post("/search", RequireActive,
     async (req: Request, res: Response) => {
         let { terms } = req.body;
         terms = terms.toLowerCase().trim()
@@ -415,7 +415,7 @@ studentRouter.get("/:id",
 
                     const temporalAddress = await db("sfa.person_address")
                         .where({ person_id: student.person_id })
-                        .where({ address_type_id: 2 })
+                        .where({ address_type_id: 3 })
                         .orderBy("id", "DESC")
                         .first();
 

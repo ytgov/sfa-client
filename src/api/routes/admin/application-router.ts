@@ -7,6 +7,8 @@ import { ReturnValidationErrors } from "../../middleware";
 import { DB_CONFIG } from "../../config";
 import { Buffer } from 'buffer';
 import { functionsIn, indexOf, orderBy, parseInt } from "lodash";
+import { AssessmentYukonGrant } from "../../repositories/assessment";
+
 const db = knex(DB_CONFIG)
 export const applicationRouter = express.Router();
 export const portalStudentRouter = express.Router();
@@ -15,35 +17,42 @@ const documentService = new DocumentService();
 applicationRouter.get("/all", ReturnValidationErrors, async (req: Request, res: Response) => {
         try {
             const { filter } = req.query;
+
             let applications;
 
-            if (!filter || filter == 'ALL') {
+            if (!filter || filter == undefined) {
                 applications = await db("sfa.application")
-                    .innerJoin("sfa.institution_campus", "application.institution_campus_id", "institution_campus.id")
-                    .innerJoin("sfa.institution", "institution.id", "institution_campus.institution_id")
+                    .leftJoin("sfa.institution_campus", "application.institution_campus_id", "institution_campus.id")
+                    .leftJoin("sfa.institution", "institution.id", "institution_campus.institution_id")
                     .innerJoin("sfa.funding_request", "funding_request.application_id", "application.id")
                     .innerJoin("sfa.student", "student.id", "application.student_id")
                     .innerJoin("sfa.person", "student.person_id", "person.id")
-                    .select("application.*")
+                    .select("application.id")
+                    .select("application.online_submit_date")
                     .select("institution.name as institution_name")
+                    .select("application.academic_year_id")
                     .select("person.first_name")
                     .select("person.last_name").limit(25)
-                    .where({ seen: false })
+                    .where("funding_request.status_id", 32 )
+                    .groupBy("application.id", "application.online_submit_date","institution.name","person.first_name","person.last_name","application.academic_year_id")
                     .orderBy('online_submit_date', 'asc');
             } else {
                 applications = await db("sfa.application")
-                    .innerJoin("sfa.institution_campus", "application.institution_campus_id", "institution_campus.id")
-                    .innerJoin("sfa.institution", "institution.id", "institution_campus.institution_id")
-                    .innerJoin("sfa.funding_request", "funding_request.application_id", "application.id")
-                    .innerJoin("sfa.student", "student.id", "application.student_id")
-                    .innerJoin("sfa.person", "student.person_id", "person.id")
-                    .select("application.*")
-                    .select("institution.name as institution_name")
-                    .select("person.first_name")
-                    .select("person.last_name").limit(25)
-                    .whereLike('last_name', `${filter}%`)
-                    .andWhere({ seen: false })
-                    .orderBy('online_submit_date', 'asc');
+                .leftJoin("sfa.institution_campus", "application.institution_campus_id", "institution_campus.id")
+                .leftJoin("sfa.institution", "institution.id", "institution_campus.institution_id")
+                .innerJoin("sfa.funding_request", "funding_request.application_id", "application.id")
+                .innerJoin("sfa.student", "student.id", "application.student_id")
+                .innerJoin("sfa.person", "student.person_id", "person.id")
+                .select("application.id")
+                .select("application.online_submit_date")
+                .select("institution.name as institution_name")
+                .select("application.academic_year_id")
+                .select("person.first_name")
+                .select("person.last_name").limit(25)
+                .whereLike('last_name', `[${filter}]%`)
+                .andWhere("funding_request.status_id", 32 )
+                .groupBy("application.id", "application.online_submit_date","institution.name","person.first_name","person.last_name","application.academic_year_id")
+                .orderBy('online_submit_date', 'asc');
             }
 
             for (let item of applications) {
@@ -63,32 +72,32 @@ applicationRouter.get("/latest-updates", ReturnValidationErrors, async (req: Req
         const { filter } = req.query;
         let applications;
 
-        if (!filter || filter == 'ALL') {
+        if (!filter || filter == undefined) {
             applications = await db("sfa.application")
-                .innerJoin("sfa.institution_campus", "application.institution_campus_id", "institution_campus.id")
-                .innerJoin("sfa.institution", "institution.id", "institution_campus.institution_id")
-                .innerJoin("sfa.funding_request", "funding_request.application_id", "application.id")
-                .innerJoin("sfa.student", "student.id", "application.student_id")
-                .innerJoin("sfa.person", "student.person_id", "person.id")
+                .leftJoin("sfa.institution_campus", "application.institution_campus_id", "institution_campus.id")
+                .leftJoin("sfa.institution", "institution.id", "institution_campus.institution_id")
+                .leftJoin("sfa.student", "student.id", "application.student_id")
+                .leftJoin("sfa.person", "student.person_id", "person.id")
                 .select("application.*")
                 .select("institution.name as institution_name")
                 .select("person.first_name")
                 .select("person.last_name").limit(25)
                 .where({ seen: true })
+                .whereNotNull('updated_at')
                 .orderBy('updated_at', 'desc');
         } else {
             applications = await db("sfa.application")
-                .innerJoin("sfa.institution_campus", "application.institution_campus_id", "institution_campus.id")
-                .innerJoin("sfa.institution", "institution.id", "institution_campus.institution_id")
-                .innerJoin("sfa.funding_request", "funding_request.application_id", "application.id")
-                .innerJoin("sfa.student", "student.id", "application.student_id")
-                .innerJoin("sfa.person", "student.person_id", "person.id")
+                .leftJoin("sfa.institution_campus", "application.institution_campus_id", "institution_campus.id")
+                .leftJoin("sfa.institution", "institution.id", "institution_campus.institution_id")
+                .leftJoin("sfa.student", "student.id", "application.student_id")
+                .leftJoin("sfa.person", "student.person_id", "person.id")
                 .select("application.*")
                 .select("institution.name as institution_name")
                 .select("person.first_name")
                 .select("person.last_name").limit(25)
-                .whereLike('last_name', `${filter}%`)
+                .whereLike('last_name', `[${filter}]%`)
                 .andWhere({ seen: true })
+                .whereNotNull('updated_at')
                 .orderBy('updated_at', 'desc');
         }
 
@@ -207,7 +216,7 @@ applicationRouter.get("/:id",
         .first();
 
         if (application) {
-            let student = await db("sfa.student").where({ id: application.student_id }).first();
+            const student = await db("sfa.student").where({ id: application.student_id }).first();
             application.prev_pre_leg_weeks = application.prev_pre_leg_weeks ?? 22;
             application.funded_years_used_preleg_chg = application.funded_years_used_preleg_chg ?? 22;
 
@@ -340,7 +349,8 @@ applicationRouter.get("/:id",
                 );
             })
             .leftJoin("sfa.file_reference as fr", function () {
-                this.on("fr.requirement_type_id", "=", "t.id")                
+                this.on("fr.requirement_type_id", "=", "t.id")
+                .andOn("fr.application_id", "=", "ds.application_id")
                 .andOn("fr.application_id", "=", db.raw(id));
             });
                 
@@ -402,7 +412,7 @@ applicationRouter.get("/:id",
             .where("sfa.person.id", application.parent1_id )
             .orderBy( "sfa.person_address.address_type_id")
             .first();
-            
+
             application.mailing_address = await db("sfa.person")
             .leftJoin("sfa.person_address", "sfa.person.id", "sfa.person_address.person_id")
             .select(
@@ -416,7 +426,8 @@ applicationRouter.get("/:id",
                 "sfa.person_address.province_id",
                 "sfa.person_address.postal_code",
             )
-            .where("sfa.person.id", application.student_id)
+            .where("sfa.person.id", student.person_id)
+                .andWhere('sfa.person_address.address_type_id', 2)
             .first();
             application.parent2 = await db("sfa.person").where({ id: application.parent2_id }).first();
             application.spouse_info = await db("sfa.person").where({ id: application.spouse_id }).first();
@@ -467,9 +478,26 @@ applicationRouter.get("/:id",
                     student.birth_date = moment(student.birth_date).utc(false).format("YYYY-MM-DD");
                 }
 
+                const readOnlyData = await db.raw(
+                    `SELECT 
+                    COALESCE(sfa.fn_get_yea_total(${student.yukon_id}), 0) AS yea_earned,
+                    COALESCE(sfa.fn_get_system_yea_used(${student.id}), 0) AS yea_used
+                    `
+                );
+
+                application.calculated_data = readOnlyData?.[0] || {};;
                 application.student = student;
+
+
+                await db("sfa.application")
+                    .where({ id: application.id})
+                    .update({ seen: true });
+
+
                 return res.json({ data: application });
             }
+
+            
         }
 
         res.status(404).send();
@@ -1921,6 +1949,10 @@ applicationRouter.get("/:application_id/:funding_request_id/assessments",
                 if (getAsessment?.length) {
 
                     for (let item of getAsessment) {
+                        // if (!item.classes_end_date || !item.classes_start_date) {
+                            
+                            
+                        // }
                         const readOnlyData = await db.raw(
                             `SELECT 
                             COALESCE(sfa.fn_get_previous_weeks_yg(${application.student_id},  ${application_id}), 0) AS previous_weeks,
@@ -1964,6 +1996,88 @@ applicationRouter.post("/:application_id/:funding_request_id/assessments",
     async (req: Request, res: Response) => {
         try {
             const { application_id, funding_request_id } = req.params;
+            const { dataAssessment = null } = req.body;
+
+            const application = await db("sfa.application")
+                .where({ id: application_id })
+                .first();
+            
+            if (application) {
+
+                const fundingRequest = await db("sfa.funding_request")
+                    .where({ application_id })
+                    .where({ id: funding_request_id })
+                    .first();
+                    
+    
+                if (fundingRequest?.request_type_id === 2) { // Create Assessment YG
+
+                    db.transaction(async (trx) => {
+
+                        const resSP = await db.raw(`EXEC sfa.sp_get_init_value ${funding_request_id}, ${application.id}, ${application.student_id};`);
+                        
+        
+                        if (resSP?.[0]?.status) {
+                            if (dataAssessment) {
+                                delete dataAssessment.read_only_data;
+                                delete dataAssessment.id;
+                                delete dataAssessment.assessment_id;
+
+                                const resUpdate = await db("sfa.assessment")
+                                .where({ id: resSP[0].assessment_id_inserted })
+                                .update({ ...dataAssessment });
+
+                                return resUpdate
+                                    ? res.json({
+                                        messages: [{ variant: "success" }],
+                                        data: [ ...resSP ],
+                                    })
+                                    : res.json({
+                                        messages: [{ variant: "success", text: "Failed to update values" }],
+                                        data: [[ ...resSP ]],
+                                    });
+                            } else {
+                                return res.json({
+                                    messages: [{ variant: "success" }],
+                                    data: [ ...resSP ],
+                                });
+                            }
+                        } else {
+                            return res.json({
+                                messages: [{ variant: "error" }],
+                                data: [],
+                            });
+                        }
+                        
+
+                    });
+                } else {
+                    return res.json({
+                        messages: [{ variant: "error" }],
+                        data: [],
+                    });
+                }
+            }
+        } catch (error) {
+            console.log(error);
+            return res.status(409).send({ messages: [{ variant: "error", text: "Error to insert" }] });
+        }   
+    }
+);
+
+applicationRouter.post("/:application_id/:funding_request_id/assessments-with-disburse",
+    [param("application_id").isInt().notEmpty(), param("funding_request_id").isInt().notEmpty()], 
+    ReturnValidationErrors, 
+    async (req: Request, res: Response) => {
+        try {
+            const { application_id, funding_request_id } = req.params;
+            const { dataDisburse, dataAssessment } = req.body;
+            
+            if (!dataDisburse?.length) {
+                return res.json({
+                    messages: [{ variant: "error", text: "No disbursement found" }],
+                });
+            }
 
             const application = await db("sfa.application")
                 .where({ id: application_id })
@@ -1981,15 +2095,57 @@ applicationRouter.post("/:application_id/:funding_request_id/assessments",
                     db.transaction(async (trx) => {
 
                         const resSP = await db.raw(`EXEC sfa.sp_get_init_value ${funding_request_id}, ${application.id}, ${application.student_id};`);
-                        return resSP?.[0]?.status
-                            ? res.json({
+
+                        if (resSP?.[0]?.status) {
+                            delete dataAssessment.read_only_data;
+                            delete dataAssessment.id;
+                            delete dataAssessment.assessment_id;
+                            //Changing values that the user may have updated from preview-assessment
+                            const resUpdate = await db("sfa.assessment")
+                                .where({ id: resSP[0].assessment_id_inserted })
+                                .update({ ...dataAssessment });
+
+                            // Insert the disbursement list
+                            for (const item of dataDisburse) {
+                                const resInsert = await db("sfa.disbursement")
+                                    .insert({
+                                        disbursement_type_id: item.disbursement_type_id,
+                                        assessment_id: resSP[0].assessment_id_inserted,
+                                        funding_request_id: item.funding_request_id,
+                                        disbursed_amount: item.disbursed_amount,
+                                        due_date: item.due_date,
+                                        tax_year: item.tax_year,
+                                        issue_date: item.issue_date,
+                                        paid_amount: item.paid_amount,
+                                        change_reason_id: item.change_reason_id,
+                                        financial_batch_id: item.financial_batch_id,
+                                        financial_batch_id_year: item.financial_batch_id_year,
+                                        financial_batch_run_date: item.financial_batch_run_date,
+                                        financial_batch_serial_no: item.financial_batch_serial_no,
+                                        transaction_number: item.transaction_number,
+                                        csl_cert_seq_number: item.csl_cert_seq_number,
+                                        ecert_sent_date: item.ecert_sent_date,
+                                        ecert_response_date: item.ecert_response_date,
+                                        ecert_status: item.ecert_status,
+                                        ecert_portal_status_id: item.ecert_portal_status_id
+                                    
+                                    })
+                                    .returning("*");
+                            }
+
+                            return res.json({
                                 messages: [{ variant: "success" }],
                                 data: [],
-                            })
-                            : res.json({
-                                messages: [{ variant: "error" }],
+                            });
+
+                        } else {
+                            return res.json({
+                                messages: [{ variant: "error", text: "Error to insert assessment" }],
                                 data: [],
                             });
+                        }
+                        
+                        
 
                     });
                 } else {
@@ -2025,7 +2181,7 @@ applicationRouter.get("/:application_id/:funding_request_id/assessments/:assessm
                 .where({ id: assessment_id })
                 .first();
 
-            if (application && (Number(assessment?.funding_request_id) === Number(funding_request_id))) {
+            if (application) {
 
                 const recalc = await db.raw(
                     `SELECT * FROM sfa.fn_get_new_info(
@@ -2095,7 +2251,7 @@ applicationRouter.get("/:application_id/:funding_request_id/preview-assessment",
                     COALESCE(sfa.fn_get_previous_weeks_yg(${application.student_id},  ${application_id}), 0) AS previous_weeks,
                     COALESCE(sfa.fn_get_allowed_weeks ('${moment(application.classes_start_date).format("YYYY-MM-DD")}', '${moment(application.classes_end_date).format("YYYY-MM-DD")}'), 0) AS assessed_weeks,
                     COALESCE(sfa.fn_get_disbursed_amount_fct(${funding_request_id}, -1), 0) AS previous_disbursement,
-                    COALESCE(sfa.fn_net_amount(${funding_request_id},  -1), 0) AS net_amount,
+                    ${calculateValues?.assessed_amount ?? 0} - ${calculateValues?.previous_disbursement ?? 0} AS net_amount,
                     COALESCE(sfa.fn_get_total_funded_years ( ${application.student_id}, ${application_id}), 0) AS years_funded;
                     `
                 );
@@ -2120,7 +2276,7 @@ applicationRouter.get("/:application_id/:funding_request_id/preview-assessment",
     }
 );
 
-applicationRouter.get("/:application_id/assessment/:assessment_id/disburse",
+applicationRouter.post("/:application_id/assessment/:assessment_id/disburse",
     [
         param("application_id").isInt().notEmpty(), 
         param("assessment_id").isInt().notEmpty(),
@@ -2129,6 +2285,7 @@ applicationRouter.get("/:application_id/assessment/:assessment_id/disburse",
     async (req: Request, res: Response) => {
         try {
             const { application_id, assessment_id } = req.params;
+            const { data } = req.body;
 
             const application = await db("sfa.application")
                 .where({ id: application_id })
@@ -2137,14 +2294,29 @@ applicationRouter.get("/:application_id/assessment/:assessment_id/disburse",
             const  assessment = await db("sfa.assessment")
                 .where({ id: assessment_id })
                 .first();
-
-            if (application && assessment) {
+            
+            if (application) {
 
                 const disbursements = await db.raw(
                     `
                         EXEC sfa.sp_disburse_button_yg
-                        ${application_id},
-                        ${assessment_id};
+                        ${application_id ?? null},
+                        ${assessment_id ?? null},
+                        ${data.funding_request_id ?? null},
+                        ${data.air_travel_disbursement_period ?? null},
+                        ${data.travel_allowance ?? null},
+                        ${data.airfare_amount ?? null},
+                        ${data.disbursements_required ?? null},
+                        ${data.over_award_disbursement_period ?? null},
+                        ${data.over_award ?? null},
+                        ${data.over_award_applied_flg ?? 'No'},
+                        ${data.years_funded_equivalent ?? null},
+                        ${data.allowed_tuition ?? null},
+                        ${data.living_costs ?? null},
+                        ${data.allowed_books ?? null},
+                        ${data.weekly_amount ?? null},
+                        ${data.assessment_adj_amount ?? null},
+                        ${data.assessed_amount ?? null};
                     `
                 );
 
@@ -2192,7 +2364,7 @@ applicationRouter.patch("/:application_id/:funding_request_id/assessments/:asses
     async (req: Request, res: Response) => {
         try {
             const { assessment_id, application_id, funding_request_id } = req.params;
-            const { data } = req.body;
+            const { data, disburseList } = req.body;
             
             const application = await db("sfa.application")
                 .where({ id: application_id })
@@ -2211,11 +2383,16 @@ applicationRouter.patch("/:application_id/:funding_request_id/assessments/:asses
                 
 
                 if (fundingRequest) { // Create Assessment YG
-                    const resUpdate = await db("sfa.assessment")
-                        .where({ id: assessment_id, funding_request_id })
-                        .update({ ...data });
+                    const assessmentYG = new AssessmentYukonGrant(db);
+                    
+                    const resAssessment = await assessmentYG.updateAssessmentYG(
+                            data, 
+                            disburseList, 
+                            Number(assessment_id),
+                            Number(funding_request_id)
+                        );
 
-                    return resUpdate ?
+                    return resAssessment ?
                         res.json({ messages: [{ variant: "success", text: "Saved" }] })
                         :
                         res.json({ messages: [{ variant: "error", text: "Failed" }] });
@@ -2230,6 +2407,94 @@ applicationRouter.patch("/:application_id/:funding_request_id/assessments/:asses
         } catch (error) {
             console.log(error);
             return res.status(409).send({ messages: [{ variant: "error", text: "Error to insert" }] });
+        }   
+    }
+);
+
+applicationRouter.get("/:application_id/request-type/:request_type_id/deadline-check",
+    [
+        param("application_id").isInt().notEmpty(), 
+        param("request_type_id").isInt().notEmpty(),
+    ], 
+    ReturnValidationErrors, 
+    async (req: Request, res: Response) => {
+        try {
+            const { application_id, request_type_id } = req.params;
+
+            const application = await db("sfa.application")
+                .where({ id: application_id })
+                .first();
+
+            const  requestType = await db("sfa.request_type")
+                .where({ id: request_type_id })
+                .first();
+
+            if (application && requestType) {
+
+                const checkDeadline = await db.raw(
+                    `SELECT sfa.check_deadline_fct (
+                        ${application_id},
+                        ${request_type_id}
+                    ) as message;
+                    `
+                );
+                   
+                return checkDeadline?.[0].message === "OK"
+                    ? res.json({
+                        messages: [{ variant: "success", text: "OK"}],
+                    })
+                    :  res.json({
+                        messages: [{ variant: "error", text: checkDeadline?.[0]?.message || "Error to check deadline"}],
+                        data: [  ],
+                    });
+            } else {
+                return res.status(409).send({ messages: [{ variant: "error", text: "application or funding request no valid" }] });
+            }
+
+        } catch (error) {
+            console.log(error);
+            return res.status(409).send({ messages: [{ variant: "error", text: "Error get data" }] });
+        }   
+    }
+);
+
+applicationRouter.post("/:application_id/update-preview",
+    [
+        param("application_id").isInt().notEmpty(),
+    ], 
+    ReturnValidationErrors, 
+    async (req: Request, res: Response) => {
+        try {
+            const { application_id } = req.params;
+            const { data, disburseAmountList } = req.body;
+
+            const application = await db("sfa.application")
+                .where({ id: application_id })
+                .first();
+
+            const  assessmentMethods = new AssessmentYukonGrant(db);
+            
+            const results: any = await assessmentMethods.getRefreshAssessmentData(data, disburseAmountList, application.student_id, Number(application_id));
+            
+            if (results) {
+                results.read_only_data.previous_weeks = results.previous_weeks;
+                results.read_only_data.assessed_weeks = results.assessed_weeks;
+                results.read_only_data.previous_disbursement = results.previous_disbursement;
+                results.read_only_data.net_amount = results.net_amount;
+                results.read_only_data.years_funded = results.years_funded;
+
+                delete results.previous_weeks;
+                delete results.assessed_weeks;
+                delete results.previous_disbursement;
+                delete results.net_amount;
+                delete results.years_funded;
+            }
+
+            return res.json({ messages: [{ variant: "success", text: "ok"}], data: [ results ] });
+
+        } catch (error) {
+            console.log(error);
+            return res.status(409).send({ messages: [{ variant: "error", text: "Error get data" }] });
         }   
     }
 );

@@ -3,9 +3,11 @@ import { body, param } from "express-validator";
 import knex from "knex";
 import { ReturnValidationErrors } from "../../middleware";
 import { DB_CONFIG } from "../../config";
+import { assessmentCslftRouter } from "./cslft-assessment-router";
 
 const db = knex(DB_CONFIG)
 export const assessmentRouter = express.Router();
+assessmentRouter.use("/cslft", assessmentCslftRouter);
 const mainTable = "sfa.assessment";
 
 assessmentRouter.get("/:id", 

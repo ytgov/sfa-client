@@ -60,6 +60,7 @@ export const AWS_S3_ACCESS_KEY = process.env.AWS_S3_ACCESS_KEY || "";
 export const AWS_S3_ACCESS_SECRET = process.env.AWS_S3_ACCESS_SECRET || "";
 export const AWS_S3_ENDPOINT = process.env.AWS_S3_ENDPOINT || "";
 export const AWS_S3_REGION = process.env.AWS_S3_REGION || "us-west";
+export const AWS_S3_PATH = process.env.AWS_S3_PATH || "";
 
 export const AWS_S3_CONFIG = {
   credentials: { accessKeyId: AWS_S3_ACCESS_KEY, secretAccessKey: AWS_S3_ACCESS_SECRET },
@@ -67,3 +68,6 @@ export const AWS_S3_CONFIG = {
   forcePathStyle: true,
   region: AWS_S3_REGION,
 };
+
+export const SENTRY_DSN = process.env.SENTRY_DSN || "";
+export const IMAGE_TAG = process.env.IMAGE_TAG || "";

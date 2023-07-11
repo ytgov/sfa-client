@@ -15,9 +15,13 @@ DROP FUNCTION IF EXISTS sfa.fn_get_allowed_weeks
 DROP FUNCTION IF EXISTS sfa.fn_get_post_leg_weeks
 DROP FUNCTION IF EXISTS sfa.fn_get_pre_leg_weeks
 
+DROP VIEW IF EXISTS sfa.person_address_v
+
+DROP TABLE IF EXISTS sfa.in_school_status
 DROP TABLE IF EXISTS sfa.file_reference
 DROP TABLE IF EXISTS sfa.student_auth
 DROP TABLE IF EXISTS sfa.application_draft
+DROP TABLE IF EXISTS sfa.portal_feedback
 
 DROP TABLE IF EXISTS sfa.entitlement_error
 DROP TABLE IF EXISTS sfa.disbursement
@@ -141,4 +145,5 @@ DROP TABLE IF EXISTS sfa.income_type
 DROP TABLE IF EXISTS sfa.equipment_category
 DROP TABLE IF EXISTS sfa.equipment_required
 DROP TABLE IF EXISTS sfa.vendor_update
---DROP TABLE sfa.user
+DROP TABLE IF EXISTS sfa.accommodation_type
+--DROP TABLE sfa.[user]

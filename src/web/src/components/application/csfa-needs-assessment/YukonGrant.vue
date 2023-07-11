@@ -33,21 +33,20 @@
           <div class="col-xs-12 col-lg-4 nopadding d-flex">
             <div class="col-xs-4 col-sm-4">
               <v-btn 
-                :disabled="!isPreviewCharged && !isChanging"
+                :disabled="!isPreviewCharged && !isChanging && !editingDisburse"
                 dense
                 color="green" 
                 class="my-0"
                 block
                 @click="e => {
                   if (!customAssessment?.id) {
-                    addAssessment();
-                  } else {
                     if (isPreviewCharged) {
-                      insertDisburse();
-                      updateAssessment();
+                      insertAssessmentWithDisbursement();
                     } else {
-                      updateAssessment();
+                      addAssessment();
                     }
+                  } else {
+                    updateAssessment();
                   }
                 }"
               >
@@ -56,7 +55,7 @@
             </div>
             <div class="col-xs-4 col-sm-4">
               <v-btn 
-                :disabled="!isPreviewCharged && !isChanging"
+                :disabled="!isPreviewCharged && !isChanging && !editingDisburse"
                 dense
                 color="orange" 
                 class="my-0"
@@ -64,13 +63,14 @@
                 @click=" e => {
                   if (!customAssessment?.id) {
                     $emit('close');
+                    $store.dispatch('setIsPreviewCharged', false);
+                    $store.dispatch('getDisbursements', { application_id: this.application.id, funding_request_id: customAssessment?.funding_request_id });
+                    editingDisburse = false;
                   } else {
-                    if (isPreviewCharged) {
-                      $store.dispatch('setIsPreviewCharged', false);
-                      cancelEdition();
-                    } else {
-                      cancelEdition();
-                    }
+                    $store.dispatch('setIsPreviewCharged', false);
+                    $store.dispatch('getDisbursements', { application_id: this.application.id, funding_request_id: customAssessment?.funding_request_id });
+                    editingDisburse = false;
+                    cancelEdition();
                   }
                 }"
               >
@@ -119,6 +119,7 @@
                       ></v-text-field>
                     </template>
                     <v-date-picker
+                      @change="refreshData"
                       :value="customAssessment.assessed_date?.slice(0, 10)"
                       @input="e => {
                         customAssessment.assessed_date = e;
@@ -152,6 +153,7 @@
                       ></v-text-field>
                     </template>
                     <v-date-picker
+                      @change="refreshData"
                       :value="customAssessment.effective_rate_date?.slice(0, 10)"
                       @input="e => {
                         customAssessment.effective_rate_date = e;
@@ -208,6 +210,7 @@
                         ></v-text-field>
                       </template>
                       <v-date-picker
+                        @change="refreshData"
                         :value="customAssessment.classes_start_date?.slice(0, 10)"
                         @input="e => {
                           customAssessment.classes_start_date = e;
@@ -241,6 +244,7 @@
                     ></v-text-field>
                     </template>
                     <v-date-picker
+                      @change="refreshData"
                       :value="customAssessment.classes_end_date?.slice(0, 10)"
                       @input="e => {
                         customAssessment.classes_end_date = e;
@@ -262,6 +266,7 @@
                     background-color="white"
                     hide-details
                     label="Home Community"
+                    @change="refreshData"
                     v-model="customAssessment.home_city_id"
                     :items="cities"
                     item-text="description"
@@ -275,6 +280,7 @@
                     background-color="white"
                     hide-details
                     label="Destination City"
+                    @change="refreshData"
                     v-model="customAssessment.destination_city_id"
                     :items="cities"
                     item-text="description"
@@ -284,7 +290,7 @@
                 <div class="col-xs-12 col-lg-12 line-jump-height d-flex align-center not-displayed-sx"></div>
               </div>
             </div>
-            <div class="col-xs-12 col-lg-12 nopadding d-flex mobile-column-flex low-margin flex-wrap">
+            <div v-if="application?.academic_year_id < 2016"  class="col-xs-12 col-lg-12 nopadding d-flex mobile-column-flex low-margin flex-wrap">
               <div class="col-xs-12 col-lg-12 nopadding">
                 <v-card-title>Pre Legislation Method</v-card-title>
               </div>
@@ -404,6 +410,7 @@
                 <div class="col-xs-12 col-lg-12">
                   <v-text-field
                     outlined
+                    disabled
                     dense
                     background-color="white"
                     hide-details
@@ -414,6 +421,7 @@
                 <div class="col-xs-12 col-lg-12">
                   <v-text-field
                     outlined
+                    disabled
                     dense
                     background-color="white"
                     hide-details
@@ -444,6 +452,7 @@
               <div class="col-sm-6 col-lg-7 nopadding d-flex flex-wrap mobile-custom-border">
                 <div class="col-xs-12 col-lg-12">
                   <v-text-field
+                    disabled
                     outlined
                     dense
                     background-color="white"
@@ -455,6 +464,7 @@
                 </div>
                 <div class="col-xs-12 col-lg-12">
                   <v-text-field
+                    disabled
                     @keypress="validate.isNumber($event)"
                     outlined
                     dense
@@ -503,6 +513,7 @@
                 </div>
                 <div class="col-xs-12 col-lg-12">
                   <v-text-field
+                    disabled
                     outlined
                     dense
                     background-color="white"
@@ -528,13 +539,11 @@
                   <v-btn 
                     :disabled="isDisburseBlocked"
                     @click="e => {
-                      if (!customAssessment?.id) {
-                        showAlert();
-                      } else {
+                      
                         if (!isDisburseBlocked) {
                           disburse();
                         }
-                      }
+                      
                     }"
                     dense
                     color="blue" 
@@ -600,6 +609,8 @@
       v-on:showError="showError"
       v-on:showSuccess="showSuccess"
       v-on:blockDisburse="blockDisburse"
+      v-on:currentEditing="currentEditing"
+      ref="disburseComponent"
       ></Disbursement>
     </div>
     <confirm-dialog ref="confirm"></confirm-dialog>
@@ -625,6 +636,7 @@ export default {
       isDisburseChange: false,
       programDivisionBack: null,
       isDisburseBlocked: false,
+      editingDisburse: false,
     };
   },
   components: {
@@ -667,6 +679,7 @@ export default {
       store.dispatch("setCustomAssessment", { ...selected });
       const custom = JSON.parse(JSON.stringify(this.customAssessment));
       this.isChanging = this.ObjCompare({ ...custom }, { ...selected });
+      this.$refs.disburseComponent.closeEditor();
     },
     addAssessment() {
       store.dispatch(
@@ -674,6 +687,7 @@ export default {
         {
           application_id: this.application.id,
           funding_request_id: this.fundingRequestId,
+          dataAssessment: { ...this.customAssessment },
           thisVal: this
         }
       );
@@ -687,10 +701,13 @@ export default {
           ['program_division', this.application.program_division, this]
         );
 
+      const filterDisbursements = this.disbursements.filter(d => d.assessment_id === custom?.id) || [];
+
       store.dispatch(
           "updateAssessment",
           {
             data: custom,
+            disburseList: [ ...this.previewDisbursementList, ...filterDisbursements ],
             application_id: this.application.id,
             funding_request_id: custom.funding_request_id,
             assessment_id: custom.id,
@@ -706,7 +723,7 @@ export default {
           {
             application_id: this.application.id,
             funding_request_id: custom.funding_request_id,
-            assessment_id: custom.id,
+            assessment_id: custom.id || 0,
           }
         );
     },
@@ -715,12 +732,18 @@ export default {
         "previewDisbursements",
         {
           application_id: this.application.id,
-          assessment_id: this.customAssessment.id,
+          assessment_id: this.customAssessment?.id || 0,
+          data: { ...this.customAssessment },
           thisVal: this
         }
       );
     },
     blockDisburse(value) {
+      if (!this.editingDisburse) {
+        this.editingDisburse = value;
+      }
+    },
+    currentEditing(value) {
       this.isDisburseBlocked = value;
     },
     insertDisburse() {
@@ -728,9 +751,28 @@ export default {
         store.dispatch("postDisbursement", {
         data: [ ...this.previewDisbursementList ],
         funding_request_id: this.customAssessment.funding_request_id,
+        application_id: this.application.id, 
         isList: "disburseList",
         emiter: this
       });
+      } else {
+        !this.previewDisbursementList.length
+        ? this.showError("No disburse in list")
+        : this.showError("Something went wrong ")
+      }
+    },
+    insertAssessmentWithDisbursement() {
+      if(this.isPreviewCharged && this.previewDisbursementList.length) {
+        store.dispatch(
+          "postAssessmentWithDisbursements",
+          {
+            application_id: this.application.id,
+            funding_request_id: this.fundingRequestId,
+            dataDisburse: [ ...this.previewDisbursementList ],
+            dataAssessment: { ...this.customAssessment },
+            thisVal: this
+          }
+        );
       } else {
         !this.previewDisbursementList.length
         ? this.showError("No disburse in list")
@@ -755,6 +797,28 @@ export default {
         "Accept"
       );
     },
+    refreshData() {
+      const previewDisburseAmountsList = this.previewDisbursementList?.map(d => {
+        return Number(d.disbursed_amount);
+      }) || [];
+
+      const disburseFilter = this.disbursements?.filter(d => d.assessment_id === this.customAssessment?.id )
+      let disburseAmountsList = [];
+      
+      if (disburseFilter?.length) {
+        disburseAmountsList = disburseFilter.map(d => {
+          return Number(d.disbursed_amount);
+        }) || [];
+      }
+      
+      
+
+      store.dispatch("refreshAssessment", { 
+        application_id: this.application.id, 
+        data: { ...this.customAssessment },
+        disburseAmountList: [ ...previewDisburseAmountsList, ...disburseAmountsList ],
+      });
+    },
   },
   watch: {
     customAssessment: {
@@ -777,6 +841,7 @@ export default {
     disbursements: {
       deep: true,
         handler(val, oldVal) {
+
         },
     },
   },

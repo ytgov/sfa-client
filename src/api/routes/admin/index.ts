@@ -56,6 +56,9 @@ import { equipmentCategoryRouter } from "./equipment-category-router";
 import { RequireServerAuth, RequireAdmin } from "../auth";
 import { changeReasonRouter } from "./change-reason-router";
 import { disbursementRouter } from "./disbursement";
+import { usersRouter } from "./users-router";
+import { cslLookupRouter } from "./csl-lookup-router";
+import {cslReasonRouter} from "./csl-reason-router";
 
 export const adminRouter = express.Router();
 //adminRouter.use("/", RequireServerAuth, RequireAdmin)
@@ -99,6 +102,8 @@ adminRouter.use("/relationship", relationshipRouter);
 adminRouter.use("/program", programRouter);
 adminRouter.use("/csl-classification", cslClassificationRouter);
 adminRouter.use("/csl-codes", cslCodeRouter);
+adminRouter.use("/csl-lookup", cslLookupRouter);
+adminRouter.use("/csl-reason", cslReasonRouter);
 adminRouter.use("/in-school-status", inSchoolStatusRouter);
 adminRouter.use("/requirement-type", requirementTypeRouter);
 adminRouter.use("/citizenship", citizenshipRouter);
@@ -116,4 +121,4 @@ adminRouter.use("/communication-types", communicationTypeRouter);
 adminRouter.use("/request-types", requestTypeRouter);
 adminRouter.use("/accommodation-type", accommodationTypeRouter);
 adminRouter.use("/disbursement", disbursementRouter);
-
+adminRouter.use("/users", usersRouter);

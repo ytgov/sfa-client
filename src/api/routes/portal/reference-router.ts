@@ -58,8 +58,8 @@ portalReferenceRouter.get("/income-type", async (req: Request, res: Response) =>
   res.json({ data: await db.getIncomeTypes() });
 });
 
-portalReferenceRouter.get("/study-field", async (req: Request, res: Response) => {
-  res.json({ data: await db.getStudyFields() });
+portalReferenceRouter.get("/study-area", async (req: Request, res: Response) => {
+  res.json({ data: await db.getStudyAreas() });
 });
 
 portalReferenceRouter.get("/program", async (req: Request, res: Response) => {

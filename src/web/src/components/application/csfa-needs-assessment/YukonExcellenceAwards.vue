@@ -5,37 +5,57 @@
         <div class="col-lg-12 nopadding d-flex flex-wrap low-margin">
           <v-card-title class="col-xs-12 col-lg-8">Assessment - Yukon Excellence Awards</v-card-title>
           <div class="col-xs-12 col-lg-4 nopadding d-flex">
-            <div class="col-xs-4 col-sm-4">
+            <div class="col-xs-4 col-sm-4 ">
               <v-btn 
-                :disabled="showAdd"
+                :disabled="!isPreviewCharged && !isChanging && !editingDisburse"
                 dense
                 color="green" 
                 class="my-0"
                 block
+                @click="e => {
+                  if (!customAssessment?.id) {
+                    if (isPreviewCharged) {
+                      insertAssessmentWithDisbursement();
+                    } else {
+                      addAssessment();
+                    }
+                  } else {
+                    updateAssessment();
+                  }
+                }"
               >
-              SAVE
+                SAVE
               </v-btn>
             </div>
-            <div class="col-xs-4 col-sm-4">
+            <div class="col-xs-4 col-sm-4 ">
               <v-btn 
-                :disabled="showAdd"
+                :disabled="!isPreviewCharged && !isChanging && !editingDisburse"
                 dense
                 color="orange" 
                 class="my-0"
                 block
+                @click=" e => {
+                  if (!customAssessment?.id) {
+                    $emit('close');
+                    $store.dispatch('setIsPreviewCharged', false);
+                  } else {
+                      $store.dispatch('setIsPreviewCharged', false);
+                      cancelEdition();
+                  }
+                }"
               >
-              CANCEL
+                CANCEL
               </v-btn>
             </div>
-            <div class="col-xs-4 col-sm-4">
+            <div class="col-xs-4 col-sm-4 ">
               <v-btn 
-                :disabled="showAdd"
+                @click="$emit('close')"
                 dense
                 color="red" 
                 class="my-0"
                 block
               >
-              EXIT
+                EXIT
               </v-btn>
             </div>
           </div>
@@ -45,7 +65,7 @@
             <div class="col-lg-12 nopadding d-flex low-margin">
               <div class="col-sm-4 col-lg-4">
                 <v-menu
-                  :disabled="showAdd"
+                  :disabled="false"
                   v-model="assessed_date_menu"
                   :close-on-content-click="false"
                   transition="scale-transition"
@@ -56,8 +76,8 @@
                 >
                   <template v-slot:activator="{ on, attrs }">
                     <v-text-field
-                      :disabled="showAdd"
-                      v-model="assessed_date"
+                      :disabled="false"
+                      :value="customAssessment.assessed_date?.slice(0, 10)"
                       label="Assessed Date"
                       append-icon="mdi-calendar"
                       hide-details
@@ -70,9 +90,12 @@
                     ></v-text-field>
                   </template>
                   <v-date-picker
-                    :disabled="showAdd"
-                    v-model="assessed_date"
-                    @input="assessed_date_menu = false"
+                      @change="refreshData"
+                      :value="customAssessment.assessed_date?.slice(0, 10)"
+                      @input="e => {
+                        customAssessment.assessed_date = e;
+                        assessed_date_menu = false;
+                      }"
                   ></v-date-picker>
                 </v-menu>
               </div>
@@ -80,7 +103,6 @@
             <div class="col-lg-12 nopadding d-flex">
               <div class="col-sm-4 col-lg-4">
                 <v-menu
-                  :disabled="showAdd"
                   v-model="classes_start_date_menu"
                   :close-on-content-click="false"
                   transition="scale-transition"
@@ -91,8 +113,7 @@
                 >
                   <template v-slot:activator="{ on, attrs }">
                     <v-text-field
-                      :disabled="showAdd"
-                      v-model="classes_start_date"
+                      :value="customAssessment.classes_start_date?.slice(0, 10)"
                       label="Classes Start Date"
                       append-icon="mdi-calendar"
                       hide-details
@@ -105,9 +126,12 @@
                     ></v-text-field>
                   </template>
                   <v-date-picker
-                    :disabled="showAdd"
-                    v-model="classes_start_date"
-                    @input="classes_start_date_menu = false"
+                    @change="refreshData"
+                    :value="customAssessment.classes_start_date?.slice(0, 10)"
+                    @input="e => {
+                      customAssessment.classes_start_date = e;
+                      classes_start_date_menu = false;
+                    }"
                   ></v-date-picker>
                 </v-menu>
               </div>
@@ -115,7 +139,6 @@
             <div class="col-lg-12 nopadding d-flex mobile-column-flex">
               <div class="col-lg-4">
                 <v-menu
-                  :disabled="showAdd"
                   v-model="classes_end_date_menu"
                   :close-on-content-click="false"
                   transition="scale-transition"
@@ -124,25 +147,27 @@
                   offset-y
                   min-width="auto"
                 >
-                  <template v-slot:activator="{ on, attrs }">
-                    <v-text-field
-                      :disabled="showAdd"
-                      v-model="classes_end_date"
-                      label="Classes End Date"
-                      append-icon="mdi-calendar"
-                      hide-details
-                      readonly
-                      outlined
-                      dense
-                      background-color="white"
-                      v-bind="attrs"
-                      v-on="on"
-                    ></v-text-field>
+                <template v-slot:activator="{ on, attrs }">
+                  <v-text-field
+                    :value="customAssessment.classes_end_date?.slice(0, 10)"
+                    label="Classes End Date"
+                    append-icon="mdi-calendar"
+                    hide-details
+                    readonly
+                    outlined
+                    dense
+                    background-color="white"
+                    v-bind="attrs"
+                    v-on="on"
+                  ></v-text-field>
                   </template>
                   <v-date-picker
-                    :disabled="showAdd"
-                    v-model="classes_end_date"
-                    @input="classes_end_date_menu = false"
+                    @change="refreshData"
+                    :value="customAssessment.classes_end_date?.slice(0, 10)"
+                    @input="e => {
+                      customAssessment.classes_end_date = e;
+                      classes_end_date_menu = false;
+                    }"
                   ></v-date-picker>
                 </v-menu>
               </div>
@@ -154,7 +179,8 @@
                   hide-details
                   label="YEA Earned"
                   @keypress="validate.isNumber($event)"
-                  v-model="yea_earned"
+                  readonly
+                  :value="application.calculated_data.yea_earned"
                 ></v-text-field>
               </div>
               <div class="col-lg-4">
@@ -165,7 +191,8 @@
                   hide-details
                   label="YEA Used"
                   @keypress="validate.isNumber($event)"
-                  v-model="yea_used"
+                  readonly
+                  :value="application.calculated_data.yea_used"
                 ></v-text-field>
               </div>
             </div>
@@ -177,8 +204,9 @@
                   background-color="white"
                   hide-details
                   label="YEA Expiry Date"
+                  readonly
                   @keypress="validate.isNumber($event)"
-                  v-model="yea_expiry_date"
+                  :value="selectedStudent.yea_expiry_date?.slice(0, 10)"
                 ></v-text-field>
               </div>
               <div class="col-lg-4 not-displayed-sx"></div>
@@ -190,7 +218,7 @@
                   hide-details
                   label="Receipts Received"
                   @keypress="validate.isNumber($event)"
-                  v-model="yea_used"
+                  :value="application.yea_tot_receipt_amount ?? 0"
                 ></v-text-field>
               </div>
             </div>
@@ -207,8 +235,9 @@
                   background-color="white"
                   hide-details
                   label="YEA Balance"
+                  readonly
                   @keypress="validate.isNumber($event)"
-                  v-model="yea_balance"
+                  :value="(application.calculated_data.yea_earned - application.calculated_data.yea_used)"
                 ></v-text-field>
               </div>
             </div>
@@ -221,31 +250,31 @@
                   hide-details
                   label="Total Requested"
                   @keypress="validate.isNumber($event)"
-                  v-model="total_requested"
+                  :value="selectedFunding.yea_request_amount"
                 ></v-text-field>
               </div>
               <div class="col-sm-4 col-lg-5">
                 <v-btn 
-                  :disabled="showAdd"
+                  @click="recalcAssessment"
                   dense
                   color="blue" 
                   class="my-0"
                   block
                 >
-                RE-CALC
-                </v-btn>
-              </div>
-            </div>
+                RE-CALC 
+                </v-btn> 
+              </div> 
+            </div> 
             <div class="col-lg-12 nopadding d-flex">
               <div class="col-sm-4 col-lg-7">
                 <v-text-field
-                  outlined
-                  dense
-                  background-color="white"
-                  hide-details
-                  label="Assessed Amount"
-                  @keypress="validate.isNumber($event)"
-                  v-model="assessed_amount"
+                    disabled
+                    outlined
+                    dense
+                    background-color="white"
+                    hide-details
+                    label="Assessed Amount"
+                    v-model="customAssessment.assessed_amount"
                   >
                 </v-text-field>
               </div>
@@ -259,7 +288,7 @@
                   hide-details
                   label="Previous Disbursements"
                   @keypress="validate.isNumber($event)"
-                  v-model="previous_disbursements"
+                  :value="customAssessment?.read_only_data?.previous_disbursement ?? 0"
                 ></v-text-field>
               </div>
             </div>
@@ -272,19 +301,26 @@
                   hide-details
                   label="Net Amount"
                   @keypress="validate.isNumber($event)"
-                  v-model="net_amount"
+                  :value="customAssessment?.read_only_data?.net_amount ?? 0"
                 ></v-text-field>
               </div>
               <div class="col-sm-4 col-lg-5 noppading-bottom">
                 <v-btn 
-                  :disabled="showAdd"
-                  dense
-                  color="blue" 
-                  class="my-0"
-                  block
-                >
-                DISBURSE
-                </v-btn>
+                    :disabled="isDisburseBlocked"
+                    @click="e => {
+                      
+                        if (!isDisburseBlocked) {
+                          disburse();
+                        }
+                      
+                    }"
+                    dense
+                    color="blue" 
+                    class="my-0"
+                    block
+                  >
+                  DISBURSE
+                  </v-btn>
               </div>
             </div>
           </div>
@@ -292,12 +328,20 @@
       </v-card>
     </div>
     <Disbursement
-      :disbursements="disbursements"
-    ></Disbursement>
+      :assessmentId="customAssessment?.id"
+      :fundingRequestId="customAssessment?.funding_request_id"
+      v-on:showError="showError"
+      v-on:showSuccess="showSuccess"
+      v-on:blockDisburse="blockDisburse"
+      v-on:currentEditing="currentEditing"
+      ref="disburseComponent"
+      ></Disbursement>
+      <confirm-dialog ref="confirm"></confirm-dialog>
   </div>
 </template>
 <script>
 import store from "../../../store";
+import { mapGetters } from "vuex";
 import validator from "@/validator";
 import Disbursement from "./Disbursement.vue";
 export default {
@@ -307,12 +351,136 @@ export default {
   },
   data() {
     return {
-      disbursements: [1,2,3]
+      assessmentSelected: null,
+      assessed_date_menu: false,
+      classes_start_date_menu: false,
+      classes_end_date_menu: false,
+      effective_rate_date_menu: false,
+      mensaje: "",
+      isChanging: false,
+      isDisburseChange: false,
+      programDivisionBack: null,
+      isDisburseBlocked: false,
+      editingDisburse: false,
     };
   },
   computed: {
+    ...mapGetters(["selectedStudent", "assessments", "cities", "programDivisions", "customAssessment", "selectedAssessment", "disbursements", "setIsPreviewCharged", "isPreviewCharged", "previewDisbursementList", "selectedFundingId"]),
     application: function () {
       return store.getters.selectedApplication;
+    },
+    programDivision() {
+      return this.application?.program_division;
+    },
+    selectedFunding: function () {
+      return this.application.funding_requests.find(item => item.id === this.selectedFundingId)
+    }
+  },
+  methods: {
+    refreshData() {
+      const previewDisburseAmountsList = this.previewDisbursementList?.map(d => {
+        return Number(d.disbursed_amount);
+      }) || [];
+
+      const disburseFilter = this.disbursements?.filter(d => d.assessment_id === this.customAssessment?.id )
+      let disburseAmountsList = [];
+      
+      if (disburseFilter?.length) {
+        disburseAmountsList = disburseFilter.map(d => {
+          return Number(d.disbursed_amount);
+        }) || [];
+      }
+      
+      
+
+      store.dispatch("refreshAssessment", { 
+        application_id: this.application.id, 
+        data: { ...this.customAssessment },
+        disburseAmountList: [ ...previewDisburseAmountsList, ...disburseAmountsList ],
+      });
+    },
+    recalcAssessment() {
+      const custom = JSON.parse(JSON.stringify(this.customAssessment));
+      console.log("🚀 ~ file: YukonExcellenceAwards.vue:391 ~ recalcAssessment ~ custom.funding_request_id:", custom.funding_request_id)
+      store.dispatch(
+          "recalcAssessment",
+          {
+            application_id: this.application.id,
+            funding_request_id: this.selectedFundingId,
+            assessment_id: custom.id,
+          }
+        );
+    },
+    disburse() {
+      store.dispatch(
+        "previewDisbursements",
+        {
+          application_id: this.application.id,
+          assessment_id: this.customAssessment?.id || 0,
+          data: { ...this.customAssessment },
+          thisVal: this
+        }
+      );
+    },
+    blockDisburse(value) {
+      if (!value) {
+        this.refreshData();
+      }
+      this.editingDisburse = value;
+    },
+    currentEditing(value) {
+      this.isDisburseBlocked = value;
+    },
+    insertDisburse() {
+      if(this.isPreviewCharged && this.previewDisbursementList.length) {
+        store.dispatch("postDisbursement", {
+        data: [ ...this.previewDisbursementList ],
+        funding_request_id: this.customAssessment.funding_request_id,
+        application_id: this.application.id, 
+        isList: "disburseList",
+        emiter: this
+      });
+      } else {
+        !this.previewDisbursementList.length
+        ? this.showError("No disburse in list")
+        : this.showError("Something went wrong ")
+      }
+    },
+    insertAssessmentWithDisbursement() {
+      if(this.isPreviewCharged && this.previewDisbursementList.length) {
+        store.dispatch(
+          "postAssessmentWithDisbursements",
+          {
+            application_id: this.application.id,
+            funding_request_id: this.fundingRequestId,
+            dataDisburse: [ ...this.previewDisbursementList ],
+            dataAssessment: { ...this.customAssessment },
+            thisVal: this
+          }
+        );
+      } else {
+        !this.previewDisbursementList.length
+        ? this.showError("No disburse in list")
+        : this.showError("Something went wrong ")
+      }
+    },
+    showSuccess(mgs) {
+      this.$emit("showSuccess", mgs);
+    },
+    showError(mgs) {
+      this.$emit("showError", mgs);
+    },
+    showAlert() {
+      this.$refs.confirm.show(
+        "Need to save assessment",
+        "You have to save the assessment to add the disbursement",
+        () => {
+          
+        },
+        () => {},
+        false,
+        "Accept"
+      );
     },
   },
   async created() {
@@ -323,6 +491,8 @@ export default {
       await store.dispatch("loadApplication", this.applicationId);
     }
     store.dispatch("setAppSidebar", true);
+    console.log("🚀 ~ file: YukonExcellenceAwards.vue:318 ~ application:", storeApp);
+    // console.log("🚀 ~ file: YukonExcellenceAwards.vue:374 ~ created ~ this.funding:", selectedFunding)
   }
 };
 </script>

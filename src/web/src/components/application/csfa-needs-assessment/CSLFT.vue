@@ -12,6 +12,7 @@
                 color="green" 
                 class="my-0"
                 block
+                @click="saveAssessment"
               >
               SAVE
               </v-btn>
@@ -106,6 +107,7 @@ import {
   CSLFTParental, 
   CSLFTAward, 
   CSLFTMSFAA } from "@/components/application/csfa-needs-assessment/CSLFT-detail";
+import {mapGetters} from "vuex";
 
 export default {
   components: {
@@ -117,7 +119,7 @@ export default {
     CSLFTMSFAA,
   },
   name: "cslft-assessment",
-  props: ["request_type_id", "funding_request_id"],
+  props: ["request_type_id", "fundingRequestId"],
   computed: {
     application: function () {
       return store.getters.selectedApplication;
@@ -132,9 +134,6 @@ export default {
     student: function (val) {
       if (val) this.updateView(val);
     },
-    //selectedStudent: function (val) {
-    //console.log("WATCH selectedStudent", val);
-    //},
   },
   methods: {
     showSuccess(mgs) {
@@ -143,15 +142,21 @@ export default {
     showError(mgs) {
       this.$emit("showError", mgs);
     },
+    saveAssessment() {
+      store.dispatch("saveCslftAssessment", this);
+    }
   },
   async created() {
+    const frId = this.$props.fundingRequestId;    
     this.validate = validator;
     this.applicationId = this.$route.params.id;
     let storeApp = store.getters.selectedApplication;
     if (this.applicationId != storeApp.HISTORY_DETAIL_ID) {
       await store.dispatch("loadApplication", this.applicationId);
+      await store.dispatch("getCslLookup", this.application.academic_year_id);
     }
     store.dispatch("setAppSidebar", true);
+    store.dispatch("getCslftAssessInfo", frId);
   }
 };
 </script>

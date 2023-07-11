@@ -28,6 +28,7 @@
                     hide-details
                     label="Select a filter"
                     v-model="filter"
+                    multiple
                     item-text="name"
                     item-value="code_name"
                     :items="filters"
@@ -179,7 +180,7 @@
 <script>
 import axios from "axios";
 import { mapState } from "vuex";
-import { get } from 'lodash';
+import { get, includes } from 'lodash';
 import { APPLICATION_URL, STUDENT_SEARCH_URL } from "../urls";
 
 export default {
@@ -188,7 +189,7 @@ export default {
         ...mapState(["recentStudents", "recentApplications"]),
     },
     data: () => ({
-        filter: 'ALL',
+        filter: [],
         search: "",
         drawer: null,
         selectedStudent: null,
@@ -199,10 +200,6 @@ export default {
         recentUpdated: [],
         loading: true,
         filters: [
-            { 
-                name: "Select All",
-                code_name: "ALL",
-            },
             { 
                 name: "Clear",
                 code_name: "CLEAR",
@@ -316,7 +313,7 @@ export default {
     }),
     mounted () {
         if (localStorage.DASHBOARD_LASTNAME_FILTER) {
-            this.filter = localStorage.DASHBOARD_LASTNAME_FILTER;
+            this.filter =localStorage.DASHBOARD_LASTNAME_FILTER.split(",");
         }
 
         axios
@@ -376,9 +373,9 @@ export default {
             if (event.key == "Enter") this.doSearch();
         },
         persistFilter(item_code_name) {
-            if(item_code_name == 'CLEAR') {
-                localStorage.setItem('DASHBOARD_LASTNAME_FILTER', 'ALL');
-                this.filter = 'ALL';
+            if( includes(item_code_name, 'CLEAR') || includes(item_code_name, 'ALL')  ) {
+                localStorage.setItem('DASHBOARD_LASTNAME_FILTER', []);
+                this.filter = [];
             } else {
                 localStorage.setItem('DASHBOARD_LASTNAME_FILTER', item_code_name);
             }
