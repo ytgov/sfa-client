@@ -274,12 +274,14 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
         this.prestudy_code = assignCode(this.assessment.prestudy_csl_classification ?? 0, this.assessment.prestudy_accom_code ?? 0);
     }
 
-    async loadData(funding_request_id: number): Promise<void> {
+    async loadData(funding_request_id: number, loadAssessment: boolean = true): Promise<void> {
         if (funding_request_id) {
             this.funding_request = await this.fundingRequestRepo.getFundingRequestById(funding_request_id);
             this.application = await this.applicationRepo.getApplicationByFundingRequestId(funding_request_id);
             this.student = await this.studentRepo.getStudentById(this.application.student_id);
-            this.assessment = await this.getAssessmentByFundingRequestId(funding_request_id);
+            if (loadAssessment) {
+                this.assessment = await this.getAssessmentByFundingRequestId(funding_request_id);
+            }
             this.msfaa = await this.msfaaRepo.getMsfaaByStudentId(this.student.id);
         }
     }
@@ -828,9 +830,11 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
 
     }
 
-    async executeRecalc(funding_request_id: number): Promise<AssessmentDTO> {
+    async executeRecalc(funding_request_id: number, assessment: Partial<AssessmentDTO> = {}): Promise<AssessmentDTO> {
 
-        await this.loadData(funding_request_id);
+        await this.loadData(funding_request_id, false);
+        this.assessment = assessment;
+
         await this.getNewInfo();
 
         await this.setIdGlobals();

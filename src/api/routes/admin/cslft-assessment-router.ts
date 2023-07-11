@@ -89,17 +89,18 @@ assessmentCslftRouter.put("/:id",
     }
 );
 
-assessmentCslftRouter.get("/:funding_request_id/recalc",
-    [param("funding_request_id").isInt().notEmpty()], ReturnValidationErrors,
+assessmentCslftRouter.post("/:funding_request_id/recalc",
+    [param("funding_request_id").isInt().notEmpty(), body("assessment").notEmpty()], ReturnValidationErrors,
     async (req: Request, res: Response) => {
         const assessmentCslftRepo = new AssessmentCslftRepository(db);
+        const { ...assessment } = req.body.assessment;
         const { funding_request_id = undefined } = req.params;
-        let results: Partial<AssessmentDTO> = {};
-
+        let results: Partial<AssessmentDTO> = {};       
+        
         try {
 
             if (funding_request_id) {
-                results = await assessmentCslftRepo.executeRecalc(parseInt(funding_request_id));
+                results = await assessmentCslftRepo.executeRecalc(parseInt(funding_request_id), assessment as AssessmentDTO);
             }
 
             if (Object.keys(results).length > 0) {
