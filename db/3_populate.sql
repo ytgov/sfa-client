@@ -166,8 +166,8 @@ SET IDENTITY_INSERT sfa.program_division ON
 INSERT
 INTO sfa.program_division (id, description)
 VALUES  ( 0, 'Unknown'),
-        ( 1, 'Quarters – 3 months duration'),
-        ( 2, 'Semesters – 4 months duration')
+        ( 1, 'Semesters – 4 months duration'),
+        ( 2, 'Quarters – 3 months duration')
 SET IDENTITY_INSERT sfa.program_division OFF
 
 SET IDENTITY_INSERT sfa.attendance ON
