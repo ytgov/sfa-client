@@ -44,7 +44,7 @@
                     hide-details
                     label="Parent Province"
                     :items="provinces"
-                    v-model="cslft.parent_province"
+                    v-model="cslft.parent_province_id"
                     item-text="description"
                     item-value="id"
                   ></v-select>

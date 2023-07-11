@@ -669,7 +669,7 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
         this.assessment.prestudy_bus_flag = this.application.prestudy_bus;
         this.assessment.family_size = await this.getParentFamilySize(this.application.id);
         this.assessment.parent_ps_depend_count = await this.getParentDependentCount(this.application.id, true);
-        this.assessment.parent_province = await this.provinceRepo.getProvinceId(this.application.id);
+        this.assessment.parent_province_id = await this.provinceRepo.getProvinceId(this.application.id);
         this.assessment.total_grant_awarded = await this.disbursementRepo.getTotalGrantAmount(this.application.id);
 
         const canadianProvinces = [

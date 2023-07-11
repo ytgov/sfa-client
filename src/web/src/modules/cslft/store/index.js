@@ -61,7 +61,7 @@ const state = {
         parent2_tax_paid: null,
         parent_contribution_override: null,
         parent_contribution_review: null,
-        parent_province: null,
+        parent_province_id: null,
         parent_ps_depend_count: null,
         period: null,
         pre_leg_amount: null,
