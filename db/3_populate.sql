@@ -755,7 +755,7 @@ SET IDENTITY_INSERT sfa.status ON
 
 INSERT
 INTO sfa.status (id, description, is_active, sort_order, online_description)
-SELECT status_id, description, CASE WHEN is_active_flg = 'Y' THEN 1 ELSE 0 END, sort, online_description
+SELECT status_id, description, CASE WHEN is_active_flg = 'Y' THEN 1 ELSE 0 END, COALESCE(sort, 9), online_description
 FROM sfaadmin.status
 
 SET IDENTITY_INSERT sfa.status OFF
@@ -1241,6 +1241,9 @@ CLOSE student_cursor;
 DEALLOCATE student_cursor;
 
 SET NOCOUNT OFF
+
+UPDATE sfaadmin.student_consent SET academic_year_start = 2022 WHERE academic_year_start = 20222
+UPDATE sfaadmin.student_consent SET academic_year_start = 2021 WHERE academic_year_start = 20211
 
 -- SFAADMIN.STUDENT_CONSENT
 SET IDENTITY_INSERT sfa.student_consent ON

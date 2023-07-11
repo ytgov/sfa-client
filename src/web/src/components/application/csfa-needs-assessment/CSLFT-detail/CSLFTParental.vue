@@ -17,7 +17,7 @@
                     hide-details
                     label="Family Size"
                     @keypress="validate.isNumber($event)"
-                    v-model="family_size"
+                    v-model="cslft.family_size"
                   ></v-text-field>
                 </div>
               </div>
@@ -30,7 +30,7 @@
                     hide-details
                     label="Family Income"
                     @keypress="validate.isNumber($event)"
-                    v-model="family_income"
+                    v-model="cslft.family_income"
                   ></v-text-field>
                 </div>
               </div>
@@ -43,9 +43,10 @@
                     background-color="white"
                     hide-details
                     label="Parent Province"
-                    v-model="disbursement_type"
-                    item-text="DESCRIPTION"
-                    item-value="REQUEST_TYPE_ID"
+                    :items="provinces"
+                    v-model="cslft.parent_province"
+                    item-text="description"
+                    item-value="id"
                   ></v-select>
                 </div>
               </div>
@@ -69,7 +70,7 @@
                       hide-details
                       label="Income"
                       @keypress="validate.isNumber($event)"
-                      v-model="income"
+                      v-model="cslft.parent1_income"
                     ></v-text-field>
                   </div>
                   <div class="col-xs-12 col-lg-12">
@@ -80,7 +81,7 @@
                       hide-details
                       label="Tax Paid"
                       @keypress="validate.isNumber($event)"
-                      v-model="tax_paid"
+                      v-model="cslft.parent1_tax_paid"
                     ></v-text-field>
                   </div>
                   <div class="col-xs-12 col-lg-12 line-jump-height d-flex align-center not-displayed-sx"></div>
@@ -99,7 +100,7 @@
                       hide-details
                       label="Income"
                       @keypress="validate.isNumber($event)"
-                      v-model="income"
+                      v-model="cslft.parent2_income"
                     ></v-text-field>
                   </div>
                   <div class="col-xs-12 col-lg-12">
@@ -110,7 +111,7 @@
                       hide-details
                       label="Tax Paid"
                       @keypress="validate.isNumber($event)"
-                      v-model="tax_paid"
+                      v-model="cslft.parent2_tax_paid"
                     ></v-text-field>
                   </div>
                   <div class="col-xs-12 col-lg-12 line-jump-height d-flex align-center not-displayed-sx"></div>
@@ -127,6 +128,7 @@
                       hide-details
                       label="Total Income"
                       @keypress="validate.isNumber($event)"
+                      :disabled="isTotal"
                       v-model="total_income"
                     ></v-text-field>
                   </div>
@@ -138,6 +140,7 @@
                       hide-details
                       label="Total Tax"
                       @keypress="validate.isNumber($event)"
+                      :disabled="isTotal"
                       v-model="total_tax"
                     ></v-text-field>
                   </div>
@@ -149,6 +152,7 @@
                       hide-details
                       label="Net Income"
                       @keypress="validate.isNumber($event)"
+                      :disabled="isTotal"
                       v-model="net_income"
                     ></v-text-field>
                   </div>
@@ -171,7 +175,8 @@
                         hide-details
                         label="Moderate Standard of Living"
                         @keypress="validate.isNumber($event)"
-                        v-model="moderate_standard_of_living"
+                        :disabled="isTotal"
+                        v-model="cslft.parent_msol"
                       ></v-text-field>
                     </div>
                     <div class="col-xs-1 col-lg-1 line-jump-height d-flex align-center justify-center not-displayed-sx">
@@ -187,7 +192,8 @@
                         hide-details
                         label="Discretionary Income"
                         @keypress="validate.isNumber($event)"
-                        v-model="discretionary_income"
+                        :disabled="isTotal"
+                        v-model="cslft.parent_discretionary_income"
                       ></v-text-field>
                     </div>
                   </div>
@@ -200,7 +206,8 @@
                         hide-details
                         label="Weekly Contribution per student"
                         @keypress="validate.isNumber($event)"
-                        v-model="weekly_contribution_per_student"
+                        :disabled="isTotal"
+                        v-model="cslft.parent_weekly_contrib"
                       ></v-text-field>
                     </div>
                     <div class="col-xs-1 col-lg-1 line-jump-height d-flex align-center justify-center not-displayed-sx">
@@ -216,6 +223,7 @@
                         hide-details
                         label="Calculated Parental Contribution"
                         @keypress="validate.isNumber($event)"
+                        :disabled="isTotal"
                         v-model="calculated_parental_contribution"
                       ></v-text-field>
                     </div>
@@ -242,7 +250,8 @@
                         background-color="white"
                         hide-details
                         @keypress="validate.isNumber($event)"
-                        v-model="discretionary_income"
+                        :disabled="isTotal"
+                        v-model="total_contribution"
                       ></v-text-field>
                     </div>
                   </div>
@@ -255,12 +264,12 @@
                         hide-details
                         label="Contribution Override"
                         @keypress="validate.isNumber($event)"
-                        v-model="contribution_override"
+                        v-model="cslft.parent_contribution_override"
                       ></v-text-field>
                     </div>
                   </div>
                   <div class="col-xs-12 col-lg-12 nopadding height-fit-content d-flex justify-start align-center">
-                    <v-switch label="Reduce on Re-Assess">
+                    <v-switch label="Reduce on Re-Assess" v-model="cslft.parent_contribution_review">
                   </v-switch>
                 </div>
               </div>
@@ -274,12 +283,43 @@
 <script>
 import store from "@/store";
 import validator from "@/validator";
+import {mapGetters, mapState} from "vuex";
+import {ref} from "vue";
+import {NumbersHelper} from "@/utilities";
 export default {
   name: "cslft-parental",
+  setup() {
+    const isTotal = ref(true);
+    const numHelper = new NumbersHelper();
+
+    return {
+      isTotal,
+      numHelper,
+    }
+  },
   computed: {
+    ...mapGetters(["provinces"]),
+    ...mapState({
+      cslft: state => state.cslft.cslft
+    }),
     application: function () {
       return store.getters.selectedApplication;
     },
+    total_income: function() {
+      return this.numHelper.round(this.numHelper.getNum(this.cslft.parent1_income) + this.numHelper.getNum(this.cslft.parent2_income));
+    },
+    total_tax: function() {
+      return this.numHelper.round(this.numHelper.getNum(this.cslft.parent1_tax_paid) + this.numHelper.getNum(this.cslft.parent2_tax_paid));
+    },
+    net_income: function() {
+      return this.numHelper.round(this.total_income + this.total_tax);
+    },
+    calculated_parental_contribution: function() {
+      return this.numHelper.round(this.numHelper.getNum(this.cslft.parent_weekly_contrib) * this.numHelper.getNum(this.cslft.study_weeks) / this.numHelper.getNum(this.cslft.parent_ps_depend_count));
+    },
+    total_contribution: function() {
+      return this.numHelper.round(Math.max(this.numHelper.getNum(this.cslft.parent_contribution_override), this.numHelper.getNum(this.calculated_parental_contribution)));
+    }
   },
   async created() {
     this.validate = validator;

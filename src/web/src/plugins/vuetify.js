@@ -10,6 +10,9 @@ import { fas } from '@fortawesome/free-solid-svg-icons'
 Vue.component('font-awesome-icon', FontAwesomeIcon) // Register component globally
 library.add(fas) // Include needed icons
 
+//import '@fortawesome/fontawesome-free/css/all.css'
+//import '@fortawesome/fontawesome-free/js/all.js'
+
 Vue.use(Vuetify);
 export default new Vuetify({
     theme: {

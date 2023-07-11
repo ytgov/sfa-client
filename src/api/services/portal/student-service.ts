@@ -30,7 +30,6 @@ export class PortalStudentService {
         "telephone",
         "email",
       ])
-
       .first();
   }
 
@@ -39,6 +38,8 @@ export class PortalStudentService {
     //let emailMatch = await db("person").withSchema(schema).where({ sin: student.email });
 
     let person = await db("person").withSchema(schema).insert(student).returning("*");
+
+    console.log("* PERSON CREATED", person);
 
     if (person && person[0].id) {
       let studentCr = {
@@ -49,9 +50,11 @@ export class PortalStudentService {
       } as Student_Create;
 
       let newStudent = await db("student").withSchema(schema).insert(studentCr).returning("*");
+      console.log("* STUDENT CREATED", newStudent);
 
       if (newStudent && newStudent[0].id) {
         await db("student_auth").withSchema(schema).insert({ student_id: newStudent[0].id, sub });
+        console.log("* PERSON LINKED TO AUTH AND STUDENT");
       }
 
       return newStudent[0];
@@ -68,7 +71,7 @@ export class PortalStudentService {
     email_address: string,
     home_phone: string,
     home_postal: string,
-    portal_id: string,
+    year_completed: string,
     sub: string
   ): Promise<boolean> {
     let sinMatch = (
@@ -101,7 +104,18 @@ export class PortalStudentService {
         .distinct()
     ).map((i) => i.id);
 
-    //let portalMatch = await db("person").withSchema(schema).where({ portal_id });
+    if (year_completed) {
+      year_completed = year_completed.substring(0, 4);
+    }
+
+    let yearMatch = (
+      await db("person")
+        .withSchema(schema)
+        .innerJoin("student", "student.person_id", "person.id")
+        .where({ high_school_left_year: year_completed })
+        .select("student.id")
+        .distinct()
+    ).map((i) => i.id);
 
     let phoneMatch = (
       await db("person")
@@ -134,7 +148,14 @@ export class PortalStudentService {
     ).map((i) => i.id);
 
     if (sinMatch.length == 0) {
-      let fullList = [nameMatch, dobMatch, phoneMatch.length > 20 ? [] : phoneMatch, postalMatch, emailMatch];
+      let fullList = [
+        nameMatch,
+        dobMatch,
+        phoneMatch.length > 20 ? [] : phoneMatch,
+        postalMatch,
+        emailMatch,
+        yearMatch,
+      ];
       let flat = fullList.flatMap((e) => e);
       let counts = countBy(flat);
       let flatCount = Object.entries(counts).map(([key, val]) => ({ key, val }));
@@ -161,12 +182,39 @@ export class PortalStudentService {
     return false;
   }
 
-  async update(sub: string, student: any) {
-    return db("student").withSchema(schema).where({ sub }).update(student);
+  async update(sub: string, { person_id, telephone, email, address }: any): Promise<any> {
+    if (address) {
+      if (address.id) {
+        let id = address.id;
+        delete address.id;
+        delete address.address_display;
+        await db("person_address").withSchema(schema).where({ id }).update(address);
+      } else {
+        delete address.id;
+        await db("person_address").withSchema(schema).insert(address);
+      }
+    }
+
+    return db("person").withSchema(schema).where({ id: person_id }).update({ telephone, email });
   }
 
   async getAddresses(person_id: number): Promise<any[]> {
-    return db("person_address").withSchema(schema).where({ person_id, is_active: true });
+    return db("person_address")
+      .withSchema(schema)
+      .where({ person_id, "person_address.is_active": true })
+      .leftOuterJoin("city", "city.id", "person_address.city_id")
+      .leftOuterJoin("province", "province.id", "person_address.province_id")
+      .leftOuterJoin("country", "country.id", "person_address.country_id")
+      .select([
+        "person_address.*",
+        "city.description as city_name",
+        "province.description as province_name",
+        "country.description as country_name",
+      ]);
+  }
+
+  async saveFeedback(feedback: any): Promise<any> {
+    return db("portal_feedback").withSchema(schema).insert(feedback);
   }
 }
 

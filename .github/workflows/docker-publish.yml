@@ -35,4 +35,6 @@ jobs:
         with:
           context: .
           push: true
+          build-args: |
+            IMAGE_TAG=${{ steps.generate_release_tag.outputs.next_release_tag }}
           tags: ghcr.io/${{ github.repository }}:${{ steps.generate_release_tag.outputs.next_release_tag }}

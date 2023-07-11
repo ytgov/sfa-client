@@ -82,8 +82,13 @@ export function configureAuthentication(app: Express) {
       }
     } else if (req.headers.authorization) {
       try {
-        let user = await getAuth0User(req.headers.authorization);
+        const user = await getAuth0User(req.headers.authorization);        
         req.user = user.data;
+        const dbUser = await db.getBySub(req.user.sub);
+        if (dbUser) {
+          req.user = { ...dbUser, ...user };
+          return next();
+        }
       } catch (e) {
         console.log("ERROR", e);
       }
@@ -124,7 +129,7 @@ async function getAuth0User(token: string) {
       Accept: "application/json",
       Authorization: token,
     },
-    url: `${ISSUER_BASE_URL}userinfo`,
+    url: `${ISSUER_BASE_URL}/userinfo`,
   };
 
   return await axios(options);

@@ -216,7 +216,7 @@ applicationRouter.get("/:id",
         .first();
 
         if (application) {
-            let student = await db("sfa.student").where({ id: application.student_id }).first();
+            const student = await db("sfa.student").where({ id: application.student_id }).first();
             application.prev_pre_leg_weeks = application.prev_pre_leg_weeks ?? 22;
             application.funded_years_used_preleg_chg = application.funded_years_used_preleg_chg ?? 22;
 
@@ -412,7 +412,7 @@ applicationRouter.get("/:id",
             .where("sfa.person.id", application.parent1_id )
             .orderBy( "sfa.person_address.address_type_id")
             .first();
-            
+
             application.mailing_address = await db("sfa.person")
             .leftJoin("sfa.person_address", "sfa.person.id", "sfa.person_address.person_id")
             .select(
@@ -426,7 +426,8 @@ applicationRouter.get("/:id",
                 "sfa.person_address.province_id",
                 "sfa.person_address.postal_code",
             )
-            .where("sfa.person.id", application.student_id)
+            .where("sfa.person.id", student.person_id)
+                .andWhere('sfa.person_address.address_type_id', 2)
             .first();
             application.parent2 = await db("sfa.person").where({ id: application.parent2_id }).first();
             application.spouse_info = await db("sfa.person").where({ id: application.spouse_id }).first();
