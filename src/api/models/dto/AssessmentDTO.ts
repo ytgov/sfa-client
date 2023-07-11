@@ -51,7 +51,7 @@ export interface AssessmentDTO extends IAssessmentCalculated{
     parent2_tax_paid?: number;
     parent_contribution_override?: number;
     parent_contribution_review?: boolean;
-    parent_province?: number;
+    parent_province_id?: number;
     parent_ps_depend_count?: number;
     period?: string;
     pre_leg_amount?: number;
@@ -174,7 +174,7 @@ export const assessmentColumns: (keyof AssessmentTable)[] = [
     "parent2_tax_paid",
     "parent_contribution_override",
     "parent_contribution_review",
-    "parent_province",
+    "parent_province_id",
     "parent_ps_depend_count",
     "period",
     "pre_leg_amount",
