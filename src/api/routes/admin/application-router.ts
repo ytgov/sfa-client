@@ -2181,7 +2181,7 @@ applicationRouter.get("/:application_id/:funding_request_id/assessments/:assessm
                 .where({ id: assessment_id })
                 .first();
 
-            if (application && (Number(assessment?.funding_request_id) === Number(funding_request_id))) {
+            if (application) {
 
                 const recalc = await db.raw(
                     `SELECT * FROM sfa.fn_get_new_info(

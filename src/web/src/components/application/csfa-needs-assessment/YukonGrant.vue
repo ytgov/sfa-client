@@ -723,7 +723,7 @@ export default {
           {
             application_id: this.application.id,
             funding_request_id: custom.funding_request_id,
-            assessment_id: custom.id,
+            assessment_id: custom.id || 0,
           }
         );
     },
