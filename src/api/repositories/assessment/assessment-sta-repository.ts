@@ -70,11 +70,11 @@ export class AssessmentSTA extends AssessmentBaseRepository {
             initValues.assessed_weeks || 0,
             moment().year() // prev_weeks_curr_yr
         ]);
-        initValues.previous_upgrade_weeks = await this.getScalarValue<number>("fn_get_previous_weeks_sfa", [
-            "Upgrade",
-            this.application.student_id || 0,
-            this.application.id || 0
-        ]);
+        // initValues.previous_upgrade_weeks = await this.getScalarValue<number>("fn_get_previous_weeks_sfa", [
+        //     "Upgrade",
+        //     this.application.student_id || 0,
+        //     this.application.id || 0
+        // ]);
         initValues.weekly_amount = await this.getScalarValue<number>("fn_get_weekly_amount_sta", [application_id]);
 
 
