@@ -1,9 +1,10 @@
 import axios from "axios";
 import {CSL_LOOKUP, CSLFT, CSLFT_ASSESS_INFO, STUDENT_URL} from "@/urls";
 import moment from "moment";
-import {NumbersHelper} from "@/utilities";
+import { NumbersHelper, DateHelper } from "@/utilities";
 import store from "@/store";
 const numHelper = new NumbersHelper();
+const dateHelper = new DateHelper();
 
 const state = {
     funding_request: {},
@@ -60,7 +61,7 @@ const state = {
         parent2_tax_paid: null,
         parent_contribution_override: null,
         parent_contribution_review: null,
-        parent_province: null,
+        parent_province_id: null,
         parent_ps_depend_count: null,
         period: null,
         pre_leg_amount: null,
@@ -154,6 +155,28 @@ const state = {
         student_contrib_max_amount: null,
         csl_pt_max_amount: null,
         csl_pt_wk_misc_amount: null,
+    },
+    cslft_disbursement: {
+        id: null,
+        disbursement_type_id: null,
+        assessment_id: null,
+        funding_request_id: null,
+        disbursed_amount: null,
+        due_date: null,
+        tax_year: null,
+        issue_date: null,
+        paid_amount: null,
+        change_reason_id: null,
+        financial_batch_id: null,
+        financial_batch_id_year: null,
+        financial_batch_run_date: null,
+        financial_batch_serial_no: null,
+        transaction_number: null,
+        csl_cert_seq_number: null,
+        ecert_sent_date: null,
+        ecert_response_date: null,
+        ecert_status: null,
+        ecert_portal_status_id: null,
     }
 };
 const mutations = {
@@ -178,9 +201,6 @@ const mutations = {
     setCslftClassesEndDate(state, value) {
         state.cslft.classes_end_date = moment(value).format();
     },
-    setCslftAssessDate(state, value) {
-        state.cslft.assessed_date = moment(value).format();
-    },
     setCslftPrestudyStartDate(state, value) {
         state.cslft.pstudy_start_date = moment(value).format();
     },
@@ -202,12 +222,15 @@ const actions = {
     },
     async getCslftRecalc({ commit, getters }) {
         const assessment = getters.cslft_get_assessment;
-        const res = await axios.get(`${CSLFT}/${assessment.funding_request_id}/recalc`);
+        const body = {
+            assessment: assessment
+        };
+        const res = await axios.post(`${CSLFT}/${assessment.funding_request_id}/recalc`, body);
         if (res?.data?.success) {
             commit("getCslftAssessInfo", res.data.data);
         }
     },
-    async saveCslftAssessment({ getters }, vm) {
+    async saveCslftAssessment({ getters, dispatch }, vm) {
         const assessment = getters.cslft_get_assessment;
         const body = {
             assessment: assessment
@@ -231,6 +254,7 @@ const actions = {
 
         if (message?.variant === "success") {
             vm.$emit("showSuccess", message.text);
+            dispatch("getCslftAssessInfo", assessment.funding_request_id);
             if (vm?.setClose && vm.showAdd) {
                 vm.setClose();
             }
@@ -250,26 +274,23 @@ const actions = {
     async setTotalStudyCost(state, value) {
       state.commit("setTotalStudyCost", value);
     },
-    async setClsftFieldDate(state, name, value) {
-        if (value) {
+    async setCslftFieldDate(state, { name, val }) {
+        if (val) {
             switch (name) {
                 case "assessed_date":
-                    state.commit("setCslftAssessedDate", value);
+                    state.commit("setCslftAssessedDate", val);
                     break;
                 case "classes_start_date":
-                    state.commit("setCslftClassesStartDate", value);
+                    state.commit("setCslftClassesStartDate", val);
                     break;
                 case "classes_end_date":
-                    state.commit("setCslftClassesEndDate", value);
-                    break;
-                case "assess_date":
-                    state.commit("setCslftAssessDate", value);
+                    state.commit("setCslftClassesEndDate", val);
                     break;
                 case "pstudy_start_date":
-                    state.commit("setCslftPrestudyStartDate", value);
+                    state.commit("setCslftPrestudyStartDate", val);
                     break;
                 case "pstudy_end_date":
-                    state.commit("setCslftPrestudyEndDate", value);
+                    state.commit("setCslftPrestudyEndDate", val);
                     break;
             }
         }
@@ -281,37 +302,31 @@ const getters = {
     },
     cslft_assessed_date_formatted (state) {
         if (state.cslft.assessed_date) {
-            return moment(state.cslft.assessed_date).format("YYYY-MM-DD");
+            return dateHelper.getDateFromUTC(state.cslft.assessed_date);
         }
         return state.cslft.assessed_date;
     },
     cslft_classes_start_date_formatted (state) {
         if (state.cslft.classes_start_date) {
-            return moment(state.cslft.classes_start_date).format("YYYY-MM-DD");
+            return dateHelper.getDateFromUTC(state.cslft.classes_start_date);
         }
         return state.cslft.classes_start_date;
     },
     cslft_classes_end_date_formatted (state) {
         if (state.cslft.classes_end_date) {
-            return moment(state.cslft.classes_end_date).format("YYYY-MM-DD");
+            return dateHelper.getDateFromUTC(state.cslft.classes_end_date);
         }
         return state.cslft.classes_end_date;
     },
-    cslft_assess_date_formatted(state) {
-        if (state.cslft.assessed_date) {
-            return moment(state.cslft.assessed_date).format('YYYY-MM-DD');
-        }
-        return state.cslft.assessed_date;
-    },
     cslft_pstudy_start_date_formatted(state) {
         if (state.cslft.pstudy_start_date) {
-            return moment(state.cslft.pstudy_start_date).format('YYYY-MM-DD');
+            return dateHelper.getDateFromUTC(state.cslft.pstudy_start_date);
         }
         return state.cslft.pstudy_start_date;
     },
     cslft_pstudy_end_date_formatted(state) {
         if (state.cslft.pstudy_end_date) {
-            return moment(state.cslft.pstudy_end_date).format('YYYY-MM-DD');
+            return dateHelper.getDateFromUTC(state.cslft.pstudy_end_date);
         }
         return state.cslft.pstudy_end_date;
     },
@@ -389,9 +404,6 @@ const getters = {
     cslft_calculated_award(state, getters) {
         return Math.max(0, numHelper.round(Math.min(getters.cslft_assess_needed_sixty_pct - numHelper.getNum(state.cslft.total_grant_awarded, getters.cslft_max_allowable))));
     },
-    cslft_recovered_overaward(state) {
-        return 0;
-    }
 };
 
 export default {

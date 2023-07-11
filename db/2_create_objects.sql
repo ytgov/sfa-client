@@ -1565,7 +1565,7 @@ CREATE TABLE sfa.assessment
     csl_classification             INT            NULL REFERENCES sfa.csl_classification,
     family_size                    FLOAT          NULL,
     parent_ps_depend_count         FLOAT          NULL,
-    parent_province                INT            NULL,
+    parent_province                VARCHAR(100)   NULL,
     discretionary_cost             FLOAT          NULL,
     discretionary_cost_actual      FLOAT          NULL,
     study_distance                 FLOAT          NULL,

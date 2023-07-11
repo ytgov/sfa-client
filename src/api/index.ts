@@ -67,6 +67,7 @@ app.use(express.static(path.join(__dirname, "web")));
 
 // if no other routes match, just send the front-end
 app.use((req: Request, res: Response) => {
+  console.log(`Request to ${req.path} served by sendFile`);
   res.sendFile(path.join(__dirname, "web") + "/index.html");
 });
 

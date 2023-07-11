@@ -196,7 +196,7 @@ const actions = {
     async recalcAssessment(state, vals) {
         try {
 
-            if (!(vals?.application_id && vals?.funding_request_id && vals?.assessment_id)) {
+            if (!(vals?.application_id && vals?.funding_request_id && !isNaN(vals?.assessment_id))) {
                 return;
             }
 
