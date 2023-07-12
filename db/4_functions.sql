@@ -1649,7 +1649,8 @@ CREATE OR ALTER PROCEDURE sfa.sp_disburse_button_yg -- BUTTON FOR ASSESSMENT YG
     @allowed_books FLOAT,
     @weekly_amount NUMERIC,
     @assessment_adj_amount FLOAT,
-    @assessed_amount NUMERIC
+    @assessed_amount NUMERIC,
+    @program_division INT
     
 AS 
 BEGIN
@@ -1827,8 +1828,18 @@ BEGIN
                                         ELSE
                                             BEGIN
                                             -- SELECT '@academic_year < 2016 -- ELSE' AS MESSAGE;
+
+                                                DECLARE @period_weeks INT;
+
+                                                SELECT @period_weeks = CASE WHEN @program_division = 1 THEN
+                                                    (SELECT yg_quarter_weeks FROM sfa.system_parameter)
+                                                WHEN @program_division = 2 THEN
+                                                    (SELECT yg_semester_weeks FROM sfa.system_parameter )
+                                                ELSE
+                                                    0 END;
+
                                                 UPDATE @disbursement_temp
-                                                SET disbursed_amount = (@weekly_amount * sfa.fn_get_period_weeks(@application_id)) + (COALESCE(@assessment_adj_amount, 0) / COALESCE(@disbursements_required, 1) )
+                                                SET disbursed_amount = (@weekly_amount * @period_weeks) + (COALESCE(@assessment_adj_amount, 0) / COALESCE(@disbursements_required, 1) )
                                                 WHERE id = @count;
                                             END
 
@@ -2547,7 +2558,7 @@ BEGIN
 		parent2_tax_paid,
 		parent_contribution_override,
 		parent_contribution_review,
-		parent_province,
+		parent_province_id,
 		parent_ps_depend_count,
 		period,
 		pre_leg_amount,
@@ -3509,4 +3520,18 @@ BEGIN
 END
 GO
 
-
+-- Get student address by application
+CREATE OR ALTER FUNCTION sfa.fn_get_student_address_by_application(@application_id INT, @address_type INT = 1)
+RETURNS TABLE
+AS
+RETURN
+SELECT
+	pa.*
+FROM sfa.application a
+	INNER JOIN sfa.student s 
+		ON s.id = a.student_id 
+	LEFT JOIN sfa.person_address pa
+		ON pa.person_id = s.person_id
+WHERE a.id = @application_id
+AND pa.address_type_id = @address_type;
+GO

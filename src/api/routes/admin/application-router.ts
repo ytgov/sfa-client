@@ -2296,7 +2296,7 @@ applicationRouter.post("/:application_id/assessment/:assessment_id/disburse",
                 .first();
             
             if (application) {
-
+                
                 const disbursements = await db.raw(
                     `
                         EXEC sfa.sp_disburse_button_yg
@@ -2316,7 +2316,8 @@ applicationRouter.post("/:application_id/assessment/:assessment_id/disburse",
                         ${data.allowed_books ?? null},
                         ${data.weekly_amount ?? null},
                         ${data.assessment_adj_amount ?? null},
-                        ${data.assessed_amount ?? null};
+                        ${data.assessed_amount ?? null},
+                        ${data.program_division ?? 0};
                     `
                 );
 
