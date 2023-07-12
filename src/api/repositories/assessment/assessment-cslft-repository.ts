@@ -5,6 +5,7 @@ import {
     assessmentColumns,
     AssessmentDTO,
     AssessmentTable,
+    DisbursementDTO,
     FundingRequestDTO,
     MsfaaDTO,
     PersonAddressDTO,
@@ -58,6 +59,7 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
     private application: Partial<ApplicationDTO> = {};
     private student: Partial<StudentDTO> = {};
     private funding_request: Partial<FundingRequestDTO> = {};
+    private disbursement: Partial<DisbursementDTO> = {};
     private msfaa: Partial<MsfaaDTO> = {};
     private new_calc: boolean = false;
     private study_code?: number;
@@ -628,19 +630,19 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
         this.assessment.dependent_count = await this.getScalarValue<number>("fn_get_dependent_count", [this.application.id ?? 0])
         this.assessment.classes_start_date = this.application.classes_start_date;
         this.assessment.classes_end_date = this.application.classes_end_date;
-        this.assessment.study_weeks = moment(this.assessment.classes_end_date).diff(moment(this.assessment.classes_start_date), "week");
-        this.assessment.study_months = moment(this.assessment.classes_end_date).diff(moment(this.assessment.classes_start_date), "month");
+        this.assessment.study_weeks = moment.utc(this.assessment.classes_end_date).diff(moment(this.assessment.classes_start_date), "week");
+        this.assessment.study_months = moment.utc(this.assessment.classes_end_date).diff(moment(this.assessment.classes_start_date), "month");
 
         this.assessment.pstudy_start_date = this.application.prestudy_start_date;
         this.assessment.pstudy_end_date = this.application.prestudy_end_date;
         
         if (this.application.prestudy_start_date) {
-            this.assessment.pstudy_end_date = moment(this.application.classes_start_date).add(-1, "month").endOf("month").toDate();
-            this.assessment.pstudy_start_date = moment(this.assessment.pstudy_end_date).add(-3, "month").startOf("month").toDate();
+            this.assessment.pstudy_end_date = moment.utc(this.application.classes_start_date).add(-1, "month").endOf("month").toDate();
+            this.assessment.pstudy_start_date = moment.utc(this.assessment.pstudy_end_date).add(-3, "month").startOf("month").toDate();
         }
 
-        this.assessment.pstudy_weeks = moment(this.assessment.pstudy_end_date).diff(moment(this.assessment.pstudy_start_date), "week");
-        this.assessment.pstudy_months = moment(this.assessment.pstudy_end_date).diff(moment(this.assessment.pstudy_start_date), "month");
+        this.assessment.pstudy_weeks = moment.utc(this.assessment.pstudy_end_date).diff(moment(this.assessment.pstudy_start_date), "week");
+        this.assessment.pstudy_months = moment.utc(this.assessment.pstudy_end_date).diff(moment(this.assessment.pstudy_start_date), "month");
 
         this.assessment.prestudy_province_id = this.application.prestudy_province_id;
         this.assessment.prestudy_province_id = this.application.prestudy_province_id;
@@ -669,7 +671,7 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
         this.assessment.prestudy_bus_flag = this.application.prestudy_bus;
         this.assessment.family_size = await this.getParentFamilySize(this.application.id);
         this.assessment.parent_ps_depend_count = await this.getParentDependentCount(this.application.id, true);
-        this.assessment.parent_province_id = await this.provinceRepo.getProvinceId(this.application.id);
+        this.assessment.parent_province_id = await this.provinceRepo.getStudentProvinceIdByApplication(this.application.id);
         this.assessment.total_grant_awarded = await this.disbursementRepo.getTotalGrantAmount(this.application.id);
 
         const canadianProvinces = [
@@ -859,6 +861,20 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
         await this.getContributionValues();
 
         return this.assessment;
+    }
+
+    async executeDisburse(funding_request_id: number, assessment: Partial<AssessmentDTO> = {}): Promise<{disbursement: DisbursementDTO, assessment: AssessmentDTO, funding_request: FundingRequestDTO}> {
+        
+        await this.loadData(funding_request_id, false);
+        this.assessment = assessment;
+        
+        
+
+        return {
+            disbursement: this.disbursement,
+            assessment: this.assessment,
+            funding_request: this.funding_request
+        };
     }
 
     async insertAssessment(assessment: AssessmentDTO): Promise<any[]> {
