@@ -427,8 +427,9 @@ applicationRouter.get("/:id",
                 "sfa.person_address.postal_code",
             )
             .where("sfa.person.id", student.person_id)
-                .andWhere('sfa.person_address.address_type_id', 2)
-            .first();
+                .andWhere('sfa.person_address.address_type_id', 4)
+            .first();                
+
             application.parent2 = await db("sfa.person").where({ id: application.parent2_id }).first();
             application.spouse_info = await db("sfa.person").where({ id: application.spouse_id }).first();
             application.agencies_assistance = await db("sfa.agency_assistance").where({ application_id: application.id });    
@@ -1055,7 +1056,7 @@ applicationRouter.post("/:application_id/person-address",
             if (!Object.keys(data).length) {
                 return res.json({ messages: [{ variant: "error", text: "data is required" }] });
             }
-            if (personAddressId) {       
+            if (personAddressId) {                 
                 let student_id = null;         
                 if(data.student_id) {
                     student_id = data.student_id;                    
@@ -1064,11 +1065,11 @@ applicationRouter.post("/:application_id/person-address",
                                 
                 const resInsertPA = await db("sfa.person_address")
                 //.insert({ ...data, address_type_id: addressTypeId, person_id: student_id, is_active: true })
-                    .insert({ ...data, address_type_id: addressTypeId, person_id: student_id, is_active: true })
+                    .insert({ ...data, address_type_id: addressTypeId, person_id: personAddressId, is_active: true })
                     .returning("*");
 
                 return res.json({ messages: [{ variant: "success", text: "Inserted" }] });
-            } else {                
+            } else {                            
                 await db.transaction(async (trx) => {
                     const [resInsert] = await Promise.all(
                         [
