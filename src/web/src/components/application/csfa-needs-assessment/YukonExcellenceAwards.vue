@@ -328,13 +328,13 @@
       </v-card>
     </div>
     <Disbursement
-      :assessmentId="customAssessment?.id"
-      :fundingRequestId="customAssessment?.funding_request_id"
-      v-on:showError="showError"
-      v-on:showSuccess="showSuccess"
-      v-on:blockDisburse="blockDisburse"
-      v-on:currentEditing="currentEditing"
-      ref="disburseComponent"
+      :assessmentId="customAssessment?.id" 
+      :fundingRequestId="customAssessment?.funding_request_id" 
+      v-on:showError="showError" 
+      v-on:showSuccess="showSuccess" 
+      v-on:blockDisburse="blockDisburse"  
+      v-on:currentEditing="currentEditing" 
+      ref="disburseComponent" 
       ></Disbursement>
       <confirm-dialog ref="confirm"></confirm-dialog>
   </div>
@@ -377,6 +377,69 @@ export default {
     }
   },
   methods: {
+    ObjCompare(obj1, obj2) {
+      delete obj1.read_only_data;
+      delete obj2.read_only_data;
+
+      const Obj1_keys = Object.keys(obj1);
+      const Obj2_keys = Object.keys(obj2);
+
+      if (Obj1_keys.length !== Obj2_keys.length) {
+        return true;
+      }
+      for (let k of Obj1_keys) {
+        if (obj1[k] !== obj2[k]) {
+          return true;
+        }
+      }
+      return false;
+    },
+    cancelEdition() {
+      if (this.programDivisionBack !== null) {
+        delete this.customAssessment.program_division;
+        this.application.program_division = this.programDivisionBack;
+        this.programDivisionBack = null;
+      }
+      const selected = JSON.parse(JSON.stringify(this.selectedAssessment))
+      store.dispatch("setCustomAssessment", { ...selected });
+      const custom = JSON.parse(JSON.stringify(this.customAssessment));
+      this.isChanging = this.ObjCompare({ ...custom }, { ...selected });
+      this.$refs.disburseComponent.closeEditor();
+    },
+    addAssessment() {
+      store.dispatch(
+        "postAssessment",
+        {
+          application_id: this.application.id,
+          funding_request_id: this.fundingRequestId,
+          dataAssessment: { ...this.customAssessment },
+          thisVal: this
+        }
+      );
+      
+    },
+    updateAssessment() {
+      const custom = JSON.parse(JSON.stringify(this.customAssessment));
+
+      store.dispatch(
+          "updateApplication", 
+          ['program_division', this.application.program_division, this]
+        );
+
+      const filterDisbursements = this.disbursements.filter(d => d.assessment_id === custom?.id) || [];
+
+      store.dispatch(
+          "updateAssessment",
+          {
+            data: custom,
+            disburseList: [ ...this.previewDisbursementList, ...filterDisbursements ],
+            application_id: this.application.id,
+            funding_request_id: custom.funding_request_id,
+            assessment_id: custom.id,
+            thisVal: this
+          }
+        );
+    },
     refreshData() {
       const previewDisburseAmountsList = this.previewDisbursementList?.map(d => {
         return Number(d.disbursed_amount);
@@ -422,10 +485,9 @@ export default {
       );
     },
     blockDisburse(value) {
-      if (!value) {
-        this.refreshData();
+      if (!this.editingDisburse) {
+        this.editingDisburse = value;
       }
-      this.editingDisburse = value;
     },
     currentEditing(value) {
       this.isDisburseBlocked = value;
@@ -492,6 +554,9 @@ export default {
     store.dispatch("setAppSidebar", true);
     console.log("🚀 ~ file: YukonExcellenceAwards.vue:318 ~ application:", storeApp);
     // console.log("🚀 ~ file: YukonExcellenceAwards.vue:374 ~ created ~ this.funding:", selectedFunding)
+  },
+  props: {
+    fundingRequestId: Number,
   }
 };
 </script>

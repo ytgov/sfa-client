@@ -111,13 +111,14 @@ const actions = {
         }
     },
     async postAssessmentWithDisbursements(state, vals) {
+        console.log("🚀 ~ file: assessment.js:114 ~ postAssessmentWithDisbursements ~ vals:", vals)
         try {
             const thisVal = vals?.thisVal || {};
 
             if (!(vals?.application_id && vals?.funding_request_id)) {
                 return;
             }
-
+            
             const res = await axios.post(
                 APPLICATION_URL + `/${vals.application_id}/${vals.funding_request_id}/assessments-with-disburse`,
                 { 

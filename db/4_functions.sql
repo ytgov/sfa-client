@@ -3509,3 +3509,97 @@ BEGIN
 END
 GO
 
+-- FILE : ASSESSMENT_YEA --- FUNCTION: GET_NET
+CREATE OR ALTER FUNCTION sfa.fn_get_net_yea(@assessment_assessed_amount DECIMAL(10, 2), @assessment_previous_disbursement DECIMAL(10, 2))
+RETURNS DECIMAL(10, 2)
+AS
+BEGIN
+    DECLARE @net_amt DECIMAL(10, 2);
+    
+    SET @net_amt = @assessment_assessed_amount - @assessment_previous_disbursement;
+    
+    IF @net_amt BETWEEN -1 AND 1
+    BEGIN
+        SET @net_amt = 0;
+    END;
+    
+    RETURN @net_amt;
+END
+GO
+
+-- FILE : ASSESSMENT_YEA --- FUNCTION: Calc_Assess_Info
+CREATE OR ALTER FUNCTION sfa.calc_assess_info_yea (
+    @unused_receipts DECIMAL(18, 2),
+    @assessed_amount DECIMAL(18, 2),
+    @net_amount DECIMAL(18, 2)
+)
+RETURNS VOID
+AS
+BEGIN
+    /* Calculate the amount of the receipts that the student has submitted
+        but has not yet received a disbursement
+    */
+    SET @unused_receipts = (
+        SELECT MIN(MIN(ISNULL(hd.yea_tot_receipt_amount, 0)), s.YEA_Balance, fr.yea_request_amount)
+        FROM assessment AS a
+        CROSS JOIN student AS s
+        CROSS JOIN yea_funding_request AS fr
+        LEFT JOIN history_detail AS hd ON <JOIN CONDITION>
+    );
+
+    /*
+    IF ISNULL(hd.yea_tot_receipt_amount, 0) > s.YEA_Balance
+    BEGIN
+        EXEC F_ALERT_OK 'Disbursement is greater than YEA balance. Please check and correct the total receipts received amount, then click Recalc.';
+    END
+    */
+
+    SET @assessed_amount = @unused_receipts + assessment.previous_disbursement;
+
+    SET @net_amount = sfa.get_net(); -- Assuming dbo.get_net() is a separate function
+
+    RETURN;
+END;
+GO
+
+CREATE PROCEDURE sfa.get_new_info_yea
+    @assessment_id INT,
+    @assess_id INT,
+    @funding_request_id INT
+AS
+BEGIN
+    /*
+        This procedure is the main point for calling the functions that return values
+        needed for the assessment
+    */
+
+    DECLARE @wk_amt DECIMAL(18, 2);
+    DECLARE @intwk INT;
+    DECLARE @disbursed_amt DECIMAL(18, 2);
+    DECLARE @assess_id_internal INT;
+
+    /*
+        Calculate the previous disbursement amount
+    */
+    /* Note: we don't actually need to determine assess_id, because we will be calculating the amount
+            disbursed for ALL assessments on this funding request. This code remains in here in
+            case there is a need to calculate only for this assessment instead. The procedure,
+            Get_Disbursed_Amount has the test for assess_id commented out of the where clause.
+    */
+    IF (@assessment_id < @assess_id AND @assessment_id IS NOT NULL) OR @assess_id = 0
+        SET @assess_id_internal = @assessment_id;
+    ELSE
+        SET @assess_id_internal = @assess_id;
+    END IF;
+
+    SET @disbursed_amt = dbo.Get_Disbursed_Amount(@funding_request_id, @assess_id_internal);
+
+    IF @disbursed_amt > 0
+        SET @assessment.previous_disbursement = @disbursed_amt;
+    ELSE
+        SET @assessment.previous_disbursement = 0;
+    END IF;
+
+    EXEC dbo.Calc_Assess_Info;
+END;
+GO
