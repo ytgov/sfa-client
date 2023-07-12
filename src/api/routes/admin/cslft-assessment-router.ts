@@ -1,11 +1,10 @@
+import knex from "knex";
 import express, { Request, Response } from "express";
 import { body, param } from "express-validator";
-import knex from "knex";
 import { ReturnValidationErrors } from "../../middleware";
 import { DB_CONFIG } from "../../config";
 import { AssessmentCslftRepository } from "../../repositories";
-import {AssessmentDTO, AssessmentTable} from "../../models";
-import {assessmentRouter} from "./assessment-router";
+import { AssessmentDTO } from "../../models";
 
 const db = knex(DB_CONFIG)
 export const assessmentCslftRouter = express.Router();

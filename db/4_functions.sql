@@ -3520,4 +3520,18 @@ BEGIN
 END
 GO
 
-
+-- Get student address by application
+CREATE OR ALTER FUNCTION sfa.fn_get_student_address_by_application(@application_id INT, @address_type INT = 1)
+RETURNS TABLE
+AS
+RETURN
+SELECT
+	pa.*
+FROM sfa.application a
+	INNER JOIN sfa.student s 
+		ON s.id = a.student_id 
+	LEFT JOIN sfa.person_address pa
+		ON pa.person_id = s.person_id
+WHERE a.id = @application_id
+AND pa.address_type_id = @address_type;
+GO
