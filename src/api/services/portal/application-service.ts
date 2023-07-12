@@ -199,11 +199,15 @@ export class PortalApplicationService {
       .whereIn("request_requirement.request_type_id", reqTypes)
       .select([
         "requirement_type.description",
-        "request_requirement.condition",
         "requirement_type.document_location",
         "request_requirement.requirement_type_id",
       ])
-      .distinct()
+      .min("request_requirement.condition")
+      .groupBy([
+        "requirement_type.description",
+        "requirement_type.document_location",
+        "request_requirement.requirement_type_id",
+      ])
       .orderBy("requirement_type.description");
   }
 }
