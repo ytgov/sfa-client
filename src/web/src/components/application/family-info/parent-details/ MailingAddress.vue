@@ -164,15 +164,17 @@ export default {
 
     },
     methods: {  
-        print(item) {            
-            console.log(this.application);
-            console.log(item);
+        print(item) {                        
+            // console.log(item);
+            // console.log("---------------", this.application.mailing_address);
+            console.log(this.application)
         },
-        async update(data, flag = 1) {    
-            if(flag) {
+        async update(data, flag = 1) {            
+            if(flag) {                 
                 try {
                     data.student_id = this.student.id;            
-                    if (this.parent?.id && this.parent?.person_address_id) {                    
+                    if (this.parent?.id && this.parent?.person_address_id) { 
+                        console.log("EXISTS!")                    
                         const resUpdate = await axios.patch(
                             `${APPLICATION_URL}/${this.parent.person_address_id}/person-address`,
                             { data }
@@ -186,10 +188,11 @@ export default {
                         } else {
                             this.$emit("showError", message.text);
                         }
-                    } else {
+                    } else {    
+                        console.log("DOES NOT EXIST!")                                
                         const resInsert = await axios.post(
                             `${APPLICATION_URL}/${this.application.id}/person-address`,
-                            { data, personAddressId: this.parent?.id || null, }
+                            { data, personAddressId: this.student.person_id || null, }
                         );
                         
                         const message = resInsert?.data?.messages[0];
@@ -208,8 +211,7 @@ export default {
                 } finally {
                     store.dispatch("loadApplication", this.application.id);
                 }
-            } else {
-                console.log(this.application.id);
+            } else {                
                 try {                    
                     const resInsert = await axios.put(
                         `${APPLICATION_URL}/${this.application.id}`,
@@ -231,7 +233,7 @@ export default {
                 } finally {
                     store.dispatch("loadApplication", this.application.id);
                 }
-            }                            
+            }                          
         },
         async showPDF(r_type) {      
             try {              
