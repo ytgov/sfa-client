@@ -23,8 +23,7 @@
                     hide-details 
                     label="Address line 1"
                     v-model="parent.address1"
-                    @change="update({ address1: parent.address1 })"          
-                    @click="print(parent)"          
+                    @change="update({ address1: parent.address1 })"                                  
                 >
                 </v-text-field>
             </div>
@@ -164,17 +163,11 @@ export default {
 
     },
     methods: {  
-        print(item) {                        
-            // console.log(item);
-            // console.log("---------------", this.application.mailing_address);
-            console.log(this.application)
-        },
         async update(data, flag = 1) {            
             if(flag) {                 
                 try {
                     data.student_id = this.student.id;            
-                    if (this.parent?.id && this.parent?.person_address_id) { 
-                        console.log("EXISTS!")                    
+                    if (this.parent?.id && this.parent?.person_address_id) {                                          
                         const resUpdate = await axios.patch(
                             `${APPLICATION_URL}/${this.parent.person_address_id}/person-address`,
                             { data }
@@ -188,8 +181,7 @@ export default {
                         } else {
                             this.$emit("showError", message.text);
                         }
-                    } else {    
-                        console.log("DOES NOT EXIST!")                                
+                    } else {                                                        
                         const resInsert = await axios.post(
                             `${APPLICATION_URL}/${this.application.id}/person-address`,
                             { data, personAddressId: this.student.person_id || null, }

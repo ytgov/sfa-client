@@ -1056,8 +1056,7 @@ applicationRouter.post("/:application_id/person-address",
             if (!Object.keys(data).length) {
                 return res.json({ messages: [{ variant: "error", text: "data is required" }] });
             }
-            if (personAddressId) { 
-                console.log(1);
+            if (personAddressId) {                 
                 let student_id = null;         
                 if(data.student_id) {
                     student_id = data.student_id;                    
@@ -1070,8 +1069,7 @@ applicationRouter.post("/:application_id/person-address",
                     .returning("*");
 
                 return res.json({ messages: [{ variant: "success", text: "Inserted" }] });
-            } else {     
-                console.log(2);           
+            } else {                            
                 await db.transaction(async (trx) => {
                     const [resInsert] = await Promise.all(
                         [
