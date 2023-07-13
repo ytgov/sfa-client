@@ -60,7 +60,7 @@ portalStudentRouter.post("/:sub", async (req: Request, res: Response) => {
   const { sub } = req.params;
   const { date_of_birth, first_name, last_name, sin, email } = req.body;
 
-  console.log("REQUEST TO CREATE STUDENT")
+  console.log("REQUEST TO CREATE STUDENT");
   let student = await studentService.getBySub(sub);
 
   if (!student) {
@@ -69,9 +69,13 @@ portalStudentRouter.post("/:sub", async (req: Request, res: Response) => {
       sub
     );
 
-    return res.json({ data: result });
+    if (result) {
+      return res.json({ data: result });
+    } else {
+      return res.json({ data: undefined });
+    }
   } else {
-    console.log("* STUDENT EXISTS FOR THIS SUB")
+    console.log("* STUDENT EXISTS FOR THIS SUB");
     res.json({ data: student });
   }
 });
@@ -108,7 +112,8 @@ portalStudentRouter.put("/:sub", async (req: Request, res: Response) => {
 
 portalStudentRouter.post("/:sub/link", async (req: Request, res: Response) => {
   const { sub } = req.params;
-  const { sin, date_of_birth, first_name, last_name, email_address, home_phone, home_postal, year_completed } = req.body;
+  const { sin, date_of_birth, first_name, last_name, email_address, home_phone, home_postal, year_completed } =
+    req.body;
 
   let student = await studentService.getBySub(sub);
 
