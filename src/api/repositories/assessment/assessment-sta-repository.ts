@@ -14,11 +14,11 @@ export class AssessmentSTA extends AssessmentBaseRepository {
         this.applicationRepo = new ApplicationRepository(maindb);
     }
 
-    async getNewAssessmentSTA(
+    async getNewInfo(
         application_id: number,
         funding_request_id: number,
 
-    ): Promise<AssessmentDTO | undefined> {
+    ): Promise<AssessmentDTO> {
 
         let initValues: AssessmentDTO = {};
 
@@ -56,7 +56,7 @@ export class AssessmentSTA extends AssessmentBaseRepository {
         initValues.years_funded = await this.getScalarValue<number>("fn_get_total_funded_years", [this.application.student_id || 0, application_id]);
         initValues.disbursements_required = 1; // always is 1
         initValues.previous_weeks = await this.getScalarValue<number>("fn_get_previous_weeks_sfa", [
-            "Normal",
+            "'Normal'",
             this.application.student_id || 0,
             this.application.id || 0
 
@@ -70,11 +70,11 @@ export class AssessmentSTA extends AssessmentBaseRepository {
             initValues.assessed_weeks || 0,
             moment().year() // prev_weeks_curr_yr
         ]);
-        // initValues.previous_upgrade_weeks = await this.getScalarValue<number>("fn_get_previous_weeks_sfa", [
-        //     "Upgrade",
-        //     this.application.student_id || 0,
-        //     this.application.id || 0
-        // ]);
+        initValues.previous_upgrade_weeks = await this.getScalarValue<number>("fn_get_previous_weeks_sfa", [
+            "'Upgrade'",
+            this.application.student_id || 0,
+            this.application.id || 0
+        ]);
         initValues.weekly_amount = await this.getScalarValue<number>("fn_get_weekly_amount_sta", [application_id]);
 
 
