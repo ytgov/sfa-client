@@ -365,8 +365,9 @@
               background-color="white"
               hide-details
               v-model="disbursement_type"
-              item-text="DESCRIPTION"
-              item-value="REQUEST_TYPE_ID"
+              :items="disbursementTypes"
+              item-text="description"
+              item-value="id"
             ></v-select>
           </div>
           <div class="col-xs-1 col-sm-1 col-lg-1 nopadding">
@@ -396,9 +397,10 @@
               dense
               background-color="white"
               hide-details
-              v-model="disbursement_type"
-              item-text="DESCRIPTION"
-              item-value="REQUEST_TYPE_ID"
+              v-model="change_reason"
+              :items="changeReasons"
+              item-text="description"
+              item-value="id"
             ></v-select>
           </div>
           <div class="col-xs-1 col-sm-1 col-lg-1 nopadding">
@@ -444,6 +446,8 @@ export default {
         "cslft_calculated_award",
         "cslReasonNonAward",
         "cslReasonOverAward",
+        "changeReasons",
+        "disbursementTypes"
     ]),
     application: function () {
       return store.getters.selectedApplication;
@@ -463,6 +467,8 @@ export default {
     }
     store.dispatch("setCslReasonNonAward");
     store.dispatch("setCslReasonOverAward");
+    store.dispatch("setDisbursementTypes");
+    store.dispatch("setChangeReasons");
   }
 };
 </script>

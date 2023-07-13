@@ -1649,7 +1649,8 @@ CREATE OR ALTER PROCEDURE sfa.sp_disburse_button_yg -- BUTTON FOR ASSESSMENT YG
     @allowed_books FLOAT,
     @weekly_amount NUMERIC,
     @assessment_adj_amount FLOAT,
-    @assessed_amount NUMERIC
+    @assessed_amount NUMERIC,
+    @program_division INT
     
 AS 
 BEGIN
@@ -1827,8 +1828,18 @@ BEGIN
                                         ELSE
                                             BEGIN
                                             -- SELECT '@academic_year < 2016 -- ELSE' AS MESSAGE;
+
+                                                DECLARE @period_weeks INT;
+
+                                                SELECT @period_weeks = CASE WHEN @program_division = 1 THEN
+                                                    (SELECT yg_quarter_weeks FROM sfa.system_parameter)
+                                                WHEN @program_division = 2 THEN
+                                                    (SELECT yg_semester_weeks FROM sfa.system_parameter )
+                                                ELSE
+                                                    0 END;
+
                                                 UPDATE @disbursement_temp
-                                                SET disbursed_amount = (@weekly_amount * sfa.fn_get_period_weeks(@application_id)) + (COALESCE(@assessment_adj_amount, 0) / COALESCE(@disbursements_required, 1) )
+                                                SET disbursed_amount = (@weekly_amount * @period_weeks) + (COALESCE(@assessment_adj_amount, 0) / COALESCE(@disbursements_required, 1) )
                                                 WHERE id = @count;
                                             END
 
@@ -2547,7 +2558,7 @@ BEGIN
 		parent2_tax_paid,
 		parent_contribution_override,
 		parent_contribution_review,
-		parent_province,
+		parent_province_id,
 		parent_ps_depend_count,
 		period,
 		pre_leg_amount,
@@ -3531,7 +3542,8 @@ GO
 CREATE OR ALTER FUNCTION sfa.calc_assess_info_yea (
     @unused_receipts DECIMAL(18, 2),
     @assessed_amount DECIMAL(18, 2),
-    @net_amount DECIMAL(18, 2)
+    @net_amount DECIMAL(18, 2),
+    @student_id INT
 )
 RETURNS VOID
 AS
@@ -3539,12 +3551,14 @@ BEGIN
     /* Calculate the amount of the receipts that the student has submitted
         but has not yet received a disbursement
     */
+    SELECT @yea_earned = sfa.fn_get_yea_total(@, @assessment_id);
+    SELECT @yea_used = sfa.fn_get_system_yea_used(@student_id);
+
     SET @unused_receipts = (
-        SELECT MIN(MIN(ISNULL(hd.yea_tot_receipt_amount, 0)), s.YEA_Balance, fr.yea_request_amount)
-        FROM assessment AS a
+        SELECT MIN(MIN(ISNULL(app.yea_tot_receipt_amount, 0)), (@yea_earned - @yea_used), fr.yea_request_amount)
+        FROM application AS a
         CROSS JOIN student AS s
-        CROSS JOIN yea_funding_request AS fr
-        LEFT JOIN history_detail AS hd ON <JOIN CONDITION>
+        CROSS JOIN funding_request AS fr
     );
 
     /*
@@ -3556,16 +3570,28 @@ BEGIN
 
     SET @assessed_amount = @unused_receipts + assessment.previous_disbursement;
 
-    SET @net_amount = sfa.get_net(); -- Assuming dbo.get_net() is a separate function
+    SET @net_amount = sfa.fn_get_net_yea(); -- Assuming dbo.get_net() is a separate function
 
     RETURN;
-END;
+END
 GO
 
-CREATE PROCEDURE sfa.get_new_info_yea
+CREATE OR ALTER FUNCTION sfa.fn_get_new_info_yea(
+    @application_id INT,
     @assessment_id INT,
-    @assess_id INT,
-    @funding_request_id INT
+    @funding_request_id INT,
+    @student_id INT
+)
+RETURNS
+@assessment_record TABLE (
+    funding_request_id INT,
+    classes_end_date DATE,
+    classes_start_date DATE,
+    assessed_date DATE,
+    disbursements_required INT,
+    previous_disbursement NUMERIC, -- IS NOT IN ASSESSMENT, IS IN CSL_NARS_HISTORY
+    assessed_amount NUMERIC
+)
 AS
 BEGIN
     /*
@@ -3577,6 +3603,7 @@ BEGIN
     DECLARE @intwk INT;
     DECLARE @disbursed_amt DECIMAL(18, 2);
     DECLARE @assess_id_internal INT;
+    DECLARE @previous_disbursement NUMERIC;
 
     /*
         Calculate the previous disbursement amount
@@ -3586,20 +3613,87 @@ BEGIN
             case there is a need to calculate only for this assessment instead. The procedure,
             Get_Disbursed_Amount has the test for assess_id commented out of the where clause.
     */
-    IF (@assessment_id < @assess_id AND @assessment_id IS NOT NULL) OR @assess_id = 0
-        SET @assess_id_internal = @assessment_id;
-    ELSE
-        SET @assess_id_internal = @assess_id;
-    END IF;
+    -- IF (@assessment_id < @assess_id AND @assessment_id IS NOT NULL) OR @assess_id = 0
+    --     BEGIN
+    --         SET @assess_id_internal = @assessment_id;
+    --     END
+    -- ELSE
+    --     BEGIN
+    --         SET @assess_id_internal = @assess_id;
+    --     END
 
-    SET @disbursed_amt = dbo.Get_Disbursed_Amount(@funding_request_id, @assess_id_internal);
+    SELECT @disbursed_amt = sfa.fn_get_disbursed_amount_fct(@funding_request_id, @assessment_id);
 
     IF @disbursed_amt > 0
-        SET @assessment.previous_disbursement = @disbursed_amt;
+        BEGIN
+            SET @previous_disbursement = @disbursed_amt;
+        END
+        
     ELSE
-        SET @assessment.previous_disbursement = 0;
-    END IF;
+        BEGIN
+            SET @previous_disbursement = 0;
+        END
 
-    EXEC dbo.Calc_Assess_Info;
+    -- EXEC sfa.calc_assess_info_yea @student_id;
+    RETURN;
+END
+GO
+
+CREATE OR ALTER PROCEDURE sfa.sp_disburse_button_yea -- BUTTON FOR ASSESSMENT YEA
+    @application_id INT,
+    @assessment_id INT,
+    @funding_request_id INT,
+    @disbursements_required INT,
+AS
+BEGIN
+    IF @disbursement_disbursement_id IS NULL
+    BEGIN
+        IF @disbursement_disbursement_id IS NOT NULL
+        BEGIN
+            -- LAST_RECORD;
+            -- NEXT_RECORD;
+        END;
+        
+        SET @disbursement_Tax_Year = YEAR(GETDATE());
+        SET @disbursement_assessment_id = @assessment_assessment_id;
+        SET @disbursement_funding_request_id = @assessment_funding_quest_id;
+        
+        SET @disbursement_disbursed_amount = @assessment_net_amount;
+        SET @disbursement_paid_amount = @assessment_net_amount;
+
+        IF @yea_funding_request_yea_request_type = 'Direct'
+        BEGIN
+            SET @disbursement_disbursement_type_id = 3; -- "Paid to Institution"
+        END
+        ELSE
+        BEGIN
+            SET @disbursement_disbursement_type_id = 1; -- "Cheque"
+        END;
+        
+        COMMIT;
+    END;
+
+    SET @history_detail_yea_tot_receipt_amount = NULL;
+
+    -- get_new_info;
+    
+    -- recalculate('TOTAL_YEA_USED');
+    
+    RETURN 0; -- Return an appropriate value or modify the return type accordingly
 END;
+GO
+-- Get student address by application
+CREATE OR ALTER FUNCTION sfa.fn_get_student_address_by_application(@application_id INT, @address_type INT = 1)
+RETURNS TABLE
+AS
+RETURN
+SELECT
+	pa.*
+FROM sfa.application a
+	INNER JOIN sfa.student s 
+		ON s.id = a.student_id 
+	LEFT JOIN sfa.person_address pa
+		ON pa.person_id = s.person_id
+WHERE a.id = @application_id
+AND pa.address_type_id = @address_type;
 GO

@@ -733,7 +733,7 @@ export default {
         {
           application_id: this.application.id,
           assessment_id: this.customAssessment?.id || 0,
-          data: { ...this.customAssessment },
+          data: { ...this.customAssessment, program_division: this.application.program_division },
           thisVal: this
         }
       );

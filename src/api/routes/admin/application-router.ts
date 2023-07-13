@@ -2276,6 +2276,61 @@ applicationRouter.get("/:application_id/:funding_request_id/preview-assessment",
     }
 );
 
+applicationRouter.get("/:application_id/:funding_request_id/preview-assessment-yea",
+    [
+        param("application_id").isInt().notEmpty(), 
+        param("funding_request_id").isInt().notEmpty(),
+    ], 
+    ReturnValidationErrors, 
+    async (req: Request, res: Response) => {
+        try {
+            const { application_id, funding_request_id } = req.params;
+
+            const application = await db("sfa.application")
+                .where({ id: application_id })
+                .first();
+
+            const  fundingRequest = await db("sfa.funding_request")
+                .where({ id: funding_request_id })
+                .first();
+
+            if (application && fundingRequest) {
+
+                const preview = await db.raw(
+                    `SELECT * FROM sfa.fn_get_new_info_yea(
+                        ${application_id},
+                        -1,
+                        ${funding_request_id},
+                        ${application.student_id}
+                    );
+                    `
+                );
+                const calculateValues = preview?.[0];
+                
+                const readOnlyData = await db.raw(
+                    `SELECT 
+                    COALESCE(sfa.fn_get_disbursed_amount_fct(${funding_request_id}, -1), 0) AS previous_disbursement,
+                    ${calculateValues?.assessed_amount ?? 0} - ${calculateValues?.previous_disbursement ?? 0} AS net_amount,
+                    `
+                );
+                
+                calculateValues.read_only_data = readOnlyData?.[0] || {};
+                
+                return res.json({
+                    messages: [{ variant: "success" }],
+                    data: [ calculateValues ],
+                });
+            } else {
+                return res.status(409).send({ messages: [{ variant: "error", text: "Error get data" }] });
+            }
+
+        } catch (error) {
+            console.log(error);
+            return res.status(409).send({ messages: [{ variant: "error", text: "Error get data" }] });
+        }   
+    }
+);
+
 applicationRouter.post("/:application_id/assessment/:assessment_id/disburse",
     [
         param("application_id").isInt().notEmpty(), 
@@ -2296,7 +2351,7 @@ applicationRouter.post("/:application_id/assessment/:assessment_id/disburse",
                 .first();
             
             if (application) {
-
+                
                 const disbursements = await db.raw(
                     `
                         EXEC sfa.sp_disburse_button_yg
@@ -2316,7 +2371,87 @@ applicationRouter.post("/:application_id/assessment/:assessment_id/disburse",
                         ${data.allowed_books ?? null},
                         ${data.weekly_amount ?? null},
                         ${data.assessment_adj_amount ?? null},
-                        ${data.assessed_amount ?? null};
+                        ${data.assessed_amount ?? null},
+                        ${data.program_division ?? 0};
+                    `
+                );
+
+                if (disbursements?.length === 1 && disbursements[0]?.status === 0) {
+                    return res.json({
+                        messages: [{ variant: "error", text: disbursements[0].message }] 
+                    });
+                }
+
+                if (disbursements?.length && disbursements[0]?.status === 1) {
+                    const disbursementList = disbursements.map( (d: any) => {
+                        delete d.id;
+                        delete d.status;
+                        return {
+                            ...d,
+                        };
+                    });
+                    return res.json({
+                        messages: [{ variant: "success" }],
+                        data: [ ...disbursementList ],
+                    });
+                } else {
+                    return res.json({
+                        messages: [{ variant: "error", text: "Error to get data" }] });
+                }
+
+            } else {
+                return res.status(409).send({ messages: [{ variant: "error", text: "Application id or Assessment id is invalid" }] });
+            }
+
+        } catch (error) {
+            console.log(error);
+            return res.status(409).send({ messages: [{ variant: "error", text: "Error get data" }] });
+        }   
+    }
+);
+
+applicationRouter.post("/:application_id/assessment/:assessment_id/disburse-yea",
+    [
+        param("application_id").isInt().notEmpty(), 
+        param("assessment_id").isInt().notEmpty(),
+    ], 
+    ReturnValidationErrors, 
+    async (req: Request, res: Response) => {
+        try {
+            const { application_id, assessment_id } = req.params;
+            const { data } = req.body;
+
+            const application = await db("sfa.application")
+                .where({ id: application_id })
+                .first();
+
+            const  assessment = await db("sfa.assessment")
+                .where({ id: assessment_id })
+                .first();
+            
+            if (application) {
+                
+                const disbursements = await db.raw(
+                    `
+                        EXEC sfa.sp_disburse_button_yg
+                        ${application_id ?? null},
+                        ${assessment_id ?? null},
+                        ${data.funding_request_id ?? null},
+                        ${data.air_travel_disbursement_period ?? null},
+                        ${data.travel_allowance ?? null},
+                        ${data.airfare_amount ?? null},
+                        ${data.disbursements_required ?? null},
+                        ${data.over_award_disbursement_period ?? null},
+                        ${data.over_award ?? null},
+                        ${data.over_award_applied_flg ?? 'No'},
+                        ${data.years_funded_equivalent ?? null},
+                        ${data.allowed_tuition ?? null},
+                        ${data.living_costs ?? null},
+                        ${data.allowed_books ?? null},
+                        ${data.weekly_amount ?? null},
+                        ${data.assessment_adj_amount ?? null},
+                        ${data.assessed_amount ?? null},
+                        ${data.program_division ?? 0};
                     `
                 );
 
