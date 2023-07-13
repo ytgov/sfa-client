@@ -4,10 +4,14 @@ import knex from "knex";
 import { ReturnValidationErrors } from "../../middleware";
 import { DB_CONFIG } from "../../config";
 import { assessmentCslftRouter } from "./cslft-assessment-router";
+import { assessmentSTARouter } from "./sta-assessment-router";
 
 const db = knex(DB_CONFIG)
 export const assessmentRouter = express.Router();
+
 assessmentRouter.use("/cslft", assessmentCslftRouter);
+assessmentRouter.use("/sta", assessmentSTARouter);
+
 const mainTable = "sfa.assessment";
 
 assessmentRouter.get("/:id", 

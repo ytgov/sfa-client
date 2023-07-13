@@ -2476,7 +2476,7 @@ applicationRouter.post("/:application_id/update-preview",
 
             const  assessmentMethods = new AssessmentYukonGrant(db);
             
-            const results: any = await assessmentMethods.getRefreshAssessmentData(data, disburseAmountList, application.student_id, Number(application_id));
+            const results: any = await assessmentMethods.getRefreshAssessmentData(data, disburseAmountList, application.student_id, Number(application_id), data?.program_division ?? 0);
             
             if (results) {
                 results.read_only_data.previous_weeks = results.previous_weeks;

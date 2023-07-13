@@ -67,6 +67,7 @@ import officers from "@/modules/officer/store";
 
 // DTO Modules
 import cslft from "@/modules/cslft/store";
+import sta from "@/modules/sta/store";
 
 // Config
 import axios from "axios";
@@ -512,6 +513,7 @@ export default new Vuex.Store({
     requestType,
     inSchoolStatus,
     cslft,
+    sta,
     accommodationType,
     officers,
     cslReason,

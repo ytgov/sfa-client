@@ -30,4 +30,5 @@ export interface IAssessmentCalculated {
     pstudy_months?: number;
     pstudy_weeks?: number;
     new_calc?: boolean;
+    previous_upgrade_weeks?: number;
 }

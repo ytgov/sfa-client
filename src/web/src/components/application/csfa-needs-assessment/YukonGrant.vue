@@ -177,6 +177,7 @@
                       application.program_division = e;
                       customAssessment.program_division = e;
                     }"
+                    @change="refreshData"
                     :items="programDivisions"
                     item-text="description"
                     item-value="id"
@@ -717,7 +718,11 @@ export default {
     },
     recalcAssessment() {
       const custom = JSON.parse(JSON.stringify(this.customAssessment));
-
+      if (this.programDivisionBack !== null) {
+        delete this.customAssessment.program_division;
+        this.application.program_division = this.programDivisionBack;
+        this.programDivisionBack = null;
+      }
       store.dispatch(
           "recalcAssessment",
           {
@@ -815,7 +820,7 @@ export default {
 
       store.dispatch("refreshAssessment", { 
         application_id: this.application.id, 
-        data: { ...this.customAssessment },
+        data: { ...this.customAssessment, program_division: this.application.program_division },
         disburseAmountList: [ ...previewDisburseAmountsList, ...disburseAmountsList ],
       });
     },
