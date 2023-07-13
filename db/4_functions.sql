@@ -688,7 +688,15 @@ BEGIN
             END
         ELSE  -- Post Legislation
             BEGIN
-                SELECT @v_weeks = sfa.fn_get_period_weeks(@application_id_p);
+                IF  @program_division = 1   -- Quarters
+			        BEGIN
+							SELECT @v_weeks = yg_quarter_weeks FROM sfa.system_parameter;
+			        END
+				ELSE IF  @program_division = 2   -- Semesters	
+			        BEGIN
+							SELECT  @v_weeks =  yg_semester_weeks FROM sfa.system_parameter;
+					END
+
                 IF  @v_weeks = 0 
                     BEGIN
                         SET @d_required = 0;
