@@ -82,7 +82,7 @@ applicationRouter.get("/latest-updates", ReturnValidationErrors, async (req: Req
                 .select("institution.name as institution_name")
                 .select("person.first_name")
                 .select("person.last_name").limit(25)
-                // .where({ seen: true })
+                .where({ seen: true })
                 .whereNotNull('updated_at')
                 .orderBy('updated_at', 'desc');
         } else {
@@ -96,7 +96,7 @@ applicationRouter.get("/latest-updates", ReturnValidationErrors, async (req: Req
                 .select("person.first_name")
                 .select("person.last_name").limit(25)
                 .whereLike('last_name', `[${filter}]%`)
-                // .andWhere({ seen: true })
+                .andWhere({ seen: true })
                 .whereNotNull('updated_at')
                 .orderBy('updated_at', 'desc');
         }
@@ -490,9 +490,9 @@ applicationRouter.get("/:id",
                 application.student = student;
 
 
-                // await db("sfa.application")
-                //     .where({ id: application.id})
-                //     .update({ seen: true });
+                await db("sfa.application")
+                    .where({ id: application.id})
+                    .update({ seen: true });
 
 
                 return res.json({ data: application });
@@ -743,11 +743,11 @@ applicationRouter.put("/:application_id/status/:id",
                 .where({id, application_id})
                 .update({ ...data });
             
-            // if (resUpdate) {
-            //     await db("sfa.application")
-            //         .where({ id: application_id})
-            //         .update({ seen: true, updated_at: new Date().toISOString() });
-            // }
+            if (resUpdate) {
+                await db("sfa.application")
+                    .where({ id: application_id})
+                    .update({ seen: true, updated_at: new Date().toISOString() });
+            }
 
             return resUpdate ?
                 res.json({ messages: [{ variant: "success", text: "Saved" }] })
