@@ -474,8 +474,9 @@ export default {
         );
     },
     disburse() {
+      debugger
       store.dispatch(
-        "previewDisbursements",
+        "previewYEADisbursements",
         {
           application_id: this.application.id,
           assessment_id: this.customAssessment?.id || 0,

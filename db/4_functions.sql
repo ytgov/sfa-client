@@ -3536,44 +3536,6 @@ BEGIN
 END
 GO
 
--- FILE : ASSESSMENT_YEA --- FUNCTION: Calc_Assess_Info
-CREATE OR ALTER FUNCTION sfa.calc_assess_info_yea (
-    @unused_receipts DECIMAL(18, 2),
-    @assessed_amount DECIMAL(18, 2),
-    @net_amount DECIMAL(18, 2),
-    @student_id INT
-)
-RETURNS VOID
-AS
-BEGIN
-    /* Calculate the amount of the receipts that the student has submitted
-        but has not yet received a disbursement
-    */
-    SELECT @yea_earned = sfa.fn_get_yea_total(@, @assessment_id);
-    SELECT @yea_used = sfa.fn_get_system_yea_used(@student_id);
-
-    SET @unused_receipts = (
-        SELECT MIN(MIN(ISNULL(app.yea_tot_receipt_amount, 0)), (@yea_earned - @yea_used), fr.yea_request_amount)
-        FROM application AS a
-        CROSS JOIN student AS s
-        CROSS JOIN funding_request AS fr
-    );
-
-    /*
-    IF ISNULL(hd.yea_tot_receipt_amount, 0) > s.YEA_Balance
-    BEGIN
-        EXEC F_ALERT_OK 'Disbursement is greater than YEA balance. Please check and correct the total receipts received amount, then click Recalc.';
-    END
-    */
-
-    SET @assessed_amount = @unused_receipts + assessment.previous_disbursement;
-
-    SET @net_amount = sfa.fn_get_net_yea(); -- Assuming dbo.get_net() is a separate function
-
-    RETURN;
-END
-GO
-
 CREATE OR ALTER FUNCTION sfa.fn_get_new_info_yea(
     @application_id INT,
     @assessment_id INT,
@@ -3637,49 +3599,6 @@ BEGIN
 END
 GO
 
-CREATE OR ALTER PROCEDURE sfa.sp_disburse_button_yea -- BUTTON FOR ASSESSMENT YEA
-    @application_id INT,
-    @assessment_id INT,
-    @funding_request_id INT,
-    @disbursements_required INT,
-AS
-BEGIN
-    IF @disbursement_disbursement_id IS NULL
-    BEGIN
-        IF @disbursement_disbursement_id IS NOT NULL
-        BEGIN
-            -- LAST_RECORD;
-            -- NEXT_RECORD;
-        END;
-        
-        SET @disbursement_Tax_Year = YEAR(GETDATE());
-        SET @disbursement_assessment_id = @assessment_assessment_id;
-        SET @disbursement_funding_request_id = @assessment_funding_quest_id;
-        
-        SET @disbursement_disbursed_amount = @assessment_net_amount;
-        SET @disbursement_paid_amount = @assessment_net_amount;
-
-        IF @yea_funding_request_yea_request_type = 'Direct'
-        BEGIN
-            SET @disbursement_disbursement_type_id = 3; -- "Paid to Institution"
-        END
-        ELSE
-        BEGIN
-            SET @disbursement_disbursement_type_id = 1; -- "Cheque"
-        END;
-        
-        COMMIT;
-    END;
-
-    SET @history_detail_yea_tot_receipt_amount = NULL;
-
-    -- get_new_info;
-    
-    -- recalculate('TOTAL_YEA_USED');
-    
-    RETURN 0; -- Return an appropriate value or modify the return type accordingly
-END;
-GO
 -- Get student address by application
 CREATE OR ALTER FUNCTION sfa.fn_get_student_address_by_application(@application_id INT, @address_type INT = 1)
 RETURNS TABLE

@@ -585,35 +585,34 @@ applicationRouter.post("/:application_id/status",
 );
 
 // downloads a document      
-    applicationRouter.get("/:application_id/student/:student_id/files/:file_type", async (req: Request, res: Response) => {          
+applicationRouter.get("/:application_id/student/:student_id/files/:file_type", async (req: Request, res: Response) => {          
     const { student_id, application_id, file_type } = req.params;    
- 
+
     //* Ordenar descendente mas nuevo a mas viejo
     let doc:any = await db("sfa.file_reference").where({ application_id: application_id}).andWhere({student_id: student_id}).andWhere
     ({requirement_type_id: file_type}).orderBy("upload_date", "desc").first();   
-    
+
     if(doc) {
         let fileReference = await documentService.getDocumentWithFile(doc.object_key);    
-    
+
         if (
-          fileReference &&
-          fileReference.student_id == parseInt(student_id) &&
-          fileReference.application_id == parseInt(application_id)
+            fileReference &&
+            fileReference.student_id == parseInt(student_id) &&
+            fileReference.application_id == parseInt(application_id)
         ) {
-          res.set("Content-disposition", "attachment; filename=" + fileReference.file_name);
-          res.set("Content-type", fileReference.mime_type);
-          return res.send(fileReference.file_contents);
+            res.set("Content-disposition", "attachment; filename=" + fileReference.file_name);
+            res.set("Content-type", fileReference.mime_type);
+            return res.send(fileReference.file_contents);
         }
     }
-   
-      
+
     res.status(404).send();
-  });
+});
 
 applicationRouter.post("/:application_id/student/:student_id/files", async (req: Request, res: Response) => {       
     const { student_id, application_id } = req.params;
     const { requirement_type_id, disability_requirement_id, person_id, dependent_id, comment, email, status } = req.body;
-              
+
     let finalEmail = ""; //req.user.email;
     if(!email) {
         finalEmail = "michael@icefoganalytics.com"
@@ -627,21 +626,21 @@ applicationRouter.post("/:application_id/student/:student_id/files", async (req:
         finalComment = comment;
     }
     if (req.files) {
-      let files = Array.isArray(req.files.files) ? req.files.files : [req.files.files];
-  
-      for (let file of files) {        
-        await documentService.uploadApplicationDocument(finalEmail, student_id, application_id, file, requirement_type_id, disability_requirement_id, person_id, dependent_id, finalComment, source, status);
-      }      
-      return res.json({ messages: [{ variant: "success", text: "Saved" }] })      
+        let files = Array.isArray(req.files.files) ? req.files.files : [req.files.files];
+
+        for (let file of files) {        
+            await documentService.uploadApplicationDocument(finalEmail, student_id, application_id, file, requirement_type_id, disability_requirement_id, person_id, dependent_id, finalComment, source, status);
+        }      
+        return res.json({ messages: [{ variant: "success", text: "Saved" }] })      
     }    
     res.json({ error: "No files included in request" });
-  });
+});
 
 
 
 
   // updates _met
-  applicationRouter.post("/:application_id/student/:student_id/files/:requirement_type_id",
+applicationRouter.post("/:application_id/student/:student_id/files/:requirement_type_id",
     [param("application_id").isInt().notEmpty(), param("student_id").isInt().notEmpty(), param("requirement_type_id").isInt().notEmpty()],
     ReturnValidationErrors,
     async (req: Request, res: Response) => {                
@@ -694,7 +693,7 @@ applicationRouter.post("/:application_id/student/:student_id/files", async (req:
         applicationRouter.get("/:application_id/student/:student_id/files/:file_type/fellow_type/:fellow_type/fellow/:fellow", async (req: Request, res: Response) => {                      
             
             const { student_id, application_id, file_type, fellow_type, fellow } = req.params;    
-         
+
             
             let doc:any;
             switch(fellow_type) {
@@ -767,7 +766,7 @@ applicationRouter.put("/:application_id/files/:requirement_type_id",
     [param("application_id").isInt().notEmpty(), param("requirement_type_id").isInt().notEmpty()],
     ReturnValidationErrors,
     async (req: Request, res: Response) => {   
-               
+
         const { application_id, requirement_type_id } = req.params;
         const { data, type, object_key } = req.body;   
         const alreadyExist: any = await db("sfa.requirement_met").where({ application_id: application_id }).andWhere({ requirement_type_id: requirement_type_id }).first();        
@@ -800,7 +799,7 @@ applicationRouter.put("/:application_id/files/:requirement_type_id",
                 }
 
 
-               
+
             }
 
             if(type === "comment") {
@@ -2420,7 +2419,7 @@ applicationRouter.post("/:application_id/assessment/:assessment_id/disburse-yea"
     async (req: Request, res: Response) => {
         try {
             const { application_id, assessment_id } = req.params;
-            const { data } = req.body;
+            const { data, dataDisburse, dataAssessment } = req.body;
 
             const application = await db("sfa.application")
                 .where({ id: application_id })
@@ -2431,6 +2430,32 @@ applicationRouter.post("/:application_id/assessment/:assessment_id/disburse-yea"
                 .first();
             
             if (application) {
+                for (const item of dataDisburse) {
+                    const response = await db("sfa.disbursement")
+                        .insert({
+                            disbursement_type_id: item.disbursement_type_id,
+                            assessment_id,
+                            funding_request_id: item.funding_request_id,
+                            disbursed_amount: item.disbursed_amount,
+                            due_date: item.due_date,
+                            tax_year: new Date().getFullYear(),
+                            issue_date: item.issue_date,
+                            paid_amount: item.paid_amount,
+                            change_reason_id: item.change_reason_id,
+                            financial_batch_id: item.financial_batch_id,
+                            financial_batch_id_year: item.financial_batch_id_year,
+                            financial_batch_run_date: item.financial_batch_run_date,
+                            financial_batch_serial_no: item.financial_batch_serial_no,
+                            transaction_number: item.transaction_number,
+                            csl_cert_seq_number: item.csl_cert_seq_number,
+                            ecert_sent_date: item.ecert_sent_date,
+                            ecert_response_date: item.ecert_response_date,
+                            ecert_status: item.ecert_status,
+                            ecert_portal_status_id: item.ecert_portal_status_id
+                        
+                        })
+                        .returning("*");
+                }
                 
                 const disbursements = await db.raw(
                     `
