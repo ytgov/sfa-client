@@ -67,7 +67,7 @@
                                 :key="idx"
                             >
                                 <router-link :to="`/application/${item.id}/personal`"
-                                    >{{getStudentName(item.student_id)}} - 
+                                    >{{getStudentName(item)}} - 
                                     {{ item.academic_year_id}}: {{ item.main_institution.name }}
                                 </router-link>
                             </li>
@@ -186,10 +186,11 @@ import { APPLICATION_URL, STUDENT_SEARCH_URL } from "../urls";
 export default {
     name: "Home",
     computed: {
-        ...mapState(["recentStudents", "recentApplications"]),
+        ...mapState(["recentStudents"]),
     },
     data: () => ({
         filter: [],
+        recentApplications: [],
         search: "",
         drawer: null,
         selectedStudent: null,
@@ -313,7 +314,13 @@ export default {
     }),
     mounted () {
         if (localStorage.DASHBOARD_LASTNAME_FILTER) {
-            this.filter =localStorage.DASHBOARD_LASTNAME_FILTER.split(",");
+            this.filter = localStorage.DASHBOARD_LASTNAME_FILTER.split(",");
+        }
+
+        if (localStorage.RECENT_APPLICATIONS) {
+            this.recentApplications = JSON.parse(localStorage.RECENT_APPLICATIONS);
+        } else {
+            localStorage.setItem('RECENT_APPLICATIONS', JSON.stringify([]));
         }
 
         axios
@@ -410,9 +417,8 @@ export default {
             this.selectedStudent = item;
             this.$router.push(`/student/${item.student_id}`);
         },
-        getStudentName(studentId) {
-            let filteredStudent = this.recentStudents.find(student => student.id == studentId);
-            return `${get(filteredStudent, 'first_name', 'Not defined')} ${get(filteredStudent, 'last_name', '')}`;
+        getStudentName(application) {
+            return `${get(application, 'student.first_name', 'Not defined')} ${get(application, 'student.last_name', '')}`;
         },
         selectApplication(item) {
             this.selectedApplication = item;
