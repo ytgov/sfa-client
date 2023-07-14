@@ -4,7 +4,7 @@ import knex from "knex";
 import { ReturnValidationErrors } from "../../middleware";
 import { DB_CONFIG } from "../../config";
 import { AssessmentCslftRepository, AssessmentSTA } from "../../repositories";
-import { AssessmentDTO, AssessmentTable } from "../../models";
+import { AssessmentDTO, AssessmentTable, DisbursementDTO } from "../../models";
 import { assessmentRouter } from "./assessment-router";
 import axios from "axios";
 
@@ -29,7 +29,6 @@ assessmentSTARouter.get("/assess-info/:id",
                 const getAssessment = await db(mainTable)
                     .where("funding_request_id", verifyFundingRequest.id)
                     .first();
-                console.log("getAssessment", getAssessment);
 
                 if (getAssessment) {
                     results = await assessmentSTARepo.getAssessInfo(
@@ -92,35 +91,60 @@ assessmentSTARouter.post("/",
         }
     }
 );
+assessmentSTARouter.put("/:id",
+    [param("id").isInt().notEmpty(), body("assessment").notEmpty()], ReturnValidationErrors,
+    async (req: Request, res: Response) => {
+        const { assessment, disbursementList = undefined } = req.body;
+        const id: number = parseInt(req.params.id);
 
-// assessmentSTARouter.get("/disbursements/:assessment_id",
-//     [param("assessment_id|").isInt().notEmpty()], ReturnValidationErrors,
-//     async (req: Request, res: Response) => {
+        const assessmentRepo = new AssessmentSTA(db);
 
-//         const assessmentSTARepo = new AssessmentSTA(db);
-//         const { id = undefined } = req.params;
-//         let results: Partial<AssessmentDTO> = {};
+        let newApp: AssessmentDTO = {
+            ...assessment
+        };
 
-//         try {
-//             const verifyFundingRequest = await db("sfa.disbursement")
-//                 .where({ id })
-//                 .first();
+        try {
+            const updateRow = await assessmentRepo.saveAssessment(id, newApp, disbursementList ?? []);
 
-//             if (verifyFundingRequest) {
-//                 results = await assessmentSTARepo.getNewInfo(
-//                     parseInt(verifyFundingRequest.application_id),
-//                     parseInt(verifyFundingRequest.id),
-//                 );
-//             }
+            if (updateRow && updateRow.length === 1) {
+                return res.json({ data: { id: updateRow[0].id }, messages: [{ text: "Assessment updated", variant: "success" }] });
+            }
 
-//             if (Object.keys(results).length > 0) {
-//                 return res.status(200).json({ success: true, data: results, });
-//             } else {
-//                 return res.status(404).send();
-//             }
+            return res.status(404).send();
+        }
+        catch (err) {
+            console.log(err);
+            return res.json({ messages: [{ text: `Saved failed`, variant: "error" }] })
+        }
+    }
+);
+assessmentSTARouter.get("/disbursements/:assessment_id",
+    [param("assessment_id").isInt().notEmpty()], ReturnValidationErrors,
+    async (req: Request, res: Response) => {
 
-//         } catch (error: any) {
-//             console.log(error);
-//             return res.status(404).send();
-//         }
-//     });
+        const { assessment_id = undefined } = req.params;
+
+        let results: DisbursementDTO[] | undefined = undefined;
+        
+        try {
+            const verifyAssessment = await db(mainTable)
+                .where({ id: assessment_id })
+                .first();
+                console.log("verifyAssessment", verifyAssessment);
+            if (verifyAssessment) {
+                results = await db("sfa.disbursement")
+                .where({ assessment_id });
+            }
+
+            if (results) {
+                return res.status(200).json({ success: true, data: results, });
+            } else {
+                return res.status(404).send();
+            }
+
+        } catch (error: any) {
+            console.log(error);
+            return res.status(404).send();
+        }
+    }
+);

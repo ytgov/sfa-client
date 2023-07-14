@@ -61,7 +61,7 @@ export class AssessmentSTA extends AssessmentBaseRepository {
             0, // initValues.entitlement_days
             initValues.travel_allowance
         ]);
-        
+
         if (disbursementList.length) {
             let disbursedAmounts = disbursementList.map((d) => {
                 return d.disbursed_amount ?? 0;
@@ -101,7 +101,7 @@ export class AssessmentSTA extends AssessmentBaseRepository {
             this.application.student_id || 0,
             this.application.id || 0
         ]);
-        
+
         return initValues;
     }
 
@@ -112,7 +112,7 @@ export class AssessmentSTA extends AssessmentBaseRepository {
     ): Promise<AssessmentDTO> {
 
         let values: Partial<AssessmentDTO> = { ...assessment };
-        
+
         values.previous_disbursement = await this.getScalarValue<number>("fn_get_disbursed_amount_fct", [
             funding_request_id,
             values.id || 0 // assessment_id because is a preview
@@ -122,7 +122,7 @@ export class AssessmentSTA extends AssessmentBaseRepository {
             values.assessed_amount || 0,
             values.previous_disbursement || 0,
         ]);
-        
+
         values.years_funded = await this.getScalarValue<number>("fn_get_total_funded_years", [this.application.student_id || 0, application_id]);
 
         values.previous_weeks = await this.getScalarValue<number>("fn_get_previous_weeks_sfa", [
@@ -140,7 +140,7 @@ export class AssessmentSTA extends AssessmentBaseRepository {
             this.application.student_id || 0,
             this.application.id || 0
         ]);
-        
+
         return values;
     }
 
@@ -157,7 +157,7 @@ export class AssessmentSTA extends AssessmentBaseRepository {
         refreshData.second_residence_rate = this.application.is_two_residence
             ? await this.getScalarValue<number>("fn_get_second_residence_sta", [application_id])
             : 0;
-            refreshData.travel_allowance = await this.getScalarValue<number>("fn_get_travel_allowance", [
+        refreshData.travel_allowance = await this.getScalarValue<number>("fn_get_travel_allowance", [
             refreshData.home_city_id || 0,
             refreshData.destination_city_id || 0
         ]);
@@ -169,7 +169,7 @@ export class AssessmentSTA extends AssessmentBaseRepository {
             0, // initValues.entitlement_days
             refreshData.travel_allowance
         ]);
-        
+
         if (disbursementList.length) {
             let disbursedAmounts = disbursementList.map((d) => {
                 return d.disbursed_amount ?? 0;
@@ -211,19 +211,25 @@ export class AssessmentSTA extends AssessmentBaseRepository {
         assessment_id: number,
         assessment: AssessmentDTO,
         disbursementList: DisbursementDTO[],
-    ): Promise<AssessmentDTO> {
+    ): Promise<AssessmentDTO[] | undefined> {
 
-        const assessInfo: AssessmentDTO[] = await this.updateAssessment(assessment_id, assessment);
+        try {
+            const assessInfo: AssessmentDTO[] = await this.updateAssessment(assessment_id, assessment);
 
-        for (const disburse of disbursementList) {
-            if (disburse?.id) {
-                this.updateDisbursements(disburse);
-            } else {
-                this.insertDisbursements(disburse);
+            for (const disburse of disbursementList) {
+                if (disburse?.id) {
+                    await this.updateDisbursements(disburse);
+                } else {
+                    disburse.assessment_id = assessment_id;
+                    disburse.funding_request_id = assessment.funding_request_id;
+                    await this.insertDisbursements(disburse);
+                }
             }
+
+            return assessInfo;
+        } catch (error) {
+            return undefined;
         }
-        
-        return assessInfo[0];
     }
 
     async insertAssessment(assessment: AssessmentDTO): Promise<any[]> {
