@@ -44,6 +44,40 @@
               }
             }"></v-text-field>
           </div>
+          <div class="col-md-2">
+            <v-menu
+                v-model="show_menu"
+                :close-on-content-click="false"
+                transition="scale-transition"
+                left
+                nudge-top="26"
+                offset-y
+                min-width="auto"
+              >
+                <template v-slot:activator="{ on, attrs }">
+                  <v-text-field
+                    label="Birth Date"
+                    append-icon="mdi-calendar"
+                    :value="student.birth_date?.slice(0, 10)"
+                    hide-details
+                    readonly
+                    outlined
+                    dense
+                    background-color="white"
+                    v-bind="attrs"
+                    v-on="on"
+                  ></v-text-field>
+                </template>
+                <v-date-picker
+                :value="student.birth_date?.slice(0, 10)"
+                @input="e => {
+                  student.birth_date = e;
+                  show_menu = false;
+                }"
+                @change="doSaveStudent('birth_date', student.birth_date, 'personInfo', student.id)"
+                ></v-date-picker>
+              </v-menu>
+          </div>
         </div>
       </v-card-text>
     </v-card>
