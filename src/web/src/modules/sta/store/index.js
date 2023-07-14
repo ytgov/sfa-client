@@ -35,13 +35,42 @@ const actions = {
 
             if (success) {
                 const data = res?.data?.data || {};
-                state.commit("SET_ASSESSMENT_STA", data);
+                state.commit("SET_ASSESSMENT_STA", { ...data });
+                if (data?.id) {
+                    state.dispatch("staGetDisbursements", { assessment_id: data.id });
+                }
             } else {
                 console.log("Error to get assessments");
             }
 
         } catch (error) {
             console.log("Error to get assessments", error);
+        } finally {
+            
+        }
+    },
+    async staGetDisbursements(state, vals) {
+        try {
+
+            if (!vals?.assessment_id) {
+                return;
+            }
+
+            const res = await axios.get(
+                ASSESSMENT + `/sta/disbursements/${vals.assessment_id}`,
+            );
+            console.log("GET disbursements", res);
+            const success = res?.data?.success;
+
+            if (success) {
+                const data = res?.data?.data || [];
+                state.commit("SET_DISBURSEMENT_LIST_STA", [ ...data ]);
+            } else {
+                console.log("Error to get disbursements");
+            }
+
+        } catch (error) {
+            console.log("Error to get disbursements", error);
         } finally {
         }
     },
@@ -97,9 +126,11 @@ const actions = {
     },
     async saveSTAAssessment({ getters, dispatch }, vm) {
         const assessment = getters.assessmentSTA;
-        console.log("VM", vm);
+        const disbursementList = getters.disbursementListSTA;
+        
         const body = {
-            assessment: assessment
+            assessment,
+            disbursementList,
         };
 
         let resAction = undefined;
