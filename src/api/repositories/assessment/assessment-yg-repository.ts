@@ -123,6 +123,7 @@ export class AssessmentYukonGrant extends AssessmentBaseRepository {
         delete assessmentToInsert.read_only_data;
         delete assessmentToInsert.id;
         delete assessmentToInsert.assessment_id;
+        delete assessmentToInsert.program_division;
 
         const insertedAssessment: any = await this.mainDb("sfa.assessment")
             .insert({ ...assessmentToInsert })
@@ -165,14 +166,15 @@ export class AssessmentYukonGrant extends AssessmentBaseRepository {
         delete assessmentToUpdate.assessment_id;
         delete assessmentToUpdate.id;
         delete assessmentToUpdate.funding_request_id;
+        delete assessmentToUpdate.program_division;
 
         const updatedAssessment: any = await this.mainDb("sfa.assessment")
             .where({ id: assessment_id })
             .update({ ...assessmentToUpdate })
-
         if (disbursementList.length) {
             // Insert the disbursement list
             for (const item of disbursementList) {
+
                 if (item?.id && (item?.assessment_id === assessment_id)
                     && (item?.funding_request_id === funding_request_id)) {
                     const resUpdate = await this.mainDb("sfa.disbursement")

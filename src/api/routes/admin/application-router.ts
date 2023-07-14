@@ -2163,6 +2163,7 @@ applicationRouter.post("/:application_id/:funding_request_id/assessments-with-di
                             delete dataAssessment.read_only_data;
                             delete dataAssessment.id;
                             delete dataAssessment.assessment_id;
+                            delete dataAssessment.program_division;
                             //Changing values that the user may have updated from preview-assessment
                             const resUpdate = await db("sfa.assessment")
                                 .where({ id: resSP[0].assessment_id_inserted })

@@ -159,7 +159,7 @@ const actions = {
                 return;
             }
             if (!vals?.disburseList?.length) {
-                 return;
+                return;
             }
 
             const dataFormated = _.omit(vals.data, ['name_assessment', 'program_division', 'read_only_data']);
