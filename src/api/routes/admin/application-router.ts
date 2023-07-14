@@ -2485,7 +2485,7 @@ applicationRouter.post("/:application_id/assessment/:assessment_id/disburse-yea"
             const funding_request = await db("sfa.funding_request")
                 .where({ id: data.funding_request_id })
                 .first();
-            console.log("🚀 ~ file: application-router.ts:2486 ~ funding_request:", funding_request)
+            // console.log("🚀 ~ file: application-router.ts:2486 ~ funding_request:", funding_request)
             if (application) {
                 const response = await db("sfa.disbursement")
                     .insert({
@@ -2498,16 +2498,12 @@ applicationRouter.post("/:application_id/assessment/:assessment_id/disburse-yea"
                     })
                     .returning("*");
 
-                if (response?.length === 1 && response[0]?.status === 0) {
-                    return res.json({
-                        messages: [{ variant: "error", text: response[0].message }] 
-                    });
-                }
 
-                if (response?.length && response[0]?.status === 1) {
+                // console.log("🚀 ~ file: application-router.ts:2486 ~ response:", response)
+
+                if (response?.length) {
                     const disbursementList = response.map( (d: any) => {
                         delete d.id;
-                        delete d.status;
                         return {
                             ...d,
                         };
@@ -2527,7 +2523,7 @@ applicationRouter.post("/:application_id/assessment/:assessment_id/disburse-yea"
 
         } catch (error) {
             console.log(error);
-            return res.status(409).send({ messages: [{ variant: "error", text: "Error get data" }] });
+            return res.status(409).send({ messages: [{ error, variant: "error", text: "Error get data" }] });
         }   
     }
 );
