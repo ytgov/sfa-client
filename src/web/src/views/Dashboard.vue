@@ -317,7 +317,6 @@ export default {
             this.filter = localStorage.DASHBOARD_LASTNAME_FILTER.split(",");
         }
 
-        // debugger
         if (localStorage.RECENT_APPLICATIONS) {
             this.recentApplications = JSON.parse(localStorage.RECENT_APPLICATIONS);
         } else {
