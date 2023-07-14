@@ -111,7 +111,6 @@ const actions = {
         }
     },
     async postAssessmentWithDisbursements(state, vals) {
-        console.log("🚀 ~ file: assessment.js:114 ~ postAssessmentWithDisbursements ~ vals:", vals)
         try {
             const thisVal = vals?.thisVal || {};
 

@@ -463,7 +463,6 @@ export default {
     },
     recalcAssessment() {
       const custom = JSON.parse(JSON.stringify(this.customAssessment));
-      console.log("🚀 ~ file: YukonExcellenceAwards.vue:391 ~ recalcAssessment ~ custom.funding_request_id:", custom.funding_request_id)
       store.dispatch(
           "recalcAssessment",
           {
@@ -577,8 +576,6 @@ export default {
       await store.dispatch("loadApplication", this.applicationId);
     }
     store.dispatch("setAppSidebar", true);
-    console.log("🚀 ~ file: YukonExcellenceAwards.vue:318 ~ application:", storeApp);
-    // console.log("🚀 ~ file: YukonExcellenceAwards.vue:374 ~ created ~ this.funding:", selectedFunding)
   },
   props: {
     fundingRequestId: Number,
