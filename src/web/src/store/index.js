@@ -120,10 +120,17 @@ export default new Vuex.Store({
       state.selectedApplication = value;
       state.selectedApplicationId = value.id;
 
-      let isRecent = state.recentApplications.filter((r) => r.id == value.id);
+      let isRecent = JSON.parse(localStorage.RECENT_APPLICATIONS).filter((r) => r.id == value.id);
 
       if (isRecent.length == 0) {
-        state.recentApplications.unshift(value);
+        if (JSON.parse(localStorage.RECENT_APPLICATIONS).length >= 25) {
+          const currentRecentApplication = JSON.parse(localStorage.RECENT_APPLICATIONS);
+          currentRecentApplication.pop();
+          localStorage.RECENT_APPLICATIONS = JSON.stringify(currentRecentApplication);
+          localStorage.RECENT_APPLICATIONS = JSON.stringify([value, ...JSON.parse(localStorage.RECENT_APPLICATIONS)]);
+        } else {
+          localStorage.RECENT_APPLICATIONS = JSON.stringify([value, ...JSON.parse(localStorage.RECENT_APPLICATIONS)]);
+        }
       }
     },
     SET_NEW_APPLICATIONS(state, value) {

@@ -215,8 +215,17 @@ applicationRouter.get("/:id",
         .where({ id })
         .first();
 
+    // for (let item of applications) {
+    //     item.title = `${item.first_name} ${item.last_name} - ${item.academic_year_id}: ${item.institution_name}`;
+    // }
         if (application) {
-            const student = await db("sfa.student").where({ id: application.student_id }).first();
+            const student = await db("sfa.student")
+                .innerJoin("sfa.person", "student.person_id", "person.id")
+                .select("student.*")
+                .select("person.first_name")
+                .select("person.last_name")
+                .where({ "student.id": application.student_id }).first();
+
             application.prev_pre_leg_weeks = application.prev_pre_leg_weeks ?? 22;
             application.funded_years_used_preleg_chg = application.funded_years_used_preleg_chg ?? 22;
 
