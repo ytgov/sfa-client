@@ -420,12 +420,6 @@ export default {
     },
     updateAssessment() {
       const custom = JSON.parse(JSON.stringify(this.customAssessment));
-
-      // store.dispatch(
-      //     "updateApplication", 
-      //     ['program_division', this.application.program_division, this]
-      //   );
-
       const filterDisbursements = this.disbursements.filter(d => d.assessment_id === custom?.id) || [];
 
       store.dispatch(

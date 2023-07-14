@@ -3740,6 +3740,7 @@ AS
 BEGIN
 	DECLARE @correspondence_type_id INT;
     DECLARE @current_correspondence INT;
+	DECLARE @correspondence_id INT;
 
     SELECT @correspondence_type_id = sfa.fn_get_correspondence_type_id(@letter_name);
 

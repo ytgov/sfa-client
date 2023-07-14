@@ -158,9 +158,9 @@ const actions = {
             if (!Object.keys(vals?.data).length) {
                 return;
             }
-            // if (!vals?.disburseList?.length) {
-            //     return;
-            // }
+            if (!vals?.disburseList?.length) {
+                 return;
+            }
 
             const dataFormated = _.omit(vals.data, ['name_assessment', 'program_division', 'read_only_data']);
 
