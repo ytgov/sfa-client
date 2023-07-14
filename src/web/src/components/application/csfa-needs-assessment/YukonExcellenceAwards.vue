@@ -250,7 +250,7 @@
                   hide-details
                   label="Total Requested"
                   @keypress="validate.isNumber($event)"
-                  :value="selectedFunding.yea_request_amount"
+                  :value="selectedFunding.yea_request_amount ?? 0"
                 ></v-text-field>
               </div>
               <div class="col-sm-4 col-lg-5">
@@ -421,10 +421,10 @@ export default {
     updateAssessment() {
       const custom = JSON.parse(JSON.stringify(this.customAssessment));
 
-      store.dispatch(
-          "updateApplication", 
-          ['program_division', this.application.program_division, this]
-        );
+      // store.dispatch(
+      //     "updateApplication", 
+      //     ['program_division', this.application.program_division, this]
+      //   );
 
       const filterDisbursements = this.disbursements.filter(d => d.assessment_id === custom?.id) || [];
 
@@ -474,7 +474,6 @@ export default {
         );
     },
     disburse() {
-      debugger
       store.dispatch(
         "previewYEADisbursements",
         {
@@ -543,6 +542,31 @@ export default {
         false,
         "Accept"
       );
+    },
+  },
+  watch: {
+    customAssessment: {
+        deep: true,
+        handler(val, oldVal) {
+          const custom = JSON.parse(JSON.stringify(val));
+          const selected = JSON.parse(JSON.stringify(this.selectedAssessment))
+
+          this.isChanging = this.ObjCompare({ ...custom }, { ...selected });
+        },
+    },
+    programDivision(val, oldVal) {
+      const custom = JSON.parse(JSON.stringify(val));
+      const selected = JSON.parse(JSON.stringify(this.selectedAssessment))
+
+      if (this.programDivisionBack) {
+        this.isChanging = this.ObjCompare({ ...custom }, { ...selected });
+      }
+    },
+    disbursements: {
+      deep: true,
+        handler(val, oldVal) {
+
+        },
     },
   },
   async created() {

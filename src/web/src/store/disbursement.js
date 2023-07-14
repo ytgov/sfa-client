@@ -109,7 +109,6 @@ const actions = {
                 }
             }
 
-            debugger
             const res = await axios.post(
                 APPLICATION_URL + `/${vals.application_id}/assessment/${vals.assessment_id}/disburse-yea`,
                 { data: { ...assessmentData } }
@@ -135,7 +134,6 @@ const actions = {
     async previewDisbursements(state, vals) {
         try {
             const thisVal = vals?.thisVal || {};
-
             if (!vals?.data && !vals.application_id && !vals?.assessment_id) {
                 return;
             }

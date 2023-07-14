@@ -1958,7 +1958,7 @@ applicationRouter.get("/:application_id/:funding_request_id/assessments",
                             COALESCE(sfa.fn_get_previous_weeks_yg(${application.student_id},  ${application_id}), 0) AS previous_weeks,
                             COALESCE(sfa.fn_get_allowed_weeks ('${moment(application.classes_start_date).format("YYYY-MM-DD")}', '${moment(application.classes_end_date).format("YYYY-MM-DD")}'), 0) AS assessed_weeks,
                             COALESCE(sfa.fn_get_disbursed_amount_fct(${funding_request_id}, ${item.id}), 0) AS previous_disbursement,
-                            COALESCE(sfa.fn_net_amount(${funding_request_id},  ${item.id}), 0) AS net_amount,
+                            COALESCE(sfa.fn_net_amount(${funding_request_id}, ${item.id}), 0) AS net_amount,
                             COALESCE(sfa.fn_get_total_funded_years ( ${application.student_id}, ${application_id}), 0) AS years_funded;
                             `
                         );
@@ -2051,6 +2051,63 @@ applicationRouter.post("/:application_id/:funding_request_id/assessments",
                         
 
                     });
+                } else if (fundingRequest?.request_type_id === 3) { // Create Assessment YEA
+                    try {
+                        db.transaction(async (trx) => {
+
+                            console.log("🚀 ~ file: application-router.ts:2059 ~ db.transaction ~ insert_response:", dataAssessment)
+                            if (!dataAssessment.id) {
+                                const insert_response = await db("sfa.assessment")
+                                    .returning('*')
+                                    .insert({
+                                        funding_request_id,
+                                        assessment_type_id: 2,
+                                        student_contrib_exempt: "NO",
+                                        spouse_contrib_exempt: "NO",
+                                        student_contribution_review: "NO",
+                                        spouse_contribution_review: "NO",
+                                        parent_contribution_review: "NO"
+                                    })
+                            
+                                console.log("🚀 ~ file: application-router.ts:2059 ~ db.transaction ~ insert_response:", insert_response)
+                                return res.json({
+                                    messages: [{ variant: "success" }],
+                                    data: [ ...insert_response ],
+                                });
+                            } else {
+                                // delete dataAssessment.read_only_data;
+                                // delete dataAssessment.id;
+                                // delete dataAssessment.assessment_id;
+
+                                // const resUpdate = await db("sfa.assessment")
+                                // .where({ id: insert_response[0].assessment_id_inserted })
+                                // .update({ ...dataAssessment });
+
+                                // return resUpdate
+                                //     ? res.json({
+                                //         messages: [{ variant: "success" }],
+                                //         data: [ ...insert_response ],
+                                //     })
+                                //     : res.json({
+                                //         messages: [{ variant: "success", text: "Failed to update values" }],
+                                //         data: [[ ...insert_response ]],
+                                //     });
+                                // } else {
+                                //     return res.json({
+                                //         messages: [{ variant: "success" }],
+                                //         data: [ ...insert_response ],
+                                //     });
+                                // }
+                            }
+                        });
+                    } catch (err) {
+                        return res.json({
+                            messages: [{ variant: "error" }],
+                            data: [err],
+                        });
+                    }
+                            
+
                 } else {
                     return res.json({
                         messages: [{ variant: "error" }],
@@ -2419,76 +2476,36 @@ applicationRouter.post("/:application_id/assessment/:assessment_id/disburse-yea"
     async (req: Request, res: Response) => {
         try {
             const { application_id, assessment_id } = req.params;
-            const { data, dataDisburse, dataAssessment } = req.body;
+            const { data } = req.body;
 
             const application = await db("sfa.application")
                 .where({ id: application_id })
                 .first();
 
-            const  assessment = await db("sfa.assessment")
-                .where({ id: assessment_id })
+            const funding_request = await db("sfa.funding_request")
+                .where({ id: data.funding_request_id })
                 .first();
-            
+            console.log("🚀 ~ file: application-router.ts:2486 ~ funding_request:", funding_request)
             if (application) {
-                for (const item of dataDisburse) {
-                    const response = await db("sfa.disbursement")
-                        .insert({
-                            disbursement_type_id: item.disbursement_type_id,
-                            assessment_id,
-                            funding_request_id: item.funding_request_id,
-                            disbursed_amount: item.disbursed_amount,
-                            due_date: item.due_date,
-                            tax_year: new Date().getFullYear(),
-                            issue_date: item.issue_date,
-                            paid_amount: item.paid_amount,
-                            change_reason_id: item.change_reason_id,
-                            financial_batch_id: item.financial_batch_id,
-                            financial_batch_id_year: item.financial_batch_id_year,
-                            financial_batch_run_date: item.financial_batch_run_date,
-                            financial_batch_serial_no: item.financial_batch_serial_no,
-                            transaction_number: item.transaction_number,
-                            csl_cert_seq_number: item.csl_cert_seq_number,
-                            ecert_sent_date: item.ecert_sent_date,
-                            ecert_response_date: item.ecert_response_date,
-                            ecert_status: item.ecert_status,
-                            ecert_portal_status_id: item.ecert_portal_status_id
-                        
-                        })
-                        .returning("*");
-                }
-                
-                const disbursements = await db.raw(
-                    `
-                        EXEC sfa.sp_disburse_button_yg
-                        ${application_id ?? null},
-                        ${assessment_id ?? null},
-                        ${data.funding_request_id ?? null},
-                        ${data.air_travel_disbursement_period ?? null},
-                        ${data.travel_allowance ?? null},
-                        ${data.airfare_amount ?? null},
-                        ${data.disbursements_required ?? null},
-                        ${data.over_award_disbursement_period ?? null},
-                        ${data.over_award ?? null},
-                        ${data.over_award_applied_flg ?? 'No'},
-                        ${data.years_funded_equivalent ?? null},
-                        ${data.allowed_tuition ?? null},
-                        ${data.living_costs ?? null},
-                        ${data.allowed_books ?? null},
-                        ${data.weekly_amount ?? null},
-                        ${data.assessment_adj_amount ?? null},
-                        ${data.assessed_amount ?? null},
-                        ${data.program_division ?? 0};
-                    `
-                );
+                const response = await db("sfa.disbursement")
+                    .insert({
+                        assessment_id,
+                        funding_request_id: data.funding_request_id,
+                        disbursement_type_id: funding_request.yea_request_type == 1 ? 3 : 1,
+                        disbursed_amount: data.read_only_data.net_amount,
+                        tax_year: new Date().getFullYear(),
+                        paid_amount: data.read_only_data.net_amount,
+                    })
+                    .returning("*");
 
-                if (disbursements?.length === 1 && disbursements[0]?.status === 0) {
+                if (response?.length === 1 && response[0]?.status === 0) {
                     return res.json({
-                        messages: [{ variant: "error", text: disbursements[0].message }] 
+                        messages: [{ variant: "error", text: response[0].message }] 
                     });
                 }
 
-                if (disbursements?.length && disbursements[0]?.status === 1) {
-                    const disbursementList = disbursements.map( (d: any) => {
+                if (response?.length && response[0]?.status === 1) {
+                    const disbursementList = response.map( (d: any) => {
                         delete d.id;
                         delete d.status;
                         return {
