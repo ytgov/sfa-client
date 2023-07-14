@@ -10,6 +10,7 @@ services:
       - db/sqlserver.env
       - db/sapassword.env
     volumes:
+      - ./db/scripts:/home/db/scripts
       - ./db/data:/var/opt/mssql/data
       - ./db/log:/var/opt/mssql/log
       - ./db/backups/:/var/opt/sqlserver/backup

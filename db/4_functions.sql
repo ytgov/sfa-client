@@ -3535,3 +3535,140 @@ FROM sfa.application a
 WHERE a.id = @application_id
 AND pa.address_type_id = @address_type;
 GO
+
+-- Get Disbursement Max Transaction
+CREATE OR ALTER FUNCTION sfa.fn_get_disbursement_max_transaction(@funding_request_id INT)
+RETURNS INT
+AS 
+BEGIN
+    DECLARE  @max INT = 0;
+
+    SELECT
+        @max = MAX(d.transaction_number)
+    FROM sfa.disbursement d 
+    WHERE d.funding_request_id = @funding_request_id
+
+    RETURN COALESCE(@max, 0);
+END;
+GO
+
+-- Get Batch Parameter Id
+CREATE OR ALTER FUNCTION sfa.fn_get_batch_parameter_id(@batch_parameter_name NVARCHAR)
+RETURNS INT
+AS 
+BEGIN
+    DECLARE  @result INT = 0;
+
+    SELECT
+        @result = bp.id
+    FROM sfa.batch_parameter bp
+    WHERE bp.[description] = @batch_parameter_name;
+
+    RETURN COALESCE(@result, 0);
+END;
+GO
+
+-- Get Correspondence Type
+CREATE OR ALTER FUNCTION sfa.fn_get_correspondence_type_id(@description NVARCHAR)
+RETURNS INT
+AS 
+BEGIN
+    DECLARE  @result INT = 0;
+
+    SELECT
+        @result = ct.id
+    FROM sfa.correspondence_type ct
+    WHERE ct.[description] = @description
+
+    RETURN COALESCE(@result, 0);
+END;
+GO
+
+-- Create correspondence
+CREATE OR ALTER PROCEDURE sfa.create_correspondence(@correspondence_type_id INT, @student_id INT, @request_type_id INT, @correspondence_id INT OUTPUT)
+AS 
+BEGIN
+    DECLARE @date_ref DATETIME2 = GETDATE();
+    
+    -- @TODO Can´t add officer validation, SFA schema does not contain the table.
+
+    -- Create correspondence record.
+    INSERT INTO sfa.correspondence (correspondence_date, officer_id, correspondence_type_id, student_id, request_type_id)
+    VALUES (@date_ref, NULL, @correspondence_type_id, @student_id, @request_type_id);    
+
+    SELECT @correspondence_id = SCOPE_IDENTITY();
+    
+    RETURN @correspondence_id;
+END;
+GO
+
+-- Get student address from student pck
+CREATE OR ALTER FUNCTION sfa.fn_get_student_address(@student_id INT, @application_id INT)
+RETURNS NVARCHAR
+AS 
+BEGIN
+    DECLARE @address NVARCHAR(500) = 'HOME';
+    DECLARE @start_date DATETIME2,
+            @end_date DATETIME2,
+            @mail_id INT,
+            @home_id INT;
+
+    SELECT
+        @start_date = a.classes_start_date,
+        @end_date = a.classes_end_date,
+        @mail_id = mail.id,
+        @home_id = home.id
+    FROM sfa.application a 
+        INNER JOIN sfa.student s
+            ON s.id = a.student_id
+        LEFT JOIN sfa.person_address mail
+            ON mail.person_id = s.person_id
+            AND mail.address_type_id = 2
+        LEFT JOIN sfa.person_address home
+            ON home.person_id = s.person_id
+            AND home.address_type_id = 4
+    WHERE a.id = @application_id
+    AND a.student_id = @student_id;
+
+    IF @start_date IS NOT NULL AND @end_date IS NOT NULL
+    BEGIN
+        SET @start_date = DATEADD(DAY, -14, @start_date);
+
+        IF GETDATE() BETWEEN @start_date AND @end_date
+        BEGIN
+            IF @mail_id IS NOT NULL
+            BEGIN
+                SET @address = 'SCHOOL';
+            END;
+        END;
+    END;
+    
+    RETURN COALESCE(@address, 'HOME');
+END;
+GO
+
+-- CSL Non or Overaward Ltr
+CREATE OR ALTER PROCEDURE [sfa].[sp_csl_non_or_overaward_letter](@letter_name NVARCHAR, @student_id INT, @funding_request_id INT, @request_type_id INT, @csl_reason_id INT, @application_id INT)
+AS
+BEGIN
+	DECLARE @correspondence_type_id INT;
+    DECLARE @current_correspondence INT;
+
+    SELECT @correspondence_type_id = sfa.fn_get_correspondence_type_id(@letter_name);
+
+    EXEC sfa.create_correspondence @correspondence_type_id = @correspondence_type_id, @student_id = @student_id, @request_type_id = @request_type_id, @current_correspondence = @correspondence_id;
+
+END;
+GO
+
+-- Create letter parameters
+CREATE OR ALTER PROCEDURE sfa.create_letter_params(@correspondence_id INT, @student_id INT, @application_id INT)
+AS 
+BEGIN
+    DECLARE @address_select NVARCHAR(500);
+
+    SELECT @address_select = sfa.fn_get_student_address(@student_id, @application_id);
+
+    
+END;
+GO
