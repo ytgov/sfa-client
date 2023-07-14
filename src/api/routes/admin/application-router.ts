@@ -585,35 +585,34 @@ applicationRouter.post("/:application_id/status",
 );
 
 // downloads a document      
-    applicationRouter.get("/:application_id/student/:student_id/files/:file_type", async (req: Request, res: Response) => {          
+applicationRouter.get("/:application_id/student/:student_id/files/:file_type", async (req: Request, res: Response) => {          
     const { student_id, application_id, file_type } = req.params;    
- 
+
     //* Ordenar descendente mas nuevo a mas viejo
     let doc:any = await db("sfa.file_reference").where({ application_id: application_id}).andWhere({student_id: student_id}).andWhere
     ({requirement_type_id: file_type}).orderBy("upload_date", "desc").first();   
-    
+
     if(doc) {
         let fileReference = await documentService.getDocumentWithFile(doc.object_key);    
-    
+
         if (
-          fileReference &&
-          fileReference.student_id == parseInt(student_id) &&
-          fileReference.application_id == parseInt(application_id)
+            fileReference &&
+            fileReference.student_id == parseInt(student_id) &&
+            fileReference.application_id == parseInt(application_id)
         ) {
-          res.set("Content-disposition", "attachment; filename=" + fileReference.file_name);
-          res.set("Content-type", fileReference.mime_type);
-          return res.send(fileReference.file_contents);
+            res.set("Content-disposition", "attachment; filename=" + fileReference.file_name);
+            res.set("Content-type", fileReference.mime_type);
+            return res.send(fileReference.file_contents);
         }
     }
-   
-      
+
     res.status(404).send();
-  });
+});
 
 applicationRouter.post("/:application_id/student/:student_id/files", async (req: Request, res: Response) => {       
     const { student_id, application_id } = req.params;
     const { requirement_type_id, disability_requirement_id, person_id, dependent_id, comment, email, status } = req.body;
-              
+
     let finalEmail = ""; //req.user.email;
     if(!email) {
         finalEmail = "michael@icefoganalytics.com"
@@ -627,21 +626,21 @@ applicationRouter.post("/:application_id/student/:student_id/files", async (req:
         finalComment = comment;
     }
     if (req.files) {
-      let files = Array.isArray(req.files.files) ? req.files.files : [req.files.files];
-  
-      for (let file of files) {        
-        await documentService.uploadApplicationDocument(finalEmail, student_id, application_id, file, requirement_type_id, disability_requirement_id, person_id, dependent_id, finalComment, source, status);
-      }      
-      return res.json({ messages: [{ variant: "success", text: "Saved" }] })      
+        let files = Array.isArray(req.files.files) ? req.files.files : [req.files.files];
+
+        for (let file of files) {        
+            await documentService.uploadApplicationDocument(finalEmail, student_id, application_id, file, requirement_type_id, disability_requirement_id, person_id, dependent_id, finalComment, source, status);
+        }      
+        return res.json({ messages: [{ variant: "success", text: "Saved" }] })      
     }    
     res.json({ error: "No files included in request" });
-  });
+});
 
 
 
 
   // updates _met
-  applicationRouter.post("/:application_id/student/:student_id/files/:requirement_type_id",
+applicationRouter.post("/:application_id/student/:student_id/files/:requirement_type_id",
     [param("application_id").isInt().notEmpty(), param("student_id").isInt().notEmpty(), param("requirement_type_id").isInt().notEmpty()],
     ReturnValidationErrors,
     async (req: Request, res: Response) => {                
@@ -694,7 +693,7 @@ applicationRouter.post("/:application_id/student/:student_id/files", async (req:
         applicationRouter.get("/:application_id/student/:student_id/files/:file_type/fellow_type/:fellow_type/fellow/:fellow", async (req: Request, res: Response) => {                      
             
             const { student_id, application_id, file_type, fellow_type, fellow } = req.params;    
-         
+
             
             let doc:any;
             switch(fellow_type) {
@@ -767,7 +766,7 @@ applicationRouter.put("/:application_id/files/:requirement_type_id",
     [param("application_id").isInt().notEmpty(), param("requirement_type_id").isInt().notEmpty()],
     ReturnValidationErrors,
     async (req: Request, res: Response) => {   
-               
+
         const { application_id, requirement_type_id } = req.params;
         const { data, type, object_key } = req.body;   
         const alreadyExist: any = await db("sfa.requirement_met").where({ application_id: application_id }).andWhere({ requirement_type_id: requirement_type_id }).first();        
@@ -800,7 +799,7 @@ applicationRouter.put("/:application_id/files/:requirement_type_id",
                 }
 
 
-               
+
             }
 
             if(type === "comment") {
@@ -1959,7 +1958,7 @@ applicationRouter.get("/:application_id/:funding_request_id/assessments",
                             COALESCE(sfa.fn_get_previous_weeks_yg(${application.student_id},  ${application_id}), 0) AS previous_weeks,
                             COALESCE(sfa.fn_get_allowed_weeks ('${moment(application.classes_start_date).format("YYYY-MM-DD")}', '${moment(application.classes_end_date).format("YYYY-MM-DD")}'), 0) AS assessed_weeks,
                             COALESCE(sfa.fn_get_disbursed_amount_fct(${funding_request_id}, ${item.id}), 0) AS previous_disbursement,
-                            COALESCE(sfa.fn_net_amount(${funding_request_id},  ${item.id}), 0) AS net_amount,
+                            COALESCE(sfa.fn_net_amount(${funding_request_id}, ${item.id}), 0) AS net_amount,
                             COALESCE(sfa.fn_get_total_funded_years ( ${application.student_id}, ${application_id}), 0) AS years_funded;
                             `
                         );
@@ -2052,6 +2051,63 @@ applicationRouter.post("/:application_id/:funding_request_id/assessments",
                         
 
                     });
+                } else if (fundingRequest?.request_type_id === 3) { // Create Assessment YEA
+                    try {
+                        db.transaction(async (trx) => {
+
+                            console.log("🚀 ~ file: application-router.ts:2059 ~ db.transaction ~ insert_response:", dataAssessment)
+                            if (!dataAssessment.id) {
+                                const insert_response = await db("sfa.assessment")
+                                    .returning('*')
+                                    .insert({
+                                        funding_request_id,
+                                        assessment_type_id: 2,
+                                        student_contrib_exempt: "NO",
+                                        spouse_contrib_exempt: "NO",
+                                        student_contribution_review: "NO",
+                                        spouse_contribution_review: "NO",
+                                        parent_contribution_review: "NO"
+                                    })
+                            
+                                console.log("🚀 ~ file: application-router.ts:2059 ~ db.transaction ~ insert_response:", insert_response)
+                                return res.json({
+                                    messages: [{ variant: "success" }],
+                                    data: [ ...insert_response ],
+                                });
+                            } else {
+                                // delete dataAssessment.read_only_data;
+                                // delete dataAssessment.id;
+                                // delete dataAssessment.assessment_id;
+
+                                // const resUpdate = await db("sfa.assessment")
+                                // .where({ id: insert_response[0].assessment_id_inserted })
+                                // .update({ ...dataAssessment });
+
+                                // return resUpdate
+                                //     ? res.json({
+                                //         messages: [{ variant: "success" }],
+                                //         data: [ ...insert_response ],
+                                //     })
+                                //     : res.json({
+                                //         messages: [{ variant: "success", text: "Failed to update values" }],
+                                //         data: [[ ...insert_response ]],
+                                //     });
+                                // } else {
+                                //     return res.json({
+                                //         messages: [{ variant: "success" }],
+                                //         data: [ ...insert_response ],
+                                //     });
+                                // }
+                            }
+                        });
+                    } catch (err) {
+                        return res.json({
+                            messages: [{ variant: "error" }],
+                            data: [err],
+                        });
+                    }
+                            
+
                 } else {
                     return res.json({
                         messages: [{ variant: "error" }],
@@ -2277,6 +2333,61 @@ applicationRouter.get("/:application_id/:funding_request_id/preview-assessment",
     }
 );
 
+applicationRouter.get("/:application_id/:funding_request_id/preview-assessment-yea",
+    [
+        param("application_id").isInt().notEmpty(), 
+        param("funding_request_id").isInt().notEmpty(),
+    ], 
+    ReturnValidationErrors, 
+    async (req: Request, res: Response) => {
+        try {
+            const { application_id, funding_request_id } = req.params;
+
+            const application = await db("sfa.application")
+                .where({ id: application_id })
+                .first();
+
+            const  fundingRequest = await db("sfa.funding_request")
+                .where({ id: funding_request_id })
+                .first();
+
+            if (application && fundingRequest) {
+
+                const preview = await db.raw(
+                    `SELECT * FROM sfa.fn_get_new_info_yea(
+                        ${application_id},
+                        -1,
+                        ${funding_request_id},
+                        ${application.student_id}
+                    );
+                    `
+                );
+                const calculateValues = preview?.[0];
+                
+                const readOnlyData = await db.raw(
+                    `SELECT 
+                    COALESCE(sfa.fn_get_disbursed_amount_fct(${funding_request_id}, -1), 0) AS previous_disbursement,
+                    ${calculateValues?.assessed_amount ?? 0} - ${calculateValues?.previous_disbursement ?? 0} AS net_amount,
+                    `
+                );
+                
+                calculateValues.read_only_data = readOnlyData?.[0] || {};
+                
+                return res.json({
+                    messages: [{ variant: "success" }],
+                    data: [ calculateValues ],
+                });
+            } else {
+                return res.status(409).send({ messages: [{ variant: "error", text: "Error get data" }] });
+            }
+
+        } catch (error) {
+            console.log(error);
+            return res.status(409).send({ messages: [{ variant: "error", text: "Error get data" }] });
+        }   
+    }
+);
+
 applicationRouter.post("/:application_id/assessment/:assessment_id/disburse",
     [
         param("application_id").isInt().notEmpty(), 
@@ -2352,6 +2463,67 @@ applicationRouter.post("/:application_id/assessment/:assessment_id/disburse",
         } catch (error) {
             console.log(error);
             return res.status(409).send({ messages: [{ variant: "error", text: "Error get data" }] });
+        }   
+    }
+);
+
+applicationRouter.post("/:application_id/assessment/:assessment_id/disburse-yea",
+    [
+        param("application_id").isInt().notEmpty(), 
+        param("assessment_id").isInt().notEmpty(),
+    ], 
+    ReturnValidationErrors, 
+    async (req: Request, res: Response) => {
+        try {
+            const { application_id, assessment_id } = req.params;
+            const { data } = req.body;
+
+            const application = await db("sfa.application")
+                .where({ id: application_id })
+                .first();
+
+            const funding_request = await db("sfa.funding_request")
+                .where({ id: data.funding_request_id })
+                .first();
+            // console.log("🚀 ~ file: application-router.ts:2486 ~ funding_request:", funding_request)
+            if (application) {
+                const response = await db("sfa.disbursement")
+                    .insert({
+                        assessment_id,
+                        funding_request_id: data.funding_request_id,
+                        disbursement_type_id: funding_request.yea_request_type == 1 ? 3 : 1,
+                        disbursed_amount: data.read_only_data.net_amount,
+                        tax_year: new Date().getFullYear(),
+                        paid_amount: data.read_only_data.net_amount,
+                    })
+                    .returning("*");
+
+
+                // console.log("🚀 ~ file: application-router.ts:2486 ~ response:", response)
+
+                if (response?.length) {
+                    const disbursementList = response.map( (d: any) => {
+                        delete d.id;
+                        return {
+                            ...d,
+                        };
+                    });
+                    return res.json({
+                        messages: [{ variant: "success" }],
+                        data: [ ...disbursementList ],
+                    });
+                } else {
+                    return res.json({
+                        messages: [{ variant: "error", text: "Error to get data" }] });
+                }
+
+            } else {
+                return res.status(409).send({ messages: [{ variant: "error", text: "Application id or Assessment id is invalid" }] });
+            }
+
+        } catch (error) {
+            console.log(error);
+            return res.status(409).send({ messages: [{ error, variant: "error", text: "Error get data" }] });
         }   
     }
 );

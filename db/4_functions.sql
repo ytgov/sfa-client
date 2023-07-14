@@ -3526,6 +3526,87 @@ BEGIN
 END
 GO
 
+-- FILE : ASSESSMENT_YEA --- FUNCTION: GET_NET
+CREATE OR ALTER FUNCTION sfa.fn_get_net_yea(@assessment_assessed_amount DECIMAL(10, 2), @assessment_previous_disbursement DECIMAL(10, 2))
+RETURNS DECIMAL(10, 2)
+AS
+BEGIN
+    DECLARE @net_amt DECIMAL(10, 2);
+    
+    SET @net_amt = @assessment_assessed_amount - @assessment_previous_disbursement;
+    
+    IF @net_amt BETWEEN -1 AND 1
+    BEGIN
+        SET @net_amt = 0;
+    END;
+    
+    RETURN @net_amt;
+END
+GO
+
+CREATE OR ALTER FUNCTION sfa.fn_get_new_info_yea(
+    @application_id INT,
+    @assessment_id INT,
+    @funding_request_id INT,
+    @student_id INT
+)
+RETURNS
+@assessment_record TABLE (
+    funding_request_id INT,
+    classes_end_date DATE,
+    classes_start_date DATE,
+    assessed_date DATE,
+    disbursements_required INT,
+    previous_disbursement NUMERIC, -- IS NOT IN ASSESSMENT, IS IN CSL_NARS_HISTORY
+    assessed_amount NUMERIC
+)
+AS
+BEGIN
+    /*
+        This procedure is the main point for calling the functions that return values
+        needed for the assessment
+    */
+
+    DECLARE @wk_amt DECIMAL(18, 2);
+    DECLARE @intwk INT;
+    DECLARE @disbursed_amt DECIMAL(18, 2);
+    DECLARE @assess_id_internal INT;
+    DECLARE @previous_disbursement NUMERIC;
+
+    /*
+        Calculate the previous disbursement amount
+    */
+    /* Note: we don't actually need to determine assess_id, because we will be calculating the amount
+            disbursed for ALL assessments on this funding request. This code remains in here in
+            case there is a need to calculate only for this assessment instead. The procedure,
+            Get_Disbursed_Amount has the test for assess_id commented out of the where clause.
+    */
+    -- IF (@assessment_id < @assess_id AND @assessment_id IS NOT NULL) OR @assess_id = 0
+    --     BEGIN
+    --         SET @assess_id_internal = @assessment_id;
+    --     END
+    -- ELSE
+    --     BEGIN
+    --         SET @assess_id_internal = @assess_id;
+    --     END
+
+    SELECT @disbursed_amt = sfa.fn_get_disbursed_amount_fct(@funding_request_id, @assessment_id);
+
+    IF @disbursed_amt > 0
+        BEGIN
+            SET @previous_disbursement = @disbursed_amt;
+        END
+        
+    ELSE
+        BEGIN
+            SET @previous_disbursement = 0;
+        END
+
+    -- EXEC sfa.calc_assess_info_yea @student_id;
+    RETURN;
+END
+GO
+
 -- Get student address by application
 CREATE OR ALTER FUNCTION sfa.fn_get_student_address_by_application(@application_id INT, @address_type INT = 1)
 RETURNS TABLE
