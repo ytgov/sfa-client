@@ -23,8 +23,7 @@
                     hide-details 
                     label="Address line 1"
                     v-model="parent.address1"
-                    @change="update({ address1: parent.address1 })"          
-                    @click="print(parent)"          
+                    @change="update({ address1: parent.address1 })"                                  
                 >
                 </v-text-field>
             </div>
@@ -164,15 +163,11 @@ export default {
 
     },
     methods: {  
-        print(item) {            
-            console.log(this.application);
-            console.log(item);
-        },
-        async update(data, flag = 1) {    
-            if(flag) {
+        async update(data, flag = 1) {            
+            if(flag) {                 
                 try {
                     data.student_id = this.student.id;            
-                    if (this.parent?.id && this.parent?.person_address_id) {                    
+                    if (this.parent?.id && this.parent?.person_address_id) {                                          
                         const resUpdate = await axios.patch(
                             `${APPLICATION_URL}/${this.parent.person_address_id}/person-address`,
                             { data }
@@ -186,10 +181,10 @@ export default {
                         } else {
                             this.$emit("showError", message.text);
                         }
-                    } else {
+                    } else {                                                        
                         const resInsert = await axios.post(
                             `${APPLICATION_URL}/${this.application.id}/person-address`,
-                            { data, personAddressId: this.parent?.id || null, }
+                            { data, personAddressId: this.student.person_id || null, }
                         );
                         
                         const message = resInsert?.data?.messages[0];
@@ -208,8 +203,7 @@ export default {
                 } finally {
                     store.dispatch("loadApplication", this.application.id);
                 }
-            } else {
-                console.log(this.application.id);
+            } else {                
                 try {                    
                     const resInsert = await axios.put(
                         `${APPLICATION_URL}/${this.application.id}`,
@@ -231,7 +225,7 @@ export default {
                 } finally {
                     store.dispatch("loadApplication", this.application.id);
                 }
-            }                            
+            }                          
         },
         async showPDF(r_type) {      
             try {              

@@ -19,6 +19,7 @@ export class AssessmentYukonGrant extends AssessmentBaseRepository {
         disburseAmountList: number[],
         student_id: number,
         application_id: number,
+        program_division: number,
 
     ): Promise<AssessmentDTO | undefined> {
 
@@ -56,7 +57,9 @@ export class AssessmentYukonGrant extends AssessmentBaseRepository {
 
         const disburse_required = await this.getScalarValue<number>("fn_disbursments_required", [
             application_id,
-            assessment.id || 0]);
+            assessment.id || 0,
+            program_division,
+        ]);
 
         let disbursed_amt = null;
 

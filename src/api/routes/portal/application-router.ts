@@ -63,35 +63,51 @@ portalApplicationRouter.get("/:sub/:draftId/required-documents", async (req: Req
         returnDocs.push(doc);
       }
 
+      //console.log("APP", app);
+
       for (let doc of returnDocs) {
+        doc.meets_conditions = true;
+
+        if (doc.condition) console.log(doc, doc.condition);
+
         switch (doc.condition) {
-          case "CSL and SFA":
-            break;
           case "CSL Only":
+            // I don't currently know how to handle this...
+            // But I belive it's handled by not having the requirement
             break;
           case "Dependent":
+            if (app.personal_details.category != 1) doc.meets_conditions = false;
             break;
           case "Has Dependant":
+            if (app.student_dependants.has_dependants == false) doc.meets_conditions = false;
             break;
           case "Married/Common Law":
+            if (app.personal_details.category != 2) doc.meets_conditions = false;
             break;
           case "Not CSL":
+            // I don't currently know how to handle this...
+            // But I belive it's handled by not having the requirement
             break;
           case "Not Dependent Student":
+            if (app.personal_details.category == 1) doc.meets_conditions = false;
             break;
           case "Other Agency Funding":
+            if (app.other_funding.has_funding == true) {
+            } else doc.meets_conditions = false;
             break;
           case "Private/Distance/Outside Canada":
             break;
           case "Spouse as Dependent":
+            // I don't currently know how to handle this...
             break;
           case "Yukon and Previous CSL":
+            // I don't currently know how to handle this...
+            // But I belive it's handled by not having the requirement
             break;
         }
       }
 
-      //returnDocs = returnDocs.filter((r) => r.meets_conditions == true);
-
+      returnDocs = returnDocs.filter((r) => r.meets_conditions == true);
       returnDocs = sortBy(returnDocs, "description");
 
       res.json({ data: returnDocs });
@@ -224,8 +240,6 @@ portalApplicationRouter.put("/:sub/:draftId/submit", async (req: Request, res: R
 
     if (appIds.includes(parseInt(draftId))) {
       let application = await applicationService.submitDraft(student, parseInt(draftId));
-
-      console.log("Application Created", application);
 
       if (application) {
         let draftDocs = await documentService.getDocumentsForDraft(parseInt(draftId));
