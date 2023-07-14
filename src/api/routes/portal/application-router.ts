@@ -72,8 +72,8 @@ portalApplicationRouter.get("/:sub/:draftId/required-documents", async (req: Req
 
         switch (doc.condition) {
           case "CSL Only":
-            // I don't currently know how to handle this... 
-            // But I belive it's handled by not having the requirement 
+            // I don't currently know how to handle this...
+            // But I belive it's handled by not having the requirement
             break;
           case "Dependent":
             if (app.personal_details.category != 1) doc.meets_conditions = false;
@@ -86,7 +86,7 @@ portalApplicationRouter.get("/:sub/:draftId/required-documents", async (req: Req
             break;
           case "Not CSL":
             // I don't currently know how to handle this...
-            // But I belive it's handled by not having the requirement 
+            // But I belive it's handled by not having the requirement
             break;
           case "Not Dependent Student":
             if (app.personal_details.category == 1) doc.meets_conditions = false;
@@ -102,7 +102,7 @@ portalApplicationRouter.get("/:sub/:draftId/required-documents", async (req: Req
             break;
           case "Yukon and Previous CSL":
             // I don't currently know how to handle this...
-            // But I belive it's handled by not having the requirement 
+            // But I belive it's handled by not having the requirement
             break;
         }
       }
@@ -240,8 +240,6 @@ portalApplicationRouter.put("/:sub/:draftId/submit", async (req: Request, res: R
 
     if (appIds.includes(parseInt(draftId))) {
       let application = await applicationService.submitDraft(student, parseInt(draftId));
-
-      console.log("Application Created", application);
 
       if (application) {
         let draftDocs = await documentService.getDocumentsForDraft(parseInt(draftId));

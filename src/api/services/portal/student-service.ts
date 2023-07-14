@@ -34,8 +34,15 @@ export class PortalStudentService {
   }
 
   async create(student: Person_Create, sub: string) {
-    //let sinMatch = await db("person").withSchema(schema).where({ sin: student.sin });
+    let sinMatch = await db("person")
+      .withSchema(schema)
+      .innerJoin("student", "student.person_id", "person.id")
+      .where({ sin: student.sin });
     //let emailMatch = await db("person").withSchema(schema).where({ sin: student.email });
+
+    if (sinMatch && sinMatch.length > 0) {
+      return undefined;
+    }
 
     let person = await db("person").withSchema(schema).insert(student).returning("*");
 
