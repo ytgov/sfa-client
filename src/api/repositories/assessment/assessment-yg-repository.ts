@@ -90,7 +90,7 @@ export class AssessmentYukonGrant extends AssessmentBaseRepository {
             String(refrehData.airfare_amount),
             String(refrehData.weekly_amount),
             String(refrehData.weeks_allowed),
-            String(refrehData.id || 0),
+            String(refrehData.assessment_adj_amount || 0),
         ]);
 
         refrehData.pre_leg_amount = await this.getScalarValue<number>("fn_get_old_total", [
