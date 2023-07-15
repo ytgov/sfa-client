@@ -3,8 +3,8 @@ import express, { Request, Response } from "express";
 import { body, param } from "express-validator";
 import { ReturnValidationErrors } from "../../middleware";
 import { DB_CONFIG } from "../../config";
-import { AssessmentCslftRepository } from "../../repositories";
-import { AssessmentDTO } from "../../models";
+import { AssessmentCslftRepository, StudentRepository } from "../../repositories";
+import { AddressLinesDTO, AssessmentDTO } from "../../models";
 
 const db = knex(DB_CONFIG)
 export const assessmentCslftRouter = express.Router();

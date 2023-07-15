@@ -3760,3 +3760,82 @@ BEGIN
     
 END;
 GO
+
+-- Get Address By Person
+CREATE OR ALTER FUNCTION sfa.fn_get_address_by_person(@person_id INT, @address_type_id INT)
+RETURNS TABLE
+AS
+RETURN
+SELECT
+    pa.id,
+    pa.person_id,
+    pa.address_type_id,
+    pa.address1,
+    pa.address2,
+    pa.city_id,
+    ci.[description] AS city,
+    pa.country_id,
+    co.[description] AS country,
+    pa.province_id,
+    pr.[description] AS province,
+    pa.postal_code,
+    pa.telephone,
+    pa.email,
+    pa.notes
+FROM sfa.person_address pa
+    LEFT JOIN sfa.city ci
+        ON ci.id = pa.city_id
+    LEFT JOIN sfa.country co
+        ON co.id = pa.country_id
+    LEFT JOIN sfa.province pr
+        ON pr.id = pa.province_id
+WHERE pa.person_id = @person_id
+AND pa.address_type_id = @address_type_id;          
+GO
+
+-- Get mail address
+CREATE OR ALTER FUNCTION sfa.fn_get_mail_address(@student_id INT)
+RETURNS TABLE
+AS
+RETURN
+SELECT
+    s.id,
+    s.person_id,
+    p.first_name,
+    p.last_name,    
+    se.[description] AS sex,
+    CASE 
+        WHEN p.sex_id = 1 THEN 'Mr.'
+        WHEN p.sex_id = 2 THEN 'Ms.'
+        ELSE '' END AS salut,
+    home.address1 AS home_address1,
+    home.address2 AS home_address2,
+    home.city_id AS home_city_id,
+    home.city AS home_city,
+    home.country_id AS home_country_id,
+    home.country AS home_country,
+    home.province_id AS home_province_id,
+    home.province AS home_province,
+    home.postal_code AS home_postal_code,
+    home.telephone AS home_telephone,
+    home.email AS home_email,
+    mail.address1 AS mail_address1,
+    mail.address2 AS mail_address2,
+    mail.city_id AS mail_city_id,
+    mail.city AS mail_city,
+    mail.country_id AS mail_country_id,
+    mail.country AS mail_country,
+    mail.province_id AS mail_province_id,
+    mail.province AS mail_province,
+    mail.postal_code AS mail_postal_code,
+    mail.telephone AS mail_telephone,
+    mail.email AS mail_email
+FROM sfa.student s
+    INNER JOIN sfa.person p
+        ON p.id = s.person_id
+    LEFT JOIN sfa.sex se
+        ON se.id = p.sex_id
+    CROSS APPLY sfa.fn_get_address_by_person(s.person_id, 1) AS home
+    CROSS APPLY sfa.fn_get_address_by_person(s.person_id, 2) AS mail
+WHERE s.id = @student_id;
+GO
