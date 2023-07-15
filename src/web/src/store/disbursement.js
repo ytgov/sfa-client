@@ -184,8 +184,13 @@ const actions = {
             }
 
             if (vals?.isList === "disburseList" && vals.data ) {
+                const data = vals.data.map(d => {
+                    delete d.issue_date_menu;
+                    delete d.due_date_menu;
+                    return { ...d };
+                });
                 const res = await axios.post(DISBURSEMENT, { 
-                    data: [ ...vals.data ],
+                    data: [ ...data ],
                     isList:  vals.isList
                 });
     
@@ -197,7 +202,10 @@ const actions = {
                     emiter?.$emit("showError", res.data?.message || "Fail to added");
                 }
             } else {
-                const res = await axios.post(DISBURSEMENT, { data: vals.data, });
+                const data = vals.data;
+                delete data.issue_date_menu;
+                delete data.due_date_menu;
+                const res = await axios.post(DISBURSEMENT, { data: data, });
     
                 if (res?.data?.success) {
                     emiter?.$emit("showSuccess", "Added!");
@@ -223,7 +231,7 @@ const actions = {
     async updateDisbursement(state, vals) {
         try {
             const emiter = vals?.emiter || {};
-
+            
             if (!(vals?.data)) {
                 return;
             }
@@ -231,9 +239,13 @@ const actions = {
                 return;
             }
 
+            const data = vals.data;
+            delete data.issue_date_menu;
+            delete data.due_date_menu;
+
             const res = await axios.patch(
                 DISBURSEMENT + "/" + vals.disbursement_id,
-                { data: vals.data }
+                { data }
             );
 
             if (res?.data?.success) {

@@ -58,7 +58,7 @@
                     </div>
                     <div class="col-xs-1 col-sm-1 col-lg-1 nopadding" style="margin-right: 6px">
                         <v-menu
-                          v-model="issue_date_menu"
+                          v-model="item.issue_date_menu"
                           :close-on-content-click="false"
                           transition="scale-transition"
                           left
@@ -69,7 +69,7 @@
                           <template v-slot:activator="{ on, attrs }">
                             <v-text-field
                               :value="item.issue_date?.slice(0, 10)"
-                              label="Assessed Date"
+                              label="Issue Date"
                               hide-details
                               readonly
                               outlined
@@ -83,7 +83,7 @@
                             :value="item.issue_date?.slice(0, 10)"
                             @input="e => {
                               item.issue_date = e;
-                              issue_date_menu = false;
+                              item.issue_date_menu = false;
                             }"
                             @change=" e => {
                               $emit('blockDisburse', true);
@@ -102,7 +102,7 @@
                     </div>
                     <div class="col-xs-1 col-sm-1 col-lg-1 nopadding" style="margin-right: 6px">
                         <v-menu
-                          v-model="due_date_menu"
+                          v-model="item.due_date_menu"
                           :close-on-content-click="false"
                           transition="scale-transition"
                           left
@@ -113,7 +113,7 @@
                           <template v-slot:activator="{ on, attrs }">
                             <v-text-field
                               :value="item.due_date?.slice(0, 10)"
-                              label="Assessed Date"
+                              label="Due Date"
                               hide-details
                               readonly
                               outlined
@@ -127,7 +127,7 @@
                             :value="item.due_date?.slice(0, 10)"
                             @input="e => {
                               item.due_date = e;
-                              due_date_menu = false;
+                              item.due_date_menu = false;
                             }"
                             @change=" e => {
                               $emit('blockDisburse', true);
@@ -158,7 +158,7 @@
                 </div>
             </div>
 
-            <div v-for="item, index in previewDisbursementList" :key="index">
+            <div v-for="item, index in previewDisbursementList" :key="index+'sd'">
               <!-- <div class="col-xs-12 col-sm-12 col-lg-12 d-flex noppading-bottom">
                 <div class="col-xs-12 col-sm-12 col-lg-12 nopadding d-flex align-end justify-end">
                   <v-btn 
@@ -192,7 +192,7 @@
                   </div>
                   <div class="col-xs-1 col-sm-1 col-lg-1 nopadding" style="margin-right: 6px">
                       <v-menu
-                        v-model="issue_date_menu"
+                        v-model="item.issue_date_menu"
                         :close-on-content-click="false"
                         transition="scale-transition"
                         left
@@ -203,7 +203,7 @@
                         <template v-slot:activator="{ on, attrs }">
                           <v-text-field
                             :value="item.issue_date?.slice(0, 10)"
-                            label="Assessed Date"
+                            label="Issue Date"
                             hide-details
                             readonly
                             outlined
@@ -217,7 +217,7 @@
                           :value="item.issue_date?.slice(0, 10)"
                           @input="e => {
                             item.issue_date = e;
-                            issue_date_menu = false;
+                            item.issue_date_menu = false;
                           }"
                           
                         ></v-date-picker>
@@ -230,7 +230,7 @@
                   </div>
                   <div class="col-xs-1 col-sm-1 col-lg-1 nopadding" style="margin-right: 6px">
                       <v-menu
-                        v-model="due_date_menu" 
+                        v-model="item.due_date_menu" 
                         :close-on-content-click="false"
                         transition="scale-transition"
                         left
@@ -241,7 +241,7 @@
                         <template v-slot:activator="{ on, attrs }">
                           <v-text-field
                             :value="item.due_date?.slice(0, 10)"
-                            label="Assessed Date"
+                            label="Due Date"
                             hide-details
                             readonly
                             outlined
@@ -255,7 +255,7 @@
                           :value="item.due_date?.slice(0, 10)"
                           @input="e => {
                             item.due_date = e;
-                            due_date_menu = false;
+                            item.due_date_menu = false;
                           }"
                         ></v-date-picker>
                       </v-menu>
