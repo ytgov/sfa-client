@@ -1,1 +1,1 @@
-export * from "./expense-repository";
+export * from "./correspondence-repository";

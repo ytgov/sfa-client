@@ -2786,6 +2786,22 @@ BEGIN
 END;
 GO
 
+-- Get student exempt amount
+CREATE OR ALTER FUNCTION sfa.fn_get_student_exempt_amount(@academic_year_id INT)
+RETURNS FLOAT(8)
+AS 
+BEGIN
+	DECLARE  @amt FLOAT(8);
+
+    SELECT @amt = COALESCE(cl.student_exempt_amount, 0)
+    FROM sfa.csl_lookup cl
+    WHERE cl.academic_year_id = @academic_year_id;
+    
+    RETURN COALESCE(@amt, 0);
+
+END;
+GO
+
 -- Get Vehicle deduction amount
 CREATE OR ALTER FUNCTION sfa.fn_get_vehicle_deduction_amount(@academic_year_id INT)
 RETURNS FLOAT(8)
@@ -3681,7 +3697,7 @@ BEGIN
 
     -- Create correspondence record.
     INSERT INTO sfa.correspondence (correspondence_date, officer_id, correspondence_type_id, student_id, request_type_id)
-    VALUES (@date_ref, NULL, @correspondence_type_id, @student_id, @request_type_id);    
+    VALUES (@date_ref, 52, @correspondence_type_id, @student_id, @request_type_id);    
 
     SELECT @correspondence_id = SCOPE_IDENTITY();
     
@@ -3731,33 +3747,6 @@ BEGIN
     END;
     
     RETURN COALESCE(@address, 'HOME');
-END;
-GO
-
--- CSL Non or Overaward Ltr
-CREATE OR ALTER PROCEDURE [sfa].[sp_csl_non_or_overaward_letter](@letter_name NVARCHAR, @student_id INT, @funding_request_id INT, @request_type_id INT, @csl_reason_id INT, @application_id INT)
-AS
-BEGIN
-	DECLARE @correspondence_type_id INT;
-    DECLARE @current_correspondence INT;
-	DECLARE @correspondence_id INT;
-
-    SELECT @correspondence_type_id = sfa.fn_get_correspondence_type_id(@letter_name);
-
-    EXEC sfa.create_correspondence @correspondence_type_id = @correspondence_type_id, @student_id = @student_id, @request_type_id = @request_type_id, @current_correspondence = @correspondence_id;
-
-END;
-GO
-
--- Create letter parameters
-CREATE OR ALTER PROCEDURE sfa.create_letter_params(@correspondence_id INT, @student_id INT, @application_id INT)
-AS 
-BEGIN
-    DECLARE @address_select NVARCHAR(500);
-
-    SELECT @address_select = sfa.fn_get_student_address(@student_id, @application_id);
-
-    
 END;
 GO
 
@@ -3838,4 +3827,37 @@ FROM sfa.student s
     CROSS APPLY sfa.fn_get_address_by_person(s.person_id, 1) AS home
     CROSS APPLY sfa.fn_get_address_by_person(s.person_id, 2) AS mail
 WHERE s.id = @student_id;
+GO
+
+-- Get Batch parameter id
+CREATE OR ALTER FUNCTION sfa.fn_get_batch_parameter_id(@batch_parameter_name INT)
+RETURNS INT
+AS 
+BEGIN
+	DECLARE  @result INT;
+
+    SELECT @result = bp.id
+    FROM sfa.batch_parameter bp
+    WHERE bp.[description] = @batch_parameter_name;
+    
+    RETURN COALESCE(@result, 0);
+
+END;
+GO
+
+-- Get Batch parameter id
+CREATE OR ALTER FUNCTION sfa.fn_get_csg_only_flag(@funding_request_id INT, @application_id INT)
+RETURNS BIT
+AS 
+BEGIN
+	DECLARE  @result BIT = 0;
+
+    SELECT @result = fr.is_csg_only
+    FROM sfa.funding_request fr
+    WHERE fr.id = @funding_request_id
+    AND fr.application_id = @application_id;
+    
+    RETURN @result;
+
+END;
 GO

@@ -1,3 +1,4 @@
+import { CorrespondenceRepository } from './../correspondence/correspondence-repository';
 import {Knex} from "knex";
 import moment from "moment";
 import {
@@ -30,6 +31,7 @@ import {InvestmentRepository} from "../investment";
 import {CsgThresholdRepository} from "../csg_threshold";
 import {NumbersHelper} from "../../utils/NumbersHelper";
 import {MsfaaRepository} from "../msfaa";
+import { CslReasonRepository } from 'repositories/csl_reason';
 
 export class AssessmentCslftRepository extends AssessmentBaseRepository {
 
@@ -53,6 +55,8 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
     private investmentRepo: InvestmentRepository;
     private csgThresholdRepo: CsgThresholdRepository;
     private msfaaRepo: MsfaaRepository;
+    private correspondenceRepo: CorrespondenceRepository;
+    private cslReasonRepo: CslReasonRepository;
 
     // Globals
     private assessment: Partial<AssessmentDTO> = {};
@@ -95,6 +99,8 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
         this.investmentRepo = new InvestmentRepository(maindb);
         this.csgThresholdRepo = new CsgThresholdRepository(maindb);
         this.msfaaRepo = new MsfaaRepository(maindb);
+        this.correspondenceRepo = new CorrespondenceRepository(maindb);
+        this.cslReasonRepo = new CslReasonRepository(maindb);
     }
 
     getAssessmentTable(assessment: AssessmentDTO): AssessmentTable {
@@ -900,9 +906,33 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
             }
         }
 
-        if (!this.assessment.csl_over_reason_id) {
+        if (this.assessment.csl_over_reason_id) {
             this.assessment.over_award = Math.max((this.assessment.over_award ?? 0) - (this.assessment.net_amount ?? 0), 0);
+
+            await this.correspondenceRepo.cslNonOrOverawardLetter("CSL_Over_Award_ltr", this.application.student_id, funding_request_id, 4, this.assessment.csl_over_reason_id, this.application.id);
         }
+
+        if (this.assessment.csl_non_reason_id || this.assessment.csl_over_reason_id) {
+            if (this.assessment.csl_non_reason_id) {
+                const cslReason = await this.cslReasonRepo.getCslReasonById(this.assessment.csl_non_reason_id);
+
+                if (cslReason.name?.toUpperCase() === "CSG ONLY") {
+                    this.funding_request.status_id = 40;
+                    this.funding_request.status_date = new Date();
+                }
+                else {
+                    if ((this.assessment.total_grant_awarded ?? 0) === 0) {
+                        await this.correspondenceRepo.cslNonOrOverawardLetter("CSL_Non_Award_ltr", this.application.student_id, funding_request_id, 4, this.assessment.csl_over_reason_id, this.application.id);
+
+                        this.funding_request.status_id = 4;
+                        this.funding_request.status_date = new Date();
+                    }
+                }
+            }
+        }
+
+        this.assessment.previous_disbursement = await this.disbursementRepo.getDisbursedAmount(funding_request_id, this.assessment.id);
+        this.assessment.net_amount = this.getNetAmount(this.assessment.assessed_amount, this.assessment.previous_disbursement, this.assessment.return_uncashable_cert);         
        
         return {
             disbursement: this.disbursement,
