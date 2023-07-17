@@ -3830,7 +3830,7 @@ WHERE s.id = @student_id;
 GO
 
 -- Get Batch parameter id
-CREATE OR ALTER FUNCTION sfa.fn_get_batch_parameter_id(@batch_parameter_name INT)
+CREATE OR ALTER FUNCTION sfa.fn_get_batch_parameter_id(@batch_parameter_name NVARCHAR)
 RETURNS INT
 AS 
 BEGIN

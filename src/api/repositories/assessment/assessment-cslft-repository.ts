@@ -1,4 +1,3 @@
-import { CorrespondenceRepository } from './../correspondence/correspondence-repository';
 import {Knex} from "knex";
 import moment from "moment";
 import {
@@ -12,26 +11,28 @@ import {
     PersonAddressDTO,
     StudentDTO
 } from "../../models";
-import {AssessmentBaseRepository} from "./assessment-base-repository";
-import {ApplicationRepository} from "../application";
-import {StudentContributionRepository, StudentLivingAllowanceRepository, StudentRepository} from "../student";
-import {FundingRequestRepository} from "../funding_request";
-import {CslLookupRepository} from "../csl_lookup";
-import {ExpenseRepository} from "../expense";
-import {ProvinceRepository} from "../province";
-import {DisbursementRepository} from "../disbursement";
-import {ChildCareCeilingRepository} from "../child_care_ceiling";
-import {TaxRateRepository} from "../tax_rate";
-import {FieldProgramRepository} from "../field_program";
-import {PersonRepository} from "../person";
-import {StandardOfLivingRepository} from "../standard_of_living";
-import {ParentRepository} from "../parent";
-import {DependentRepository} from "../dependent";
-import {InvestmentRepository} from "../investment";
-import {CsgThresholdRepository} from "../csg_threshold";
-import {NumbersHelper} from "../../utils/NumbersHelper";
-import {MsfaaRepository} from "../msfaa";
-import { CslReasonRepository } from 'repositories/csl_reason';
+import { AssessmentBaseRepository } from "./assessment-base-repository";
+import { ApplicationRepository } from "../application";
+import { StudentContributionRepository, StudentLivingAllowanceRepository, StudentRepository} from "../student";
+import { FundingRequestRepository } from "../funding_request";
+import { CslLookupRepository } from "../csl_lookup";
+import { ExpenseRepository } from "../expense";
+import { ProvinceRepository } from "../province";
+import { DisbursementRepository } from "../disbursement";
+import { ChildCareCeilingRepository } from "../child_care_ceiling";
+import { TaxRateRepository } from "../tax_rate";
+import { FieldProgramRepository } from "../field_program";
+import { PersonRepository } from "../person";
+import { StandardOfLivingRepository } from "../standard_of_living";
+import { ParentRepository } from "../parent";
+import { DependentRepository } from "../dependent";
+import { InvestmentRepository } from "../investment";
+import { CsgThresholdRepository } from "../csg_threshold";
+import { NumbersHelper } from "../../utils/NumbersHelper";
+import { MsfaaRepository } from "../msfaa";
+import { CslReasonRepository } from '../csl_reason';
+import { CorrespondenceRepository } from '../correspondence';
+import { CslftGlobalDTO } from 'models/result/assessments/cslft/CslftGlobalDTO';
 
 export class AssessmentCslftRepository extends AssessmentBaseRepository {
 
@@ -870,10 +871,12 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
         return this.assessment;
     }
 
-    async executeDisburse(funding_request_id: number, assessment: Partial<AssessmentDTO> = {}): Promise<{disbursement: DisbursementDTO, assessment: AssessmentDTO, funding_request: FundingRequestDTO}> {
+    async executeDisburse(funding_request_id: number, assessment: Partial<AssessmentDTO> = {}): Promise<{disbursements: Array<DisbursementDTO>, assessment: AssessmentDTO, funding_request: FundingRequestDTO, globals: Partial<CslftGlobalDTO>}> {
         
         await this.loadData(funding_request_id, false);
         this.assessment = assessment;
+
+        const globals: Partial<CslftGlobalDTO> = {};
         
         this.disbursement.assessment_id = this.assessment.id;
         this.disbursement.funding_request_id = funding_request_id;
@@ -883,7 +886,7 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
         this.disbursement.disbursed_amount = positiveDisbursement() ? 0 : this.assessment.net_amount;
         this.disbursement.paid_amount = positiveDisbursement() ? 0 : this.assessment.net_amount;
         
-        this.csl_letter_flag = positiveDisbursement();
+        globals.csl_letter_flag = positiveDisbursement();
 
         const isNetAmountAndAssessmentType = (assessmentType: number): boolean => ((this.assessment.net_amount ?? 0) >= 0 && this.assessment.assessment_type_id !== assessmentType); 
         if ((this.assessment.net_amount ?? 0) < 0) {
@@ -900,6 +903,8 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
                 if ((this.assessment.net_amount ?? 0) > 0 && this.assessment.assessment_type_id !== 3) {
                     this.funding_request.status_id = 7;
                     this.funding_request.status_date = new Date();
+
+                    globals.update_status = true;
 
                     this.disbursement.transaction_number = await this.disbursementRepo.getNextTransactionSequenceValue();
                 }
@@ -919,6 +924,8 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
                 if (cslReason.name?.toUpperCase() === "CSG ONLY") {
                     this.funding_request.status_id = 40;
                     this.funding_request.status_date = new Date();
+
+                    globals.update_status = true;
                 }
                 else {
                     if ((this.assessment.total_grant_awarded ?? 0) === 0) {
@@ -926,18 +933,23 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
 
                         this.funding_request.status_id = 4;
                         this.funding_request.status_date = new Date();
+
+                        globals.update_status = true;
                     }
                 }
             }
         }
 
+        globals.disbursement_flag = true;
+
         this.assessment.previous_disbursement = await this.disbursementRepo.getDisbursedAmount(funding_request_id, this.assessment.id);
         this.assessment.net_amount = this.getNetAmount(this.assessment.assessed_amount, this.assessment.previous_disbursement, this.assessment.return_uncashable_cert);         
        
         return {
-            disbursement: this.disbursement,
+            disbursements: [this.disbursement],
             assessment: this.assessment,
-            funding_request: this.funding_request
+            funding_request: this.funding_request,
+            globals: globals
         };
     }
 

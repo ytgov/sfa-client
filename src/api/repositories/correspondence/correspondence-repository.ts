@@ -1,6 +1,9 @@
 import { Knex } from "knex";
 import { BaseRepository } from "../base-repository";
-import { StudentRepository, CslReasonRepository, BatchParameterRepository, FundingRequestRepository } from "repositories";
+import { StudentRepository } from "../student";
+import { CslReasonRepository } from "../csl_reason";
+import { BatchParameterRepository } from "../batch_parameter";
+import { FundingRequestRepository } from "../funding_request";
 
 export class CorrespondenceRepository extends BaseRepository {
 
@@ -42,7 +45,7 @@ export class CorrespondenceRepository extends BaseRepository {
         let result = 0;
 
         if (letter_name) {
-            result = await this.getScalarValue<number>("fn_get_correspondence_type_id", [letter_name])
+            result = await this.getScalarValue<number>("fn_get_correspondence_type_id", [`'${letter_name}'`])
         }
 
         return result;
