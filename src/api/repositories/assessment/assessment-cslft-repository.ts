@@ -68,6 +68,7 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
     private assess_id?: number;
     private study_period_id: number = 2;
     private prestudy_period_id: number = 1;
+    private csl_letter_flag: boolean = false;
 
     // Utils
     private numHelper: NumbersHelper;
@@ -671,7 +672,7 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
         this.assessment.prestudy_bus_flag = this.application.prestudy_bus;
         this.assessment.family_size = await this.getParentFamilySize(this.application.id);
         this.assessment.parent_ps_depend_count = await this.getParentDependentCount(this.application.id, true);
-        this.assessment.parent_province_id = await this.provinceRepo.getStudentProvinceIdByApplication(this.application.id);
+        this.assessment.parent_province_id = await this.provinceRepo.getStudentProvinceIdByApplication(this.application.id, 4);
         this.assessment.total_grant_awarded = await this.disbursementRepo.getTotalGrantAmount(this.application.id);
 
         const canadianProvinces = [
@@ -868,8 +869,41 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
         await this.loadData(funding_request_id, false);
         this.assessment = assessment;
         
+        this.disbursement.assessment_id = this.assessment.id;
+        this.disbursement.funding_request_id = funding_request_id;
+        this.disbursement.issue_date = new Date();
         
+        const positiveDisbursement = (): boolean => ((this.assessment.net_amount ?? 0) > 0 && this.assessment.assessment_type_id === 3);
+        this.disbursement.disbursed_amount = positiveDisbursement() ? 0 : this.assessment.net_amount;
+        this.disbursement.paid_amount = positiveDisbursement() ? 0 : this.assessment.net_amount;
+        
+        this.csl_letter_flag = positiveDisbursement();
 
+        const isNetAmountAndAssessmentType = (assessmentType: number): boolean => ((this.assessment.net_amount ?? 0) >= 0 && this.assessment.assessment_type_id !== assessmentType); 
+        if ((this.assessment.net_amount ?? 0) < 0) {
+            this.disbursement.transaction_number = await this.disbursementRepo.getMaxTransaction(funding_request_id);
+        }
+        else {
+            if (isNetAmountAndAssessmentType(3)) {
+                this.disbursement.disbursement_type_id = 4;
+
+                if ((this.assessment.csl_assessed_need ?? 0) > 0 || (this.assessment.total_grant_awarded ?? 0) > 0 && (this.application.academic_year_id ?? 0) > 2012) {
+                    await this.getMsfaaInfo("Disburse");
+                }
+
+                if ((this.assessment.net_amount ?? 0) > 0 && this.assessment.assessment_type_id !== 3) {
+                    this.funding_request.status_id = 7;
+                    this.funding_request.status_date = new Date();
+
+                    this.disbursement.transaction_number = await this.disbursementRepo.getNextTransactionSequenceValue();
+                }
+            }
+        }
+
+        if (!this.assessment.csl_over_reason_id) {
+            this.assessment.over_award = Math.max((this.assessment.over_award ?? 0) - (this.assessment.net_amount ?? 0), 0);
+        }
+       
         return {
             disbursement: this.disbursement,
             assessment: this.assessment,

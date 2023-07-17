@@ -117,7 +117,7 @@ const actions = {
             if (!(vals?.application_id && vals?.funding_request_id)) {
                 return;
             }
-
+            
             const res = await axios.post(
                 APPLICATION_URL + `/${vals.application_id}/${vals.funding_request_id}/assessments-with-disburse`,
                 { 

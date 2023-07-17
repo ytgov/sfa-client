@@ -607,7 +607,7 @@ END
 GO
 
  -- FILE : ASSESSMENT_YG  --- FUNCTION: GET_DISBURSEMENTS_REQUIRED
-CREATE OR ALTER FUNCTION sfa.fn_disbursments_required(@application_id_p INT, @assessment_id_p INT)
+CREATE OR ALTER FUNCTION sfa.fn_disbursments_required(@application_id_p INT, @assessment_id_p INT, @program_division INT = NULL)
 RETURNS NUMERIC AS
 BEGIN
     DECLARE @d_required NUMERIC;
@@ -615,7 +615,6 @@ BEGIN
     DECLARE @v_weeks NUMERIC;
     DECLARE @v_num_batched NUMERIC;
     DECLARE @academic_year_id INT;
-    DECLARE @program_division INT;
     DECLARE @net_amount NUMERIC;
     DECLARE @funding_request_id INT;
     DECLARE @weeks_allowed NUMERIC;
@@ -632,10 +631,16 @@ BEGIN
     FROM sfa.application app
     WHERE app.id = @application_id_p;
 
-    SELECT @academic_year_id = academic_year_id , 
-           @program_division = program_division
+    SELECT @academic_year_id = academic_year_id
     FROM sfa.application 
     WHERE id = @application_id_p;
+
+    IF @program_division IS NULL
+    BEGIN
+        SELECT @program_division = program_division
+        FROM sfa.application 
+        WHERE id = @application_id_p;
+    END
 
     IF @assessment_id_p <= 0 
         BEGIN
@@ -683,7 +688,15 @@ BEGIN
             END
         ELSE  -- Post Legislation
             BEGIN
-                SELECT @v_weeks = sfa.fn_get_period_weeks(@application_id_p);
+                IF  @program_division = 1   -- Quarters
+			        BEGIN
+							SELECT @v_weeks = yg_quarter_weeks FROM sfa.system_parameter;
+			        END
+				ELSE IF  @program_division = 2   -- Semesters	
+			        BEGIN
+							SELECT  @v_weeks =  yg_semester_weeks FROM sfa.system_parameter;
+					END
+
                 IF  @v_weeks = 0 
                     BEGIN
                         SET @d_required = 0;
@@ -1209,26 +1222,10 @@ BEGIN
     @allowed_books = book
     FROM sfa.fn_get_yg_cost (@program_division, @academic_year_id, 100);
 	
-	SELECT @disburse_required = sfa.fn_disbursments_required(@application_id, @assessment_id); 
-
---f_alert.ok('New Info - ID: '||	:assessment.assessment_id||'  weekly amt: '||:assessment.weekly_amount); -- Lidwien debug
-
-	/*
-		Calculate the previous disbursement amount
-	*/
-	--IF @assessment_id IS NOT NULL OR @prev_assessment_id = 0 --esta de mas esta validacion
-		--BEGIN 
-		  --SET @prev_assessment_id = @assessment_id;
-    --END
-	-- ELSE
-    -- BEGIN
-      -- SET @prev_assessment_id = @assessment_id;
-      -- assess_id := :parameter.assess_id;
-    -- END
+	SELECT @disburse_required = sfa.fn_disbursments_required(@application_id, @assessment_id, NULL); 
 
 	SELECT @disbursed_amt = sfa.fn_get_disbursed_amount_fct(@funding_request_id, @assessment_id);
-
---f_alert.ok('New Info - disbursed: '||	disbursed_amt); -- Lidwien debug		
+		
 	IF @disbursed_amt IS NOT NULL
 		BEGIN
       SET @previous_disbursement = @disbursed_amt;
@@ -3291,6 +3288,29 @@ AS
 	END
 GO
 
+-- FILE : ASSESSMENT_SFA  --- FUNCTION: SFAADMIN.STA_LOOKUP_PCK$GET_RESIDENCE_RATE_FCT$IMPL  
+CREATE OR ALTER PROCEDURE sfa.pr_get_residence_rate_sta
+   @academic_year_id INT,
+   @return_value_argument FLOAT(8)  OUTPUT
+AS 
+   BEGIN
+         DECLARE
+            @res_v_second_residence INT
+         DECLARE
+             sec_residence_cur CURSOR LOCAL FOR 
+               SELECT sl.second_residence_amount
+               FROM sfa.sta_lookup sl
+               WHERE sl.academic_year_id = @academic_year_id
+         OPEN sec_residence_cur
+         FETCH sec_residence_cur
+             INTO @res_v_second_residence
+         CLOSE sec_residence_cur
+         DEALLOCATE sec_residence_cur
+         SET @return_value_argument = @res_v_second_residence
+         RETURN @return_value_argument
+   END
+GO
+
 -- FILE : ASSESSMENT_SFA  --- FUNCTION: GET_SECOND_RESIDENCE
 CREATE OR ALTER FUNCTION sfa.fn_get_second_residence_sta
 /*This function returns the value of the second residence rate*/
@@ -3438,62 +3458,47 @@ END
 GO
 
 -- FILE : ASSESSMENT_STA  --- FUNCTION: SFAADMIN.STA_LOOKUP_PCK$GET_WEEKLY_RATE_FCT$IMPL  
-CREATE OR ALTER PROCEDURE sfa.pr_get_weekly_rate_sta
-   @dependent_count_p INT,
-   @academic_year_id_p INT,
-   @return_value_argument INT OUTPUT
+-- FILE : ASSESSMENT_STA  --- FUNCTION: SFAADMIN.STA_LOOKUP_PCK$GET_WEEKLY_RATE_FCT$IMPL  
+CREATE OR ALTER FUNCTION sfa.fn_get_weekly_rate_sta
+   (@dependent_count_p INT, @academic_year_id_p INT)
+RETURNS INT
 AS 
-	BEGIN
-		DECLARE
-		@res_v_weekly_rate INT
-		DECLARE
-		 weekly_rate_cur CURSOR LOCAL FOR 
-		   SELECT 
-		      CASE @dependent_count_p
-		         WHEN 0 THEN st.dependent_0_amount
-		         WHEN 1 THEN st.dependent_1_amount
-		         WHEN 2 THEN st.dependent_2_amount
-		         WHEN 3 THEN st.dependent_3_amount
-		         ELSE st.dependent_4_amount
-		      END AS weekly_rate
-		   FROM sfa.sta_lookup st
-		   WHERE st.academic_year_id = @academic_year_id_p
-		OPEN weekly_rate_cur
-		FETCH weekly_rate_cur
-			INTO @res_v_weekly_rate
-		CLOSE weekly_rate_cur
-		DEALLOCATE weekly_rate_cur
-		SET @return_value_argument = @res_v_weekly_rate
-		RETURN @return_value_argument
-	END
+BEGIN
+   DECLARE @return_value_argument INT;
+
+   SELECT TOP 1 @return_value_argument = CASE @dependent_count_p
+                                       WHEN 0 THEN st.dependent_0_amount
+                                       WHEN 1 THEN st.dependent_1_amount
+                                       WHEN 2 THEN st.dependent_2_amount
+                                       WHEN 3 THEN st.dependent_3_amount
+                                       ELSE st.dependent_4_amount
+                                    END
+   FROM sfa.sta_lookup st
+   WHERE st.academic_year_id = @academic_year_id_p;
+
+   RETURN @return_value_argument;
+END;
 GO
 
 -- FILE : ASSESSMENT_SFA  --- PROCEDURE: SFAADMIN.DEPENDENT_PCK$GET_DEPENDENT_COUNT_FCT$IMPL
-CREATE OR ALTER PROCEDURE sfa.pr_get_dependent_count_sta
-   @application_id INT,
-   @return_value_argument INT OUTPUT
+CREATE OR ALTER FUNCTION sfa.fn_get_dependent_count_sta
+   (@application_id INT)
+RETURNS INT
 AS 
-	BEGIN
-		DECLARE
-		@res_v_dependent_count INT
-		DECLARE
-		 dependent_cur CURSOR LOCAL FOR 
-		   SELECT count_big(*) AS dependent_count
-		   FROM sfa.dependent  AS d
-		   INNER JOIN sfa.application AS h ON h.student_id = d.student_id
-		   INNER JOIN sfa.dependent_eligibility  AS de ON de.dependent_id = d.id
-		   WHERE 
-		      de.application_id = h.id AND 
-		      de.is_csl_eligible = 1 AND 
-		      h.id = @application_id
-		OPEN dependent_cur
-		FETCH dependent_cur
-			INTO @res_v_dependent_count
-		CLOSE dependent_cur
-		DEALLOCATE dependent_cur
-			SET @return_value_argument = @res_v_dependent_count
-		RETURN @return_value_argument
-	END
+BEGIN
+   DECLARE @return_value_argument INT;
+
+   SELECT TOP 1 @return_value_argument = COUNT(*)
+   FROM sfa.dependent AS d
+   INNER JOIN sfa.application AS h ON h.student_id = d.student_id
+   INNER JOIN sfa.dependent_eligibility AS de ON de.dependent_id = d.id
+   WHERE 
+      de.application_id = h.id AND 
+      de.is_csl_eligible = 1 AND 
+      h.id = @application_id;
+
+   RETURN @return_value_argument;
+END;
 GO
 
 -- FILE : ASSESSMENT_SFA  --- FUNCTION: GET_WEEKLY_AMOUNT
@@ -3513,10 +3518,92 @@ BEGIN
 	SELECT @academic_year_id = app.academic_year_id
 	FROM
 		sfa.application app
-	WHERE app.id = @application_id
-	EXEC @dependent_count = sfa.pr_get_dependent_count_sta @application_id,@return_value_argument OUT;
-	EXEC @wk_amt = sfa.pr_get_weekly_rate_sta @dependent_count,@academic_year_id,@return_value_argument_wk OUT;
+	WHERE app.id = @application_id;
+
+	SELECT @dependent_count = sfa.fn_get_dependent_count_sta(@application_id);
+	SELECT @wk_amt = sfa.fn_get_weekly_rate_sta(@dependent_count, @academic_year_id);
 	RETURN @wk_amt
+END
+GO
+
+-- FILE : ASSESSMENT_YEA --- FUNCTION: GET_NET
+CREATE OR ALTER FUNCTION sfa.fn_get_net_yea(@assessment_assessed_amount DECIMAL(10, 2), @assessment_previous_disbursement DECIMAL(10, 2))
+RETURNS DECIMAL(10, 2)
+AS
+BEGIN
+    DECLARE @net_amt DECIMAL(10, 2);
+    
+    SET @net_amt = @assessment_assessed_amount - @assessment_previous_disbursement;
+    
+    IF @net_amt BETWEEN -1 AND 1
+    BEGIN
+        SET @net_amt = 0;
+    END;
+    
+    RETURN @net_amt;
+END
+GO
+
+CREATE OR ALTER FUNCTION sfa.fn_get_new_info_yea(
+    @application_id INT,
+    @assessment_id INT,
+    @funding_request_id INT,
+    @student_id INT
+)
+RETURNS
+@assessment_record TABLE (
+    funding_request_id INT,
+    classes_end_date DATE,
+    classes_start_date DATE,
+    assessed_date DATE,
+    disbursements_required INT,
+    previous_disbursement NUMERIC, -- IS NOT IN ASSESSMENT, IS IN CSL_NARS_HISTORY
+    assessed_amount NUMERIC
+)
+AS
+BEGIN
+    /*
+        This procedure is the main point for calling the functions that return values
+        needed for the assessment
+    */
+
+    DECLARE @wk_amt DECIMAL(18, 2);
+    DECLARE @intwk INT;
+    DECLARE @disbursed_amt DECIMAL(18, 2);
+    DECLARE @assess_id_internal INT;
+    DECLARE @previous_disbursement NUMERIC;
+
+    /*
+        Calculate the previous disbursement amount
+    */
+    /* Note: we don't actually need to determine assess_id, because we will be calculating the amount
+            disbursed for ALL assessments on this funding request. This code remains in here in
+            case there is a need to calculate only for this assessment instead. The procedure,
+            Get_Disbursed_Amount has the test for assess_id commented out of the where clause.
+    */
+    -- IF (@assessment_id < @assess_id AND @assessment_id IS NOT NULL) OR @assess_id = 0
+    --     BEGIN
+    --         SET @assess_id_internal = @assessment_id;
+    --     END
+    -- ELSE
+    --     BEGIN
+    --         SET @assess_id_internal = @assess_id;
+    --     END
+
+    SELECT @disbursed_amt = sfa.fn_get_disbursed_amount_fct(@funding_request_id, @assessment_id);
+
+    IF @disbursed_amt > 0
+        BEGIN
+            SET @previous_disbursement = @disbursed_amt;
+        END
+        
+    ELSE
+        BEGIN
+            SET @previous_disbursement = 0;
+        END
+
+    -- EXEC sfa.calc_assess_info_yea @student_id;
+    RETURN;
 END
 GO
 
@@ -3534,4 +3621,142 @@ FROM sfa.application a
 		ON pa.person_id = s.person_id
 WHERE a.id = @application_id
 AND pa.address_type_id = @address_type;
+GO
+
+-- Get Disbursement Max Transaction
+CREATE OR ALTER FUNCTION sfa.fn_get_disbursement_max_transaction(@funding_request_id INT)
+RETURNS INT
+AS 
+BEGIN
+    DECLARE  @max INT = 0;
+
+    SELECT
+        @max = MAX(d.transaction_number)
+    FROM sfa.disbursement d 
+    WHERE d.funding_request_id = @funding_request_id
+
+    RETURN COALESCE(@max, 0);
+END;
+GO
+
+-- Get Batch Parameter Id
+CREATE OR ALTER FUNCTION sfa.fn_get_batch_parameter_id(@batch_parameter_name NVARCHAR)
+RETURNS INT
+AS 
+BEGIN
+    DECLARE  @result INT = 0;
+
+    SELECT
+        @result = bp.id
+    FROM sfa.batch_parameter bp
+    WHERE bp.[description] = @batch_parameter_name;
+
+    RETURN COALESCE(@result, 0);
+END;
+GO
+
+-- Get Correspondence Type
+CREATE OR ALTER FUNCTION sfa.fn_get_correspondence_type_id(@description NVARCHAR)
+RETURNS INT
+AS 
+BEGIN
+    DECLARE  @result INT = 0;
+
+    SELECT
+        @result = ct.id
+    FROM sfa.correspondence_type ct
+    WHERE ct.[description] = @description
+
+    RETURN COALESCE(@result, 0);
+END;
+GO
+
+-- Create correspondence
+CREATE OR ALTER PROCEDURE sfa.create_correspondence(@correspondence_type_id INT, @student_id INT, @request_type_id INT, @correspondence_id INT OUTPUT)
+AS 
+BEGIN
+    DECLARE @date_ref DATETIME2 = GETDATE();
+    
+    -- @TODO Can´t add officer validation, SFA schema does not contain the table.
+
+    -- Create correspondence record.
+    INSERT INTO sfa.correspondence (correspondence_date, officer_id, correspondence_type_id, student_id, request_type_id)
+    VALUES (@date_ref, NULL, @correspondence_type_id, @student_id, @request_type_id);    
+
+    SELECT @correspondence_id = SCOPE_IDENTITY();
+    
+    RETURN @correspondence_id;
+END;
+GO
+
+-- Get student address from student pck
+CREATE OR ALTER FUNCTION sfa.fn_get_student_address(@student_id INT, @application_id INT)
+RETURNS NVARCHAR
+AS 
+BEGIN
+    DECLARE @address NVARCHAR(500) = 'HOME';
+    DECLARE @start_date DATETIME2,
+            @end_date DATETIME2,
+            @mail_id INT,
+            @home_id INT;
+
+    SELECT
+        @start_date = a.classes_start_date,
+        @end_date = a.classes_end_date,
+        @mail_id = mail.id,
+        @home_id = home.id
+    FROM sfa.application a 
+        INNER JOIN sfa.student s
+            ON s.id = a.student_id
+        LEFT JOIN sfa.person_address mail
+            ON mail.person_id = s.person_id
+            AND mail.address_type_id = 2
+        LEFT JOIN sfa.person_address home
+            ON home.person_id = s.person_id
+            AND home.address_type_id = 4
+    WHERE a.id = @application_id
+    AND a.student_id = @student_id;
+
+    IF @start_date IS NOT NULL AND @end_date IS NOT NULL
+    BEGIN
+        SET @start_date = DATEADD(DAY, -14, @start_date);
+
+        IF GETDATE() BETWEEN @start_date AND @end_date
+        BEGIN
+            IF @mail_id IS NOT NULL
+            BEGIN
+                SET @address = 'SCHOOL';
+            END;
+        END;
+    END;
+    
+    RETURN COALESCE(@address, 'HOME');
+END;
+GO
+
+-- CSL Non or Overaward Ltr
+CREATE OR ALTER PROCEDURE [sfa].[sp_csl_non_or_overaward_letter](@letter_name NVARCHAR, @student_id INT, @funding_request_id INT, @request_type_id INT, @csl_reason_id INT, @application_id INT)
+AS
+BEGIN
+	DECLARE @correspondence_type_id INT;
+    DECLARE @current_correspondence INT;
+	DECLARE @correspondence_id INT;
+
+    SELECT @correspondence_type_id = sfa.fn_get_correspondence_type_id(@letter_name);
+
+    EXEC sfa.create_correspondence @correspondence_type_id = @correspondence_type_id, @student_id = @student_id, @request_type_id = @request_type_id, @current_correspondence = @correspondence_id;
+
+END;
+GO
+
+-- Create letter parameters
+CREATE OR ALTER PROCEDURE sfa.create_letter_params(@correspondence_id INT, @student_id INT, @application_id INT)
+AS 
+BEGIN
+    DECLARE @address_select NVARCHAR(500);
+
+    SELECT @address_select = sfa.fn_get_student_address(@student_id, @application_id);
+
+    
+END;
 GO
