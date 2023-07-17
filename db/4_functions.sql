@@ -2786,6 +2786,22 @@ BEGIN
 END;
 GO
 
+-- Get student exempt amount
+CREATE OR ALTER FUNCTION sfa.fn_get_student_exempt_amount(@academic_year_id INT)
+RETURNS FLOAT(8)
+AS 
+BEGIN
+	DECLARE  @amt FLOAT(8);
+
+    SELECT @amt = COALESCE(cl.student_exempt_amount, 0)
+    FROM sfa.csl_lookup cl
+    WHERE cl.academic_year_id = @academic_year_id;
+    
+    RETURN COALESCE(@amt, 0);
+
+END;
+GO
+
 -- Get Vehicle deduction amount
 CREATE OR ALTER FUNCTION sfa.fn_get_vehicle_deduction_amount(@academic_year_id INT)
 RETURNS FLOAT(8)
@@ -3681,7 +3697,7 @@ BEGIN
 
     -- Create correspondence record.
     INSERT INTO sfa.correspondence (correspondence_date, officer_id, correspondence_type_id, student_id, request_type_id)
-    VALUES (@date_ref, NULL, @correspondence_type_id, @student_id, @request_type_id);    
+    VALUES (@date_ref, 52, @correspondence_type_id, @student_id, @request_type_id);    
 
     SELECT @correspondence_id = SCOPE_IDENTITY();
     
@@ -3734,29 +3750,114 @@ BEGIN
 END;
 GO
 
--- CSL Non or Overaward Ltr
-CREATE OR ALTER PROCEDURE [sfa].[sp_csl_non_or_overaward_letter](@letter_name NVARCHAR, @student_id INT, @funding_request_id INT, @request_type_id INT, @csl_reason_id INT, @application_id INT)
+-- Get Address By Person
+CREATE OR ALTER FUNCTION sfa.fn_get_address_by_person(@person_id INT, @address_type_id INT)
+RETURNS TABLE
 AS
+RETURN
+SELECT
+    pa.id,
+    pa.person_id,
+    pa.address_type_id,
+    pa.address1,
+    pa.address2,
+    pa.city_id,
+    ci.[description] AS city,
+    pa.country_id,
+    co.[description] AS country,
+    pa.province_id,
+    pr.[description] AS province,
+    pa.postal_code,
+    pa.telephone,
+    pa.email,
+    pa.notes
+FROM sfa.person_address pa
+    LEFT JOIN sfa.city ci
+        ON ci.id = pa.city_id
+    LEFT JOIN sfa.country co
+        ON co.id = pa.country_id
+    LEFT JOIN sfa.province pr
+        ON pr.id = pa.province_id
+WHERE pa.person_id = @person_id
+AND pa.address_type_id = @address_type_id;          
+GO
+
+-- Get mail address
+CREATE OR ALTER FUNCTION sfa.fn_get_mail_address(@student_id INT)
+RETURNS TABLE
+AS
+RETURN
+SELECT
+    s.id,
+    s.person_id,
+    p.first_name,
+    p.last_name,    
+    se.[description] AS sex,
+    CASE 
+        WHEN p.sex_id = 1 THEN 'Mr.'
+        WHEN p.sex_id = 2 THEN 'Ms.'
+        ELSE '' END AS salut,
+    home.address1 AS home_address1,
+    home.address2 AS home_address2,
+    home.city_id AS home_city_id,
+    home.city AS home_city,
+    home.country_id AS home_country_id,
+    home.country AS home_country,
+    home.province_id AS home_province_id,
+    home.province AS home_province,
+    home.postal_code AS home_postal_code,
+    home.telephone AS home_telephone,
+    home.email AS home_email,
+    mail.address1 AS mail_address1,
+    mail.address2 AS mail_address2,
+    mail.city_id AS mail_city_id,
+    mail.city AS mail_city,
+    mail.country_id AS mail_country_id,
+    mail.country AS mail_country,
+    mail.province_id AS mail_province_id,
+    mail.province AS mail_province,
+    mail.postal_code AS mail_postal_code,
+    mail.telephone AS mail_telephone,
+    mail.email AS mail_email
+FROM sfa.student s
+    INNER JOIN sfa.person p
+        ON p.id = s.person_id
+    LEFT JOIN sfa.sex se
+        ON se.id = p.sex_id
+    CROSS APPLY sfa.fn_get_address_by_person(s.person_id, 1) AS home
+    CROSS APPLY sfa.fn_get_address_by_person(s.person_id, 2) AS mail
+WHERE s.id = @student_id;
+GO
+
+-- Get Batch parameter id
+CREATE OR ALTER FUNCTION sfa.fn_get_batch_parameter_id(@batch_parameter_name NVARCHAR)
+RETURNS INT
+AS 
 BEGIN
-	DECLARE @correspondence_type_id INT;
-    DECLARE @current_correspondence INT;
-	DECLARE @correspondence_id INT;
+	DECLARE  @result INT;
 
-    SELECT @correspondence_type_id = sfa.fn_get_correspondence_type_id(@letter_name);
-
-    EXEC sfa.create_correspondence @correspondence_type_id = @correspondence_type_id, @student_id = @student_id, @request_type_id = @request_type_id, @current_correspondence = @correspondence_id;
+    SELECT @result = bp.id
+    FROM sfa.batch_parameter bp
+    WHERE bp.[description] = @batch_parameter_name;
+    
+    RETURN COALESCE(@result, 0);
 
 END;
 GO
 
--- Create letter parameters
-CREATE OR ALTER PROCEDURE sfa.create_letter_params(@correspondence_id INT, @student_id INT, @application_id INT)
+-- Get Batch parameter id
+CREATE OR ALTER FUNCTION sfa.fn_get_csg_only_flag(@funding_request_id INT, @application_id INT)
+RETURNS BIT
 AS 
 BEGIN
-    DECLARE @address_select NVARCHAR(500);
+	DECLARE  @result BIT = 0;
 
-    SELECT @address_select = sfa.fn_get_student_address(@student_id, @application_id);
-
+    SELECT @result = fr.is_csg_only
+    FROM sfa.funding_request fr
+    WHERE fr.id = @funding_request_id
+    AND fr.application_id = @application_id;
     
+    RETURN @result;
+
 END;
 GO

@@ -133,6 +133,7 @@ const state = {
         parent_msol: null,
         parent_discretionary_income: null,
         parent_weekly_contrib: null,
+        calculated_award: null,
     },
     csl_lookup: {
         id: null,
@@ -183,6 +184,11 @@ const mutations = {
     getCslftAssessInfo(state, cslft) {
         state.cslft = cslft;
     },
+    loadModelsDisburse(state, disburseModel) {
+        state.cslft = disburseModel.data;
+        state.funding_request = disburseModel.funding_request;
+        state.cslft_disbursement = disburseModel.disbursements[0];
+    },
     loadFundingRequest(state, funding_request) {
         state.funding_request = funding_request;
     },
@@ -228,6 +234,16 @@ const actions = {
         const res = await axios.post(`${CSLFT}/${assessment.funding_request_id}/recalc`, body);
         if (res?.data?.success) {
             commit("getCslftAssessInfo", res.data.data);
+        }
+    },
+    async getCslftDisburse({ commit, getters }) {
+        const assessment = getters.cslft_get_assessment;
+        const body = {
+            assessment: assessment
+        };
+        const res = await axios.post(`${CSLFT}/${assessment.funding_request_id}/disburse`, body);
+        if (res?.data?.success) {
+            commit("loadModelsDisburse", res.data);
         }
     },
     async saveCslftAssessment({ getters, dispatch }, vm) {
