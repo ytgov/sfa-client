@@ -2028,7 +2028,7 @@ applicationRouter.post("/:application_id/:funding_request_id/assessments",
                                 delete dataAssessment.read_only_data;
                                 delete dataAssessment.id;
                                 delete dataAssessment.assessment_id;
-
+                                delete dataAssessment.program_division;
                                 const resUpdate = await db("sfa.assessment")
                                 .where({ id: resSP[0].assessment_id_inserted })
                                 .update({ ...dataAssessment });
@@ -2060,8 +2060,6 @@ applicationRouter.post("/:application_id/:funding_request_id/assessments",
                 } else if (fundingRequest?.request_type_id === 3) { // Create Assessment YEA
                     try {
                         db.transaction(async (trx) => {
-
-                            console.log("🚀 ~ file: application-router.ts:2059 ~ db.transaction ~ insert_response:", dataAssessment)
                             if (!dataAssessment.id) {
                                 const insert_response = await db("sfa.assessment")
                                     .returning('*')
@@ -2240,7 +2238,6 @@ applicationRouter.get("/:application_id/:funding_request_id/assessments/:assessm
             const application = await db("sfa.application")
                 .where({ id: application_id })
                 .first();
-
             const  assessment = await db("sfa.assessment")
                 .where({ id: assessment_id })
                 .first();
