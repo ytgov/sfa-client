@@ -32,6 +32,7 @@ export class AssessmentSTA extends AssessmentBaseRepository {
     async getNewInfo(
         application_id: number,
         funding_request_id: number,
+        assessment_id: number,
         disbursementList: DisbursementDTO[],
     ): Promise<AssessmentDTO> {
 
@@ -70,7 +71,7 @@ export class AssessmentSTA extends AssessmentBaseRepository {
         } else {
             initValues.previous_disbursement = await this.getScalarValue<number>("fn_get_disbursed_amount_fct", [
                 funding_request_id,
-                0 // assessment_id because is a preview
+                assessment_id // assessment_id
             ]);
         }
 
