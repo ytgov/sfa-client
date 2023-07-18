@@ -348,7 +348,7 @@ BEGIN
         WHERE disbursement.funding_request_id IN
             (SELECT id FROM sfa.funding_request
                                 WHERE funding_request.application_id IN
-                                        (SELECT application_id FROM sfa.application as app
+                                        (SELECT id FROM sfa.application as app
                                                 WHERE app.student_id = @student_id_p)
                         AND funding_request.request_type_id = @v_yea_code);
         RETURN COALESCE(@v_total_yea,0);
@@ -3439,6 +3439,98 @@ BEGIN
 END
 GO
 
+CREATE OR ALTER FUNCTION sfa.fn_get_prev_weeks_curr_year_sta (@program_p NVARCHAR(255), @application_id_p INT)
+RETURNS INT
+AS
+BEGIN
+    DECLARE @v_post_leg_weeks DECIMAL(10, 2);
+
+    IF @program_p = 'Upgrade'
+    BEGIN
+        SELECT @v_post_leg_weeks = sfa.fn_get_curr_yr_sta_up_weeks(@application_id_p);
+    END
+    ELSE
+        BEGIN
+            SELECT @v_post_leg_weeks = sfa.fn_get_curr_yr_weeks_sta(@application_id_p);
+        END
+    RETURN @v_post_leg_weeks;
+END
+GO
+
+CREATE OR ALTER FUNCTION sfa.fn_get_curr_yr_sta_up_weeks(@application_id INT)
+RETURNS INT
+AS
+BEGIN
+    DECLARE 
+		@application_student_id INT,
+		@application_academic_yr INT,
+		@v_num_weeks INT;
+
+    SELECT  @application_student_id = a.student_id,
+            @application_academic_yr = a.academic_year_id 
+    FROM sfa.application a 
+    WHERE a.id = @application_id;
+
+
+    SELECT @v_num_weeks = ISNULL(sum(a.weeks_allowed), 0)
+    FROM sfa.application app
+    INNER JOIN sfa.funding_request fr
+        ON app.id = fr.application_id
+    INNER JOIN (SELECT funding_request_id
+                    , assessment_id
+                    , sum(disbursed_amount) disbursed_amount
+                FROM sfa.disbursement
+            GROUP BY funding_request_id, assessment_id) d
+        ON fr.id = d.funding_request_id
+    INNER JOIN sfa.assessment a
+        ON d.assessment_id = a.id
+    WHERE app.student_id = @application_student_id
+    AND app.id <  @application_id
+    AND app.academic_year_id =  @application_academic_yr
+    AND app.program_id = (SELECT id FROM sfa.program WHERE description = 'Upgrading-Academic')  -- upgrading program
+    AND d.disbursed_amount > 0 -- positive disbursement
+    AND fr.request_type_id = 1 -- request type STA
+    group by app.student_id;
+
+     RETURN @v_num_weeks;
+END
+GO
+
+CREATE OR ALTER FUNCTION sfa.fn_get_curr_yr_weeks_sta(@application_id INT)
+RETURNS INT
+AS 
+BEGIN
+	DECLARE 
+		@application_student_id INT,
+		@application_academic_yr INT,
+		@v_num_weeks INT;
+	
+	SELECT  @application_student_id = a.student_id,
+            @application_academic_yr = a.academic_year_id 
+    FROM sfa.application a 
+    WHERE a.id = @application_id;
+	
+	SELECT @v_num_weeks = ISNULL(sum(a.weeks_allowed),0)
+    FROM sfa.application app 
+	INNER JOIN sfa.funding_request fur ON fur.application_id = app.id
+    INNER JOIN (SELECT 
+					funding_request_id,
+			     	assessment_id,
+			        ISNULL(sum(disbursed_amount),0) AS dis_am
+				FROM sfa.disbursement
+				GROUP BY funding_request_id, assessment_id) AS d ON fur.id = d.funding_request_id
+	INNER JOIN sfa.assessment a ON d.assessment_id = a.id
+    WHERE app.student_id = @application_student_id
+    AND app.id < @application_id
+    AND app.academic_year_id = @application_academic_yr
+    AND app.program_id <> (SELECT p.id FROM sfa.program p WHERE p.description = 'Upgrading-Academic')
+    AND d.dis_am > 0 -- positive disbursement
+    group by app.student_id;
+
+    RETURN @v_num_weeks;
+END;
+GO
+
 -- FILE : ASSESSMENT_SFA  --- FUNCTION: GET_WEEKS_ALLOWED
 CREATE OR ALTER FUNCTION sfa.fn_get_weeks_allowed_sta
 (
@@ -3449,6 +3541,15 @@ CREATE OR ALTER FUNCTION sfa.fn_get_weeks_allowed_sta
 RETURNS FLOAT
 AS
 BEGIN
+    /*
+        This function calculates the weeks allowed based on the difference
+        between the effective rate date and classes end date.  Weeks allowed 
+        cannot be greater than 40
+        
+        Old calculation did not always work correctly of the starting date and ending date were not on the same day of the week.
+        
+        Changed calculation to calculate weekdays based on day not being Sat or Sun
+    */
     DECLARE @v_weeks FLOAT;
 
     IF ISNULL(@previous_weeks, 0) + ISNULL(@assessed_weeks, 0) > 170
@@ -3463,7 +3564,7 @@ BEGIN
     BEGIN
         SET @v_weeks = ISNULL(@assessed_weeks, 0);
     END
-
+    -- Ensure allowed weeks do not go over yearly max
     IF @v_weeks > 40
     BEGIN
         SET @v_weeks = 40;

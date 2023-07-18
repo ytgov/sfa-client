@@ -2489,7 +2489,6 @@ applicationRouter.post("/:application_id/assessment/:assessment_id/disburse-yea"
             const funding_request = await db("sfa.funding_request")
                 .where({ id: data.funding_request_id })
                 .first();
-            // console.log("🚀 ~ file: application-router.ts:2486 ~ funding_request:", funding_request)
             if (application) {
                 const response = await db("sfa.disbursement")
                     .insert({
