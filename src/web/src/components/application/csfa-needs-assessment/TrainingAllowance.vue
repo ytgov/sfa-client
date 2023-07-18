@@ -1,6 +1,5 @@
 <template>
   <div class="home training-allowance-assessment">
-    {{disbursements}}
     <div class="col-md-12">
       <v-card class="default mb-5 bg-color-blue">
         <div class="col-lg-12 nopadding d-flex flex-wrap low-margin">
@@ -23,6 +22,9 @@
                 color="orange" 
                 class="my-0"
                 block
+                @click="e => {
+                  $store.dispatch('staGetAssessment', { funding_request_id: this.fundingRequestId });
+                }"
               >
               CANCEL
               </v-btn>
@@ -356,6 +358,9 @@
                   color="blue" 
                   class="my-0"
                   block
+                  @click="e => {
+                    $store.dispatch('recalcSTA');
+                  }"
                 >
                 RE-CALC
                 </v-btn>
@@ -444,7 +449,16 @@
         <div v-for="item, index in disbursements" :key="index">
           <div class="col-xs-12 col-sm-12 col-lg-12 d-flex noppading-bottom">
             <div class="col-xs-12 col-sm-12 col-lg-12 nopadding d-flex align-end justify-end">
-              <v-btn 
+              <v-btn v-if="item?.id"
+                  color="error ml-5" 
+                  x-small 
+                  fab 
+                  class="my-1"
+                  @click="removeDisbursement(item.id, index)"
+                  >
+                <v-icon>mdi-delete</v-icon>
+              </v-btn>
+              <v-btn v-else
                   color="warning ml-5" 
                   x-small 
                   fab 
@@ -533,6 +547,7 @@
         </div>
       </v-card>
     </div>
+    <confirm-dialog ref="confirm"></confirm-dialog>
   </div>
 </template>
 <script>
@@ -557,10 +572,21 @@ export default {
       saveSTAAssessment: "saveSTAAssessment",
       addDisburse: "addItemDisbursementListSTA",
       cancelDisburse: "cancelItemDisbursementListSTA",
+      removeSTADisbursement: "removeSTADisbursement"
     }),
     save() {
       this.saveSTAAssessment(this);
-    }
+    },
+    removeDisbursement(id, index) {
+      this.$refs.confirm.show(
+        "Are you sure?",
+        "Click 'Confirm' below to permanently remove this disbursement.",
+        () => {
+          this.removeSTADisbursement({ index, disbursement_id: id, vm: this });
+        },
+        () => {}
+      );
+    },
   },
   async created() {
     this.validate = validator;

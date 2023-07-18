@@ -46,7 +46,7 @@ const actions = {
         } catch (error) {
             console.log("Error to get assessments", error);
         } finally {
-            
+
         }
     },
     async staGetDisbursements(state, vals) {
@@ -64,7 +64,7 @@ const actions = {
 
             if (success) {
                 const data = res?.data?.data || [];
-                state.commit("SET_DISBURSEMENT_LIST_STA", [ ...data ]);
+                state.commit("SET_DISBURSEMENT_LIST_STA", [...data]);
             } else {
                 console.log("Error to get disbursements");
             }
@@ -74,22 +74,28 @@ const actions = {
         } finally {
         }
     },
-    async recalcSTA(state, vals) {
+    async recalcSTA({ commit, getters }, vals) {
         try {
             const assessment = getters.assessmentSTA;
+            const disbursementList = getters.disbursementListSTA;
 
-            const res = await axios.get(
-                ASSESSMENT + `/sta/recalc`,
+            if (!assessment?.funding_request_id) {
+                return;
+            }
+
+            const res = await axios.post(
+                `${ASSESSMENT}/sta/${assessment.funding_request_id}/recalc`,
                 {
-                    assessment: assessment
+                    disbursementList,
+                    assessment_id: assessment?.id
                 }
             );
-            console.log("GET ASSSESS", res);
+            console.log("GET recalc", res);
             const success = res?.data?.success;
 
             if (success) {
                 const data = res?.data?.data || {};
-                state.commit("SET_ASSESSMENT_STA", data);
+                commit("SET_ASSESSMENT_STA", { ...assessment, ...data });
             } else {
                 console.log("Error to get assessments");
             }
@@ -127,7 +133,7 @@ const actions = {
     async saveSTAAssessment({ getters, dispatch }, vm) {
         const assessment = getters.assessmentSTA;
         const disbursementList = getters.disbursementListSTA;
-        
+
         const body = {
             assessment,
             disbursementList,
@@ -161,6 +167,31 @@ const actions = {
             }
         } else {
             vm.$emit("showError", message.text);
+        }
+    },
+    async removeSTADisbursement({ getters }, vals) {
+        try {
+            const assessment = getters.assessmentSTA;
+
+            const vm = vals?.vm || {};
+
+            if (!(vals?.disbursement_id)) {
+                return;
+            }
+
+            const res = await axios.delete(
+                ASSESSMENT + "/sta/disbursements/" + vals.disbursement_id,
+            );
+
+            if (res?.data?.success) {
+                vm?.$emit("showSuccess", "Deleted!");
+                this.dispatch('cancelItemDisbursementListSTA', { index: vals.index });
+            } else {
+                vm.$emit("showError", res.data?.message || "Fail to delete");
+            }
+
+        } catch (error) {
+            console.log("Error to delete disbursement", error);
         }
     },
 
