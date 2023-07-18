@@ -6,9 +6,9 @@ import { ReturnValidationErrors, ReturnValidationErrorsCustomMessage } from "../
 import { DB_CONFIG } from "../../config";
 import { first, orderBy } from "lodash";
 import axios from "axios";
-let { RequireActive, RequireAdmin } = require("../auth")
+let { RequireActive, RequireAdmin } = require("../auth");
 
-const db = knex(DB_CONFIG)
+const db = knex(DB_CONFIG);
 
 export const studentRouter = express.Router();
 
@@ -328,35 +328,25 @@ studentRouter.get("/:id",
             const student: any = await db("sfa.student")
             .where({ id })
             .select(
-                "sfa.student.*",
-                db.raw("sfa.fn_get_pre_leg_sta_up_weeks(student.id) AS pre_leg_sta_up_weeks"),
-                db.raw("sfa.fn_get_pre_leg_outside_travel(student.id) AS pre_leg_outside_travel"),
-                db.raw("sfa.fn_get_yea_total(student.yukon_id) - sfa.fn_get_system_yea_used(student.id) AS yea_balance"),
-                db.raw(`
-                        sfa.fn_get_prev_pre_leg_weeks(
-                            student.id,
-                            (	
-                                SELECT TOP 1 
-                                id  FROM sfa.application WHERE student_id = student.id 
-                                ORDER BY academic_year_id DESC
-                            )
-                        ) AS prev_pre_leg_weeks
-                    `),
-                db.raw(`
-                    sfa.fn_get_funded_years_used_preleg_chg(
-                        student.id, 
-                        (	
-                            SELECT TOP 1 
-                            id  FROM sfa.application WHERE student_id = student.id 
-                            ORDER BY academic_year_id DESC
-                        )
-                    ) AS funded_years_used_preleg_chg
-                `),
-                db.raw("sfa.fn_get_post_leg_sta_up_weeks(student.id) AS post_leg_sta_up_weeks"),
-                db.raw("sfa.fn_get_post_leg_weeks(student.id) AS post_leg_weeks"),
-                db.raw("sfa.fn_get_pre_leg_weeks(student.id) AS pre_leg_weeks"),
-                db.raw("sfa.fn_get_post_leg_outside_travel(student.id) AS post_leg_outside_travel"),
+              "sfa.student.*",
+              db.raw("sfa.fn_get_pre_leg_sta_up_weeks(student.id) AS pre_leg_sta_up_weeks"),
+              db.raw("sfa.fn_get_pre_leg_outside_travel(student.id) AS pre_leg_outside_travel"),
+              db.raw("sfa.fn_get_yea_total(student.yukon_id) - sfa.fn_get_system_yea_used(student.id) AS yea_balance"),
+              db.raw("sfa.fn_get_prev_pre_leg_weeks(student.id, a.application_id) AS prev_pre_leg_weeks"),
+              db.raw("sfa.fn_get_funded_years_used_preleg_chg(student.id, a.application_id) AS funded_years_used_preleg_chg"),
+              db.raw("sfa.fn_get_post_leg_sta_up_weeks(student.id) AS post_leg_sta_up_weeks"),
+              db.raw("sfa.fn_get_post_leg_weeks(student.id) AS post_leg_weeks"),
+              db.raw("sfa.fn_get_pre_leg_weeks(student.id) AS pre_leg_weeks"),
+              db.raw("sfa.fn_get_post_leg_outside_travel(student.id) AS post_leg_outside_travel"),
             )
+            .leftJoin(function () {
+              this.select("id as application_id", "academic_year_id", "student_id")
+                .from("sfa.application")
+                .where("student_id", id)
+                .orderBy("academic_year_id", "desc")
+                .limit(1)
+                .as("a");
+            }, "a.student_id", "sfa.student.id")
             .first();
 
             if (student) {
@@ -509,6 +499,7 @@ studentRouter.get("/:id",
                         yea_list: yeaList,
                         applications: applicationInfo,
                         id: student.id,
+                        person_id: student.person_id,
                         vendor_updates: vendorUpdates,
                         yea_balance: student.yea_balance,
                         prev_pre_leg_weeks: student.prev_pre_leg_weeks,

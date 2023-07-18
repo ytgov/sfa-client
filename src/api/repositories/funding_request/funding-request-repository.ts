@@ -10,6 +10,16 @@ export class FundingRequestRepository extends BaseRepository {
         super(maindb);
     }
 
+    async getCsgOnlyFlag(funding_request_id?: number, application_id?: number): Promise<boolean> {
+        let result = false;
+
+        if (funding_request_id && application_id) {
+            result = await this.getScalarValue<boolean>("fn_get_csg_only_flag", [funding_request_id, application_id])
+        }
+
+        return result;
+    }
+
     async getFundingRequestById(id?: number): Promise<Partial<FundingRequestDTO>> {
 
         if (id) {

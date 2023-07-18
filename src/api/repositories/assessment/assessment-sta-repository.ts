@@ -92,10 +92,16 @@ export class AssessmentSTA extends AssessmentBaseRepository {
             `'${moment(this.application.classes_start_date).format("YYYY-MM-DD")}'`,
             `'${moment(this.application.classes_end_date).format("YYYY-MM-DD")}'`
         ]);
+
+        let prev_weeks_curr_yr = await this.getScalarValue<number>("fn_get_prev_weeks_curr_year_sta", [
+            `'Normal'`,
+            application_id
+        ]);
+        
         initValues.weeks_allowed = await this.getScalarValue<number>("fn_get_weeks_allowed_sta", [
             initValues.previous_weeks || 0,
             initValues.assessed_weeks || 0,
-            moment().year() // prev_weeks_curr_yr
+            prev_weeks_curr_yr || 0 // prev_weeks_curr_yr nvl(GET_PREV_WEEKS_CURR_YR('Normal'),0)
         ]);
         initValues.previous_upgrade_weeks = await this.getScalarValue<number>("fn_get_previous_weeks_sfa", [
             "'Upgrade'",
@@ -194,10 +200,17 @@ export class AssessmentSTA extends AssessmentBaseRepository {
             `'${moment(refreshData.classes_start_date).format("YYYY-MM-DD")}'`,
             `'${moment(refreshData.classes_end_date).format("YYYY-MM-DD")}'`
         ]);
+
+        let prev_weeks_curr_yr = await this.getScalarValue<number>("fn_get_prev_weeks_curr_year_sta", [
+            `'Normal'`,
+            application_id
+        ]);
+
+
         refreshData.weeks_allowed = await this.getScalarValue<number>("fn_get_weeks_allowed_sta", [
             refreshData.previous_weeks || 0,
             refreshData.assessed_weeks || 0,
-            moment().year() // prev_weeks_curr_yr
+            prev_weeks_curr_yr || 0 // prev_weeks_curr_yr
         ]);
         refreshData.previous_upgrade_weeks = await this.getScalarValue<number>("fn_get_previous_weeks_sfa", [
             "'Upgrade'",

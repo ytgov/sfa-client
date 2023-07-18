@@ -45,4 +45,20 @@ export class DisbursementRepository extends BaseRepository {
 
         return result;
     }
+
+    async getMaxTransaction(funding_request_id?: number): Promise<number> {
+        let result = 0;
+
+        if (funding_request_id) {
+            result = await this.getScalarValue<number>("fn_get_disbursement_max_transaction", [funding_request_id]);
+        }
+
+        return result;
+    }
+
+    async getNextTransactionSequenceValue(): Promise<number> {
+        const query = await this.mainDb.raw("SELECT NEXT VALUE FOR sfa.CSL_TRANSACTION_SEQ as nextVal;");
+        const result: Partial<{ nextVal?: number }> = this.singleResult(query);
+        return result.nextVal ?? 0;
+    }
 }

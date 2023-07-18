@@ -10,6 +10,9 @@ lerna-debug.log*
 # IDE settings
 .idea
 
+# Local docker setup
+docker-compose.local*
+
 # Development database
 db/backups
 db/data
