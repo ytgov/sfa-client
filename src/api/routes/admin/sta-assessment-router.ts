@@ -40,9 +40,46 @@ assessmentSTARouter.get("/assess-info/:id",
                     results = await assessmentSTARepo.getNewInfo(
                         parseInt(verifyFundingRequest.application_id),
                         parseInt(verifyFundingRequest.id),
+                        0,
                         []
                     );
                 }
+            }
+
+            if (Object.keys(results).length > 0) {
+                return res.status(200).json({ success: true, data: results, });
+            } else {
+                return res.status(404).send();
+            }
+
+        } catch (error: any) {
+            console.log(error);
+            return res.status(404).send();
+        }
+    }
+);
+assessmentSTARouter.post("/:funding_request_id/recalc",
+    [param("funding_request_id").isInt().notEmpty()], ReturnValidationErrors,
+    async (req: Request, res: Response) => {
+        const assessmentSTARepo = new AssessmentSTA(db);
+        const { funding_request_id = undefined } = req.params;
+        const { disbursementList = undefined, assessment_id = 0 } = req.body;
+
+        let results: Partial<AssessmentDTO> = {};
+
+        try {
+            const verifyFundingRequest = await db("sfa.funding_request")
+                .where({ id: funding_request_id })
+                .first();
+
+            if (verifyFundingRequest && verifyFundingRequest?.request_type_id === 1) {
+
+                results = await assessmentSTARepo.getNewInfo(
+                    parseInt(verifyFundingRequest.application_id),
+                    parseInt(verifyFundingRequest.id),
+                    parseInt(assessment_id),
+                    disbursementList ?? []
+                );
             }
 
             if (Object.keys(results).length > 0) {
@@ -125,15 +162,15 @@ assessmentSTARouter.get("/disbursements/:assessment_id",
         const { assessment_id = undefined } = req.params;
 
         let results: DisbursementDTO[] | undefined = undefined;
-        
+
         try {
             const verifyAssessment = await db(mainTable)
                 .where({ id: assessment_id })
                 .first();
-                console.log("verifyAssessment", verifyAssessment);
+
             if (verifyAssessment) {
                 results = await db("sfa.disbursement")
-                .where({ assessment_id });
+                    .where({ assessment_id });
             }
 
             if (results) {
@@ -145,6 +182,31 @@ assessmentSTARouter.get("/disbursements/:assessment_id",
         } catch (error: any) {
             console.log(error);
             return res.status(404).send();
+        }
+    }
+);
+assessmentSTARouter.delete("/disbursements/:id", [ param("id").isInt().notEmpty(), ], ReturnValidationErrors,
+    async (req: Request, res: Response) => {
+        const { id } = req.params;
+        
+        try {
+            const verify = await db("sfa.disbursement")
+                .where({ id });
+
+            if (!verify.length) return res.json({ success: false, message: `Disbursement not founded`, });
+
+            const resDelete = await db("sfa.disbursement")
+                .where({ id })
+                .del();
+
+            return resDelete ?
+                res.json({ success: true, message: `Deleted!`, })
+                :
+                res.json({ success: false, message: `Some failed`, });
+
+        } catch (err) {
+            console.log(err);
+            return res.status(400).send(err);
         }
     }
 );

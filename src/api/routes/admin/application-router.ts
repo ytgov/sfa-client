@@ -2310,7 +2310,7 @@ applicationRouter.get("/:application_id/:funding_request_id/preview-assessment",
                 const readOnlyData = await db.raw(
                     `SELECT 
                     COALESCE(sfa.fn_get_previous_weeks_yg(${application.student_id},  ${application_id}), 0) AS previous_weeks,
-                    COALESCE(sfa.fn_get_allowed_weeks ('${moment(application.classes_start_date).format("YYYY-MM-DD")}', '${moment(application.classes_end_date).format("YYYY-MM-DD")}'), 0) AS assessed_weeks,
+                    COALESCE(sfa.fn_get_allowed_weeks ('${moment(application.classes_start_date?.toISOString().slice(0, 10)).format("YYYY-MM-DD")}', '${moment(application.classes_end_date?.toISOString().slice(0, 10)).format("YYYY-MM-DD")}'), 0) AS assessed_weeks,
                     COALESCE(sfa.fn_get_disbursed_amount_fct(${funding_request_id}, -1), 0) AS previous_disbursement,
                     ${calculateValues?.assessed_amount ?? 0} - ${calculateValues?.previous_disbursement ?? 0} AS net_amount,
                     COALESCE(sfa.fn_get_total_funded_years ( ${application.student_id}, ${application_id}), 0) AS years_funded;
