@@ -62,13 +62,10 @@ export const assessmentType = async (requestTypeid, applicationId, fundingReques
     
     const message = await deadlineCheck(applicationId, requestTypeid);
 
-        if ( message === "OK") {
-            //emiter?.$emit("showSuccess", "OK");
-            return assessmentComponent.component;
-        } else {
+        if ( message !== "OK") {
             emiter?.$emit("showError", message || "Error to  check");
-            //return null;
         }
+        return assessmentComponent.component;
 
     }
     
