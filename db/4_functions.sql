@@ -767,22 +767,15 @@ END
 GO
 
 -- previus_name -- transportation_pck.get_travel_allowance_fct
-
 CREATE OR ALTER FUNCTION sfa.fn_get_travel_allowance(@home_city_id_p INT, @institution_city_id_p INT)
 RETURNS NUMERIC AS
 BEGIN
     DECLARE @res_v NUMERIC = 0;
-    
-    DECLARE transportation_cur CURSOR FOR
-    SELECT COALESCE(t.travel_allowance_amount, 0) AS travel_allowance
+
+    SELECT TOP 1 @res_v = ISNULL(t.travel_allowance_amount, 0)
     FROM sfa.transportation t
     WHERE t.home_city_id = @home_city_id_p
     AND t.institution_city_id = @institution_city_id_p;
-
-    OPEN  transportation_cur;
-    FETCH NEXT FROM transportation_cur INTO @res_v  
-    CLOSE  transportation_cur;
-    DEALLOCATE transportation_cur;
 
     IF @res_v > 0
         BEGIN

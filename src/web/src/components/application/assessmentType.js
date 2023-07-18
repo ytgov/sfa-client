@@ -67,7 +67,7 @@ export const assessmentType = async (requestTypeid, applicationId, fundingReques
             return assessmentComponent.component;
         } else {
             emiter?.$emit("showError", message || "Error to  check");
-            return null;
+            //return null;
         }
 
     }
