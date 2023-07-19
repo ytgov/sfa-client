@@ -29,11 +29,11 @@ export class AssessmentYukonGrant extends AssessmentBaseRepository {
 
         refrehData.classes_end_date = assessment.classes_end_date;
         refrehData.classes_start_date = assessment.classes_start_date;
-        refrehData.allowed_months = moment(refrehData.classes_end_date).diff(moment(refrehData.classes_start_date), "months");
+        refrehData.allowed_months = moment(refrehData.classes_end_date?.toString().slice(0, 10)).diff(moment(refrehData.classes_start_date?.toString().slice(0, 10)), "months");
         refrehData.previous_weeks = await this.getScalarValue<number>("fn_get_previous_weeks_yg", [student_id, application_id]);
         refrehData.assessed_weeks = await this.getScalarValue<number>("fn_get_allowed_weeks", [
-            `'${moment(refrehData.classes_start_date).format("YYYY-MM-DD")}'`,
-            `'${moment(refrehData.classes_end_date).format("YYYY-MM-DD")}'`
+            `'${moment(refrehData.classes_start_date?.toString().slice(0, 10)).format("YYYY-MM-DD")}'`,
+            `'${moment(refrehData.classes_end_date?.toString().slice(0, 10)).format("YYYY-MM-DD")}'`
 
         ]);
 
@@ -90,7 +90,7 @@ export class AssessmentYukonGrant extends AssessmentBaseRepository {
             String(refrehData.airfare_amount),
             String(refrehData.weekly_amount),
             String(refrehData.weeks_allowed),
-            String(refrehData.id || 0),
+            String(refrehData.assessment_adj_amount || 0),
         ]);
 
         refrehData.pre_leg_amount = await this.getScalarValue<number>("fn_get_old_total", [
@@ -123,6 +123,7 @@ export class AssessmentYukonGrant extends AssessmentBaseRepository {
         delete assessmentToInsert.read_only_data;
         delete assessmentToInsert.id;
         delete assessmentToInsert.assessment_id;
+        delete assessmentToInsert.program_division;
 
         const insertedAssessment: any = await this.mainDb("sfa.assessment")
             .insert({ ...assessmentToInsert })
@@ -165,14 +166,15 @@ export class AssessmentYukonGrant extends AssessmentBaseRepository {
         delete assessmentToUpdate.assessment_id;
         delete assessmentToUpdate.id;
         delete assessmentToUpdate.funding_request_id;
+        delete assessmentToUpdate.program_division;
 
         const updatedAssessment: any = await this.mainDb("sfa.assessment")
             .where({ id: assessment_id })
             .update({ ...assessmentToUpdate })
-
         if (disbursementList.length) {
             // Insert the disbursement list
             for (const item of disbursementList) {
+
                 if (item?.id && (item?.assessment_id === assessment_id)
                     && (item?.funding_request_id === funding_request_id)) {
                     const resUpdate = await this.mainDb("sfa.disbursement")

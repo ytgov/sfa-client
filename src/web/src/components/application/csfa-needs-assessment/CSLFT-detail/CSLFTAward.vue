@@ -214,6 +214,7 @@
                         color="blue" 
                         class="my-0"
                         block
+                        @click="executeDisburse"
                       >
                       DISBURSE
                     </v-btn>
@@ -344,7 +345,7 @@
               background-color="white"
               hide-details
               @keypress="validate.isNumber($event)"
-              v-model="reference_number"
+              v-model="cslft_disbursement.transaction_number"
             ></v-text-field>
           </div>
           <div class="col-xs-2 col-sm-2 col-lg-2 nopadding">
@@ -354,7 +355,7 @@
               background-color="white"
               hide-details
               @keypress="validate.isNumber($event)"
-              v-model="disbursed_amt"
+              v-model="cslft_disbursement.disbursed_amount"
             ></v-text-field>
           </div>
           <div class="col-xs-2 col-sm-2 col-lg-2 nopadding">
@@ -364,31 +365,77 @@
               dense
               background-color="white"
               hide-details
-              v-model="disbursement_type"
+              v-model="cslft_disbursement.disbursement_type_id"
               :items="disbursementTypes"
               item-text="description"
               item-value="id"
             ></v-select>
           </div>
           <div class="col-xs-1 col-sm-1 col-lg-1 nopadding">
-            <v-text-field
-              outlined
-              dense
-              background-color="white"
-              hide-details
-              @keypress="validate.isNumber($event)"
-              v-model="due_date"
-            ></v-text-field>
+            <v-menu
+              :disabled="showAdd"
+              v-model="due_date_menu"
+              :close-on-content-click="false"
+              transition="scale-transition"
+              left
+              nudge-top="26"
+              offset-y
+              min-width="auto"
+            >
+              <template v-slot:activator="{ on, attrs }">
+                <v-text-field
+                  :disabled="showAdd"
+                  v-model="due_date"
+                  label="Due Date"
+                  append-icon="mdi-calendar"
+                  hide-details
+                  readonly
+                  outlined
+                  dense
+                  background-color="white"
+                  v-bind="attrs"
+                  v-on="on"
+                ></v-text-field>
+              </template>
+              <v-date-picker
+                :disabled="showAdd"
+                v-model="cslft_disbursement.due_date"
+                @input="due_date_menu = false"
+              ></v-date-picker>
+            </v-menu>
           </div>
           <div class="col-xs-1 col-sm-1 col-lg-1 nopadding">
-            <v-text-field
-              outlined
-              dense
-              background-color="white"
-              hide-details
-              @keypress="validate.isNumber($event)"
-              v-model="issue_date"
-            ></v-text-field>
+            <v-menu
+              :disabled="showAdd"
+              v-model="issue_date_menu"
+              :close-on-content-click="false"
+              transition="scale-transition"
+              left
+              nudge-top="26"
+              offset-y
+              min-width="auto"
+            >
+              <template v-slot:activator="{ on, attrs }">
+                <v-text-field
+                  :disabled="showAdd"
+                  v-model="issue_date"
+                  label="Issue Date"
+                  append-icon="mdi-calendar"
+                  hide-details
+                  readonly
+                  outlined
+                  dense
+                  background-color="white"
+                  v-bind="attrs"
+                  v-on="on"
+                ></v-text-field>
+              </template>
+              <v-date-picker
+                :disabled="showAdd"
+                v-model="cslft_disbursement.issue_date"
+                @input="issue_date_menu = false"
+              ></v-date-picker>
+            </v-menu>
           </div>
           <div class="col-xs-4 col-sm-4 col-lg-4 nopadding">
             <v-select
@@ -397,7 +444,7 @@
               dense
               background-color="white"
               hide-details
-              v-model="change_reason"
+              v-model="cslft_disbursement.change_reason_id"
               :items="changeReasons"
               item-text="description"
               item-value="id"
@@ -410,7 +457,7 @@
               background-color="white"
               hide-details
               @keypress="validate.isNumber($event)"
-              v-model="cslft.family_size"
+              v-model="cslft_disbursement.financial_batch_id"
             ></v-text-field>
           </div>
         </div>
@@ -434,7 +481,8 @@ export default {
   },
   computed: {
     ...mapState({
-      cslft: state => state.cslft.cslft
+      cslft: state => state.cslft.cslft,
+      cslft_disbursement: state => state.cslft.cslft_disbursement
     }),
     ...mapGetters([
         "cslft_study_cost_total",
@@ -457,6 +505,9 @@ export default {
     executeRecalc() {
       store.dispatch("getCslftRecalc");
     },
+    executeDisburse() {
+      store.dispatch("getCslftDisburse");
+    }
   },
   async created() {
     this.validate = validator;
