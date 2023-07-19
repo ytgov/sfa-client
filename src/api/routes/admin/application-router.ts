@@ -2695,43 +2695,43 @@ applicationRouter.post("/:application_id/update-preview",
     }
 );
 
-applicationRouter.post("/:application_id/update-preview-yea",
-    [
-        param("application_id").isInt().notEmpty(),
-    ], 
-    ReturnValidationErrors, 
-    async (req: Request, res: Response) => {
-        try {
-            const { application_id } = req.params;
-            const { data, disburseAmountList } = req.body;
+// applicationRouter.post("/:application_id/update-preview-yea",
+//     [
+//         param("application_id").isInt().notEmpty(),
+//     ], 
+//     ReturnValidationErrors, 
+//     async (req: Request, res: Response) => {
+//         try {
+//             const { application_id } = req.params;
+//             const { data, disburseAmountList } = req.body;
 
-            const application = await db("sfa.application")
-                .where({ id: application_id })
-                .first();
+//             const application = await db("sfa.application")
+//                 .where({ id: application_id })
+//                 .first();
 
-            const  assessmentMethods = new AssessmentYukonGrant(db);
+//             const  assessmentMethods = new AssessmentYukonGrant(db);
             
-            const results: any = await assessmentMethods.getRefreshAssessmentData(data, disburseAmountList, application.student_id, Number(application_id), data?.program_division ?? 0);
+//             const results: any = await assessmentMethods.getRefreshAssessmentData(data, disburseAmountList, application.student_id, Number(application_id), data?.program_division ?? 0);
             
-            if (results) {
-                results.read_only_data.previous_weeks = results.previous_weeks;
-                results.read_only_data.assessed_weeks = results.assessed_weeks;
-                results.read_only_data.previous_disbursement = results.previous_disbursement;
-                results.read_only_data.net_amount = results.net_amount;
-                results.read_only_data.years_funded = results.years_funded;
+//             if (results) {
+//                 results.read_only_data.previous_weeks = results.previous_weeks;
+//                 results.read_only_data.assessed_weeks = results.assessed_weeks;
+//                 results.read_only_data.previous_disbursement = results.previous_disbursement;
+//                 results.read_only_data.net_amount = results.net_amount;
+//                 results.read_only_data.years_funded = results.years_funded;
 
-                delete results.previous_weeks;
-                delete results.assessed_weeks;
-                delete results.previous_disbursement;
-                delete results.net_amount;
-                delete results.years_funded;
-            }
+//                 delete results.previous_weeks;
+//                 delete results.assessed_weeks;
+//                 delete results.previous_disbursement;
+//                 delete results.net_amount;
+//                 delete results.years_funded;
+//             }
 
-            return res.json({ messages: [{ variant: "success", text: "ok"}], data: [ results ] });
+//             return res.json({ messages: [{ variant: "success", text: "ok"}], data: [ results ] });
 
-        } catch (error) {
-            console.log(error);
-            return res.status(409).send({ messages: [{ variant: "error", text: "Error get data" }] });
-        }   
-    }
-);
+//         } catch (error) {
+//             console.log(error);
+//             return res.status(409).send({ messages: [{ variant: "error", text: "Error get data" }] });
+//         }   
+//     }
+// );
