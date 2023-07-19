@@ -118,7 +118,7 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
     };
 
     getNetAmount(assessed_amount?: number, previous_disbursement?: number, return_uncashable_cert?: number): number {
-        let result = (assessed_amount ?? 0) - (previous_disbursement ?? 0) + (return_uncashable_cert ?? 0);
+        let result = this.numHelper.getNum(assessed_amount ?? 0) - this.numHelper.getNum(previous_disbursement ?? 0) + this.numHelper.getNum(return_uncashable_cert ?? 0);
 
         if (result >= -250 && result <= 0) {
             result = 0;
@@ -447,16 +447,7 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
         }
 
         // Parent Tab
-        if (this.study_code === studyCodes.SDA || this.study_code === studyCodes.SDH) {
-            const mailing_address: PersonAddressDTO = await this.personRepo.getPersonAddress(this.student.person_id, 2);
-            if (mailing_address && mailing_address.province_id) {
-                this.assessment.parent_msol = await this.standardLivingRepo.getStandardLivingAmount(this.application.academic_year_id, mailing_address.province_id, this.assessment.family_size ?? 0);
-
-                if ((this.assessment.parent_discretionary_income ?? 0) > 0) {
-                    this.assessment.parent_weekly_contrib = await this.parentRepo.getParentContributionAmount(this.application.academic_year_id, this.numHelper.round(this.assessment.parent_discretionary_income ?? 0));
-                }
-            }
-        }
+        await this.getCalcParentContributions(this.student.person_id, this.application.academic_year_id, studyCodes);
 
         // Calculate previous disbursement amount.
         const assess_id = (((this.assessment_id ?? 0) < (this.assess_id ?? 0) && !this.assessment.id) || this.assess_id === 0) ? this.assessment_id : this.assess_id;
@@ -492,6 +483,31 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
             this.assessment.spouse_exemption = this.assessment.spouse_exemption ?? 0;
         }
 
+    }
+
+    async getCalcParentContributions(student_person_id?: number, academic_year_id?: number, studyCodes?: Record<string, number>): Promise<void> {
+
+        if (!studyCodes) {
+            return;
+        }
+        
+        const parentTotalIncome = this.numHelper.round(this.numHelper.getNum(this.assessment.parent1_income ?? 0) + this.numHelper.getNum(this.assessment.parent2_income ?? 0));
+        const parentTotalTax = this.numHelper.round(this.numHelper.getNum(this.assessment.parent1_tax_paid ?? 0) + this.numHelper.getNum(this.assessment.parent2_tax_paid ?? 0));
+        const parentNetAmount = parentTotalIncome - parentTotalTax;
+
+        // Parent Tab
+        if (this.study_code === studyCodes.SDA || this.study_code === studyCodes.SDH) {
+            const mailing_address: PersonAddressDTO = await this.personRepo.getPersonAddress(student_person_id, 4);
+            if (mailing_address && mailing_address.province_id) {
+                this.assessment.parent_msol = await this.standardLivingRepo.getStandardLivingAmount(academic_year_id, mailing_address.province_id, this.assessment.family_size ?? 0);
+
+                this.assessment.parent_discretionary_income = this.numHelper.round(parentNetAmount - this.assessment.parent_msol);
+
+                if ((this.assessment.parent_discretionary_income ?? 0) > 0) {
+                    this.assessment.parent_weekly_contrib = await this.parentRepo.getParentContributionAmount(academic_year_id, this.numHelper.round(this.assessment.parent_discretionary_income ?? 0));
+                }
+            }
+        }
     }
 
     async getContribDisplayValues(): Promise<void> {
@@ -558,16 +574,16 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
     }
 
     getCombinedContribution(): void {
-        let combined: number = this.assessment.student_contribution ?? 0;
-        if (this.assessment.student_contribution_override || this.assessment.student_contribution_review) {
-            combined = this.assessment.student_contribution_override ?? 0;
+        let combined: number = this.numHelper.getNum(this.assessment.student_contribution ?? 0);
+        if (this.numHelper.getNum(this.assessment.student_contribution_override ?? 0) !== 0 || this.assessment.student_contribution_review) {
+            combined = this.numHelper.getNum(this.assessment.student_contribution_override ?? 0);
         }
 
-        if (this.assessment.spouse_contribution_override || this.assessment.spouse_contribution_review) {
-            combined = combined + (this.assessment.spouse_contribution_override ?? 0);
+        if (this.numHelper.getNum(this.assessment.spouse_contribution_override ?? 0) !== 0 || this.assessment.spouse_contribution_review) {
+            combined = combined + this.numHelper.getNum(this.assessment.spouse_contribution_override ?? 0);
         }
         else {
-            combined = combined + (this.assessment.spouse_contribution ?? 0);
+            combined = combined + this.numHelper.getNum(this.assessment.spouse_contribution ?? 0);
         }
 
         this.assessment.combined_contribution = combined;
@@ -869,6 +885,48 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
         await this.getContributionValues();
 
         return this.assessment;
+    }
+
+    async calculateCombinedContrib(assessment: Partial<AssessmentDTO>): Promise<number | undefined> {
+        this.assessment = assessment;
+
+        this.getCombinedContribution();
+
+        return this.assessment.combined_contribution;
+    }
+
+    async calculateParentWeeklyContrib(person_id: number, academic_year_id: number, assessment: Partial<AssessmentDTO>): Promise<number | undefined> {
+
+        this.assessment = assessment;
+
+        const studyCodeKeys = [
+            "SP",
+            "M",
+            "DEP",
+            "SDA",
+            "SDH",
+            "MW"
+        ];
+
+        const studyCodesAll = await Promise.all([
+            this.studentRepo.getStudentCategoryId("'SP'"),
+            this.studentRepo.getStudentCategoryId("'M'"),
+            this.studentRepo.getStudentCategoryId("'DEP'"),
+            this.studentRepo.getStudentCategoryId("'SDA'"),
+            this.studentRepo.getStudentCategoryId("'SDH'"),
+            this.studentRepo.getStudentCategoryId("'MW'")
+        ]);
+    
+        const studyCodes: Record<string, number> = studyCodeKeys.reduce((map, key, index) => {
+            map[key] = studyCodesAll[index];
+            return map;
+        }, {} as Record<string, number>);
+
+        await this.setIdGlobals();
+
+        await this.getCalcParentContributions(person_id, academic_year_id, studyCodes);
+
+        return this.assessment.parent_weekly_contrib;
     }
 
     async executeDisburse(funding_request_id: number, assessment: Partial<AssessmentDTO> = {}): Promise<{disbursements: Array<DisbursementDTO>, assessment: AssessmentDTO, funding_request: FundingRequestDTO, globals: Partial<CslftGlobalDTO>}> {

@@ -504,7 +504,6 @@
 import store from "@/store";
 import validator from "@/validator";
 import { mapGetters, mapState } from 'vuex';
-import moment from "moment";
 
 export default {
   name: "cslft-base",

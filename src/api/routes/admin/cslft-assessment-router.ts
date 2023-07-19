@@ -90,6 +90,59 @@ assessmentCslftRouter.put("/:id",
     }
 );
 
+assessmentCslftRouter.post("/academic-year/:academic_year_id/person/:person_id/parentweeklycontrib",
+    [param("academic_year_id").isInt().notEmpty(), param("person_id").isInt().notEmpty(), body("assessment").notEmpty()], ReturnValidationErrors,
+    async (req: Request, res: Response) => {
+        const assessmentCslftRepo = new AssessmentCslftRepository(db);
+        const { ...assessment } = req.body.assessment;
+        const { academic_year_id = undefined, person_id = undefined } = req.params;
+        let result: number | undefined = 0;       
+        
+        try {
+
+            if (academic_year_id && person_id) {
+                result = await assessmentCslftRepo.calculateParentWeeklyContrib(parseInt(person_id), parseInt(academic_year_id), assessment as AssessmentDTO);
+            }
+
+            if (result !== undefined && result >= 0) {
+                return res.status(200).json({ success: true, data: result, });
+            } else {
+                return res.status(404).send();
+            }
+
+        } catch (error: any) {
+            console.log(error);
+            return res.status(404).send();
+        }
+    }
+);
+
+assessmentCslftRouter.post("/getcombinedcontrib",
+    [body("assessment").notEmpty()], ReturnValidationErrors,
+    async (req: Request, res: Response) => {
+        const assessmentCslftRepo = new AssessmentCslftRepository(db);
+        const { ...assessment } = req.body.assessment;
+        let result: number | undefined = 0;       
+        
+        try {
+
+            if (assessment) {
+                result = await assessmentCslftRepo.calculateCombinedContrib(assessment as AssessmentDTO);
+            }
+
+            if (result !== undefined && result >= 0) {
+                return res.status(200).json({ success: true, data: result });
+            } else {
+                return res.status(404).send();
+            }
+
+        } catch (error: any) {
+            console.log(error);
+            return res.status(404).send();
+        }
+    }
+);
+
 assessmentCslftRouter.post("/:funding_request_id/recalc",
     [param("funding_request_id").isInt().notEmpty(), body("assessment").notEmpty()], ReturnValidationErrors,
     async (req: Request, res: Response) => {
