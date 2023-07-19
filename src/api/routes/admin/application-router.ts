@@ -32,7 +32,7 @@ applicationRouter.get("/all", ReturnValidationErrors, async (req: Request, res: 
                     .select("institution.name as institution_name")
                     .select("application.academic_year_id")
                     .select("person.first_name")
-                    .select("person.last_name").limit(25)
+                    .select("person.last_name").limit(150)
                     .where("funding_request.status_id", 32 )
                     .groupBy("application.id", "application.online_submit_date","institution.name","person.first_name","person.last_name","application.academic_year_id")
                     .orderBy('online_submit_date', 'asc');
@@ -48,7 +48,7 @@ applicationRouter.get("/all", ReturnValidationErrors, async (req: Request, res: 
                 .select("institution.name as institution_name")
                 .select("application.academic_year_id")
                 .select("person.first_name")
-                .select("person.last_name").limit(25)
+                .select("person.last_name").limit(150)
                 .whereLike('last_name', `[${filter}]%`)
                 .andWhere("funding_request.status_id", 32 )
                 .groupBy("application.id", "application.online_submit_date","institution.name","person.first_name","person.last_name","application.academic_year_id")
@@ -81,7 +81,7 @@ applicationRouter.get("/latest-updates", ReturnValidationErrors, async (req: Req
                 .select("application.*")
                 .select("institution.name as institution_name")
                 .select("person.first_name")
-                .select("person.last_name").limit(25)
+                .select("person.last_name").limit(150)
                 .where({ seen: true })
                 .whereNotNull('updated_at')
                 .orderBy('updated_at', 'desc');
@@ -94,7 +94,7 @@ applicationRouter.get("/latest-updates", ReturnValidationErrors, async (req: Req
                 .select("application.*")
                 .select("institution.name as institution_name")
                 .select("person.first_name")
-                .select("person.last_name").limit(25)
+                .select("person.last_name").limit(150)
                 .whereLike('last_name', `[${filter}]%`)
                 .andWhere({ seen: true })
                 .whereNotNull('updated_at')
@@ -2028,7 +2028,7 @@ applicationRouter.post("/:application_id/:funding_request_id/assessments",
                                 delete dataAssessment.read_only_data;
                                 delete dataAssessment.id;
                                 delete dataAssessment.assessment_id;
-
+                                delete dataAssessment.program_division;
                                 const resUpdate = await db("sfa.assessment")
                                 .where({ id: resSP[0].assessment_id_inserted })
                                 .update({ ...dataAssessment });
@@ -2060,8 +2060,6 @@ applicationRouter.post("/:application_id/:funding_request_id/assessments",
                 } else if (fundingRequest?.request_type_id === 3) { // Create Assessment YEA
                     try {
                         db.transaction(async (trx) => {
-
-                            console.log("🚀 ~ file: application-router.ts:2059 ~ db.transaction ~ insert_response:", dataAssessment)
                             if (!dataAssessment.id) {
                                 const insert_response = await db("sfa.assessment")
                                     .returning('*')
@@ -2240,7 +2238,6 @@ applicationRouter.get("/:application_id/:funding_request_id/assessments/:assessm
             const application = await db("sfa.application")
                 .where({ id: application_id })
                 .first();
-
             const  assessment = await db("sfa.assessment")
                 .where({ id: assessment_id })
                 .first();
@@ -2262,7 +2259,19 @@ applicationRouter.get("/:application_id/:funding_request_id/assessments/:assessm
 
                 delete calculateValues.destination_city;
                 delete calculateValues.previous_disbursement;
-                
+
+                const readOnlyData = await db.raw(
+                    `SELECT 
+                    COALESCE(sfa.fn_get_previous_weeks_yg(${application.student_id},  ${application_id}), 0) AS previous_weeks,
+                    COALESCE(sfa.fn_get_allowed_weeks ('${moment(application.classes_start_date?.toISOString().slice(0, 10)).format("YYYY-MM-DD")}', '${moment(application.classes_end_date?.toISOString().slice(0, 10)).format("YYYY-MM-DD")}'), 0) AS assessed_weeks,
+                    COALESCE(sfa.fn_get_disbursed_amount_fct(${funding_request_id}, -1), 0) AS previous_disbursement,
+                    ${calculateValues?.assessed_amount ?? 0} - ${calculateValues?.previous_disbursement ?? 0} AS net_amount,
+                    COALESCE(sfa.fn_get_total_funded_years ( ${application.student_id}, ${application_id}), 0) AS years_funded;
+                    `
+                );
+
+                calculateValues.read_only_data = readOnlyData?.[0] || {};
+
                 return res.json({
                     messages: [{ variant: "success" }],
                     data: [ calculateValues ],
@@ -2313,7 +2322,7 @@ applicationRouter.get("/:application_id/:funding_request_id/preview-assessment",
                 const readOnlyData = await db.raw(
                     `SELECT 
                     COALESCE(sfa.fn_get_previous_weeks_yg(${application.student_id},  ${application_id}), 0) AS previous_weeks,
-                    COALESCE(sfa.fn_get_allowed_weeks ('${moment(application.classes_start_date).format("YYYY-MM-DD")}', '${moment(application.classes_end_date).format("YYYY-MM-DD")}'), 0) AS assessed_weeks,
+                    COALESCE(sfa.fn_get_allowed_weeks ('${moment(application.classes_start_date?.toISOString().slice(0, 10)).format("YYYY-MM-DD")}', '${moment(application.classes_end_date?.toISOString().slice(0, 10)).format("YYYY-MM-DD")}'), 0) AS assessed_weeks,
                     COALESCE(sfa.fn_get_disbursed_amount_fct(${funding_request_id}, -1), 0) AS previous_disbursement,
                     ${calculateValues?.assessed_amount ?? 0} - ${calculateValues?.previous_disbursement ?? 0} AS net_amount,
                     COALESCE(sfa.fn_get_total_funded_years ( ${application.student_id}, ${application_id}), 0) AS years_funded;
@@ -2492,7 +2501,6 @@ applicationRouter.post("/:application_id/assessment/:assessment_id/disburse-yea"
             const funding_request = await db("sfa.funding_request")
                 .where({ id: data.funding_request_id })
                 .first();
-            // console.log("🚀 ~ file: application-router.ts:2486 ~ funding_request:", funding_request)
             if (application) {
                 const response = await db("sfa.disbursement")
                     .insert({

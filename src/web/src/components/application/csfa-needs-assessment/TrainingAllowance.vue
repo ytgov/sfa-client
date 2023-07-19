@@ -11,6 +11,7 @@
                 color="green" 
                 class="my-0"
                 block
+                @click="save"
               >
               SAVE
               </v-btn>
@@ -21,6 +22,9 @@
                 color="orange" 
                 class="my-0"
                 block
+                @click="e => {
+                  $store.dispatch('staGetAssessment', { funding_request_id: this.fundingRequestId });
+                }"
               >
               CANCEL
               </v-btn>
@@ -354,6 +358,9 @@
                   color="blue" 
                   class="my-0"
                   block
+                  @click="e => {
+                    $store.dispatch('recalcSTA');
+                  }"
                 >
                 RE-CALC
                 </v-btn>
@@ -439,80 +446,114 @@
             <p class="nomargin">Batch ID</p>
           </div>
         </div>
-        <div class="col-xs-12 col-sm-12 col-lg-12 d-flex low-margin noppading-top">
-          <div class="col-xs-2 col-sm-2 col-lg-2 nopadding">
-            <v-text-field
-              outlined
-              dense
-              background-color="white"
-              hide-details
-              @keypress="validate.isNumber($event)"
-              v-model="disbursed_amt"
-            ></v-text-field>
+        <div v-for="item, index in disbursements" :key="index">
+          <div class="col-xs-12 col-sm-12 col-lg-12 d-flex noppading-bottom">
+            <div class="col-xs-12 col-sm-12 col-lg-12 nopadding d-flex align-end justify-end">
+              <v-btn v-if="item?.id"
+                  color="error ml-5" 
+                  x-small 
+                  fab 
+                  class="my-1"
+                  @click="removeDisbursement(item.id, index)"
+                  >
+                <v-icon>mdi-delete</v-icon>
+              </v-btn>
+              <v-btn v-else
+                  color="warning ml-5" 
+                  x-small 
+                  fab 
+                  class="my-1"
+                  @click="cancelDisburse({ index })"
+                  >
+                <v-icon>mdi-close</v-icon>
+              </v-btn>
+            </div>
           </div>
-          <div class="col-xs-1 col-sm-1 col-lg-1 nopadding">
-            <v-text-field
-              outlined
-              dense
-              background-color="white"
-              hide-details
-              @keypress="validate.isNumber($event)"
-              v-model="reference_number"
-            ></v-text-field>
+          <div class="col-xs-12 col-sm-12 col-lg-12 d-flex low-margin noppading-top">
+            <div class="col-xs-2 col-sm-2 col-lg-2 nopadding">
+              <v-text-field
+                outlined
+                dense
+                background-color="white"
+                hide-details
+                @keypress="validate.isNumber($event)"
+                v-model="item.disbursed_amount"
+              ></v-text-field>
+            </div>
+            <div class="col-xs-1 col-sm-1 col-lg-1 nopadding">
+              <v-text-field
+                outlined
+                dense
+                background-color="white"
+                hide-details
+                @keypress="validate.isNumber($event)"
+                v-model="item.transaction_number"
+              ></v-text-field>
+            </div>
+            <div class="col-xs-2 col-sm-2 col-lg-2 nopadding">
+              <v-select
+                 
+                outlined
+                dense
+                background-color="white"
+                hide-details
+                v-model="item.disbursement_type_id"
+                item-text="DESCRIPTION"
+                item-value="REQUEST_TYPE_ID"
+              ></v-select>
+            </div>
+            <div class="col-xs-1 col-sm-1 col-lg-1 nopadding">
+              <v-text-field
+                outlined
+                dense
+                background-color="white"
+                hide-details
+                @keypress="validate.isNumber($event)"
+                v-model="item.issue_date"
+              ></v-text-field>
+            </div>
+            <div class="col-xs-5 col-sm-5 col-lg-5 nopadding">
+              <v-select
+                 
+                outlined
+                dense
+                background-color="white"
+                hide-details
+                v-model="item.change_reason_id"
+                item-text="DESCRIPTION"
+                item-value="REQUEST_TYPE_ID"
+              ></v-select>
+            </div>
+            <div class="col-xs-1 col-sm-1 col-lg-1 nopadding">
+              <v-text-field
+                outlined
+                dense
+                background-color="white"
+                hide-details
+                @keypress="validate.isNumber($event)"
+                v-model="item.financial_batch_id"
+              ></v-text-field>
+            </div>
           </div>
-          <div class="col-xs-2 col-sm-2 col-lg-2 nopadding">
-            <v-select
-               
-              outlined
-              dense
-              background-color="white"
-              hide-details
-              v-model="disbursement_type"
-              item-text="DESCRIPTION"
-              item-value="REQUEST_TYPE_ID"
-            ></v-select>
-          </div>
-          <div class="col-xs-1 col-sm-1 col-lg-1 nopadding">
-            <v-text-field
-              outlined
-              dense
-              background-color="white"
-              hide-details
-              @keypress="validate.isNumber($event)"
-              v-model="issue_date"
-            ></v-text-field>
-          </div>
-          <div class="col-xs-5 col-sm-5 col-lg-5 nopadding">
-            <v-select
-               
-              outlined
-              dense
-              background-color="white"
-              hide-details
-              v-model="disbursement_type"
-              item-text="DESCRIPTION"
-              item-value="REQUEST_TYPE_ID"
-            ></v-select>
-          </div>
-          <div class="col-xs-1 col-sm-1 col-lg-1 nopadding">
-            <v-text-field
-              outlined
-              dense
-              background-color="white"
-              hide-details
-              @keypress="validate.isNumber($event)"
-              v-model="family_size"
-            ></v-text-field>
+        </div>
+        <div class="col-xs-12 col-sm-12 col-lg-12 d-flex noppading-bottom">
+          <div class="col-xs-12 col-sm-12 col-lg-12 nopadding d-flex align-end justify-end">
+              <v-btn @click="e => {
+                addDisburse();
+              }" color="success" class="">
+                Add
+              </v-btn>
           </div>
         </div>
       </v-card>
     </div>
+    <confirm-dialog ref="confirm"></confirm-dialog>
   </div>
 </template>
 <script>
 import store from "../../../store";
 import validator from "@/validator";
-import { mapGetters } from 'vuex';
+import { mapGetters, mapActions } from 'vuex';
 export default {
   name: "Home",
   props: {
@@ -521,9 +562,31 @@ export default {
   computed: {
     ...mapGetters({
       assessment: "assessmentSTA",
+      disbursements: "disbursementListSTA",
       application: "selectedApplication",
       cities: "cities",
     }),
+  },
+  methods: {
+    ...mapActions({
+      saveSTAAssessment: "saveSTAAssessment",
+      addDisburse: "addItemDisbursementListSTA",
+      cancelDisburse: "cancelItemDisbursementListSTA",
+      removeSTADisbursement: "removeSTADisbursement"
+    }),
+    save() {
+      this.saveSTAAssessment(this);
+    },
+    removeDisbursement(id, index) {
+      this.$refs.confirm.show(
+        "Are you sure?",
+        "Click 'Confirm' below to permanently remove this disbursement.",
+        () => {
+          this.removeSTADisbursement({ index, disbursement_id: id, vm: this });
+        },
+        () => {}
+      );
+    },
   },
   async created() {
     this.validate = validator;

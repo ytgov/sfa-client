@@ -29,11 +29,11 @@ export class AssessmentYukonGrant extends AssessmentBaseRepository {
 
         refrehData.classes_end_date = assessment.classes_end_date;
         refrehData.classes_start_date = assessment.classes_start_date;
-        refrehData.allowed_months = moment(refrehData.classes_end_date).diff(moment(refrehData.classes_start_date), "months");
+        refrehData.allowed_months = moment(refrehData.classes_end_date?.toString().slice(0, 10)).diff(moment(refrehData.classes_start_date?.toString().slice(0, 10)), "months");
         refrehData.previous_weeks = await this.getScalarValue<number>("fn_get_previous_weeks_yg", [student_id, application_id]);
         refrehData.assessed_weeks = await this.getScalarValue<number>("fn_get_allowed_weeks", [
-            `'${moment(refrehData.classes_start_date).format("YYYY-MM-DD")}'`,
-            `'${moment(refrehData.classes_end_date).format("YYYY-MM-DD")}'`
+            `'${moment(refrehData.classes_start_date?.toString().slice(0, 10)).format("YYYY-MM-DD")}'`,
+            `'${moment(refrehData.classes_end_date?.toString().slice(0, 10)).format("YYYY-MM-DD")}'`
 
         ]);
 
