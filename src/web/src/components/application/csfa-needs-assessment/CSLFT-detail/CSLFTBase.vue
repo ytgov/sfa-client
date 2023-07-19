@@ -178,7 +178,7 @@
                         hide-details
                         label="Pre-Study Wks"
                         @keypress="validate.isNumber($event)"
-                        v-model="cslft.pre_study_wks"
+                        v-model="cslft.pstudy_weeks"
                       ></v-text-field>
                     </div>
                     <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6">
@@ -189,7 +189,7 @@
                         hide-details
                         label="Pre-Study Mon"
                         @keypress="validate.isNumber($event)"
-                        v-model="cslft.pre_study_mon"
+                        v-model="cslft.pstudy_months"
                       ></v-text-field>
                     </div>
                   </div>

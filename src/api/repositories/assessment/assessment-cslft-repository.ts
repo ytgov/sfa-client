@@ -660,7 +660,7 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
         this.assessment.pstudy_start_date = this.application.prestudy_start_date;
         this.assessment.pstudy_end_date = this.application.prestudy_end_date;
         
-        if (this.application.prestudy_start_date) {
+        if (!this.application.prestudy_start_date) {
             this.assessment.pstudy_end_date = moment.utc(this.application.classes_start_date).add(-1, "month").endOf("month").toDate();
             this.assessment.pstudy_start_date = moment.utc(this.assessment.pstudy_end_date).add(-3, "month").startOf("month").toDate();
         }

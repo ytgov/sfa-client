@@ -14,7 +14,7 @@
                   label="Family Size"
                   @keypress="validate.isNumber($event)"
                   :disabled="isTotal"
-                  v-model="cslft.family_size"
+                  v-model="cslft.student_family_size"
                 ></v-text-field>
               </div>
             </div>
