@@ -3337,7 +3337,11 @@ BEGIN
 	SELECT @academic_year_id = app.academic_year_id
 		FROM sfa.application app
 	WHERE app.id = @applitacion_id
-	EXEC @second_res_amt = sfa.pr_get_residence_rate_sta @academic_year_id, @return_value_argument OUT;
+	--EXEC @second_res_amt = sfa.pr_get_residence_rate_sta @academic_year_id, @return_value_argument OUT;
+    SELECT  @second_res_amt =  sl.second_residence_amount
+    FROM sfa.sta_lookup sl
+    WHERE sl.academic_year_id = @academic_year_id
+
 	RETURN @second_res_amt
 END
 GO
