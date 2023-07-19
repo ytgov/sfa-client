@@ -121,7 +121,7 @@ const actions = {
                 state.commit("SET_PREVIEW_DISBURSEMENT_LIST", [ ...data ]);
                 state.commit("SET_IS_PREVIEW_CHARGED", true);
                 thisVal?.$emit("showSuccess", "Correct Disburse");
-                thisVal?.refreshData();;
+                thisVal?.refreshData();
             } else {
                 thisVal?.$emit("showError", message.text || "Error to get Disburse");
             }

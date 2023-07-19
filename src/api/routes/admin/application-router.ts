@@ -2491,15 +2491,15 @@ applicationRouter.post("/:application_id/assessment/:assessment_id/disburse-yea"
                 .first();
             if (application) {
                 const response = await db("sfa.disbursement")
-                    .insert({
-                        assessment_id,
-                        funding_request_id: data.funding_request_id,
-                        disbursement_type_id: funding_request.yea_request_type == 1 ? 3 : 1,
-                        disbursed_amount: data.read_only_data.net_amount,
-                        tax_year: new Date().getFullYear(),
-                        paid_amount: data.read_only_data.net_amount,
-                    })
-                    .returning("*");
+                    // .insert({
+                    //     assessment_id,
+                    //     funding_request_id: data.funding_request_id,
+                    //     disbursement_type_id: funding_request.yea_request_type == 1 ? 3 : 1,
+                    //     disbursed_amount: data.read_only_data.net_amount,
+                    //     tax_year: new Date().getFullYear(),
+                    //     paid_amount: data.read_only_data.net_amount,
+                    // })
+                    // .returning("*");
 
 
                 // console.log("🚀 ~ file: application-router.ts:2486 ~ response:", response)
@@ -2513,7 +2513,14 @@ applicationRouter.post("/:application_id/assessment/:assessment_id/disburse-yea"
                     });
                     return res.json({
                         messages: [{ variant: "success" }],
-                        data: [ ...disbursementList ],
+                        data: [{
+                            assessment_id,
+                            funding_request_id: data.funding_request_id,
+                            disbursement_type_id: funding_request.yea_request_type == 1 ? 3 : 1,
+                            disbursed_amount: data.read_only_data.net_amount,
+                            tax_year: new Date().getFullYear(),
+                            paid_amount: data.read_only_data.net_amount,
+                        }],
                     });
                 } else {
                     return res.json({
@@ -2636,6 +2643,47 @@ applicationRouter.get("/:application_id/request-type/:request_type_id/deadline-c
 );
 
 applicationRouter.post("/:application_id/update-preview",
+    [
+        param("application_id").isInt().notEmpty(),
+    ], 
+    ReturnValidationErrors, 
+    async (req: Request, res: Response) => {
+        try {
+            const { application_id } = req.params;
+            const { data, disburseAmountList } = req.body;
+
+            const application = await db("sfa.application")
+                .where({ id: application_id })
+                .first();
+
+            const  assessmentMethods = new AssessmentYukonGrant(db);
+            
+            const results: any = await assessmentMethods.getRefreshAssessmentData(data, disburseAmountList, application.student_id, Number(application_id), data?.program_division ?? 0);
+            
+            if (results) {
+                results.read_only_data.previous_weeks = results.previous_weeks;
+                results.read_only_data.assessed_weeks = results.assessed_weeks;
+                results.read_only_data.previous_disbursement = results.previous_disbursement;
+                results.read_only_data.net_amount = results.net_amount;
+                results.read_only_data.years_funded = results.years_funded;
+
+                delete results.previous_weeks;
+                delete results.assessed_weeks;
+                delete results.previous_disbursement;
+                delete results.net_amount;
+                delete results.years_funded;
+            }
+
+            return res.json({ messages: [{ variant: "success", text: "ok"}], data: [ results ] });
+
+        } catch (error) {
+            console.log(error);
+            return res.status(409).send({ messages: [{ variant: "error", text: "Error get data" }] });
+        }   
+    }
+);
+
+applicationRouter.post("/:application_id/update-preview-yea",
     [
         param("application_id").isInt().notEmpty(),
     ], 
