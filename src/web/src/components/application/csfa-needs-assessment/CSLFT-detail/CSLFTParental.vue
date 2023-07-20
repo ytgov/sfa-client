@@ -129,7 +129,7 @@
                       label="Total Income"
                       @keypress="validate.isNumber($event)"
                       :disabled="isTotal"
-                      v-model="total_income"
+                      v-model="cslft_parent_total_income"
                     ></v-text-field>
                   </div>
                   <div class="col-xs-12 col-lg-12">
@@ -141,7 +141,7 @@
                       label="Total Tax"
                       @keypress="validate.isNumber($event)"
                       :disabled="isTotal"
-                      v-model="total_tax"
+                      v-model="cslft_parent_total_tax"
                     ></v-text-field>
                   </div>
                   <div class="col-xs-12 col-lg-12">
@@ -153,7 +153,7 @@
                       label="Net Income"
                       @keypress="validate.isNumber($event)"
                       :disabled="isTotal"
-                      v-model="net_income"
+                      v-model="cslft_parent_net_income"
                     ></v-text-field>
                   </div>
                 </div>
@@ -193,7 +193,7 @@
                         label="Discretionary Income"
                         @keypress="validate.isNumber($event)"
                         :disabled="isTotal"
-                        v-model="cslft.parent_discretionary_income"
+                        v-model="cslft_parent_discretionary_income"
                       ></v-text-field>
                     </div>
                   </div>
@@ -224,7 +224,7 @@
                         label="Calculated Parental Contribution"
                         @keypress="validate.isNumber($event)"
                         :disabled="isTotal"
-                        v-model="calculated_parental_contribution"
+                        v-model="cslft_calculated_parental_contribution"
                       ></v-text-field>
                     </div>
                   </div>
@@ -251,7 +251,7 @@
                         hide-details
                         @keypress="validate.isNumber($event)"
                         :disabled="isTotal"
-                        v-model="total_contribution"
+                        v-model="cslft_parent_total_contribution"
                       ></v-text-field>
                     </div>
                   </div>
@@ -285,40 +285,40 @@ import store from "@/store";
 import validator from "@/validator";
 import {mapGetters, mapState} from "vuex";
 import {ref} from "vue";
-import {NumbersHelper} from "@/utilities";
 export default {
   name: "cslft-parental",
   setup() {
     const isTotal = ref(true);
-    const numHelper = new NumbersHelper();
+    const showAdd = ref(true);
 
     return {
       isTotal,
-      numHelper,
+      showAdd
     }
   },
   computed: {
-    ...mapGetters(["provinces"]),
+    ...mapGetters([
+        "provinces",
+        "cslft_parent_total_income",
+        "cslft_parent_total_tax",
+        "cslft_parent_net_income",
+        "cslft_calculated_parental_contribution",
+        "cslft_parent_total_contribution",
+        "cslft_parent_discretionary_income"
+      ]),
     ...mapState({
       cslft: state => state.cslft.cslft
     }),
     application: function () {
       return store.getters.selectedApplication;
-    },
-    total_income: function() {
-      return this.numHelper.round(this.numHelper.getNum(this.cslft.parent1_income) + this.numHelper.getNum(this.cslft.parent2_income));
-    },
-    total_tax: function() {
-      return this.numHelper.round(this.numHelper.getNum(this.cslft.parent1_tax_paid) + this.numHelper.getNum(this.cslft.parent2_tax_paid));
-    },
-    net_income: function() {
-      return this.numHelper.round(this.total_income + this.total_tax);
-    },
-    calculated_parental_contribution: function() {
-      return this.numHelper.round(this.numHelper.getNum(this.cslft.parent_weekly_contrib) * this.numHelper.getNum(this.cslft.study_weeks) / this.numHelper.getNum(this.cslft.parent_ps_depend_count));
-    },
-    total_contribution: function() {
-      return this.numHelper.round(Math.max(this.numHelper.getNum(this.cslft.parent_contribution_override), this.numHelper.getNum(this.calculated_parental_contribution)));
+    },    
+  },
+  watch: {
+    cslft_parent_net_income: {
+      immediate: true,
+      handler(newValue) {
+        store.dispatch("setCslftParentWeeklyContrib");
+      }
     }
   },
   async created() {
