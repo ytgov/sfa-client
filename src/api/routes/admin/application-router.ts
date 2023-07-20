@@ -1941,7 +1941,7 @@ applicationRouter.get("/:application_id/:funding_request_id/assessments",
             const application = await db("sfa.application")
                 .where({ id: application_id })
                 .first();
-
+            
             const fundingRequest = await db("sfa.funding_request")
                 .where({ application_id })
                 .where({ id: funding_request_id })
@@ -1976,7 +1976,7 @@ applicationRouter.get("/:application_id/:funding_request_id/assessments",
                         item.read_only_data = readOnlyData?.[0] || {};
 
                         const yea_balance = item.read_only_data.yea_earned - item.read_only_data.yea_used;
-                        const unused_receipts = min([min([application.yea_tot_receipt_amount || 0, yea_balance]), fundingRequest.yea_request_amount])
+                        const unused_receipts = min([min([(application.yea_tot_receipt_amount || 0), yea_balance]), fundingRequest.yea_request_amount])
                         const assessed_amount = unused_receipts + item.read_only_data.previous_disbursement;
                         const yea_net_amount = assessed_amount - item.read_only_data.previous_disbursement;
 
