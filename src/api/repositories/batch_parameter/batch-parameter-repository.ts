@@ -10,7 +10,8 @@ export class BatchParameterRepository extends BaseRepository {
         let result = 0;
 
         if (batch_parameter_name) {
-            result = await this.getScalarValue<number>("fn_get_batch_parameter_id", [`'${batch_parameter_name}'`])
+            const escaped = this.escapeSingleQuote(batch_parameter_name);
+            result = await this.getScalarValue<number>("fn_get_batch_parameter_id", [`'${escaped}'`])
         }
 
         return result;

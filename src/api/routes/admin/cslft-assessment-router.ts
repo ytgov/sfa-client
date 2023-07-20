@@ -3,10 +3,8 @@ import express, { Request, Response } from "express";
 import { body, param } from "express-validator";
 import { ReturnValidationErrors } from "../../middleware";
 import { DB_CONFIG } from "../../config";
-import { AssessmentCslftRepository, StudentRepository } from "../../repositories";
-import { AddressLinesDTO, AssessmentDTO, DisbursementDTO, FundingRequestDTO } from "../../models";
-import { CslftGlobalDTO } from "models/result/assessments/cslft/CslftGlobalDTO";
-import { CslftResultDTO } from "models/result";
+import { AssessmentCslftRepository } from "../../repositories";
+import { AssessmentDTO, CslftResultDTO } from "../../models";
 
 const db = knex(DB_CONFIG)
 export const assessmentCslftRouter = express.Router();
@@ -18,7 +16,7 @@ async (req: Request, res: Response) => {
 
     const assessmentCslftRepo = new AssessmentCslftRepository(db);
     const { id = undefined } = req.params;
-    let results: Partial<AssessmentDTO> = {};
+    let results: Partial<CslftResultDTO> = {};
     
     try {
 
@@ -26,8 +24,9 @@ async (req: Request, res: Response) => {
             results = await assessmentCslftRepo.getAssessInfoCslft(parseInt(id));
         }
 
-        if (Object.keys(results).length > 0) {
-            return res.status(200).json({ success: true, data: results, });
+        if (Object.keys(results.data ?? {}).length > 0) {
+            results.success = true;
+            return res.status(200).json(results);
         } else {
             return res.status(404).send();
         }
@@ -90,13 +89,66 @@ assessmentCslftRouter.put("/:id",
     }
 );
 
+assessmentCslftRouter.post("/academic-year/:academic_year_id/person/:person_id/parentweeklycontrib",
+    [param("academic_year_id").isInt().notEmpty(), param("person_id").isInt().notEmpty(), body("assessment").notEmpty()], ReturnValidationErrors,
+    async (req: Request, res: Response) => {
+        const assessmentCslftRepo = new AssessmentCslftRepository(db);
+        const { ...assessment } = req.body.assessment;
+        const { academic_year_id = undefined, person_id = undefined } = req.params;
+        let result: number | undefined = 0;       
+        
+        try {
+
+            if (academic_year_id && person_id) {
+                result = await assessmentCslftRepo.calculateParentWeeklyContrib(parseInt(person_id), parseInt(academic_year_id), assessment as AssessmentDTO);
+            }
+
+            if (result !== undefined && result >= 0) {
+                return res.status(200).json({ success: true, data: result, });
+            } else {
+                return res.status(404).send();
+            }
+
+        } catch (error: any) {
+            console.log(error);
+            return res.status(404).send();
+        }
+    }
+);
+
+assessmentCslftRouter.post("/getcombinedcontrib",
+    [body("assessment").notEmpty()], ReturnValidationErrors,
+    async (req: Request, res: Response) => {
+        const assessmentCslftRepo = new AssessmentCslftRepository(db);
+        const { ...assessment } = req.body.assessment;
+        let result: number | undefined = 0;       
+        
+        try {
+
+            if (assessment) {
+                result = await assessmentCslftRepo.calculateCombinedContrib(assessment as AssessmentDTO);
+            }
+
+            if (result !== undefined && result >= 0) {
+                return res.status(200).json({ success: true, data: result });
+            } else {
+                return res.status(404).send();
+            }
+
+        } catch (error: any) {
+            console.log(error);
+            return res.status(404).send();
+        }
+    }
+);
+
 assessmentCslftRouter.post("/:funding_request_id/recalc",
     [param("funding_request_id").isInt().notEmpty(), body("assessment").notEmpty()], ReturnValidationErrors,
     async (req: Request, res: Response) => {
         const assessmentCslftRepo = new AssessmentCslftRepository(db);
         const { ...assessment } = req.body.assessment;
         const { funding_request_id = undefined } = req.params;
-        let results: Partial<AssessmentDTO> = {};       
+        let results: Partial<CslftResultDTO> = {};       
         
         try {
 
@@ -104,8 +156,9 @@ assessmentCslftRouter.post("/:funding_request_id/recalc",
                 results = await assessmentCslftRepo.executeRecalc(parseInt(funding_request_id), assessment as AssessmentDTO);
             }
 
-            if (Object.keys(results).length > 0) {
-                return res.status(200).json({ success: true, data: results, });
+            if (Object.keys(results.data ?? {}).length > 0) {
+                results.success = true;
+                return res.status(200).json(results);
             } else {
                 return res.status(404).send();
             }
@@ -129,13 +182,13 @@ assessmentCslftRouter.post("/:funding_request_id/disburse",
 
             if (funding_request_id) {
                 const disburse = await assessmentCslftRepo.executeDisburse(parseInt(funding_request_id), assessment as AssessmentDTO);
-                results.data = disburse.assessment;
+                results.data = disburse.data;
                 results.disbursements = disburse.disbursements;
                 results.funding_request = disburse.funding_request;
                 results.globals = disburse.globals;
             }
 
-            if (Object.keys(results).length > 0) {
+            if (Object.keys(results.data ?? {}).length > 0) {
                 results.success = true;
                 return res.status(200).json(results);
             } else {

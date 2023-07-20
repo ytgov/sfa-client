@@ -469,6 +469,14 @@ export default {
       return store.getters.selectedApplication;
     },
   },
+  watch: {
+    cslft_study_cost_total: {
+      immediate: true,
+      handler(newVal) {
+        store.dispatch("setTotalStudyCost", newVal);
+      }
+    }
+  },
   async created() {
     this.validate = validator;
     this.applicationId = this.$route.params.id;
