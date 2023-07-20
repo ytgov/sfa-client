@@ -44,6 +44,7 @@ const state = {
         entitlement_days: null,
         family_size: null,
         funding_request_id: null,
+        field_program_code: null,
         home_city_id: null,
         living_costs: null,
         marital_status_id: null,

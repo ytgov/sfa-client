@@ -556,24 +556,6 @@
       </v-card>
     </div>
   </div>
-      
-
-        
-
-
-
-
-
-
-
-
-
-
-
-
-        
-
-
 </template>
 <script>
 import store from "../../../store";

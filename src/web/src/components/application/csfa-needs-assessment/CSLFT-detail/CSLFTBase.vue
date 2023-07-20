@@ -435,7 +435,7 @@
                         hide-details
                         label="FOS Code"
                         @keypress="validate.isNumber($event)"
-                        v-model="cslft.fos_code"
+                        v-model="cslft.field_program_code"
                       ></v-text-field>
                     </div>
                     <div class="col-xs-12 col-sm-6 col-lg-6">
