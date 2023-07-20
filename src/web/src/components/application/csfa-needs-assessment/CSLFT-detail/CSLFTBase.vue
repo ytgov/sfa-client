@@ -178,7 +178,7 @@
                         hide-details
                         label="Pre-Study Wks"
                         @keypress="validate.isNumber($event)"
-                        v-model="cslft.pre_study_wks"
+                        v-model="cslft.pstudy_weeks"
                       ></v-text-field>
                     </div>
                     <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6">
@@ -189,7 +189,7 @@
                         hide-details
                         label="Pre-Study Mon"
                         @keypress="validate.isNumber($event)"
-                        v-model="cslft.pre_study_mon"
+                        v-model="cslft.pstudy_months"
                       ></v-text-field>
                     </div>
                   </div>
@@ -435,7 +435,7 @@
                         hide-details
                         label="FOS Code"
                         @keypress="validate.isNumber($event)"
-                        v-model="cslft.fos_code"
+                        v-model="cslft.field_program_code"
                       ></v-text-field>
                     </div>
                     <div class="col-xs-12 col-sm-6 col-lg-6">
@@ -504,7 +504,6 @@
 import store from "@/store";
 import validator from "@/validator";
 import { mapGetters, mapState } from 'vuex';
-import moment from "moment";
 
 export default {
   name: "cslft-base",

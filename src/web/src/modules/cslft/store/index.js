@@ -2,7 +2,7 @@ import axios from "axios";
 import {CSL_LOOKUP, CSLFT, CSLFT_ASSESS_INFO, STUDENT_URL} from "@/urls";
 import moment from "moment";
 import { NumbersHelper, DateHelper } from "@/utilities";
-import store from "@/store";
+import { defaultState } from "./default";
 const numHelper = new NumbersHelper();
 const dateHelper = new DateHelper();
 
@@ -44,6 +44,7 @@ const state = {
         entitlement_days: null,
         family_size: null,
         funding_request_id: null,
+        field_program_code: null,
         home_city_id: null,
         living_costs: null,
         marital_status_id: null,
@@ -121,6 +122,7 @@ const state = {
         study_province_id: null,
         study_weeks: null,
         total_grant_awarded: null,
+        total_study_cost: null,
         travel_allowance: null,
         tuition_estimate: null,
         uncapped_costs_total: null,
@@ -198,6 +200,15 @@ const mutations = {
     setTotalStudyCost(state, value) {
       state.cslft.total_study_cost = value;
     },
+    setCslftParentWeeklyContrib(state, value) {
+        state.cslft.parent_weekly_contrib = value;
+    },
+    setCslftCombinedContribution(state, value) {
+        state.cslft.combined_contribution = value;
+    },
+    setCslftCalculatedAward(state, value) {
+        state.cslft.calculated_award = value;
+    },
     setCslftAssessedDate(state, value) {
         state.cslft.assessed_date = moment(value).format();
     },
@@ -212,7 +223,7 @@ const mutations = {
     },
     setCslftPrestudyEndDate(state, value) {
         state.cslft.pstudy_end_date = moment(value).format();
-    },
+    }
 };
 const actions = {
     async loadFundingRequest(state, funding_request) {
@@ -223,6 +234,11 @@ const actions = {
     async getCslftAssessInfo(state, funding_request_id) {
         const res = await axios.get(`${CSLFT_ASSESS_INFO}/${funding_request_id}`);
         if (res?.data?.success) {
+            state.commit("loadModelsDisburse", {
+                data: defaultState.cslft,
+                funding_request: defaultState.funding_request,
+                disbursements: [defaultState.cslft_disbursement],
+            });
             state.commit("getCslftAssessInfo", res.data.data);
         }
     },
@@ -233,6 +249,7 @@ const actions = {
         };
         const res = await axios.post(`${CSLFT}/${assessment.funding_request_id}/recalc`, body);
         if (res?.data?.success) {
+            commit("getCslftAssessInfo", defaultState.cslft);
             commit("getCslftAssessInfo", res.data.data);
         }
     },
@@ -288,7 +305,36 @@ const actions = {
         }
     },
     async setTotalStudyCost(state, value) {
-      state.commit("setTotalStudyCost", value);
+        state.commit("setTotalStudyCost", value);
+    },
+    async setCslftParentWeeklyContrib({commit, getters}) {        
+        const assessment = getters.cslft_get_assessment;
+        const academic_year_id = getters.cslft_application_academic_year_id;
+        const person_id = getters.cslft_student_person_id;
+        const body = {
+            assessment: assessment
+        };
+        console.log(body);
+        console.log(academic_year_id);
+        console.log(person_id);
+        const res = await axios.post(`${CSLFT}/academic-year/${academic_year_id}/person/${person_id}/parentweeklycontrib`, body);
+        console.log(res);        
+        if (res?.data?.success) {
+            commit("setCslftParentWeeklyContrib", res.data.data);
+        }      
+    },
+    async setCslftCombinedContribution({commit, getters}) {        
+        const assessment = getters.cslft_get_assessment;
+        const body = {
+            assessment: assessment
+        };
+        const res = await axios.post(`${CSLFT}/getcombinedcontrib`, body);
+        if (res?.data?.success) {
+            commit("setCslftCombinedContribution", res.data.data);
+        }      
+    },
+    async setCslftCalculatedAward(state, value) {
+        state.commit("setCslftCalculatedAward", value);
     },
     async setCslftFieldDate(state, { name, val }) {
         if (val) {
@@ -358,51 +404,79 @@ const getters = {
         return multiplier;
     },
     cslft_scholastic_total(state) {
-        return Math.round(numHelper.getNum(state.cslft.tuition_estimate) + numHelper.getNum(state.cslft.books_supplies_cost));
+        return numHelper.round(numHelper.getNum(state.cslft.tuition_estimate) + numHelper.getNum(state.cslft.books_supplies_cost));
     },
     cslft_shelter_total(state) {
-        return Math.round(numHelper.getNum(state.cslft.shelter_month) * numHelper.getNum(state.cslft.study_months));
+        return numHelper.round(numHelper.getNum(state.cslft.shelter_month) * numHelper.getNum(state.cslft.study_months));
     },
     cslft_p_trans_total(state) {
-        return Math.round(numHelper.getNum(state.cslft.p_trans_month) * numHelper.getNum(state.cslft.study_months));
+        return numHelper.round(numHelper.getNum(state.cslft.p_trans_month) * numHelper.getNum(state.cslft.study_months));
     },
     cslft_r_trans_total(state, getters) {
-        return Math.round(numHelper.getNum(state.cslft.r_trans_16wk) * numHelper.getNum(getters.cslft_get_r_trans_multiplier));
+        return numHelper.round(numHelper.getNum(state.cslft.r_trans_16wk) * numHelper.getNum(getters.cslft_get_r_trans_multiplier));
     },
     cslft_day_care_total(state) {
-        return Math.round(Math.min(numHelper.getNum(state.cslft.day_care_allowable), numHelper.getNum(state.cslft.day_care_actual)) * numHelper.getNum(state.cslft.study_months));
+        return numHelper.round(Math.min(numHelper.getNum(state.cslft.day_care_allowable), numHelper.getNum(state.cslft.day_care_actual)) * numHelper.getNum(state.cslft.study_months));
     },
     cslft_dependent_shelter_total(state) {
-        return Math.round(numHelper.getNum(state.cslft.depend_food_allowable) * numHelper.getNum(state.cslft.study_months));
+        return numHelper.round(numHelper.getNum(state.cslft.depend_food_allowable) * numHelper.getNum(state.cslft.study_months));
     },
     cslft_dependent_trans_total(state) {
-        return Math.round(numHelper.getNum(state.cslft.depend_tran_allowable) * numHelper.getNum(state.cslft.study_months));
+        return numHelper.round(numHelper.getNum(state.cslft.depend_tran_allowable) * numHelper.getNum(state.cslft.study_months));
     },
     cslft_discretionary_total(state) {
-        return Math.round(Math.min(numHelper.getNum(state.cslft.discretionary_cost), numHelper.getNum(state.cslft.discretionary_cost_actual)));
+        return numHelper.round(Math.min(numHelper.getNum(state.cslft.discretionary_cost), numHelper.getNum(state.cslft.discretionary_cost_actual)));
     },
     cslft_x_trans_total(state) {
-        return Math.round(numHelper.getNum(state.cslft.x_trans_total));
+        return numHelper.round(numHelper.getNum(state.cslft.x_trans_total));
     },
     cslft_relocation_total(state) {
-        return Math.round(numHelper.getNum(state.cslft.relocation_total));
+        return numHelper.round(numHelper.getNum(state.cslft.relocation_total));
     },
     cslft_capped_expenses_total(state, getters) {
-        return Math.round(getters.cslft_shelter_total + getters.cslft_p_trans_total + getters.cslft_r_trans_total + getters.cslft_day_care_total + getters.cslft_dependent_trans_total + getters.cslft_dependent_shelter_total + getters.cslft_discretionary_total + getters.cslft_x_trans_total + getters.cslft_relocation_total);
+        return numHelper.round(getters.cslft_shelter_total + getters.cslft_p_trans_total + getters.cslft_r_trans_total + getters.cslft_day_care_total + getters.cslft_dependent_trans_total + getters.cslft_dependent_shelter_total + getters.cslft_discretionary_total + getters.cslft_x_trans_total + getters.cslft_relocation_total);
     },
     cslft_uncapped_expenses_total(state) {
         return numHelper.getNum(state.cslft.uncapped_costs_total);
     },
     cslft_study_cost_total(state, getters) {
-        return Math.round(getters.cslft_scholastic_total + getters.cslft_capped_expenses_total + getters.cslft_uncapped_expenses_total);
+        const sct = numHelper.round(getters.cslft_scholastic_total + getters.cslft_capped_expenses_total + getters.cslft_uncapped_expenses_total);
+        return sct;
+    },
+    cslft_total_assets(state) {
+        return numHelper.validationHelper.isNullOrEmpty(state.cslft.married_assets) ? numHelper.getNum(state.cslft.other_income) : numHelper.getNum(state.cslft.married_assets);
+    },
+    cslft_total_assets_combined_contribution(state, getters) {
+        return getters.cslft_total_assets + numHelper.getNum(state.cslft.combined_contribution);
+    },
+    cslft_parent_total_income(state) {
+        return numHelper.round(numHelper.getNum(state.cslft.parent1_income) + numHelper.getNum(state.cslft.parent2_income));
+    },
+    cslft_parent_total_tax(state) {
+        return numHelper.round(numHelper.getNum(state.cslft.parent1_tax_paid) + numHelper.getNum(state.cslft.parent2_tax_paid));
+    },
+    cslft_parent_net_income(state, getters) {
+        return numHelper.round(getters.cslft_parent_total_income + getters.cslft_parent_total_tax);
+    },
+    cslft_parent_discretionary_income(state, getters) {
+        return numHelper.round(getters.cslft_parent_net_income - numHelper.getNum(state.cslft.parent_msol));
+    },
+    cslft_calculated_parental_contribution(state, getters) {
+        return numHelper.getNum(state.cslft.parent_ps_depend_count) === 0 ? 0 : numHelper.round(numHelper.getNum(state.cslft.parent_weekly_contrib) * numHelper.getNum(state.cslft.study_weeks) / numHelper.getNum(state.cslft.parent_ps_depend_count));
+    },
+    cslft_parent_total_contribution(state, getters) {
+        return numHelper.round(Math.max(numHelper.getNum(state.cslft.parent_contribution_override), numHelper.getNum(getters.cslft_calculated_parental_contribution)));
     },
     cslft_application_academic_year_id(state, getters, rootState, rootGetters) {
-      return rootState.selectedApplication.academic_year_id;
+        return rootState.selectedApplication.academic_year_id;
+    },
+    cslft_student_person_id(state, getters, rootState, rootGetters) {
+        return rootState.selectedStudent.person_id;
     },
     cslft_get_resources_total(state, getters) {
         const academic_year_id = getters.cslft_application_academic_year_id;
-        if (academic_year_id < 2017) {
-            return Math.round(1);
+        if (academic_year_id > 2017) {
+            return getters.cslft_total_assets_combined_contribution + getters.cslft_parent_total_contribution;
         }
         else {
             return Math.round(0);

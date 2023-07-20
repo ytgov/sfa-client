@@ -14,7 +14,7 @@
                   label="Family Size"
                   @keypress="validate.isNumber($event)"
                   :disabled="isTotal"
-                  v-model="cslft.family_size"
+                  v-model="cslft.student_family_size"
                 ></v-text-field>
               </div>
             </div>
@@ -54,6 +54,7 @@
                     label="Gross Income"
                     @keypress="validate.isNumber($event)"
                     v-model="cslft.student_ln150_income"
+                    :disabled="isTotal"
                   ></v-text-field>
                 </div>
               </div>
@@ -69,6 +70,7 @@
                     label="Expeted Contribution"
                     @keypress="validate.isNumber($event)"
                     v-model="cslft.student_expected_contribution"
+                    :disabled="isTotal"
                   ></v-text-field>
                 </div>
               </div>
@@ -84,6 +86,7 @@
                     label="Previous Contribution"
                     @keypress="validate.isNumber($event)"
                     v-model="cslft.student_previous_contribution"
+                    :disabled="isTotal"
                   ></v-text-field>
                 </div>
               </div>
@@ -99,6 +102,7 @@
                     label="Net Contributuion"
                     @keypress="validate.isNumber($event)"
                     v-model="cslft.student_contribution"
+                    :disabled="isTotal"
                   ></v-text-field>
                 </div>
               </div>
@@ -121,7 +125,7 @@
             <div class="col-xs-12 col-sm-12 col-md-12 nopadding col-lg-12 d-flex">
               <div class="col-xs-12 col-sm-4 col-lg-4 nopadding d-flex flex-wrap mobile-low-margin">
                 <div class="col-xs-12 col-lg-12 nopadding height-fit-content d-flex justify-center">
-                  <v-switch label="Reduce on Re-Assess">
+                  <v-switch label="Reduce on Re-Assess" v-model="cslft.student_contribution_review">
                     </v-switch>
                 </div>
               </div>
@@ -180,6 +184,7 @@
                     label="Gross Income"
                     @keypress="validate.isNumber($event)"
                     v-model="cslft.spouse_ln150_income"
+                    :disabled="isTotal"
                   ></v-text-field>
                 </div>
               </div>
@@ -195,6 +200,7 @@
                     label="Expeted Contribution"
                     @keypress="validate.isNumber($event)"
                     v-model="cslft.spouse_expected_contribution"
+                    :disabled="isTotal"
                   ></v-text-field>
                 </div>
               </div>
@@ -210,6 +216,7 @@
                     label="Previous Contribution"
                     @keypress="validate.isNumber($event)"
                     v-model="cslft.spouse_previous_contribution"
+                    :disabled="isTotal"
                   ></v-text-field>
                 </div>
               </div>
@@ -225,6 +232,7 @@
                     label="Net Contributuion"
                     @keypress="validate.isNumber($event)"
                     v-model="cslft.spouse_contribution"
+                    :disabled="isTotal"
                   ></v-text-field>
                 </div>
               </div>
@@ -267,7 +275,7 @@
                 hide-details
                 label="Gross"
                 @keypress="validate.isNumber($event)"
-                v-model="gross"
+                v-model="cslft.other_income"
               ></v-text-field>
             </div>
           </div>
@@ -280,7 +288,8 @@
                 hide-details
                 label="Other Income Net"
                 @keypress="validate.isNumber($event)"
-                v-model="other_income_net"
+                v-model="cslft.other_income"
+                :disabled="isTotal"
               ></v-text-field>
             </div>
             <div class="col-xs-12 col-lg-12">
@@ -291,7 +300,7 @@
                 hide-details
                 label="Assest Override"
                 @keypress="validate.isNumber($event)"
-                v-model="asset_override"
+                v-model="cslft.married_assets"
               ></v-text-field>
             </div>
           </div>
@@ -307,7 +316,8 @@
                   background-color="white"
                   hide-details
                   @keypress="validate.isNumber($event)"
-                  v-model="total_assets"
+                  v-model="cslft_total_assets"
+                  :disabled="isTotal"
                 ></v-text-field>
               </div>
             </div>
@@ -322,7 +332,7 @@
                   background-color="white"
                   hide-details
                   @keypress="validate.isNumber($event)"
-                  :disabled="true"
+                  :disabled="isTotal"
                   v-model="cslft.combined_contribution"
                 ></v-text-field>
               </div>
@@ -336,8 +346,8 @@
 <script>
 import store from "@/store";
 import validator from "@/validator";
-import {mapState} from "vuex";
-import {ref} from "vue";
+import { mapState, mapGetters } from "vuex";
+import { ref } from "vue";
 export default {
   name: "cslft-contribution",
   setup() {
@@ -349,12 +359,41 @@ export default {
     }
   },
   computed: {
+    ...mapGetters([
+      "cslft_total_assets",
+    ]),
     ...mapState({
       cslft: state => state.cslft.cslft
     }),
     application: function () {
       return store.getters.selectedApplication;
     },
+  },
+  watch: {
+    "cslft.student_contribution_override": {
+      immediate: true,
+      handler(newValue) {
+        store.dispatch("setCslftCombinedContribution");
+      }
+    },
+    "cslft.spouse_contribution_override": {
+      immediate: true,
+      handler(newValue) {
+        store.dispatch("setCslftCombinedContribution");
+      }
+    },
+    "cslft.student_contribution_review": {
+      immediate: true,
+      handler(newValue) {
+        store.dispatch("setCslftCombinedContribution");
+      }
+    },
+    "cslft.spouse_contribution_review": {
+      immediate: true,
+      handler(newValue) {
+        store.dispatch("setCslftCombinedContribution");
+      }
+    }
   },
   async created() {
     this.applicationId = this.$route.params.id;

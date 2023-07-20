@@ -589,7 +589,7 @@ BEGIN
         Added subtraction of overaward YG
     */
 
-	SELECT  @previous_disbursement = COALESCE(sfa.fn_get_disbursed_amount_fct(@funding_request_id_p, @assessment_id_p),0),  
+	SELECT  @previous_disbursement = COALESCE(sfa.fn_get_disbursed_amount_fct(@funding_request_id_p, @assessment_id_p),0),
            @assessed_amount = COALESCE(assessed_amount,0),
             @over_award = COALESCE(over_award,0)
     FROM sfa.assessment
@@ -2185,6 +2185,7 @@ AS
 BEGIN
 	DECLARE @count INT = 0;
 	DECLARE @p_count INT = 0;
+    DECLARE @total INT = 0;
 	
 	SELECT
 		@p_count = CASE WHEN p1.first_name IS NOT NULL AND p1.last_name IS NOT NULL THEN 1 ELSE 0 END +
@@ -2197,8 +2198,15 @@ BEGIN
 	WHERE a.id = @application_id;
 
 	SET @count = sfa.fn_get_parent_dependent_count(@application_id, DEFAULT);
+    
+    SET @total = @count + @p_count;
 
-	RETURN @count + @p_count;
+    IF @total > 10
+    BEGIN
+        RETURN 10;
+    END;
+
+	RETURN @total;
 END;
 GO
 
@@ -3337,7 +3345,11 @@ BEGIN
 	SELECT @academic_year_id = app.academic_year_id
 		FROM sfa.application app
 	WHERE app.id = @applitacion_id
-	EXEC @second_res_amt = sfa.pr_get_residence_rate_sta @academic_year_id, @return_value_argument OUT;
+	--EXEC @second_res_amt = sfa.pr_get_residence_rate_sta @academic_year_id, @return_value_argument OUT;
+    SELECT  @second_res_amt =  sl.second_residence_amount
+    FROM sfa.sta_lookup sl
+    WHERE sl.academic_year_id = @academic_year_id
+
 	RETURN @second_res_amt
 END
 GO
