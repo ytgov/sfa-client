@@ -306,6 +306,7 @@ export default {
   props: {
     assessmentId: Number,
     fundingRequestId: Number,
+    refreshFrom: String,
     smallTitle: {
       type: Boolean,
       default: false
@@ -412,7 +413,7 @@ export default {
         }) || [];
       }
 
-      store.dispatch("refreshAssessment", { 
+      store.dispatch(this.dispatchRefreshFrom, { 
         application_id: this.application.id, 
         data: { ...this.customAssessment },
         disburseAmountList: [ ...previewDisburseAmountsList, ...disburseAmountsList ],
@@ -428,6 +429,9 @@ export default {
     application: function () {
       return store.getters.selectedApplication;
     },
+    dispatchRefreshFrom() {
+      return this.refreshFrom || "refreshAssessment"
+    }
   },
   async created() {
     this.validate = validator;

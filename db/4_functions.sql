@@ -589,7 +589,7 @@ BEGIN
         Added subtraction of overaward YG
     */
 
-	SELECT  @previous_disbursement = COALESCE(sfa.fn_get_disbursed_amount_fct(@funding_request_id_p, @assessment_id_p),0),  
+	SELECT  @previous_disbursement = COALESCE(sfa.fn_get_disbursed_amount_fct(@funding_request_id_p, @assessment_id_p),0),
            @assessed_amount = COALESCE(assessed_amount,0),
             @over_award = COALESCE(over_award,0)
     FROM sfa.assessment
@@ -3959,3 +3959,65 @@ BEGIN
 
 END;
 GO
+
+ -- FILE : ASSESSMENT_YG  --- FUNCTION: GET_NET
+
+CREATE OR ALTER FUNCTION sfa.fn_net_amount_yea(@funding_request_id_p INT, @assessment_id_p INT, @yea_used INT, @yea_earned INT, @application_id INT)
+RETURNS NUMERIC AS
+BEGIN
+    DECLARE @net_amt NUMERIC;
+    DECLARE @assessed_amount NUMERIC;
+    DECLARE @previous_disbursement NUMERIC;
+    DECLARE @yea_balance NUMERIC;
+    DECLARE @unused_receipts NUMERIC;
+
+    /*
+        This function calculates the net amount to be disbursed by subtracting the assessed amount
+        from the previous disbursements
+        Added subtraction of overaward YG
+    */
+    
+    SET @yea_balance = @yea_earned - @yea_used;
+
+    SET @unused_receipts = (
+        SELECT 
+            MIN(
+                MIN(
+                    ISNULL(yea_tot_receipt_amount, 0),
+                    @yea_balance
+                )
+            )
+        FROM 
+            sfa.application
+        WHERE id = @application_id
+    );
+
+	SET @previous_disbursement = COALESCE(sfa.fn_get_disbursed_amount_fct(@funding_request_id_p, @assessment_id_p),0);
+    SET @assessed_amount = @unused_receipts + @previous_disbursement
+    SET @net_amt = COALESCE(@assessed_amount, 0) - COALESCE(@previous_disbursement, 0)
+
+  IF @net_amt BETWEEN -1 AND 1 
+  	BEGIN
+  	    SET @net_amt = 0;
+    END;
+  
+  RETURN (SELECT @net_amt, @assessed_amount);
+END
+GO
+
+-- minval(
+--     minval(
+--         NVL(:history_detail.yea_tot_receipt_amount,0),
+--         :student.YEA_Balance
+--     ),
+--     :yea_funding_request.yea_request_amount
+-- );
+
+SELECT 
+                         COALESCE(sfa.fn_get_previous_weeks_yg(15242,  30344), 0) AS previous_weeks,
+                         COALESCE(sfa.fn_get_allowed_weeks ('2020-09-08', '2021-04-22'), 0) AS assessed_weeks,
+                         COALESCE(sfa.fn_get_disbursed_amount_fct(69685, 30813), 0) AS previous_disbursement,
+                         COALESCE(sfa.fn_net_amount(69685, 30813), 0) AS net_amount,
+                         COALESCE(sfa.fn_get_total_funded_years ( 15242, 30344), 0) AS years_funded,
+                         COALESCE(sfa.fn_get_yea_total(175713901), 0) AS yea_earned,
+                         COALESCE(sfa.fn_get_system_yea_used(15242), 0) AS yea_used;

@@ -274,7 +274,7 @@
                     background-color="white"
                     hide-details
                     label="Assessed Amount"
-                    v-model="customAssessment.assessed_amount"
+                    :value="customAssessment?.read_only_data?.assessed_amount"
                   >
                 </v-text-field>
               </div>
@@ -301,7 +301,7 @@
                   hide-details
                   label="Net Amount"
                   @keypress="validate.isNumber($event)"
-                  :value="customAssessment?.read_only_data?.net_amount ?? 0"
+                  :value="customAssessment?.read_only_data?.yea_net_amount ?? 0"
                 ></v-text-field>
               </div>
               <div class="col-sm-4 col-lg-5 noppading-bottom">
@@ -329,7 +329,8 @@
     </div>
     <Disbursement
       :assessmentId="customAssessment?.id" 
-      :fundingRequestId="customAssessment?.funding_request_id" 
+      :fundingRequestId="customAssessment?.funding_request_id"
+      :refreshFrom="'refreshAssessmentYEA'"
       v-on:showError="showError" 
       v-on:showSuccess="showSuccess" 
       v-on:blockDisburse="blockDisburse"  
@@ -423,7 +424,7 @@ export default {
       const filterDisbursements = this.disbursements.filter(d => d.assessment_id === custom?.id) || [];
 
       store.dispatch(
-          "updateAssessment",
+          "updateAssessmentYEA",
           {
             data: custom,
             disburseList: [ ...this.previewDisbursementList, ...filterDisbursements ],
