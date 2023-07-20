@@ -446,7 +446,5 @@ function cleanNumber(input: any): number {
     SQL_MAXVALUE
   );
 
-  console.log("CLEAN", num);
-
   return isNegative ? -num : num;
 }
