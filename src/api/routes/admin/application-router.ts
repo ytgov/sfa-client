@@ -6,7 +6,7 @@ import { DocumentService } from "../../services/shared";
 import { ReturnValidationErrors } from "../../middleware";
 import { DB_CONFIG } from "../../config";
 import { Buffer } from 'buffer';
-import { functionsIn, indexOf, orderBy, parseInt, min } from "lodash";
+import { functionsIn, indexOf, orderBy, parseInt, min, update } from "lodash";
 import { AssessmentYukonGrant, AssessmentYEA } from "../../repositories/assessment";
 
 const db = knex(DB_CONFIG)
@@ -2050,6 +2050,10 @@ applicationRouter.post("/:application_id/:funding_request_id/assessments",
                                 const resUpdate = await db("sfa.assessment")
                                 .where({ id: resSP[0].assessment_id_inserted })
                                 .update({ ...dataAssessment });
+                                
+                                const updateStatusFundingRequest = await db("sfa.funding_request")
+                                    .where({ id: funding_request_id })
+                                    .update({ status_id: 7 });
 
                                 return resUpdate
                                     ? res.json({
@@ -2061,6 +2065,11 @@ applicationRouter.post("/:application_id/:funding_request_id/assessments",
                                         data: [[ ...resSP ]],
                                     });
                             } else {
+
+                                const updateStatusFundingRequest = await db("sfa.funding_request")
+                                .where({ id: funding_request_id })
+                                .update({ status_id: 7 });
+
                                 return res.json({
                                     messages: [{ variant: "success" }],
                                     data: [ ...resSP ],
@@ -2191,7 +2200,7 @@ applicationRouter.post("/:application_id/:funding_request_id/assessments-with-di
                                     .insert({
                                         disbursement_type_id: item.disbursement_type_id,
                                         assessment_id: resSP[0].assessment_id_inserted,
-                                        funding_request_id: item.funding_request_id,
+                                        funding_request_id: funding_request_id,
                                         disbursed_amount: item.disbursed_amount,
                                         due_date: item.due_date,
                                         tax_year: item.tax_year,
@@ -2212,6 +2221,10 @@ applicationRouter.post("/:application_id/:funding_request_id/assessments-with-di
                                     })
                                     .returning("*");
                             }
+
+                            const updateStatusFundingRequest = await db("sfa.funding_request")
+                                .where({ id: funding_request_id })
+                                .update({ status_id: 7 });
 
                             return res.json({
                                 messages: [{ variant: "success" }],

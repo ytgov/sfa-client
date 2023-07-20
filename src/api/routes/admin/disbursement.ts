@@ -111,6 +111,11 @@ disbursementRouter.patch("/:id", [ param("id").isInt().notEmpty(), ], ReturnVali
                 .where({ id, funding_request_id: data.funding_request_id })
                 .update({ ...data });
 
+                
+            const updateStatusFundingRequest = await db("sfa.funding_request")
+                .where({ id: data.funding_request_id })
+                .update({ status_id: 7 });
+
             return resUpdate ?
                 res.json({ success: true, data: [], })
                 :
