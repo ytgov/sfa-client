@@ -6,8 +6,8 @@ import { DocumentService } from "../../services/shared";
 import { ReturnValidationErrors } from "../../middleware";
 import { DB_CONFIG } from "../../config";
 import { Buffer } from 'buffer';
-import { functionsIn, indexOf, orderBy, parseInt } from "lodash";
-import { AssessmentYukonGrant } from "../../repositories/assessment";
+import { functionsIn, indexOf, orderBy, parseInt, min } from "lodash";
+import { AssessmentYukonGrant, AssessmentYEA } from "../../repositories/assessment";
 
 const db = knex(DB_CONFIG)
 export const applicationRouter = express.Router();
@@ -1941,10 +1941,14 @@ applicationRouter.get("/:application_id/:funding_request_id/assessments",
             const application = await db("sfa.application")
                 .where({ id: application_id })
                 .first();
-
+            
             const fundingRequest = await db("sfa.funding_request")
                 .where({ application_id })
                 .where({ id: funding_request_id })
+                .first();
+
+            const student = await db("sfa.student")
+                .where({ "student.id": application.student_id })
                 .first();
 
             if (application && fundingRequest) {
@@ -1955,21 +1959,35 @@ applicationRouter.get("/:application_id/:funding_request_id/assessments",
                 if (getAsessment?.length) {
 
                     for (let item of getAsessment) {
-                        // if (!item.classes_end_date || !item.classes_start_date) {
-                            
-                            
-                        // }
+
                         const readOnlyData = await db.raw(
                             `SELECT 
                             COALESCE(sfa.fn_get_previous_weeks_yg(${application.student_id},  ${application_id}), 0) AS previous_weeks,
                             COALESCE(sfa.fn_get_allowed_weeks ('${moment(application.classes_start_date).format("YYYY-MM-DD")}', '${moment(application.classes_end_date).format("YYYY-MM-DD")}'), 0) AS assessed_weeks,
                             COALESCE(sfa.fn_get_disbursed_amount_fct(${funding_request_id}, ${item.id}), 0) AS previous_disbursement,
                             COALESCE(sfa.fn_net_amount(${funding_request_id}, ${item.id}), 0) AS net_amount,
-                            COALESCE(sfa.fn_get_total_funded_years ( ${application.student_id}, ${application_id}), 0) AS years_funded;
+                            COALESCE(sfa.fn_get_total_funded_years ( ${application.student_id}, ${application_id}), 0) AS years_funded,
+                            COALESCE(sfa.fn_get_yea_total(${student.yukon_id}), 0) AS yea_earned,
+                            COALESCE(sfa.fn_get_system_yea_used(${student.id}), 0) AS yea_used;
                             `
                         );
                         
+
                         item.read_only_data = readOnlyData?.[0] || {};
+
+                        const yea_balance = item.read_only_data.yea_earned - item.read_only_data.yea_used;
+                        const unused_receipts = min([min([(application.yea_tot_receipt_amount || 0), yea_balance]), fundingRequest.yea_request_amount])
+                        const assessed_amount = unused_receipts + item.read_only_data.previous_disbursement;
+                        const yea_net_amount = assessed_amount - item.read_only_data.previous_disbursement;
+
+                        item.read_only_data = {
+                            yea_net_amount,
+                            yea_balance,
+                            unused_receipts,
+                            assessed_amount,
+                            ...item.read_only_data
+                        }
+
                     }
     
                 }
@@ -2317,7 +2335,7 @@ applicationRouter.get("/:application_id/:funding_request_id/preview-assessment",
                     `
                 );
                 const calculateValues = preview?.[0];
-                
+
                 calculateValues.destination_city_id = calculateValues.destination_city;
                 const readOnlyData = await db.raw(
                     `SELECT 
@@ -2379,7 +2397,7 @@ applicationRouter.get("/:application_id/:funding_request_id/preview-assessment-y
                     `
                 );
                 const calculateValues = preview?.[0];
-                
+                console.log("ENTRE AQ")
                 const readOnlyData = await db.raw(
                     `SELECT 
                     COALESCE(sfa.fn_get_disbursed_amount_fct(${funding_request_id}, -1), 0) AS previous_disbursement,
@@ -2503,15 +2521,15 @@ applicationRouter.post("/:application_id/assessment/:assessment_id/disburse-yea"
                 .first();
             if (application) {
                 const response = await db("sfa.disbursement")
-                    .insert({
-                        assessment_id,
-                        funding_request_id: data.funding_request_id,
-                        disbursement_type_id: funding_request.yea_request_type == 1 ? 3 : 1,
-                        disbursed_amount: data.read_only_data.net_amount,
-                        tax_year: new Date().getFullYear(),
-                        paid_amount: data.read_only_data.net_amount,
-                    })
-                    .returning("*");
+                    // .insert({
+                    //     assessment_id,
+                    //     funding_request_id: data.funding_request_id,
+                    //     disbursement_type_id: funding_request.yea_request_type == 1 ? 3 : 1,
+                    //     disbursed_amount: data.read_only_data.net_amount,
+                    //     tax_year: new Date().getFullYear(),
+                    //     paid_amount: data.read_only_data.net_amount,
+                    // })
+                    // .returning("*");
 
 
                 // console.log("🚀 ~ file: application-router.ts:2486 ~ response:", response)
@@ -2523,9 +2541,17 @@ applicationRouter.post("/:application_id/assessment/:assessment_id/disburse-yea"
                             ...d,
                         };
                     });
+                    
                     return res.json({
                         messages: [{ variant: "success" }],
-                        data: [ ...disbursementList ],
+                        data: [{
+                            assessment_id,
+                            funding_request_id: data.funding_request_id,
+                            disbursement_type_id: funding_request.yea_request_type == 1 ? 3 : 1,
+                            disbursed_amount: data.read_only_data.yea_net_amount,
+                            tax_year: new Date().getFullYear(),
+                            paid_amount: data.read_only_data.yea_net_amount,
+                        }],
                     });
                 } else {
                     return res.json({
@@ -2687,3 +2713,39 @@ applicationRouter.post("/:application_id/update-preview",
         }   
     }
 );
+
+applicationRouter.post("/:application_id/update-preview-yea",
+    [
+        param("application_id").isInt().notEmpty(),
+    ], 
+    ReturnValidationErrors, 
+    async (req: Request, res: Response) => {
+        try {
+            const { application_id } = req.params;
+            const { data, disburseAmountList } = req.body;
+
+            const application = await db("sfa.application")
+                .where({ id: application_id })
+                .first();
+
+            const  assessmentMethods = new AssessmentYEA(db);
+            
+            const results: any = await assessmentMethods.getRefreshAssessmentData(data, disburseAmountList, application.student_id, Number(application_id));
+            
+            if (results) {
+                results.read_only_data = {
+                    ...results.calculatedData
+                }
+            }
+
+            return res.json({ messages: [{ variant: "success", text: "ok"}], data: [ results ] });
+
+        } catch (error) {
+            console.log(error);
+            return res.status(409).send({ messages: [{ variant: "error", text: "Error get data" }] });
+        }   
+    }
+);
+
+// :assessment.assessed_amount := :assessment.unused_receipts + :assessment.previous_disbursement;
+// NOTE: THIS ALSO IS AFFECTED WHEN A DISBURSEMENT IS ADDED IT; even if it is not saved, you must load it in preview mode.
