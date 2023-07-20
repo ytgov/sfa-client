@@ -188,12 +188,12 @@ const actions = {
                 const data = vals.data.map(d => {
                     delete d.issue_date_menu;
                     delete d.due_date_menu;
-                    return { ...d };
+                    return { ...d, funding_request_id: vals.funding_request_id };
                 });
                 const res = await axios.post(DISBURSEMENT, { 
                     data: [ ...data ],
                     isList:  vals.isList
-                });
+                }); 
     
                 if (res?.data?.success) {
                     emiter?.$emit("showSuccess", "Added!");

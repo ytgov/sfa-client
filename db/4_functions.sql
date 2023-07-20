@@ -3967,3 +3967,78 @@ BEGIN
 
 END;
 GO
+
+-- FILE : ASSESSMENT_SFA  --- FUNCTION: GET_DISBURSEMENTS_ALLOWED
+CREATE OR ALTER FUNCTION sfa.fn_get_disbursements_allowed_sta(
+	@application_institution_campus_id INT,
+	@assessment_id INT
+)
+RETURNS numeric(10,2)
+AS
+BEGIN
+	DECLARE
+		@v_disb_allowed numeric(10,2) = 1,
+		@v_weeks_after_issue float (8),
+		@v_weeks_before_issue numeric(10,2),
+		@v_federal_institution_code varchar(100),
+		@v_disbursement_issue_date date,
+		@assessment_effective_rate_date date,
+		@assessment_weeks_allowed float(8)
+	SELECT @v_federal_institution_code = sfa.fn_get_short_name_sta(@application_institution_campus_id)
+	SELECT @v_disbursement_issue_date = dis.issue_date from sfa.disbursement dis where dis.assessment_id = @assessment_id	
+	SELECT @assessment_effective_rate_date = a.effective_rate_date from sfa.assessment a where a.id = @assessment_id
+	SELECT @assessment_weeks_allowed = a.weeks_allowed from sfa.assessment a where a.id = @assessment_id
+	IF  @v_federal_institution_code = 'LPAH'
+	BEGIN
+		SELECT @v_weeks_before_issue = CEILING(DATEDIFF(week,ISNULL(@v_disbursement_issue_date,GETDATE()),@assessment_effective_rate_date))
+		SELECT @v_weeks_after_issue = floor(@assessment_weeks_allowed - @v_weeks_before_issue)
+		SELECT @v_disb_allowed = CEILING(@v_weeks_after_issue/2)+1
+		IF @v_disb_allowed < 1
+		BEGIN
+			SET @v_disb_allowed = 1
+		END
+	END
+RETURN @v_disb_allowed
+END
+GO
+
+-- FILE : INSTITUTION_PCK_1.sql  --- FUNCTION: get_short_name_fct
+CREATE OR ALTER FUNCTION sfa.fn_get_short_name_sta
+(
+	@institution_id_p INT
+)
+RETURNS varchar(100)
+AS
+BEGIN
+	DECLARE @federal_institution_code varchar(20);
+
+    SELECT @federal_institution_code = ins.federal_institution_code 
+    FROM sfa.institution_campus ic  
+    INNER JOIN sfa.institution ins ON ic.institution_id = ins.id 
+    WHERE ic.id = @institution_id_p
+
+	RETURN @federal_institution_code
+END
+GO
+
+CREATE OR ALTER FUNCTION sfa.fn_get_weeks_calc_sta ( @start_date DATE, @end_date DATE ) 
+RETURNS NUMERIC AS
+BEGIN
+	DECLARE @days_allowed NUMERIC;
+	DECLARE @weekend_days NUMERIC;
+	DECLARE @actual_days NUMERIC;
+	DECLARE @wk_allowed NUMERIC;
+
+    SET @days_allowed = DATEDIFF(DAY, @start_date, @end_date) + 1;
+    SET @weekend_days = ROUND(( (@days_allowed-2)/7 ), 0) * 2;
+    SET @actual_days = @days_allowed - @weekend_days;
+    SET @wk_allowed = (@actual_days) / 5;
+  
+  IF @wk_allowed > 40
+  BEGIN
+  	SET @wk_allowed = 40;
+  END
+  
+  RETURN @wk_allowed;
+END
+GO
