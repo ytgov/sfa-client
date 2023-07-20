@@ -450,7 +450,7 @@ export default {
       }
       
     
-      store.dispatch("refreshAssessment", { 
+      store.dispatch("refreshAssessmentYEA", { 
         application_id: this.application.id, 
         data: { ...this.customAssessment },
         disburseAmountList: [ ...previewDisburseAmountsList, ...disburseAmountsList ],

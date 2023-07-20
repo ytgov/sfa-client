@@ -2541,15 +2541,16 @@ applicationRouter.post("/:application_id/assessment/:assessment_id/disburse-yea"
                             ...d,
                         };
                     });
+                    
                     return res.json({
                         messages: [{ variant: "success" }],
                         data: [{
                             assessment_id,
                             funding_request_id: data.funding_request_id,
                             disbursement_type_id: funding_request.yea_request_type == 1 ? 3 : 1,
-                            disbursed_amount: data.read_only_data.net_amount,
+                            disbursed_amount: data.read_only_data.yea_net_amount,
                             tax_year: new Date().getFullYear(),
-                            paid_amount: data.read_only_data.net_amount,
+                            paid_amount: data.read_only_data.yea_net_amount,
                         }],
                     });
                 } else {

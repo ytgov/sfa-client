@@ -412,7 +412,7 @@ export default {
           return Number(d.disbursed_amount);
         }) || [];
       }
-
+      console.log(this.dispatchRefreshFrom);
       store.dispatch(this.dispatchRefreshFrom, { 
         application_id: this.application.id, 
         data: { ...this.customAssessment },
