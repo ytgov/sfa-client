@@ -325,7 +325,7 @@ export function FundingFromDraft(draft: any): any[] {
           status_date: new Date(),
           entering_first_year: draft.program_details.year_entering == 1,
           student_is_in_ft_study: draft.program_details.attendance == "Full Time",
-          csl_request_amount: application_type_id == 2 ? loan_amount : 0,
+          csl_request_amount: application_type_id == 2 ? cleanNumber(loan_amount) : 0,
           is_csl_full_amount: application_type_id == 2 && csfa_amounts == "Full amount loans and grants",
         });
     }
@@ -382,7 +382,7 @@ export function OtherFundingFromDraft(draft: any): any[] {
     for (let funding of draft.other_funding.other_fundings) {
       fundings.push({
         agency_id: funding.agency,
-        amount: funding.amount,
+        amount: cleanNumber(funding.amount),
         is_tuition: funding.purposes.includes("Tuition"),
         is_living_expenses: funding.purposes.includes("Living Expenses"),
         is_books: funding.purposes.includes("Books"),
@@ -406,7 +406,7 @@ export function IncomeFromDraft(draft: any): any[] {
       incomes.push({
         income_type_id: income.type,
         comment: income.comments,
-        amount: income.amount,
+        amount: cleanNumber(income.amount),
       });
     }
   }
@@ -422,10 +422,31 @@ export function ExpensesFromDraft(draft: any): any[] {
       expenses.push({
         income_type_id: income.type,
         comment: income.comments,
-        amount: income.amount,
+        amount: cleanNumber(income.amount),
       });
     }
   }
 
   return expenses;
+}
+
+const SQL_MAXVALUE = 99999999.99;
+
+function cleanNumber(input: any): number {
+  let isNegative = false;
+  input = (input || "").trim();
+
+  if (input.indexOf("(") >= 0) {
+    isNegative = true;
+    input = input.replace("(", "").replace(")", "").trim();
+  }
+
+  let num = Math.min(
+    Number(Number(input.replace("$", "").replace(/,/g, "").replace(/-/g, "").trim()).toFixed(2)),
+    SQL_MAXVALUE
+  );
+
+  console.log("CLEAN", num);
+
+  return isNegative ? -num : num;
 }
