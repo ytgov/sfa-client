@@ -906,7 +906,7 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
         return this.assessment.combined_contribution;
     }
 
-    async calculateParentWeeklyContrib(person_id: number, academic_year_id: number, assessment: Partial<AssessmentDTO>): Promise<number | undefined> {
+    async calculateParentWeeklyContrib(person_id: number, academic_year_id: number, assessment: Partial<AssessmentDTO>): Promise<number> {
 
         this.assessment = assessment;
 
@@ -937,7 +937,7 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
 
         await this.getCalcParentContributions(person_id, academic_year_id, studyCodes);
 
-        return this.assessment.parent_weekly_contrib;
+        return this.assessment.parent_weekly_contrib ?? 0;
     }
 
     async executeDisburse(funding_request_id: number, assessment: Partial<AssessmentDTO> = {}): Promise<Partial<CslftResultDTO>> {
