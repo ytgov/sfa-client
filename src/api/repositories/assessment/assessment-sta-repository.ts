@@ -56,12 +56,6 @@ export class AssessmentSTA extends AssessmentBaseRepository {
             initValues.destination_city_id || 0
         ]);
         initValues.weekly_amount = await this.getScalarValue<number>("fn_get_weekly_amount_sta", [application_id]);
-        initValues.assessed_amount = await this.getScalarValue<number>("fn_get_other_inst_total_sta", [
-            initValues.weekly_amount || 0,
-            initValues.second_residence_rate,
-            0, // initValues.entitlement_days
-            initValues.travel_allowance
-        ]);
 
         if (disbursementList.length) {
             let disbursedAmounts = disbursementList.map((d) => {
@@ -74,11 +68,6 @@ export class AssessmentSTA extends AssessmentBaseRepository {
                 assessment_id // assessment_id
             ]);
         }
-
-        initValues.net_amount = await this.getScalarValue<number>("fn_get_net_sta", [
-            initValues.assessed_amount || 0,
-            initValues.previous_disbursement || 0,
-        ]);
         initValues.assessment_type_id = 1;
         initValues.years_funded = await this.getScalarValue<number>("fn_get_total_funded_years", [this.application.student_id || 0, application_id]);
         initValues.disbursements_required = 1; // always is 1
@@ -97,7 +86,7 @@ export class AssessmentSTA extends AssessmentBaseRepository {
             `'Normal'`,
             application_id
         ]);
-        
+
         initValues.weeks_allowed = await this.getScalarValue<number>("fn_get_weeks_allowed_sta", [
             initValues.previous_weeks || 0,
             initValues.assessed_weeks || 0,
@@ -107,6 +96,12 @@ export class AssessmentSTA extends AssessmentBaseRepository {
             "'Upgrade'",
             this.application.student_id || 0,
             this.application.id || 0
+        ]);
+        initValues.assessed_amount = (((initValues.weekly_amount + initValues.second_residence_rate) * initValues.weeks_allowed) + initValues.travel_allowance);
+
+        initValues.net_amount = await this.getScalarValue<number>("fn_get_net_sta", [
+            initValues.assessed_amount || 0,
+            initValues.previous_disbursement || 0,
         ]);
 
         return initValues;
@@ -151,7 +146,7 @@ export class AssessmentSTA extends AssessmentBaseRepository {
         return values;
     }
 
-    async refreshData(
+    async refreshAssessmentData(
         assessment: AssessmentDTO,
         disbursementList: DisbursementDTO[],
         application_id: number,
@@ -184,10 +179,6 @@ export class AssessmentSTA extends AssessmentBaseRepository {
             refreshData.previous_disbursement = disbursedAmounts.reduce((a, b) => a + b, 0);
         }
 
-        refreshData.net_amount = await this.getScalarValue<number>("fn_get_net_sta", [
-            refreshData.assessed_amount || 0,
-            refreshData.previous_disbursement || 0,
-        ]);
         refreshData.years_funded = await this.getScalarValue<number>("fn_get_total_funded_years", [this.application.student_id || 0, application_id]);
         refreshData.disbursements_required = 1; // always is 1
         refreshData.previous_weeks = await this.getScalarValue<number>("fn_get_previous_weeks_sfa", [
@@ -218,7 +209,55 @@ export class AssessmentSTA extends AssessmentBaseRepository {
             this.application.id || 0
         ]);
 
+        refreshData.assessed_amount = (((refreshData.weekly_amount + refreshData.second_residence_rate) * refreshData.weeks_allowed) + refreshData.travel_allowance);
+
+        refreshData.net_amount = await this.getScalarValue<number>("fn_get_net_sta", [
+            refreshData.assessed_amount || 0,
+            refreshData.previous_disbursement || 0,
+        ]);
+
         return refreshData;
+    }
+
+    async disburseAssessment(
+        assessment: AssessmentDTO,
+    ): Promise<AssessmentDTO> {
+
+        let assessmentInfo: AssessmentDTO = { ...assessment };
+        const disbursement: DisbursementDTO = {};
+        let v_amount_remaining: number;
+        let v_weeks_before_issue: number;
+
+        if (assessmentInfo.net_amount && assessmentInfo.net_amount >= 0) {
+            v_amount_remaining = assessment.net_amount || 0;
+
+
+            const disbursements_allowed = await this.getScalarValue<number>("fn_get_disbursements_allowed_sta", [
+                "'Upgrade'",
+                this.application.institution_campus_id || 0,
+                assessmentInfo.id ?? 0
+            ]);
+
+            for (let i = 1; i <= disbursements_allowed; i++) {
+                disbursement.assessment_id = assessment.id;
+                disbursement.funding_request_id = assessment.funding_request_id;
+                
+                if (!disbursement?.financial_batch_id) {
+                    //if (:system.cursor_record = '1' AND :disbursement.disbursed_amount IS NULL) {
+                    if (!disbursement?.disbursed_amount) {
+                        // de donde sale issue_date de este disbursemente
+                        v_weeks_before_issue = Math.ceil(moment(disbursement.issue_date?.toString().slice(0, 10) || assessment.effective_rate_date?.toString().slice(0, 10)).diff(assessment.effective_rate_date?.toString().slice(0, 10), "weeks"));
+                        
+                        disbursement.disbursed_amount = (assessment.weekly_amount ?? 0) * v_weeks_before_issue + (assessment.travel_allowance ?? 0);
+                        disbursement.due_date = disbursement.issue_date;
+                        disbursement.tax_year = parseInt(disbursement.due_date?.toString().slice(0, 4)|| "0") || undefined;
+                    }
+
+                }
+            }
+        }
+
+        return assessmentInfo;
     }
 
     async saveAssessment(
@@ -235,6 +274,30 @@ export class AssessmentSTA extends AssessmentBaseRepository {
                     await this.updateDisbursements(disburse);
                 } else {
                     disburse.assessment_id = assessment_id;
+                    disburse.funding_request_id = assessment.funding_request_id;
+                    await this.insertDisbursements(disburse);
+                }
+            }
+
+            return assessInfo;
+        } catch (error) {
+            return undefined;
+        }
+    }
+
+    async newAssessment(
+        assessment: AssessmentDTO,
+        disbursementList: DisbursementDTO[],
+    ): Promise<AssessmentDTO[] | undefined> {
+
+        try {
+            const assessInfo: AssessmentDTO[] = await this.insertAssessment(assessment);
+
+            for (const disburse of disbursementList) {
+                if (disburse?.id) {
+                    await this.updateDisbursements(disburse);
+                } else if (assessInfo?.[0]?.id) {
+                    disburse.assessment_id = assessInfo[0].id;
                     disburse.funding_request_id = assessment.funding_request_id;
                     await this.insertDisbursements(disburse);
                 }
