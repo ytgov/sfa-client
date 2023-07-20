@@ -589,7 +589,7 @@ BEGIN
         Added subtraction of overaward YG
     */
 
-	SELECT  @previous_disbursement = COALESCE(sfa.fn_get_disbursed_amount_fct(@funding_request_id_p, @assessment_id_p),0),  
+	SELECT  @previous_disbursement = COALESCE(sfa.fn_get_disbursed_amount_fct(@funding_request_id_p, @assessment_id_p),0),
            @assessed_amount = COALESCE(assessed_amount,0),
             @over_award = COALESCE(over_award,0)
     FROM sfa.assessment
