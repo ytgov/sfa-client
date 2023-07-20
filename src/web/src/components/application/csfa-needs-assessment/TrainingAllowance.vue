@@ -58,7 +58,7 @@
                     <template v-slot:activator="{ on, attrs }">
                       <v-text-field
                         :value="assessment.assessed_date?.slice(0, 10)"
-                        label="Assesst Date"
+                        label="Assessed Date"
                         append-icon="mdi-calendar"
                         hide-details
                         readonly
@@ -75,6 +75,7 @@
                         assessment.assessed_date = e;
                         assessed_date_menu = false;
                       }"
+                      @change="refresh"
                     ></v-date-picker>
                   </v-menu>
                 </div>
@@ -108,6 +109,7 @@
                         assessment.effective_rate_date = e;
                         effective_rate_date_menu = false;
                       }"
+                      @change="refresh"
                     ></v-date-picker>
                   </v-menu>
                 </div>
@@ -141,6 +143,7 @@
                           assessment.classes_start_date = e;
                           classes_start_date_menu = false;
                         }"
+                        @change="refresh"
                       ></v-date-picker>
                   </v-menu>
                 </div>
@@ -174,6 +177,7 @@
                           assessment.classes_start_date = e;
                           classes_end_date_menu = false;
                         }"
+                        @change="refresh"
                       ></v-date-picker>
                   </v-menu>
                 </div>
@@ -190,6 +194,7 @@
                     item-text="description"
                     item-value="id"
                     v-model="assessment.home_city_id"
+                    @change="refresh"
                   ></v-autocomplete>
                 </div>
                 <div class="col-xs-12 col-lg-12">
@@ -203,6 +208,7 @@
                     item-text="description"
                     item-value="id"
                     v-model="assessment.destination_city_id"
+                    @change="refresh"
                   ></v-autocomplete>
                 </div>
                 <div class="col-xs-12 col-lg-6">
@@ -214,6 +220,7 @@
                     label="Dependent Count"
                     @keypress="validate.isNumber($event)"
                     v-model="assessment.dependent_count"
+                    @change="refresh"
                   ></v-text-field>
                 </div>
                 <div class="col-xs-12 col-lg-6">
@@ -225,6 +232,7 @@
                     label="2nd Residence Rate"
                     @keypress="validate.isNumber($event)"
                     v-model="assessment.second_residence_rate"
+                    @change="refresh"
                   ></v-text-field>
                 </div>
               </div>
@@ -243,6 +251,7 @@
                     label="Fraction of whole year"
                     @keypress="validate.isNumber($event)"
                     v-model="assessment.years_funded_equivalent"
+                    @change="refresh"
                   ></v-text-field>
                 </div>
               </div>
@@ -478,6 +487,7 @@
                 hide-details
                 @keypress="validate.isNumber($event)"
                 v-model="item.disbursed_amount"
+                @change="refresh"
               ></v-text-field>
             </div>
             <div class="col-xs-1 col-sm-1 col-lg-1 nopadding">
@@ -488,6 +498,7 @@
                 hide-details
                 @keypress="validate.isNumber($event)"
                 v-model="item.transaction_number"
+                @change="refresh"
               ></v-text-field>
             </div>
             <div class="col-xs-2 col-sm-2 col-lg-2 nopadding">
@@ -498,6 +509,7 @@
                 background-color="white"
                 hide-details
                 v-model="item.disbursement_type_id"
+                @change="refresh"
                 item-text="DESCRIPTION"
                 item-value="REQUEST_TYPE_ID"
               ></v-select>
@@ -510,6 +522,7 @@
                 hide-details
                 @keypress="validate.isNumber($event)"
                 v-model="item.issue_date"
+                @change="refresh"
               ></v-text-field>
             </div>
             <div class="col-xs-5 col-sm-5 col-lg-5 nopadding">
@@ -520,6 +533,7 @@
                 background-color="white"
                 hide-details
                 v-model="item.change_reason_id"
+                @change="refresh"
                 item-text="DESCRIPTION"
                 item-value="REQUEST_TYPE_ID"
               ></v-select>
@@ -532,6 +546,7 @@
                 hide-details
                 @keypress="validate.isNumber($event)"
                 v-model="item.financial_batch_id"
+                @change="refresh"
               ></v-text-field>
             </div>
           </div>
@@ -559,10 +574,19 @@ export default {
   props: {
     fundingRequestId: Number,
   },
+  data() {
+    return {
+      assessed_date_menu: false,
+      classes_start_date_menu: false,
+      classes_end_date_menu: false,
+      effective_rate_date_menu: false,
+    }
+  },
   computed: {
     ...mapGetters({
       assessment: "assessmentSTA",
       disbursements: "disbursementListSTA",
+      assessment: "assessmentSTA",
       application: "selectedApplication",
       cities: "cities",
     }),
@@ -572,7 +596,8 @@ export default {
       saveSTAAssessment: "saveSTAAssessment",
       addDisburse: "addItemDisbursementListSTA",
       cancelDisburse: "cancelItemDisbursementListSTA",
-      removeSTADisbursement: "removeSTADisbursement"
+      removeSTADisbursement: "removeSTADisbursement",
+      refresh: "refreshSTA",
     }),
     save() {
       this.saveSTAAssessment(this);
