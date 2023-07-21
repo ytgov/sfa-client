@@ -14,8 +14,8 @@ export interface AssessmentDTO extends IAssessmentCalculated{
     asset_tax_rate?: number;
     books_supplies_cost?: number;
     change_reason_comment?: string;
-    classes_end_date?: Date;
-    classes_start_date?: Date;
+    classes_end_date?: Date | string;
+    classes_start_date?: Date | string;
     csl_assessed_need?: number;
     csl_classification?: number;
     csl_full_amt_flag?: boolean;
