@@ -131,6 +131,8 @@ Writing code and developing in this application requires running three services:
                 , N'Admin');"
     ```
 
+16. You should now be able to log in at http://localhost:8080, assuming you have an appropriate Auth0 or YNet account.
+
 ---
 
 To access the Database console directly use:
