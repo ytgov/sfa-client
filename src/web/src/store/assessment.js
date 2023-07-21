@@ -246,8 +246,9 @@ const actions = {
                 return;
             }
 
-            const res = await axios.get(
+            const res = await axios.post(
                 APPLICATION_URL + `/${vals.application_id}/${vals.funding_request_id}/assessments/${vals.assessment_id}/re-calc`,
+                {disbursementList: vals.disbursementList }
             );
 
             const message = res?.data?.messages[0];
