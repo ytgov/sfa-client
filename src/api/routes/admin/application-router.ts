@@ -2274,7 +2274,7 @@ applicationRouter.post("/:application_id/:funding_request_id/assessments-with-di
                                 //         .update({ yea_tot_receipt_amount: dataApplication.yea_tot_receipt_amount })
                                 // }
 
-                                console.log("🚀 ~ file: application-router.ts:2257 ~ db.transaction ~ insert_response:", dataApplication)
+                            
                                 // Insert the disbursement list
                             for (const item of dataDisburse) {
                                 const resInsert = await db("sfa.disbursement")
@@ -2659,7 +2659,7 @@ applicationRouter.post("/:application_id/assessment/:assessment_id/disburse-yea"
                     // .returning("*");
 
 
-                // console.log("🚀 ~ file: application-router.ts:2486 ~ response:", response)
+                /
 
                 if (response?.length) {
                     const disbursementList = response.map( (d: any) => {

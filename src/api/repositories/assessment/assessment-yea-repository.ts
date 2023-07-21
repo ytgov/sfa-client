@@ -44,18 +44,12 @@ export class AssessmentYEA extends AssessmentBaseRepository {
         }
 
         const yea_earned = await this.getScalarValue<number>("fn_get_yea_total", [this.student.yukon_id!]);
-        console.log("🚀 ~ file: assessment-yea-repository.ts:47 ~ AssessmentYEA ~  yea_earned:",  yea_earned)
         const yea_used = await this.getScalarValue<number>("fn_get_system_yea_used", [student_id]);
-        console.log("🚀 ~ file: assessment-yea-repository.ts:49 ~ AssessmentYEA ~  yea_used:",  yea_used)
 
         const yea_balance = yea_earned - yea_used;
-        console.log("🚀 ~ file: assessment-yea-repository.ts:52 ~ AssessmentYEA ~  yea_balance:",  yea_balance)
         const unused_receipts = min([min([(Number(updated_application.yea_tot_receipt_amount) || this.application.yea_tot_receipt_amount || 0), yea_balance]), this.fundingRequest.yea_request_amount])
-        console.log("🚀 ~ file: assessment-yea-repository.ts:54 ~ AssessmentYEA ~  unused_receipts:",  unused_receipts)
         const assessed_amount = (unused_receipts || 0) + (disbursed_amt || 0);
-        console.log("🚀 ~ file: assessment-yea-repository.ts:56 ~ AssessmentYEA ~  assessed_amount:",  assessed_amount)
         const yea_net_amount = assessed_amount - (disbursed_amt || 0);
-        console.log("🚀 ~ file: assessment-yea-repository.ts:58 ~ AssessmentYEA ~  yea_net_amount:",  yea_net_amount)
 
         refreshedData.previous_disbursement = disbursed_amt || 0;
         refreshedData.classes_end_date = assessment.classes_end_date;
