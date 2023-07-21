@@ -104,6 +104,49 @@ Writing code and developing in this application requires running three services:
 
     You will now have the Vue CLI server hosting the application at http://localhost:8080 and you can begin editing the API or front-end code. **All changes to the files in the `src/api` and `src/web` will automatically reload there respective applications.**
 
+13. Add some logging to `src/api/routes/auth.ts`. After the line
+
+    ```js
+    let user = AuthUser.fromOpenId(req.oidc.user);
+    ```
+
+    add the line
+
+    ```js
+    console.log("user.sub", user.sub);
+    ```
+
+14. Attempt to login via the login page at http://localhost:8080, and check for your "sub" (token?) in the `src/api` back-end logs.
+
+15. Now manually add your user account info to the database via
+
+    ```bash
+    docker compose \
+       -f docker-compose.dev.yml \
+       exec -it db \
+       /opt/mssql-tools/bin/sqlcmd \
+          -U sa \
+          -s localhost \
+          -P Testing1122 \
+          -d SFADB_DEV \
+          -Q "INSERT INTO sfa.[USER](
+                email
+                , is_active
+                , first_name
+                , last_name
+                ,[position]
+                , sub
+                , roles)
+             VALUES (
+                N'your.email@something.com'
+                , 1
+                , N'YourFirstName'
+                , N'YourLastName'
+                , N'Some Position'
+                , N'your-sub-token-from-the-logs'
+                , N'Admin');"
+    ```
+
 ---
 
 To access the Database console directly use:
