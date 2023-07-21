@@ -1963,7 +1963,7 @@ applicationRouter.get("/:application_id/:funding_request_id/assessments",
                         const readOnlyData = await db.raw(
                             `SELECT 
                             COALESCE(sfa.fn_get_previous_weeks_yg(${application.student_id},  ${application_id}), 0) AS previous_weeks,
-                            COALESCE(sfa.fn_get_allowed_weeks ('${moment(application.classes_start_date?.toISOString().slice(0, 10)).format("YYYY-MM-DD")}', '${moment(application.classes_end_date?.toISOString().slice(0, 10)).format("YYYY-MM-DD")}'), 0) AS assessed_weeks,
+                            COALESCE(sfa.fn_get_allowed_weeks ('${moment(getAsessment[0].classes_start_date?.toISOString().slice(0, 10)).format("YYYY-MM-DD")}', '${moment(getAsessment[0].classes_end_date?.toISOString().slice(0, 10)).format("YYYY-MM-DD")}'), 0) AS assessed_weeks,
                             COALESCE(sfa.fn_get_disbursed_amount_fct(${funding_request_id}, ${item.id}), 0) AS previous_disbursement,
                             COALESCE(sfa.fn_net_amount(${funding_request_id}, ${item.id}), 0) AS net_amount,
                             COALESCE(sfa.fn_get_total_funded_years ( ${application.student_id}, ${application_id}), 0) AS years_funded,
@@ -2467,7 +2467,8 @@ applicationRouter.post("/:application_id/assessment/:assessment_id/disburse",
                         ${data.weekly_amount ?? null},
                         ${data.assessment_adj_amount ?? null},
                         ${data.assessed_amount ?? null},
-                        ${data.program_division ?? 0};
+                        ${data.program_division ?? 0},
+                        ${data?.read_only_data?.net_amount ?? 0}
                     `
                 );
 

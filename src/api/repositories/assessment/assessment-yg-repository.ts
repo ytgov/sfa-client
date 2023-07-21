@@ -14,7 +14,7 @@ export class AssessmentYukonGrant extends AssessmentBaseRepository {
         this.applicationRepo = new ApplicationRepository(maindb);
     }
     async getNewInfo(
-        application_id: number, 
+        application_id: number,
         assessment_id: number,
         disbursementList: DisbursementDTO[],
     ): Promise<AssessmentDTO> {
@@ -32,17 +32,17 @@ export class AssessmentYukonGrant extends AssessmentBaseRepository {
 
         initValues.previous_weeks = await this.getScalarValue<number>("fn_get_previous_weeks_yg", [this.application.student_id || 0, application_id]) ?? 0;
 
-        initValues.assessed_weeks =  await this.getScalarValue<number>("fn_get_allowed_weeks", [
+        initValues.assessed_weeks = await this.getScalarValue<number>("fn_get_allowed_weeks", [
             `'${moment(initValues.classes_start_date).format("YYYY-MM-DD")}'`,
             `'${moment(initValues.classes_end_date).format("YYYY-MM-DD")}'`
         ]) || 0;
 
-        if ((initValues.previous_weeks + initValues.assessed_weeks) > 170 ){
+        if ((initValues.previous_weeks + initValues.assessed_weeks) > 170) {
             initValues.weeks_allowed = 170 - initValues.previous_weeks;
-        } else{
-            initValues.weeks_allowed = initValues.assessed_weeks;				
+        } else {
+            initValues.weeks_allowed = initValues.assessed_weeks;
         }
-        
+
         initValues.home_city_id = await this.getScalarValue<number>("fn_get_home_city", [this.application.student_id || 0]);
 
         initValues.destination_city_id = await this.getScalarValue<number>("fn_get_institution_city", [application_id]);
@@ -57,14 +57,14 @@ export class AssessmentYukonGrant extends AssessmentBaseRepository {
             initValues.destination_city_id || 0
         ]) || 0;
 
-        const yg_cost = await this.mainDb.raw (
-                    `SELECT * FROM sfa.fn_get_yg_cost (
+        const yg_cost = await this.mainDb.raw(
+            `SELECT * FROM sfa.fn_get_yg_cost (
                         ${this.application.program_division || 0}, 
                         ${this.application.academic_year_id || 0}, 
                         100
                     );
                     `
-                );
+        );
 
         initValues.living_costs = yg_cost?.living ?? 0;
         initValues.allowed_tuition = yg_cost?.tuition ?? 0;
@@ -77,7 +77,7 @@ export class AssessmentYukonGrant extends AssessmentBaseRepository {
             assessment_id || 0,
             "NULL",
         ]);
-        
+
         let disbursed_amt = null;
 
         if (disbursementList?.length) {
@@ -134,7 +134,7 @@ export class AssessmentYukonGrant extends AssessmentBaseRepository {
         initValues.net_amount = ((initValues.assessed_amount || 0) - (initValues.previous_disbursement || 0) - (initValues.over_award || 0));
 
         initValues.years_funded = await this.getScalarValue<number>("fn_get_total_funded_years", [this.application.student_id || 0, application_id]);
-        
+
         return initValues;
     }
 
@@ -321,6 +321,53 @@ export class AssessmentYukonGrant extends AssessmentBaseRepository {
         }
 
         return updatedAssessment || null;
+    }
+
+    async createDisburse(
+        application_id: number,
+        dataAssessment: AssessmentDTO,
+        disbursementList: DisbursementDTO[],
+        funding_request_id: number,
+        program_division: number,
+    ): Promise<any> {
+
+        try {
+            const assessment: AssessmentDTO = { ...dataAssessment };
+            const newDisbursement: DisbursementDTO = {};
+            this.application = await this.applicationRepo.getApplicationById(application_id);
+
+            if (
+                (
+                    (
+                        !assessment.air_travel_disbursement_period
+                        && (!assessment.travel_allowance)
+                        && (!assessment.airfare_amount)
+                    )
+                    || ((assessment.air_travel_disbursement_period || 0) <= (assessment.disbursements_required || 0))
+                    || (!assessment.disbursements_required)
+                )
+                &&
+                (
+                    (
+                        !assessment.over_award_disbursement_period
+                        && (!assessment.over_award)
+                        && (assessment.over_award_applied_flg === 'No')
+                    ) // NO AIR TRAVEL
+                    || ((assessment.air_travel_disbursement_period || 0) <= (assessment.disbursements_required || 0))
+                    || (assessment.disbursements_required === 0)
+                )
+                &&
+                (
+                    (assessment?.years_funded_equivalent && (this.application.academic_year_id || 0) < 2016)
+                    || (this.application.academic_year_id || 0) < 2016
+                )
+            ) {
+
+            }
+        } catch (error) {
+
+        }
+
     }
 
 }
