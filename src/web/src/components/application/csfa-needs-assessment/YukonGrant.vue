@@ -130,6 +130,7 @@
                 </div>
                 <div class="col-xs-12 col-lg-12">
                   <v-menu
+                    disabled
                     v-model="effective_rate_date_menu"
                     :close-on-content-click="false"
                     transition="scale-transition"
@@ -140,6 +141,7 @@
                   >
                     <template v-slot:activator="{ on, attrs }">
                       <v-text-field
+                        disabled
                         :value="customAssessment.effective_rate_date?.slice(0, 10)"
                         label="Effective Rate Date"
                         append-icon="mdi-calendar"
@@ -153,6 +155,7 @@
                       ></v-text-field>
                     </template>
                     <v-date-picker
+                      disabled
                       @change="refreshData"
                       :value="customAssessment.effective_rate_date?.slice(0, 10)"
                       @input="e => {
@@ -187,7 +190,7 @@
               <div class="col-xs-12 col-lg-4 nopadding d-flex flex-wrap">
                 <div class="col-xs-12 col-lg-12 clss-st-date-re-order">
                   <v-menu
-                      
+                    disabled
                       v-model="classes_start_date_menu"
                       :close-on-content-click="false"
                       transition="scale-transition"
@@ -198,6 +201,7 @@
                     >
                       <template v-slot:activator="{ on, attrs }">
                         <v-text-field
+                          disabled
                           :value="customAssessment.classes_start_date?.slice(0, 10)"
                           label="Classes Start Date"
                           append-icon="mdi-calendar"
@@ -211,6 +215,7 @@
                         ></v-text-field>
                       </template>
                       <v-date-picker
+                        disabled
                         @change="refreshData"
                         :value="customAssessment.classes_start_date?.slice(0, 10)"
                         @input="e => {
@@ -222,6 +227,7 @@
                 </div>
                 <div class="col-xs-12 col-lg-12 clss-en-date-re-order mobile-low-margin">
                   <v-menu
+                    disabled
                     v-model="classes_end_date_menu"
                     :close-on-content-click="false"
                     transition="scale-transition"
@@ -232,6 +238,7 @@
                   >
                   <template v-slot:activator="{ on, attrs }">
                     <v-text-field
+                      disabled
                       :value="customAssessment.classes_end_date?.slice(0, 10)"
                       label="Classes End Date"
                       append-icon="mdi-calendar"
@@ -245,6 +252,7 @@
                     ></v-text-field>
                     </template>
                     <v-date-picker
+                      disabled
                       @change="refreshData"
                       :value="customAssessment.classes_end_date?.slice(0, 10)"
                       @input="e => {
