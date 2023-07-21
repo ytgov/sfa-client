@@ -106,6 +106,9 @@ export class AssessmentYEA extends AssessmentBaseRepository {
                     })
                     .returning("*");
             }
+            const updateStatusFundingRequest = await this.mainDb("sfa.funding_request")
+                .where({ id: insertedAssessment.funding_request_id })
+                .update({ status_id: 7 });
         }
 
         return insertedAssessment || null;
@@ -113,6 +116,7 @@ export class AssessmentYEA extends AssessmentBaseRepository {
 
     async updateAssessmentYEA(
         dataAssessment: any,
+        updatedApplication: ApplicationDTO,
         disbursementList: DisbursementDTO[],
         assessment_id: number,
         funding_request_id: number,
@@ -131,6 +135,7 @@ export class AssessmentYEA extends AssessmentBaseRepository {
         const updatedAssessment: any = await this.mainDb("sfa.assessment")
             .where({ id: assessment_id })
             .update({ ...assessmentToUpdate })
+
         if (disbursementList.length) {
             // Insert the disbursement list
             for (const item of disbursementList) {
@@ -166,6 +171,13 @@ export class AssessmentYEA extends AssessmentBaseRepository {
                         .returning("*");
                 }
             }
+            const updateStatusFundingRequest = await this.mainDb("sfa.funding_request")
+                .where({ id: funding_request_id })
+                .update({ status_id: 7 });
+
+            const response: any = await this.mainDb("sfa.application")
+                .where({ id: updatedApplication.id })
+                .update({ yea_tot_receipt_amount: updatedApplication.yea_tot_receipt_amount })
         }
 
         return updatedAssessment || null;

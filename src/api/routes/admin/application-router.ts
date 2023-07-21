@@ -2020,7 +2020,7 @@ applicationRouter.post("/:application_id/:funding_request_id/assessments",
     async (req: Request, res: Response) => {
         try {
             const { application_id, funding_request_id } = req.params;
-            const { dataAssessment = null } = req.body;
+            const { dataAssessment = null, dataApplication = null } = req.body;
 
             const application = await db("sfa.application")
                 .where({ id: application_id })
@@ -2102,6 +2102,12 @@ applicationRouter.post("/:application_id/:funding_request_id/assessments",
                                         classes_start_date: dataAssessment.classes_start_date,
                                         assessed_date: dataAssessment.assessed_date,
                                     })
+
+                                if (dataApplication) {
+                                    const update_response = await db("sfa.application")
+                                        .where({ id: dataApplication.id })
+                                        .update({ yea_tot_receipt_amount: dataApplication.yea_tot_receipt_amount })
+                                }
                             
                                 return res.json({
                                     messages: [{ variant: "success" }],
@@ -2613,7 +2619,7 @@ applicationRouter.patch("/:application_id/:funding_request_id/assessments/:asses
     async (req: Request, res: Response) => {
         try {
             const { assessment_id, application_id, funding_request_id } = req.params;
-            const { data, disburseList } = req.body;
+            const { data, disburseList, updatedApplication } = req.body;
             
             const application = await db("sfa.application")
                 .where({ id: application_id })
@@ -2647,7 +2653,8 @@ applicationRouter.patch("/:application_id/:funding_request_id/assessments/:asses
                         const assessmentMethods = new AssessmentYEA(db);
                     
                         resAssessment = await assessmentMethods.updateAssessmentYEA(
-                                data, 
+                                data,
+                                updatedApplication,
                                 disburseList, 
                                 Number(assessment_id),
                                 Number(funding_request_id)
@@ -2700,7 +2707,7 @@ applicationRouter.get("/:application_id/request-type/:request_type_id/deadline-c
                     ) as message;
                     `
                 );
-                   
+
                 return checkDeadline?.[0].message === "OK"
                     ? res.json({
                         messages: [{ variant: "success", text: "OK"}],

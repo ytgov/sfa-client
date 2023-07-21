@@ -88,7 +88,7 @@ const actions = {
 
             const res = await axios.post(
                 APPLICATION_URL + `/${vals.application_id}/${vals.funding_request_id}/assessments`,
-                { dataAssessment: { ...vals.dataAssessment } }
+                { dataAssessment: { ...vals.dataAssessment }, dataApplication: { ...vals.dataApplication } }
             );
 
             const message = res?.data?.messages[0];
@@ -212,7 +212,7 @@ const actions = {
 
             const res = await axios.patch(
                 APPLICATION_URL + `/${vals.application_id}/${vals.funding_request_id}/assessments/${vals.assessment_id}`,
-                { data: { ...dataFormated }, disburseList: vals.disburseList }
+                { data: { ...dataFormated }, disburseList: vals.disburseList, updatedApplication: vals.application }
             );
 
             const message = res?.data?.messages[0];

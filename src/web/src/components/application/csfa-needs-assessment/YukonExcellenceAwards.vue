@@ -266,7 +266,7 @@
               </div>
               <div class="col-sm-4 col-lg-5">
                 <v-btn 
-                  @click="recalcAssessment"
+                  @click="refreshData"
                   dense
                   color="blue" 
                   class="my-0"
@@ -426,6 +426,7 @@ export default {
           application_id: this.application.id,
           funding_request_id: this.fundingRequestId,
           dataAssessment: { ...this.customAssessment },
+          dataApplication: { ...this.application },
           thisVal: this
         }
       );
@@ -434,11 +435,12 @@ export default {
     updateAssessment() {
       const custom = JSON.parse(JSON.stringify(this.customAssessment));
       const filterDisbursements = this.disbursements.filter(d => d.assessment_id === custom?.id) || [];
-
+ 
       store.dispatch(
           "updateAssessmentYEA",
           {
             data: custom,
+            application: this.application,
             disburseList: [ ...this.previewDisbursementList, ...filterDisbursements ],
             application_id: this.application.id,
             funding_request_id: custom.funding_request_id,
