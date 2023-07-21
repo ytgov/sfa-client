@@ -2088,10 +2088,12 @@ applicationRouter.post("/:application_id/:funding_request_id/assessments",
                                         spouse_contrib_exempt: "NO",
                                         student_contribution_review: "NO",
                                         spouse_contribution_review: "NO",
-                                        parent_contribution_review: "NO"
+                                        parent_contribution_review: "NO",
+                                        classes_end_date: dataAssessment.classes_end_date,
+                                        classes_start_date: dataAssessment.classes_start_date,
+                                        assessed_date: dataAssessment.assessed_date,
                                     })
                             
-                                console.log("🚀 ~ file: application-router.ts:2059 ~ db.transaction ~ insert_response:", insert_response)
                                 return res.json({
                                     messages: [{ variant: "success" }],
                                     data: [ ...insert_response ],
@@ -2323,6 +2325,10 @@ applicationRouter.get("/:application_id/:funding_request_id/preview-assessment",
                 .where({ id: funding_request_id })
                 .first();
 
+            const student = await db("sfa.student")
+                .where({ id: application.student_id })
+                .first();
+
             if (application && fundingRequest) {
 
                 const preview = await db.raw(
@@ -2343,14 +2349,29 @@ applicationRouter.get("/:application_id/:funding_request_id/preview-assessment",
                     COALESCE(sfa.fn_get_allowed_weeks ('${moment(application.classes_start_date?.toISOString().slice(0, 10)).format("YYYY-MM-DD")}', '${moment(application.classes_end_date?.toISOString().slice(0, 10)).format("YYYY-MM-DD")}'), 0) AS assessed_weeks,
                     COALESCE(sfa.fn_get_disbursed_amount_fct(${funding_request_id}, -1), 0) AS previous_disbursement,
                     ${calculateValues?.assessed_amount ?? 0} - ${calculateValues?.previous_disbursement ?? 0} AS net_amount,
-                    COALESCE(sfa.fn_get_total_funded_years ( ${application.student_id}, ${application_id}), 0) AS years_funded;
+                    COALESCE(sfa.fn_get_total_funded_years ( ${application.student_id}, ${application_id}), 0) AS years_funded,
+                    COALESCE(sfa.fn_get_yea_total(${student.yukon_id}), 0) AS yea_earned,
+                    COALESCE(sfa.fn_get_system_yea_used(${student.id}), 0) AS yea_used;
                     `
                 );
                 
                 calculateValues.read_only_data = readOnlyData?.[0] || {};
 
+                const yea_balance = calculateValues.read_only_data.yea_earned - calculateValues.read_only_data.yea_used;
+                const unused_receipts = min([min([(application.yea_tot_receipt_amount || 0), yea_balance]), fundingRequest.yea_request_amount])
+                const assessed_amount = unused_receipts + calculateValues.read_only_data.previous_disbursement;
+                const yea_net_amount = assessed_amount - calculateValues.read_only_data.previous_disbursement;
+
                 delete calculateValues.destination_city;
                 delete calculateValues.previous_disbursement;
+
+                calculateValues.read_only_data = {
+                    yea_net_amount,
+                    yea_balance,
+                    unused_receipts,
+                    assessed_amount,
+                    ...calculateValues.read_only_data
+                }
                 
                 return res.json({
                     messages: [{ variant: "success" }],
@@ -2598,14 +2619,27 @@ applicationRouter.patch("/:application_id/:funding_request_id/assessments/:asses
                 
 
                 if (fundingRequest) { // Create Assessment YG
-                    const assessmentYG = new AssessmentYukonGrant(db);
+                    let resAssessment;
+                    if (data.assessment_type_id == 1) {
+                        const assessmentYG = new AssessmentYukonGrant(db);
                     
-                    const resAssessment = await assessmentYG.updateAssessmentYG(
-                            data, 
-                            disburseList, 
-                            Number(assessment_id),
-                            Number(funding_request_id)
-                        );
+                        resAssessment = await assessmentYG.updateAssessmentYG(
+                                data, 
+                                disburseList, 
+                                Number(assessment_id),
+                                Number(funding_request_id)
+                            );
+    
+                    } else if (data.assessment_type_id == 2) {
+                        const assessmentMethods = new AssessmentYEA(db);
+                    
+                        resAssessment = await assessmentMethods.updateAssessmentYEA(
+                                data, 
+                                disburseList, 
+                                Number(assessment_id),
+                                Number(funding_request_id)
+                            );
+                    }
 
                     return resAssessment ?
                         res.json({ messages: [{ variant: "success", text: "Saved" }] })
@@ -2729,12 +2763,13 @@ applicationRouter.post("/:application_id/update-preview-yea",
                 .first();
 
             const  assessmentMethods = new AssessmentYEA(db);
-            
-            const results: any = await assessmentMethods.getRefreshAssessmentData(data, disburseAmountList, application.student_id, Number(application_id));
+            if (!data.assessment) { data.assessment = { ...data } }
+            if (!data.application) { data.application = { ...application } }
+            const results: any = await assessmentMethods.getRefreshAssessmentData(data.assessment, data.application, disburseAmountList, application.student_id, Number(application_id));
             
             if (results) {
                 results.read_only_data = {
-                    ...results.calculatedData
+                    ...results.read_only_data
                 }
             }
 
