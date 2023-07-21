@@ -16,48 +16,48 @@ Writing code and developing in this application requires running three services:
 
 2. To run the database locally, you must have Docker installed as well as Docker Compose, then run the following command from the root directory:
 
-    ```bash
-    docker compose -f docker-compose.dev.yml up -d
-    ```
+   ```bash
+   docker compose -f docker-compose.dev.yml up -d
+   ```
 
-    or if your docker compose is old
+   or if your docker compose is old
 
-    ```bash
-    docker-compose -f docker-compose.dev.yml up -d
-    ```
+   ```bash
+   docker-compose -f docker-compose.dev.yml up -d
+   ```
 
-    This command will start SQL Server, Email and S3 and bind it to your local machine's port 1433.
+   This command will start SQL Server, Email and S3 and bind it to your local machine's port 1433.
 
 3. When the database starts the first time, the database will be empty. To load it with data, you must obtain a database backup and put it into `/db/backups/sfa.bak` then run the follow commands:
 
-4. The first time you start the application, you must create a bucket named `documents` and an Access Key. Copy the access key id and secret and drop those values into the appropriate spots in the environment file. The Minio Web interface located at http://localhost:9090. Subsequent starts, it is not required to access the Minio interface. To preview sent emails, the MailSlurper web interface is located at http://localhost:8081.
+4. The first time you start the application, you must create a bucket named `documents` and an Access Key. Copy the access key id and secret and drop those values into the appropriate spots in the environment file. The Minio Web interface located at http://localhost:9090. Subsequent starts, it is not required to access the Minio interface.
 
-5. Connect to the running SQL Server container:
+5. To preview sent emails, the MailSlurper web interface is located at http://localhost:8081.
 
-    ```bash
-    docker exec -it sfa-client_sql_1 bash
-    ```
+6. Connect to the running SQL Server container:
 
-6. Once in, run the following commands to create and restore the database from the backup:
+   ```bash
+   docker compose -f docker-compose.dev.yml exec -it db bash
+   ```
 
-    ```bash
-    cd /opt/mssql-tools/bin
-    ./sqlcmd -U sa -s localhost -P Testing1122 -Q "RESTORE DATABASE SFADB_DEV FROM DISK = N'/backups/sfa.bak' WITH FILE = 1"
-    ```
+7. Once in, run the following commands to create and restore the database from the backup:
 
+   ```bash
+   cd /opt/mssql-tools/bin
+   ./sqlcmd -U sa -s localhost -P Testing1122 -Q "RESTORE DATABASE SFADB_DEV FROM DISK = N'/backups/sfa.bak' WITH FILE = 1"
+   ```
 
+8. You will now have a local database with data ready for the API. To run the API, run the following commands:
 
-7. You will now have a local database with data ready for the API. To run the API, run the following commands:
+   ```bash
+   cd src/api
+   npm install
+   cp .env .env.development
+   ```
 
-    ```bash
-    cd src/api
-    npm install
-    cp .env .env.development
-    ```
+9. You must then duplicated the `.env.sample` to `.env.development` and update the appropriate values for the local database and authentication. You will need to set the `DB_PASS` equal to the value of the `MSSQL_SA_PASSWORD` in the `db/sapassword.env`.
 
-8. You must then duplicated the `.env.sample` to `.env.development` and update the appropriate values for the local database and authentication. You will need to set the `DB_PASS` equal to the value of the `MSSQL_SA_PASSWORD` in the `db/sapassword.env`.
-
-9. Start the Node.js API with:
+10. Start the Node.js API with:
 
     ```bash
     npm run start
@@ -65,7 +65,7 @@ Writing code and developing in this application requires running three services:
 
     The API will bind to your local machines port 3000 and be available at http://localhost:3000
 
-10. Last to start is the the Vue.js web front-end. To run this, open a second terminal window at this directory and run the following commands:
+11. Last to start is the the Vue.js web front-end. To run this, open a second terminal window at this directory and run the following commands:
 
     ```bash
     cd src/web
@@ -83,15 +83,15 @@ To process to contribute code to this repository is via pull requests initiated 
 
 Steps:
 
- - In your browser, open https://github.com/ytgov/sfa-client/fork
- - Fork the repo into your own namespace
- - Do your work!
- - Ensure the app builds: `docker-compose build`
- - Before a pull request is created, sync your branch with upstream using the GitHub sync function
- - Create a pull request from your branch to ytgov/sfa-client:test (upstream)
- - The pull request will be reviewed and approved or rejected
-   - If conflicts exist, the PR will be rejected
-   - You then need to rebase from upstream and resolve conflicts then resubmit your PR
+- In your browser, open https://github.com/ytgov/sfa-client/fork
+- Fork the repo into your own namespace
+- Do your work!
+- Ensure the app builds: `docker-compose build`
+- Before a pull request is created, sync your branch with upstream using the GitHub sync function
+- Create a pull request from your branch to ytgov/sfa-client:test (upstream)
+- The pull request will be reviewed and approved or rejected
+  - If conflicts exist, the PR will be rejected
+  - You then need to rebase from upstream and resolve conflicts then resubmit your PR
 
 ---
 
