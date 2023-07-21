@@ -1621,7 +1621,6 @@ BEGIN
 END
 GO
 
--- DISBURSE BUTTON ASSESSMENT YG
 CREATE OR ALTER PROCEDURE sfa.sp_disburse_button_yg -- BUTTON FOR ASSESSMENT YG
     @application_id INT,
     @assessment_id INT,
@@ -1640,7 +1639,8 @@ CREATE OR ALTER PROCEDURE sfa.sp_disburse_button_yg -- BUTTON FOR ASSESSMENT YG
     @weekly_amount NUMERIC,
     @assessment_adj_amount FLOAT,
     @assessed_amount NUMERIC,
-    @program_division INT
+    @program_division INT,
+    @net_amount INT
     
 AS 
 BEGIN
@@ -1677,7 +1677,6 @@ BEGIN
         BEGIN
             DECLARE @disbursement_id INT;
             DECLARE @new_disbursement_id INT;
-            DECLARE @net_amount INT;
 
             DECLARE @disbursement_temp TABLE
             (
@@ -1705,15 +1704,6 @@ BEGIN
 
             SELECT @disbursement_id = MAX(d.id)
             FROM sfa.disbursement d WHERE d.assessment_id = @assessment_id;
-
-            IF @assessment_id > 0
-                BEGIN 
-                    SELECT @net_amount = COALESCE(sfa.fn_net_amount(@funding_request_id, @assessment_id), 0);
-                END
-            ELSE
-                BEGIN
-                    SET @net_amount = COALESCE(@assessed_amount, 0) - COALESCE(@over_award, 0);
-                END
 
             DECLARE @financial_batch_id INT;
 
