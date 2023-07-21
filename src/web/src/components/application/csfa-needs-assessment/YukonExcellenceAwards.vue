@@ -491,6 +491,8 @@ export default {
           thisVal: this
         }
       );
+      this.application.yea_tot_receipt_amount = 0;
+      this.refreshData();
     },
     blockDisburse(value) {
       if (!this.editingDisburse) {
