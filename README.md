@@ -13,9 +13,10 @@ Writing code and developing in this application requires running three services:
 ### Development Setup
 
 1. Duplicate the `sapassword.env.sample` file to `sapassword.env` via
-    ```bash
-    cp sapassword.env.sample sapassword.env
-    ```
+
+   ```bash
+   cp sapassword.env.sample sapassword.env
+   ```
 
 2. To run the database locally, you must have Docker installed as well as Docker Compose, then run the following command from the root directory:
 
@@ -50,20 +51,36 @@ Writing code and developing in this application requires running three services:
    ./sqlcmd -U sa -s localhost -P Testing1122 -Q "RESTORE DATABASE SFADB_DEV FROM DISK = N'/backups/sfa.bak' WITH FILE = 1"
    ```
 
-8. You will now have a local database with data ready for the API. To run the API, run the following commands:
+8. Install `asdf` using instructions at https://asdf-vm.com/guide/getting-started.html.
+
+9. Install the `nodejs` plugin via and the appropriate nodejs version.
 
    ```bash
-   cd src/api
-   npm install
+   asdf plugin add nodejs
+   asdf install nodejs # installs the version from the .tool-verions file
    ```
 
-9. You must then duplicated the `.env.sample` to `.env.development` and update the appropriate values for the local database and authentication. You will need to set the `DB_PASS` equal to the value of the `MSSQL_SA_PASSWORD` in the `db/sapassword.env`.
+   Check that you have the correct version set up by seeing that these two commands match:
+
+   ```bash
+   asdf current nodejs
+   node -v
+   ```
+
+10. You will now have a local database with data ready for the API. To run the API, run the following commands:
+
+    ```bash
+    cd src/api
+    npm install
+    ```
+
+11. You must then duplicated the `.env.sample` to `.env.development` and update the appropriate values for the local database and authentication. You will need to set the `DB_PASS` equal to the value of the `MSSQL_SA_PASSWORD` in the `db/sapassword.env`.
 
     ```bash
     cp .env.sample .env.development
     ```
 
-10. Start the Node.js API with:
+12. Start the Node.js API with:
 
     ```bash
     npm run start
@@ -71,7 +88,7 @@ Writing code and developing in this application requires running three services:
 
     The API will bind to your local machines port 3000 and be available at http://localhost:3000
 
-11. Last to start is the the Vue.js web front-end. To run this, open a second terminal window at this directory and run the following commands:
+13. Last to start is the the Vue.js web front-end. To run this, open a second terminal window at this directory and run the following commands:
 
     ```bash
     cd src/web
