@@ -100,6 +100,11 @@ Writing code and developing in this application requires running three services:
 
 ---
 
+To access the Database console directly use:
+```bash
+docker compose -f docker-compose.dev.yml exec db /opt/mssql-tools/bin/sqlcmd -U sa -s localhost -P Testing1122
+```
+
 ## Contributing code
 
 To process to contribute code to this repository is via pull requests initiated from a forked copy of this repository.
