@@ -12,7 +12,10 @@ Writing code and developing in this application requires running three services:
 
 ### Development Setup
 
-1. Duplicate the `sapassword.env.sample` file to `sapassword.env`
+1. Duplicate the `sapassword.env.sample` file to `sapassword.env` via
+    ```bash
+    cp sapassword.env.sample sapassword.env
+    ```
 
 2. To run the database locally, you must have Docker installed as well as Docker Compose, then run the following command from the root directory:
 
@@ -52,10 +55,13 @@ Writing code and developing in this application requires running three services:
    ```bash
    cd src/api
    npm install
-   cp .env .env.development
    ```
 
 9. You must then duplicated the `.env.sample` to `.env.development` and update the appropriate values for the local database and authentication. You will need to set the `DB_PASS` equal to the value of the `MSSQL_SA_PASSWORD` in the `db/sapassword.env`.
+
+    ```bash
+    cp .env.sample .env.development
+    ```
 
 10. Start the Node.js API with:
 
