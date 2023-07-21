@@ -181,9 +181,9 @@ export class AssessmentYEA extends AssessmentBaseRepository {
                 .where({ id: funding_request_id })
                 .update({ status_id: 7 });
 
-            const response: any = await this.mainDb("sfa.application")
-                .where({ id: updatedApplication.id })
-                .update({ yea_tot_receipt_amount: updatedApplication.yea_tot_receipt_amount })
+            // const response: any = await this.mainDb("sfa.application")
+            //     .where({ id: updatedApplication.id })
+            //     .update({ yea_tot_receipt_amount: updatedApplication.yea_tot_receipt_amount })
         }
 
         return updatedAssessment || null;

@@ -2103,11 +2103,11 @@ applicationRouter.post("/:application_id/:funding_request_id/assessments",
                                         assessed_date: dataAssessment.assessed_date,
                                     })
 
-                                if (dataApplication) {
-                                    const update_response = await db("sfa.application")
-                                        .where({ id: dataApplication.id })
-                                        .update({ yea_tot_receipt_amount: dataApplication.yea_tot_receipt_amount })
-                                }
+                                // if (dataApplication) {
+                                //     const update_response = await db("sfa.application")
+                                //         .where({ id: dataApplication.id })
+                                //         .update({ yea_tot_receipt_amount: dataApplication.yea_tot_receipt_amount })
+                                // }
                             
                                 return res.json({
                                     messages: [{ variant: "success" }],
@@ -2268,11 +2268,11 @@ applicationRouter.post("/:application_id/:funding_request_id/assessments-with-di
                                         assessed_date: dataAssessment.assessed_date,
                                     })
 
-                                if (dataApplication) {
-                                    const update_response = await db("sfa.application")
-                                        .where({ id: dataApplication.id })
-                                        .update({ yea_tot_receipt_amount: dataApplication.yea_tot_receipt_amount })
-                                }
+                                // if (dataApplication) {
+                                //     const update_response = await db("sfa.application")
+                                //         .where({ id: dataApplication.id })
+                                //         .update({ yea_tot_receipt_amount: dataApplication.yea_tot_receipt_amount })
+                                // }
 
                                 console.log("🚀 ~ file: application-router.ts:2257 ~ db.transaction ~ insert_response:", dataApplication)
                                 // Insert the disbursement list
@@ -2525,7 +2525,6 @@ applicationRouter.get("/:application_id/:funding_request_id/preview-assessment-y
                     `
                 );
                 const calculateValues = preview?.[0];
-                console.log("ENTRE AQ")
                 const readOnlyData = await db.raw(
                     `SELECT 
                     COALESCE(sfa.fn_get_disbursed_amount_fct(${funding_request_id}, -1), 0) AS previous_disbursement,
