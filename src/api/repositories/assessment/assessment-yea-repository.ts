@@ -25,6 +25,7 @@ export class AssessmentYEA extends AssessmentBaseRepository {
 
     async getRefreshAssessmentData(
         assessment: AssessmentDTO,
+        updated_application: ApplicationDTO,
         disburseAmountList: number[],
         student_id: number,
         application_id: number
@@ -46,7 +47,7 @@ export class AssessmentYEA extends AssessmentBaseRepository {
         const yea_used = await this.getScalarValue<number>("fn_get_system_yea_used", [student_id]);
 
         const yea_balance = yea_earned - yea_used;
-        const unused_receipts = min([min([(this.application.yea_tot_receipt_amount || 0), yea_balance]), this.fundingRequest.yea_request_amount])
+        const unused_receipts = min([min([(Number(updated_application.yea_tot_receipt_amount) || this.application.yea_tot_receipt_amount || 0), yea_balance]), this.fundingRequest.yea_request_amount])
         const assessed_amount = (unused_receipts || 0) + (disbursed_amt || 0);
         const yea_net_amount = assessed_amount - (disbursed_amt || 0);
 
@@ -56,7 +57,7 @@ export class AssessmentYEA extends AssessmentBaseRepository {
 
         return {
             ...refreshedData,
-            calculatedData: {
+            read_only_data: {
                 yea_net_amount,
                 yea_earned,
                 unused_receipts,
@@ -105,13 +106,17 @@ export class AssessmentYEA extends AssessmentBaseRepository {
                     })
                     .returning("*");
             }
+            const updateStatusFundingRequest = await this.mainDb("sfa.funding_request")
+                .where({ id: insertedAssessment.funding_request_id })
+                .update({ status_id: 7 });
         }
 
         return insertedAssessment || null;
     }
 
-    async updateAssessmentYG(
+    async updateAssessmentYEA(
         dataAssessment: any,
+        updatedApplication: ApplicationDTO,
         disbursementList: DisbursementDTO[],
         assessment_id: number,
         funding_request_id: number,
@@ -125,10 +130,12 @@ export class AssessmentYEA extends AssessmentBaseRepository {
         delete assessmentToUpdate.id;
         delete assessmentToUpdate.funding_request_id;
         delete assessmentToUpdate.program_division;
+        delete assessmentToUpdate.previous_disbursement;
 
         const updatedAssessment: any = await this.mainDb("sfa.assessment")
             .where({ id: assessment_id })
             .update({ ...assessmentToUpdate })
+
         if (disbursementList.length) {
             // Insert the disbursement list
             for (const item of disbursementList) {
@@ -164,6 +171,13 @@ export class AssessmentYEA extends AssessmentBaseRepository {
                         .returning("*");
                 }
             }
+            const updateStatusFundingRequest = await this.mainDb("sfa.funding_request")
+                .where({ id: funding_request_id })
+                .update({ status_id: 7 });
+
+            const response: any = await this.mainDb("sfa.application")
+                .where({ id: updatedApplication.id })
+                .update({ yea_tot_receipt_amount: updatedApplication.yea_tot_receipt_amount })
         }
 
         return updatedAssessment || null;
