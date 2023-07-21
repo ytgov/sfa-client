@@ -45,7 +45,7 @@ export class AssessmentYEA extends AssessmentBaseRepository {
 
         const yea_earned = await this.getScalarValue<number>("fn_get_yea_total", [this.student.yukon_id!]);
         console.log("🚀 ~ file: assessment-yea-repository.ts:47 ~ AssessmentYEA ~  yea_earned:",  yea_earned)
-        const yea_used = (await this.getScalarValue<number>("fn_get_system_yea_used", [student_id]) + Number(updated_application.yea_tot_receipt_amount));
+        const yea_used = await this.getScalarValue<number>("fn_get_system_yea_used", [student_id]);
         console.log("🚀 ~ file: assessment-yea-repository.ts:49 ~ AssessmentYEA ~  yea_used:",  yea_used)
 
         const yea_balance = yea_earned - yea_used;
