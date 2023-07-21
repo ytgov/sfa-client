@@ -8,7 +8,7 @@ export interface AssessmentDTO extends IAssessmentCalculated{
     allowed_percent?: number;
     allowed_tuition?: number;
     assessed_amount?: number;
-    assessed_date?: Date;
+    assessed_date?: Date | string;
     assessment_adj_amount?: number;
     assessment_type_id?: number;
     asset_tax_rate?: number;
@@ -31,7 +31,7 @@ export interface AssessmentDTO extends IAssessmentCalculated{
     disbursements_required?: number;
     discretionary_cost?: number;
     discretionary_cost_actual?: number;
-    effective_rate_date?: Date;
+    effective_rate_date?: Date | string;
     entitlement_days?: number;
     family_size?: number;
     funding_request_id?: number;

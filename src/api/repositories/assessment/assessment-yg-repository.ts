@@ -23,6 +23,8 @@ export class AssessmentYukonGrant extends AssessmentBaseRepository {
 
         this.application = await this.applicationRepo.getApplicationById(application_id);
 
+        initValues.assessed_date = moment().format("YYYY-MM-DD");
+        initValues.effective_rate_date = this.application.classes_start_date?.toISOString().slice(0, 10);
         initValues.classes_end_date = this.application.classes_end_date?.toISOString().slice(0, 10);
         initValues.classes_start_date = this.application.classes_start_date?.toISOString().slice(0, 10);
 
