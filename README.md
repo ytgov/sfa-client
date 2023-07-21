@@ -38,22 +38,28 @@ Writing code and developing in this application requires running three services:
 
 5. To preview sent emails, the MailSlurper web interface is located at http://localhost:8081.
 
-6. Connect to the running SQL Server container:
+6. Once in, run the following commands to create and restore the database from the backup:
+
+   ```bash
+   docker compose \
+      -f docker-compose.dev.yml \
+      exec -it db \
+      /opt/mssql-tools/bin/sqlcmd \
+         -U sa \
+         -s localhost \
+         -P Testing1122 \
+         -Q "RESTORE DATABASE SFADB_DEV FROM DISK = N'backups/sfa.bak' WITH FILE = 1"
+   ```
+
+   If you need to debug the restore you can connect to the running SQL Server via
 
    ```bash
    docker compose -f docker-compose.dev.yml exec -it db bash
    ```
 
-7. Once in, run the following commands to create and restore the database from the backup:
+7. Install `asdf` using instructions at https://asdf-vm.com/guide/getting-started.html.
 
-   ```bash
-   cd /opt/mssql-tools/bin
-   ./sqlcmd -U sa -s localhost -P Testing1122 -Q "RESTORE DATABASE SFADB_DEV FROM DISK = N'/backups/sfa.bak' WITH FILE = 1"
-   ```
-
-8. Install `asdf` using instructions at https://asdf-vm.com/guide/getting-started.html.
-
-9. Install the `nodejs` plugin via and the appropriate nodejs version.
+8. Install the `nodejs` plugin via and the appropriate nodejs version.
 
    ```bash
    asdf plugin add nodejs
@@ -67,20 +73,20 @@ Writing code and developing in this application requires running three services:
    node -v
    ```
 
-10. You will now have a local database with data ready for the API. To run the API, run the following commands:
+9. You will now have a local database with data ready for the API. To run the API, run the following commands:
 
-    ```bash
-    cd src/api
-    npm install
-    ```
+   ```bash
+   cd src/api
+   npm install
+   ```
 
-11. You must then duplicated the `.env.sample` to `.env.development` and update the appropriate values for the local database and authentication. You will need to set the `DB_PASS` equal to the value of the `MSSQL_SA_PASSWORD` in the `db/sapassword.env`.
+10. You must then duplicated the `.env.sample` to `.env.development` and update the appropriate values for the local database and authentication. You will need to set the `DB_PASS` equal to the value of the `MSSQL_SA_PASSWORD` in the `db/sapassword.env`.
 
     ```bash
     cp .env.sample .env.development
     ```
 
-12. Start the Node.js API with:
+11. Start the Node.js API with:
 
     ```bash
     npm run start
@@ -88,7 +94,7 @@ Writing code and developing in this application requires running three services:
 
     The API will bind to your local machines port 3000 and be available at http://localhost:3000
 
-13. Last to start is the the Vue.js web front-end. To run this, open a second terminal window at this directory and run the following commands:
+12. Last to start is the the Vue.js web front-end. To run this, open a second terminal window at this directory and run the following commands:
 
     ```bash
     cd src/web
@@ -101,6 +107,7 @@ Writing code and developing in this application requires running three services:
 ---
 
 To access the Database console directly use:
+
 ```bash
 docker compose -f docker-compose.dev.yml exec db /opt/mssql-tools/bin/sqlcmd -U sa -s localhost -P Testing1122
 ```
