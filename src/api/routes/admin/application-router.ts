@@ -1963,7 +1963,7 @@ applicationRouter.get("/:application_id/:funding_request_id/assessments",
                         const readOnlyData = await db.raw(
                             `SELECT 
                             COALESCE(sfa.fn_get_previous_weeks_yg(${application.student_id},  ${application_id}), 0) AS previous_weeks,
-                            COALESCE(sfa.fn_get_allowed_weeks ('${moment(application.classes_start_date).format("YYYY-MM-DD")}', '${moment(application.classes_end_date).format("YYYY-MM-DD")}'), 0) AS assessed_weeks,
+                            COALESCE(sfa.fn_get_allowed_weeks ('${moment(getAsessment[0].classes_start_date?.toISOString().slice(0, 10)).format("YYYY-MM-DD")}', '${moment(getAsessment[0].classes_end_date?.toISOString().slice(0, 10)).format("YYYY-MM-DD")}'), 0) AS assessed_weeks,
                             COALESCE(sfa.fn_get_disbursed_amount_fct(${funding_request_id}, ${item.id}), 0) AS previous_disbursement,
                             COALESCE(sfa.fn_net_amount(${funding_request_id}, ${item.id}), 0) AS net_amount,
                             COALESCE(sfa.fn_get_total_funded_years ( ${application.student_id}, ${application_id}), 0) AS years_funded,
@@ -2351,7 +2351,7 @@ applicationRouter.post("/:application_id/:funding_request_id/assessments-with-di
     }
 );
 
-applicationRouter.get("/:application_id/:funding_request_id/assessments/:assessment_id/re-calc",
+applicationRouter.post("/:application_id/:funding_request_id/assessments/:assessment_id/re-calc",
     [
         param("application_id").isInt().notEmpty(), 
         param("funding_request_id").isInt().notEmpty(),
@@ -2361,7 +2361,8 @@ applicationRouter.get("/:application_id/:funding_request_id/assessments/:assessm
     async (req: Request, res: Response) => {
         try {
             const { assessment_id, application_id, funding_request_id } = req.params;
-
+            const { disbursementList = [] } = req.body;
+            
             const application = await db("sfa.application")
                 .where({ id: application_id })
                 .first();
@@ -2371,37 +2372,32 @@ applicationRouter.get("/:application_id/:funding_request_id/assessments/:assessm
 
             if (application) {
 
-                const recalc = await db.raw(
-                    `SELECT * FROM sfa.fn_get_new_info(
-                        ${application_id},
-                        ${assessment_id},
-                        ${funding_request_id},
-                        ${application.student_id}
-                    );
-                    `
+                const  assessmentMethods = new AssessmentYukonGrant(db);
+            
+                const results: any = await assessmentMethods.getNewInfo(
+                    Number(application_id),
+                    Number(assessment_id),
+                    disbursementList,
                 );
-                const calculateValues = recalc?.[0];
                 
-                calculateValues.destination_city_id = calculateValues.destination_city;
+                if (results) {
+                    results.read_only_data = {};
+                    results.read_only_data.previous_weeks = results?.previous_weeks;
+                    results.read_only_data.assessed_weeks = results?.assessed_weeks;
+                    results.read_only_data.previous_disbursement = results?.previous_disbursement;
+                    results.read_only_data.net_amount = results?.net_amount;
+                    results.read_only_data.years_funded = results?.years_funded;
 
-                delete calculateValues.destination_city;
-                delete calculateValues.previous_disbursement;
-
-                const readOnlyData = await db.raw(
-                    `SELECT 
-                    COALESCE(sfa.fn_get_previous_weeks_yg(${application.student_id},  ${application_id}), 0) AS previous_weeks,
-                    COALESCE(sfa.fn_get_allowed_weeks ('${moment(application.classes_start_date?.toISOString().slice(0, 10)).format("YYYY-MM-DD")}', '${moment(application.classes_end_date?.toISOString().slice(0, 10)).format("YYYY-MM-DD")}'), 0) AS assessed_weeks,
-                    COALESCE(sfa.fn_get_disbursed_amount_fct(${funding_request_id}, -1), 0) AS previous_disbursement,
-                    ${calculateValues?.assessed_amount ?? 0} - ${calculateValues?.previous_disbursement ?? 0} AS net_amount,
-                    COALESCE(sfa.fn_get_total_funded_years ( ${application.student_id}, ${application_id}), 0) AS years_funded;
-                    `
-                );
-
-                calculateValues.read_only_data = readOnlyData?.[0] || {};
+                    delete results.previous_weeks;
+                    delete results.assessed_weeks;
+                    delete results.previous_disbursement;
+                    delete results.net_amount;
+                    delete results.years_funded;
+                }
 
                 return res.json({
                     messages: [{ variant: "success" }],
-                    data: [ calculateValues ],
+                    data: [ results ],
                 });
             } else {
                 return res.status(409).send({ messages: [{ variant: "error", text: "Error get data" }] });
@@ -2432,57 +2428,33 @@ applicationRouter.get("/:application_id/:funding_request_id/preview-assessment",
                 .where({ id: funding_request_id })
                 .first();
 
-            const student = await db("sfa.student")
-                .where({ id: application.student_id })
-                .first();
-
             if (application && fundingRequest) {
-
-                const preview = await db.raw(
-                    `SELECT * FROM sfa.fn_get_new_info(
-                        ${application_id},
-                        -1,
-                        ${funding_request_id},
-                        ${application.student_id}
-                    );
-                    `
-                );
-                const calculateValues = preview?.[0];
-
-                calculateValues.destination_city_id = calculateValues.destination_city;
-                const readOnlyData = await db.raw(
-                    `SELECT 
-                    COALESCE(sfa.fn_get_previous_weeks_yg(${application.student_id},  ${application_id}), 0) AS previous_weeks,
-                    COALESCE(sfa.fn_get_allowed_weeks ('${moment(application.classes_start_date?.toISOString().slice(0, 10)).format("YYYY-MM-DD")}', '${moment(application.classes_end_date?.toISOString().slice(0, 10)).format("YYYY-MM-DD")}'), 0) AS assessed_weeks,
-                    COALESCE(sfa.fn_get_disbursed_amount_fct(${funding_request_id}, -1), 0) AS previous_disbursement,
-                    ${calculateValues?.assessed_amount ?? 0} - ${calculateValues?.previous_disbursement ?? 0} AS net_amount,
-                    COALESCE(sfa.fn_get_total_funded_years ( ${application.student_id}, ${application_id}), 0) AS years_funded,
-                    COALESCE(sfa.fn_get_yea_total(${student.yukon_id}), 0) AS yea_earned,
-                    COALESCE(sfa.fn_get_system_yea_used(${student.id}), 0) AS yea_used;
-                    `
+                const  assessmentMethods = new AssessmentYukonGrant(db);
+            
+                const results: any = await assessmentMethods.getNewInfo(
+                    Number(application_id),
+                    0,
+                    [],
                 );
                 
-                calculateValues.read_only_data = readOnlyData?.[0] || {};
+                if (results) {
+                    results.read_only_data = {};
+                    results.read_only_data.previous_weeks = results?.previous_weeks;
+                    results.read_only_data.assessed_weeks = results?.assessed_weeks;
+                    results.read_only_data.previous_disbursement = results?.previous_disbursement;
+                    results.read_only_data.net_amount = results?.net_amount;
+                    results.read_only_data.years_funded = results?.years_funded;
 
-                const yea_balance = calculateValues.read_only_data.yea_earned - calculateValues.read_only_data.yea_used;
-                const unused_receipts = min([min([(application.yea_tot_receipt_amount || 0), yea_balance]), fundingRequest.yea_request_amount])
-                const assessed_amount = unused_receipts + calculateValues.read_only_data.previous_disbursement;
-                const yea_net_amount = assessed_amount - calculateValues.read_only_data.previous_disbursement;
-
-                delete calculateValues.destination_city;
-                delete calculateValues.previous_disbursement;
-
-                calculateValues.read_only_data = {
-                    yea_net_amount,
-                    yea_balance,
-                    unused_receipts,
-                    assessed_amount,
-                    ...calculateValues.read_only_data
+                    delete results.previous_weeks;
+                    delete results.assessed_weeks;
+                    delete results.previous_disbursement;
+                    delete results.net_amount;
+                    delete results.years_funded;
                 }
                 
                 return res.json({
                     messages: [{ variant: "success" }],
-                    data: [ calculateValues ],
+                    data: [ results ],
                 });
             } else {
                 return res.status(409).send({ messages: [{ variant: "error", text: "Error get data" }] });
@@ -2590,7 +2562,8 @@ applicationRouter.post("/:application_id/assessment/:assessment_id/disburse",
                         ${data.weekly_amount ?? null},
                         ${data.assessment_adj_amount ?? null},
                         ${data.assessed_amount ?? null},
-                        ${data.program_division ?? 0};
+                        ${data.program_division ?? 0},
+                        ${data?.read_only_data?.net_amount ?? 0}
                     `
                 );
 
@@ -2658,8 +2631,6 @@ applicationRouter.post("/:application_id/assessment/:assessment_id/disburse-yea"
                     // })
                     // .returning("*");
 
-
-                /
 
                 if (response?.length) {
                     const disbursementList = response.map( (d: any) => {
@@ -2829,8 +2800,10 @@ applicationRouter.post("/:application_id/update-preview",
                 .first();
 
             const  assessmentMethods = new AssessmentYukonGrant(db);
-            
-            const results: any = await assessmentMethods.getRefreshAssessmentData(data, disburseAmountList, application.student_id, Number(application_id), data?.program_division ?? 0);
+
+            const assessmentDTO = { ...data, ...data?.read_only_data};
+
+            const results: any = await assessmentMethods.getRefreshAssessmentData(assessmentDTO, disburseAmountList, application.student_id, Number(application_id), data?.program_division ?? 0);
             
             if (results) {
                 results.read_only_data.previous_weeks = results.previous_weeks;
