@@ -8,14 +8,14 @@ export interface AssessmentDTO extends IAssessmentCalculated{
     allowed_percent?: number;
     allowed_tuition?: number;
     assessed_amount?: number;
-    assessed_date?: Date;
+    assessed_date?: Date | string;
     assessment_adj_amount?: number;
     assessment_type_id?: number;
     asset_tax_rate?: number;
     books_supplies_cost?: number;
     change_reason_comment?: string;
-    classes_end_date?: Date;
-    classes_start_date?: Date;
+    classes_end_date?: Date | string;
+    classes_start_date?: Date | string;
     csl_assessed_need?: number;
     csl_classification?: number;
     csl_full_amt_flag?: boolean;
@@ -31,7 +31,7 @@ export interface AssessmentDTO extends IAssessmentCalculated{
     disbursements_required?: number;
     discretionary_cost?: number;
     discretionary_cost_actual?: number;
-    effective_rate_date?: Date;
+    effective_rate_date?: Date | string;
     entitlement_days?: number;
     family_size?: number;
     funding_request_id?: number;

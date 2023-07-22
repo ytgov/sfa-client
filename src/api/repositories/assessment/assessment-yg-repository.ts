@@ -13,6 +13,130 @@ export class AssessmentYukonGrant extends AssessmentBaseRepository {
         super(maindb);
         this.applicationRepo = new ApplicationRepository(maindb);
     }
+    async getNewInfo(
+        application_id: number,
+        assessment_id: number,
+        disbursementList: DisbursementDTO[],
+    ): Promise<AssessmentDTO> {
+
+        let initValues: AssessmentDTO = {};
+
+        this.application = await this.applicationRepo.getApplicationById(application_id);
+
+        initValues.assessed_date = moment().format("YYYY-MM-DD");
+        initValues.effective_rate_date = this.application.classes_start_date?.toISOString().slice(0, 10);
+        initValues.classes_end_date = this.application.classes_end_date?.toISOString().slice(0, 10);
+        initValues.classes_start_date = this.application.classes_start_date?.toISOString().slice(0, 10);
+
+        initValues.allowed_months = moment(initValues.classes_end_date).diff(moment(initValues.classes_start_date), "months");
+
+        initValues.previous_weeks = await this.getScalarValue<number>("fn_get_previous_weeks_yg", [this.application.student_id || 0, application_id]) ?? 0;
+
+        initValues.assessed_weeks = await this.getScalarValue<number>("fn_get_allowed_weeks", [
+            `'${moment(initValues.classes_start_date).format("YYYY-MM-DD")}'`,
+            `'${moment(initValues.classes_end_date).format("YYYY-MM-DD")}'`
+        ]) || 0;
+
+        if ((initValues.previous_weeks + initValues.assessed_weeks) > 170) {
+            initValues.weeks_allowed = 170 - initValues.previous_weeks;
+        } else {
+            initValues.weeks_allowed = initValues.assessed_weeks;
+        }
+
+        initValues.home_city_id = await this.getScalarValue<number>("fn_get_home_city", [this.application.student_id || 0]);
+
+        initValues.destination_city_id = await this.getScalarValue<number>("fn_get_institution_city", [application_id]);
+
+        initValues.travel_allowance = await this.getScalarValue<number>("fn_get_travel_allowance", [
+            initValues.home_city_id || 0,
+            initValues.destination_city_id || 0
+        ]) || 0;
+
+        initValues.airfare_amount = await this.getScalarValue<number>("fn_get_airfare_amount", [
+            initValues.home_city_id || 0,
+            initValues.destination_city_id || 0
+        ]) || 0;
+
+        const yg_cost = await this.mainDb.raw(
+            `SELECT * FROM sfa.fn_get_yg_cost (
+                        ${this.application.program_division || 0}, 
+                        ${this.application.academic_year_id || 0}, 
+                        100
+                    );
+                    `
+        );
+
+        initValues.living_costs = yg_cost?.living ?? 0;
+        initValues.allowed_tuition = yg_cost?.tuition ?? 0;
+        initValues.allowed_books = yg_cost?.book ?? 0;
+
+        initValues.weekly_amount = await this.getScalarValue<number>("fn_get_weekly_amount", [application_id]) || 0;
+
+        const disburse_required = await this.getScalarValue<number>("fn_disbursments_required", [
+            application_id,
+            assessment_id || 0,
+            "NULL",
+        ]);
+
+        let disbursed_amt = null;
+
+        if (disbursementList?.length) {
+            let disbursedAmounts = disbursementList.map((d) => {
+                return Number(d.disbursed_amount) ?? 0;
+            });
+
+            disbursed_amt = disbursedAmounts.reduce((a, b) => a + b, 0);
+        }
+
+        if (disbursed_amt) {
+            initValues.previous_disbursement = disbursed_amt;
+
+            if (disburse_required > 0 && disburse_required < 1) {
+                initValues.disbursements_required = 1;
+            } else {
+                initValues.disbursements_required = Math.floor(disburse_required);
+            }
+        } else {
+            initValues.previous_disbursement = 0;
+            initValues.disbursements_required = Math.floor(disburse_required);
+        }
+
+        initValues.over_award = 0;
+        initValues.assessment_adj_amount = 0;
+        initValues.over_award_disbursement_period = 0;
+        initValues.years_funded_equivalent = undefined;
+        initValues.over_award_applied_flg = 'No';
+        initValues.air_travel_disbursement_period = undefined;
+
+        initValues.assessed_amount = await this.getScalarValue<number>("fn_get_total", [
+            String(initValues.disbursements_required),
+            this.application.academic_year_id || 0,
+            String(initValues.living_costs),
+            String(initValues.allowed_tuition),
+            String(initValues.allowed_books),
+            String(initValues.travel_allowance),
+            String(initValues.airfare_amount),
+            String(initValues.weekly_amount),
+            String(initValues.weeks_allowed),
+            String(initValues.assessment_adj_amount || 0),
+        ]);
+
+        initValues.pre_leg_amount = await this.getScalarValue<number>("fn_get_old_total", [
+            String(initValues.disbursements_required),
+            String(this.application.academic_year_id),
+            String(initValues.living_costs),
+            String(initValues.allowed_tuition),
+            String(initValues.allowed_books),
+            String(initValues.travel_allowance),
+            String(initValues.airfare_amount)
+        ]);
+
+        initValues.net_amount = ((initValues.assessed_amount || 0) - (initValues.previous_disbursement || 0) - (initValues.over_award || 0));
+
+        initValues.years_funded = await this.getScalarValue<number>("fn_get_total_funded_years", [this.application.student_id || 0, application_id]);
+
+        return initValues;
+    }
 
     async getRefreshAssessmentData(
         assessment: AssessmentDTO,
@@ -22,23 +146,21 @@ export class AssessmentYukonGrant extends AssessmentBaseRepository {
         program_division: number,
 
     ): Promise<AssessmentDTO | undefined> {
-
+        //fn_disbursments_required FUNCION REMOVIDA 
         let refrehData: AssessmentDTO = { ...assessment };
 
         this.application = await this.applicationRepo.getApplicationById(application_id);
 
-        refrehData.classes_end_date = assessment.classes_end_date;
-        refrehData.classes_start_date = assessment.classes_start_date;
-        refrehData.allowed_months = moment(refrehData.classes_end_date?.toString().slice(0, 10)).diff(moment(refrehData.classes_start_date?.toString().slice(0, 10)), "months");
-        refrehData.previous_weeks = await this.getScalarValue<number>("fn_get_previous_weeks_yg", [student_id, application_id]);
+        refrehData.classes_end_date = assessment.classes_end_date?.toString().slice(0, 10);
+        refrehData.classes_start_date = assessment.classes_start_date?.toString().slice(0, 10);
+        refrehData.allowed_months = moment(refrehData.classes_end_date).diff(moment(refrehData.classes_start_date), "months");
         refrehData.assessed_weeks = await this.getScalarValue<number>("fn_get_allowed_weeks", [
-            `'${moment(refrehData.classes_start_date?.toString().slice(0, 10)).format("YYYY-MM-DD")}'`,
-            `'${moment(refrehData.classes_end_date?.toString().slice(0, 10)).format("YYYY-MM-DD")}'`
-
+            `'${moment(refrehData.classes_start_date).format("YYYY-MM-DD")}'`,
+            `'${moment(refrehData.classes_end_date).format("YYYY-MM-DD")}'`
         ]);
 
-        if ((refrehData.previous_weeks + refrehData.assessed_weeks) > 170) {
-            refrehData.weeks_allowed = 170 - refrehData.previous_weeks;
+        if (((refrehData?.previous_weeks || 0) + (refrehData?.assessed_weeks || 0)) > 170) {
+            refrehData.weeks_allowed = 170 - (refrehData?.previous_weeks || 0);
         } else {
             refrehData.weeks_allowed = refrehData.assessed_weeks;
         }
@@ -53,14 +175,6 @@ export class AssessmentYukonGrant extends AssessmentBaseRepository {
             assessment.destination_city_id || 0
         ]);
 
-        refrehData.weekly_amount = await this.getScalarValue<number>("fn_get_weekly_amount", [application_id]) || 0;
-
-        const disburse_required = await this.getScalarValue<number>("fn_disbursments_required", [
-            application_id,
-            assessment.id || 0,
-            program_division,
-        ]);
-
         let disbursed_amt = null;
 
         if (disburseAmountList.length) {
@@ -69,19 +183,12 @@ export class AssessmentYukonGrant extends AssessmentBaseRepository {
 
         if (disbursed_amt) {
             refrehData.previous_disbursement = disbursed_amt;
-
-            if (disburse_required > 0 && disburse_required < 1) {
-                refrehData.disbursements_required = 1;
-            } else {
-                refrehData.disbursements_required = Math.floor(disburse_required);
-            }
         } else {
             refrehData.previous_disbursement = 0;
-            refrehData.disbursements_required = Math.floor(disburse_required);
         }
 
         refrehData.assessed_amount = await this.getScalarValue<number>("fn_get_total", [
-            String(refrehData.disbursements_required),
+            refrehData.disbursements_required || 0,
             this.application.academic_year_id || 0,
             String(refrehData.living_costs),
             String(refrehData.allowed_tuition),
@@ -94,7 +201,7 @@ export class AssessmentYukonGrant extends AssessmentBaseRepository {
         ]);
 
         refrehData.pre_leg_amount = await this.getScalarValue<number>("fn_get_old_total", [
-            String(assessment.disbursements_required),
+            refrehData.disbursements_required || 0,
             String(this.application.academic_year_id),
             String(assessment.living_costs),
             String(assessment.allowed_tuition),
@@ -167,6 +274,11 @@ export class AssessmentYukonGrant extends AssessmentBaseRepository {
         delete assessmentToUpdate.id;
         delete assessmentToUpdate.funding_request_id;
         delete assessmentToUpdate.program_division;
+        delete assessmentToUpdate.yea_used;
+        delete assessmentToUpdate.yea_earned;
+        delete assessmentToUpdate.yea_balance;
+        delete assessmentToUpdate.yea_net_amount;
+        delete assessmentToUpdate.unused_receipts;
 
         const updatedAssessment: any = await this.mainDb("sfa.assessment")
             .where({ id: assessment_id })
@@ -209,6 +321,53 @@ export class AssessmentYukonGrant extends AssessmentBaseRepository {
         }
 
         return updatedAssessment || null;
+    }
+
+    async createDisburse(
+        application_id: number,
+        dataAssessment: AssessmentDTO,
+        disbursementList: DisbursementDTO[],
+        funding_request_id: number,
+        program_division: number,
+    ): Promise<any> {
+
+        try {
+            const assessment: AssessmentDTO = { ...dataAssessment };
+            const newDisbursement: DisbursementDTO = {};
+            this.application = await this.applicationRepo.getApplicationById(application_id);
+
+            if (
+                (
+                    (
+                        !assessment.air_travel_disbursement_period
+                        && (!assessment.travel_allowance)
+                        && (!assessment.airfare_amount)
+                    )
+                    || ((assessment.air_travel_disbursement_period || 0) <= (assessment.disbursements_required || 0))
+                    || (!assessment.disbursements_required)
+                )
+                &&
+                (
+                    (
+                        !assessment.over_award_disbursement_period
+                        && (!assessment.over_award)
+                        && (assessment.over_award_applied_flg === 'No')
+                    ) // NO AIR TRAVEL
+                    || ((assessment.air_travel_disbursement_period || 0) <= (assessment.disbursements_required || 0))
+                    || (assessment.disbursements_required === 0)
+                )
+                &&
+                (
+                    (assessment?.years_funded_equivalent && (this.application.academic_year_id || 0) < 2016)
+                    || (this.application.academic_year_id || 0) < 2016
+                )
+            ) {
+
+            }
+        } catch (error) {
+
+        }
+
     }
 
 }
