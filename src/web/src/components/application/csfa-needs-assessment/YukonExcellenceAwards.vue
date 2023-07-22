@@ -199,7 +199,7 @@
                   disabled
                   @keypress="validate.isNumber($event)"
                   readonly
-                  :value="application.calculated_data.yea_used"
+                  :value="customAssessment.read_only_data.yea_used"
                 ></v-text-field>
               </div>
             </div>
@@ -247,7 +247,7 @@
                   readonly
                   disabled
                   @keypress="validate.isNumber($event)"
-                  :value="(application.calculated_data.yea_earned - application.calculated_data.yea_used)"
+                  :value="(customAssessment.read_only_data.yea_balance)"
                 ></v-text-field>
               </div>
             </div>
@@ -491,6 +491,8 @@ export default {
           thisVal: this
         }
       );
+      this.application.yea_tot_receipt_amount = 0;
+      this.refreshData();
     },
     blockDisburse(value) {
       if (!this.editingDisburse) {

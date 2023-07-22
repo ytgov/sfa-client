@@ -6,7 +6,7 @@ import { DocumentService } from "../../services/shared";
 import { ReturnValidationErrors } from "../../middleware";
 import { DB_CONFIG } from "../../config";
 import { Buffer } from 'buffer';
-import { functionsIn, indexOf, orderBy, parseInt, min, update } from "lodash";
+import { functionsIn, indexOf, orderBy, parseInt, min, update, get } from "lodash";
 import { AssessmentYukonGrant, AssessmentYEA } from "../../repositories/assessment";
 
 const db = knex(DB_CONFIG)
@@ -2103,11 +2103,11 @@ applicationRouter.post("/:application_id/:funding_request_id/assessments",
                                         assessed_date: dataAssessment.assessed_date,
                                     })
 
-                                if (dataApplication) {
-                                    const update_response = await db("sfa.application")
-                                        .where({ id: dataApplication.id })
-                                        .update({ yea_tot_receipt_amount: dataApplication.yea_tot_receipt_amount })
-                                }
+                                // if (dataApplication) {
+                                //     const update_response = await db("sfa.application")
+                                //         .where({ id: dataApplication.id })
+                                //         .update({ yea_tot_receipt_amount: dataApplication.yea_tot_receipt_amount })
+                                // }
                             
                                 return res.json({
                                     messages: [{ variant: "success" }],
@@ -2167,7 +2167,7 @@ applicationRouter.post("/:application_id/:funding_request_id/assessments-with-di
     async (req: Request, res: Response) => {
         try {
             const { application_id, funding_request_id } = req.params;
-            const { dataDisburse, dataAssessment } = req.body;
+            const { dataDisburse, dataAssessment, dataApplication = null } = req.body;
             
             if (!dataDisburse?.length) {
                 return res.json({
@@ -2249,11 +2249,99 @@ applicationRouter.post("/:application_id/:funding_request_id/assessments-with-di
                         
 
                     });
-                } else {
-                    return res.json({
-                        messages: [{ variant: "error" }],
-                        data: [],
-                    });
+                } else if (fundingRequest?.request_type_id === 3) { // Create Assessment YEA
+                    try {
+                        db.transaction(async (trx) => {
+                            if (!dataAssessment.id) {
+                                const insert_response = await db("sfa.assessment")
+                                    .returning('id')
+                                    .insert({
+                                        funding_request_id,
+                                        assessment_type_id: 2,
+                                        student_contrib_exempt: "NO",
+                                        spouse_contrib_exempt: "NO",
+                                        student_contribution_review: "NO",
+                                        spouse_contribution_review: "NO",
+                                        parent_contribution_review: "NO",
+                                        classes_end_date: dataAssessment.classes_end_date,
+                                        classes_start_date: dataAssessment.classes_start_date,
+                                        assessed_date: dataAssessment.assessed_date,
+                                    })
+
+                                // if (dataApplication) {
+                                //     const update_response = await db("sfa.application")
+                                //         .where({ id: dataApplication.id })
+                                //         .update({ yea_tot_receipt_amount: dataApplication.yea_tot_receipt_amount })
+                                // }
+
+                            
+                                // Insert the disbursement list
+                            for (const item of dataDisburse) {
+                                const resInsert = await db("sfa.disbursement")
+                                    .insert({
+                                        disbursement_type_id: item.disbursement_type_id,
+                                        assessment_id: get(insert_response, '[0].id', ''),
+                                        funding_request_id: funding_request_id,
+                                        disbursed_amount: item.disbursed_amount,
+                                        due_date: item.due_date,
+                                        tax_year: item.tax_year,
+                                        issue_date: item.issue_date,
+                                        paid_amount: item.paid_amount,
+                                        change_reason_id: item.change_reason_id,
+                                        financial_batch_id: item.financial_batch_id,
+                                        financial_batch_id_year: item.financial_batch_id_year,
+                                        financial_batch_run_date: item.financial_batch_run_date,
+                                        financial_batch_serial_no: item.financial_batch_serial_no,
+                                        transaction_number: item.transaction_number,
+                                        csl_cert_seq_number: item.csl_cert_seq_number,
+                                        ecert_sent_date: item.ecert_sent_date,
+                                        ecert_response_date: item.ecert_response_date,
+                                        ecert_status: item.ecert_status,
+                                        ecert_portal_status_id: item.ecert_portal_status_id
+                                    })
+                                    .returning("*");
+                            }
+
+                            const updateStatusFundingRequest = await db("sfa.funding_request")
+                                .where({ id: funding_request_id })
+                                .update({ status_id: 7 });
+                            
+                                return res.json({
+                                    messages: [{ variant: "success" }],
+                                    data: [ ...insert_response ],
+                                });
+                            } else {
+                                // delete dataAssessment.read_only_data;
+                                // delete dataAssessment.id;
+                                // delete dataAssessment.assessment_id;
+
+                                // const resUpdate = await db("sfa.assessment")
+                                // .where({ id: insert_response[0].assessment_id_inserted })
+                                // .update({ ...dataAssessment });
+
+                                // return resUpdate
+                                //     ? res.json({
+                                //         messages: [{ variant: "success" }],
+                                //         data: [ ...insert_response ],
+                                //     })
+                                //     : res.json({
+                                //         messages: [{ variant: "success", text: "Failed to update values" }],
+                                //         data: [[ ...insert_response ]],
+                                //     });
+                                // } else {
+                                //     return res.json({
+                                //         messages: [{ variant: "success" }],
+                                //         data: [ ...insert_response ],
+                                //     });
+                                // }
+                            }
+                        });
+                    } catch (err) {
+                        return res.json({
+                            messages: [{ variant: "error" }],
+                            data: [err],
+                        });
+                    }
                 }
             }
         } catch (error) {
@@ -2437,7 +2525,6 @@ applicationRouter.get("/:application_id/:funding_request_id/preview-assessment-y
                     `
                 );
                 const calculateValues = preview?.[0];
-                console.log("ENTRE AQ")
                 const readOnlyData = await db.raw(
                     `SELECT 
                     COALESCE(sfa.fn_get_disbursed_amount_fct(${funding_request_id}, -1), 0) AS previous_disbursement,
@@ -2572,7 +2659,7 @@ applicationRouter.post("/:application_id/assessment/:assessment_id/disburse-yea"
                     // .returning("*");
 
 
-                // console.log("🚀 ~ file: application-router.ts:2486 ~ response:", response)
+                /
 
                 if (response?.length) {
                     const disbursementList = response.map( (d: any) => {
