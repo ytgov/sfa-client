@@ -2445,6 +2445,34 @@ applicationRouter.get("/:application_id/:funding_request_id/preview-assessment",
                     results.read_only_data.net_amount = results?.net_amount;
                     results.read_only_data.years_funded = results?.years_funded;
 
+                    const student = await db("sfa.student")
+                        .where({ id: application.student_id })
+                        .first();
+
+                    const readOnlyData = await db.raw(
+                        `SELECT 
+                        COALESCE(sfa.fn_get_yea_total(${student.yukon_id}), 0) AS yea_earned,
+                        COALESCE(sfa.fn_get_system_yea_used(${student.id}), 0) AS yea_used;
+                        `
+                    );
+                    
+                    let { yea_earned, yea_used } = readOnlyData?.[0] || {};
+    
+                    const yea_balance = yea_earned - yea_used;
+                    const unused_receipts = min([min([(application.yea_tot_receipt_amount || 0), yea_balance]), fundingRequest.yea_request_amount])
+                    const assessed_amount = unused_receipts + results?.previous_disbursement;
+                    const yea_net_amount = assessed_amount - results?.previous_disbursement;
+
+                    results.read_only_data = {
+                        yea_earned,
+                        yea_used,
+                        yea_net_amount,
+                        yea_balance,
+                        unused_receipts,
+                        assessed_amount,
+                        ...results.read_only_data
+                    }
+
                     delete results.previous_weeks;
                     delete results.assessed_weeks;
                     delete results.previous_disbursement;
@@ -2485,10 +2513,14 @@ applicationRouter.get("/:application_id/:funding_request_id/preview-assessment-y
                 .where({ id: funding_request_id })
                 .first();
 
+            const student = await db("sfa.student")
+                .where({ id: application.student_id })
+                .first();
+
             if (application && fundingRequest) {
 
                 const preview = await db.raw(
-                    `SELECT * FROM sfa.fn_get_new_info_yea(
+                    `SELECT * FROM sfa.fn_get_new_info(
                         ${application_id},
                         -1,
                         ${funding_request_id},
@@ -2499,12 +2531,28 @@ applicationRouter.get("/:application_id/:funding_request_id/preview-assessment-y
                 const calculateValues = preview?.[0];
                 const readOnlyData = await db.raw(
                     `SELECT 
-                    COALESCE(sfa.fn_get_disbursed_amount_fct(${funding_request_id}, -1), 0) AS previous_disbursement,
-                    ${calculateValues?.assessed_amount ?? 0} - ${calculateValues?.previous_disbursement ?? 0} AS net_amount,
+                    COALESCE(sfa.fn_get_yea_total(${student.yukon_id}), 0) AS yea_earned,
+                    COALESCE(sfa.fn_get_system_yea_used(${student.id}), 0) AS yea_used;
                     `
                 );
                 
                 calculateValues.read_only_data = readOnlyData?.[0] || {};
+
+                const yea_balance = calculateValues.read_only_data.yea_earned - calculateValues.read_only_data.yea_used;
+                const unused_receipts = min([min([(application.yea_tot_receipt_amount || 0), yea_balance]), fundingRequest.yea_request_amount])
+                const assessed_amount = unused_receipts + calculateValues.read_only_data.previous_disbursement;
+                const yea_net_amount = assessed_amount - calculateValues.read_only_data.previous_disbursement;
+
+                delete calculateValues.destination_city;
+                delete calculateValues.previous_disbursement;
+
+                calculateValues.read_only_data = {
+                    yea_net_amount,
+                    yea_balance,
+                    unused_receipts,
+                    assessed_amount,
+                    ...calculateValues.read_only_data
+                }
                 
                 return res.json({
                     messages: [{ variant: "success" }],
@@ -2611,7 +2659,7 @@ applicationRouter.post("/:application_id/assessment/:assessment_id/disburse-yea"
         try {
             const { application_id, assessment_id } = req.params;
             const { data } = req.body;
-
+            
             const application = await db("sfa.application")
                 .where({ id: application_id })
                 .first();
