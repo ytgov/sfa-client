@@ -1,10 +1,11 @@
+import { ExpenseRepository } from './../../repositories/expense/expense-repository';
 import knex from "knex";
 import express, { Request, Response } from "express";
 import { body, param } from "express-validator";
 import { ReturnValidationErrors } from "../../middleware";
 import { DB_CONFIG } from "../../config";
 import { AssessmentCslftRepository } from "../../repositories";
-import { AssessmentDTO, CslftResultDTO } from "../../models";
+import { AssessmentDTO, CslftResultDTO, UncappedExpensesDTO } from "../../models";
 
 const db = knex(DB_CONFIG)
 export const assessmentCslftRouter = express.Router();
@@ -191,6 +192,33 @@ assessmentCslftRouter.post("/:funding_request_id/disburse",
             if (Object.keys(results.data ?? {}).length > 0) {
                 results.success = true;
                 return res.status(200).json(results);
+            } else {
+                return res.status(404).send();
+            }
+
+        } catch (error: any) {
+            console.log(error);
+            return res.status(404).send();
+        }
+    }
+);
+
+assessmentCslftRouter.get("/application/:application_id/expenses/uncapped/:period_id", 
+    [param("application_id").isInt().notEmpty(), param("period_id").isInt().notEmpty()], ReturnValidationErrors,
+    async (req: Request, res: Response) => {
+        const expenseRepo = new ExpenseRepository(db);
+        const { application_id = undefined, period_id = undefined } = req.params;
+        let results: Array<UncappedExpensesDTO> = [];
+        
+        try {
+           
+
+            if (application_id && period_id) {
+                results = await expenseRepo.getUncappedExpenseTable(parseInt(application_id), parseInt(period_id));
+            }
+
+            if (results.length > 0) {                
+                return res.status(200).json({ success: true, data: results });
             } else {
                 return res.status(404).send();
             }

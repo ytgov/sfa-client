@@ -8,6 +8,7 @@ const dateHelper = new DateHelper();
 
 const state = {
     funding_request: {},
+    uncapped_expenses: [],
     cslft: {
         id: null,
         air_travel_disbursement_period: null,
@@ -197,6 +198,9 @@ const mutations = {
     loadCslLookup(state, csl_lookup) {
       state.csl_lookup = csl_lookup;
     },
+    cslftLoadUncappedExpenses(state, list) {
+        state.uncapped_expenses = list;
+    },
     setTotalStudyCost(state, value) {
       state.cslft.total_study_cost = value;
     },
@@ -240,6 +244,14 @@ const actions = {
                 disbursements: [defaultState.cslft_disbursement],
             });
             state.commit("getCslftAssessInfo", res.data.data);
+        }
+    },
+    async cslftLoadUncappedExpenses(state, application_id) {
+        const period_id = 2;
+        const res = await axios.get(`${CSLFT}/application/${application_id}/expenses/uncapped/${period_id}`);
+        console.log(res);
+        if (res?.data?.success) {            
+            state.commit("cslftLoadUncappedExpenses", res.data.data);
         }
     },
     async getCslftRecalc({ commit, getters }) {
