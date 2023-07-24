@@ -468,7 +468,7 @@ const getters = {
         return numHelper.round(numHelper.getNum(state.cslft.parent1_tax_paid) + numHelper.getNum(state.cslft.parent2_tax_paid));
     },
     cslft_parent_net_income(state, getters) {
-        return numHelper.round(getters.cslft_parent_total_income + getters.cslft_parent_total_tax);
+        return numHelper.round(getters.cslft_parent_total_income - getters.cslft_parent_total_tax);
     },
     cslft_parent_discretionary_income(state, getters) {
         return numHelper.round(getters.cslft_parent_net_income - numHelper.getNum(state.cslft.parent_msol));
