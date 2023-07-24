@@ -253,7 +253,7 @@
                         dense
                         background-color="white"
                         hide-details
-                        label="Marrital Status"
+                        label="Marital Status"
                         v-model="marrital_status"
                         item-text="DESCRIPTION"
                         item-value="REQUEST_TYPE_ID"

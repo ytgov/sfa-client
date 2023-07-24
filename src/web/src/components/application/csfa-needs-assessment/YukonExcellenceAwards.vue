@@ -65,7 +65,7 @@
             <div class="col-lg-12 nopadding d-flex low-margin">
               <div class="col-sm-4 col-lg-4">
                 <v-menu
-                  :disabled="false"
+                  :disabled="true"
                   v-model="assessed_date_menu"
                   :close-on-content-click="false"
                   transition="scale-transition"
@@ -110,6 +110,7 @@
                   nudge-top="26"
                   offset-y
                   min-width="auto"
+                  disabled
                 >
                   <template v-slot:activator="{ on, attrs }">
                     <v-text-field
@@ -123,9 +124,11 @@
                       background-color="white"
                       v-bind="attrs"
                       v-on="on"
+                      disabled
                     ></v-text-field>
                   </template>
                   <v-date-picker
+                    disabled
                     @change="refreshData"
                     :value="customAssessment.classes_start_date?.slice(0, 10)"
                     @input="e => {
@@ -140,6 +143,7 @@
               <div class="col-lg-4">
                 <v-menu
                   v-model="classes_end_date_menu"
+                  disabled
                   :close-on-content-click="false"
                   transition="scale-transition"
                   left
@@ -150,6 +154,7 @@
                 <template v-slot:activator="{ on, attrs }">
                   <v-text-field
                     :value="customAssessment.classes_end_date?.slice(0, 10)"
+                    disabled
                     label="Classes End Date"
                     append-icon="mdi-calendar"
                     hide-details
@@ -180,6 +185,7 @@
                   label="YEA Earned"
                   @keypress="validate.isNumber($event)"
                   readonly
+                  disabled
                   :value="application.calculated_data.yea_earned"
                 ></v-text-field>
               </div>
@@ -190,9 +196,10 @@
                   background-color="white"
                   hide-details
                   label="YEA Used"
+                  disabled
                   @keypress="validate.isNumber($event)"
                   readonly
-                  :value="application.calculated_data.yea_used"
+                  :value="customAssessment.read_only_data.yea_used"
                 ></v-text-field>
               </div>
             </div>
@@ -200,6 +207,7 @@
               <div class="col-lg-4 mobile-low-margin">
                 <v-text-field
                   outlined
+                  disabled
                   dense
                   background-color="white"
                   hide-details
@@ -212,13 +220,14 @@
               <div class="col-lg-4 not-displayed-sx"></div>
               <div class="col-lg-4">
                 <v-text-field
+                  @change="refreshData"
                   outlined
                   dense
                   background-color="white"
                   hide-details
                   label="Receipts Received"
                   @keypress="validate.isNumber($event)"
-                  :value="application.yea_tot_receipt_amount ?? 0"
+                  v-model="application.yea_tot_receipt_amount"
                 ></v-text-field>
               </div>
             </div>
@@ -236,8 +245,9 @@
                   hide-details
                   label="YEA Balance"
                   readonly
+                  disabled
                   @keypress="validate.isNumber($event)"
-                  :value="(application.calculated_data.yea_earned - application.calculated_data.yea_used)"
+                  :value="(customAssessment.read_only_data.yea_balance)"
                 ></v-text-field>
               </div>
             </div>
@@ -245,6 +255,7 @@
               <div class="col-sm-4 col-lg-7">
                 <v-text-field
                   outlined
+                  disabled
                   dense
                   background-color="white"
                   hide-details
@@ -255,7 +266,7 @@
               </div>
               <div class="col-sm-4 col-lg-5">
                 <v-btn 
-                  @click="recalcAssessment"
+                  @click="refreshData"
                   dense
                   color="blue" 
                   class="my-0"
@@ -284,6 +295,7 @@
                 <v-text-field
                   outlined
                   dense
+                  disabled
                   background-color="white"
                   hide-details
                   label="Previous Disbursements"
@@ -299,6 +311,7 @@
                   dense
                   background-color="white"
                   hide-details
+                  disabled
                   label="Net Amount"
                   @keypress="validate.isNumber($event)"
                   :value="customAssessment?.read_only_data?.yea_net_amount ?? 0"
@@ -312,7 +325,6 @@
                         if (!isDisburseBlocked) {
                           disburse();
                         }
-                      
                     }"
                     dense
                     color="blue" 
@@ -414,6 +426,7 @@ export default {
           application_id: this.application.id,
           funding_request_id: this.fundingRequestId,
           dataAssessment: { ...this.customAssessment },
+          dataApplication: { ...this.application },
           thisVal: this
         }
       );
@@ -422,11 +435,12 @@ export default {
     updateAssessment() {
       const custom = JSON.parse(JSON.stringify(this.customAssessment));
       const filterDisbursements = this.disbursements.filter(d => d.assessment_id === custom?.id) || [];
-
+ 
       store.dispatch(
           "updateAssessmentYEA",
           {
             data: custom,
+            application: this.application,
             disburseList: [ ...this.previewDisbursementList, ...filterDisbursements ],
             application_id: this.application.id,
             funding_request_id: custom.funding_request_id,
@@ -452,7 +466,7 @@ export default {
     
       store.dispatch("refreshAssessmentYEA", { 
         application_id: this.application.id, 
-        data: { ...this.customAssessment },
+        data: { assessment: this.customAssessment, application: this.application },
         disburseAmountList: [ ...previewDisburseAmountsList, ...disburseAmountsList ],
       });
     },
@@ -473,10 +487,12 @@ export default {
         {
           application_id: this.application.id,
           assessment_id: this.customAssessment?.id || 0,
-          data: { ...this.customAssessment },
+          data: { ...this.customAssessment, funding_request_id: this.fundingRequestId },
           thisVal: this
         }
       );
+      this.application.yea_tot_receipt_amount = 0;
+      this.refreshData();
     },
     blockDisburse(value) {
       if (!this.editingDisburse) {
