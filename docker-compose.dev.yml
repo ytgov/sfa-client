@@ -1,6 +1,21 @@
 version: "3.8"
 
 services:
+  api:
+    build:
+      context: ./src/api
+      dockerfile: development.Dockerfile
+    env_file:
+      - ./src/api/.env.development
+    environment:
+      NODE_ENV: development
+      DB_HOST: db
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./src/api:/usr/src/api
+    depends_on:
+      - db
   db:
     image: mcr.microsoft.com/mssql/server:2019-latest
     ports:
