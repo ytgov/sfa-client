@@ -1,5 +1,6 @@
 import express from "express";
 import { acadecicYearRouter } from "./academic-year-router";
+import { applicationLetterRouter } from "./application-letter-router";
 import { applicationRouter } from "./application-router";
 import { assessmentRouter } from "./assessment-router";
 import { institutionRouter } from "./institution-router";
@@ -66,6 +67,7 @@ export const adminRouter = express.Router();
 adminRouter.use("/institution", institutionRouter);
 adminRouter.use("/academic-year", acadecicYearRouter);
 adminRouter.use("/application", applicationRouter);
+adminRouter.use("/application-letter", applicationLetterRouter);
 adminRouter.use("/assessment", assessmentRouter);
 adminRouter.use("/student", studentRouter);
 adminRouter.use("/province", provinceRouter);
