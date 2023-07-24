@@ -73,12 +73,14 @@ Writing code and developing in this application requires running three services:
    node -v
    ```
 
-9. You will now have a local database with data ready for the API. To run the API, run the following commands:
+9. (optional) You will now have a local database with data ready for the API. To run the API, run the following commands:
 
    ```bash
    cd src/api
    npm install
    ```
+
+> You no longer need this step if you are using docker compose.
 
 10. You must then duplicated the `.env.sample` to `.env.development` and update the appropriate values for the local database and authentication. You will need to set the `DB_PASS` equal to the value of the `MSSQL_SA_PASSWORD` in the `db/sapassword.env`.
 
@@ -86,13 +88,15 @@ Writing code and developing in this application requires running three services:
     cp .env.sample .env.development
     ```
 
-11. Start the Node.js API with:
+11. (optional) Start the Node.js API with:
 
     ```bash
     npm run start
     ```
 
     The API will bind to your local machines port 3000 and be available at http://localhost:3000
+
+> You no longer need this step if you are using docker compose.
 
 12. Last to start is the the Vue.js web front-end. To run this, open a second terminal window at this directory and run the following commands:
 
