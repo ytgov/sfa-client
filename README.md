@@ -145,6 +145,34 @@ To access the Database console directly use:
 docker compose -f docker-compose.dev.yml exec db /opt/mssql-tools/bin/sqlcmd -U sa -s localhost -P Testing1122
 ```
 
+## Dev Command Usage
+
+If you want a simpler interface to interact with docker compose you can use the `bin/dev` helper.
+
+The `dev` command is usually set up in conjunction with `direvn` (https://direnv.net/) via
+creating a `.envrc` file at the root of your project.
+```bash
+#!/usr/bin/env bash
+
+PATH_add bin
+```
+
+After which you can use the `dev` command like so:
+   - `dev build` builds all services in the docker-compose.development.yaml file
+   - `dev up` boots all services in the docker-compose.development.yaml file and watches the logs
+   - `dev down` stops all services in the docker-compose.development.yaml file
+   - `dev logs` follows logs for all services in the docker-compose.development.yaml file
+   - `dev sh` runs the api service and loads and sh shell.
+   - `dev npm xxx` runs the api service and and executes and npm command
+   - `dev sqlcmd` opens an sql terminal into the DB container
+   - `dev debug` will open a debug console against the api container and wait for a breakpoint to trigger
+
+Most of these commands are composable and accept any args that you could pass to the normal docker compose command.
+e.g
+   - `dev up db` will only boot the db service
+   - `dev build api` will only build the api service
+   - `dev logs api` will only watch logs for the api service
+
 ## Contributing code
 
 To process to contribute code to this repository is via pull requests initiated from a forked copy of this repository.
