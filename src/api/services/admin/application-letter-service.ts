@@ -11,7 +11,7 @@ export class ApplicationLetterService {
     }
 
     async generateApprovalLetter(): Promise<Buffer> {
-        const application = await db<Application>('applications').where({id: this.applicationId}).first();
+        const application = await db<Application>('sfa.applications').where({id: this.applicationId}).first();
         if (!application) {
             Promise.reject(new Error('Application not found'));
         }
