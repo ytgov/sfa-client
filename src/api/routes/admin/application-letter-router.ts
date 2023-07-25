@@ -24,14 +24,27 @@ applicationLetterRouter.get(
             res.setHeader("Content-type", "application/pdf");
             res.send(approvalLetter);
         } catch (error) {
+            // TODO: standarize this pattern
             if (error instanceof Error) {
                 if (error.message.includes("not found")) {
-                    res.status(404).send(error);
+                    res.status(404).send({
+                        statusCode: 404,
+                        status: "Not Found",
+                        message: error.message
+                    });
                 } else {
-                    res.status(422).send(error);
+                    res.status(422).send({
+                        statusCode: 422,
+                        status: "Unprocessable Entity",
+                        message: error.message
+                    });
                 }
             } else {
-                res.status(500).send(error);
+                res.status(500).send({
+                    statusCode: 500,
+                    status: "Internal Server Error",
+                    message: JSON.stringify(error)
+                });
             }
         }
     }
