@@ -4,28 +4,62 @@ import { renderViewAsPdf } from '../../utils/express-handlebars-pdf-client';
 import db from '../../db/db-client'
 
 export class ApplicationLetterService {
-    private applicationId: number;
+    #applicationId: number;
+    #applicationData: any;
 
     constructor({ applicationId } : { applicationId: number; }) {
-        this.applicationId = applicationId;
+        this.#applicationId = applicationId;
     }
 
     async generateApprovalLetter(): Promise<Buffer> {
-        const application = await db<Application>('sfa.applications').where({id: this.applicationId}).first();
-        if (!application) {
-            Promise.reject(new Error('Application not found'));
-        }
+        await this.#getApplicationData()
 
         return renderViewAsPdf(
             './templates/admin/application-letter/approval',
-            { title: 'Application Approval Letter' }
+            {
+                ...this.#applicationData,
+                title: 'Application Approval Letter'
+            }
         )
     }
 
     ////
     // See https://xkcd.com/1179/ -> https://en.wikipedia.org/wiki/ISO_8601 for date format
-    buildApprovalLetterFileName() {
+    async buildApprovalLetterFileName() {
+        await this.#getApplicationData()
+
+        const studentLastName = this.#applicationData.student.person.last_name
+        if (!studentLastName) {
+            Promise.reject(new Error('No student last name'))
+        }
+
         const formattedData = new Date().toISOString().slice(0, 10); // YYYYY-MM-DD
-        return `Approval Letter, USER_LAST_NAME, ${formattedData}.pdf`
+        return `Approval Letter, ${studentLastName}, ${formattedData}.pdf`
+    }
+
+    // Private Methods
+    async #getApplicationData(): Promise<any> {
+        if (this.#applicationData) return this.#applicationData;
+
+        const application = await db('sfa.application').where({id: this.#applicationId}).first();
+        if (!application) {
+            return Promise.reject(new Error('Application not found'));
+        }
+
+        const student = await db('sfa.student').where({ id: application.student_id }).first();
+        if (!student) {
+            return Promise.reject(new Error('Student not found'));
+        }
+
+        const person = await db('sfa.person').where({ id: student.person_id }).first();
+        if (!person) {
+            return Promise.reject(new Error('Person not found'));
+        }
+
+        student.person = person;
+        application.student = student;
+
+        this.#applicationData = application;
+        return this.#applicationData
     }
 }
