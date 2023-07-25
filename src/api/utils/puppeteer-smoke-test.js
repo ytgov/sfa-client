@@ -8,5 +8,5 @@ const puppeteer = require("puppeteer");
   const page = await browser.newPage();
   await page.goto("https://example.com");
   await browser.close();
-  console.log("done");
+  console.log("Puppeteer launch test: SUCCESS");
 })();
