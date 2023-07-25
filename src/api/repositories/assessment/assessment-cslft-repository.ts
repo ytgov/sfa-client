@@ -1038,6 +1038,12 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
             else
             {
                 result.data = await this.insertAssessment(payload.data);
+                if (Array.isArray(payload.disbursements))
+                {
+                    for (let idx in payload.disbursements) {
+                        payload.disbursements[idx].assessment_id = result.data.id;
+                    }
+                }
             }
         }
 
