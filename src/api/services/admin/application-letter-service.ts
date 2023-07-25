@@ -23,6 +23,18 @@ export class ApplicationLetterService {
         )
     }
 
+    async generateRejectionLetter(): Promise<Buffer> {
+        await this.#getApplicationData()
+
+        return renderViewAsPdf(
+            './templates/admin/application-letter/rejection',
+            {
+                ...this.#applicationData,
+                title: 'Application Rejection Letter'
+            }
+        )
+    }
+
     ////
     // See https://xkcd.com/1179/ -> https://en.wikipedia.org/wiki/ISO_8601 for date format
     async buildApprovalLetterFileName() {
@@ -35,6 +47,18 @@ export class ApplicationLetterService {
 
         const formattedData = new Date().toISOString().slice(0, 10); // YYYYY-MM-DD
         return `Approval Letter, ${studentLastName}, ${formattedData}.pdf`
+    }
+
+    async buildRejectionLetterFileName() {
+        await this.#getApplicationData()
+
+        const studentLastName = this.#applicationData.student.person.last_name
+        if (!studentLastName) {
+            Promise.reject(new Error('No student last name'))
+        }
+
+        const formattedData = new Date().toISOString().slice(0, 10); // YYYYY-MM-DD
+        return `Rejection Letter, ${studentLastName}, ${formattedData}.pdf`
     }
 
     // Private Methods
