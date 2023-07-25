@@ -39,19 +39,23 @@ async (req: Request, res: Response) => {
 });
 
 assessmentCslftRouter.post("/",
-    [body("assessment").notEmpty()], ReturnValidationErrors,
+    [body("payload").notEmpty()], ReturnValidationErrors,
     async (req: Request, res: Response) => {
-        const { ...assessment } = req.body.assessment;
+        const { ...assessment } = req.body.payload.data;
+        const disbursements = req.body.payload.disbursements;
+        const funding_request = req.body.payload.funding_request;
         const assessmentRepo = new AssessmentCslftRepository(db);
-        let newApp: AssessmentDTO = {
-            ...assessment
+        let newApp: Partial<CslftResultDTO> = {
+            data: { ...assessment },
+            disbursements: disbursements,
+            funding_request: funding_request
         };
 
         try {
-            const newRow = await assessmentRepo.insertAssessment(newApp);
+            const newRow = await assessmentRepo.insertUpdateAll(newApp);
 
-            if (newRow && newRow.length == 1) {
-                return res.json({ data: { id: newRow[0].id }, messages: [{ text: "Assessment created", variant: "success" }] });
+            if (newRow) {
+                return res.json({ data: { id: newRow.data?.id }, messages: [{ text: "Assessment created", variant: "success" }] });
             }
 
             return res.status(404).send();
@@ -64,21 +68,25 @@ assessmentCslftRouter.post("/",
 );
 
 assessmentCslftRouter.put("/:id",
-    [param("id").isInt().notEmpty(), body("assessment").notEmpty()], ReturnValidationErrors,
+    [param("id").isInt().notEmpty(), body("payload").notEmpty()], ReturnValidationErrors,
     async (req: Request, res: Response) => {
-        const { ...assessment } = req.body.assessment;
+        const { ...assessment } = req.body.payload.data;
+        const disbursements = req.body.payload.disbursements;
+        const funding_request = req.body.payload.funding_request;
         const id: number = parseInt(req.params.id);
 
         const assessmentRepo = new AssessmentCslftRepository(db);
-        let newApp: AssessmentDTO = {
-            ...assessment
+        let newApp: Partial<CslftResultDTO> = {
+            data: { ...assessment },
+            disbursements: disbursements,
+            funding_request: funding_request
         };
 
         try {
-            const updateRow = await assessmentRepo.updateAssessment(id, newApp);
+            const updateRow = await assessmentRepo.insertUpdateAll(newApp);
 
-            if (updateRow && updateRow.length == 1) {
-                return res.json({ data: { id: updateRow[0].id }, messages: [{ text: "Assessment updated", variant: "success" }] });
+            if (updateRow) {
+                return res.json({ data: { id: updateRow.data?.id }, messages: [{ text: "Assessment updated", variant: "success" }] });
             }
 
             return res.status(404).send();

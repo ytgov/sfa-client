@@ -1,191 +1,20 @@
 import axios from "axios";
-import {CSL_LOOKUP, CSLFT, CSLFT_ASSESS_INFO, STUDENT_URL} from "@/urls";
+import {CSL_LOOKUP, CSLFT, CSLFT_ASSESS_INFO } from "@/urls";
 import moment from "moment";
 import { NumbersHelper, DateHelper } from "@/utilities";
 import { defaultState } from "./default";
 const numHelper = new NumbersHelper();
 const dateHelper = new DateHelper();
 
-const state = {
-    funding_request: {},
-    uncapped_expenses: [],
-    cslft: {
-        id: null,
-        air_travel_disbursement_period: null,
-        airfare_amount: null,
-        allowed_books: null,
-        allowed_months: null,
-        allowed_percent: null,
-        allowed_tuition: null,
-        assessed_amount: null,
-        assessed_date: null,
-        assessment_adj_amount: null,
-        assessment_type_id: null,
-        asset_tax_rate: null,
-        books_supplies_cost: null,
-        change_reason_comment: null,
-        classes_end_date: null,
-        classes_start_date: null,
-        csl_assessed_need: null,
-        csl_classification: null,
-        csl_full_amt_flag: null,
-        csl_non_reason_id: null,
-        csl_over_reason_id: null,
-        csl_request_amount: null,
-        day_care_actual: null,
-        day_care_allowable: null,
-        depend_food_allowable: null,
-        depend_tran_allowable: null,
-        dependent_count: null,
-        destination_city_id: null,
-        disbursements_required: null,
-        discretionary_cost: null,
-        discretionary_cost_actual: null,
-        effective_rate_date: null,
-        entitlement_days: null,
-        family_size: null,
-        funding_request_id: null,
-        field_program_code: null,
-        home_city_id: null,
-        living_costs: null,
-        marital_status_id: null,
-        married_assets: null,
-        married_pstudy: null,
-        married_study: null,
-        new_calc: null,
-        over_award: null,
-        over_award_applied_flg: null,
-        over_award_disbursement_period: null,
-        p_trans_month: null,
-        parent1_income: null,
-        parent1_tax_paid: null,
-        parent2_income: null,
-        parent2_tax_paid: null,
-        parent_contribution_override: null,
-        parent_contribution_review: null,
-        parent_province_id: null,
-        parent_ps_depend_count: null,
-        period: null,
-        pre_leg_amount: null,
-        prestudy_accom_code: null,
-        prestudy_bus_flag: null,
-        prestudy_csl_classification: null,
-        prestudy_distance: null,
-        prestudy_living_w_spouse_flag: null,
-        prestudy_province_id: null,
-        program_id: null,
-        pstudy_day_care_actual: null,
-        pstudy_day_care_allow: null,
-        pstudy_depend_food_allow: null,
-        pstudy_depend_tran_allow: null,
-        pstudy_end_date: null,
-        pstudy_expected_contrib: null,
-        pstudy_p_trans_month: null,
-        pstudy_shelter_month: null,
-        pstudy_start_date: null,
-        pstudy_x_trans_total: null,
-        r_trans_16wk: null,
-        relocation_total: null,
-        return_uncashable_cert: null,
-        second_residence_rate: null,
-        shelter_month: null,
-        spouse_contrib_exempt: null,
-        spouse_contribution: null,
-        spouse_contribution_override: null,
-        spouse_contribution_review: null,
-        spouse_expected_contribution: null,
-        spouse_expected_income: null,
-        spouse_gross_income: null,
-        spouse_ln150_income: null,
-        spouse_previous_contribution: null,
-        spouse_province_id: null,
-        spouse_pstudy_gross: null,
-        spouse_pstudy_tax_rate: null,
-        spouse_tax_rate: null,
-        stud_pstudy_gross: null,
-        stud_pstudy_tax_rate: null,
-        student_contrib_exempt: null,
-        student_contribution: null,
-        student_contribution_override: null,
-        student_contribution_review: null,
-        student_expected_contribution: null,
-        student_family_size: null,
-        student_gross_income: null,
-        student_ln150_income: null,
-        student_previous_contribution: null,
-        student_tax_rate: null,
-        study_accom_code: null,
-        study_area_id: null,
-        study_bus_flag: null,
-        study_distance: null,
-        study_living_w_spouse_flag: null,
-        study_months: null,
-        study_province_id: null,
-        study_weeks: null,
-        total_grant_awarded: null,
-        total_study_cost: null,
-        travel_allowance: null,
-        tuition_estimate: null,
-        uncapped_costs_total: null,
-        uncapped_pstudy_total: null,
-        weekly_amount: null,
-        weeks_allowed: null,
-        x_trans_total: null,
-        years_funded_equivalent: null,
-        combined_contribution: null,
-        parent_msol: null,
-        parent_discretionary_income: null,
-        parent_weekly_contrib: null,
-        calculated_award: null,
-    },
-    csl_lookup: {
-        id: null,
-        academic_year_id: null,
-        return_transport_max_amount: null,
-        allowable_weekly_amount: null,
-        student_exempt_amount: null,
-        vehicle_deduction_amount: null,
-        rrsp_deduction_yearly_amount: null,
-        relocation_max_amount: null,
-        mileage_rate: null,
-        discretionary_costs_max_amount: null,
-        merit_exempt_amount: null,
-        books_max_amount: null,
-        student_contrib_percent: null,
-        spouse_contrib_percent: null,
-        csg_8_month_amount: null,
-        csg_pt_yearly_amount: null,
-        low_income_student_contrib_amount: null,
-        student_contrib_max_amount: null,
-        csl_pt_max_amount: null,
-        csl_pt_wk_misc_amount: null,
-    },
-    cslft_disbursement: {
-        id: null,
-        disbursement_type_id: null,
-        assessment_id: null,
-        funding_request_id: null,
-        disbursed_amount: null,
-        due_date: null,
-        tax_year: null,
-        issue_date: null,
-        paid_amount: null,
-        change_reason_id: null,
-        financial_batch_id: null,
-        financial_batch_id_year: null,
-        financial_batch_run_date: null,
-        financial_batch_serial_no: null,
-        transaction_number: null,
-        csl_cert_seq_number: null,
-        ecert_sent_date: null,
-        ecert_response_date: null,
-        ecert_status: null,
-        ecert_portal_status_id: null,
-    }
-};
+const state = defaultState();
 const mutations = {
-    getCslftAssessInfo(state, cslft) {
-        state.cslft = cslft;
+    cslftResetState(state) {
+        Object.assign(state, defaultState());
+    },
+    getCslftAssessInfo(state, payload) {
+        state.cslft = payload.data;
+        state.cslft_disbursement = payload.disbursements[0];
+        state.funding_request = payload.funding_request;
     },
     loadModelsDisburse(state, disburseModel) {
         state.cslft = disburseModel.data;
@@ -238,12 +67,8 @@ const actions = {
     async getCslftAssessInfo(state, funding_request_id) {
         const res = await axios.get(`${CSLFT_ASSESS_INFO}/${funding_request_id}`);
         if (res?.data?.success) {
-            state.commit("loadModelsDisburse", {
-                data: defaultState.cslft,
-                funding_request: defaultState.funding_request,
-                disbursements: [defaultState.cslft_disbursement],
-            });
-            state.commit("getCslftAssessInfo", res.data.data);
+            state.commit("cslftResetState", state);
+            state.commit("getCslftAssessInfo", res.data);
         }
     },
     async cslftLoadUncappedExpenses(state, application_id) {
@@ -261,8 +86,8 @@ const actions = {
         };
         const res = await axios.post(`${CSLFT}/${assessment.funding_request_id}/recalc`, body);
         if (res?.data?.success) {
-            commit("getCslftAssessInfo", defaultState.cslft);
-            commit("getCslftAssessInfo", res.data.data);
+            commit("cslftResetState", state);
+            commit("getCslftAssessInfo", res.data);
         }
     },
     async getCslftDisburse({ commit, getters }) {
@@ -277,8 +102,14 @@ const actions = {
     },
     async saveCslftAssessment({ getters, dispatch }, vm) {
         const assessment = getters.cslft_get_assessment;
+        const disbursements = getters.cslft_get_disbursements;
+        const funding_request = getters.cslft_get_funding_request;
         const body = {
-            assessment: assessment
+            payload: {
+                data: assessment,
+                disbursements: [disbursements],
+                funding_request: funding_request,
+            },
         };
 
         let resAction = undefined;
@@ -326,11 +157,7 @@ const actions = {
         const body = {
             assessment: assessment
         };
-        console.log(body);
-        console.log(academic_year_id);
-        console.log(person_id);
         const res = await axios.post(`${CSLFT}/academic-year/${academic_year_id}/person/${person_id}/parentweeklycontrib`, body);
-        console.log(res);        
         if (res?.data?.success) {
             commit("setCslftParentWeeklyContrib", res.data.data);
         }      
@@ -374,6 +201,13 @@ const getters = {
     cslft_get_assessment(state) {
       return state.cslft;
     },
+    cslft_get_disbursements(state)
+    {
+        return state.cslft_disbursement;
+    },
+    cslft_get_funding_request(state) {
+        return state.funding_request;
+    },
     cslft_assessed_date_formatted (state) {
         if (state.cslft.assessed_date) {
             return dateHelper.getDateFromUTC(state.cslft.assessed_date);
@@ -403,6 +237,12 @@ const getters = {
             return dateHelper.getDateFromUTC(state.cslft.pstudy_end_date);
         }
         return state.cslft.pstudy_end_date;
+    },
+    cslft_disbursement_issue_date_formatted(state) {
+        if (state.cslft_disbursement.issue_date) {
+            return dateHelper.getDateFromUTC(state.cslft_disbursement.issue_date);
+        }
+        return state.cslft_disbursement.issue_date;
     },
     cslft_get_r_trans_multiplier(state) {
         let multiplier = 0;
