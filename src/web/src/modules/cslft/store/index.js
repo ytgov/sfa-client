@@ -341,10 +341,11 @@ const getters = {
         return numHelper.round(getters.cslft_assess_needed * 0.6);
     },
     cslft_max_allowable(state) {
-        return numHelper.round(numHelper.getNum(state.csl_lookup.allowable_weekly_amount) * state.cslft.study_weeks);
+        return state.cslft.max_allowable;
     },
     cslft_calculated_award(state, getters) {
-        return Math.max(0, numHelper.round(Math.min(getters.cslft_assess_needed_sixty_pct - numHelper.getNum(state.cslft.total_grant_awarded, getters.cslft_max_allowable))));
+        const minVal = Math.min(getters.cslft_assess_needed_sixty_pct - numHelper.getNum(state.cslft.total_grant_awarded), getters.cslft_max_allowable);
+        return Math.max(0, numHelper.round(minVal));
     },
 };
 
