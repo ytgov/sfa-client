@@ -11,8 +11,10 @@ const mutations = {
     cslftResetState(state) {
         Object.assign(state, defaultState());
     },
-    getCslftAssessInfo(state, cslft) {
-        state.cslft = cslft;
+    getCslftAssessInfo(state, payload) {
+        state.cslft = payload.data;
+        state.cslft_disbursement = payload.disbursements[0];
+        state.funding_request = payload.funding_request;
     },
     loadModelsDisburse(state, disburseModel) {
         state.cslft = disburseModel.data;
@@ -66,7 +68,7 @@ const actions = {
         const res = await axios.get(`${CSLFT_ASSESS_INFO}/${funding_request_id}`);
         if (res?.data?.success) {
             state.commit("cslftResetState", state);
-            state.commit("getCslftAssessInfo", res.data.data);
+            state.commit("getCslftAssessInfo", res.data);
         }
     },
     async cslftLoadUncappedExpenses(state, application_id) {
@@ -84,8 +86,8 @@ const actions = {
         };
         const res = await axios.post(`${CSLFT}/${assessment.funding_request_id}/recalc`, body);
         if (res?.data?.success) {
-            commit("getCslftAssessInfo", defaultState().cslft);
-            commit("getCslftAssessInfo", res.data.data);
+            commit("cslftResetState", state);
+            commit("getCslftAssessInfo", res.data);
         }
     },
     async getCslftDisburse({ commit, getters }) {
@@ -100,8 +102,14 @@ const actions = {
     },
     async saveCslftAssessment({ getters, dispatch }, vm) {
         const assessment = getters.cslft_get_assessment;
+        const disbursements = getters.cslft_get_disbursements;
+        const funding_request = getters.cslft_get_funding_request;
         const body = {
-            assessment: assessment
+            payload: {
+                data: assessment,
+                disbursements: [disbursements],
+                funding_request: funding_request,
+            },
         };
 
         let resAction = undefined;
@@ -193,6 +201,13 @@ const getters = {
     cslft_get_assessment(state) {
       return state.cslft;
     },
+    cslft_get_disbursements(state)
+    {
+        return state.cslft_disbursement;
+    },
+    cslft_get_funding_request(state) {
+        return state.funding_request;
+    },
     cslft_assessed_date_formatted (state) {
         if (state.cslft.assessed_date) {
             return dateHelper.getDateFromUTC(state.cslft.assessed_date);
@@ -222,6 +237,12 @@ const getters = {
             return dateHelper.getDateFromUTC(state.cslft.pstudy_end_date);
         }
         return state.cslft.pstudy_end_date;
+    },
+    cslft_disbursement_issue_date_formatted(state) {
+        if (state.cslft_disbursement.issue_date) {
+            return dateHelper.getDateFromUTC(state.cslft_disbursement.issue_date);
+        }
+        return state.cslft_disbursement.issue_date;
     },
     cslft_get_r_trans_multiplier(state) {
         let multiplier = 0;
