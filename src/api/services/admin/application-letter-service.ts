@@ -1,15 +1,7 @@
-import { create } from 'express-handlebars';
 
 import { Application } from 'models';
-import { generatePDF } from "utils/pdf-generator";
+import { renderViewAsPdf } from '../../utils/express-handlebars-pdf-client';
 import db from '../../db/db-client'
-
-const hbs = create({
-    layoutsDir: "templates/layouts",
-    partialsDir: "templates/partials"
-})
-
-console.log("hbs", hbs)
 
 export class ApplicationLetterService {
     private applicationId: number;
@@ -24,11 +16,10 @@ export class ApplicationLetterService {
             Promise.reject(new Error('Application not found'));
         }
 
-        const htmlToRenderAsPDF = await hbs.render(
-            'admin/application-letter/approval',
+        return renderViewAsPdf(
+            './templates/admin/application-letter/approval',
             { title: 'Application Approval Letter' }
-        );
-        return generatePDF(htmlToRenderAsPDF)
+        )
     }
 
     ////
