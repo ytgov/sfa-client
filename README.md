@@ -18,7 +18,7 @@ Writing code and developing in this application requires running three services:
    cp sapassword.env.sample sapassword.env
    ```
 
-2. To run the database locally, you must have Docker installed as well as Docker Compose, then run the following command from the root directory:
+2. To run the database locally, you must have Docker installed as well as Docker Compose; afterwards, run the following command from the root directory:
 
    ```bash
    docker compose -f docker-compose.dev.yml up -d
@@ -30,15 +30,9 @@ Writing code and developing in this application requires running three services:
    docker-compose -f docker-compose.dev.yml up -d
    ```
 
-   This command will start SQL Server, Email and S3 and bind it to your local machine's port 1433.
+   This command will start API, SQL, Email, and S3 services, and bind them to appropriate ports on your local machine as specified in [docker-compose.development.yaml](./docker-compose.development.yaml).
 
-3. When the database starts the first time, the database will be empty. To load it with data, you must obtain a database backup and put it into `/db/backups/sfa.bak` then run the follow commands:
-
-4. The first time you start the application, you must create a bucket named `documents` and an Access Key. Copy the access key id and secret and drop those values into the appropriate spots in the environment file. The Minio Web interface located at http://localhost:9090. Subsequent starts, it is not required to access the Minio interface.
-
-5. To preview sent emails, the MailSlurper web interface is located at http://localhost:8081.
-
-6. Once in, run the following commands to create and restore the database from the backup:
+3. When the database starts the first time, the database will be empty. To load some seed data, you must obtain a database backup, and put it into `/db/backups/sfa.bak`, then run the follow commands:
 
    ```bash
    docker compose \
@@ -51,29 +45,33 @@ Writing code and developing in this application requires running three services:
          -Q "RESTORE DATABASE SFADB_DEV FROM DISK = N'backups/sfa.bak' WITH FILE = 1"
    ```
 
-   If you need to debug the restore you can connect to the running SQL Server via
+   If you need to debug the restore, you can connect to the running SQL Server via
 
    ```bash
    docker compose -f docker-compose.dev.yml exec -it db bash
    ```
 
-7. Install `asdf` using instructions at https://asdf-vm.com/guide/getting-started.html.
+4. The first time you start the application, you must create a bucket named `documents` and an Access Key. Copy the access key id and secret and drop those values into the appropriate spots in the environment file. The Minio Web interface located at http://localhost:9090. Subsequent starts, it is not required to access the Minio interface.
 
-8. Install the `nodejs` plugin via and the appropriate nodejs version.
+5. To preview sent emails, the MailSlurper web interface is located at http://localhost:8081.
+
+6. Install `asdf` using instructions at https://asdf-vm.com/guide/getting-started.html.
+
+7. Install the `nodejs` plugin via and the appropriate nodejs version.
 
    ```bash
    asdf plugin add nodejs
    asdf install nodejs # installs the version from the .tool-verions file
    ```
 
-   Check that you have the correct version set up by seeing that these two commands match:
+   Check that you have the correct version set up by verifying that these two commands match:
 
    ```bash
    asdf current nodejs
    node -v
    ```
 
-9. (optional) You will now have a local database with data ready for the API. To run the API, run the following commands:
+8. (optional) You will now have a local database with data ready for the API. To run the API, run the following commands:
 
    ```bash
    cd src/api
@@ -108,7 +106,7 @@ Writing code and developing in this application requires running three services:
 
     You will now have the Vue CLI server hosting the application at http://localhost:8080 and you can begin editing the API or front-end code. **All changes to the files in the `src/api` and `src/web` will automatically reload there respective applications.**
 
-15. Manually add your user account info to the database via
+13. Manually add your user account info to the database via
 
     ```bash
     docker compose \
@@ -135,7 +133,7 @@ Writing code and developing in this application requires running three services:
                 , N'Admin');"
     ```
 
-16. You should now be able to log in at http://localhost:8080, assuming you have an appropriate Auth0 or YNet account.
+14. You should now be able to log in at http://localhost:8080, assuming you have an appropriate Auth0 or YNet account.
 
 ---
 
@@ -149,8 +147,16 @@ docker compose -f docker-compose.dev.yml exec db /opt/mssql-tools/bin/sqlcmd -U 
 
 If you want a simpler interface to interact with docker compose you can use the `bin/dev` helper.
 
-The `dev` command is usually set up in conjunction with `direvn` (https://direnv.net/) via
+It requires ruby which you can install via
+
+```bash
+asdf plugin add ruby
+asdf install ruby
+```
+
+The `dev` command is usually set up in conjunction with `direnv` (https://direnv.net/) via
 creating a `.envrc` file at the root of your project.
+
 ```bash
 #!/usr/bin/env bash
 
@@ -158,20 +164,22 @@ PATH_add bin
 ```
 
 After which you can use the `dev` command like so:
-   - `dev build` builds all services in the docker-compose.development.yaml file
-   - `dev up` boots all services in the docker-compose.development.yaml file and watches the logs
-   - `dev down` stops all services in the docker-compose.development.yaml file
-   - `dev logs` follows logs for all services in the docker-compose.development.yaml file
-   - `dev sh` runs the api service and loads and sh shell.
-   - `dev npm xxx` runs the api service and and executes and npm command
-   - `dev sqlcmd` opens an sql terminal into the DB container
-   - `dev debug` will open a debug console against the api container and wait for a breakpoint to trigger
+
+- `dev build` builds all services in the docker-compose.development.yaml file
+- `dev up` boots all services in the docker-compose.development.yaml file and watches the logs
+- `dev down` stops all services in the docker-compose.development.yaml file
+- `dev logs` follows logs for all services in the docker-compose.development.yaml file
+- `dev sh` runs the api service and loads and sh shell.
+- `dev npm xxx` runs the api service and and executes and npm command
+- `dev sqlcmd` opens an sql terminal into the DB container
+- `dev debug` will open a debug console against the api container and wait for a breakpoint to trigger
 
 Most of these commands are composable and accept any args that you could pass to the normal docker compose command.
 e.g
-   - `dev up db` will only boot the db service
-   - `dev build api` will only build the api service
-   - `dev logs api` will only watch logs for the api service
+
+- `dev up db` will only boot the db service
+- `dev build api` will only build the api service
+- `dev logs api` will only watch logs for the api service
 
 ## Contributing code
 
