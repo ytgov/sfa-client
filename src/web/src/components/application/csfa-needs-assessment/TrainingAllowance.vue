@@ -85,7 +85,6 @@
                 </div>
                 <div class="col-xs-12 col-lg-12">
                   <v-menu
-                    disabled
                     v-model="effective_rate_date_menu"
                     :close-on-content-click="false"
                     transition="scale-transition"
@@ -96,7 +95,6 @@
                   >
                     <template v-slot:activator="{ on, attrs }">
                       <v-text-field
-                        disabled
                         :value="assessment.effective_rate_date?.slice(0, 10)"
                         label="Effective Rate Date"
                         append-icon="mdi-calendar"
@@ -110,10 +108,10 @@
                       ></v-text-field>
                     </template>
                     <v-date-picker
-                      disabled
                       :value="assessment.effective_rate_date?.slice(0, 10)"
                       @input="e => {
                         assessment.effective_rate_date = e;
+                        assessment.classes_start_date = e;
                         effective_rate_date_menu = false;
                       }"
                       @change="refresh"
