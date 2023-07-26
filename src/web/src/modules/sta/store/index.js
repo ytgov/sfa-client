@@ -134,6 +134,31 @@ const actions = {
             console.log("Error to get assessments", error);
         } finally {
         }
+    }, 
+    async disburseSTA({ commit, getters, dispatch }, vals) {
+        try {
+            const assessment = getters.assessmentSTA;
+            const disbursements = getters.disbursementListSTA;
+
+            const res = await axios.post(
+                `${ASSESSMENT}/sta/disburse`,
+                {
+                    assessment: assessment,
+                }
+            );
+            const success = res?.data?.success;
+            
+            if (success) {
+                const data = res?.data?.data || {};
+                commit("SET_DISBURSEMENT_LIST_STA", [ ...disbursements, { ...data } ]);
+                dispatch("refreshSTA");
+            } else {
+                console.log("Error to get disburse");
+            }
+
+        } catch (error) {
+            console.log("Error to get disburse", error);
+        }
     },
     addItemDisbursementListSTA({ commit, state }, vals) {
         commit("SET_DISBURSEMENT_LIST_STA",

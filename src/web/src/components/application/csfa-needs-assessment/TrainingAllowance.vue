@@ -81,6 +81,7 @@
                 </div>
                 <div class="col-xs-12 col-lg-12">
                   <v-menu
+                    disabled
                     v-model="effective_rate_date_menu"
                     :close-on-content-click="false"
                     transition="scale-transition"
@@ -91,6 +92,7 @@
                   >
                     <template v-slot:activator="{ on, attrs }">
                       <v-text-field
+                        disabled
                         :value="assessment.effective_rate_date?.slice(0, 10)"
                         label="Effective Rate Date"
                         append-icon="mdi-calendar"
@@ -104,6 +106,7 @@
                       ></v-text-field>
                     </template>
                     <v-date-picker
+                      disabled
                       :value="assessment.effective_rate_date?.slice(0, 10)"
                       @input="e => {
                         assessment.effective_rate_date = e;
@@ -115,6 +118,7 @@
                 </div>
                 <div class="col-xs-12 col-lg-12">
                   <v-menu
+                      disabled
                       v-model="classes_start_date_menu"
                       :close-on-content-click="false"
                       transition="scale-transition"
@@ -125,6 +129,7 @@
                     >
                       <template v-slot:activator="{ on, attrs }">
                         <v-text-field
+                          disabled
                           :value="assessment.classes_start_date?.slice(0, 10)"
                           label="Classes Start Date"
                           append-icon="mdi-calendar"
@@ -138,6 +143,7 @@
                         ></v-text-field>
                       </template>
                       <v-date-picker
+                        disabled
                         :value="assessment.classes_start_date?.slice(0, 10)"
                         @input="e => {
                           assessment.classes_start_date = e;
@@ -149,6 +155,7 @@
                 </div>
                 <div class="col-xs-12 col-lg-12">
                   <v-menu
+                      disabled
                       v-model="classes_end_date_menu"
                       :close-on-content-click="false"
                       transition="scale-transition"
@@ -159,6 +166,7 @@
                     >
                       <template v-slot:activator="{ on, attrs }">
                         <v-text-field
+                          disabled
                           :value="assessment.classes_end_date?.slice(0, 10)"
                           label="Classes End Date"
                           append-icon="mdi-calendar"
@@ -172,6 +180,7 @@
                         ></v-text-field>
                       </template>
                       <v-date-picker
+                        disabled
                         :value="assessment.classes_end_date?.slice(0, 10)"
                         @input="e => {
                           assessment.classes_start_date = e;
@@ -237,7 +246,7 @@
                 </div>
               </div>
             </div>
-            <div class="col-xs-12 col-lg-12 nopadding d-flex mobile-column-flex low-margin flex-wrap">
+            <div v-if="!(application.academic_year_id > 2016)" class="col-xs-12 col-lg-12 nopadding d-flex mobile-column-flex low-margin flex-wrap">
               <div class="col-xs-12 col-lg-12 nopadding">
                 <v-card-title>Pre Legislation Method</v-card-title>
               </div>
@@ -422,6 +431,7 @@
                     color="blue" 
                     class="my-0"
                     block
+                    @click="disburse"
                   >
                   DISBURSE
                   </v-btn>
@@ -486,7 +496,14 @@
                 background-color="white"
                 hide-details
                 @keypress="validate.isNumber($event)"
-                v-model="item.disbursed_amount"
+                :value="item.disbursed_amount"
+                @input="e => {
+                  if(isNaN(parseInt(e))) {
+                    item.disbursed_amount = 0;
+                  } else {
+                    item.disbursed_amount = parseInt(e);
+                  }
+                }"
                 @change="refresh"
               ></v-text-field>
             </div>
@@ -510,20 +527,42 @@
                 hide-details
                 v-model="item.disbursement_type_id"
                 @change="refresh"
-                item-text="DESCRIPTION"
-                item-value="REQUEST_TYPE_ID"
+                :items="disbursementTypes"
+                item-text="description"
+                item-value="id"
               ></v-select>
             </div>
             <div class="col-xs-1 col-sm-1 col-lg-1 nopadding">
-              <v-text-field
-                outlined
-                dense
-                background-color="white"
-                hide-details
-                @keypress="validate.isNumber($event)"
-                v-model="item.issue_date"
-                @change="refresh"
-              ></v-text-field>
+              <v-menu
+                v-model="item.issue_date_menu"
+                :close-on-content-click="false"
+                transition="scale-transition"
+                left
+                nudge-top="26"
+                offset-y
+                min-width="auto"
+              >
+                <template v-slot:activator="{ on, attrs }">
+                  <v-text-field
+                    :value="item.issue_date?.slice(0, 10)"
+                    hide-details
+                    readonly
+                    outlined
+                    dense
+                    background-color="white"
+                    v-bind="attrs"
+                    v-on="on"
+                  ></v-text-field>
+                </template>
+                <v-date-picker
+                  :value="item.issue_date?.slice(0, 10)"
+                  @input="e => {
+                    item.issue_date = e;
+                    item.issue_date_menu = false;
+                  }"
+                  
+                ></v-date-picker>
+              </v-menu>
             </div>
             <div class="col-xs-5 col-sm-5 col-lg-5 nopadding">
               <v-select
@@ -534,8 +573,9 @@
                 hide-details
                 v-model="item.change_reason_id"
                 @change="refresh"
-                item-text="DESCRIPTION"
-                item-value="REQUEST_TYPE_ID"
+                :items="changeReasons"
+                item-text="description"
+                item-value="id"
               ></v-select>
             </div>
             <div class="col-xs-1 col-sm-1 col-lg-1 nopadding">
@@ -589,6 +629,8 @@ export default {
       assessment: "assessmentSTA",
       application: "selectedApplication",
       cities: "cities",
+      changeReasons: "changeReasons",
+      disbursementTypes: "disbursementTypes",
     }),
   },
   methods: {
@@ -598,6 +640,7 @@ export default {
       cancelDisburse: "cancelItemDisbursementListSTA",
       removeSTADisbursement: "removeSTADisbursement",
       refresh: "refreshSTA",
+      disburse: "disburseSTA",
     }),
     save() {
       this.saveSTAAssessment(this);
@@ -622,6 +665,8 @@ export default {
     }
     store.dispatch("setAppSidebar", true);
     store.dispatch("setCities");
+    store.dispatch("setChangeReasons");
+    store.dispatch("setDisbursementTypes");
     store.dispatch("staGetAssessment", { funding_request_id: this.fundingRequestId });
   }
 };
