@@ -6,7 +6,7 @@ export interface DisbursementDTO {
     disbursed_amount?: number,
     due_date?: Date,
     tax_year?: number,
-    issue_date?: Date,
+    issue_date?: Date | string,
     paid_amount?: number,
     change_reason_id?: number,
     financial_batch_id?: number,

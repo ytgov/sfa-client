@@ -101,8 +101,7 @@ assessmentSTARouter.post("/refreshdata",
             const assessmentSTARepo = new AssessmentSTA(db);
             const { application_id = 0, disbursementList = [], assessmentData = {} } = req.body;
             
-            console.log(application_id, disbursementList, assessmentData);
-            if (!application_id || !Object.keys(disbursementList)?.length) {
+            if (!application_id || !Object.keys(assessmentData)?.length) {
                 return res.status(404).send();
             }
 
@@ -184,6 +183,34 @@ assessmentSTARouter.put("/:id",
         catch (err) {
             console.log(err);
             return res.json({ messages: [{ text: `Saved failed`, variant: "error" }] })
+        }
+    }
+);
+assessmentSTARouter.post("/disburse",
+    async (req: Request, res: Response) => {
+        try {
+            const { assessment = {} } = req.body;
+            const assessmentSTARepo = new AssessmentSTA(db);
+            
+            if (!Object.keys(assessment)?.length) {
+                return res.status(404).send();
+            }
+
+            let results: Partial<DisbursementDTO> = {};
+
+            results = await assessmentSTARepo.disburseAssessment(
+                assessment,
+            );
+
+            if (Object.keys(results).length > 0) {
+                return res.status(200).json({ success: true, data: results, });
+            } else {
+                return res.status(404).send();
+            }
+
+        } catch (error: any) {
+            console.log(error);
+            return res.status(404).send();
         }
     }
 );
