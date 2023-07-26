@@ -35,6 +35,10 @@
                 color="red" 
                 class="my-0"
                 block
+                @click="e => {
+                  exit();
+                  $emit('close');
+                }"
               >
               EXIT
               </v-btn>
@@ -635,6 +639,7 @@ export default {
   },
   methods: {
     ...mapActions({
+      exit: "resetAssessmetSTA",
       saveSTAAssessment: "saveSTAAssessment",
       addDisburse: "addItemDisbursementListSTA",
       cancelDisburse: "cancelItemDisbursementListSTA",
