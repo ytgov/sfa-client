@@ -589,7 +589,7 @@ BEGIN
         Added subtraction of overaward YG
     */
 
-	SELECT  @previous_disbursement = COALESCE(sfa.fn_get_disbursed_amount_fct(@funding_request_id_p, @assessment_id_p),0),  
+	SELECT  @previous_disbursement = COALESCE(sfa.fn_get_disbursed_amount_fct(@funding_request_id_p, @assessment_id_p),0),
            @assessed_amount = COALESCE(assessed_amount,0),
             @over_award = COALESCE(over_award,0)
     FROM sfa.assessment
@@ -642,84 +642,79 @@ BEGIN
         WHERE id = @application_id_p;
     END
 
-    IF @assessment_id_p <= 0 
-        BEGIN
-            SELECT
-                @previous_weeks = COALESCE(sfa.fn_get_previous_weeks_yg(@student_id, @application_id_p), 0),
-                @assessed_weeks =  COALESCE(sfa.fn_get_allowed_weeks(@classes_start_date, @classes_end_date), 0);
+    SELECT
+        @previous_weeks = COALESCE(sfa.fn_get_previous_weeks_yg(@student_id, @application_id_p), 0),
+        @assessed_weeks =  COALESCE(sfa.fn_get_allowed_weeks(@classes_start_date, @classes_end_date), 0);
 
-            IF (@previous_weeks + @assessed_weeks) > 170
-            BEGIN
-                SELECT @weeks_allowed = 170 - @previous_weeks;		
-            END
-            ELSE
-            BEGIN
-                SELECT @weeks_allowed = @assessed_weeks;				
-            END
-        END
+    IF (@previous_weeks + @assessed_weeks) > 170
+    BEGIN
+        SELECT @weeks_allowed = 170 - @previous_weeks;		
+    END
     ELSE
+    BEGIN
+        SELECT @weeks_allowed = @assessed_weeks;				
+    END
+
+    SELECT  
+        @funding_request_id = funding_request_id 
+    FROM sfa.assessment a 
+    WHERE id = @assessment_id_p;
+
+
+    IF @academic_year_id   < 2016   -- Pre Legislation
         BEGIN
-            SELECT  
-                @funding_request_id = funding_request_id , 
-                @weeks_allowed = weeks_allowed
-            FROM sfa.assessment a 
-            WHERE id = @assessment_id_p;
+            IF @program_division = 1  -- Quarters
+                BEGIN
+                    SET @pd_months = 3;
+                END
+            ELSE IF @program_division = 2  -- Semesters
+                BEGIN
+                    SET @pd_months = 4;
+                
+                END 
+            IF @pd_months = 3 or @pd_months = 4
+                BEGIN
+                    SELECT  @d_required =  sfa.fn_get_months(@application_id_p ) / @pd_months;
+                END
+            ELSE
+                BEGIN
+                    SET @d_required = 0;
+                END
         END
+    ELSE  -- Post Legislation
+        BEGIN
+            IF  @program_division = 1   -- Quarters
+                BEGIN
+                        SELECT @v_weeks = yg_quarter_weeks FROM sfa.system_parameter;
+                END
+            ELSE IF  @program_division = 2   -- Semesters	
+                BEGIN
+                        SELECT  @v_weeks =  yg_semester_weeks FROM sfa.system_parameter;
+                END
 
-        IF @academic_year_id   < 2016   -- Pre Legislation
-            BEGIN
-                IF @program_division = 1  -- Quarters
-                    BEGIN
-                        SET @pd_months = 3;
-                    END
-                ELSE IF @program_division = 2  -- Semesters
-                    BEGIN
-                        SET @pd_months = 4;
-                    
-                    END 
-                IF @pd_months = 3 or @pd_months = 4
-                    BEGIN
-                        SELECT  @d_required =  sfa.fn_get_months(@application_id_p ) / @pd_months;
-                    END
-                ELSE
-                    BEGIN
-                        SET @d_required = 0;
-                    END
-            END
-        ELSE  -- Post Legislation
-            BEGIN
-                IF  @program_division = 1   -- Quarters
-			        BEGIN
-							SELECT @v_weeks = yg_quarter_weeks FROM sfa.system_parameter;
-			        END
-				ELSE IF  @program_division = 2   -- Semesters	
-			        BEGIN
-							SELECT  @v_weeks =  yg_semester_weeks FROM sfa.system_parameter;
-					END
-
-                IF  @v_weeks = 0 
-                    BEGIN
-                        SET @d_required = 0;
-                    END
-                ELSE
-                    BEGIN
-                        SET @d_required = round(@weeks_allowed / @v_weeks, 0);  --PENDIENTE
-            
-                        /* If d_required is the same as already batched disbursements, need to add 1 to the disbursements required regardless of weeks
-                        */
-                        SELECT @v_num_batched = count(id) 
-                        FROM sfa.disbursement 
-                        WHERE assessment_id =  @assessment_id_p
-                            AND financial_batch_id IS NOT NULL;
-                        SELECT  @net_amount = sfa.fn_net_amount(@funding_request_id, @assessment_id_p);
-                        IF COALESCE(@v_num_batched,0) >= @d_required AND @net_amount != 0 
-                            BEGIN
-                            SET @d_required = @v_num_batched +1;
-                            END 
-                    
-                    END
-            END
-        RETURN @d_required;
+            IF  @v_weeks = 0 
+                BEGIN
+                    SET @d_required = 0;
+                END
+            ELSE
+                BEGIN
+                    SET @d_required = round(@weeks_allowed / @v_weeks, 0);  --PENDIENTE
+        
+                    /* If d_required is the same as already batched disbursements, need to add 1 to the disbursements required regardless of weeks
+                    */
+                    SELECT @v_num_batched = count(id) 
+                    FROM sfa.disbursement 
+                    WHERE assessment_id =  @assessment_id_p
+                        AND financial_batch_id IS NOT NULL;
+                    SELECT  @net_amount = sfa.fn_net_amount(@funding_request_id, @assessment_id_p);
+                    IF COALESCE(@v_num_batched,0) >= @d_required AND @net_amount != 0 
+                        BEGIN
+                        SET @d_required = @v_num_batched +1;
+                        END 
+                
+                END
+        END
+    RETURN @d_required;
 	
 END
 GO
@@ -1621,7 +1616,6 @@ BEGIN
 END
 GO
 
--- DISBURSE BUTTON ASSESSMENT YG
 CREATE OR ALTER PROCEDURE sfa.sp_disburse_button_yg -- BUTTON FOR ASSESSMENT YG
     @application_id INT,
     @assessment_id INT,
@@ -1640,7 +1634,8 @@ CREATE OR ALTER PROCEDURE sfa.sp_disburse_button_yg -- BUTTON FOR ASSESSMENT YG
     @weekly_amount NUMERIC,
     @assessment_adj_amount FLOAT,
     @assessed_amount NUMERIC,
-    @program_division INT
+    @program_division INT,
+    @net_amount INT
     
 AS 
 BEGIN
@@ -1677,7 +1672,6 @@ BEGIN
         BEGIN
             DECLARE @disbursement_id INT;
             DECLARE @new_disbursement_id INT;
-            DECLARE @net_amount INT;
 
             DECLARE @disbursement_temp TABLE
             (
@@ -1705,15 +1699,6 @@ BEGIN
 
             SELECT @disbursement_id = MAX(d.id)
             FROM sfa.disbursement d WHERE d.assessment_id = @assessment_id;
-
-            IF @assessment_id > 0
-                BEGIN 
-                    SELECT @net_amount = COALESCE(sfa.fn_net_amount(@funding_request_id, @assessment_id), 0);
-                END
-            ELSE
-                BEGIN
-                    SET @net_amount = COALESCE(@assessed_amount, 0) - COALESCE(@over_award, 0);
-                END
 
             DECLARE @financial_batch_id INT;
 
@@ -2185,6 +2170,7 @@ AS
 BEGIN
 	DECLARE @count INT = 0;
 	DECLARE @p_count INT = 0;
+    DECLARE @total INT = 0;
 	
 	SELECT
 		@p_count = CASE WHEN p1.first_name IS NOT NULL AND p1.last_name IS NOT NULL THEN 1 ELSE 0 END +
@@ -2197,8 +2183,15 @@ BEGIN
 	WHERE a.id = @application_id;
 
 	SET @count = sfa.fn_get_parent_dependent_count(@application_id, DEFAULT);
+    
+    SET @total = @count + @p_count;
 
-	RETURN @count + @p_count;
+    IF @total > 10
+    BEGIN
+        RETURN 10;
+    END;
+
+	RETURN @total;
 END;
 GO
 
@@ -3958,4 +3951,79 @@ BEGIN
     RETURN @result;
 
 END;
+GO
+
+-- FILE : ASSESSMENT_SFA  --- FUNCTION: GET_DISBURSEMENTS_ALLOWED
+CREATE OR ALTER FUNCTION sfa.fn_get_disbursements_allowed_sta(
+	@application_institution_campus_id INT,
+	@assessment_id INT
+)
+RETURNS numeric(10,2)
+AS
+BEGIN
+	DECLARE
+		@v_disb_allowed numeric(10,2) = 1,
+		@v_weeks_after_issue float (8),
+		@v_weeks_before_issue numeric(10,2),
+		@v_federal_institution_code varchar(100),
+		@v_disbursement_issue_date date,
+		@assessment_effective_rate_date date,
+		@assessment_weeks_allowed float(8)
+	SELECT @v_federal_institution_code = sfa.fn_get_short_name_sta(@application_institution_campus_id)
+	SELECT @v_disbursement_issue_date = dis.issue_date from sfa.disbursement dis where dis.assessment_id = @assessment_id	
+	SELECT @assessment_effective_rate_date = a.effective_rate_date from sfa.assessment a where a.id = @assessment_id
+	SELECT @assessment_weeks_allowed = a.weeks_allowed from sfa.assessment a where a.id = @assessment_id
+	IF  @v_federal_institution_code = 'LPAH'
+	BEGIN
+		SELECT @v_weeks_before_issue = CEILING(DATEDIFF(week,ISNULL(@v_disbursement_issue_date,GETDATE()),@assessment_effective_rate_date))
+		SELECT @v_weeks_after_issue = floor(@assessment_weeks_allowed - @v_weeks_before_issue)
+		SELECT @v_disb_allowed = CEILING(@v_weeks_after_issue/2)+1
+		IF @v_disb_allowed < 1
+		BEGIN
+			SET @v_disb_allowed = 1
+		END
+	END
+RETURN @v_disb_allowed
+END
+GO
+
+-- FILE : INSTITUTION_PCK_1.sql  --- FUNCTION: get_short_name_fct
+CREATE OR ALTER FUNCTION sfa.fn_get_short_name_sta
+(
+	@institution_id_p INT
+)
+RETURNS varchar(100)
+AS
+BEGIN
+	DECLARE @federal_institution_code varchar(20);
+
+    SELECT @federal_institution_code = ins.federal_institution_code 
+    FROM sfa.institution_campus ic  
+    INNER JOIN sfa.institution ins ON ic.institution_id = ins.id 
+    WHERE ic.id = @institution_id_p
+
+	RETURN @federal_institution_code
+END
+GO
+
+CREATE OR ALTER FUNCTION sfa.fn_get_weeks_calc_sta ( @start_date DATE, @end_date DATE ) 
+RETURNS NUMERIC AS
+BEGIN
+	DECLARE @days_allowed NUMERIC;
+	DECLARE @weekend_days NUMERIC;
+	DECLARE @actual_days NUMERIC;
+	DECLARE @wk_allowed NUMERIC;
+
+    SET @days_allowed = DATEDIFF(DAY, @start_date, @end_date) + 1;
+    SET @weekend_days = ROUND(( (@days_allowed-2)/7 ), 0) * 2;
+    SET @actual_days = @days_allowed - @weekend_days;
+    SET @wk_allowed = (@actual_days) / 5;
+  
+  IF @wk_allowed > 40
+  BEGIN
+  	SET @wk_allowed = 40;
+  END
+  
+  RETURN @wk_allowed;
+END
 GO

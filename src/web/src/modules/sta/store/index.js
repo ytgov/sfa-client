@@ -20,6 +20,10 @@ const mutations = {
 };
 
 const actions = {
+    resetAssessmetSTA(state) {
+        state.commit("SET_ASSESSMENT_STA", {});
+        state.commit("SET_DISBURSEMENT_LIST_STA", []);
+    },
     async staGetAssessment(state, vals) {
         try {
 
@@ -105,6 +109,61 @@ const actions = {
         } finally {
         }
     },
+    async refreshSTA({ commit, getters }, vals) {
+        try {
+            console.log("getters", );
+            const assessment = getters.assessmentSTA;
+            const disbursementList = getters.disbursementListSTA;
+            const application_id = getters?.selectedApplication?.id;
+
+            const res = await axios.post(
+                `${ASSESSMENT}/sta/refreshdata`,
+                {
+                    disbursementList,
+                    assessmentData: assessment,
+                    application_id
+                }
+            );
+            console.log("GET refreshdata", res);
+            const success = res?.data?.success;
+
+            if (success) {
+                const data = res?.data?.data || {};
+                commit("SET_ASSESSMENT_STA", { ...assessment, ...data });
+            } else {
+                console.log("Error to get assessments");
+            }
+
+        } catch (error) {
+            console.log("Error to get assessments", error);
+        } finally {
+        }
+    }, 
+    async disburseSTA({ commit, getters, dispatch }, vals) {
+        try {
+            const assessment = getters.assessmentSTA;
+            const disbursements = getters.disbursementListSTA;
+
+            const res = await axios.post(
+                `${ASSESSMENT}/sta/disburse`,
+                {
+                    assessment: assessment,
+                }
+            );
+            const success = res?.data?.success;
+            
+            if (success) {
+                const data = res?.data?.data || {};
+                commit("SET_DISBURSEMENT_LIST_STA", [ ...disbursements, { ...data } ]);
+                dispatch("refreshSTA");
+            } else {
+                console.log("Error to get disburse");
+            }
+
+        } catch (error) {
+            console.log("Error to get disburse", error);
+        }
+    },
     addItemDisbursementListSTA({ commit, state }, vals) {
         commit("SET_DISBURSEMENT_LIST_STA",
             [
@@ -122,13 +181,14 @@ const actions = {
 
             ]);
     },
-    cancelItemDisbursementListSTA({ commit, state }, vals) {
+    cancelItemDisbursementListSTA({ commit, state, dispatch }, vals) {
         const previewList = [...state.disbursementListSTA];
 
         if (vals?.index > -1) {
             previewList.splice(vals.index, 1);
         }
         commit("SET_DISBURSEMENT_LIST_STA", [...previewList]);
+        dispatch("refreshSTA");
     },
     async saveSTAAssessment({ getters, dispatch }, vm) {
         const assessment = getters.assessmentSTA;
@@ -194,7 +254,6 @@ const actions = {
             console.log("Error to delete disbursement", error);
         }
     },
-
 };
 
 export default {

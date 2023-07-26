@@ -94,10 +94,41 @@ assessmentSTARouter.post("/:funding_request_id/recalc",
         }
     }
 );
+assessmentSTARouter.post("/refreshdata",
+    async (req: Request, res: Response) => {
+        try {
+            
+            const assessmentSTARepo = new AssessmentSTA(db);
+            const { application_id = 0, disbursementList = [], assessmentData = {} } = req.body;
+            
+            if (!application_id || !Object.keys(assessmentData)?.length) {
+                return res.status(404).send();
+            }
+
+            let results: Partial<AssessmentDTO> = {};
+
+            results = await assessmentSTARepo.refreshAssessmentData(
+                assessmentData,
+                disbursementList,
+                parseInt(application_id),
+            );
+
+            if (Object.keys(results).length > 0) {
+                return res.status(200).json({ success: true, data: results, });
+            } else {
+                return res.status(404).send();
+            }
+
+        } catch (error: any) {
+            console.log(error);
+            return res.status(404).send();
+        }
+    }
+);
 assessmentSTARouter.post("/",
     async (req: Request, res: Response) => {
         try {
-            const { assessment = undefined } = req.body;
+            const { assessment = undefined, disbursementList = [] } = req.body;
 
             const assessmentRepo = new AssessmentSTA(db);
 
@@ -114,7 +145,7 @@ assessmentSTARouter.post("/",
                 ...notNullValues
             };
 
-            const newRow = await assessmentRepo.insertAssessment(newApp);
+            const newRow = await assessmentRepo.newAssessment(newApp, disbursementList);
 
             if (newRow && newRow.length === 1) {
                 return res.json({ data: { id: newRow[0].id }, messages: [{ text: "Assessment created", variant: "success" }] });
@@ -155,6 +186,34 @@ assessmentSTARouter.put("/:id",
         }
     }
 );
+assessmentSTARouter.post("/disburse",
+    async (req: Request, res: Response) => {
+        try {
+            const { assessment = {} } = req.body;
+            const assessmentSTARepo = new AssessmentSTA(db);
+            
+            if (!Object.keys(assessment)?.length) {
+                return res.status(404).send();
+            }
+
+            let results: Partial<DisbursementDTO> = {};
+
+            results = await assessmentSTARepo.disburseAssessment(
+                assessment,
+            );
+
+            if (Object.keys(results).length > 0) {
+                return res.status(200).json({ success: true, data: results, });
+            } else {
+                return res.status(404).send();
+            }
+
+        } catch (error: any) {
+            console.log(error);
+            return res.status(404).send();
+        }
+    }
+);
 assessmentSTARouter.get("/disbursements/:assessment_id",
     [param("assessment_id").isInt().notEmpty()], ReturnValidationErrors,
     async (req: Request, res: Response) => {
@@ -185,10 +244,10 @@ assessmentSTARouter.get("/disbursements/:assessment_id",
         }
     }
 );
-assessmentSTARouter.delete("/disbursements/:id", [ param("id").isInt().notEmpty(), ], ReturnValidationErrors,
+assessmentSTARouter.delete("/disbursements/:id", [param("id").isInt().notEmpty(),], ReturnValidationErrors,
     async (req: Request, res: Response) => {
         const { id } = req.params;
-        
+
         try {
             const verify = await db("sfa.disbursement")
                 .where({ id });

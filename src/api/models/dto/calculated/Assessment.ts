@@ -1,5 +1,6 @@
 export interface IAssessmentCalculated {
     id?: number; // This is not calculated but is not needed for insert or update operations
+    total_study_cost?: number; // calculated value, not a field
     net_amount?: number;// calculated value, not a field
     previous_disbursement?: number;// calculated value, not a field
     previous_weeks?: number;// calculated value, not a field
@@ -31,4 +32,5 @@ export interface IAssessmentCalculated {
     pstudy_weeks?: number;
     new_calc?: boolean;
     previous_upgrade_weeks?: number;
+    max_allowable?: number;
 }

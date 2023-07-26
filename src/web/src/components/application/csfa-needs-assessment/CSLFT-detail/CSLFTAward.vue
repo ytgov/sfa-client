@@ -120,7 +120,6 @@
                 <div class="col-xs-12 col-sm-5 col-lg-5 nopadding d-flex flex-wrap">
                   <div class="col-xs-12 col-lg-12">
                     <v-btn 
-                        :disabled="showAdd"
                         dense
                         color="blue" 
                         class="my-0"
@@ -209,7 +208,6 @@
                   <div class="col-xs-12 col-lg-12 line-jump-height not-displayed-sx"></div>
                   <div class="col-xs-12 col-lg-12">
                     <v-btn 
-                        :disabled="showAdd"
                         dense
                         color="blue" 
                         class="my-0"
@@ -418,7 +416,7 @@
               <template v-slot:activator="{ on, attrs }">
                 <v-text-field
                   :disabled="showAdd"
-                  v-model="issue_date"
+                  v-model="cslft_disbursement_issue_date_formatted"
                   label="Issue Date"
                   append-icon="mdi-calendar"
                   hide-details
@@ -474,9 +472,11 @@ export default {
   name: "cslft-award",
   setup() {
     const isTotal = ref(true);
+    const showAdd = ref(true);
 
     return {
       isTotal,
+      showAdd,
     }
   },
   computed: {
@@ -495,7 +495,8 @@ export default {
         "cslReasonNonAward",
         "cslReasonOverAward",
         "changeReasons",
-        "disbursementTypes"
+        "disbursementTypes",
+        "cslft_disbursement_issue_date_formatted"
     ]),
     application: function () {
       return store.getters.selectedApplication;
@@ -507,6 +508,15 @@ export default {
     },
     executeDisburse() {
       store.dispatch("getCslftDisburse");
+    }
+  },
+  watch: {
+    cslft_calculated_award: {
+      immediate: true,
+      handler(newValue) {
+        console.log(newValue);
+        store.dispatch("setCslftCalculatedAward", newValue);
+      }
     }
   },
   async created() {

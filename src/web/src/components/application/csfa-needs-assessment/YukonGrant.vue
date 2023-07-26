@@ -130,6 +130,7 @@
                 </div>
                 <div class="col-xs-12 col-lg-12">
                   <v-menu
+                    disabled
                     v-model="effective_rate_date_menu"
                     :close-on-content-click="false"
                     transition="scale-transition"
@@ -140,6 +141,7 @@
                   >
                     <template v-slot:activator="{ on, attrs }">
                       <v-text-field
+                        disabled
                         :value="customAssessment.effective_rate_date?.slice(0, 10)"
                         label="Effective Rate Date"
                         append-icon="mdi-calendar"
@@ -153,6 +155,7 @@
                       ></v-text-field>
                     </template>
                     <v-date-picker
+                      disabled
                       @change="refreshData"
                       :value="customAssessment.effective_rate_date?.slice(0, 10)"
                       @input="e => {
@@ -187,7 +190,7 @@
               <div class="col-xs-12 col-lg-4 nopadding d-flex flex-wrap">
                 <div class="col-xs-12 col-lg-12 clss-st-date-re-order">
                   <v-menu
-                      
+                    disabled
                       v-model="classes_start_date_menu"
                       :close-on-content-click="false"
                       transition="scale-transition"
@@ -198,6 +201,7 @@
                     >
                       <template v-slot:activator="{ on, attrs }">
                         <v-text-field
+                          disabled
                           :value="customAssessment.classes_start_date?.slice(0, 10)"
                           label="Classes Start Date"
                           append-icon="mdi-calendar"
@@ -211,6 +215,7 @@
                         ></v-text-field>
                       </template>
                       <v-date-picker
+                        disabled
                         @change="refreshData"
                         :value="customAssessment.classes_start_date?.slice(0, 10)"
                         @input="e => {
@@ -222,6 +227,7 @@
                 </div>
                 <div class="col-xs-12 col-lg-12 clss-en-date-re-order mobile-low-margin">
                   <v-menu
+                    disabled
                     v-model="classes_end_date_menu"
                     :close-on-content-click="false"
                     transition="scale-transition"
@@ -232,6 +238,7 @@
                   >
                   <template v-slot:activator="{ on, attrs }">
                     <v-text-field
+                      disabled
                       :value="customAssessment.classes_end_date?.slice(0, 10)"
                       label="Classes End Date"
                       append-icon="mdi-calendar"
@@ -245,6 +252,7 @@
                     ></v-text-field>
                     </template>
                     <v-date-picker
+                      disabled
                       @change="refreshData"
                       :value="customAssessment.classes_end_date?.slice(0, 10)"
                       @input="e => {
@@ -363,6 +371,7 @@
               <div class="col-xs-12 col-sm-4 col-lg-4 nopadding d-flex flex-wrap">
                 <div class="col-xs-12 col-lg-12">
                   <v-text-field
+                    disabled
                     outlined
                     dense
                     background-color="white"
@@ -472,7 +481,11 @@
                     background-color="white"
                     hide-details
                     label="Airfare Amount"
-                    v-model="customAssessment.airfare_amount"
+                    :value="
+                      this.disbursements?.filter(d => d.assessment_id === this.customAssessment?.id )?.length 
+                      ? 0
+                      : customAssessment.airfare_amount
+                    "
                   ></v-text-field>
                 </div>
               </div>
@@ -510,6 +523,7 @@
                     label="Adjust Amount"
                     @keypress="validate.isNumber($event)"
                     v-model="customAssessment.assessment_adj_amount"
+                    @change="refreshData"
                   ></v-text-field>
                 </div>
                 <div class="col-xs-12 col-lg-12">
@@ -566,6 +580,7 @@
                     hide-details
                     label="Over Award"
                     v-model="customAssessment.over_award"
+                    @change="refreshData"
                   ></v-text-field>
                 </div>
                 <div class="col-xs-12 col-lg-12">
@@ -576,6 +591,7 @@
                     hide-details
                     label="Over Disburse Period"
                     v-model="customAssessment.over_award_disbursement_period"
+                    @change="refreshData"
                   ></v-text-field>
                 </div>
                 <div class="col-xs-12 col-lg-12">
@@ -594,6 +610,7 @@
                 <div class="col-xs-12 col-lg-12 height-fit-content d-flex justify-center">
                   <v-switch 
                   v-model="customAssessment.over_award_applied_flg"
+                  @change="refreshData"
                   label="Applied">
                   </v-switch>
                 </div>
@@ -650,7 +667,8 @@ export default {
     },
     programDivision() {
       return this.application?.program_division;
-    }
+    },
+
   },
   methods: {
     ObjCompare(obj1, obj2) {
@@ -723,14 +741,19 @@ export default {
         this.application.program_division = this.programDivisionBack;
         this.programDivisionBack = null;
       }
+
+      const filterDisbursements = this.disbursements.filter(d => d.assessment_id === custom?.id) || [];
+
       store.dispatch(
           "recalcAssessment",
           {
             application_id: this.application.id,
             funding_request_id: custom.funding_request_id,
-            assessment_id: custom.id || 0,
+            assessment_id: custom?.id || 0,
+            disbursementList: [ ...this.previewDisbursementList, ...filterDisbursements ],
           }
         );
+      //this.refreshData();
     },
     disburse() {
       store.dispatch(

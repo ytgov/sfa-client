@@ -30,6 +30,16 @@ export abstract class BaseRepository {
         return result;
     }
 
+    protected escapeSingleQuote(input: string): string {
+        const regex = /(\')/gm;
+        const subst = `\'$1`;
+
+        // The substituted value will be contained in the result variable
+        const result = input.replace(regex, subst);
+
+        return result;
+    }
+
     protected async getScalarValue<T>(funcName: string, args: Array<string | number>, schema: string = "sfa"): Promise<T> {
         const query = await this.mainDb.raw(`SELECT ${schema}.${funcName}(${args.join(',')}) as result;`);
         if (query) {

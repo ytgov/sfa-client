@@ -121,7 +121,8 @@ const actions = {
                 state.commit("SET_PREVIEW_DISBURSEMENT_LIST", [ ...data ]);
                 state.commit("SET_IS_PREVIEW_CHARGED", true);
                 thisVal?.$emit("showSuccess", "Correct Disburse");
-                thisVal?.refreshData();;
+                console.log("🚀 ~ file: disbursement.js:168 ~ previewDisbursements ~ thisVal:", thisVal)
+                thisVal?.refreshData();
             } else {
                 thisVal?.$emit("showError", message.text || "Error to get Disburse");
             }
@@ -161,10 +162,14 @@ const actions = {
 
             if (message?.variant === "success") {
                 const data = res?.data?.data || [];
-                state.commit("SET_PREVIEW_DISBURSEMENT_LIST", [ ...data ]);
+
+                state.commit("SET_PREVIEW_DISBURSEMENT_LIST", [ 
+                    ...data,
+                    ...state.getters.previewDisbursementList, 
+                ]);
                 state.commit("SET_IS_PREVIEW_CHARGED", true);
                 thisVal?.$emit("showSuccess", "Correct Disburse");
-                thisVal?.refreshData();;
+                thisVal?.refreshData();
             } else {
                 thisVal?.$emit("showError", message.text || "Error to get Disburse");
             }
@@ -187,12 +192,12 @@ const actions = {
                 const data = vals.data.map(d => {
                     delete d.issue_date_menu;
                     delete d.due_date_menu;
-                    return { ...d };
+                    return { ...d, funding_request_id: vals.funding_request_id };
                 });
                 const res = await axios.post(DISBURSEMENT, { 
                     data: [ ...data ],
                     isList:  vals.isList
-                });
+                }); 
     
                 if (res?.data?.success) {
                     emiter?.$emit("showSuccess", "Added!");
