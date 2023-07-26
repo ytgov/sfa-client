@@ -3997,7 +3997,7 @@ AS
 BEGIN
 	DECLARE @federal_institution_code varchar(20);
 
-    SELECT @federal_institution_code = ins.federal_institution_code 
+    SELECT @federal_institution_code = ic.federal_institution_code 
     FROM sfa.institution_campus ic  
     INNER JOIN sfa.institution ins ON ic.institution_id = ins.id 
     WHERE ic.id = @institution_id_p
