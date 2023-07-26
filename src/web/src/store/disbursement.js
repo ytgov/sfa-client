@@ -92,10 +92,49 @@ const actions = {
             this.dispatch('getAssessments', { application_id: vals?.application_id, funding_request_id: vals.funding_request_id });
         }
     },
-    async previewDisbursements(state, vals) {
+    async previewYEADisbursements(state, vals) {
         try {
             const thisVal = vals?.thisVal || {};
 
+            if (!vals?.data && !vals.application_id && !vals?.assessment_id) {
+                return;
+            }
+            const assessmentData = {};
+            
+            for (const key in vals?.data) {
+                if (!vals.data[key] && vals.data[key] !== 0) {
+                    assessmentData[key] = null;
+                } else {
+                    assessmentData[key] = vals.data[key];
+                }
+            }
+
+            const res = await axios.post(
+                APPLICATION_URL + `/${vals.application_id}/assessment/${vals.assessment_id}/disburse-yea`,
+                { data: { ...assessmentData } }
+            );
+            
+            const message = res?.data?.messages[0];
+
+            if (message?.variant === "success") {
+                const data = res?.data?.data || [];
+                state.commit("SET_PREVIEW_DISBURSEMENT_LIST", [ ...data ]);
+                state.commit("SET_IS_PREVIEW_CHARGED", true);
+                thisVal?.$emit("showSuccess", "Correct Disburse");
+                console.log("🚀 ~ file: disbursement.js:168 ~ previewDisbursements ~ thisVal:", thisVal)
+                thisVal?.refreshData();
+            } else {
+                thisVal?.$emit("showError", message.text || "Error to get Disburse");
+            }
+
+        } catch (error) {
+            console.log("Error to get disbursements", error);
+        } finally {
+        }
+    },
+    async previewDisbursements(state, vals) {
+        try {
+            const thisVal = vals?.thisVal || {};
             if (!vals?.data && !vals.application_id && !vals?.assessment_id) {
                 return;
             }
@@ -123,10 +162,14 @@ const actions = {
 
             if (message?.variant === "success") {
                 const data = res?.data?.data || [];
-                state.commit("SET_PREVIEW_DISBURSEMENT_LIST", [ ...data ]);
+
+                state.commit("SET_PREVIEW_DISBURSEMENT_LIST", [ 
+                    ...data,
+                    ...state.getters.previewDisbursementList, 
+                ]);
                 state.commit("SET_IS_PREVIEW_CHARGED", true);
                 thisVal?.$emit("showSuccess", "Correct Disburse");
-                thisVal?.refreshData();;
+                thisVal?.refreshData();
             } else {
                 thisVal?.$emit("showError", message.text || "Error to get Disburse");
             }
@@ -146,10 +189,15 @@ const actions = {
             }
 
             if (vals?.isList === "disburseList" && vals.data ) {
-                const res = await axios.post(DISBURSEMENT, { 
-                    data: [ ...vals.data ],
-                    isList:  vals.isList
+                const data = vals.data.map(d => {
+                    delete d.issue_date_menu;
+                    delete d.due_date_menu;
+                    return { ...d, funding_request_id: vals.funding_request_id };
                 });
+                const res = await axios.post(DISBURSEMENT, { 
+                    data: [ ...data ],
+                    isList:  vals.isList
+                }); 
     
                 if (res?.data?.success) {
                     emiter?.$emit("showSuccess", "Added!");
@@ -159,7 +207,10 @@ const actions = {
                     emiter?.$emit("showError", res.data?.message || "Fail to added");
                 }
             } else {
-                const res = await axios.post(DISBURSEMENT, { data: vals.data, });
+                const data = vals.data;
+                delete data.issue_date_menu;
+                delete data.due_date_menu;
+                const res = await axios.post(DISBURSEMENT, { data: data, });
     
                 if (res?.data?.success) {
                     emiter?.$emit("showSuccess", "Added!");
@@ -185,7 +236,7 @@ const actions = {
     async updateDisbursement(state, vals) {
         try {
             const emiter = vals?.emiter || {};
-
+            
             if (!(vals?.data)) {
                 return;
             }
@@ -193,9 +244,13 @@ const actions = {
                 return;
             }
 
+            const data = vals.data;
+            delete data.issue_date_menu;
+            delete data.due_date_menu;
+
             const res = await axios.patch(
                 DISBURSEMENT + "/" + vals.disbursement_id,
-                { data: vals.data }
+                { data }
             );
 
             if (res?.data?.success) {

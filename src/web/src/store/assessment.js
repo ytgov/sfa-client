@@ -59,7 +59,11 @@ const actions = {
                 const data = res?.data?.data || [];
                 
                 if (!data.length) {
+                    // if (vals.request_type_id === 3) {
+                    //     this.dispatch('previewAssessmentYEA', vals);
+                    // } else {
                     this.dispatch('previewAssessment', vals);
+                    // }
                     return;
                 }
                 const over_award_flag = !!(data[0]?.over_award_applied_flg === "Yes");
@@ -67,7 +71,6 @@ const actions = {
                 state.commit("SET_SELECTED_ASSESSMENT", { ...data[0], over_award_applied_flg: over_award_flag });
                 state.commit("SET_CUSTOM_ASSESSMENT", { ...data[0], over_award_applied_flg: over_award_flag });
                 state.commit("SET_READ_ONLY_DATA", { ...data[0]?.read_only_data });
-                state.commit("SET_ASSESSMENTS", data);
                 state.commit("SET_ASSESSMENTS", data);
             } else {
                 console.log("Error to get assessments");
@@ -88,7 +91,7 @@ const actions = {
 
             const res = await axios.post(
                 APPLICATION_URL + `/${vals.application_id}/${vals.funding_request_id}/assessments`,
-                { dataAssessment: { ...vals.dataAssessment } }
+                { dataAssessment: { ...vals.dataAssessment }, dataApplication: { ...vals.dataApplication } }
             );
 
             const message = res?.data?.messages[0];
@@ -117,7 +120,7 @@ const actions = {
             if (!(vals?.application_id && vals?.funding_request_id)) {
                 return;
             }
-
+            
             const res = await axios.post(
                 APPLICATION_URL + `/${vals.application_id}/${vals.funding_request_id}/assessments-with-disburse`,
                 { 
@@ -193,6 +196,52 @@ const actions = {
             vals?.thisVal.$refs.disburseComponent.saveEdition();
         }
     },
+    async updateAssessmentYEA(state, vals) {
+        try {
+            const thisVal = vals?.thisVal || {};
+
+            if (!(vals?.application_id && vals?.funding_request_id)) {
+                return;
+            }
+
+            if (!Object.keys(vals?.data).length) {
+                return;
+            }
+            if (!vals?.disburseList?.length) {
+                return;
+            }
+
+            const dataFormated = _.omit(vals.data, ['name_assessment', 'program_division', 'read_only_data']);
+
+            const res = await axios.patch(
+                APPLICATION_URL + `/${vals.application_id}/${vals.funding_request_id}/assessments/${vals.assessment_id}`,
+                { data: { ...dataFormated }, disburseList: vals.disburseList, updatedApplication: vals.application }
+            );
+
+            const message = res?.data?.messages[0];
+            
+            if (message?.variant === "success") {
+                console.log("success updateAssessment");
+                thisVal?.$emit("showSuccess", message.text);
+            } else {
+                thisVal?.$emit("showError", message?.text || "Error to update");
+                console.log("Error to update assessments");
+            }
+            
+        } catch (error) {
+            const thisVal = vals?.thisVal || {};
+            thisVal?.$emit("showError", "Error to update");
+            console.log("Error to update assessments", error);
+        } finally {
+            if (!(vals?.application_id && vals?.funding_request_id)) {
+                return;
+            }
+            
+            this.dispatch('getDisbursements', {application_id: vals.application_id, funding_request_id:vals.funding_request_id });
+            this.dispatch('setIsPreviewCharged', false);
+            vals?.thisVal.$refs.disburseComponent.saveEdition();
+        }
+    },
     async recalcAssessment(state, vals) {
         try {
 
@@ -200,8 +249,9 @@ const actions = {
                 return;
             }
 
-            const res = await axios.get(
+            const res = await axios.post(
                 APPLICATION_URL + `/${vals.application_id}/${vals.funding_request_id}/assessments/${vals.assessment_id}/re-calc`,
+                {disbursementList: vals.disbursementList }
             );
 
             const message = res?.data?.messages[0];
@@ -259,6 +309,38 @@ const actions = {
         }
     },
 
+    async previewAssessmentYEA(state, vals) {
+        try {
+
+            if (!(vals?.application_id && vals?.funding_request_id)) {
+                return;
+            }
+
+            const res = await axios.get(
+                APPLICATION_URL + `/${vals.application_id}/${vals.funding_request_id}/preview-assessment-yea`,
+            );
+
+            const message = res?.data?.messages[0];
+            
+            if (message?.variant === "success") {
+                const data = res?.data?.data || [];
+
+                const over_award_flag = !!(data[0]?.over_award_applied_flg === "Yes");
+
+                state.commit("SET_SELECTED_ASSESSMENT", { ...data[0], over_award_applied_flg: over_award_flag,  id: 0 });
+                state.commit("SET_CUSTOM_ASSESSMENT", { ...data[0], over_award_applied_flg: over_award_flag });
+                state.commit("SET_READ_ONLY_DATA", { ...data[0]?.read_only_data });
+
+                state.commit("SET_ASSESSMENTS", data);
+            } else {
+                console.log("Error to get assessments");
+            }
+
+        } catch (error) {
+            console.log("Error to get assessments", error);
+        } finally {
+        }
+    },
     async refreshAssessment(state, vals) {
         try {
 
@@ -268,6 +350,36 @@ const actions = {
 
             const res = await axios.post(
                 APPLICATION_URL + `/${vals.application_id}/update-preview`,
+                { data: vals.data, disburseAmountList: vals.disburseAmountList }
+            );
+            
+            const message = res?.data?.messages[0];
+            
+            if (message?.variant === "success") {
+                const data = res?.data?.data || [];
+
+                const over_award_flag = !!(data[0]?.over_award_applied_flg === "Yes");
+
+                state.commit("SET_CUSTOM_ASSESSMENT", { ...data[0], over_award_applied_flg: over_award_flag });
+                state.commit("SET_READ_ONLY_DATA", { ...data[0]?.read_only_data });
+            } else {
+                console.log("Error to get assessments");
+            }
+
+        } catch (error) {
+            console.log("Error to get assessments", error);
+        } finally {
+        }
+    },
+    async refreshAssessmentYEA(state, vals) {
+        try {
+
+            if (!(vals?.application_id)) {
+                return;
+            }
+
+            const res = await axios.post(
+                APPLICATION_URL + `/${vals.application_id}/update-preview-yea`,
                 { data: vals.data, disburseAmountList: vals.disburseAmountList }
             );
             

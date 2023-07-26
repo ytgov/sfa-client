@@ -6,34 +6,39 @@
           <v-card-title class="col-xs-12 col-lg-8">Assessment - Training Allowance</v-card-title>
           <div class="col-xs-12 col-lg-4 nopadding d-flex">
             <div class="col-xs-4 col-sm-4">
-              <v-btn 
-                :disabled="showAdd"
+              <v-btn
                 dense
                 color="green" 
                 class="my-0"
                 block
+                @click="save"
               >
               SAVE
               </v-btn>
             </div>
             <div class="col-xs-4 col-sm-4">
               <v-btn 
-                :disabled="showAdd"
                 dense
                 color="orange" 
                 class="my-0"
                 block
+                @click="e => {
+                  $store.dispatch('staGetAssessment', { funding_request_id: this.fundingRequestId });
+                }"
               >
               CANCEL
               </v-btn>
             </div>
             <div class="col-xs-4 col-sm-4">
-              <v-btn 
-                :disabled="showAdd"
+              <v-btn
                 dense
                 color="red" 
                 class="my-0"
                 block
+                @click="e => {
+                  exit();
+                  $emit('close');
+                }"
               >
               EXIT
               </v-btn>
@@ -46,8 +51,7 @@
               <div class="col-xs-12 col-lg-4 nopadding d-flex flex-wrap">
                 <div class="col-xs-12 col-lg-12">
                   <v-menu
-                    :disabled="showAdd"
-                    v-model="assesst_date_menu"
+                    v-model=" assessed_date_menu"
                     :close-on-content-click="false"
                     transition="scale-transition"
                     left
@@ -57,9 +61,8 @@
                   >
                     <template v-slot:activator="{ on, attrs }">
                       <v-text-field
-                        :disabled="showAdd"
-                        v-model="assesst_date"
-                        label="Assesst Date"
+                        :value="assessment.assessed_date?.slice(0, 10)"
+                        label="Assessed Date"
                         append-icon="mdi-calendar"
                         hide-details
                         readonly
@@ -71,15 +74,18 @@
                       ></v-text-field>
                     </template>
                     <v-date-picker
-                      :disabled="showAdd"
-                      v-model="assesst_date"
-                      @input="assesst_date_menu = false"
+                      :value="assessment.assessed_date?.slice(0, 10)"
+                      @input="e => {
+                        assessment.assessed_date = e;
+                        assessed_date_menu = false;
+                      }"
+                      @change="refresh"
                     ></v-date-picker>
                   </v-menu>
                 </div>
                 <div class="col-xs-12 col-lg-12">
                   <v-menu
-                    :disabled="showAdd"
+                    disabled
                     v-model="effective_rate_date_menu"
                     :close-on-content-click="false"
                     transition="scale-transition"
@@ -90,8 +96,8 @@
                   >
                     <template v-slot:activator="{ on, attrs }">
                       <v-text-field
-                        :disabled="showAdd"
-                        v-model="effective_rate_date"
+                        disabled
+                        :value="assessment.effective_rate_date?.slice(0, 10)"
                         label="Effective Rate Date"
                         append-icon="mdi-calendar"
                         hide-details
@@ -104,15 +110,19 @@
                       ></v-text-field>
                     </template>
                     <v-date-picker
-                      :disabled="showAdd"
-                      v-model="effective_rate_date"
-                      @input="effective_rate_date_menu = false"
+                      disabled
+                      :value="assessment.effective_rate_date?.slice(0, 10)"
+                      @input="e => {
+                        assessment.effective_rate_date = e;
+                        effective_rate_date_menu = false;
+                      }"
+                      @change="refresh"
                     ></v-date-picker>
                   </v-menu>
                 </div>
                 <div class="col-xs-12 col-lg-12">
                   <v-menu
-                      :disabled="showAdd"
+                      disabled
                       v-model="classes_start_date_menu"
                       :close-on-content-click="false"
                       transition="scale-transition"
@@ -123,8 +133,8 @@
                     >
                       <template v-slot:activator="{ on, attrs }">
                         <v-text-field
-                          :disabled="showAdd"
-                          v-model="classes_start_date"
+                          disabled
+                          :value="assessment.classes_start_date?.slice(0, 10)"
                           label="Classes Start Date"
                           append-icon="mdi-calendar"
                           hide-details
@@ -137,15 +147,19 @@
                         ></v-text-field>
                       </template>
                       <v-date-picker
-                        :disabled="showAdd"
-                        v-model="classes_start_date"
-                        @input="classes_start_date_menu = false"
+                        disabled
+                        :value="assessment.classes_start_date?.slice(0, 10)"
+                        @input="e => {
+                          assessment.classes_start_date = e;
+                          classes_start_date_menu = false;
+                        }"
+                        @change="refresh"
                       ></v-date-picker>
                   </v-menu>
                 </div>
                 <div class="col-xs-12 col-lg-12">
                   <v-menu
-                      :disabled="showAdd"
+                      disabled
                       v-model="classes_end_date_menu"
                       :close-on-content-click="false"
                       transition="scale-transition"
@@ -156,8 +170,8 @@
                     >
                       <template v-slot:activator="{ on, attrs }">
                         <v-text-field
-                          :disabled="showAdd"
-                          v-model="classes_start_date"
+                          disabled
+                          :value="assessment.classes_end_date?.slice(0, 10)"
                           label="Classes End Date"
                           append-icon="mdi-calendar"
                           hide-details
@@ -170,9 +184,13 @@
                         ></v-text-field>
                       </template>
                       <v-date-picker
-                        :disabled="showAdd"
-                        v-model="classes_end_date"
-                        @input="classes_end_date_menu = false"
+                        disabled
+                        :value="assessment.classes_end_date?.slice(0, 10)"
+                        @input="e => {
+                          assessment.classes_start_date = e;
+                          classes_end_date_menu = false;
+                        }"
+                        @change="refresh"
                       ></v-date-picker>
                   </v-menu>
                 </div>
@@ -180,15 +198,16 @@
               <div class="col-xs-12 col-lg-8 nopadding">
                 <div class="col-xs-12 col-lg-12">
                   <v-autocomplete
-                    :disabled="showAdd"
                     outlined
                     dense
                     background-color="white"
                     hide-details
                     label="Home Community"
-                    v-model="home_community"
-                    item-text="DESCRIPTION"
-                    item-value="REQUEST_TYPE_ID"
+                    :items="cities"
+                    item-text="description"
+                    item-value="id"
+                    v-model="assessment.home_city_id"
+                    @change="refresh"
                   ></v-autocomplete>
                 </div>
                 <div class="col-xs-12 col-lg-12">
@@ -198,7 +217,11 @@
                     background-color="white"
                     hide-details
                     label="Institution Community"
-                    v-model="institution_community"
+                    :items="cities"
+                    item-text="description"
+                    item-value="id"
+                    v-model="assessment.destination_city_id"
+                    @change="refresh"
                   ></v-autocomplete>
                 </div>
                 <div class="col-xs-12 col-lg-6">
@@ -209,7 +232,8 @@
                     hide-details
                     label="Dependent Count"
                     @keypress="validate.isNumber($event)"
-                    v-model="dependent_count"
+                    v-model="assessment.dependent_count"
+                    @change="refresh"
                   ></v-text-field>
                 </div>
                 <div class="col-xs-12 col-lg-6">
@@ -220,12 +244,13 @@
                     hide-details
                     label="2nd Residence Rate"
                     @keypress="validate.isNumber($event)"
-                    v-model="second_residence_rate"
+                    v-model="assessment.second_residence_rate"
+                    @change="refresh"
                   ></v-text-field>
                 </div>
               </div>
             </div>
-            <div class="col-xs-12 col-lg-12 nopadding d-flex mobile-column-flex low-margin flex-wrap">
+            <div v-if="!(application.academic_year_id > 2016)" class="col-xs-12 col-lg-12 nopadding d-flex mobile-column-flex low-margin flex-wrap">
               <div class="col-xs-12 col-lg-12 nopadding">
                 <v-card-title>Pre Legislation Method</v-card-title>
               </div>
@@ -238,20 +263,22 @@
                     hide-details
                     label="Fraction of whole year"
                     @keypress="validate.isNumber($event)"
-                    v-model="fraction_of_whole_year"
+                    v-model="assessment.years_funded_equivalent"
+                    @change="refresh"
                   ></v-text-field>
                 </div>
               </div>
               <div class="col-xs-12 col-sm-4 col-lg-4 nopadding d-flex flex-wrap mobile-low-margin">
                 <div class="col-xs-12 col-lg-12">
                   <v-text-field
+                    disabled
                     outlined
                     dense
                     background-color="white"
                     hide-details
                     label="Year Funded"
                     @keypress="validate.isNumber($event)"
-                    v-model="year_funded"
+                    v-model="assessment.years_funded"
                   ></v-text-field>
                 </div>
               </div>
@@ -263,37 +290,40 @@
               <div class="col-xs-12 col-sm-4 col-lg-4 nopadding d-flex flex-wrap mobile-low-margin">
                 <div class="col-xs-12 col-lg-12">
                   <v-text-field
+                    disabled
                     outlined
                     dense
                     background-color="white"
                     hide-details
                     label="Previous Weeks"
                     @keypress="validate.isNumber($event)"
-                    v-model="previous_weeks"
+                    v-model="assessment.previous_weeks"
                   ></v-text-field>
                 </div>
                 <div class="col-xs-12 col-lg-12">
                   <v-text-field
+                    disabled
                     outlined
                     dense
                     background-color="white"
                     hide-details
                     label="Previous Upgrade Weeks"
                     @keypress="validate.isNumber($event)"
-                    v-model="previous_upgrade_weeks"
+                    v-model="assessment.previous_upgrade_weeks"
                   ></v-text-field>
                 </div>
               </div>
               <div class="col-xs-12 col-sm-4 col-lg-4 nopadding d-flex flex-wrap mobile-low-margin">
                 <div class="col-xs-12 col-lg-12">
                   <v-text-field
+                    disabled
                     outlined
                     dense
                     background-color="white"
                     hide-details
                     label="Assessed Weeks"
                     @keypress="validate.isNumber($event)"
-                    v-model="assessed_weeks"
+                    v-model="assessment.assessed_weeks"
                   ></v-text-field>
                 </div>
                 <div class="col-xs-12 col-lg-12 line-jump-height d-flex align-center not-displayed-sx not-displayed-sx-md"></div>
@@ -301,24 +331,26 @@
               <div class="col-xs-12 col-sm-4 col-lg-4 nopadding d-flex flex-wrap">
                 <div class="col-xs-12 col-lg-12">
                   <v-text-field
+                    disabled
                     outlined
                     dense
                     background-color="white"
                     hide-details
                     label="Allowed Weeks"
                     @keypress="validate.isNumber($event)"
-                    v-model="allowed_weeks"
+                    v-model="assessment.weeks_allowed"
                   ></v-text-field>
                 </div>
                 <div class="col-xs-12 col-lg-12">
                   <v-text-field
+                    disabled
                     outlined
                     dense
                     background-color="white"
                     hide-details
                     label="Weekly Amount"
                     @keypress="validate.isNumber($event)"
-                    v-model="weekly_amount"
+                    v-model="assessment.weekly_amount"
                   ></v-text-field>
                 </div>
               </div>
@@ -330,23 +362,27 @@
               <div class="col-sm-6 col-lg-7 nopadding d-flex flex-wrap">
                 <div class="col-xs-12 col-lg-12">
                   <v-text-field
+                      disabled
                       outlined
                       dense
                       background-color="white"
                       hide-details
                       label="Travel Allowance"
                       @keypress="validate.isNumber($event)"
-                      v-model="travel_allowance"
+                      v-model="assessment.travel_allowance"
                   ></v-text-field>
                 </div>
               </div>
               <div class="col-xs-12 col-sm-4 col-lg-5">
                 <v-btn 
-                  :disabled="showAdd"
+                   
                   dense
                   color="blue" 
                   class="my-0"
                   block
+                  @click="e => {
+                    $store.dispatch('recalcSTA');
+                  }"
                 >
                 RE-CALC
                 </v-btn>
@@ -356,46 +392,50 @@
               <div class="col-sm-6 col-lg-7 nopadding d-flex flex-wrap">
                 <div class="col-xs-12 col-lg-12">
                   <v-text-field
+                    disabled
                     outlined
                     dense
                     background-color="white"
                     hide-details
                     label="Assessed Amount"
                     @keypress="validate.isNumber($event)"
-                    v-model="assessed_amount"
+                    v-model="assessment.assessed_amount"
                   ></v-text-field>
                 </div>
                 <div class="col-xs-12 col-lg-12">
                   <v-text-field
+                    disabled
                     outlined
                     dense
                     background-color="white"
                     hide-details
                     label="Previous Disbursement"
                     @keypress="validate.isNumber($event)"
-                    v-model="previous_disbursement"
+                    v-model="assessment.previous_disbursement"
                   ></v-text-field>
                 </div>
                 <div class="col-xs-12 col-lg-12 low-margin mobile-noppading-bottom">
                   <v-text-field
+                    disabled
                     outlined
                     dense
                     background-color="white"
                     hide-details
                     label="Net Amount"
                     @keypress="validate.isNumber($event)"
-                    v-model="previous_disbursement"
+                    v-model="assessment.net_amount"
                   ></v-text-field>
                 </div>
               </div>
               <div class="col-sm-4 col-lg-5 d-flex nopadding line-jump-height align-center low-margin">
                 <div class="col-xs-12 col-lg-12 height-fit-content mobile-noppading-top">
                   <v-btn 
-                    :disabled="showAdd"
+                     
                     dense
                     color="blue" 
                     class="my-0"
                     block
+                    @click="disburse"
                   >
                   DISBURSE
                   </v-btn>
@@ -429,102 +469,196 @@
             <p class="nomargin">Batch ID</p>
           </div>
         </div>
-        <div class="col-xs-12 col-sm-12 col-lg-12 d-flex low-margin noppading-top">
-          <div class="col-xs-2 col-sm-2 col-lg-2 nopadding">
-            <v-text-field
-              outlined
-              dense
-              background-color="white"
-              hide-details
-              @keypress="validate.isNumber($event)"
-              v-model="disbursed_amt"
-            ></v-text-field>
+        <div v-for="item, index in disbursements" :key="index">
+          <div class="col-xs-12 col-sm-12 col-lg-12 d-flex noppading-bottom">
+            <div class="col-xs-12 col-sm-12 col-lg-12 nopadding d-flex align-end justify-end">
+              <v-btn v-if="item?.id"
+                  color="error ml-5" 
+                  x-small 
+                  fab 
+                  class="my-1"
+                  @click="removeDisbursement(item.id, index)"
+                  >
+                <v-icon>mdi-delete</v-icon>
+              </v-btn>
+              <v-btn v-else
+                  color="warning ml-5" 
+                  x-small 
+                  fab 
+                  class="my-1"
+                  @click="cancelDisburse({ index })"
+                  >
+                <v-icon>mdi-close</v-icon>
+              </v-btn>
+            </div>
           </div>
-          <div class="col-xs-1 col-sm-1 col-lg-1 nopadding">
-            <v-text-field
-              outlined
-              dense
-              background-color="white"
-              hide-details
-              @keypress="validate.isNumber($event)"
-              v-model="reference_number"
-            ></v-text-field>
+          <div class="col-xs-12 col-sm-12 col-lg-12 d-flex low-margin noppading-top">
+            <div class="col-xs-2 col-sm-2 col-lg-2 nopadding">
+              <v-text-field
+                outlined
+                dense
+                background-color="white"
+                hide-details
+                @keypress="validate.isNumber($event)"
+                :value="item.disbursed_amount"
+                @input="e => {
+                  if(isNaN(parseInt(e))) {
+                    item.disbursed_amount = 0;
+                  } else {
+                    item.disbursed_amount = parseInt(e);
+                  }
+                }"
+                @change="refresh"
+              ></v-text-field>
+            </div>
+            <div class="col-xs-1 col-sm-1 col-lg-1 nopadding">
+              <v-text-field
+                outlined
+                dense
+                background-color="white"
+                hide-details
+                @keypress="validate.isNumber($event)"
+                v-model="item.transaction_number"
+                @change="refresh"
+              ></v-text-field>
+            </div>
+            <div class="col-xs-2 col-sm-2 col-lg-2 nopadding">
+              <v-select
+                 
+                outlined
+                dense
+                background-color="white"
+                hide-details
+                v-model="item.disbursement_type_id"
+                @change="refresh"
+                :items="disbursementTypes"
+                item-text="description"
+                item-value="id"
+              ></v-select>
+            </div>
+            <div class="col-xs-1 col-sm-1 col-lg-1 nopadding">
+              <v-menu
+                v-model="item.issue_date_menu"
+                :close-on-content-click="false"
+                transition="scale-transition"
+                left
+                nudge-top="26"
+                offset-y
+                min-width="auto"
+              >
+                <template v-slot:activator="{ on, attrs }">
+                  <v-text-field
+                    :value="item.issue_date?.slice(0, 10)"
+                    hide-details
+                    readonly
+                    outlined
+                    dense
+                    background-color="white"
+                    v-bind="attrs"
+                    v-on="on"
+                  ></v-text-field>
+                </template>
+                <v-date-picker
+                  :value="item.issue_date?.slice(0, 10)"
+                  @input="e => {
+                    item.issue_date = e;
+                    item.issue_date_menu = false;
+                  }"
+                  
+                ></v-date-picker>
+              </v-menu>
+            </div>
+            <div class="col-xs-5 col-sm-5 col-lg-5 nopadding">
+              <v-select
+                 
+                outlined
+                dense
+                background-color="white"
+                hide-details
+                v-model="item.change_reason_id"
+                @change="refresh"
+                :items="changeReasons"
+                item-text="description"
+                item-value="id"
+              ></v-select>
+            </div>
+            <div class="col-xs-1 col-sm-1 col-lg-1 nopadding">
+              <v-text-field
+                outlined
+                dense
+                background-color="white"
+                hide-details
+                @keypress="validate.isNumber($event)"
+                v-model="item.financial_batch_id"
+                @change="refresh"
+              ></v-text-field>
+            </div>
           </div>
-          <div class="col-xs-2 col-sm-2 col-lg-2 nopadding">
-            <v-select
-              :disabled="showAdd"
-              outlined
-              dense
-              background-color="white"
-              hide-details
-              v-model="disbursement_type"
-              item-text="DESCRIPTION"
-              item-value="REQUEST_TYPE_ID"
-            ></v-select>
-          </div>
-          <div class="col-xs-1 col-sm-1 col-lg-1 nopadding">
-            <v-text-field
-              outlined
-              dense
-              background-color="white"
-              hide-details
-              @keypress="validate.isNumber($event)"
-              v-model="issue_date"
-            ></v-text-field>
-          </div>
-          <div class="col-xs-5 col-sm-5 col-lg-5 nopadding">
-            <v-select
-              :disabled="showAdd"
-              outlined
-              dense
-              background-color="white"
-              hide-details
-              v-model="disbursement_type"
-              item-text="DESCRIPTION"
-              item-value="REQUEST_TYPE_ID"
-            ></v-select>
-          </div>
-          <div class="col-xs-1 col-sm-1 col-lg-1 nopadding">
-            <v-text-field
-              outlined
-              dense
-              background-color="white"
-              hide-details
-              @keypress="validate.isNumber($event)"
-              v-model="family_size"
-            ></v-text-field>
+        </div>
+        <div class="col-xs-12 col-sm-12 col-lg-12 d-flex noppading-bottom">
+          <div class="col-xs-12 col-sm-12 col-lg-12 nopadding d-flex align-end justify-end">
+              <v-btn @click="e => {
+                addDisburse();
+              }" color="success" class="">
+                Add
+              </v-btn>
           </div>
         </div>
       </v-card>
     </div>
+    <confirm-dialog ref="confirm"></confirm-dialog>
   </div>
-      
-
-        
-
-
-
-
-
-
-
-
-
-
-
-
-        
-
-
 </template>
 <script>
 import store from "../../../store";
 import validator from "@/validator";
+import { mapGetters, mapActions } from 'vuex';
 export default {
   name: "Home",
+  props: {
+    fundingRequestId: Number,
+  },
+  data() {
+    return {
+      assessed_date_menu: false,
+      classes_start_date_menu: false,
+      classes_end_date_menu: false,
+      effective_rate_date_menu: false,
+    }
+  },
   computed: {
-    application: function () {
-      return store.getters.selectedApplication;
+    ...mapGetters({
+      assessment: "assessmentSTA",
+      disbursements: "disbursementListSTA",
+      assessment: "assessmentSTA",
+      application: "selectedApplication",
+      cities: "cities",
+      changeReasons: "changeReasons",
+      disbursementTypes: "disbursementTypes",
+    }),
+  },
+  methods: {
+    ...mapActions({
+      exit: "resetAssessmetSTA",
+      saveSTAAssessment: "saveSTAAssessment",
+      addDisburse: "addItemDisbursementListSTA",
+      cancelDisburse: "cancelItemDisbursementListSTA",
+      removeSTADisbursement: "removeSTADisbursement",
+      refresh: "refreshSTA",
+      disburse: "disburseSTA",
+    }),
+    save() {
+      this.saveSTAAssessment(this);
+    },
+    removeDisbursement(id, index) {
+      this.$refs.confirm.show(
+        "Are you sure?",
+        "Click 'Confirm' below to permanently remove this disbursement.",
+        () => {
+          this.removeSTADisbursement({ index, disbursement_id: id, vm: this });
+        },
+        () => {}
+      );
     },
   },
   async created() {
@@ -535,6 +669,10 @@ export default {
       await store.dispatch("loadApplication", this.applicationId);
     }
     store.dispatch("setAppSidebar", true);
+    store.dispatch("setCities");
+    store.dispatch("setChangeReasons");
+    store.dispatch("setDisbursementTypes");
+    store.dispatch("staGetAssessment", { funding_request_id: this.fundingRequestId });
   }
 };
 </script>

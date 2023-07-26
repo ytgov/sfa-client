@@ -1,9 +1,44 @@
 import { Knex } from "knex";
 import { BaseRepository } from "../base-repository";
+import { DisbursementDTO, DisbursementTable, disbursementColumns } from "../../models";
+import { IMainTable } from "../i-main-table";
 
-export class DisbursementRepository extends BaseRepository {
+export class DisbursementRepository extends BaseRepository implements IMainTable {
+
+    protected mainTable: string = "sfa.disbursement";
+    
+    private disbursement: Partial<DisbursementDTO> = {};
+
     constructor(maindb: Knex<any, unknown>) {
         super(maindb);
+    }
+
+    getMainTable(): string {
+        return this.mainTable;
+    }
+
+    getDisbursementTable(disbursement: DisbursementDTO): DisbursementTable {
+        return Object.keys(disbursement)
+            .filter(key => disbursementColumns.includes(key as keyof DisbursementTable))
+            .reduce((obj: any, key) => {
+                obj[key as keyof DisbursementTable] = disbursement[key as keyof DisbursementTable];
+                return obj as DisbursementTable;
+            }, {});
+    }
+
+    async getByAssessmentId(assessment_id: number | undefined): Promise<Partial<DisbursementDTO>> {
+
+        if (assessment_id) {
+            this.disbursement = await this.mainDb(this.mainTable)
+                .select(
+                    "*"
+                )
+                .where({ assessment_id: assessment_id })
+                .orderBy("id", "desc")
+                .first();
+        }
+        
+        return this.disbursement;
     }
 
     async getTotalGrantAmount(application_id?: number): Promise<number> { 
@@ -44,5 +79,21 @@ export class DisbursementRepository extends BaseRepository {
         }
 
         return result;
+    }
+
+    async getMaxTransaction(funding_request_id?: number): Promise<number> {
+        let result = 0;
+
+        if (funding_request_id) {
+            result = await this.getScalarValue<number>("fn_get_disbursement_max_transaction", [funding_request_id]);
+        }
+
+        return result;
+    }
+
+    async getNextTransactionSequenceValue(): Promise<number> {
+        const query = await this.mainDb.raw("SELECT NEXT VALUE FOR sfa.CSL_TRANSACTION_SEQ as nextVal;");
+        const result: Partial<{ nextVal?: number }> = this.singleResult(query);
+        return result.nextVal ?? 0;
     }
 }

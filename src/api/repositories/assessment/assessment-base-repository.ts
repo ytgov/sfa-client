@@ -2,12 +2,17 @@ import { Knex } from "knex";
 import { BaseRepository } from "../base-repository";
 import { ScalarResult } from "models/repository";
 import { AssessmentDTO} from "models";
+import { IMainTable } from "../i-main-table";
 
-export class AssessmentBaseRepository extends BaseRepository {
+export class AssessmentBaseRepository extends BaseRepository implements IMainTable {
     protected mainTable = "sfa.assessment";
 
     constructor(maindb: Knex<any, unknown>) {
         super(maindb);
+    }
+
+    getMainTable(): string {
+        return this.mainTable;
     }
 
     async getAssessmentByFundingRequestId(funding_request_id: number | undefined): Promise<AssessmentDTO> {

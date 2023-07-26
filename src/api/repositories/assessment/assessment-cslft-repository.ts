@@ -5,30 +5,35 @@ import {
     assessmentColumns,
     AssessmentDTO,
     AssessmentTable,
+    CslftResultDTO,
+    CslftGlobalDTO,    
+    DisbursementDTO,
     FundingRequestDTO,
     MsfaaDTO,
     PersonAddressDTO,
     StudentDTO
 } from "../../models";
-import {AssessmentBaseRepository} from "./assessment-base-repository";
-import {ApplicationRepository} from "../application";
-import {StudentContributionRepository, StudentLivingAllowanceRepository, StudentRepository} from "../student";
-import {FundingRequestRepository} from "../funding_request";
-import {CslLookupRepository} from "../csl_lookup";
-import {ExpenseRepository} from "../expense";
-import {ProvinceRepository} from "../province";
-import {DisbursementRepository} from "../disbursement";
-import {ChildCareCeilingRepository} from "../child_care_ceiling";
-import {TaxRateRepository} from "../tax_rate";
-import {FieldProgramRepository} from "../field_program";
-import {PersonRepository} from "../person";
-import {StandardOfLivingRepository} from "../standard_of_living";
-import {ParentRepository} from "../parent";
-import {DependentRepository} from "../dependent";
-import {InvestmentRepository} from "../investment";
-import {CsgThresholdRepository} from "../csg_threshold";
-import {NumbersHelper} from "../../utils/NumbersHelper";
-import {MsfaaRepository} from "../msfaa";
+import { AssessmentBaseRepository } from "./assessment-base-repository";
+import { ApplicationRepository } from "../application";
+import { StudentContributionRepository, StudentLivingAllowanceRepository, StudentRepository} from "../student";
+import { FundingRequestRepository } from "../funding_request";
+import { CslLookupRepository } from "../csl_lookup";
+import { ExpenseRepository } from "../expense";
+import { ProvinceRepository } from "../province";
+import { DisbursementRepository } from "../disbursement";
+import { ChildCareCeilingRepository } from "../child_care_ceiling";
+import { TaxRateRepository } from "../tax_rate";
+import { FieldProgramRepository } from "../field_program";
+import { PersonRepository } from "../person";
+import { StandardOfLivingRepository } from "../standard_of_living";
+import { ParentRepository } from "../parent";
+import { DependentRepository } from "../dependent";
+import { InvestmentRepository } from "../investment";
+import { CsgThresholdRepository } from "../csg_threshold";
+import { NumbersHelper } from "../../utils/NumbersHelper";
+import { MsfaaRepository } from "../msfaa";
+import { CslReasonRepository } from '../csl_reason';
+import { CorrespondenceRepository } from '../correspondence';
 
 export class AssessmentCslftRepository extends AssessmentBaseRepository {
 
@@ -52,20 +57,20 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
     private investmentRepo: InvestmentRepository;
     private csgThresholdRepo: CsgThresholdRepository;
     private msfaaRepo: MsfaaRepository;
+    private correspondenceRepo: CorrespondenceRepository;
+    private cslReasonRepo: CslReasonRepository;
 
     // Globals
     private assessment: Partial<AssessmentDTO> = {};
     private application: Partial<ApplicationDTO> = {};
     private student: Partial<StudentDTO> = {};
     private funding_request: Partial<FundingRequestDTO> = {};
+    private disbursement: Partial<DisbursementDTO> = {};
     private msfaa: Partial<MsfaaDTO> = {};
-    private new_calc: boolean = false;
-    private study_code?: number;
-    private prestudy_code?: number;
+    private global: Partial<CslftGlobalDTO> = {};
+    private resultDto: Partial<CslftResultDTO> = {};
     private assessment_id?: number;
     private assess_id?: number;
-    private study_period_id: number = 2;
-    private prestudy_period_id: number = 1;
 
     // Utils
     private numHelper: NumbersHelper;
@@ -92,6 +97,8 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
         this.investmentRepo = new InvestmentRepository(maindb);
         this.csgThresholdRepo = new CsgThresholdRepository(maindb);
         this.msfaaRepo = new MsfaaRepository(maindb);
+        this.correspondenceRepo = new CorrespondenceRepository(maindb);
+        this.cslReasonRepo = new CslReasonRepository(maindb);
     }
 
     getAssessmentTable(assessment: AssessmentDTO): AssessmentTable {
@@ -102,13 +109,13 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
                 return obj as AssessmentTable;
             }, {});
     }
-
+    
     academicYearValidation = (year: number): boolean => {
         return !!(this.application.academic_year_id && this.application.academic_year_id < year);
     };
 
     getNetAmount(assessed_amount?: number, previous_disbursement?: number, return_uncashable_cert?: number): number {
-        let result = (assessed_amount ?? 0) - (previous_disbursement ?? 0) + (return_uncashable_cert ?? 0);
+        let result = this.numHelper.getNum(assessed_amount ?? 0) - this.numHelper.getNum(previous_disbursement ?? 0) + this.numHelper.getNum(return_uncashable_cert ?? 0);
 
         if (result >= -250 && result <= 0) {
             result = 0;
@@ -185,7 +192,7 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
         const max_weeks = 8/12*52;
 
         if (this.assessment.csl_classification === 1) {
-            this.assessment.student_family_size = await this.getParentFamilySize(this.application.id);
+            this.assessment.student_family_size = await this.getParentFamilySize(this.application.id) + 1;
             this.assessment.family_income = (this.assessment.parent1_income ?? 0) + (this.assessment.parent2_income ?? 0);
         }
         else if (this.assessment.csl_classification === 4) {
@@ -270,8 +277,8 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
             }
         }
 
-        this.study_code = assignCode(this.assessment.csl_classification ?? 0, this.assessment.study_accom_code ?? 0);
-        this.prestudy_code = assignCode(this.assessment.prestudy_csl_classification ?? 0, this.assessment.prestudy_accom_code ?? 0);
+        this.global.study_code = assignCode(this.assessment.csl_classification ?? 0, this.assessment.study_accom_code ?? 0);
+        this.global.prestudy_code = assignCode(this.assessment.prestudy_csl_classification ?? 0, this.assessment.prestudy_accom_code ?? 0);
     }
 
     async loadData(funding_request_id: number, loadAssessment: boolean = true): Promise<void> {
@@ -282,23 +289,26 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
             if (loadAssessment) {
                 this.assessment = await this.getAssessmentByFundingRequestId(funding_request_id);
             }
+            this.disbursement = await this.disbursementRepo.getByAssessmentId(this.assessment.id);
             this.msfaa = await this.msfaaRepo.getMsfaaByStudentId(this.student.id);
         }
     }
 
-    async getAssessInfoCslft(funding_request_id?: number): Promise<AssessmentDTO> {
+    async getAssessInfoCslft(funding_request_id?: number): Promise<Partial<CslftResultDTO>> {
 
         let assess_id: number | undefined = undefined;        
 
         if (funding_request_id) {
-            await this.loadData(funding_request_id);
+            await this.loadData(funding_request_id);           
             if (!this.assessment.id) {
                 const assess_count = await this.getAssessmentCount(funding_request_id);
             
                 if (assess_count !== undefined && assess_count > 0) {
-                    assess_id = await this.getAssessmentInfoPrc(funding_request_id);
+                    this.assess_id = await this.getAssessmentInfoPrc(funding_request_id);
+
+                    this.assessment.assessment_type_id = 2;
         
-                    await this.getPreviousAssessment(assess_id);
+                    await this.getPreviousAssessment(this.assess_id);
                 }
                 else {
                     this.assessment.funding_request_id = funding_request_id;
@@ -315,13 +325,13 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
 
             await this.setIdGlobals();
 
-            if (!this.assessment.program_id && !this.assessment.study_area_id) {
+            if (this.assessment.program_id && this.assessment.study_area_id) {
                 this.assessment.field_program_code = await this.fieldProgramRepo.getFieldProgramCode(this.assessment.study_area_id, this.assessment.program_id);
             }
 
             this.assessment.recovered_overaward = await this.getCslOveraward(this.application.student_id, this.assessment.id);
 
-            assess_id = (((this.assessment_id ?? 0) < (this.assess_id ?? 0) && !this.assessment.id) || this.assess_id === 0) ? this.assessment_id : this.assess_id;
+            assess_id = (((this.assessment_id ?? 0) < (this.assess_id ?? 0) && !this.assessment.id) || (this.assess_id ?? 0) === 0) ? this.assessment_id : this.assess_id;
 
             const disbursed_amt = await this.disbursementRepo.getDisbursedAmount(funding_request_id, assess_id);
             this.assessment.previous_disbursement = disbursed_amt > 0 ? disbursed_amt : 0;
@@ -334,8 +344,8 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
 
             await this.getContribDisplayValues();
 
-            if (this.new_calc) {
-                this.new_calc = false;
+            if (this.global.new_calc) {
+                this.global.new_calc = false;
                 await this.getCalculatedValues();
 
                 if (this.application.academic_year_id && this.application.academic_year_id >= 2017) {
@@ -348,7 +358,12 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
             this.assessment.parent_contribution_review = this.assessment.assessment_type_id === 2;
         }
 
-        return this.assessment;
+        this.resultDto.data = this.assessment;
+        this.resultDto.globals = this.global;
+        this.resultDto.disbursements = [this.disbursement];
+        this.resultDto.funding_request = this.funding_request;
+
+        return this.resultDto;
     }
 
     async getLookupValues(funding_request_id: number): Promise<void> {
@@ -409,8 +424,8 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
                 this.assessment.pstudy_x_trans_total = this.numHelper.round(Math.min(max_x_trans, calc_x_trans));
             }
 
-            let prestudy_code: number | undefined = this.prestudy_code;
-            if (this.prestudy_code === studyCodes.M && (this.assessment.dependent_count ?? 0) > 0) {
+            let prestudy_code: number | undefined = this.global.prestudy_code;
+            if (this.global.prestudy_code === studyCodes.M && (this.assessment.dependent_count ?? 0) > 0) {
                 prestudy_code = studyCodes.MW;
             }
             this.assessment.pstudy_expected_contrib = await this.studentContributionRepo.getStudentContribution(this.application.academic_year_id, prestudy_prov, prestudy_code, 1) * (this.assessment.pstudy_months ?? 0);
@@ -437,21 +452,10 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
         }
 
         // Parent Tab
-        if (this.study_code === studyCodes.SDA || this.study_code === studyCodes.SDH) {
-            const mailing_address: PersonAddressDTO = await this.personRepo.getPersonAddress(this.student.person_id, 2);
-            if (mailing_address && mailing_address.province_id) {
-                this.assessment.parent_msol = await this.standardLivingRepo.getStandardLivingAmount(this.application.academic_year_id, mailing_address.province_id, this.assessment.family_size ?? 0);
-
-                if ((this.assessment.parent_discretionary_income ?? 0) > 0) {
-                    this.assessment.parent_weekly_contrib = await this.parentRepo.getParentContributionAmount(this.application.academic_year_id, this.numHelper.round(this.assessment.parent_discretionary_income ?? 0));
-                }
-            }
-        }
+        await this.getCalcParentContributions(this.student.person_id, this.application.academic_year_id, studyCodes);
 
         // Calculate previous disbursement amount.
-        const assess_id = (((this.assessment_id ?? 0) < (this.assess_id ?? 0) && !this.assessment.id) || this.assess_id === 0) ? this.assessment_id : this.assess_id;
-
-        const disbursed_amt = await this.disbursementRepo.getDisbursedAmount(funding_request_id, assess_id);
+        const disbursed_amt = await this.disbursementRepo.getDisbursedAmount(funding_request_id, this.assessment.id);
         this.assessment.previous_disbursement = disbursed_amt > 0 ? disbursed_amt : 0;
 
         this.assessment.net_amount = this.getNetAmount(this.assessment.assessed_amount, this.assessment.previous_disbursement, this.assessment.return_uncashable_cert);
@@ -482,6 +486,31 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
             this.assessment.spouse_exemption = this.assessment.spouse_exemption ?? 0;
         }
 
+    }
+
+    async getCalcParentContributions(student_person_id?: number, academic_year_id?: number, studyCodes?: Record<string, number>): Promise<void> {
+
+        if (!studyCodes) {
+            return;
+        }
+        
+        const parentTotalIncome = this.numHelper.round(this.numHelper.getNum(this.assessment.parent1_income ?? 0) + this.numHelper.getNum(this.assessment.parent2_income ?? 0));
+        const parentTotalTax = this.numHelper.round(this.numHelper.getNum(this.assessment.parent1_tax_paid ?? 0) + this.numHelper.getNum(this.assessment.parent2_tax_paid ?? 0));
+        const parentNetAmount = parentTotalIncome - parentTotalTax;
+
+        // Parent Tab
+        if (this.global.study_code === studyCodes.SDA || this.global.study_code === studyCodes.SDH) {
+            const mailing_address: PersonAddressDTO = await this.personRepo.getPersonAddress(student_person_id, 4);
+            if (mailing_address && mailing_address.province_id) {
+                this.assessment.parent_msol = await this.standardLivingRepo.getStandardLivingAmount(academic_year_id, mailing_address.province_id, this.assessment.family_size ?? 0);
+
+                this.assessment.parent_discretionary_income = this.numHelper.round(parentNetAmount - this.assessment.parent_msol);
+
+                if ((this.assessment.parent_discretionary_income ?? 0) > 0) {
+                    this.assessment.parent_weekly_contrib = await this.parentRepo.getParentContributionAmount(academic_year_id, this.numHelper.round(this.assessment.parent_discretionary_income ?? 0));
+                }
+            }
+        }
     }
 
     async getContribDisplayValues(): Promise<void> {
@@ -548,16 +577,16 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
     }
 
     getCombinedContribution(): void {
-        let combined: number = this.assessment.student_contribution ?? 0;
-        if (this.assessment.student_contribution_override || this.assessment.student_contribution_review) {
-            combined = this.assessment.student_contribution_override ?? 0;
+        let combined: number = this.numHelper.getNum(this.assessment.student_contribution ?? 0);
+        if (this.numHelper.getNum(this.assessment.student_contribution_override ?? 0) !== 0 || this.assessment.student_contribution_review) {
+            combined = this.numHelper.getNum(this.assessment.student_contribution_override ?? 0);
         }
 
-        if (this.assessment.spouse_contribution_override || this.assessment.spouse_contribution_review) {
-            combined = combined + (this.assessment.spouse_contribution_override ?? 0);
+        if (this.numHelper.getNum(this.assessment.spouse_contribution_override ?? 0) !== 0 || this.assessment.spouse_contribution_review) {
+            combined = combined + this.numHelper.getNum(this.assessment.spouse_contribution_override ?? 0);
         }
         else {
-            combined = combined + (this.assessment.spouse_contribution ?? 0);
+            combined = combined + this.numHelper.getNum(this.assessment.spouse_contribution ?? 0);
         }
 
         this.assessment.combined_contribution = combined;
@@ -615,12 +644,14 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
         }
     }
 
-    async getNewInfo(): Promise<void> {
+    async getNewInfo(isRecalc: boolean = false): Promise<void> {
 
         if (!this.assessment.id) {
-            this.new_calc = true;
+            this.global.new_calc = true;
             this.assessment.assessment_type_id = 1;
         }
+
+        this.assessment.assessed_date = moment.utc().toDate();
 
         this.assessment.student_contrib_exempt = false;
         this.assessment.spouse_contrib_exempt = false;
@@ -628,19 +659,21 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
         this.assessment.dependent_count = await this.getScalarValue<number>("fn_get_dependent_count", [this.application.id ?? 0])
         this.assessment.classes_start_date = this.application.classes_start_date;
         this.assessment.classes_end_date = this.application.classes_end_date;
-        this.assessment.study_weeks = moment(this.assessment.classes_end_date).diff(moment(this.assessment.classes_start_date), "week");
-        this.assessment.study_months = moment(this.assessment.classes_end_date).diff(moment(this.assessment.classes_start_date), "month");
+        const daysDiff = moment.utc(this.assessment.classes_end_date).diff(moment(this.assessment.classes_start_date), "day");
+        this.assessment.study_weeks = Math.trunc((daysDiff + 1)/7 + .9999);
+        this.assessment.study_months = Math.trunc((daysDiff + 1)/30.44 + .9999);
 
         this.assessment.pstudy_start_date = this.application.prestudy_start_date;
         this.assessment.pstudy_end_date = this.application.prestudy_end_date;
         
-        if (this.application.prestudy_start_date) {
-            this.assessment.pstudy_end_date = moment(this.application.classes_start_date).add(-1, "month").endOf("month").toDate();
-            this.assessment.pstudy_start_date = moment(this.assessment.pstudy_end_date).add(-3, "month").startOf("month").toDate();
+        if (!this.application.prestudy_start_date) {
+            this.assessment.pstudy_end_date = moment.utc(this.application.classes_start_date).add(-1, "month").endOf("month").toDate();
+            this.assessment.pstudy_start_date = moment.utc(this.assessment.pstudy_end_date).add(-3, "month").startOf("month").toDate();
         }
 
-        this.assessment.pstudy_weeks = moment(this.assessment.pstudy_end_date).diff(moment(this.assessment.pstudy_start_date), "week");
-        this.assessment.pstudy_months = moment(this.assessment.pstudy_end_date).diff(moment(this.assessment.pstudy_start_date), "month");
+        const pDaysDiff = moment.utc(this.assessment.pstudy_end_date).diff(moment(this.assessment.pstudy_start_date), "day");
+        this.assessment.pstudy_weeks = Math.trunc((pDaysDiff + 1)/7 + .9999);
+        this.assessment.pstudy_months = Math.trunc((pDaysDiff + 1)/30.44 + .9999);
 
         this.assessment.prestudy_province_id = this.application.prestudy_province_id;
         this.assessment.prestudy_province_id = this.application.prestudy_province_id;
@@ -650,8 +683,8 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
         this.assessment.program_id = this.application.program_id;
         this.assessment.study_province_id = this.application.study_province_id;
         this.assessment.study_accom_code = this.application.study_accom_code;
-        this.assessment.prestudy_csl_classification = this.application.prestudy_csl_classification;
         this.assessment.csl_classification = this.application.csl_classification;
+        this.assessment.prestudy_csl_classification = this.assessment.csl_classification;
         this.assessment.tuition_estimate = this.application.tuition_estimate_amount;
         this.assessment.books_supplies_cost = Math.min(await this.cslLookupRepo.getMaxBooks(this.application.academic_year_id), this.application.books_supplies_cost ?? 0);
         this.assessment.study_distance = this.application.study_distance;
@@ -669,8 +702,10 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
         this.assessment.prestudy_bus_flag = this.application.prestudy_bus;
         this.assessment.family_size = await this.getParentFamilySize(this.application.id);
         this.assessment.parent_ps_depend_count = await this.getParentDependentCount(this.application.id, true);
-        this.assessment.parent_province_id = await this.provinceRepo.getProvinceId(this.application.id);
+        this.assessment.parent_province_id = await this.provinceRepo.getStudentProvinceIdByApplication(this.application.id, 4);
         this.assessment.total_grant_awarded = await this.disbursementRepo.getTotalGrantAmount(this.application.id);
+
+        await this.setIdGlobals();
 
         const canadianProvinces = [
             1,2,3,4,5,6,7,8,9,10,11,12,13
@@ -704,10 +739,12 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
             }
         }
 
+        this.assessment.spouse_province_id = this.application.spouse_last_jurisdiction_id;
+
         this.assessment.period = this.assessment.study_months <= 4 ? "S" : "P";
 
         //Cost tab
-        this.assessment.shelter_month = await this.studentLivingAllowanceRepo.getShelterFoodMisc(this.application.academic_year_id, study_prov, this.study_code);
+        this.assessment.shelter_month = await this.studentLivingAllowanceRepo.getShelterFoodMisc(this.application.academic_year_id, study_prov, this.global.study_code);
         this.assessment.discretionary_cost = await this.cslLookupRepo.getMaxDiscretionary(this.application.academic_year_id);
 
         const studyCodes: Record<string, number> = { 
@@ -716,8 +753,8 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
             'DEP': await this.studentRepo.getStudentCategoryId("'DEP'")
         };
 
-        const studyCodeValidation: boolean = this.study_code === studyCodes.SP || this.study_code === studyCodes.M;
-        const prestudyCodeValidation: boolean = this.prestudy_code === studyCodes.SP || this.prestudy_code === studyCodes.M;
+        const studyCodeValidation: boolean = this.global.study_code === studyCodes.SP || this.global.study_code === studyCodes.M;
+        const prestudyCodeValidation: boolean = this.global.prestudy_code === studyCodes.SP || this.global.prestudy_code === studyCodes.M;
 
         if (studyCodeValidation && this.assessment.dependent_count > 0) {
             this.assessment.depend_food_allowable = await this.studentLivingAllowanceRepo.getShelterFoodMisc(this.application.academic_year_id, study_prov, studyCodes.DEP);
@@ -729,7 +766,7 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
                 this.assessment.depend_tran_allowable = await this.studentLivingAllowanceRepo.getPublicTransportaion(this.application.academic_percent, study_prov, studyCodes.DEP) * this.assessment.dependent_count;
             }
             
-            this.assessment.p_trans_month = await this.studentLivingAllowanceRepo.getPublicTransportaion(this.application.academic_year_id, study_prov, this.study_code);
+            this.assessment.p_trans_month = await this.studentLivingAllowanceRepo.getPublicTransportaion(this.application.academic_year_id, study_prov, this.global.study_code);
         }
 
         if (this.application.academic_year_id && this.application.academic_year_id < 2017) {
@@ -756,7 +793,7 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
                 }
             }
 
-            this.assessment.pstudy_shelter_month = await this.studentLivingAllowanceRepo.getShelterFoodMisc(this.application.academic_year_id, prestudy_prov, this.prestudy_code);
+            this.assessment.pstudy_shelter_month = await this.studentLivingAllowanceRepo.getShelterFoodMisc(this.application.academic_year_id, prestudy_prov, this.global.prestudy_code);
 
             if (this.assessment.prestudy_bus_flag) {
 
@@ -764,7 +801,7 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
                     this.assessment.pstudy_depend_tran_allow = await this.studentLivingAllowanceRepo.getPublicTransportaion(this.application.academic_year_id, studyCodes.DEP) * this.assessment.dependent_count;
                 }
 
-                this.assessment.pstudy_p_trans_month = await this.studentLivingAllowanceRepo.getPublicTransportaion(this.application.academic_year_id, this.prestudy_code);
+                this.assessment.pstudy_p_trans_month = await this.studentLivingAllowanceRepo.getPublicTransportaion(this.application.academic_year_id, this.global.prestudy_code);
             }            
 
             // Study Tab
@@ -785,7 +822,7 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
 
                 this.assessment.spouse_expected_income = 0;
                 if (!(this.application.spouse_study_school_to && this.application.spouse_study_school_from)) {
-                    this.assessment.spouse_expected_income = await this.studentContributionRepo.getStudentContribution(this.application.academic_year_id, spouse_prov, this.study_code, 2) * this.assessment.study_months;
+                    this.assessment.spouse_expected_income = await this.studentContributionRepo.getStudentContribution(this.application.academic_year_id, spouse_prov, this.global.study_code, 2) * this.assessment.study_months;
                 }
             }
             
@@ -816,9 +853,20 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
             }
         }
 
+        const cslLookup = await this.cslLookupRepo.getCslLookupByYear(this.application.academic_year_id);
+
+        this.assessment.max_allowable = 0;
+        if (cslLookup) {
+            this.assessment.max_allowable = (cslLookup.allowable_weekly_amount ?? 0) * (this.assessment.study_weeks ?? 0);
+        }
+
         this.assessment.asset_tax_rate = 0;
 
-        // Calculate the total
+        if ((this.assessment.calculated_award ?? 0) === 0 && !isRecalc) {
+            await this.getCalculatedAward();
+        }
+
+        // Calculate the totaln_disbursments_required
         if (!this.assessment.csl_full_amt_flag) {
             this.assessment.assessed_amount = Math.max(Math.min(this.assessment.calculated_award ?? 0, this.assessment.csl_request_amount ?? 0) - (this.assessment.recovered_overaward ?? 0), 0);
         }
@@ -830,24 +878,76 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
 
     }
 
-    async executeRecalc(funding_request_id: number, assessment: Partial<AssessmentDTO> = {}): Promise<AssessmentDTO> {
+    async getCalculatedAward(): Promise<void> {
+ 
+        // Anonymous Setup
+        const calcByStudyMonths = (value?: number) => (value ?? 0) * (this.assessment.study_months ?? 0);        
+        const transMultiplier = (): number => {
+            let multiplier = 0;
+            const studyWeeks = (this.assessment.study_weeks ?? 0);
+            if (studyWeeks >= 1 && studyWeeks < 24)
+            {
+                multiplier = 1;
+            }
+            else if (studyWeeks >= 24) {
+                multiplier = 2;
+            }
 
-        await this.loadData(funding_request_id, false);
+            return multiplier;
+        };
+                
+        const scholastic_total: number = (this.assessment.tuition_estimate ?? 0) + (this.assessment.books_supplies_cost ?? 0);
+        const shelter_total: number = calcByStudyMonths(this.assessment.shelter_month);
+        const p_trans_total: number = calcByStudyMonths(this.assessment.p_trans_month);
+        const r_trans_total: number = (this.assessment.r_trans_16wk ?? 0) * transMultiplier();
+        const day_care_total: number = calcByStudyMonths(Math.min((this.assessment.day_care_allowable ?? 0), (this.assessment.day_care_actual ?? 0)));
+        const dependent_shelter_total: number = calcByStudyMonths(this.assessment.depend_food_allowable);
+        const dependent_trans_total: number = calcByStudyMonths(this.assessment.depend_tran_allowable);
+        const discretionary_total: number = Math.min((this.assessment.discretionary_cost ?? 0), (this.assessment.discretionary_cost_actual ?? 0));
+        const x_trans_total: number = this.numHelper.round((this.assessment.x_trans_total ?? 0));
+        const relocation_total: number = this.numHelper.round((this.assessment.relocation_total ?? 0));
+
+        const capped_expenses: number = shelter_total + p_trans_total + r_trans_total + day_care_total + dependent_shelter_total + dependent_trans_total + discretionary_total + x_trans_total + relocation_total;
+
+        const total_study_cost: number = scholastic_total + capped_expenses + (this.assessment.uncapped_costs_total ?? 0); 
+
+        const calc_parental_contrib: number = (this.assessment.parent_ps_depend_count ?? 0) === 0 ? 0 : this.numHelper.round((this.assessment.parent_weekly_contrib ?? 0) * (this.assessment.study_weeks ?? 0) / (this.assessment.parent_ps_depend_count ?? 0));
+        const parental_total_contrib: number = this.numHelper.round(Math.max((this.assessment.parent_contribution_override ?? 0), calc_parental_contrib));
+
+        const total_assets: number = (this.assessment.married_assets ?? 0) === 0 ? (this.assessment.other_income ?? 0) : (this.assessment.married_assets ?? 0);
+        const total_assets_combined: number = total_assets + (this.assessment.combined_contribution ?? 0);
+
+        let resources_total: number = 0;
+        if ((this.application.academic_year_id ?? 0) > 2017) {
+            resources_total = total_assets_combined + parental_total_contrib;
+        }
+
+        const assess_needed: number = this.numHelper.round(Math.max((total_study_cost - resources_total), 0));
+        const assess_needed_sixty: number = this.numHelper.round(assess_needed * 0.6);
+        
+        
+
+        const calculated_award_min = Math.min(assess_needed_sixty - (this.assessment.total_grant_awarded ?? 0), (this.assessment.max_allowable ?? 0));
+        const calculated_award: number = Math.max(0, this.numHelper.round(calculated_award_min));
+        this.assessment.calculated_award = calculated_award;
+    }
+
+    async executeRecalc(funding_request_id: number, assessment: Partial<AssessmentDTO> = {}): Promise<Partial<CslftResultDTO>> {
+
         this.assessment = assessment;
+        await this.loadData(funding_request_id, false);
 
-        await this.getNewInfo();
+        await this.getNewInfo(true);
 
         await this.setIdGlobals();
 
-        if (!this.assessment.program_id && !this.assessment.study_area_id) {
+        if (this.assessment.program_id && this.assessment.study_area_id) {
             this.assessment.field_program_code = await this.fieldProgramRepo.getFieldProgramCode(this.assessment.study_area_id, this.assessment.program_id);
         }
 
         this.assessment.recovered_overaward = await this.getCslOveraward(this.application.student_id, this.assessment.id);
 
-        const assess_id = (((this.assessment_id ?? 0) < (this.assess_id ?? 0) && !this.assessment.id) || this.assess_id === 0) ? this.assessment_id : this.assess_id;
-
-        const disbursed_amt = await this.disbursementRepo.getDisbursedAmount(funding_request_id, assess_id);
+        const disbursed_amt = await this.disbursementRepo.getDisbursedAmount(funding_request_id, this.assessment.id);
         this.assessment.previous_disbursement = disbursed_amt > 0 ? disbursed_amt : 0;
 
         this.assessment.previous_cert = await this.disbursementRepo.getPreviousDisbursedAmount(funding_request_id, this.assessment.id);
@@ -858,21 +958,219 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
 
         await this.getContributionValues();
 
-        return this.assessment;
+        this.resultDto.data = this.assessment;
+        this.resultDto.globals = this.global;
+        this.resultDto.disbursements = [this.disbursement];
+        this.resultDto.funding_request = this.funding_request;
+
+        return this.resultDto;
     }
 
-    async insertAssessment(assessment: AssessmentDTO): Promise<any[]> {
-        const filtered = this.getAssessmentTable(assessment);
-        return this.mainDb(this.mainTable).insert(filtered).returning("*");
+    async calculateCombinedContrib(assessment: Partial<AssessmentDTO>): Promise<number | undefined> {
+        this.assessment = assessment;
+
+        this.getCombinedContribution();
+
+        return this.assessment.combined_contribution;
     }
 
-    async updateAssessment(id: number, assessment: AssessmentDTO): Promise<any[]> {
-        const filtered = this.getAssessmentTable(assessment);
-        return this.mainDb(this.mainTable)
-            .update(filtered)
-            .where({
-                id: id
-            })
-            .returning("*");
+    async calculateParentWeeklyContrib(person_id: number, academic_year_id: number, assessment: Partial<AssessmentDTO>): Promise<number> {
+
+        this.assessment = assessment;
+
+        const studyCodeKeys = [
+            "SP",
+            "M",
+            "DEP",
+            "SDA",
+            "SDH",
+            "MW"
+        ];
+
+        const studyCodesAll = await Promise.all([
+            this.studentRepo.getStudentCategoryId("'SP'"),
+            this.studentRepo.getStudentCategoryId("'M'"),
+            this.studentRepo.getStudentCategoryId("'DEP'"),
+            this.studentRepo.getStudentCategoryId("'SDA'"),
+            this.studentRepo.getStudentCategoryId("'SDH'"),
+            this.studentRepo.getStudentCategoryId("'MW'")
+        ]);
+    
+        const studyCodes: Record<string, number> = studyCodeKeys.reduce((map, key, index) => {
+            map[key] = studyCodesAll[index];
+            return map;
+        }, {} as Record<string, number>);
+
+        await this.setIdGlobals();
+
+        await this.getCalcParentContributions(person_id, academic_year_id, studyCodes);
+
+        return this.assessment.parent_weekly_contrib ?? 0;
     }
+
+    async executeDisburse(funding_request_id: number, assessment: Partial<AssessmentDTO> = {}): Promise<Partial<CslftResultDTO>> {
+        
+        await this.loadData(funding_request_id, false);
+        this.assessment = assessment;
+        
+        this.disbursement.assessment_id = this.assessment.id;
+        this.disbursement.funding_request_id = funding_request_id;
+        this.disbursement.issue_date = new Date();
+        
+        const positiveDisbursement = (): boolean => ((this.assessment.net_amount ?? 0) > 0 && this.assessment.assessment_type_id === 3);
+        this.disbursement.disbursed_amount = positiveDisbursement() ? 0 : this.assessment.net_amount;
+        this.disbursement.paid_amount = positiveDisbursement() ? 0 : this.assessment.net_amount;
+        
+        this.global.csl_letter_flag = positiveDisbursement();
+
+        const isNetAmountAndAssessmentType = (assessmentType: number): boolean => ((this.assessment.net_amount ?? 0) >= 0 && this.assessment.assessment_type_id !== assessmentType); 
+        if ((this.assessment.net_amount ?? 0) < 0) {
+            this.disbursement.transaction_number = await this.disbursementRepo.getMaxTransaction(funding_request_id);
+        }
+        else {
+            if (isNetAmountAndAssessmentType(3)) {
+                this.disbursement.disbursement_type_id = 4;
+
+                if ((this.assessment.csl_assessed_need ?? 0) > 0 || (this.assessment.total_grant_awarded ?? 0) > 0 && (this.application.academic_year_id ?? 0) > 2012) {
+                    await this.getMsfaaInfo("Disburse");
+                }
+
+                if ((this.assessment.net_amount ?? 0) > 0 && this.assessment.assessment_type_id !== 3) {
+                    this.funding_request.status_id = 7;
+                    this.funding_request.status_date = new Date();
+
+                    this.global.update_status = true;
+
+                    this.disbursement.transaction_number = await this.disbursementRepo.getNextTransactionSequenceValue();
+                }
+            }
+        }
+
+        if (this.assessment.csl_over_reason_id) {
+            this.assessment.over_award = Math.max((this.assessment.over_award ?? 0) - (this.assessment.net_amount ?? 0), 0);
+
+            await this.correspondenceRepo.cslNonOrOverawardLetter("CSL_Over_Award_ltr", this.application.student_id, funding_request_id, 4, this.assessment.csl_over_reason_id, this.application.id);
+        }
+
+        if (this.assessment.csl_non_reason_id || this.assessment.csl_over_reason_id) {
+            if (this.assessment.csl_non_reason_id) {
+                const cslReason = await this.cslReasonRepo.getCslReasonById(this.assessment.csl_non_reason_id);
+
+                if (cslReason.name?.toUpperCase() === "CSG ONLY") {
+                    this.funding_request.status_id = 40;
+                    this.funding_request.status_date = new Date();
+
+                    this.global.update_status = true;
+                }
+                else {
+                    if ((this.assessment.total_grant_awarded ?? 0) === 0) {
+                        await this.correspondenceRepo.cslNonOrOverawardLetter("CSL_Non_Award_ltr", this.application.student_id, funding_request_id, 4, this.assessment.csl_over_reason_id, this.application.id);
+
+                        this.funding_request.status_id = 4;
+                        this.funding_request.status_date = new Date();
+
+                        this.global.update_status = true;
+                    }
+                }
+            }
+        }
+
+        this.global.disbursement_flag = true;
+
+        this.assessment.previous_disbursement = await this.disbursementRepo.getDisbursedAmount(funding_request_id, this.assessment.id);
+        this.assessment.net_amount = this.getNetAmount(this.assessment.assessed_amount, this.assessment.previous_disbursement, this.assessment.return_uncashable_cert);         
+
+        this.resultDto = {
+            data: this.assessment,
+            disbursements: [this.disbursement],
+            funding_request: this.funding_request,
+            globals: this.global
+        };
+       
+        return this.resultDto;
+    }
+
+    async insertUpdateAll(payload: Partial<CslftResultDTO>): Promise<Partial<CslftResultDTO>> {
+
+        const result: Partial<CslftResultDTO> = {};
+
+        if (payload.data) {
+            
+            if (payload.data.id && payload.data.id > 0)
+            {
+                result.data = await this.updateAssessment(payload.data.id, payload.data);
+            }
+            else
+            {
+                result.data = await this.insertAssessment(payload.data);
+                if (Array.isArray(payload.disbursements))
+                {
+                    for (let idx in payload.disbursements) {
+                        payload.disbursements[idx].assessment_id = result.data.id;
+                    }
+                }
+            }
+        }
+
+        if (payload.disbursements)
+        {            
+            result.disbursements = await this.processDisbursements(payload.disbursements);
+        }
+
+        if (payload.funding_request)
+        {
+            if (payload.funding_request.id)
+            {
+                // Update the funding request.
+            }
+        }
+
+        return result;
+    }
+    
+    async insertAssessment(assessment: AssessmentDTO): Promise<AssessmentDTO> {
+        const filtered = this.getAssessmentTable(assessment);
+        const result = await this.mainDb(this.mainTable).insert(filtered).returning("*");        
+        return result[0];
+    }
+
+    async updateAssessment(id: number, assessment: AssessmentDTO): Promise<AssessmentDTO> {
+        const filtered = this.getAssessmentTable(assessment);
+        const result = await this.mainDb(this.mainTable)
+                                .update(filtered)
+                                .where({
+                                    id: id
+                                })
+                                .returning("*");
+        return result[0];
+    }
+
+    async processDisbursements(disbursements: Array<DisbursementDTO>): Promise<DisbursementDTO[]> {
+        let result: Array<DisbursementDTO> = [];
+
+        disbursements.forEach(async (x: DisbursementDTO) => {
+            const dis = this.disbursementRepo.getDisbursementTable(x);
+            let record: DisbursementDTO;
+            let query;
+
+            if (x.id && x.id > 0)
+            {
+                query = await this.mainDb(this.disbursementRepo.getMainTable())
+                                .update(dis)
+                                .where({
+                                    id: x.id
+                                })
+                                .returning("*");
+            }
+            else {
+                query = await this.mainDb(this.disbursementRepo.getMainTable()).insert(dis).returning("*");
+            }
+            
+            record = query[0];
+            result.push(record);
+        });
+
+        return result;
+    }
+
 }
