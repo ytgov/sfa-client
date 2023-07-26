@@ -393,12 +393,14 @@ export class AssessmentSTA extends AssessmentBaseRepository {
 
     async insertDisbursements(disbursement: DisbursementDTO | any): Promise<any[]> {
         delete disbursement?.issue_date_menu;
+        delete disbursement?.due_date_menu;
         return this.mainDb("sfa.disbursement").insert(disbursement).returning("*");
     }
     async updateDisbursements(disbursement: DisbursementDTO | any): Promise<any[]> {
         const id = disbursement.id;
         delete disbursement.id;
         delete disbursement?.issue_date_menu;
+        delete disbursement?.due_date_menu;
         return this.mainDb("sfa.disbursement").where({ id }).update(disbursement);
     }
 
