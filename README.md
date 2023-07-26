@@ -227,6 +227,39 @@ When you look at the running Docker containers using `docker ps`, you should see
 **One thing to keep in mind is that the port in the `docker-compose.prodution.yml` may need to be changed depending the the reverse proxy setups.**
 ```
 
+#### Testing Production Buid Locally
+
+You can boot the production environment locally via:
+
+1. Making a production config.
+
+   ```bash
+   cp ./src/api/.env.development ./src/api/.env.production
+   ```
+
+2. Setting the `DB_HOST` to `db`
+
+3. Setting the `FRONTEND_URL` to `http://localhost:3000`
+
+4. Setting the `AUTH_REDIRECT` to `http://localhost:3000/dashboard`
+
+5. Booting the development database.
+
+   ```bash
+   dev db
+
+   # Or
+   docker compose -f docker-compose.development.yaml up --remove-orphans db
+   ```
+
+6. Booting the production build of the app.
+
+   ```bash
+   docker compose up --build --remove-orphans
+   ```
+
+   > Note that you must always boot the production app after booting the database.
+
 ### User Acceptance Testing (UAT)
 
 Jenkins pipeline [Jenkinsfile](./Jenkinsfile) builds and deploys.
