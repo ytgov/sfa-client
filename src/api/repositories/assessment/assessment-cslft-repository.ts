@@ -644,7 +644,7 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
         }
     }
 
-    async getNewInfo(): Promise<void> {
+    async getNewInfo(isRecalc: boolean = false): Promise<void> {
 
         if (!this.assessment.id) {
             this.global.new_calc = true;
@@ -853,9 +853,20 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
             }
         }
 
+        const cslLookup = await this.cslLookupRepo.getCslLookupByYear(this.application.academic_year_id);
+
+        this.assessment.max_allowable = 0;
+        if (cslLookup) {
+            this.assessment.max_allowable = (cslLookup.allowable_weekly_amount ?? 0) * (this.assessment.study_weeks ?? 0);
+        }
+
         this.assessment.asset_tax_rate = 0;
 
-        // Calculate the total
+        if ((this.assessment.calculated_award ?? 0) === 0 && !isRecalc) {
+            await this.getCalculatedAward();
+        }
+
+        // Calculate the totaln_disbursments_required
         if (!this.assessment.csl_full_amt_flag) {
             this.assessment.assessed_amount = Math.max(Math.min(this.assessment.calculated_award ?? 0, this.assessment.csl_request_amount ?? 0) - (this.assessment.recovered_overaward ?? 0), 0);
         }
@@ -867,12 +878,66 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
 
     }
 
+    async getCalculatedAward(): Promise<void> {
+ 
+        // Anonymous Setup
+        const calcByStudyMonths = (value?: number) => (value ?? 0) * (this.assessment.study_months ?? 0);        
+        const transMultiplier = (): number => {
+            let multiplier = 0;
+            const studyWeeks = (this.assessment.study_weeks ?? 0);
+            if (studyWeeks >= 1 && studyWeeks < 24)
+            {
+                multiplier = 1;
+            }
+            else if (studyWeeks >= 24) {
+                multiplier = 2;
+            }
+
+            return multiplier;
+        };
+                
+        const scholastic_total: number = (this.assessment.tuition_estimate ?? 0) + (this.assessment.books_supplies_cost ?? 0);
+        const shelter_total: number = calcByStudyMonths(this.assessment.shelter_month);
+        const p_trans_total: number = calcByStudyMonths(this.assessment.p_trans_month);
+        const r_trans_total: number = (this.assessment.r_trans_16wk ?? 0) * transMultiplier();
+        const day_care_total: number = calcByStudyMonths(Math.min((this.assessment.day_care_allowable ?? 0), (this.assessment.day_care_actual ?? 0)));
+        const dependent_shelter_total: number = calcByStudyMonths(this.assessment.depend_food_allowable);
+        const dependent_trans_total: number = calcByStudyMonths(this.assessment.depend_tran_allowable);
+        const discretionary_total: number = Math.min((this.assessment.discretionary_cost ?? 0), (this.assessment.discretionary_cost_actual ?? 0));
+        const x_trans_total: number = this.numHelper.round((this.assessment.x_trans_total ?? 0));
+        const relocation_total: number = this.numHelper.round((this.assessment.relocation_total ?? 0));
+
+        const capped_expenses: number = shelter_total + p_trans_total + r_trans_total + day_care_total + dependent_shelter_total + dependent_trans_total + discretionary_total + x_trans_total + relocation_total;
+
+        const total_study_cost: number = scholastic_total + capped_expenses + (this.assessment.uncapped_costs_total ?? 0); 
+
+        const calc_parental_contrib: number = (this.assessment.parent_ps_depend_count ?? 0) === 0 ? 0 : this.numHelper.round((this.assessment.parent_weekly_contrib ?? 0) * (this.assessment.study_weeks ?? 0) / (this.assessment.parent_ps_depend_count ?? 0));
+        const parental_total_contrib: number = this.numHelper.round(Math.max((this.assessment.parent_contribution_override ?? 0), calc_parental_contrib));
+
+        const total_assets: number = (this.assessment.married_assets ?? 0) === 0 ? (this.assessment.other_income ?? 0) : (this.assessment.married_assets ?? 0);
+        const total_assets_combined: number = total_assets + (this.assessment.combined_contribution ?? 0);
+
+        let resources_total: number = 0;
+        if ((this.application.academic_year_id ?? 0) > 2017) {
+            resources_total = total_assets_combined + parental_total_contrib;
+        }
+
+        const assess_needed: number = this.numHelper.round(Math.max((total_study_cost - resources_total), 0));
+        const assess_needed_sixty: number = this.numHelper.round(assess_needed * 0.6);
+        
+        
+
+        const calculated_award_min = Math.min(assess_needed_sixty - (this.assessment.total_grant_awarded ?? 0), (this.assessment.max_allowable ?? 0));
+        const calculated_award: number = Math.max(0, this.numHelper.round(calculated_award_min));
+        this.assessment.calculated_award = calculated_award;
+    }
+
     async executeRecalc(funding_request_id: number, assessment: Partial<AssessmentDTO> = {}): Promise<Partial<CslftResultDTO>> {
 
         this.assessment = assessment;
         await this.loadData(funding_request_id, false);
 
-        await this.getNewInfo();
+        await this.getNewInfo(true);
 
         await this.setIdGlobals();
 

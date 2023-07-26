@@ -130,6 +130,7 @@ export const defaultState = () => {
             parent_discretionary_income: null,
             parent_weekly_contrib: null,
             calculated_award: null,
+            max_allowable: null,
         },
         csl_lookup: {
             id: null,
