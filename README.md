@@ -199,14 +199,15 @@ Steps:
 
 ---
 
-## Running the application in production
+## Deployment
+
+### Production
 
 Since the database for this system is managed externally, PRODUCTION version only needs to run the API and Web services.
-The `Dockerfile` in this directory builds the Vue.js web front-end, and serves the compiled files via the Node.js API,
-so only one container is required to serve the front-end and back-ends; thus saving resources.
 
-On the PRODUCTION server, the application is run via docker-compose, so the code needs to be cloned to the server and
-the appropriate environment variables set using the following commands:
+The [Dockerfile](./Dockerfile) in this directory builds the Vue.js web front-end, and serves the compiled files via the Node.js API, so only one container is required to serve the front-end and back-ends; thus saving resources.
+
+On the PRODUCTION server, the application is run via `docker compose`, so the code needs to be cloned to the server and the appropriate environment variables set using the following commands:
 
 ```
 cp /src/api/.env /src/api/.env.production
@@ -216,13 +217,17 @@ vi /src/api/.env.production
 You now can use vi or nano or other tool to set the environment variables before starting the application with:
 
 ```
-docker-compose -f docker-compose.production.yml up --build -d
+docker compose up --build -d
 ```
 
 When you look at the running Docker containers using `docker ps`, you should see a container named `sfa-client_web_1`.
 
 ```
 
-**One thing to keep in mind is that the port in the `docker-compose.prodution.yml` may need to be changed
-depending the the reverse proxy setups.**
+**One thing to keep in mind is that the port in the `docker-compose.prodution.yml` may need to be changed depending the the reverse proxy setups.**
 ```
+
+### User Acceptance Testing (UAT)
+
+Jenkins pipeline [Jenkinsfile](./Jenkinsfile) builds and deploys.
+TODO: add more information
