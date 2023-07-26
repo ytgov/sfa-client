@@ -255,7 +255,7 @@ You can boot the production environment locally via:
 6. Booting the production build of the app.
 
    ```bash
-   docker compose up --build --remove-orphans
+   docker compose up --build
    ```
 
    > Note that you must always boot the production app after booting the database.
