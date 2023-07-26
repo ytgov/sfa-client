@@ -20,6 +20,10 @@ const mutations = {
 };
 
 const actions = {
+    resetAssessmetSTA(state) {
+        state.commit("SET_ASSESSMENT_STA", {});
+        state.commit("SET_DISBURSEMENT_LIST_STA", []);
+    },
     async staGetAssessment(state, vals) {
         try {
 
