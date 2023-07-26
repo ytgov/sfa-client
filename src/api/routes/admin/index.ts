@@ -1,5 +1,6 @@
 import express from "express";
 import { acadecicYearRouter } from "./academic-year-router";
+import { applicationLetterRouter } from "./application-letter-router";
 import { applicationRouter } from "./application-router";
 import { assessmentRouter } from "./assessment-router";
 import { institutionRouter } from "./institution-router";
@@ -59,6 +60,7 @@ import { disbursementRouter } from "./disbursement";
 import { usersRouter } from "./users-router";
 import { cslLookupRouter } from "./csl-lookup-router";
 import {cslReasonRouter} from "./csl-reason-router";
+import { cslCertificateExportRouter } from "./csl-certificate-export-router";
 
 export const adminRouter = express.Router();
 //adminRouter.use("/", RequireServerAuth, RequireAdmin)
@@ -66,6 +68,7 @@ export const adminRouter = express.Router();
 adminRouter.use("/institution", institutionRouter);
 adminRouter.use("/academic-year", acadecicYearRouter);
 adminRouter.use("/application", applicationRouter);
+adminRouter.use("/application-letter", applicationLetterRouter);
 adminRouter.use("/assessment", assessmentRouter);
 adminRouter.use("/student", studentRouter);
 adminRouter.use("/province", provinceRouter);
@@ -122,3 +125,4 @@ adminRouter.use("/request-types", requestTypeRouter);
 adminRouter.use("/accommodation-type", accommodationTypeRouter);
 adminRouter.use("/disbursement", disbursementRouter);
 adminRouter.use("/users", usersRouter);
+adminRouter.use("/csl-certificate-export", cslCertificateExportRouter)

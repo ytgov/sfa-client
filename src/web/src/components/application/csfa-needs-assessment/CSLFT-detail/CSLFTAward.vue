@@ -416,7 +416,7 @@
               <template v-slot:activator="{ on, attrs }">
                 <v-text-field
                   :disabled="showAdd"
-                  v-model="issue_date"
+                  v-model="cslft_disbursement_issue_date_formatted"
                   label="Issue Date"
                   append-icon="mdi-calendar"
                   hide-details
@@ -495,7 +495,8 @@ export default {
         "cslReasonNonAward",
         "cslReasonOverAward",
         "changeReasons",
-        "disbursementTypes"
+        "disbursementTypes",
+        "cslft_disbursement_issue_date_formatted"
     ]),
     application: function () {
       return store.getters.selectedApplication;

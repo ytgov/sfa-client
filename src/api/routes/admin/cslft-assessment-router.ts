@@ -1,10 +1,11 @@
+import { ExpenseRepository } from './../../repositories/expense/expense-repository';
 import knex from "knex";
 import express, { Request, Response } from "express";
 import { body, param } from "express-validator";
 import { ReturnValidationErrors } from "../../middleware";
 import { DB_CONFIG } from "../../config";
 import { AssessmentCslftRepository } from "../../repositories";
-import { AssessmentDTO, CslftResultDTO } from "../../models";
+import { AssessmentDTO, CslftResultDTO, UncappedExpensesDTO } from "../../models";
 
 const db = knex(DB_CONFIG)
 export const assessmentCslftRouter = express.Router();
@@ -38,19 +39,23 @@ async (req: Request, res: Response) => {
 });
 
 assessmentCslftRouter.post("/",
-    [body("assessment").notEmpty()], ReturnValidationErrors,
+    [body("payload").notEmpty()], ReturnValidationErrors,
     async (req: Request, res: Response) => {
-        const { ...assessment } = req.body.assessment;
+        const { ...assessment } = req.body.payload.data;
+        const disbursements = req.body.payload.disbursements;
+        const funding_request = req.body.payload.funding_request;
         const assessmentRepo = new AssessmentCslftRepository(db);
-        let newApp: AssessmentDTO = {
-            ...assessment
+        let newApp: Partial<CslftResultDTO> = {
+            data: { ...assessment },
+            disbursements: disbursements,
+            funding_request: funding_request
         };
 
         try {
-            const newRow = await assessmentRepo.insertAssessment(newApp);
+            const newRow = await assessmentRepo.insertUpdateAll(newApp);
 
-            if (newRow && newRow.length == 1) {
-                return res.json({ data: { id: newRow[0].id }, messages: [{ text: "Assessment created", variant: "success" }] });
+            if (newRow) {
+                return res.json({ data: { id: newRow.data?.id }, messages: [{ text: "Assessment created", variant: "success" }] });
             }
 
             return res.status(404).send();
@@ -63,21 +68,25 @@ assessmentCslftRouter.post("/",
 );
 
 assessmentCslftRouter.put("/:id",
-    [param("id").isInt().notEmpty(), body("assessment").notEmpty()], ReturnValidationErrors,
+    [param("id").isInt().notEmpty(), body("payload").notEmpty()], ReturnValidationErrors,
     async (req: Request, res: Response) => {
-        const { ...assessment } = req.body.assessment;
+        const { ...assessment } = req.body.payload.data;
+        const disbursements = req.body.payload.disbursements;
+        const funding_request = req.body.payload.funding_request;
         const id: number = parseInt(req.params.id);
 
         const assessmentRepo = new AssessmentCslftRepository(db);
-        let newApp: AssessmentDTO = {
-            ...assessment
+        let newApp: Partial<CslftResultDTO> = {
+            data: { ...assessment },
+            disbursements: disbursements,
+            funding_request: funding_request
         };
 
         try {
-            const updateRow = await assessmentRepo.updateAssessment(id, newApp);
+            const updateRow = await assessmentRepo.insertUpdateAll(newApp);
 
-            if (updateRow && updateRow.length == 1) {
-                return res.json({ data: { id: updateRow[0].id }, messages: [{ text: "Assessment updated", variant: "success" }] });
+            if (updateRow) {
+                return res.json({ data: { id: updateRow.data?.id }, messages: [{ text: "Assessment updated", variant: "success" }] });
             }
 
             return res.status(404).send();
@@ -191,6 +200,33 @@ assessmentCslftRouter.post("/:funding_request_id/disburse",
             if (Object.keys(results.data ?? {}).length > 0) {
                 results.success = true;
                 return res.status(200).json(results);
+            } else {
+                return res.status(404).send();
+            }
+
+        } catch (error: any) {
+            console.log(error);
+            return res.status(404).send();
+        }
+    }
+);
+
+assessmentCslftRouter.get("/application/:application_id/expenses/uncapped/:period_id", 
+    [param("application_id").isInt().notEmpty(), param("period_id").isInt().notEmpty()], ReturnValidationErrors,
+    async (req: Request, res: Response) => {
+        const expenseRepo = new ExpenseRepository(db);
+        const { application_id = undefined, period_id = undefined } = req.params;
+        let results: Array<UncappedExpensesDTO> = [];
+        
+        try {
+           
+
+            if (application_id && period_id) {
+                results = await expenseRepo.getUncappedExpenseTable(parseInt(application_id), parseInt(period_id));
+            }
+
+            if (results.length > 0) {                
+                return res.status(200).json({ success: true, data: results });
             } else {
                 return res.status(404).send();
             }

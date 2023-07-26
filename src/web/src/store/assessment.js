@@ -59,7 +59,11 @@ const actions = {
                 const data = res?.data?.data || [];
                 
                 if (!data.length) {
+                    // if (vals.request_type_id === 3) {
+                    //     this.dispatch('previewAssessmentYEA', vals);
+                    // } else {
                     this.dispatch('previewAssessment', vals);
+                    // }
                     return;
                 }
                 const over_award_flag = !!(data[0]?.over_award_applied_flg === "Yes");
@@ -67,7 +71,6 @@ const actions = {
                 state.commit("SET_SELECTED_ASSESSMENT", { ...data[0], over_award_applied_flg: over_award_flag });
                 state.commit("SET_CUSTOM_ASSESSMENT", { ...data[0], over_award_applied_flg: over_award_flag });
                 state.commit("SET_READ_ONLY_DATA", { ...data[0]?.read_only_data });
-                state.commit("SET_ASSESSMENTS", data);
                 state.commit("SET_ASSESSMENTS", data);
             } else {
                 console.log("Error to get assessments");
