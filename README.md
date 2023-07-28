@@ -227,7 +227,7 @@ When you look at the running Docker containers using `docker ps`, you should see
 **One thing to keep in mind is that the port in the `docker-compose.prodution.yml` may need to be changed depending the the reverse proxy setups.**
 ```
 
-#### Testing Production Buid Locally
+#### Testing Production Build Locally
 
 You can boot the production environment locally via:
 
