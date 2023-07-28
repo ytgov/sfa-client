@@ -189,21 +189,22 @@ assessmentSTARouter.put("/:id",
 assessmentSTARouter.post("/disburse",
     async (req: Request, res: Response) => {
         try {
-            const { assessment = {} } = req.body;
+            const { assessment = {}, application_id = null } = req.body;
             const assessmentSTARepo = new AssessmentSTA(db);
             
-            if (!Object.keys(assessment)?.length) {
+            if (!Object.keys(assessment)?.length && !application_id) {
                 return res.status(404).send();
             }
 
-            let results: Partial<DisbursementDTO> = {};
+            let results: Partial<DisbursementDTO[] | any[]> = [];
 
             results = await assessmentSTARepo.disburseAssessment(
                 assessment,
+                application_id
             );
 
             if (Object.keys(results).length > 0) {
-                return res.status(200).json({ success: true, data: results, });
+                return res.status(200).json({ success: true, data: [ ...results ], });
             } else {
                 return res.status(404).send();
             }

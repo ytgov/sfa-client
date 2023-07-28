@@ -4,7 +4,7 @@ export interface DisbursementDTO {
     assessment_id?: number,
     funding_request_id?: number,
     disbursed_amount?: number,
-    due_date?: Date,
+    due_date?: Date | string,
     tax_year?: number,
     issue_date?: Date | string,
     paid_amount?: number,
