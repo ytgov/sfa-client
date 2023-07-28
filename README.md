@@ -181,6 +181,10 @@ e.g
 - `dev build api` will only build the api service
 - `dev logs api` will only watch logs for the api service
 
+### Helpful Customizations
+
+- `API_PORT=3100 dev up` will boot the api service on port 3100 with a base url to match.
+
 ## Contributing code
 
 To process to contribute code to this repository is via pull requests initiated from a forked copy of this repository.
