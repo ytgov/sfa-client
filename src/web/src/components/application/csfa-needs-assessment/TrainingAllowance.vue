@@ -236,6 +236,19 @@
                 </div>
                 <div class="col-xs-12 col-lg-6">
                   <v-text-field
+                  v-if="institutionCode === 'LPAH'"
+                    outlined
+                    dense
+                    background-color="white"
+                    hide-details
+                    label="Entitlement Days"
+                    @keypress="validate.isNumber($event)"
+                    v-model="assessment.entitlement_days"
+                    @change="refresh"
+                  ></v-text-field>
+                </div>
+                <div class="col-xs-12 col-lg-6">
+                  <v-text-field
                     outlined
                     dense
                     background-color="white"
@@ -448,50 +461,34 @@
       <v-card class="default mb-5 bg-color-blue">
         <v-card-title>Disbursement (s)</v-card-title>
         <div class="col-xs-12 col-sm-12 col-lg-12 d-flex noppading-bottom">
-          <div class="col-xs-2 col-sm-2 col-lg-2 nopadding d-flex align-center justify-center">
+          <div :class="[institutionCode === 'LPAH' ? 'col-xs-1 col-sm-1 col-lg-1' : 'col-xs-2 col-sm-2 col-lg-2', 'nopadding', 'd-flex', 'align-center', 'justify-center']" style="margin-right: 4px">
             <p class="nomargin">Disbursed Amt</p>
           </div>
-          <div class="col-xs-1 col-sm-1 col-lg-1 nopadding d-flex align-center justify-center">
+          <div class="col-xs-1 col-sm-1 col-lg-1 nopadding d-flex align-center justify-center" style="margin-right: 4px">
             <p class="nomargin">Reference #</p>
           </div>
-          <div class="col-xs-2 col-sm-2 col-lg-2 nopadding d-flex align-center justify-center">
+          <div class="col-xs-2 col-sm-2 col-lg-2 nopadding d-flex align-center justify-center" style="margin-right: 4px">
             <p class="nomargin">Disbursement Type</p>
           </div>
-          <div class="col-xs-1 col-sm-1 col-lg-1 nopadding d-flex align-center justify-center">
+          <div class="col-xs-1 col-sm-1 col-lg-1 nopadding d-flex align-center justify-center" style="margin-right: 4px">
             <p class="nomargin">Issue Date</p>
           </div>
-          <div class="col-xs-5 col-sm-5 col-lg-5 nopadding d-flex align-center justify-center">
+          <div class="col-xs-1 col-sm-1 col-lg-1 nopadding d-flex align-center justify-center" style="margin-right: 4px" v-if="institutionCode === 'LPAH'">
+                <p class="nomargin" style="font-size: 14px">Tax Year</p>
+            </div>
+            <div class="col-xs-1 col-sm-1 col-lg-1 nopadding d-flex align-center justify-center" style="margin-right: 4px" v-if="institutionCode === 'LPAH'">
+                <p class="nomargin" style="font-size: 14px">Due Date</p>
+            </div>
+          <div :class="[institutionCode === 'LPAH' ? 'col-xs-3 col-sm-3 col-lg-3' : 'col-xs-4 col-sm-4 col-lg-4', 'nopadding', 'd-flex', 'align-center', 'justify-center']" style="margin-right: 4px">
             <p class="nomargin">Change Reason</p>
           </div>
-          <div class="col-xs-1 col-sm-1 col-lg-1 nopadding d-flex align-center justify-center">
+          <div class="col-xs-1 col-sm-1 col-lg-1 nopadding d-flex align-center justify-center" :style="institutionCode === 'LPAH' ? 'margin-right: 4px' : ''">
             <p class="nomargin">Batch ID</p>
           </div>
         </div>
         <div v-for="item, index in disbursements" :key="index">
-          <div class="col-xs-12 col-sm-12 col-lg-12 d-flex noppading-bottom">
-            <div class="col-xs-12 col-sm-12 col-lg-12 nopadding d-flex align-end justify-end">
-              <v-btn v-if="item?.id"
-                  color="error ml-5" 
-                  x-small 
-                  fab 
-                  class="my-1"
-                  @click="removeDisbursement(item.id, index)"
-                  >
-                <v-icon>mdi-delete</v-icon>
-              </v-btn>
-              <v-btn v-else
-                  color="warning ml-5" 
-                  x-small 
-                  fab 
-                  class="my-1"
-                  @click="cancelDisburse({ index })"
-                  >
-                <v-icon>mdi-close</v-icon>
-              </v-btn>
-            </div>
-          </div>
-          <div class="col-xs-12 col-sm-12 col-lg-12 d-flex low-margin noppading-top">
-            <div class="col-xs-2 col-sm-2 col-lg-2 nopadding">
+          <div class="col-xs-12 col-sm-12 col-lg-12 d-flex noppading-top">
+            <div :class="[institutionCode === 'LPAH' ? 'col-xs-1 col-sm-1 col-lg-1' : 'col-xs-2 col-sm-2 col-lg-2', 'nopadding']" style="margin-right: 6px">
               <v-text-field
                 outlined
                 dense
@@ -509,7 +506,7 @@
                 @change="refresh"
               ></v-text-field>
             </div>
-            <div class="col-xs-1 col-sm-1 col-lg-1 nopadding">
+            <div class="col-xs-1 col-sm-1 col-lg-1 nopadding" style="margin-right: 6px">
               <v-text-field
                 outlined
                 dense
@@ -520,7 +517,7 @@
                 @change="refresh"
               ></v-text-field>
             </div>
-            <div class="col-xs-2 col-sm-2 col-lg-2 nopadding">
+            <div class="col-xs-2 col-sm-2 col-lg-2 nopadding" style="margin-right: 6px">
               <v-select
                  
                 outlined
@@ -534,7 +531,7 @@
                 item-value="id"
               ></v-select>
             </div>
-            <div class="col-xs-1 col-sm-1 col-lg-1 nopadding">
+            <div class="col-xs-1 col-sm-1 col-lg-1 nopadding" style="margin-right: 6px">
               <v-menu
                 v-model="item.issue_date_menu"
                 :close-on-content-click="false"
@@ -566,9 +563,51 @@
                 ></v-date-picker>
               </v-menu>
             </div>
-            <div class="col-xs-5 col-sm-5 col-lg-5 nopadding">
-              <v-select
-                 
+            <div v-if="institutionCode === 'LPAH'" class="col-xs-1 col-sm-1 col-lg-1 nopadding" style="margin-right: 6px">
+              <v-text-field
+                outlined
+                dense
+                background-color="white"
+                hide-details
+                @keypress="validate.isNumber($event)"
+                v-model="item.tax_year"
+                @change="refresh"
+              ></v-text-field>
+            </div>
+            <div v-if="institutionCode === 'LPAH'" class="col-xs-1 col-sm-1 col-lg-1 nopadding" style="margin-right: 6px">
+              <v-menu
+                v-model="item.due_date_menu"
+                :close-on-content-click="false"
+                transition="scale-transition"
+                left
+                nudge-top="26"
+                offset-y
+                min-width="auto"
+              >
+                <template v-slot:activator="{ on, attrs }">
+                  <v-text-field
+                    :value="item.due_date?.slice(0, 10)"
+                    hide-details
+                    readonly
+                    outlined
+                    dense
+                    background-color="white"
+                    v-bind="attrs"
+                    v-on="on"
+                  ></v-text-field>
+                </template>
+                <v-date-picker
+                  :value="item.due_date?.slice(0, 10)"
+                  @input="e => {
+                    item.due_date = e;
+                    item.due_date_menu = false;
+                  }"
+                  
+                ></v-date-picker>
+              </v-menu>
+            </div>
+            <div :class="[institutionCode === 'LPAH' ? 'col-xs-3 col-sm-3 col-lg-3' : 'col-xs-4 col-sm-4 col-lg-4', 'nopadding']" style="margin-right: 6px">
+              <v-select               
                 outlined
                 dense
                 background-color="white"
@@ -580,7 +619,7 @@
                 item-value="id"
               ></v-select>
             </div>
-            <div class="col-xs-1 col-sm-1 col-lg-1 nopadding">
+            <div class="col-xs-1 col-sm-1 col-lg-1 nopadding" style="margin-right: 6px">
               <v-text-field
                 outlined
                 dense
@@ -590,6 +629,26 @@
                 v-model="item.financial_batch_id"
                 @change="refresh"
               ></v-text-field>
+            </div>
+            <div class="col-xs-1 col-sm-1 col-lg-1 nopadding d-flex">
+              <v-btn v-if="item?.id"
+                  color="error ml-5" 
+                  x-small 
+                  fab 
+                  class="my-1"
+                  @click="removeDisbursement(item.id, index)"
+                  >
+                <v-icon>mdi-delete</v-icon>
+              </v-btn>
+              <v-btn v-else
+                  color="warning ml-5" 
+                  x-small 
+                  fab 
+                  class="my-1"
+                  @click="cancelDisburse({ index })"
+                  >
+                <v-icon>mdi-close</v-icon>
+              </v-btn>
             </div>
           </div>
         </div>
@@ -634,6 +693,9 @@ export default {
       changeReasons: "changeReasons",
       disbursementTypes: "disbursementTypes",
     }),
+    institutionCode() {
+      return this.application?.institution?.federal_institution_code  || "";
+    }
   },
   methods: {
     ...mapActions({

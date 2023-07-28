@@ -223,106 +223,100 @@ export class AssessmentSTA extends AssessmentBaseRepository {
 
     async disburseAssessment(
         assessmentInfo: AssessmentDTO,
-    ): Promise<DisbursementDTO> {
+        application_id: number,
+    ): Promise<DisbursementDTO[] | any[]> {
 
         let assessment: AssessmentDTO = { ...assessmentInfo };
-        const disbursement: DisbursementDTO = {};
+
+        const disbursement: DisbursementDTO[] = [ {}, ];
         let v_amount_remaining: number;
         let v_weeks_before_issue: number;
 
-        let v_due_date:any = disbursement.issue_date; //CURRENT DATE
-/*
+        let v_due_date:any = moment();
+        disbursement[0].issue_date = moment().format("YYYY-MM-DD");
 
-        if (assessmentInfo?.net_amount && assessmentInfo.net_amount >= 0) {
-            v_amount_remaining = assessmentInfo.net_amount ?? 0;
-            const disbursements_allowed = await this.getScalarValue<number>("fn_get_disbursements_allowed_sta", [
-                "'Upgrade'",
-                this.application.institution_campus_id || 0,
-                assessmentInfo.id ?? 0
-            ]);
-            for (let i = 1; i <= disbursements_allowed; i++) {
-                disbursement.assessment_id = assessmentInfo.id;
-                disbursement.funding_request_id = assessmentInfo.funding_request_id;
-                
-                if (!disbursement?.financial_batch_id) {
-                    //if (:system.cursor_record = '1' AND :disbursement.disbursed_amount IS NULL) {
-                    if (i === 1 && !disbursement?.disbursed_amount) {
-                        // de donde sale issue_date de este disbursemente
-                        v_weeks_before_issue = Math.ceil(moment(disbursement.issue_date?.toString().slice(0, 10) || assessmentInfo.effective_rate_date?.toString().slice(0, 10)).diff(assessmentInfo.effective_rate_date?.toString().slice(0, 10), "weeks"));
-                        
-                        disbursement.disbursed_amount = (assessmentInfo.weekly_amount ?? 0) * v_weeks_before_issue + (assessmentInfo.travel_allowance ?? 0);
-                        disbursement.due_date = disbursement.issue_date;
-                        disbursement.tax_year = parseInt(disbursement.due_date?.toString().slice(0, 4)|| "0") || undefined;
-                    } else if(!disbursement?.due_date && disbursement?.issue_date) {
-                        //IF (:system.LAST_RECORD = 'TRUE') THEN
-                        //:disbursement.disbursed_amount := v_amount_remaining;
-                        if (i === disbursements_allowed) { 
-                            disbursement.disbursed_amount = v_amount_remaining;
-                        } else {
-                            disbursement.disbursed_amount = (assessmentInfo.weekly_amount || 0) * 2;
-                        }
-                    } else {
-                        disbursement.disbursed_amount = undefined;
-                        disbursement.issue_date = undefined;
-                        v_due_date = moment(v_due_date).add(14, "days") ;
-                        disbursement.due_date = v_due_date;
-                        disbursement.tax_year = parseInt(v_due_date?.toString().slice(0, 4)|| "0") || undefined;
-                    }
+        this.application = await this.applicationRepo.getApplicationById(application_id);
 
-                    disbursement.paid_amount = disbursement.disbursed_amount;
-					v_amount_remaining = v_amount_remaining - (disbursement.paid_amount ?? 0);
-                }
-
-                if((assessmentInfo.net_amount ?? 0) >= 0) {
-				    disbursement.disbursement_type_id = 1;
-                }
-            }   
-        } else {
-            if (disbursement?.financial_batch_id) {
-				//LAST_RECORD;
-				//CREATE_RECORD;
-            }
-
-			disbursement.disbursed_amount = assessmentInfo.net_amount;
-			disbursement.paid_amount = disbursement.disbursed_amount;
-        }
-
-        if (assessmentInfo?.funding_request_id && assessmentInfo?.id) {
-            
-            const updateStatusFundingRequest = await this.mainDb("sfa.funding_request")
-                .where({ id: assessmentInfo.funding_request_id })
-                .update({ 
-                    status_id: 7,
-                    status_date: moment().format("YYYY-MM-DD"),
-                });
-        }
-
-		assessmentInfo.previous_disbursement = await this.getScalarValue<number>("fn_get_disbursed_amount_fct", [
-            assessmentInfo.funding_request_id || 0,
-            assessmentInfo.id || 0 // assessment_id because is a preview
-        ]) ?? 0;
+        const disbursements_allowed = await this.getScalarValue<number>("fn_get_disbursements_allowed_sta", [
+            this.application.institution_campus_id || 0,
+            `'${assessment.effective_rate_date?.toString()?.slice(0, 10)}'`,
+            `'${disbursement[0].issue_date?.toString()?.slice(0, 10)}'`,
+            assessment.weeks_allowed || 0
+        ]);
         
-		assessmentInfo.net_amount = await this.getScalarValue<number>("fn_get_net_sta", [
-            assessmentInfo.assessed_amount ?? 0,
-            assessmentInfo.previous_disbursement ?? 0,
-        ]) ?? 0;*/
+        if (disbursements_allowed > 1) {
+            if (assessment?.net_amount && assessment.net_amount >= 0) {
+                v_amount_remaining = assessment.net_amount ?? 0;
+                disbursement.pop();
 
-        // desde aqui
-        disbursement.assessment_id = assessment.id;
-        disbursement.funding_request_id = assessment.funding_request_id;
-        disbursement.issue_date = moment().format("YYYY-MM-DD");
-        disbursement.disbursed_amount = (assessment.net_amount ?? 0);
-        disbursement.paid_amount = (assessment.net_amount ?? 0);
+                for (let i = 0; i < disbursements_allowed; i++) {
+                    const item: DisbursementDTO = {};
+                    item.issue_date = moment().format("YYYY-MM-DD");
+                    item.assessment_id = assessment.id;
+                    item.funding_request_id = assessment.funding_request_id;
+                    
+                    if (!item?.financial_batch_id) {
+                        //if (:system.cursor_record = '1' AND :disbursement.disbursed_amount IS NULL) {
 
-        if (assessment.net_amount !== undefined && assessment.net_amount >= 0) {
-            disbursement.disbursement_type_id = 1;
+                        if (i === 0 && !item?.disbursed_amount) {
+                            // de donde sale issue_date de este disbursemente
+                            v_weeks_before_issue = Math.ceil(
+                                moment(
+                                    item.issue_date?.toString().slice(0, 10) || 
+                                    assessment.effective_rate_date?.toString().slice(0, 10)
+                                )
+                                .diff(assessment.effective_rate_date?.toString().slice(0, 10), "weeks") / 7
+                            );
+                            item.disbursed_amount = (assessment.weekly_amount ?? 0) * v_weeks_before_issue + (assessment.travel_allowance ?? 0);
+                            item.due_date = item.issue_date;
+                            item.tax_year = parseInt(item.due_date?.toString().slice(0, 4)|| "0") || undefined;
+
+                        } else if(item?.due_date && item?.issue_date) {
+                            //IF (:system.LAST_RECORD = 'TRUE') THEN
+                            //:disbursement.disbursed_amount := v_amount_remaining;
+                            if (i === (disbursements_allowed - 1)) { 
+                                item.disbursed_amount = v_amount_remaining;
+                            } else {
+                                item.disbursed_amount = (assessmentInfo.weekly_amount || 0) * 2;
+                            }
+                        } else {
+                            item.disbursed_amount = 0;
+                            item.issue_date = undefined;
+                            v_due_date = moment(v_due_date).add(14, "days") ;
+                            item.due_date = v_due_date;
+                            item.tax_year = parseInt(v_due_date?.toString().slice(0, 4)|| "0") || undefined;
+                        }
+    
+                        item.paid_amount = item.disbursed_amount;
+                        v_amount_remaining = v_amount_remaining - (item.paid_amount ?? 0);
+                    }
+    
+                    if((assessment.net_amount ?? 0) >= 0) {
+                        item.disbursement_type_id = 1;
+                    }
+                    disbursement.push(item);
+                }   
+            } else {
+                if (disbursement[0]?.financial_batch_id) {
+                    //LAST_RECORD;
+                    //CREATE_RECORD;
+                }
+    
+                disbursement[0].disbursed_amount = assessment.net_amount;
+                disbursement[0].paid_amount = disbursement[0].disbursed_amount;
+            }
+        } else {
+            
+            disbursement[0].assessment_id = assessment.id;
+            disbursement[0].funding_request_id = assessment.funding_request_id;
+            disbursement[0].issue_date = moment().format("YYYY-MM-DD");
+            disbursement[0].disbursed_amount = (assessment.net_amount ?? 0);
+            disbursement[0].paid_amount = (assessment.net_amount ?? 0);
+
+            if (assessment.net_amount !== undefined && assessment.net_amount >= 0) {
+                disbursement[0].disbursement_type_id = 1;
+            }
         }
-    /*
-        UPDATE funding_request
-	    SET status_id = 7, status_date = trunc(sysdate)
-  	    WHERE funding_request_id = :assessment.funding_quest_id; // SOLO CUANDO HACEMOS SAVE CAMBIA A STATUS = 7
-        //:GLOBAL.update_status := 1; OMITIDO POR EL MOMENTO
-        */
 
         return disbursement;
     }
@@ -393,12 +387,14 @@ export class AssessmentSTA extends AssessmentBaseRepository {
 
     async insertDisbursements(disbursement: DisbursementDTO | any): Promise<any[]> {
         delete disbursement?.issue_date_menu;
+        delete disbursement?.due_date_menu;
         return this.mainDb("sfa.disbursement").insert(disbursement).returning("*");
     }
     async updateDisbursements(disbursement: DisbursementDTO | any): Promise<any[]> {
         const id = disbursement.id;
         delete disbursement.id;
         delete disbursement?.issue_date_menu;
+        delete disbursement?.due_date_menu;
         return this.mainDb("sfa.disbursement").where({ id }).update(disbursement);
     }
 

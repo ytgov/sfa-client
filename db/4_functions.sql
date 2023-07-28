@@ -4563,34 +4563,33 @@ GO
 -- FILE : ASSESSMENT_SFA  --- FUNCTION: GET_DISBURSEMENTS_ALLOWED
 CREATE OR ALTER FUNCTION sfa.fn_get_disbursements_allowed_sta(
 	@application_institution_campus_id INT,
-	@assessment_id INT
+	@assessment_effective_rate_date DATE,
+    @disbursement_issue_date DATE,
+	@assessment_weeks_allowed FLOAT
 )
-RETURNS numeric(10,2)
+RETURNS INT
 AS
 BEGIN
-	DECLARE
-		@v_disb_allowed numeric(10,2) = 1,
-		@v_weeks_after_issue float (8),
-		@v_weeks_before_issue numeric(10,2),
-		@v_federal_institution_code varchar(100),
-		@v_disbursement_issue_date date,
-		@assessment_effective_rate_date date,
-		@assessment_weeks_allowed float(8)
-	SELECT @v_federal_institution_code = sfa.fn_get_short_name_sta(@application_institution_campus_id)
-	SELECT @v_disbursement_issue_date = dis.issue_date from sfa.disbursement dis where dis.assessment_id = @assessment_id	
-	SELECT @assessment_effective_rate_date = a.effective_rate_date from sfa.assessment a where a.id = @assessment_id
-	SELECT @assessment_weeks_allowed = a.weeks_allowed from sfa.assessment a where a.id = @assessment_id
-	IF  @v_federal_institution_code = 'LPAH'
+	DECLARE @federal_institution_code VARCHAR(100);
+	DECLARE @disb_allowed INT = 1;
+    DECLARE @weeks_before_issue INT;
+	DECLARE @weeks_after_issue FLOAT;
+
+	SELECT @federal_institution_code = sfa.fn_get_short_name_sta(@application_institution_campus_id);
+
+	IF  @federal_institution_code = 'LPAH'
 	BEGIN
-		SELECT @v_weeks_before_issue = CEILING(DATEDIFF(week,ISNULL(@v_disbursement_issue_date,GETDATE()),@assessment_effective_rate_date))
-		SELECT @v_weeks_after_issue = floor(@assessment_weeks_allowed - @v_weeks_before_issue)
-		SELECT @v_disb_allowed = CEILING(@v_weeks_after_issue/2)+1
-		IF @v_disb_allowed < 1
-		BEGIN
-			SET @v_disb_allowed = 1
-		END
+		SELECT @weeks_before_issue = CEILING(DATEDIFF(week,ISNULL(@disbursement_issue_date,GETDATE()),@assessment_effective_rate_date));
+		SELECT @weeks_after_issue = FLOOR(@assessment_weeks_allowed - @weeks_before_issue);
+		SELECT @disb_allowed = CEILING(@weeks_after_issue/2)+1;
+		
+        IF @disb_allowed < 1
+            BEGIN
+                SET @disb_allowed = 1;
+            END
 	END
-RETURN @v_disb_allowed
+
+RETURN @disb_allowed;
 END
 GO
 
