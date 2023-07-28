@@ -156,7 +156,9 @@ const actions = {
             
             if (success) {
                 const data = res?.data?.data || [];
-                commit("SET_DISBURSEMENT_LIST_STA", [ ...disbursements, ...data ]);
+                if (data?.length > 0) {
+                    commit("SET_DISBURSEMENT_LIST_STA", [ ...disbursements, ...data ]);
+                }
                 dispatch("refreshSTA");
             } else {
                 console.log("Error to get disburse");
