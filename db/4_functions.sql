@@ -2968,6 +2968,19 @@ BEGIN
 END;
 GO
 
+CREATE OR ALTER FUNCTION sfa.fn_get_study_area_fct (@study_area_id_p INT)
+RETURNS VARCHAR(255) 
+AS
+BEGIN
+    DECLARE @description VARCHAR(255);
+    
+    SELECT @description = description
+    FROM sfa.study_area
+    WHERE id = @study_area_id_p;
+    
+    RETURN @description;
+END
+GO
 -- Get CSL Dependent Count
 CREATE OR ALTER FUNCTION sfa.fn_get_csl_dependent_count(@application_id INT)
 RETURNS INT
@@ -3766,7 +3779,7 @@ BEGIN
 	DECLARE cur_cslft CURSOR FOR
 	
 	SELECT s.id, app.id, SUBSTRING(p.sin,1,9) AS sin
-    , ISNULL(SUBSTRING(app.student_number,1,9),' ') AS student_number
+    , ISNULL(SUBSTRING(app.student_number,1,12),' ') AS student_number
     , CASE app.marital_status_id
       	WHEN 1 THEN 'S'
         WHEN 2 THEN 'S'
@@ -3774,8 +3787,9 @@ BEGIN
         ELSE 'O'
     END AS marital_status
     ,CASE p.sex_id
+	    WHEN 1 THEN 'M'
         WHEN 2 THEN 'F'
-        ELSE 'M'
+        ELSE 'U'
     END AS gender
     ,CASE p.language_id
         WHEN 2 THEN 2
@@ -3801,7 +3815,7 @@ BEGIN
     , ISNULL(sfa.fn_get_city_fct(pam.city_id),' ') mailing_city
     , pam.province_id 
     , ISNULL(sfa.fn_get_province_fct(pam.province_id),' ') AS mailing_province
-    , app.school_telephone
+    , ISNULL(app.school_telephone, ' ')
     , ISNULL(UPPER(CASE 
             WHEN LEN(pam.postal_code) = 7 THEN SUBSTRING(pam.postal_code, 1, 3) + SUBSTRING(pam.postal_code, 5, 3)
             ELSE pam.postal_code
@@ -3810,30 +3824,57 @@ BEGIN
     , ISNULL(app.school_email,' ') as school_email
     , SUBSTRING(CONVERT(VARCHAR,sfa.fn_get_institution_code_fct(app.institution_campus_id)),1,4) AS institution_code
     , SUBSTRING(CONVERT(VARCHAR, sfa.fn_get_field_program_code_fct(sfa.fn_get_study_field_id_fct(app.study_area_id),app.program_id)),1,2) AS field_of_study
-    , RIGHT('0' + CAST(SUBSTRING(CONVERT(VARCHAR, app.program_year), 1, 1) AS VARCHAR), 1) AS program_year
-    , RIGHT('0' + CAST(SUBSTRING(CONVERT(VARCHAR, app.program_year_total), 1, 1) AS VARCHAR), 1) AS program_year_total
+    , RIGHT('0' + CAST(SUBSTRING(ISNULL(CONVERT(VARCHAR, app.program_year), 0), 1, 1) AS VARCHAR), 1) AS program_year
+    , RIGHT('0' + CAST(SUBSTRING(ISNULL(CONVERT(VARCHAR, app.program_year_total), 0), 1, 1) AS VARCHAR), 1) AS program_year_total
     , FORMAT(a.classes_start_date,'yyyyMMdd') AS classes_start
     , FORMAT(a.classes_end_date,'yyyyMMdd') AS classes_end
     , ISNULL(CONVERT(INT,d.disbursed_amount),0) AS csl_amount 
-    , 'F' as pt_indicator
-    , RIGHT(REPLICATE(' ', 8) + SUBSTRING(d.transaction_number, 1, 8), 8) AS transaction_number
+    , CASE d.disbursement_type_id
+      	WHEN 4 THEN 'F'
+	    ELSE 'P'
+	  END AS pt_indicator
+   	, RIGHT('        ' + SUBSTRING(CAST(d.transaction_number AS VARCHAR(100)), 1, 8), 8) AS transaction_number    
     , FORMAT(d.due_date,'yyyyMMdd') AS not_before_date
     , FORMAT(d.issue_date,'yyyyMMdd') AS issue_date
     , FORMAT(a.study_weeks, '00') AS study_weeks 
     , ISNULL(CONVERT(INT,(sfa.fn_get_grant_amount(app.id,22))),0) AS cag_pd_amount
     , ISNULL(CONVERT(INT,(sfa.fn_get_grant_amount(app.id,23))),0) AS cag_li_amount
     , ISNULL(CONVERT(INT,(sfa.fn_get_grant_amount(app.id,26))),0) AS tg_amount
-    , ISNULL(CONVERT(INT,(sfa.fn_get_nbd_grant_amount(app.id,d.issue_date,27))),0) AS csgli_nbd_amount
+    , ISNULL(CONVERT(INT,(sfa.fn_get_nbd_grant_amount(app.id,d.issue_date,27))),0) 
+    + ISNULL(CONVERT(INT,(sfa.fn_get_nbd_grant_amount(app.id,d.issue_date,35))),0) 
+    + ISNULL(CONVERT(INT,(sfa.fn_get_nbd_grant_amount(app.id,d.issue_date,31))),0) AS csgli_nbd_amount
     , ISNULL(CONVERT(INT,(sfa.fn_get_nbd_grant_amount(app.id,d.issue_date,28))),0) AS csgmi_nbd_amount
+    , ISNULL(CONVERT(INT,(sfa.fn_get_nbd_grant_amount(app.id,d.issue_date,47))),0) AS csgmi_nbd_amount  
     , ISNULL(CONVERT(INT,(sfa.fn_get_nbd_grant_amount(app.id,d.issue_date,29))),0) AS csgpd_nbd_amount
     , ISNULL(CONVERT(INT,(sfa.fn_get_nbd_grant_amount(app.id,d.issue_date,32))),0) AS csgdep_nbd_amount     
     , ISNULL(CONVERT(INT,(sfa.fn_get_nbd_grant_amount(app.id,d.issue_date,30))),0) AS csgse_nbd_amount
-    , ISNULL(CONVERT(INT,(sfa.fn_get_mp_grant_amount(app.id,d.issue_date,27))),0) AS csgli_mid_amount
+    , ISNULL(CONVERT(INT,(sfa.fn_get_mp_grant_amount(app.id,d.issue_date,27))),0)
+    + ISNULL(CONVERT(INT,(sfa.fn_get_mp_grant_amount(app.id,d.issue_date,35))),0) AS csgli_mid_amount
     , ISNULL(CONVERT(INT,(sfa.fn_get_mp_grant_amount(app.id,d.issue_date,28))),0) AS csgmi_mid_amount
+    , ISNULL(CONVERT(INT,(sfa.fn_get_mp_grant_amount(app.id,d.issue_date,47))),0)
     , ISNULL(CONVERT(INT,(sfa.fn_get_mp_grant_amount(app.id,d.issue_date,29))),0) AS csgpd_mid_amount
     , ISNULL(CONVERT(INT,(sfa.fn_get_mp_grant_amount(app.id,d.issue_date,32))),0) AS csgdep_mid_amount      
     , ISNULL(CONVERT(INT,(sfa.fn_get_mp_grant_amount(app.id,d.issue_date,30))),0) AS csgse_mid_amount
-	FROM sfa.student s
+    , SUBSTRING(sfa.fn_get_study_area_fct(app.study_area_id),1,50) AS study_area
+    , CASE app.permanent_disability 
+    	WHEN 1 THEN 'Y'
+    	ELSE 'N'
+      END AS perm_disabled_indicator
+    , app.academic_year_id
+    , CASE app.permanent_disability
+    	WHEN 1 THEN '40'
+    	ELSE
+    		(CASE app.percent_of_full_time
+    			WHEN NULL THEN '60'
+    			ELSE percent_of_full_time
+    		END)
+      END AS percent_of_full_time
+    , d.id
+	, CASE ISNULL(app.is_persist_disabled, 0)
+		WHEN 1 THEN 'Y'
+		ELSE 'N'
+	  END AS persist_disabled_indicator          
+	FROM sfa.student s 
 	    INNER JOIN sfa.application app ON s.id = app.student_id
 	    INNER JOIN sfa.funding_request fr ON app.id = fr.application_id
 	    INNER JOIN sfa.assessment a ON fr.id = a.funding_request_id
@@ -3841,14 +3882,17 @@ BEGIN
 	    INNER JOIN sfa.person p ON p.id = s.person_id
 	    LEFT JOIN sfa.person_address pa ON pa.person_id = p.id AND pa.address_type_id = 1 
 	    LEFT JOIN sfa.person_address pam ON pa.person_id = p.id AND pa.address_type_id = 2
-	WHERE fr.request_type_id = 4
-		AND d.csl_cert_seq_number = @CSL_CERT_SEQ_P	   	
-		AND d.issue_date >= @FROM_DATE_P AND d.issue_date <= @TO_DATE_P	   	
+	    LEFT JOIN sfa.msfaa m ON s.id = m.student_id
+	WHERE fr.request_type_id IN (4, 5)
+		AND d.csl_cert_seq_number = @CSL_CERT_SEQ_P or d.csl_cert_seq_number IS NULL
+		AND d.issue_date >= @FROM_DATE_P AND d.issue_date <= @TO_DATE_P	   					
+		AND (m.msfaa_status = 'Received' AND m.is_full_time = CASE WHEN d.disbursement_type_id = 4 THEN 1 ELSE 0 END OR app.academic_year_id <= 2012)
+		AND d.ecert_sent_date IS NULL
 	ORDER BY
     	d.due_date DESC,
 	    d.transaction_number,
 	    p.last_name,
-	    p.first_name;
+	    p.first_name;	   	   	
  
 	DECLARE @out_file AS INT; 
 	DECLARE @v_file_name AS VARCHAR(100);
@@ -3873,6 +3917,7 @@ BEGIN
 	DECLARE @v_all_disburse AS INT = 0;
 	DECLARE @v_cancel_disburse AS INT = 0;
 	DECLARE @v_mid_point_count AS INT; 
+	DECLARE @v_enrol_conf_status NVARCHAR(1);
 
 	
 	DECLARE @id AS INT;
@@ -3920,23 +3965,32 @@ BEGIN
 	DECLARE @tg_amount AS INT;
 	DECLARE @csgli_nbd_amount AS INT;
 	DECLARE @csgmi_nbd_amount AS INT;
+	DECLARE @uknown1 AS INT;
 	DECLARE @csgpd_nbd_amount AS INT;
 	DECLARE @csgdep_nbd_amount AS INT;
 	DECLARE @csgse_nbd_amount AS INT;
 	DECLARE @csgli_mid_amount AS INT;
 	DECLARE @csgmi_mid_amount AS INT;
+	DECLARE @uknown2 AS INT;
 	DECLARE @csgpd_mid_amount AS INT;
 	DECLARE @csgdep_mid_amount AS INT;
 	DECLARE @csgse_mid_amount AS INT;
+	DECLARE @study_area AS NVARCHAR(100);
+	DECLARE @perm_disabled_indicator AS NVARCHAR(1);
+	DECLARE @academic_year AS INT;
+	DECLARE @percent_of_full_time AS NVARCHAR(100);
+	DECLARE @disbursement_id AS INT;
+	DECLARE @persist_disabled_indicator AS NVARCHAR(1);
 
    		
  	SET @v_file_name = 'PPYT.EDU.CERTS.D' + CONVERT(NVARCHAR(4), YEAR(GETDATE())) + RIGHT('00' + CONVERT(NVARCHAR(3), DATEPART(DAYOFYEAR, GETDATE())), 3) + '.001';	
-	SET @out_record = 'H' + RIGHT('000000000' + CAST(17 AS NVARCHAR(9)), 9) + 'YT' + CONVERT(NVARCHAR(8), GETDATE(), 112) + REPLICATE(' ', 492);
+	SET @out_record = 'H' + RIGHT('000000000' + CAST(@CSL_CERT_SEQ_P AS NVARCHAR(9)), 9) + 'YT' + CONVERT(NVARCHAR(8), GETDATE(), 112) + REPLICATE(' ', 592);
 	
+    --out_record := 'H'||RPAD(:CSL_CERT_SEQ_P,9,'0')||'YT'|| TO_CHAR(SYSDATE,'yyyymmdd') ||RPAD(' ',492,' ');
 	OPEN cur_cslft;							
 		WHILE @@FETCH_STATUS = 0
 			BEGIN   			
-				FETCH NEXT FROM cur_cslft INTO @id, @app_id, @sin, @student_number, @marital_status, @gender, @language_id, @birth_date, @last_name, @first_name, @home_address1, @home_address2, @home_city, @province_id, @home_province, @student_phone, @student_postal_code, @home_country, @student_email, @mailing_address1, @mailing_address2, @mailing_city, @province_id2, @mailing_province, @school_telephone, @mailing_postal_code, @mailing_country, @school_email, @institution_code, @field_of_study, @program_year, @program_year_total, @classes_start, @classes_end, @csl_amount, @pt_indicator, @transaction_number, @not_before_date, @issue_date, @study_weeks, @cag_pd_amount, @cag_li_amount, @tg_amount, @csgli_nbd_amount, @csgmi_nbd_amount, @csgpd_nbd_amount, @csgdep_nbd_amount, @csgse_nbd_amount, @csgli_mid_amount, @csgmi_mid_amount, @csgpd_mid_amount, @csgdep_mid_amount, @csgse_mid_amount;
+				FETCH NEXT FROM cur_cslft INTO  @id, @app_id, @sin, @student_number, @marital_status, @gender, @language_id, @birth_date, @last_name, @first_name, @home_address1, @home_address2, @home_city, @province_id, @home_province, @student_phone, @student_postal_code, @home_country, @student_email, @mailing_address1, @mailing_address2, @mailing_city, @province_id2, @mailing_province, @school_telephone, @mailing_postal_code, @mailing_country, @school_email, @institution_code, @field_of_study, @program_year, @program_year_total, @classes_start, @classes_end, @csl_amount, @pt_indicator, @transaction_number, @not_before_date, @issue_date, @study_weeks, @cag_pd_amount, @cag_li_amount, @tg_amount, @csgli_nbd_amount, @csgmi_nbd_amount, @uknown1, @csgpd_nbd_amount, @csgdep_nbd_amount, @csgse_nbd_amount, @csgli_mid_amount, @csgmi_mid_amount, @uknown2, @csgpd_mid_amount, @csgdep_mid_amount, @csgse_mid_amount, @study_area, @perm_disabled_indicator, @academic_year, @percent_of_full_time, @disbursement_id, @persist_disabled_indicator;
 				SET @v_total_grant = (
 	                @cag_pd_amount +
 					@cag_li_amount +
@@ -3944,16 +3998,15 @@ BEGIN
 					@csgli_nbd_amount +
 					@csgmi_nbd_amount +
 					@csgpd_nbd_amount +
-					@csgdep_nbd_amount +
-					@csgse_nbd_amount +
+					@csgdep_nbd_amount +					
 					@csgli_mid_amount +
 					@csgmi_mid_amount +
 					@csgpd_mid_amount +
-					@csgdep_mid_amount +
-					@csgse_mid_amount
-				); 							
+					@csgdep_mid_amount					
+				); 					
 			
-				IF @csl_amount >= 0
+			
+				IF @csl_amount >= 0 AND @v_total_grant >= 0
 					BEGIN
 						SET @v_status = 'P'; 
 					END
@@ -3961,6 +4014,16 @@ BEGIN
 					BEGIN
 						SET @v_status = 'N'; 
 					END
+					
+				IF @academic_year < 2013
+					BEGIN
+						SET @v_enrol_conf_status = 'M';
+					END
+				ELSE 
+					BEGIN
+						SET @v_enrol_conf_status = 'U';
+					END
+					
 				
 				SET @v_mailing = sfa.fn_get_address_fct(@id, @app_id);
 				
@@ -4005,12 +4068,14 @@ BEGIN
 	                    SET @v_phone = SUBSTRING(@school_telephone,1,20);			
 	                    SET @v_country = SUBSTRING(@mailing_country,1,20);
 	                    SET @v_email = SUBSTRING(@school_email,1,50);	                    	                    	
-					END;
+					END;								
+				
+				SET @v_phone = REPLACE(@v_phone,'-', '');
 				
 				SET @v_mid_point_count = (
 					SELECT COUNT(d.due_date)				
 					FROM sfa.disbursement d, sfa.funding_request fr
-					WHERE request_type_id IN (22,23,26,27,28,29,30,31,32)
+					WHERE request_type_id IN (22,23,26,27,28,29,30,31,32,33,34,35,47)
 					AND fr.id = d.funding_request_id
 					AND fr.application_id = @app_id
 					AND d.issue_date = @issue_date
@@ -4027,7 +4092,7 @@ BEGIN
 						    SELECT MAX(due_date) 
 						    FROM sfa.disbursement 
 						    WHERE funding_request_id = fr.id 
-						    AND fr.request_type_id IN (22,23,26,27,28,29,30,31,32)
+						    AND fr.request_type_id IN (22,23,26,27,28,29,30,31,32,33,34,35,47)
 						)
 						AND fr.application_id = @app_id
 						AND d.issue_date = @issue_date
@@ -4039,56 +4104,64 @@ BEGIN
 					   SET @v_mid_point_date = '00000000'; 
 					END		
 					 
-				SET @out_record2 = ISNULL(@out_record2, '') + char(10) + char(13) + (
-					'D' 
-					+ ISNULL(CAST(RIGHT(RTRIM(@sin), 9) as VARCHAR), '')
-					+ ISNULL(CAST(RIGHT(RTRIM(@student_number), 9) AS VARCHAR), '')
-					+ ISNULL(CAST(RIGHT(RTRIM(@marital_status), 1) AS VARCHAR), '')
-					+ ISNULL(CAST(RIGHT(RTRIM(@gender), 1) AS VARCHAR), '')
-					+ ISNULL(CAST(RIGHT(RTRIM(CAST(@language_id AS VARCHAR(1))), 1) AS VARCHAR), '')
-					+ ISNULL(CAST(RIGHT('00000000' + CONVERT(VARCHAR, @birth_date, 112), 8) AS VARCHAR), '')
-					+ ISNULL(CAST(RIGHT(RTRIM(@last_name), 50) AS VARCHAR), '')
-					+ ISNULL(CAST(RIGHT(RTRIM(@first_name), 25) AS VARCHAR), '')
-					+ ISNULL(CAST(RIGHT(RTRIM(@v_address1), 50) AS VARCHAR), '')
-					+ ISNULL(CAST(RIGHT(RTRIM(@v_address2), 50) AS VARCHAR), '')
-					+ ISNULL(CAST(RIGHT(RTRIM(@v_city), 28) AS VARCHAR), '')
-					+ ISNULL(CAST(RIGHT(RTRIM(@v_province), 2) AS VARCHAR), '')
-					+ ISNULL(CAST(RIGHT(RTRIM(@v_phone), 20) AS VARCHAR), '')
-					+ ISNULL(CAST(RIGHT(RTRIM(@v_postal_code), 6) AS VARCHAR), '')
-					+ ISNULL(CAST(RIGHT(RTRIM(@v_country), 20) AS VARCHAR), '')
-					+ ISNULL(CAST(RIGHT(RTRIM(@v_email), 50) AS VARCHAR), '')
-					+ ISNULL(CAST(RIGHT(RTRIM(@institution_code), 4) AS VARCHAR), '')
-					+ ISNULL(CAST(RIGHT(RTRIM(@field_of_study), 2) AS VARCHAR), '')
-					+ ISNULL(CAST(CAST(@program_year AS VARCHAR) AS VARCHAR), '')
-					+ ISNULL(CAST(CAST(@program_year_total AS VARCHAR) AS VARCHAR), '')
-					+ ISNULL(CAST(CONVERT(VARCHAR, @classes_start, 112) AS VARCHAR), '')
-					+ ISNULL(CAST(CONVERT(VARCHAR, @classes_end, 112) AS VARCHAR), '')
-					+ ISNULL(CAST(RIGHT('000000' + CAST(ABS(@csl_amount) AS VARCHAR), 6) AS VARCHAR), '')
-					+ ISNULL(CAST('F' AS VARCHAR), '')
-					+ ISNULL(CAST(RIGHT('  ', 2) AS VARCHAR), '')
-					+ ISNULL(CAST(RIGHT(RTRIM(@transaction_number), 8) AS VARCHAR), '')
-					+ ISNULL(CAST(RIGHT('00000000' + CONVERT(VARCHAR, @not_before_date, 112), 8) AS VARCHAR), '')
-					+ ISNULL(CAST(RIGHT('00000000' + CONVERT(VARCHAR, @issue_date, 112), 8) AS VARCHAR), '')
-					+ ISNULL(CAST(@v_status AS VARCHAR), '')
-					+ ISNULL(CAST(RIGHT(RTRIM(@study_weeks), 2) AS VARCHAR), '')
-					+ ISNULL(CAST(RIGHT('00000' + CAST(ABS(@cag_pd_amount) AS VARCHAR), 5) AS VARCHAR), '')
-					+ ISNULL(CAST(RIGHT('00000' + CAST(ABS(@cag_li_amount) AS VARCHAR), 5) AS VARCHAR), '')
-					+ ISNULL(CAST(RIGHT('00000' + CAST(ABS(@tg_amount) AS VARCHAR), 5) AS VARCHAR), '')
-					+ ISNULL(CAST(RIGHT('00000' + CAST(ABS(@v_total_grant) AS VARCHAR), 5) AS VARCHAR), '')
-					+ ISNULL(CAST(RIGHT('00000' + CAST(ABS(@csgli_nbd_amount) AS VARCHAR), 5) AS VARCHAR), '')
-					+ ISNULL(CAST(RIGHT('00000' + CAST(ABS(@csgmi_nbd_amount) AS VARCHAR), 5) AS VARCHAR), '')
-					+ ISNULL(CAST(RIGHT('00000' + CAST(ABS(@csgpd_nbd_amount) AS VARCHAR), 5) AS VARCHAR), '')
-					+ ISNULL(CAST(RIGHT('00000' + CAST(ABS(@csgdep_nbd_amount) AS VARCHAR), 5) AS VARCHAR), '')
-					+ ISNULL(CAST(RIGHT('00000' + CAST(ABS(@csgse_nbd_amount) AS VARCHAR), 5) AS VARCHAR), '')
-					+ ISNULL(CAST(RIGHT('                    ', 20) AS VARCHAR), '')
-					+ ISNULL(CAST(@v_mid_point_date AS VARCHAR), '')
-					+ ISNULL(CAST(RIGHT('00000' + CAST(ABS(@csgli_mid_amount) AS VARCHAR), 5) AS VARCHAR), '')
-					+ ISNULL(CAST(RIGHT('00000' + CAST(ABS(@csgmi_mid_amount) AS VARCHAR), 5) AS VARCHAR), '')
-					+ ISNULL(CAST(RIGHT('00000' + CAST(ABS(@csgpd_mid_amount) AS VARCHAR), 5) AS VARCHAR), '')
-					+ ISNULL(CAST(RIGHT('00000' + CAST(ABS(@csgdep_mid_amount) AS VARCHAR), 5) AS VARCHAR), '')
-					+ ISNULL(CAST(RIGHT('00000' + CAST(ABS(@csgse_mid_amount) AS VARCHAR), 5) AS VARCHAR), '')
-					+ ISNULL(CAST(RIGHT('                    ', 20) AS VARCHAR), '')		
-				);					
+				SET @out_record2 = ISNULL(@out_record2, '') + (
+					'D'
+					+ ISNULL(LEFT(CAST(@sin AS VARCHAR(20)) + '         ', 9), '')
+					+ ISNULL(LEFT(CAST(@student_number AS VARCHAR (20)) + '            ', 12), '')
+					+ ISNULL(LEFT(CAST(@marital_status AS VARCHAR (20)) + ' ', 1), '')
+					+ ISNULL(LEFT(CAST(@gender AS VARCHAR (20)) + ' ', 1), '')
+					+ ISNULL(LEFT(CAST(@language_id AS VARCHAR (20)) + ' ', 1)	, '')
+					+ ISNULL(RIGHT('00000000' + CAST(@birth_date AS VARCHAR(100)), 8), '')
+					+ ISNULL(LEFT(CAST(@last_name AS VARCHAR(100)) + '                                                  ',50), '')
+					+ ISNULL(LEFT(CAST(@first_name AS VARCHAR(100)) + '                         ',25), '')
+					+ ISNULL(LEFT(CAST(@v_address1 AS VARCHAR(100)) + '                                                  ',50), '')
+					+ ISNULL(LEFT(CAST(@v_address2 AS VARCHAR(100)) + '                                                  ',50), '')
+					+ ISNULL(LEFT(CAST(@v_city AS VARCHAR(100)) + '                            ',28), '')
+					+ ISNULL(LEFT(CAST(@v_province AS VARCHAR(100)) + '  ',2), '')
+					+ ISNULL(LEFT(CAST(@v_phone AS VARCHAR(100)) + '                    ',20), '')
+					+ ISNULL(LEFT(CAST(@v_postal_code AS VARCHAR(100)) + '      ',6), '')
+					+ ISNULL(LEFT(CAST(@v_country AS VARCHAR(100)) + '                    ',20), '')
+					+ ISNULL(LEFT(CAST(@v_email AS VARCHAR(100)) + '                                                  ',50), '')
+					+ ISNULL(LEFT(CAST(@institution_code AS VARCHAR(100)) + '    ',4), '')
+					+ ISNULL(LEFT(CAST(@field_of_study AS VARCHAR(100)) + '  ',2), '')
+					+ ISNULL(CAST(@program_year AS VARCHAR(100)), '')
+					+ ISNULL(CAST(@program_year_total AS VARCHAR(100)), '')
+					+ ISNULL(CAST(@classes_start AS VARCHAR(100))	    							, '')
+					+ ISNULL(CAST(@classes_end AS VARCHAR(100)), '')
+					+ ISNULL(RIGHT('000000' + CAST(ABS(@csl_amount) AS VARCHAR(100)), 6), '')
+					+ ISNULL(@pt_indicator, '')
+					+ ISNULL(LEFT(' ' + '  ', 2), '')
+					+ ISNULL(LEFT(CAST(@transaction_number AS VARCHAR(100)) + '        ',8), '')
+					+ ISNULL(RIGHT('00000000' + CAST(@not_before_date AS VARCHAR(100)), 8), '')
+					+ ISNULL(RIGHT('00000000' + CAST(@issue_date AS VARCHAR(100)), 8), '')
+					+ ISNULL(CAST(@v_status AS VARCHAR(1)), '')
+					+ ISNULL(CAST(@study_weeks AS VARCHAR(100)), '')
+					+ ISNULL(RIGHT('000000' + CAST(@cag_pd_amount AS VARCHAR(100)), 6), '')
+					+ ISNULL(RIGHT('000000' + CAST(@cag_li_amount AS VARCHAR(100)), 6), '')
+					+ ISNULL(RIGHT('000000' + CAST(@tg_amount AS VARCHAR(100)), 6), '')
+					+ ISNULL(RIGHT('00000' + CAST(@v_total_grant AS VARCHAR(100)), 5), '')
+					+ ISNULL(RIGHT('00000' + CAST(@csgli_nbd_amount AS VARCHAR(100)), 5), '')
+					+ ISNULL(RIGHT('00000' + CAST(@csgmi_nbd_amount AS VARCHAR(100)), 5), '')
+					+ ISNULL(RIGHT('00000' + CAST(@csgpd_nbd_amount AS VARCHAR(100)), 5), '')
+					+ ISNULL(RIGHT('00000' + CAST(@csgdep_nbd_amount AS VARCHAR(100)), 5), '')
+					+ '00000'
+					+ ISNULL(LEFT(' ' + '                    ', 20), '')
+					+ ISNULL(CAST(@v_mid_point_date AS VARCHAR(100)), '')
+					+ ISNULL(RIGHT('00000' + CAST(@csgli_mid_amount AS VARCHAR(100)), 5), '')
+					+ ISNULL(RIGHT('00000' + CAST(@csgmi_mid_amount AS VARCHAR(100)), 5), '')
+					+ ISNULL(RIGHT('00000' + CAST(@csgpd_mid_amount AS VARCHAR(100)), 5), '')
+					+ ISNULL(RIGHT('00000' + CAST(@csgdep_mid_amount AS VARCHAR(100)), 5), '')
+					+ '00000'
+					+ ISNULL(LEFT(' ' + '                    ', 20), '')
+					+ ISNULL(LEFT(@v_enrol_conf_status + ' ', 1), '')
+					+ '00000000'    
+					+ '00000000'    
+					+ ISNULL(LEFT(@study_area + '                                                  ',50), '')
+					+ ISNULL(@perm_disabled_indicator, '')
+					+ ISNULL(@persist_disabled_indicator, '')
+					+ ISNULL(@percent_of_full_time, '')
+					+ ISNULL(LEFT(' ' + '                          ', 26), '')
+);
 	                
 	               
 	        	SET @v_count = @v_count + 1;
@@ -4102,16 +4175,15 @@ BEGIN
 						SET @v_cancel_disburse = @v_cancel_disburse + @csl_amount;
 					END					
 			END;	
-		
+				
 			SET @out_record3 = 'T' + RIGHT('000000' + CAST(@v_count AS VARCHAR), 6)
                 + RIGHT('000000000' + CAST(ABS(@v_all_disburse) AS VARCHAR), 9)
                 + RIGHT('000000000' + CAST(ABS(@v_cancel_disburse) AS VARCHAR), 9)
-                + REPLICATE(' ', 487);				
+                + REPLICATE(' ', 587);				
 		CLOSE cur_cslft;		
 		DEALLOCATE cur_cslft;	
 	
 		SET @out_record4 = @out_record + @out_record2;
-		RETURN @v_file_name + char(10) + char(13) + @out_record + char(10) + char(13) + @out_record2 + char(10) + char(13) + @out_record3;
+		RETURN @v_file_name + @out_record + @out_record2 + @out_record3;	
 				
-END
-
+END;
