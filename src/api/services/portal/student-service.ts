@@ -7,30 +7,33 @@ const db = knex(DB_CONFIG);
 const schema = "sfa";
 
 export class PortalStudentService {
-  async getBySub(sub: string) {
-    return db("student_auth")
-      .withSchema(schema)
-      .where({ sub, "student_auth.is_active": true, "student.is_active": true })
-      .innerJoin("student", "student_auth.student_id", "student.id")
-      .innerJoin("person", "student.person_id", "person.id")
-      .select([
-        "student.*",
-        "language_id",
-        "sex_id",
-        "birth_city_id",
-        "birth_province_id",
-        "birth_country_id",
-        "first_name",
-        "last_name",
-        "initials",
-        "previous_last_name",
-        db.raw("'******' +RIGHT(sin,3) as sin"),
-        "citizenship_code",
-        "birth_date",
-        "telephone",
-        "email",
-      ])
-      .first();
+  async getBySub(sub: string): Promise<any> {
+    return (
+      db("student_auth")
+        .withSchema(schema)
+        .where({ sub, "student_auth.is_active": true })
+        //.where({ sub, "student_auth.is_active": true, "student.is_active": true }) too many students are inactive, not sure why
+        .innerJoin("student", "student_auth.student_id", "student.id")
+        .innerJoin("person", "student.person_id", "person.id")
+        .select([
+          "student.*",
+          "language_id",
+          "sex_id",
+          "birth_city_id",
+          "birth_province_id",
+          "birth_country_id",
+          "first_name",
+          "last_name",
+          "initials",
+          "previous_last_name",
+          db.raw("'******' +RIGHT(sin,3) as sin"),
+          "citizenship_code",
+          "birth_date",
+          "telephone",
+          "email",
+        ])
+        .first()
+    );
   }
 
   async create(student: Person_Create, sub: string) {
