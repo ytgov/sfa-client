@@ -24,4 +24,22 @@ export class CslReasonRepository extends BaseRepository {
 
         return result;
     }
+
+    async getCslReasonById(id?: number): Promise<CslReasonDTO> {
+        let result: Partial<CslReasonDTO> = {};
+
+        if (id) {
+            const query = await this.mainDb({cr: "sfa.csl_reason"})
+                .where("id", id)
+                .select(
+                    'cr.id',
+                    'cr.name',
+                    'cr.description'
+                );
+
+            result = this.singleResult(query);
+        }
+
+        return result;
+    }
 }

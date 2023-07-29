@@ -314,12 +314,9 @@
                   <div class="col-xs-2 col-sm-2 col-lg-2 nopadding d-flex align-center justify-start">
                     <h3 class="nomargin">Expense Type</h3>
                   </div>
-                  <div class="col-xs-2 col-sm-2 col-lg-2 nopadding d-flex align-center justify-start">
+                  <div class="col-xs-4 col-sm-4 col-lg-4 nopadding d-flex align-center justify-start">
                     <h3 class="nomargin">Description</h3>
-                  </div>
-                  <div class="col-xs-2 col-sm-2 col-lg-2 nopadding d-flex align-center justify-center flex-wrap">
-                    <h3 class="nomargin col-md-12 nopadding">Frequency</h3>
-                  </div>
+                  </div>                  
                   <div class="col-xs-2 col-sm-2 col-lg-2 nopadding d-flex align-center justify-center">
                     <h3 class="nomargin">Amount</h3>
                   </div>
@@ -329,68 +326,50 @@
                   <div class="col-xs-2 col-sm-2 col-lg-2 nopadding d-flex align-center justify-center"></div>
                 </div>
               </div>
-              <div class="col-xs-12 col-lg-12 nopadding d-flex mobile-column-flex">
-                <div class="col-xs-12 col-sm-12 col-lg-12 d-flex noppading-bottom margin-left">
-                  <div class="col-xs-2 col-sm-2 col-lg-2 nopadding d-flex align-center justify-start"></div>
-                  <div class="col-xs-2 col-sm-2 col-lg-2 nopadding d-flex align-center justify-start"></div>
-                  <div class="col-xs-2 col-sm-2 col-lg-2 nopadding d-flex align-center justify-center"></div>
-                  <div class="col-xs-2 col-sm-2 col-lg-2 nopadding d-flex align-center justify-center">
-                    <div class="col-xs-9 col-sm-9 col-lg-9 nopadding xs-md-low-margin">
-                      <div class="col-xs-12 col-lg-12 nopadding">
-                        <v-text-field outlined dense background-color="white" hide-details @keypress="validate.isNumber($event)" v-model="unassigned_amount"></v-text-field>
+              <div class="uncapped-expenses-table col-xs-12 col-lg-12 nopadding mobile-column-flex">
+                <div class="col-xs-12 col-lg-12 nopadding d-flex mobile-column-flex" v-for="(item, index) in uncapped_expenses">
+                  <div class="col-xs-12 col-sm-12 col-lg-12 d-flex noppading-bottom margin-left">
+                    <div class="expense-type col-xs-2 col-sm-2 col-lg-2 nopadding d-flex align-center justify-start">
+                      <div class="col-xs-10 col-sm-10 col-lg-10 nopadding xs-md-low-margin">
+                        <div class="col-xs-12 col-lg-12 nopadding">
+                          <v-text-field outlined dense background-color="white" hide-details :disabled="isTotal" v-model="item.category"></v-text-field>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                  <div class="col-xs-2 col-sm-2 col-lg-2 nopadding d-flex align-center justify-center">
-                    <div class="col-xs-9 col-sm-9 col-lg-9 nopadding xs-md-low-margin">
-                      <div class="col-xs-12 col-lg-12 nopadding">
-                        <v-text-field outlined dense background-color="white" hide-details @keypress="validate.isNumber($event)" v-model="unassigned_amount"></v-text-field>
+                    <div class="expense-description col-xs-4 col-sm-4 col-lg-4 nopadding d-flex align-center justify-start">
+                      <div class="col-xs-10 col-sm-10 col-lg-10 nopadding xs-md-low-margin">
+                        <div class="col-xs-12 col-lg-12 nopadding">
+                          <v-text-field outlined dense background-color="white" hide-details :disabled="isTotal" v-model="item.description"></v-text-field>
+                        </div>
                       </div>
                     </div>
+                    <div class="expense-amount col-xs-2 col-sm-2 col-lg-2 nopadding d-flex align-center justify-center">
+                      <div class="col-xs-9 col-sm-9 col-lg-9 nopadding xs-md-low-margin">
+                        <div class="col-xs-12 col-lg-12 nopadding">
+                          <v-text-field outlined dense background-color="white" hide-details @keypress="validate.isNumber($event)" :disabled="isTotal" v-model="item.amount"></v-text-field>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="expense-yearly-total col-xs-2 col-sm-2 col-lg-2 nopadding d-flex align-center justify-center">
+                      <div class="col-xs-9 col-sm-9 col-lg-9 nopadding xs-md-low-margin">
+                        <div class="col-xs-12 col-lg-12 nopadding">
+                          <v-text-field outlined dense background-color="white" hide-details @keypress="validate.isNumber($event)" :disabled="isTotal" v-model="item.amount"></v-text-field>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="col-xs-2 col-sm-2 col-lg-2 nopadding d-flex align-center justify-center"></div>
                   </div>
-                  <div class="col-xs-2 col-sm-2 col-lg-2 nopadding d-flex align-center justify-center"></div>
-                </div>
+                </div>             
               </div>
-              <div class="col-xs-12 col-lg-12 nopadding d-flex mobile-column-flex">
+              <div class="total-uncapped-expenses col-xs-12 col-lg-12 nopadding d-flex mobile-column-flex">
                 <div class="col-xs-12 col-sm-12 col-lg-12 d-flex noppading-bottom margin-left">
                   <div class="col-xs-2 col-sm-2 col-lg-2 nopadding d-flex align-center justify-start"></div>
                   <div class="col-xs-2 col-sm-2 col-lg-2 nopadding d-flex align-center justify-start"></div>
                   <div class="col-xs-2 col-sm-2 col-lg-2 nopadding d-flex align-center justify-center"></div>
-                  <div class="col-xs-2 col-sm-2 col-lg-2 nopadding d-flex align-center justify-center">
-                    <div class="col-xs-9 col-sm-9 col-lg-9 nopadding xs-md-low-margin">
-                      <div class="col-xs-12 col-lg-12 nopadding">
-                        <v-text-field outlined dense background-color="white" hide-details @keypress="validate.isNumber($event)" v-model="unassigned_amount"></v-text-field>
-                      </div>
-                    </div>
+                  <div class="col-xs-2 col-sm-2 col-lg-2 nopadding d-flex align-center justify-center">                    
                   </div>
                   <div class="col-xs-2 col-sm-2 col-lg-2 nopadding d-flex align-center justify-center">
-                    <div class="col-xs-9 col-sm-9 col-lg-9 nopadding xs-md-low-margin">
-                      <div class="col-xs-12 col-lg-12 nopadding">
-                        <v-text-field outlined dense background-color="white" hide-details @keypress="validate.isNumber($event)" v-model="unassigned_amount"></v-text-field>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="col-xs-2 col-sm-2 col-lg-2 nopadding d-flex align-center justify-center"></div>
-                </div>
-              </div>
-              <div class="col-xs-12 col-lg-12 nopadding d-flex mobile-column-flex">
-                <div class="col-xs-12 col-sm-12 col-lg-12 d-flex noppading-bottom margin-left">
-                  <div class="col-xs-2 col-sm-2 col-lg-2 nopadding d-flex align-center justify-start"></div>
-                  <div class="col-xs-2 col-sm-2 col-lg-2 nopadding d-flex align-center justify-start"></div>
-                  <div class="col-xs-2 col-sm-2 col-lg-2 nopadding d-flex align-center justify-center"></div>
-                  <div class="col-xs-2 col-sm-2 col-lg-2 nopadding d-flex align-center justify-center">
-                    <div class="col-xs-9 col-sm-9 col-lg-9 nopadding xs-md-low-margin">
-                      <div class="col-xs-12 col-lg-12 nopadding">
-                        <v-text-field outlined dense background-color="white" hide-details @keypress="validate.isNumber($event)" v-model="unassigned_amount"></v-text-field>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="col-xs-2 col-sm-2 col-lg-2 nopadding d-flex align-center justify-center">
-                    <div class="col-xs-9 col-sm-9 col-lg-9 nopadding xs-md-low-margin">
-                      <div class="col-xs-12 col-lg-12 nopadding">
-                        <v-text-field outlined dense background-color="white" hide-details @keypress="validate.isNumber($event)" v-model="unassigned_amount"></v-text-field>
-                      </div>
-                    </div>
+                    <h3 class="nomargin">Total Uncapped Expenses</h3>
                   </div>
                   <div class="col-xs-2 col-sm-2 col-lg-2 nopadding d-flex align-center justify-center">
                     <div class="col-xs-9 col-sm-9 col-lg-9 nopadding xs-md-low-margin">
@@ -401,7 +380,7 @@
                   </div>
                 </div>
               </div>
-              <div class="col-xs-12 col-lg-12 nopadding d-flex mobile-column-flex">
+              <div class="total-study-row col-xs-12 col-lg-12 nopadding d-flex mobile-column-flex">
                 <div class="col-xs-12 col-sm-12 col-lg-12 d-flex noppading-bottom margin-left">
                   <div class="col-xs-2 col-sm-2 col-lg-2 nopadding d-flex align-center justify-start"></div>
                   <div class="col-xs-2 col-sm-2 col-lg-2 nopadding d-flex align-center justify-start"></div>
@@ -431,7 +410,6 @@ import store from "@/store";
 import validator from "@/validator";
 import {mapGetters, mapState} from "vuex";
 import { ref } from "vue";
-import {NumbersHelper} from "@/utilities";
 
 export default {
   name: "cslft-costs",
@@ -448,7 +426,8 @@ export default {
   },
   computed: {
     ...mapState({
-      cslft: state => state.cslft.cslft
+      cslft: state => state.cslft.cslft,
+      uncapped_expenses: state => state.cslft.uncapped_expenses
     }),
     ...mapGetters([
       "cslft_scholastic_total",
@@ -469,6 +448,14 @@ export default {
       return store.getters.selectedApplication;
     },
   },
+  watch: {
+    cslft_study_cost_total: {
+      immediate: true,
+      handler(newVal) {
+        store.dispatch("setTotalStudyCost", newVal);
+      }
+    }
+  },
   async created() {
     this.validate = validator;
     this.applicationId = this.$route.params.id;
@@ -476,6 +463,7 @@ export default {
     if (this.applicationId !== storeApp.HISTORY_DETAIL_ID) {
       await store.dispatch("loadApplication", this.applicationId);
     }
+    store.dispatch("cslftLoadUncappedExpenses", this.applicationId);
   }
 };
 </script>

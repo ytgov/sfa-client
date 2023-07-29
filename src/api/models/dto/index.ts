@@ -8,3 +8,5 @@ export * from "./PersonAddressDTO";
 export * from "./CslLookupDTO";
 export * from "./CslReasonDTO";
 export * from "./MsfaaDTO";
+export * from "./MailAddressDTO";
+export * from "./ExpensesDTO";

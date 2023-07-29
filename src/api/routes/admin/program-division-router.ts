@@ -20,7 +20,7 @@ programDivisionRouter.get("/", async (req: Request, res: Response) => {
                 'sfa.program_division.description',
                 'sfa.program_division.is_active',
             )
-        .orderBy('sfa.program_division.description');
+        .orderBy('sfa.program_division.id');
 
         if (results) {
             return res.status(200).json({ success: true, data: [...results], });

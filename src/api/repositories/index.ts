@@ -12,3 +12,7 @@ export * from "./tax_rate";
 export * from "./parent";
 export * from "./csl_reason";
 export * from "./msfaa";
+export * from "./batch_parameter";
+export * from "./correspondence";
+export * from "./csl_reason";
+export * from "./i-main-table";
