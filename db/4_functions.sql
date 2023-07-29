@@ -348,7 +348,7 @@ BEGIN
         WHERE disbursement.funding_request_id IN
             (SELECT id FROM sfa.funding_request
                                 WHERE funding_request.application_id IN
-                                        (SELECT id FROM sfa.application as app
+                                        (SELECT application_id FROM sfa.application as app
                                                 WHERE app.student_id = @student_id_p)
                         AND funding_request.request_type_id = @v_yea_code);
         RETURN COALESCE(@v_total_yea,0);
@@ -589,7 +589,7 @@ BEGIN
         Added subtraction of overaward YG
     */
 
-	SELECT  @previous_disbursement = COALESCE(sfa.fn_get_disbursed_amount_fct(@funding_request_id_p, @assessment_id_p),0),
+	SELECT  @previous_disbursement = COALESCE(sfa.fn_get_disbursed_amount_fct(@funding_request_id_p, @assessment_id_p),0),  
            @assessed_amount = COALESCE(assessed_amount,0),
             @over_award = COALESCE(over_award,0)
     FROM sfa.assessment
@@ -607,7 +607,7 @@ END
 GO
 
  -- FILE : ASSESSMENT_YG  --- FUNCTION: GET_DISBURSEMENTS_REQUIRED
-CREATE OR ALTER FUNCTION sfa.fn_disbursments_required(@application_id_p INT, @assessment_id_p INT, @program_division INT = NULL)
+CREATE OR ALTER FUNCTION sfa.fn_disbursments_required(@application_id_p INT, @assessment_id_p INT)
 RETURNS NUMERIC AS
 BEGIN
     DECLARE @d_required NUMERIC;
@@ -615,6 +615,7 @@ BEGIN
     DECLARE @v_weeks NUMERIC;
     DECLARE @v_num_batched NUMERIC;
     DECLARE @academic_year_id INT;
+    DECLARE @program_division INT;
     DECLARE @net_amount NUMERIC;
     DECLARE @funding_request_id INT;
     DECLARE @weeks_allowed NUMERIC;
@@ -631,90 +632,81 @@ BEGIN
     FROM sfa.application app
     WHERE app.id = @application_id_p;
 
-    SELECT @academic_year_id = academic_year_id
+    SELECT @academic_year_id = academic_year_id , 
+           @program_division = program_division
     FROM sfa.application 
     WHERE id = @application_id_p;
 
-    IF @program_division IS NULL
-    BEGIN
-        SELECT @program_division = program_division
-        FROM sfa.application 
-        WHERE id = @application_id_p;
-    END
+    IF @assessment_id_p <= 0 
+        BEGIN
+            SELECT
+                @previous_weeks = COALESCE(sfa.fn_get_previous_weeks_yg(@student_id, @application_id_p), 0),
+                @assessed_weeks =  COALESCE(sfa.fn_get_allowed_weeks(@classes_start_date, @classes_end_date), 0);
 
-    SELECT
-        @previous_weeks = COALESCE(sfa.fn_get_previous_weeks_yg(@student_id, @application_id_p), 0),
-        @assessed_weeks =  COALESCE(sfa.fn_get_allowed_weeks(@classes_start_date, @classes_end_date), 0);
-
-    IF (@previous_weeks + @assessed_weeks) > 170
-    BEGIN
-        SELECT @weeks_allowed = 170 - @previous_weeks;		
-    END
+            IF (@previous_weeks + @assessed_weeks) > 170
+            BEGIN
+                SELECT @weeks_allowed = 170 - @previous_weeks;		
+            END
+            ELSE
+            BEGIN
+                SELECT @weeks_allowed = @assessed_weeks;				
+            END
+        END
     ELSE
-    BEGIN
-        SELECT @weeks_allowed = @assessed_weeks;				
-    END
-
-    SELECT  
-        @funding_request_id = funding_request_id 
-    FROM sfa.assessment a 
-    WHERE id = @assessment_id_p;
-
-
-    IF @academic_year_id   < 2016   -- Pre Legislation
         BEGIN
-            IF @program_division = 1  -- Quarters
-                BEGIN
-                    SET @pd_months = 3;
-                END
-            ELSE IF @program_division = 2  -- Semesters
-                BEGIN
-                    SET @pd_months = 4;
-                
-                END 
-            IF @pd_months = 3 or @pd_months = 4
-                BEGIN
-                    SELECT  @d_required =  sfa.fn_get_months(@application_id_p ) / @pd_months;
-                END
-            ELSE
-                BEGIN
-                    SET @d_required = 0;
-                END
+            SELECT  
+                @funding_request_id = funding_request_id , 
+                @weeks_allowed = weeks_allowed
+            FROM sfa.assessment a 
+            WHERE id = @assessment_id_p;
         END
-    ELSE  -- Post Legislation
-        BEGIN
-            IF  @program_division = 1   -- Quarters
-                BEGIN
-                        SELECT @v_weeks = yg_quarter_weeks FROM sfa.system_parameter;
-                END
-            ELSE IF  @program_division = 2   -- Semesters	
-                BEGIN
-                        SELECT  @v_weeks =  yg_semester_weeks FROM sfa.system_parameter;
-                END
 
-            IF  @v_weeks = 0 
-                BEGIN
-                    SET @d_required = 0;
-                END
-            ELSE
-                BEGIN
-                    SET @d_required = round(@weeks_allowed / @v_weeks, 0);  --PENDIENTE
-        
-                    /* If d_required is the same as already batched disbursements, need to add 1 to the disbursements required regardless of weeks
-                    */
-                    SELECT @v_num_batched = count(id) 
-                    FROM sfa.disbursement 
-                    WHERE assessment_id =  @assessment_id_p
-                        AND financial_batch_id IS NOT NULL;
-                    SELECT  @net_amount = sfa.fn_net_amount(@funding_request_id, @assessment_id_p);
-                    IF COALESCE(@v_num_batched,0) >= @d_required AND @net_amount != 0 
-                        BEGIN
-                        SET @d_required = @v_num_batched +1;
-                        END 
-                
-                END
-        END
-    RETURN @d_required;
+        IF @academic_year_id   < 2016   -- Pre Legislation
+            BEGIN
+                IF @program_division = 1  -- Quarters
+                    BEGIN
+                        SET @pd_months = 3;
+                    END
+                ELSE IF @program_division = 2  -- Semesters
+                    BEGIN
+                        SET @pd_months = 4;
+                    
+                    END 
+                IF @pd_months = 3 or @pd_months = 4
+                    BEGIN
+                        SELECT  @d_required =  sfa.fn_get_months(@application_id_p ) / @pd_months;
+                    END
+                ELSE
+                    BEGIN
+                        SET @d_required = 0;
+                    END
+            END
+        ELSE  -- Post Legislation
+            BEGIN
+                SELECT @v_weeks = sfa.fn_get_period_weeks(@application_id_p);
+                IF  @v_weeks = 0 
+                    BEGIN
+                        SET @d_required = 0;
+                    END
+                ELSE
+                    BEGIN
+                        SET @d_required = round(@weeks_allowed / @v_weeks, 0);  --PENDIENTE
+            
+                        /* If d_required is the same as already batched disbursements, need to add 1 to the disbursements required regardless of weeks
+                        */
+                        SELECT @v_num_batched = count(id) 
+                        FROM sfa.disbursement 
+                        WHERE assessment_id =  @assessment_id_p
+                            AND financial_batch_id IS NOT NULL;
+                        SELECT  @net_amount = sfa.fn_net_amount(@funding_request_id, @assessment_id_p);
+                        IF COALESCE(@v_num_batched,0) >= @d_required AND @net_amount != 0 
+                            BEGIN
+                            SET @d_required = @v_num_batched +1;
+                            END 
+                    
+                    END
+            END
+        RETURN @d_required;
 	
 END
 GO
@@ -762,15 +754,22 @@ END
 GO
 
 -- previus_name -- transportation_pck.get_travel_allowance_fct
+
 CREATE OR ALTER FUNCTION sfa.fn_get_travel_allowance(@home_city_id_p INT, @institution_city_id_p INT)
 RETURNS NUMERIC AS
 BEGIN
     DECLARE @res_v NUMERIC = 0;
-
-    SELECT TOP 1 @res_v = ISNULL(t.travel_allowance_amount, 0)
+    
+    DECLARE transportation_cur CURSOR FOR
+    SELECT COALESCE(t.travel_allowance_amount, 0) AS travel_allowance
     FROM sfa.transportation t
     WHERE t.home_city_id = @home_city_id_p
     AND t.institution_city_id = @institution_city_id_p;
+
+    OPEN  transportation_cur;
+    FETCH NEXT FROM transportation_cur INTO @res_v  
+    CLOSE  transportation_cur;
+    DEALLOCATE transportation_cur;
 
     IF @res_v > 0
         BEGIN
@@ -1210,10 +1209,26 @@ BEGIN
     @allowed_books = book
     FROM sfa.fn_get_yg_cost (@program_division, @academic_year_id, 100);
 	
-	SELECT @disburse_required = sfa.fn_disbursments_required(@application_id, @assessment_id, NULL); 
+	SELECT @disburse_required = sfa.fn_disbursments_required(@application_id, @assessment_id); 
+
+--f_alert.ok('New Info - ID: '||	:assessment.assessment_id||'  weekly amt: '||:assessment.weekly_amount); -- Lidwien debug
+
+	/*
+		Calculate the previous disbursement amount
+	*/
+	--IF @assessment_id IS NOT NULL OR @prev_assessment_id = 0 --esta de mas esta validacion
+		--BEGIN 
+		  --SET @prev_assessment_id = @assessment_id;
+    --END
+	-- ELSE
+    -- BEGIN
+      -- SET @prev_assessment_id = @assessment_id;
+      -- assess_id := :parameter.assess_id;
+    -- END
 
 	SELECT @disbursed_amt = sfa.fn_get_disbursed_amount_fct(@funding_request_id, @assessment_id);
-		
+
+--f_alert.ok('New Info - disbursed: '||	disbursed_amt); -- Lidwien debug		
 	IF @disbursed_amt IS NOT NULL
 		BEGIN
       SET @previous_disbursement = @disbursed_amt;
@@ -1616,6 +1631,7 @@ BEGIN
 END
 GO
 
+-- DISBURSE BUTTON ASSESSMENT YG
 CREATE OR ALTER PROCEDURE sfa.sp_disburse_button_yg -- BUTTON FOR ASSESSMENT YG
     @application_id INT,
     @assessment_id INT,
@@ -1633,9 +1649,7 @@ CREATE OR ALTER PROCEDURE sfa.sp_disburse_button_yg -- BUTTON FOR ASSESSMENT YG
     @allowed_books FLOAT,
     @weekly_amount NUMERIC,
     @assessment_adj_amount FLOAT,
-    @assessed_amount NUMERIC,
-    @program_division INT,
-    @net_amount INT
+    @assessed_amount NUMERIC
     
 AS 
 BEGIN
@@ -1672,6 +1686,7 @@ BEGIN
         BEGIN
             DECLARE @disbursement_id INT;
             DECLARE @new_disbursement_id INT;
+            DECLARE @net_amount INT;
 
             DECLARE @disbursement_temp TABLE
             (
@@ -1699,6 +1714,15 @@ BEGIN
 
             SELECT @disbursement_id = MAX(d.id)
             FROM sfa.disbursement d WHERE d.assessment_id = @assessment_id;
+
+            IF @assessment_id > 0
+                BEGIN 
+                    SELECT @net_amount = COALESCE(sfa.fn_net_amount(@funding_request_id, @assessment_id), 0);
+                END
+            ELSE
+                BEGIN
+                    SET @net_amount = COALESCE(@assessed_amount, 0) - COALESCE(@over_award, 0);
+                END
 
             DECLARE @financial_batch_id INT;
 
@@ -1803,18 +1827,8 @@ BEGIN
                                         ELSE
                                             BEGIN
                                             -- SELECT '@academic_year < 2016 -- ELSE' AS MESSAGE;
-
-                                                DECLARE @period_weeks INT;
-
-                                                SELECT @period_weeks = CASE WHEN @program_division = 1 THEN
-                                                    (SELECT yg_quarter_weeks FROM sfa.system_parameter)
-                                                WHEN @program_division = 2 THEN
-                                                    (SELECT yg_semester_weeks FROM sfa.system_parameter )
-                                                ELSE
-                                                    0 END;
-
                                                 UPDATE @disbursement_temp
-                                                SET disbursed_amount = (@weekly_amount * @period_weeks) + (COALESCE(@assessment_adj_amount, 0) / COALESCE(@disbursements_required, 1) )
+                                                SET disbursed_amount = (@weekly_amount * sfa.fn_get_period_weeks(@application_id)) + (COALESCE(@assessment_adj_amount, 0) / COALESCE(@disbursements_required, 1) )
                                                 WHERE id = @count;
                                             END
 
@@ -2170,7 +2184,6 @@ AS
 BEGIN
 	DECLARE @count INT = 0;
 	DECLARE @p_count INT = 0;
-    DECLARE @total INT = 0;
 	
 	SELECT
 		@p_count = CASE WHEN p1.first_name IS NOT NULL AND p1.last_name IS NOT NULL THEN 1 ELSE 0 END +
@@ -2183,15 +2196,8 @@ BEGIN
 	WHERE a.id = @application_id;
 
 	SET @count = sfa.fn_get_parent_dependent_count(@application_id, DEFAULT);
-    
-    SET @total = @count + @p_count;
 
-    IF @total > 10
-    BEGIN
-        RETURN 10;
-    END;
-
-	RETURN @total;
+	RETURN @count + @p_count;
 END;
 GO
 
@@ -2541,7 +2547,7 @@ BEGIN
 		parent2_tax_paid,
 		parent_contribution_override,
 		parent_contribution_review,
-		parent_province_id,
+		parent_province,
 		parent_ps_depend_count,
 		period,
 		pre_leg_amount,
@@ -2764,22 +2770,6 @@ BEGIN
 	DECLARE  @amt FLOAT(8);
 
     SELECT @amt = COALESCE(cl.return_transport_max_amount, 0)
-    FROM sfa.csl_lookup cl
-    WHERE cl.academic_year_id = @academic_year_id;
-    
-    RETURN COALESCE(@amt, 0);
-
-END;
-GO
-
--- Get student exempt amount
-CREATE OR ALTER FUNCTION sfa.fn_get_student_exempt_amount(@academic_year_id INT)
-RETURNS FLOAT(8)
-AS 
-BEGIN
-	DECLARE  @amt FLOAT(8);
-
-    SELECT @amt = COALESCE(cl.student_exempt_amount, 0)
     FROM sfa.csl_lookup cl
     WHERE cl.academic_year_id = @academic_year_id;
     
@@ -3290,29 +3280,6 @@ AS
 	END
 GO
 
--- FILE : ASSESSMENT_SFA  --- FUNCTION: SFAADMIN.STA_LOOKUP_PCK$GET_RESIDENCE_RATE_FCT$IMPL  
-CREATE OR ALTER PROCEDURE sfa.pr_get_residence_rate_sta
-   @academic_year_id INT,
-   @return_value_argument FLOAT(8)  OUTPUT
-AS 
-   BEGIN
-         DECLARE
-            @res_v_second_residence INT
-         DECLARE
-             sec_residence_cur CURSOR LOCAL FOR 
-               SELECT sl.second_residence_amount
-               FROM sfa.sta_lookup sl
-               WHERE sl.academic_year_id = @academic_year_id
-         OPEN sec_residence_cur
-         FETCH sec_residence_cur
-             INTO @res_v_second_residence
-         CLOSE sec_residence_cur
-         DEALLOCATE sec_residence_cur
-         SET @return_value_argument = @res_v_second_residence
-         RETURN @return_value_argument
-   END
-GO
-
 -- FILE : ASSESSMENT_SFA  --- FUNCTION: GET_SECOND_RESIDENCE
 CREATE OR ALTER FUNCTION sfa.fn_get_second_residence_sta
 /*This function returns the value of the second residence rate*/
@@ -3330,11 +3297,7 @@ BEGIN
 	SELECT @academic_year_id = app.academic_year_id
 		FROM sfa.application app
 	WHERE app.id = @applitacion_id
-	--EXEC @second_res_amt = sfa.pr_get_residence_rate_sta @academic_year_id, @return_value_argument OUT;
-    SELECT  @second_res_amt =  sl.second_residence_amount
-    FROM sfa.sta_lookup sl
-    WHERE sl.academic_year_id = @academic_year_id
-
+	EXEC @second_res_amt = sfa.pr_get_residence_rate_sta @academic_year_id, @return_value_argument OUT;
 	RETURN @second_res_amt
 END
 GO
@@ -3429,98 +3392,6 @@ BEGIN
 END
 GO
 
-CREATE OR ALTER FUNCTION sfa.fn_get_prev_weeks_curr_year_sta (@program_p NVARCHAR(255), @application_id_p INT)
-RETURNS INT
-AS
-BEGIN
-    DECLARE @v_post_leg_weeks DECIMAL(10, 2);
-
-    IF @program_p = 'Upgrade'
-    BEGIN
-        SELECT @v_post_leg_weeks = sfa.fn_get_curr_yr_sta_up_weeks(@application_id_p);
-    END
-    ELSE
-        BEGIN
-            SELECT @v_post_leg_weeks = sfa.fn_get_curr_yr_weeks_sta(@application_id_p);
-        END
-    RETURN @v_post_leg_weeks;
-END
-GO
-
-CREATE OR ALTER FUNCTION sfa.fn_get_curr_yr_sta_up_weeks(@application_id INT)
-RETURNS INT
-AS
-BEGIN
-    DECLARE 
-		@application_student_id INT,
-		@application_academic_yr INT,
-		@v_num_weeks INT;
-
-    SELECT  @application_student_id = a.student_id,
-            @application_academic_yr = a.academic_year_id 
-    FROM sfa.application a 
-    WHERE a.id = @application_id;
-
-
-    SELECT @v_num_weeks = ISNULL(sum(a.weeks_allowed), 0)
-    FROM sfa.application app
-    INNER JOIN sfa.funding_request fr
-        ON app.id = fr.application_id
-    INNER JOIN (SELECT funding_request_id
-                    , assessment_id
-                    , sum(disbursed_amount) disbursed_amount
-                FROM sfa.disbursement
-            GROUP BY funding_request_id, assessment_id) d
-        ON fr.id = d.funding_request_id
-    INNER JOIN sfa.assessment a
-        ON d.assessment_id = a.id
-    WHERE app.student_id = @application_student_id
-    AND app.id <  @application_id
-    AND app.academic_year_id =  @application_academic_yr
-    AND app.program_id = (SELECT id FROM sfa.program WHERE description = 'Upgrading-Academic')  -- upgrading program
-    AND d.disbursed_amount > 0 -- positive disbursement
-    AND fr.request_type_id = 1 -- request type STA
-    group by app.student_id;
-
-     RETURN @v_num_weeks;
-END
-GO
-
-CREATE OR ALTER FUNCTION sfa.fn_get_curr_yr_weeks_sta(@application_id INT)
-RETURNS INT
-AS 
-BEGIN
-	DECLARE 
-		@application_student_id INT,
-		@application_academic_yr INT,
-		@v_num_weeks INT;
-	
-	SELECT  @application_student_id = a.student_id,
-            @application_academic_yr = a.academic_year_id 
-    FROM sfa.application a 
-    WHERE a.id = @application_id;
-	
-	SELECT @v_num_weeks = ISNULL(sum(a.weeks_allowed),0)
-    FROM sfa.application app 
-	INNER JOIN sfa.funding_request fur ON fur.application_id = app.id
-    INNER JOIN (SELECT 
-					funding_request_id,
-			     	assessment_id,
-			        ISNULL(sum(disbursed_amount),0) AS dis_am
-				FROM sfa.disbursement
-				GROUP BY funding_request_id, assessment_id) AS d ON fur.id = d.funding_request_id
-	INNER JOIN sfa.assessment a ON d.assessment_id = a.id
-    WHERE app.student_id = @application_student_id
-    AND app.id < @application_id
-    AND app.academic_year_id = @application_academic_yr
-    AND app.program_id <> (SELECT p.id FROM sfa.program p WHERE p.description = 'Upgrading-Academic')
-    AND d.dis_am > 0 -- positive disbursement
-    group by app.student_id;
-
-    RETURN @v_num_weeks;
-END;
-GO
-
 -- FILE : ASSESSMENT_SFA  --- FUNCTION: GET_WEEKS_ALLOWED
 CREATE OR ALTER FUNCTION sfa.fn_get_weeks_allowed_sta
 (
@@ -3531,15 +3402,6 @@ CREATE OR ALTER FUNCTION sfa.fn_get_weeks_allowed_sta
 RETURNS FLOAT
 AS
 BEGIN
-    /*
-        This function calculates the weeks allowed based on the difference
-        between the effective rate date and classes end date.  Weeks allowed 
-        cannot be greater than 40
-        
-        Old calculation did not always work correctly of the starting date and ending date were not on the same day of the week.
-        
-        Changed calculation to calculate weekdays based on day not being Sat or Sun
-    */
     DECLARE @v_weeks FLOAT;
 
     IF ISNULL(@previous_weeks, 0) + ISNULL(@assessed_weeks, 0) > 170
@@ -3554,7 +3416,7 @@ BEGIN
     BEGIN
         SET @v_weeks = ISNULL(@assessed_weeks, 0);
     END
-    -- Ensure allowed weeks do not go over yearly max
+
     IF @v_weeks > 40
     BEGIN
         SET @v_weeks = 40;
@@ -3565,47 +3427,62 @@ END
 GO
 
 -- FILE : ASSESSMENT_STA  --- FUNCTION: SFAADMIN.STA_LOOKUP_PCK$GET_WEEKLY_RATE_FCT$IMPL  
--- FILE : ASSESSMENT_STA  --- FUNCTION: SFAADMIN.STA_LOOKUP_PCK$GET_WEEKLY_RATE_FCT$IMPL  
-CREATE OR ALTER FUNCTION sfa.fn_get_weekly_rate_sta
-   (@dependent_count_p INT, @academic_year_id_p INT)
-RETURNS INT
+CREATE OR ALTER PROCEDURE sfa.pr_get_weekly_rate_sta
+   @dependent_count_p INT,
+   @academic_year_id_p INT,
+   @return_value_argument INT OUTPUT
 AS 
-BEGIN
-   DECLARE @return_value_argument INT;
-
-   SELECT TOP 1 @return_value_argument = CASE @dependent_count_p
-                                       WHEN 0 THEN st.dependent_0_amount
-                                       WHEN 1 THEN st.dependent_1_amount
-                                       WHEN 2 THEN st.dependent_2_amount
-                                       WHEN 3 THEN st.dependent_3_amount
-                                       ELSE st.dependent_4_amount
-                                    END
-   FROM sfa.sta_lookup st
-   WHERE st.academic_year_id = @academic_year_id_p;
-
-   RETURN @return_value_argument;
-END;
+	BEGIN
+		DECLARE
+		@res_v_weekly_rate INT
+		DECLARE
+		 weekly_rate_cur CURSOR LOCAL FOR 
+		   SELECT 
+		      CASE @dependent_count_p
+		         WHEN 0 THEN st.dependent_0_amount
+		         WHEN 1 THEN st.dependent_1_amount
+		         WHEN 2 THEN st.dependent_2_amount
+		         WHEN 3 THEN st.dependent_3_amount
+		         ELSE st.dependent_4_amount
+		      END AS weekly_rate
+		   FROM sfa.sta_lookup st
+		   WHERE st.academic_year_id = @academic_year_id_p
+		OPEN weekly_rate_cur
+		FETCH weekly_rate_cur
+			INTO @res_v_weekly_rate
+		CLOSE weekly_rate_cur
+		DEALLOCATE weekly_rate_cur
+		SET @return_value_argument = @res_v_weekly_rate
+		RETURN @return_value_argument
+	END
 GO
 
 -- FILE : ASSESSMENT_SFA  --- PROCEDURE: SFAADMIN.DEPENDENT_PCK$GET_DEPENDENT_COUNT_FCT$IMPL
-CREATE OR ALTER FUNCTION sfa.fn_get_dependent_count_sta
-   (@application_id INT)
-RETURNS INT
+CREATE OR ALTER PROCEDURE sfa.pr_get_dependent_count_sta
+   @application_id INT,
+   @return_value_argument INT OUTPUT
 AS 
-BEGIN
-   DECLARE @return_value_argument INT;
-
-   SELECT TOP 1 @return_value_argument = COUNT(*)
-   FROM sfa.dependent AS d
-   INNER JOIN sfa.application AS h ON h.student_id = d.student_id
-   INNER JOIN sfa.dependent_eligibility AS de ON de.dependent_id = d.id
-   WHERE 
-      de.application_id = h.id AND 
-      de.is_csl_eligible = 1 AND 
-      h.id = @application_id;
-
-   RETURN @return_value_argument;
-END;
+	BEGIN
+		DECLARE
+		@res_v_dependent_count INT
+		DECLARE
+		 dependent_cur CURSOR LOCAL FOR 
+		   SELECT count_big(*) AS dependent_count
+		   FROM sfa.dependent  AS d
+		   INNER JOIN sfa.application AS h ON h.student_id = d.student_id
+		   INNER JOIN sfa.dependent_eligibility  AS de ON de.dependent_id = d.id
+		   WHERE 
+		      de.application_id = h.id AND 
+		      de.is_csl_eligible = 1 AND 
+		      h.id = @application_id
+		OPEN dependent_cur
+		FETCH dependent_cur
+			INTO @res_v_dependent_count
+		CLOSE dependent_cur
+		DEALLOCATE dependent_cur
+			SET @return_value_argument = @res_v_dependent_count
+		RETURN @return_value_argument
+	END
 GO
 
 -- FILE : ASSESSMENT_SFA  --- FUNCTION: GET_WEEKLY_AMOUNT
@@ -3625,10 +3502,9 @@ BEGIN
 	SELECT @academic_year_id = app.academic_year_id
 	FROM
 		sfa.application app
-	WHERE app.id = @application_id;
-
-	SELECT @dependent_count = sfa.fn_get_dependent_count_sta(@application_id);
-	SELECT @wk_amt = sfa.fn_get_weekly_rate_sta(@dependent_count, @academic_year_id);
+	WHERE app.id = @application_id
+	EXEC @dependent_count = sfa.pr_get_dependent_count_sta @application_id,@return_value_argument OUT;
+	EXEC @wk_amt = sfa.pr_get_weekly_rate_sta @dependent_count,@academic_year_id,@return_value_argument_wk OUT;
 	RETURN @wk_amt
 END
 GO
@@ -3890,7 +3766,7 @@ BEGIN
 	DECLARE cur_cslft CURSOR FOR
 	
 	SELECT s.id, app.id, SUBSTRING(p.sin,1,9) AS sin
-    , ISNULL(SUBSTRING(app.student_number,1,9),' ') AS student_number
+    , ISNULL(SUBSTRING(app.student_number,1,12),' ') AS student_number
     , CASE app.marital_status_id
       	WHEN 1 THEN 'S'
         WHEN 2 THEN 'S'
@@ -3898,8 +3774,9 @@ BEGIN
         ELSE 'O'
     END AS marital_status
     ,CASE p.sex_id
+	    WHEN 1 THEN 'M'
         WHEN 2 THEN 'F'
-        ELSE 'M'
+        ELSE 'U'
     END AS gender
     ,CASE p.language_id
         WHEN 2 THEN 2
@@ -3925,7 +3802,7 @@ BEGIN
     , ISNULL(sfa.fn_get_city_fct(pam.city_id),' ') mailing_city
     , pam.province_id 
     , ISNULL(sfa.fn_get_province_fct(pam.province_id),' ') AS mailing_province
-    , app.school_telephone
+    , ISNULL(app.school_telephone, ' ')
     , ISNULL(UPPER(CASE 
             WHEN LEN(pam.postal_code) = 7 THEN SUBSTRING(pam.postal_code, 1, 3) + SUBSTRING(pam.postal_code, 5, 3)
             ELSE pam.postal_code
@@ -3934,30 +3811,57 @@ BEGIN
     , ISNULL(app.school_email,' ') as school_email
     , SUBSTRING(CONVERT(VARCHAR,sfa.fn_get_institution_code_fct(app.institution_campus_id)),1,4) AS institution_code
     , SUBSTRING(CONVERT(VARCHAR, sfa.fn_get_field_program_code_fct(sfa.fn_get_study_field_id_fct(app.study_area_id),app.program_id)),1,2) AS field_of_study
-    , RIGHT('0' + CAST(SUBSTRING(CONVERT(VARCHAR, app.program_year), 1, 1) AS VARCHAR), 1) AS program_year
-    , RIGHT('0' + CAST(SUBSTRING(CONVERT(VARCHAR, app.program_year_total), 1, 1) AS VARCHAR), 1) AS program_year_total
+    , RIGHT('0' + CAST(SUBSTRING(ISNULL(CONVERT(VARCHAR, app.program_year), 0), 1, 1) AS VARCHAR), 1) AS program_year
+    , RIGHT('0' + CAST(SUBSTRING(ISNULL(CONVERT(VARCHAR, app.program_year_total), 0), 1, 1) AS VARCHAR), 1) AS program_year_total
     , FORMAT(a.classes_start_date,'yyyyMMdd') AS classes_start
     , FORMAT(a.classes_end_date,'yyyyMMdd') AS classes_end
     , ISNULL(CONVERT(INT,d.disbursed_amount),0) AS csl_amount 
-    , 'F' as pt_indicator
-    , RIGHT(REPLICATE(' ', 8) + SUBSTRING(d.transaction_number, 1, 8), 8) AS transaction_number
+    , CASE d.disbursement_type_id
+      	WHEN 4 THEN 'F'
+	    ELSE 'P'
+	  END AS pt_indicator
+   	, RIGHT('        ' + SUBSTRING(CAST(d.transaction_number AS VARCHAR(100)), 1, 8), 8) AS transaction_number    
     , FORMAT(d.due_date,'yyyyMMdd') AS not_before_date
     , FORMAT(d.issue_date,'yyyyMMdd') AS issue_date
     , FORMAT(a.study_weeks, '00') AS study_weeks 
     , ISNULL(CONVERT(INT,(sfa.fn_get_grant_amount(app.id,22))),0) AS cag_pd_amount
     , ISNULL(CONVERT(INT,(sfa.fn_get_grant_amount(app.id,23))),0) AS cag_li_amount
     , ISNULL(CONVERT(INT,(sfa.fn_get_grant_amount(app.id,26))),0) AS tg_amount
-    , ISNULL(CONVERT(INT,(sfa.fn_get_nbd_grant_amount(app.id,d.issue_date,27))),0) AS csgli_nbd_amount
+    , ISNULL(CONVERT(INT,(sfa.fn_get_nbd_grant_amount(app.id,d.issue_date,27))),0) 
+    + ISNULL(CONVERT(INT,(sfa.fn_get_nbd_grant_amount(app.id,d.issue_date,35))),0) 
+    + ISNULL(CONVERT(INT,(sfa.fn_get_nbd_grant_amount(app.id,d.issue_date,31))),0) AS csgli_nbd_amount
     , ISNULL(CONVERT(INT,(sfa.fn_get_nbd_grant_amount(app.id,d.issue_date,28))),0) AS csgmi_nbd_amount
+    , ISNULL(CONVERT(INT,(sfa.fn_get_nbd_grant_amount(app.id,d.issue_date,47))),0) AS csgmi_nbd_amount  
     , ISNULL(CONVERT(INT,(sfa.fn_get_nbd_grant_amount(app.id,d.issue_date,29))),0) AS csgpd_nbd_amount
     , ISNULL(CONVERT(INT,(sfa.fn_get_nbd_grant_amount(app.id,d.issue_date,32))),0) AS csgdep_nbd_amount     
     , ISNULL(CONVERT(INT,(sfa.fn_get_nbd_grant_amount(app.id,d.issue_date,30))),0) AS csgse_nbd_amount
-    , ISNULL(CONVERT(INT,(sfa.fn_get_mp_grant_amount(app.id,d.issue_date,27))),0) AS csgli_mid_amount
+    , ISNULL(CONVERT(INT,(sfa.fn_get_mp_grant_amount(app.id,d.issue_date,27))),0)
+    + ISNULL(CONVERT(INT,(sfa.fn_get_mp_grant_amount(app.id,d.issue_date,35))),0) AS csgli_mid_amount
     , ISNULL(CONVERT(INT,(sfa.fn_get_mp_grant_amount(app.id,d.issue_date,28))),0) AS csgmi_mid_amount
+    , ISNULL(CONVERT(INT,(sfa.fn_get_mp_grant_amount(app.id,d.issue_date,47))),0)
     , ISNULL(CONVERT(INT,(sfa.fn_get_mp_grant_amount(app.id,d.issue_date,29))),0) AS csgpd_mid_amount
     , ISNULL(CONVERT(INT,(sfa.fn_get_mp_grant_amount(app.id,d.issue_date,32))),0) AS csgdep_mid_amount      
     , ISNULL(CONVERT(INT,(sfa.fn_get_mp_grant_amount(app.id,d.issue_date,30))),0) AS csgse_mid_amount
-	FROM sfa.student s
+    , SUBSTRING(sfa.fn_get_study_area_fct(app.study_area_id),1,50) AS study_area
+    , CASE app.permanent_disability 
+    	WHEN 1 THEN 'Y'
+    	ELSE 'N'
+      END AS perm_disabled_indicator
+    , app.academic_year_id
+    , CASE app.permanent_disability
+    	WHEN 1 THEN '40'
+    	ELSE
+    		(CASE app.percent_of_full_time
+    			WHEN NULL THEN '60'
+    			ELSE percent_of_full_time
+    		END)
+      END AS percent_of_full_time
+    , d.id
+	, CASE ISNULL(app.is_persist_disabled, 0)
+		WHEN 1 THEN 'Y'
+		ELSE 'N'
+	  END AS persist_disabled_indicator          
+	FROM sfa.student s 
 	    INNER JOIN sfa.application app ON s.id = app.student_id
 	    INNER JOIN sfa.funding_request fr ON app.id = fr.application_id
 	    INNER JOIN sfa.assessment a ON fr.id = a.funding_request_id
@@ -3965,14 +3869,17 @@ BEGIN
 	    INNER JOIN sfa.person p ON p.id = s.person_id
 	    LEFT JOIN sfa.person_address pa ON pa.person_id = p.id AND pa.address_type_id = 1 
 	    LEFT JOIN sfa.person_address pam ON pa.person_id = p.id AND pa.address_type_id = 2
-	WHERE fr.request_type_id = 4
-		AND d.csl_cert_seq_number = @CSL_CERT_SEQ_P	   	
-		AND d.issue_date >= @FROM_DATE_P AND d.issue_date <= @TO_DATE_P	   	
+	    LEFT JOIN sfa.msfaa m ON s.id = m.student_id
+	WHERE fr.request_type_id IN (4, 5)
+		AND d.csl_cert_seq_number = @CSL_CERT_SEQ_P or d.csl_cert_seq_number IS NULL
+		AND d.issue_date >= @FROM_DATE_P AND d.issue_date <= @TO_DATE_P	   					
+		AND (m.msfaa_status = 'Received' AND m.is_full_time = CASE WHEN d.disbursement_type_id = 4 THEN 1 ELSE 0 END OR app.academic_year_id <= 2012)
+		AND d.ecert_sent_date IS NULL
 	ORDER BY
     	d.due_date DESC,
 	    d.transaction_number,
 	    p.last_name,
-	    p.first_name;
+	    p.first_name;	   	   	
  
 	DECLARE @out_file AS INT; 
 	DECLARE @v_file_name AS VARCHAR(100);
@@ -3997,6 +3904,7 @@ BEGIN
 	DECLARE @v_all_disburse AS INT = 0;
 	DECLARE @v_cancel_disburse AS INT = 0;
 	DECLARE @v_mid_point_count AS INT; 
+	DECLARE @v_enrol_conf_status NVARCHAR(1);
 
 	
 	DECLARE @id AS INT;
@@ -4044,23 +3952,32 @@ BEGIN
 	DECLARE @tg_amount AS INT;
 	DECLARE @csgli_nbd_amount AS INT;
 	DECLARE @csgmi_nbd_amount AS INT;
+	DECLARE @uknown1 AS INT;
 	DECLARE @csgpd_nbd_amount AS INT;
 	DECLARE @csgdep_nbd_amount AS INT;
 	DECLARE @csgse_nbd_amount AS INT;
 	DECLARE @csgli_mid_amount AS INT;
 	DECLARE @csgmi_mid_amount AS INT;
+	DECLARE @uknown2 AS INT;
 	DECLARE @csgpd_mid_amount AS INT;
 	DECLARE @csgdep_mid_amount AS INT;
 	DECLARE @csgse_mid_amount AS INT;
+	DECLARE @study_area AS NVARCHAR(100);
+	DECLARE @perm_disabled_indicator AS NVARCHAR(1);
+	DECLARE @academic_year AS INT;
+	DECLARE @percent_of_full_time AS NVARCHAR(100);
+	DECLARE @disbursement_id AS INT;
+	DECLARE @persist_disabled_indicator AS NVARCHAR(1);
 
    		
  	SET @v_file_name = 'PPYT.EDU.CERTS.D' + CONVERT(NVARCHAR(4), YEAR(GETDATE())) + RIGHT('00' + CONVERT(NVARCHAR(3), DATEPART(DAYOFYEAR, GETDATE())), 3) + '.001';	
-	SET @out_record = 'H' + RIGHT('000000000' + CAST(17 AS NVARCHAR(9)), 9) + 'YT' + CONVERT(NVARCHAR(8), GETDATE(), 112) + REPLICATE(' ', 492);
+	SET @out_record = 'H' + RIGHT('000000000' + CAST(@CSL_CERT_SEQ_P AS NVARCHAR(9)), 9) + 'YT' + CONVERT(NVARCHAR(8), GETDATE(), 112) + REPLICATE(' ', 592);
 	
+    --out_record := 'H'||RPAD(:CSL_CERT_SEQ_P,9,'0')||'YT'|| TO_CHAR(SYSDATE,'yyyymmdd') ||RPAD(' ',492,' ');
 	OPEN cur_cslft;							
 		WHILE @@FETCH_STATUS = 0
 			BEGIN   			
-				FETCH NEXT FROM cur_cslft INTO @id, @app_id, @sin, @student_number, @marital_status, @gender, @language_id, @birth_date, @last_name, @first_name, @home_address1, @home_address2, @home_city, @province_id, @home_province, @student_phone, @student_postal_code, @home_country, @student_email, @mailing_address1, @mailing_address2, @mailing_city, @province_id2, @mailing_province, @school_telephone, @mailing_postal_code, @mailing_country, @school_email, @institution_code, @field_of_study, @program_year, @program_year_total, @classes_start, @classes_end, @csl_amount, @pt_indicator, @transaction_number, @not_before_date, @issue_date, @study_weeks, @cag_pd_amount, @cag_li_amount, @tg_amount, @csgli_nbd_amount, @csgmi_nbd_amount, @csgpd_nbd_amount, @csgdep_nbd_amount, @csgse_nbd_amount, @csgli_mid_amount, @csgmi_mid_amount, @csgpd_mid_amount, @csgdep_mid_amount, @csgse_mid_amount;
+				FETCH NEXT FROM cur_cslft INTO  @id, @app_id, @sin, @student_number, @marital_status, @gender, @language_id, @birth_date, @last_name, @first_name, @home_address1, @home_address2, @home_city, @province_id, @home_province, @student_phone, @student_postal_code, @home_country, @student_email, @mailing_address1, @mailing_address2, @mailing_city, @province_id2, @mailing_province, @school_telephone, @mailing_postal_code, @mailing_country, @school_email, @institution_code, @field_of_study, @program_year, @program_year_total, @classes_start, @classes_end, @csl_amount, @pt_indicator, @transaction_number, @not_before_date, @issue_date, @study_weeks, @cag_pd_amount, @cag_li_amount, @tg_amount, @csgli_nbd_amount, @csgmi_nbd_amount, @uknown1, @csgpd_nbd_amount, @csgdep_nbd_amount, @csgse_nbd_amount, @csgli_mid_amount, @csgmi_mid_amount, @uknown2, @csgpd_mid_amount, @csgdep_mid_amount, @csgse_mid_amount, @study_area, @perm_disabled_indicator, @academic_year, @percent_of_full_time, @disbursement_id, @persist_disabled_indicator;
 				SET @v_total_grant = (
 	                @cag_pd_amount +
 					@cag_li_amount +
@@ -4068,16 +3985,15 @@ BEGIN
 					@csgli_nbd_amount +
 					@csgmi_nbd_amount +
 					@csgpd_nbd_amount +
-					@csgdep_nbd_amount +
-					@csgse_nbd_amount +
+					@csgdep_nbd_amount +					
 					@csgli_mid_amount +
 					@csgmi_mid_amount +
 					@csgpd_mid_amount +
-					@csgdep_mid_amount +
-					@csgse_mid_amount
-				); 							
+					@csgdep_mid_amount					
+				); 					
 			
-				IF @csl_amount >= 0
+			
+				IF @csl_amount >= 0 AND @v_total_grant >= 0
 					BEGIN
 						SET @v_status = 'P'; 
 					END
@@ -4085,6 +4001,16 @@ BEGIN
 					BEGIN
 						SET @v_status = 'N'; 
 					END
+					
+				IF @academic_year < 2013
+					BEGIN
+						SET @v_enrol_conf_status = 'M';
+					END
+				ELSE 
+					BEGIN
+						SET @v_enrol_conf_status = 'U';
+					END
+					
 				
 				SET @v_mailing = sfa.fn_get_address_fct(@id, @app_id);
 				
@@ -4129,12 +4055,14 @@ BEGIN
 	                    SET @v_phone = SUBSTRING(@school_telephone,1,20);			
 	                    SET @v_country = SUBSTRING(@mailing_country,1,20);
 	                    SET @v_email = SUBSTRING(@school_email,1,50);	                    	                    	
-					END;
+					END;								
+				
+				SET @v_phone = REPLACE(@v_phone,'-', '');
 				
 				SET @v_mid_point_count = (
 					SELECT COUNT(d.due_date)				
 					FROM sfa.disbursement d, sfa.funding_request fr
-					WHERE request_type_id IN (22,23,26,27,28,29,30,31,32)
+					WHERE request_type_id IN (22,23,26,27,28,29,30,31,32,33,34,35,47)
 					AND fr.id = d.funding_request_id
 					AND fr.application_id = @app_id
 					AND d.issue_date = @issue_date
@@ -4151,7 +4079,7 @@ BEGIN
 						    SELECT MAX(due_date) 
 						    FROM sfa.disbursement 
 						    WHERE funding_request_id = fr.id 
-						    AND fr.request_type_id IN (22,23,26,27,28,29,30,31,32)
+						    AND fr.request_type_id IN (22,23,26,27,28,29,30,31,32,33,34,35,47)
 						)
 						AND fr.application_id = @app_id
 						AND d.issue_date = @issue_date
@@ -4163,56 +4091,64 @@ BEGIN
 					   SET @v_mid_point_date = '00000000'; 
 					END		
 					 
-				SET @out_record2 = ISNULL(@out_record2, '') + char(10) + char(13) + (
-					'D' 
-					+ ISNULL(CAST(RIGHT(RTRIM(@sin), 9) as VARCHAR), '')
-					+ ISNULL(CAST(RIGHT(RTRIM(@student_number), 9) AS VARCHAR), '')
-					+ ISNULL(CAST(RIGHT(RTRIM(@marital_status), 1) AS VARCHAR), '')
-					+ ISNULL(CAST(RIGHT(RTRIM(@gender), 1) AS VARCHAR), '')
-					+ ISNULL(CAST(RIGHT(RTRIM(CAST(@language_id AS VARCHAR(1))), 1) AS VARCHAR), '')
-					+ ISNULL(CAST(RIGHT('00000000' + CONVERT(VARCHAR, @birth_date, 112), 8) AS VARCHAR), '')
-					+ ISNULL(CAST(RIGHT(RTRIM(@last_name), 50) AS VARCHAR), '')
-					+ ISNULL(CAST(RIGHT(RTRIM(@first_name), 25) AS VARCHAR), '')
-					+ ISNULL(CAST(RIGHT(RTRIM(@v_address1), 50) AS VARCHAR), '')
-					+ ISNULL(CAST(RIGHT(RTRIM(@v_address2), 50) AS VARCHAR), '')
-					+ ISNULL(CAST(RIGHT(RTRIM(@v_city), 28) AS VARCHAR), '')
-					+ ISNULL(CAST(RIGHT(RTRIM(@v_province), 2) AS VARCHAR), '')
-					+ ISNULL(CAST(RIGHT(RTRIM(@v_phone), 20) AS VARCHAR), '')
-					+ ISNULL(CAST(RIGHT(RTRIM(@v_postal_code), 6) AS VARCHAR), '')
-					+ ISNULL(CAST(RIGHT(RTRIM(@v_country), 20) AS VARCHAR), '')
-					+ ISNULL(CAST(RIGHT(RTRIM(@v_email), 50) AS VARCHAR), '')
-					+ ISNULL(CAST(RIGHT(RTRIM(@institution_code), 4) AS VARCHAR), '')
-					+ ISNULL(CAST(RIGHT(RTRIM(@field_of_study), 2) AS VARCHAR), '')
-					+ ISNULL(CAST(CAST(@program_year AS VARCHAR) AS VARCHAR), '')
-					+ ISNULL(CAST(CAST(@program_year_total AS VARCHAR) AS VARCHAR), '')
-					+ ISNULL(CAST(CONVERT(VARCHAR, @classes_start, 112) AS VARCHAR), '')
-					+ ISNULL(CAST(CONVERT(VARCHAR, @classes_end, 112) AS VARCHAR), '')
-					+ ISNULL(CAST(RIGHT('000000' + CAST(ABS(@csl_amount) AS VARCHAR), 6) AS VARCHAR), '')
-					+ ISNULL(CAST('F' AS VARCHAR), '')
-					+ ISNULL(CAST(RIGHT('  ', 2) AS VARCHAR), '')
-					+ ISNULL(CAST(RIGHT(RTRIM(@transaction_number), 8) AS VARCHAR), '')
-					+ ISNULL(CAST(RIGHT('00000000' + CONVERT(VARCHAR, @not_before_date, 112), 8) AS VARCHAR), '')
-					+ ISNULL(CAST(RIGHT('00000000' + CONVERT(VARCHAR, @issue_date, 112), 8) AS VARCHAR), '')
-					+ ISNULL(CAST(@v_status AS VARCHAR), '')
-					+ ISNULL(CAST(RIGHT(RTRIM(@study_weeks), 2) AS VARCHAR), '')
-					+ ISNULL(CAST(RIGHT('00000' + CAST(ABS(@cag_pd_amount) AS VARCHAR), 5) AS VARCHAR), '')
-					+ ISNULL(CAST(RIGHT('00000' + CAST(ABS(@cag_li_amount) AS VARCHAR), 5) AS VARCHAR), '')
-					+ ISNULL(CAST(RIGHT('00000' + CAST(ABS(@tg_amount) AS VARCHAR), 5) AS VARCHAR), '')
-					+ ISNULL(CAST(RIGHT('00000' + CAST(ABS(@v_total_grant) AS VARCHAR), 5) AS VARCHAR), '')
-					+ ISNULL(CAST(RIGHT('00000' + CAST(ABS(@csgli_nbd_amount) AS VARCHAR), 5) AS VARCHAR), '')
-					+ ISNULL(CAST(RIGHT('00000' + CAST(ABS(@csgmi_nbd_amount) AS VARCHAR), 5) AS VARCHAR), '')
-					+ ISNULL(CAST(RIGHT('00000' + CAST(ABS(@csgpd_nbd_amount) AS VARCHAR), 5) AS VARCHAR), '')
-					+ ISNULL(CAST(RIGHT('00000' + CAST(ABS(@csgdep_nbd_amount) AS VARCHAR), 5) AS VARCHAR), '')
-					+ ISNULL(CAST(RIGHT('00000' + CAST(ABS(@csgse_nbd_amount) AS VARCHAR), 5) AS VARCHAR), '')
-					+ ISNULL(CAST(RIGHT('                    ', 20) AS VARCHAR), '')
-					+ ISNULL(CAST(@v_mid_point_date AS VARCHAR), '')
-					+ ISNULL(CAST(RIGHT('00000' + CAST(ABS(@csgli_mid_amount) AS VARCHAR), 5) AS VARCHAR), '')
-					+ ISNULL(CAST(RIGHT('00000' + CAST(ABS(@csgmi_mid_amount) AS VARCHAR), 5) AS VARCHAR), '')
-					+ ISNULL(CAST(RIGHT('00000' + CAST(ABS(@csgpd_mid_amount) AS VARCHAR), 5) AS VARCHAR), '')
-					+ ISNULL(CAST(RIGHT('00000' + CAST(ABS(@csgdep_mid_amount) AS VARCHAR), 5) AS VARCHAR), '')
-					+ ISNULL(CAST(RIGHT('00000' + CAST(ABS(@csgse_mid_amount) AS VARCHAR), 5) AS VARCHAR), '')
-					+ ISNULL(CAST(RIGHT('                    ', 20) AS VARCHAR), '')		
-				);					
+				SET @out_record2 = ISNULL(@out_record2, '') + (
+					'D'
+					+ ISNULL(LEFT(CAST(@sin AS VARCHAR(20)) + '         ', 9), '')
+					+ ISNULL(LEFT(CAST(@student_number AS VARCHAR (20)) + '            ', 12), '')
+					+ ISNULL(LEFT(CAST(@marital_status AS VARCHAR (20)) + ' ', 1), '')
+					+ ISNULL(LEFT(CAST(@gender AS VARCHAR (20)) + ' ', 1), '')
+					+ ISNULL(LEFT(CAST(@language_id AS VARCHAR (20)) + ' ', 1)	, '')
+					+ ISNULL(RIGHT('00000000' + CAST(@birth_date AS VARCHAR(100)), 8), '')
+					+ ISNULL(LEFT(CAST(@last_name AS VARCHAR(100)) + '                                                  ',50), '')
+					+ ISNULL(LEFT(CAST(@first_name AS VARCHAR(100)) + '                         ',25), '')
+					+ ISNULL(LEFT(CAST(@v_address1 AS VARCHAR(100)) + '                                                  ',50), '')
+					+ ISNULL(LEFT(CAST(@v_address2 AS VARCHAR(100)) + '                                                  ',50), '')
+					+ ISNULL(LEFT(CAST(@v_city AS VARCHAR(100)) + '                            ',28), '')
+					+ ISNULL(LEFT(CAST(@v_province AS VARCHAR(100)) + '  ',2), '')
+					+ ISNULL(LEFT(CAST(@v_phone AS VARCHAR(100)) + '                    ',20), '')
+					+ ISNULL(LEFT(CAST(@v_postal_code AS VARCHAR(100)) + '      ',6), '')
+					+ ISNULL(LEFT(CAST(@v_country AS VARCHAR(100)) + '                    ',20), '')
+					+ ISNULL(LEFT(CAST(@v_email AS VARCHAR(100)) + '                                                  ',50), '')
+					+ ISNULL(LEFT(CAST(@institution_code AS VARCHAR(100)) + '    ',4), '')
+					+ ISNULL(LEFT(CAST(@field_of_study AS VARCHAR(100)) + '  ',2), '')
+					+ ISNULL(CAST(@program_year AS VARCHAR(100)), '')
+					+ ISNULL(CAST(@program_year_total AS VARCHAR(100)), '')
+					+ ISNULL(CAST(@classes_start AS VARCHAR(100))	    							, '')
+					+ ISNULL(CAST(@classes_end AS VARCHAR(100)), '')
+					+ ISNULL(RIGHT('000000' + CAST(ABS(@csl_amount) AS VARCHAR(100)), 6), '')
+					+ ISNULL(@pt_indicator, '')
+					+ ISNULL(LEFT(' ' + '  ', 2), '')
+					+ ISNULL(LEFT(CAST(@transaction_number AS VARCHAR(100)) + '        ',8), '')
+					+ ISNULL(RIGHT('00000000' + CAST(@not_before_date AS VARCHAR(100)), 8), '')
+					+ ISNULL(RIGHT('00000000' + CAST(@issue_date AS VARCHAR(100)), 8), '')
+					+ ISNULL(CAST(@v_status AS VARCHAR(1)), '')
+					+ ISNULL(CAST(@study_weeks AS VARCHAR(100)), '')
+					+ ISNULL(RIGHT('000000' + CAST(@cag_pd_amount AS VARCHAR(100)), 6), '')
+					+ ISNULL(RIGHT('000000' + CAST(@cag_li_amount AS VARCHAR(100)), 6), '')
+					+ ISNULL(RIGHT('000000' + CAST(@tg_amount AS VARCHAR(100)), 6), '')
+					+ ISNULL(RIGHT('00000' + CAST(@v_total_grant AS VARCHAR(100)), 5), '')
+					+ ISNULL(RIGHT('00000' + CAST(@csgli_nbd_amount AS VARCHAR(100)), 5), '')
+					+ ISNULL(RIGHT('00000' + CAST(@csgmi_nbd_amount AS VARCHAR(100)), 5), '')
+					+ ISNULL(RIGHT('00000' + CAST(@csgpd_nbd_amount AS VARCHAR(100)), 5), '')
+					+ ISNULL(RIGHT('00000' + CAST(@csgdep_nbd_amount AS VARCHAR(100)), 5), '')
+					+ '00000'
+					+ ISNULL(LEFT(' ' + '                    ', 20), '')
+					+ ISNULL(CAST(@v_mid_point_date AS VARCHAR(100)), '')
+					+ ISNULL(RIGHT('00000' + CAST(@csgli_mid_amount AS VARCHAR(100)), 5), '')
+					+ ISNULL(RIGHT('00000' + CAST(@csgmi_mid_amount AS VARCHAR(100)), 5), '')
+					+ ISNULL(RIGHT('00000' + CAST(@csgpd_mid_amount AS VARCHAR(100)), 5), '')
+					+ ISNULL(RIGHT('00000' + CAST(@csgdep_mid_amount AS VARCHAR(100)), 5), '')
+					+ '00000'
+					+ ISNULL(LEFT(' ' + '                    ', 20), '')
+					+ ISNULL(LEFT(@v_enrol_conf_status + ' ', 1), '')
+					+ '00000000'    
+					+ '00000000'    
+					+ ISNULL(LEFT(@study_area + '                                                  ',50), '')
+					+ ISNULL(@perm_disabled_indicator, '')
+					+ ISNULL(@persist_disabled_indicator, '')
+					+ ISNULL(@percent_of_full_time, '')
+					+ ISNULL(LEFT(' ' + '                          ', 26), '')
+);
 	                
 	               
 	        	SET @v_count = @v_count + 1;
@@ -4226,16 +4162,16 @@ BEGIN
 						SET @v_cancel_disburse = @v_cancel_disburse + @csl_amount;
 					END					
 			END;	
-		
+				
 			SET @out_record3 = 'T' + RIGHT('000000' + CAST(@v_count AS VARCHAR), 6)
                 + RIGHT('000000000' + CAST(ABS(@v_all_disburse) AS VARCHAR), 9)
                 + RIGHT('000000000' + CAST(ABS(@v_cancel_disburse) AS VARCHAR), 9)
-                + REPLICATE(' ', 487);				
+                + REPLICATE(' ', 587);				
 		CLOSE cur_cslft;		
 		DEALLOCATE cur_cslft;	
 	
 		SET @out_record4 = @out_record + @out_record2;
-		RETURN @v_file_name + char(10) + char(13) + @out_record + char(10) + char(13) + @out_record2 + char(10) + char(13) + @out_record3;
+		RETURN @v_file_name + @out_record + @out_record2 + @out_record3;	
 				
 END
 GO
@@ -4633,3 +4569,18 @@ BEGIN
   RETURN @wk_allowed;
 END
 GO
+
+CREATE OR ALTER FUNCTION sfa.fn_get_study_area_fct (@study_area_id_p INT)
+RETURNS VARCHAR(255) 
+AS
+BEGIN
+    DECLARE @description VARCHAR(255);
+    
+    SELECT @description = description
+    FROM sfa.study_area
+    WHERE id = @study_area_id_p;
+    
+    RETURN @description;
+END
+GO
+END;

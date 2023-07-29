@@ -21,24 +21,34 @@ cslCertificateExportRouter.get("/:FROM_DATE_P/:TO_DATE_P/:CSL_CERT_SEQ_P",
         const { CSL_CERT_SEQ_P, FROM_DATE_P, TO_DATE_P} = req.params;
         
         try {                     
-            const results = await db.select('s.id', db.raw('CONCAT(p.last_name, \', \', p.first_name) AS name'), db.raw('ROUND(d.disbursed_amount, 0) AS csl_amount'), 'd.transaction_number', 'd.issue_date', 'd.due_date', 'r.description')
+            const results = await db.select('s.id', db.raw('CONCAT(p.last_name, \', \', p.first_name) AS name'), 
+            db.raw('ISNULL(ROUND(d.disbursed_amount, 0), 0) AS csl_amount'), 
+            'd.transaction_number', 
+            'd.issue_date', 
+            'd.due_date', 
+            'r.description')
             .from('sfa.student AS s')
             .join('sfa.person AS p', 's.person_id', '=', 'p.id')
             .join('sfa.application AS hd', 's.id', '=', 'hd.student_id')
             .join('sfa.funding_request AS fr', 'hd.id', '=', 'fr.application_id')
             .join('sfa.disbursement AS d', 'fr.id', '=', 'd.funding_request_id')
             .join('sfa.request_type AS r', 'fr.request_type_id', '=', 'r.id')
-            .where('d.csl_cert_seq_number', '=', CSL_CERT_SEQ_P)            
+            .join('sfa.msfaa AS m', 's.id', '=', 'm.student_id')
+            .where('d.csl_cert_seq_number', '=', CSL_CERT_SEQ_P)                        
             .andWhere('d.issue_date', '>=', FROM_DATE_P)
-            .andWhere('d.issue_date', '<=', TO_DATE_P)            
+            .andWhere('d.issue_date', '<=', TO_DATE_P)  
+            .andWhere('m.msfaa_status', '=', 'Received')          
+            .andWhere('m.is_full_time', '=', db.raw('CAST(CASE d.disbursement_type_id WHEN 4 THEN 1 ELSE 0 END AS BIT)'))
+            .orWhere('hd.academic_year_id', '<=', 2012);
             
             if(results) {
                 const results2 = await db.raw(
                     'SELECT sfa.fn_cert_data(?, ?, ?)',
-                    [CSL_CERT_SEQ_P, FROM_DATE_P, TO_DATE_P]                    
-                  );      
+                    [CSL_CERT_SEQ_P, FROM_DATE_P, TO_DATE_P]                                        
+                  );     
+                                    
                   if (results2) {
-                    return res.status(200).json({ success: true, data1: results, data2:results2 });
+                    return res.status(200).json({ success: true, data1: results, data2:results2, batch: CSL_CERT_SEQ_P});
                 } else {
                     return res.status(404).send();
                 }                
@@ -95,9 +105,8 @@ cslCertificateExportRouter.put("/:FROM_DATE_P/:TO_DATE_P",
                         .from('sfa.disbursement as d1')
                         .join('sfa.funding_request as fr1', 'd1.funding_request_id', '=', 'fr1.id')
                         .whereIn('fr1.request_type_id', [4, 5]);
-                    });
-                    
-                    
+                    });                                                                            
+
                     if(innerSelect.length > 0) {                           
                         for(let element of innerSelect) {
                             const updateDisb = await db.raw(`UPDATE sfa.disbursement SET csl_cert_seq_number = ${nextVal[0].nextVal} WHERE id = ${element.id}`)                                                        

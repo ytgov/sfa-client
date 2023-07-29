@@ -83,12 +83,11 @@
         
           
         <div class="col-md-2">
-          <v-btn @click="generateReport" class="my-0" color="primary"><v-icon>mdi-plus</v-icon> Export</v-btn>
+          <v-btn @click="generateReport" class="my-0" color="primary"><v-icon>mdi-plus</v-icon> Export</v-btn>          
         </div>
       </div>
       </v-card-text>
   </v-card>
-      
   </div>
 </template>
 
@@ -107,13 +106,14 @@ export default {
     from: {
       date: null,
       menu: null
+      
     },
     to: {
       date: null,
       menu: null
     },
-    seqNum: null,
-    tableData: null
+    seqNum: null,    tableData: null,
+    batch: null
   }),
   components: {},
   computed: {
@@ -136,28 +136,24 @@ export default {
 
         if(resInsert2) {
           this.tableData = resInsert2.data.data1;
+          this.batch =  resInsert2.data.batch;
+
+
           this.generatePDF();
-          console.log(resInsert2.data.data1)
-          console.log(resInsert2.data.data2)        
           
-          let FileSaver = require('file-saver');                                                  
-          const regex = /PPYT\.EDU\.CERTS\.D(\d+)\.001/;
+          
+          let FileSaver = require('file-saver');                                                            
+          const regex = /PPYT\.EDU\.CERTS\.D\d+\.001/;
           const match = resInsert2.data.data2[0][''].match(regex);
           const resultado = match ? match[0] : null;
 
 
-          let blob = new Blob([resInsert2.data.data2[0][''].replace(/PPYT\.EDU\.CERTS\.D(\d+)\.001\n/, '')], {type: "text/plain;charset=utf-8"});    
-          FileSaver.saveAs(blob, `${resultado}.txt`);
-          
+          let blob = new Blob([resInsert2.data.data2[0][''].replace(/PPYT\.EDU\.CERTS\.D\d+\.001/, '')], {type: "text/plain;charset=utf-8"});    
+          FileSaver.saveAs(blob, `${resultado}.txt`);          
           
         }
       }
 
-
-
-      
-      
-      
     },
     formattedDate(date, format) {        
       if(format === 1) {               
@@ -171,6 +167,7 @@ export default {
           return this.strMonth(date);
       }
     },
+    
     strMonth(month) {
       let stringMonth = "";
       switch(parseInt(month)) {
@@ -214,46 +211,15 @@ export default {
                   stringMonth = "?"                        
           }       
       return stringMonth.toUpperCase();                    
-  },
+    },
     generatePDF() {                   
       const doc = new jsPDF();        
       const formatter = new Intl.NumberFormat('en-US', {
         style: 'currency',
         currency: 'USD',
-      });
-      let dataColumns = "";
-      for(let col of this.tableData) {
-        
-        dataColumns += "<tr style='text-align: center'>"
-          dataColumns += "<td>"
-          dataColumns += col.id;
-          dataColumns += "</td>"
+      });      
 
-          dataColumns += "<td>"
-          dataColumns += col.name;
-          dataColumns += "</td>"
-
-          dataColumns += "<td>"
-          dataColumns += col.description;
-          dataColumns += "</td>"
-
-          dataColumns += "<td>"
-          dataColumns += formatter.format(col.csl_amount);
-          dataColumns += "</td>"
-
-          dataColumns += "<td>"
-          dataColumns += this.formattedDate(col.issue_date.toString().slice(0, 10), 1);
-          dataColumns += "</td>"
-
-          dataColumns += "<td>"
-          dataColumns += this.formattedDate(col.due_date.toString().slice(0, 10), 1);
-          dataColumns += "</td>"
-        dataColumns += "</tr>"
-            
-      }
-      
-
-      let html = `<div style="width: 190px">
+      let htmlTop = `<div style="width: 190px">
   <header
     style="
       display: flex;
@@ -283,7 +249,8 @@ export default {
     >
       <p>GOVERNMENT OF YUKON, DEPARTMENT OF EDUCATION</p>
       <p>STUDENT FINANCIAL ASSISTANCE</p>
-      <p style="font-size: 5px">CSL Entitlement List</p>
+      <p style="font-size: 5px; margin-bottom: 1px;">CSL Entitlement List</p>
+      <p style="font-size: 3.1px; font-weight: 400;">FROM: ${this.formattedDate(this.from.date, 1)} TO: ${this.formattedDate(this.to.date, 1)}</p>
     </div>
   </header>
 
@@ -293,6 +260,7 @@ export default {
     alt=""
   />
 
+  <p style="font-size: 3px; padding: 0 15px">BATCH ID: ${this.batch}</p>
   <table style="font-size: 3px; width: 160px; margin: 0 15px"
     <thead>
       <tr>
@@ -306,19 +274,53 @@ export default {
     </thead>
 `;
 
-html += dataColumns;
-html += `
-</table>
-</div>`
+      let dataColumns = "";
+      let idx = 0;
 
-      let fileName = `doc`
-      doc.html(html, {
-          callback: function (doc) {
-          doc.save(fileName);
-      },
-      x: 10,
-      y: 10
-      });       
+      for(let col of this.tableData) {             
+          dataColumns += "<tr style='text-align: center;'>"
+          dataColumns += "<td>"
+            dataColumns += col.id;
+          dataColumns += "</td>"
+
+          dataColumns += "<td>"
+          dataColumns += col.name;
+          dataColumns += "</td>"
+
+          dataColumns += "<td>"
+          dataColumns += col.description;
+          dataColumns += "</td>"
+
+          dataColumns += "<td>"
+          dataColumns += formatter.format(col.csl_amount);
+          dataColumns += "</td>"
+
+          dataColumns += "<td>"          
+          dataColumns += col.issue_date ? this.formattedDate(col.issue_date, 1) : null;
+          dataColumns += "</td>"
+
+          dataColumns += "<td>"
+          dataColumns += col.due_date ? this.formattedDate(col.due_date, 1) : null;
+
+          dataColumns += "</td>"                         
+        dataColumns += "</tr>"                              
+      }
+
+  let htmlBottom = `
+  </table>
+  </div>`
+
+  let finalHTML = htmlTop + dataColumns + htmlBottom;
+      
+  let fileName = `doc`
+  doc.html(finalHTML, {
+    callback: function (doc) {      
+      doc.save(fileName);
+  },
+  x: 10,
+  y: 10
+  });
+ 
     },   
   },
 };
