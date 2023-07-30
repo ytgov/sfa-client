@@ -17,7 +17,8 @@
                     hide-details
                     label="MSFAA Number"
                     @keypress="validate.isNumber($event)"
-                    v-model="msfaa_number"
+                    :disabled="showAdd"
+                    v-model="cslft_msfaa.id"
                   ></v-text-field>
                 </div>
                 <div class="col-xs-12 col-sm-10 col-md-10 col-lg-10 mobile-low-margin">
@@ -34,7 +35,7 @@
                     <template v-slot:activator="{ on, attrs }">
                       <v-text-field
                         :disabled="showAdd"
-                        v-model="assessed_date"
+                        v-model="cslft_msfaa_date_issued_formatted"
                         label="Date Issued"
                         append-icon="mdi-calendar"
                         hide-details
@@ -48,7 +49,7 @@
                     </template>
                     <v-date-picker
                       :disabled="showAdd"
-                      v-model="date_issued"
+                      v-model="cslft_msfaa.date_issued"
                       @input="date_issued_menu = false"
                     ></v-date-picker>
                   </v-menu>
@@ -67,7 +68,7 @@
                     <template v-slot:activator="{ on, attrs }">
                       <v-text-field
                         :disabled="showAdd"
-                        v-model="date_sent_to_nslsc"
+                        v-model="cslft_msfaa_date_sent_formatted"
                         label="Date Sent to NSLSC"
                         append-icon="mdi-calendar"
                         hide-details
@@ -81,7 +82,7 @@
                     </template>
                     <v-date-picker
                       :disabled="showAdd"
-                      v-model="date_sent_to_nslsc"
+                      v-model="cslft_msfaa.sent_date"
                       @input="date_sent_to_nslsc_menu = false"
                     ></v-date-picker>
                   </v-menu>
@@ -100,7 +101,7 @@
                     <template v-slot:activator="{ on, attrs }">
                       <v-text-field
                         :disabled="showAdd"
-                        v-model="date_student_signed"
+                        v-model="cslft_msfaa_date_signed_formatted"
                         label="Date Student Signed"
                         append-icon="mdi-calendar"
                         hide-details
@@ -114,7 +115,7 @@
                     </template>
                     <v-date-picker
                       :disabled="showAdd"
-                      v-model="date_student_signed"
+                      v-model="cslft_msfaa.date_signed"
                       @input="date_student_signed_menu = false"
                     ></v-date-picker>
                   </v-menu>
@@ -133,7 +134,7 @@
                     <template v-slot:activator="{ on, attrs }">
                       <v-text-field
                         :disabled="showAdd"
-                        v-model="date_received_by_nslsc"
+                        v-model="cslft_msfaa_date_received_formatted"
                         label="Date Received by NSLSC"
                         append-icon="mdi-calendar"
                         hide-details
@@ -147,7 +148,7 @@
                     </template>
                     <v-date-picker
                       :disabled="showAdd"
-                      v-model="date_received_by_nslsc"
+                      v-model="cslft_msfaa.date_received"
                       @input="date_received_by_nslsc_menu = false"
                     ></v-date-picker>
                   </v-menu>
@@ -160,7 +161,8 @@
                     hide-details
                     label="NSLSC Status"
                     @keypress="validate.isNumber($event)"
-                    v-model="nslsc_status"
+                    :disabled="showAdd"
+                    v-model="cslft_msfaa.msfaa_status"
                   ></v-text-field>
                 </div>
               </div>
@@ -180,7 +182,7 @@
                     <template v-slot:activator="{ on, attrs }">
                       <v-text-field
                         :disabled="showAdd"
-                        v-model="date_cancelled"
+                        v-model="cslft_msfaa_date_cancelled_formatted"
                         label="Date Cancelled"
                         append-icon="mdi-calendar"
                         hide-details
@@ -194,7 +196,7 @@
                     </template>
                     <v-date-picker
                       :disabled="showAdd"
-                      v-model="date_cancelled"
+                      v-model="cslft_msfaa.date_cancelled"
                       @input="date_cancelled_menu = false"
                     ></v-date-picker>
                   </v-menu>
@@ -206,7 +208,8 @@
                     background-color="white"
                     hide-details
                     label="Cancelled Reason"
-                    v-model="cancelled_reason"
+                    :disabled="showAdd"
+                    v-model="cslft_msfaa.cancelled_reason"
                   ></v-text-field>
                 </div>
                 <div class="col-xs-12 col-sm-10 col-md-10 col-lg-6">
@@ -216,6 +219,7 @@
                     background-color="white"
                     hide-details
                     label="Home Email"
+                    :disabled="showAdd"
                     v-model="home_email"
                   ></v-text-field>
                 </div>
@@ -226,7 +230,8 @@
                     background-color="white"
                     hide-details
                     label="Reminder Sent"
-                    v-model="reminder_sent"
+                    :disabled="showAdd"
+                    v-model="cslft_msfaa.last_reminder_sent"
                   ></v-text-field>
                 </div>
                 <div class="col-xs-12 col-sm-10 col-md-10 col-lg-6">
@@ -236,7 +241,8 @@
                     background-color="white"
                     hide-details
                     label="Update Status"
-                    v-model="update_status"
+                    :items="['Pending', 'Received']"                    
+                    v-model="cslft_msfaa.msfaa_status"
                   ></v-select>
                 </div>
               </div>
@@ -349,12 +355,32 @@
 <script>
 import store from "@/store";
 import validator from "@/validator";
+import {mapGetters, mapState} from "vuex";
+import {ref} from "vue";
+
 export default {
   name: "cslft-msfaa",
+  setup() {
+    const showAdd = ref(true);
+        
+    return {
+      showAdd,
+    }
+  },
   computed: {
+    ...mapState({
+      cslft_msfaa: state => state.cslft.cslft_msfaa
+    }),
+    ...mapGetters([
+      "cslft_msfaa_date_issued_formatted",
+      "cslft_msfaa_date_received_formatted",
+      "cslft_msfaa_date_sent_formatted",
+      "cslft_msfaa_date_signed_formatted",
+      "cslft_msfaa_date_cancelled_formatted",
+    ]),
     application: function () {
       return store.getters.selectedApplication;
-    },
+    }
   },
   async created() {
     this.validate = validator;

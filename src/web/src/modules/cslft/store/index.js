@@ -13,13 +13,22 @@ const mutations = {
     },
     getCslftAssessInfo(state, payload) {
         state.cslft = payload.data;
-        state.cslft_disbursement = payload.disbursements[0];
-        state.funding_request = payload.funding_request;
+        if ((payload.disbursements?.length ?? 0) > 0) {
+            state.cslft_disbursement = payload.disbursements;
+        }
+        state.funding_request = payload.funding_request;        
+        if (payload.msfaa)
+        {
+            state.cslft_msfaa = payload.msfaa;
+        }
     },
     loadModelsDisburse(state, disburseModel) {
         state.cslft = disburseModel.data;
         state.funding_request = disburseModel.funding_request;
-        state.cslft_disbursement = disburseModel.disbursements[0];
+        if ((disburseModel.disbursements?.length ?? 0) > 0) {
+            state.cslft_disbursement = disburseModel.disbursements;
+        }
+        state.cslft_msfaa = disburseModel.msfaa;
     },
     loadFundingRequest(state, funding_request) {
         state.funding_request = funding_request;
@@ -56,6 +65,15 @@ const mutations = {
     },
     setCslftPrestudyEndDate(state, value) {
         state.cslft.pstudy_end_date = moment(value).format();
+    },
+    setCslftDisbursementItems(state, disbursement) {
+        state.cslft_disbursement = disbursement;        
+    },
+    setPreviousDisbursement(state, value) {
+        state.cslft.previous_disbursement = value;
+    },
+    setNetAmount(state, value) {
+        state.cslft.net_amount = value;
     }
 };
 const actions = {
@@ -81,8 +99,10 @@ const actions = {
     },
     async getCslftRecalc({ commit, getters }) {
         const assessment = getters.cslft_get_assessment;
+        const disbursements = getters.cslft_get_disbursements;
         const body = {
-            assessment: assessment
+            assessment: assessment,
+            disbursements: disbursements
         };
         const res = await axios.post(`${CSLFT}/${assessment.funding_request_id}/recalc`, body);
         if (res?.data?.success) {
@@ -92,8 +112,10 @@ const actions = {
     },
     async getCslftDisburse({ commit, getters }) {
         const assessment = getters.cslft_get_assessment;
+        const disbursements = getters.cslft_get_disbursements;
         const body = {
-            assessment: assessment
+            assessment: assessment,
+            disbursements: disbursements
         };
         const res = await axios.post(`${CSLFT}/${assessment.funding_request_id}/disburse`, body);
         if (res?.data?.success) {
@@ -104,11 +126,13 @@ const actions = {
         const assessment = getters.cslft_get_assessment;
         const disbursements = getters.cslft_get_disbursements;
         const funding_request = getters.cslft_get_funding_request;
+        const msfaa = getters.cslft_get_msfaa;
         const body = {
             payload: {
                 data: assessment,
-                disbursements: [disbursements],
+                disbursements: disbursements,
                 funding_request: funding_request,
+                msfaa: msfaa
             },
         };
 
@@ -195,6 +219,17 @@ const actions = {
                     break;
             }
         }
+    },
+    async setCslftDisbursementItems(state, {index, val}) {
+        if (val) {
+            state.commit("setCslftDisbursementItems", {index, val});
+        }
+    },
+    async setPreviousDisbursement(state, value) {
+        state.commit("setPreviousDisbursement", value);
+    },
+    async setNetAmount(state, value) {
+        state.commit("setNetAmount", value);
     }
 };
 const getters = {
@@ -207,6 +242,9 @@ const getters = {
     },
     cslft_get_funding_request(state) {
         return state.funding_request;
+    },
+    cslft_get_msfaa(state) {
+        return state.cslft_msfaa;
     },
     cslft_assessed_date_formatted (state) {
         if (state.cslft.assessed_date) {
@@ -346,6 +384,21 @@ const getters = {
     cslft_calculated_award(state, getters) {
         const minVal = Math.min(getters.cslft_assess_needed_sixty_pct - numHelper.getNum(state.cslft.total_grant_awarded), getters.cslft_max_allowable);
         return Math.max(0, numHelper.round(minVal));
+    },
+    cslft_msfaa_date_issued_formatted(state) {
+        return dateHelper.getDateFromUTC(state.cslft_msfaa.date_issued);
+    },
+    cslft_msfaa_date_received_formatted(state) {
+        return dateHelper.getDateFromUTC(state.cslft_msfaa.date_received);
+    },
+    cslft_msfaa_date_sent_formatted(state) {
+        return dateHelper.getDateFromUTC(state.cslft_msfaa.date_sent);
+    },
+    cslft_msfaa_date_signed_formatted(state) {
+        return dateHelper.getDateFromUTC(state.cslft_msfaa.date_signed);
+    },
+    cslft_msfaa_date_cancelled_formatted(state) {
+        return dateHelper.getDateFromUTC(state.cslft_msfaa.date_cancelled);
     },
 };
 

@@ -225,7 +225,6 @@
                 <div class="col-xs-12 col-sm-12 col-lg-12 nopadding d-flex flex-wrap">
                   <div class="col-xs-12 col-lg-12">
                     <v-select
-                      :disabled="showAdd"
                       outlined
                       dense
                       background-color="white"
@@ -239,7 +238,6 @@
                   </div>
                   <div class="col-xs-12 col-lg-12">
                     <v-select
-                      :disabled="showAdd"
                       outlined
                       dense
                       background-color="white"
@@ -334,16 +332,16 @@
           <div class="col-xs-1 col-sm-1 col-lg-1 nopadding d-flex align-center justify-center">
             <p class="nomargin">Batch ID</p>
           </div>
-        </div>
-        <div class="col-xs-12 col-sm-12 col-lg-12 d-flex low-margin noppading-top">
-          <div class="col-xs-1 col-sm-1 col-lg-1 nopadding">
+        </div>        
+        <div class="col-xs-12 col-sm-12 col-lg-12 d-flex low-margin noppading-top" v-for="disbursement, idx in cslft_disbursement" :key="idx">          
+          <div class="col-xs-1 col-sm-1 col-lg-1 nopadding">            
             <v-text-field
               outlined
               dense
               background-color="white"
               hide-details
               @keypress="validate.isNumber($event)"
-              v-model="cslft_disbursement.transaction_number"
+              v-model="disbursement.transaction_number"
             ></v-text-field>
           </div>
           <div class="col-xs-2 col-sm-2 col-lg-2 nopadding">
@@ -353,96 +351,46 @@
               background-color="white"
               hide-details
               @keypress="validate.isNumber($event)"
-              v-model="cslft_disbursement.disbursed_amount"
+              v-model="disbursement.disbursed_amount"
             ></v-text-field>
           </div>
           <div class="col-xs-2 col-sm-2 col-lg-2 nopadding">
             <v-select
-              :disabled="showAdd"
+              :disabled="blockDisbursement"
               outlined
               dense
               background-color="white"
               hide-details
-              v-model="cslft_disbursement.disbursement_type_id"
+              v-model="disbursement.disbursement_type_id"
               :items="disbursementTypes"
               item-text="description"
               item-value="id"
             ></v-select>
           </div>
           <div class="col-xs-1 col-sm-1 col-lg-1 nopadding">
-            <v-menu
-              :disabled="showAdd"
-              v-model="due_date_menu"
-              :close-on-content-click="false"
-              transition="scale-transition"
-              left
-              nudge-top="26"
-              offset-y
-              min-width="auto"
-            >
-              <template v-slot:activator="{ on, attrs }">
-                <v-text-field
-                  :disabled="showAdd"
-                  v-model="due_date"
-                  label="Due Date"
-                  append-icon="mdi-calendar"
-                  hide-details
-                  readonly
-                  outlined
-                  dense
-                  background-color="white"
-                  v-bind="attrs"
-                  v-on="on"
-                ></v-text-field>
-              </template>
-              <v-date-picker
-                :disabled="showAdd"
-                v-model="cslft_disbursement.due_date"
-                @input="due_date_menu = false"
-              ></v-date-picker>
-            </v-menu>
+            <DateInput
+              label="Due Date"
+              :menu="due_date_menu"
+              :disabled="blockDisbursement"
+              v-model="disbursement.due_date"
+            ></DateInput>
           </div>
           <div class="col-xs-1 col-sm-1 col-lg-1 nopadding">
-            <v-menu
-              :disabled="showAdd"
-              v-model="issue_date_menu"
-              :close-on-content-click="false"
-              transition="scale-transition"
-              left
-              nudge-top="26"
-              offset-y
-              min-width="auto"
-            >
-              <template v-slot:activator="{ on, attrs }">
-                <v-text-field
-                  :disabled="showAdd"
-                  v-model="cslft_disbursement_issue_date_formatted"
-                  label="Issue Date"
-                  append-icon="mdi-calendar"
-                  hide-details
-                  readonly
-                  outlined
-                  dense
-                  background-color="white"
-                  v-bind="attrs"
-                  v-on="on"
-                ></v-text-field>
-              </template>
-              <v-date-picker
-                :disabled="showAdd"
-                v-model="cslft_disbursement.issue_date"
-                @input="issue_date_menu = false"
-              ></v-date-picker>
-            </v-menu>
+            <DateInput
+              label="Issue Date"
+              :menu="issue_date_menu"
+              :disabled="true"
+              v-model="disbursement.issue_date"
+            ></DateInput>
           </div>
           <div class="col-xs-4 col-sm-4 col-lg-4 nopadding">
             <v-select
-              :disabled="showAdd"
+              :disabled="blockDisbursement"
               outlined
               dense
               background-color="white"
               hide-details
-              v-model="cslft_disbursement.change_reason_id"
+              v-model="disbursement.change_reason_id"
               :items="changeReasons"
               item-text="description"
               item-value="id"
@@ -455,7 +403,7 @@
               background-color="white"
               hide-details
               @keypress="validate.isNumber($event)"
-              v-model="cslft_disbursement.financial_batch_id"
+              v-model="disbursement.financial_batch_id"
             ></v-text-field>
           </div>
         </div>
@@ -468,15 +416,29 @@ import store from "@/store";
 import validator from "@/validator";
 import {mapGetters, mapState} from "vuex";
 import {ref} from "vue";
+import { DateHelper } from "@/utilities";
+import DateInput from "../../../DateInput.vue";
+
+const dateHelper = new DateHelper();
+
 export default {
   name: "cslft-award",
+  components: {
+    DateInput
+  },
   setup() {
     const isTotal = ref(true);
     const showAdd = ref(true);
+    const blockDisbursement = ref(false);
+    const issue_date_menu = ref(false);
+    const due_date_menu = ref(false);
 
     return {
       isTotal,
       showAdd,
+      blockDisbursement,
+      issue_date_menu,
+      due_date_menu,
     }
   },
   computed: {
@@ -496,7 +458,7 @@ export default {
         "cslReasonOverAward",
         "changeReasons",
         "disbursementTypes",
-        "cslft_disbursement_issue_date_formatted"
+        "cslft_get_disbursements",
     ]),
     application: function () {
       return store.getters.selectedApplication;
@@ -508,6 +470,12 @@ export default {
     },
     executeDisburse() {
       store.dispatch("getCslftDisburse");
+    },
+    formatDate(value) {
+      if (value) {
+        return dateHelper.getDateFromUTC(value);
+      }
+      return null;
     }
   },
   watch: {
@@ -516,6 +484,22 @@ export default {
       handler(newValue) {
         console.log(newValue);
         store.dispatch("setCslftCalculatedAward", newValue);
+      }
+    },
+    cslft_disbursement: {
+      immediate: true,
+      deep: true,
+      handler(newVal) {
+        if (newVal.length > 0) {
+          let prevDis = 0;          
+          newVal.forEach((x) => {
+            prevDis += parseInt(x.disbursed_amount);
+          });
+          if (isNaN(prevDis)) {
+            prevDis = 0;
+          }
+          store.dispatch("setPreviousDisbursement", prevDis);
+        }
       }
     }
   },
