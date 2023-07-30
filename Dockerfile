@@ -1,4 +1,11 @@
-FROM node:14-alpine3.10
+FROM node:18.17.0-alpine3.17
+
+# See https://pptr.dev/chromium-support for supported chrome to puppeteer version.
+RUN apk add --no-cache \
+        chromium=112.0.5615.165-r0
+
+ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
+    PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
 
 RUN mkdir /home/node/app && chown -R node:node /home/node/app
 RUN mkdir /home/node/web && chown -R node:node /home/node/web

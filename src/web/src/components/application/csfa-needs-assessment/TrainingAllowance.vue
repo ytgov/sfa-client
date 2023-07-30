@@ -35,6 +35,10 @@
                 color="red" 
                 class="my-0"
                 block
+                @click="e => {
+                  exit();
+                  $emit('close');
+                }"
               >
               EXIT
               </v-btn>
@@ -107,6 +111,7 @@
                       :value="assessment.effective_rate_date?.slice(0, 10)"
                       @input="e => {
                         assessment.effective_rate_date = e;
+                        assessment.classes_start_date = e;
                         effective_rate_date_menu = false;
                       }"
                       @change="refresh"
@@ -115,6 +120,7 @@
                 </div>
                 <div class="col-xs-12 col-lg-12">
                   <v-menu
+                      disabled
                       v-model="classes_start_date_menu"
                       :close-on-content-click="false"
                       transition="scale-transition"
@@ -125,6 +131,7 @@
                     >
                       <template v-slot:activator="{ on, attrs }">
                         <v-text-field
+                          disabled
                           :value="assessment.classes_start_date?.slice(0, 10)"
                           label="Classes Start Date"
                           append-icon="mdi-calendar"
@@ -138,6 +145,7 @@
                         ></v-text-field>
                       </template>
                       <v-date-picker
+                        disabled
                         :value="assessment.classes_start_date?.slice(0, 10)"
                         @input="e => {
                           assessment.classes_start_date = e;
@@ -149,6 +157,7 @@
                 </div>
                 <div class="col-xs-12 col-lg-12">
                   <v-menu
+                      disabled
                       v-model="classes_end_date_menu"
                       :close-on-content-click="false"
                       transition="scale-transition"
@@ -159,6 +168,7 @@
                     >
                       <template v-slot:activator="{ on, attrs }">
                         <v-text-field
+                          disabled
                           :value="assessment.classes_end_date?.slice(0, 10)"
                           label="Classes End Date"
                           append-icon="mdi-calendar"
@@ -172,6 +182,7 @@
                         ></v-text-field>
                       </template>
                       <v-date-picker
+                        disabled
                         :value="assessment.classes_end_date?.slice(0, 10)"
                         @input="e => {
                           assessment.classes_start_date = e;
@@ -225,6 +236,19 @@
                 </div>
                 <div class="col-xs-12 col-lg-6">
                   <v-text-field
+                  v-if="institutionCode === 'LPAH'"
+                    outlined
+                    dense
+                    background-color="white"
+                    hide-details
+                    label="Entitlement Days"
+                    @keypress="validate.isNumber($event)"
+                    v-model="assessment.entitlement_days"
+                    @change="refresh"
+                  ></v-text-field>
+                </div>
+                <div class="col-xs-12 col-lg-6">
+                  <v-text-field
                     outlined
                     dense
                     background-color="white"
@@ -237,7 +261,7 @@
                 </div>
               </div>
             </div>
-            <div class="col-xs-12 col-lg-12 nopadding d-flex mobile-column-flex low-margin flex-wrap">
+            <div v-if="!(application.academic_year_id > 2016)" class="col-xs-12 col-lg-12 nopadding d-flex mobile-column-flex low-margin flex-wrap">
               <div class="col-xs-12 col-lg-12 nopadding">
                 <v-card-title>Pre Legislation Method</v-card-title>
               </div>
@@ -422,6 +446,7 @@
                     color="blue" 
                     class="my-0"
                     block
+                    @click="disburse"
                   >
                   DISBURSE
                   </v-btn>
@@ -436,28 +461,176 @@
       <v-card class="default mb-5 bg-color-blue">
         <v-card-title>Disbursement (s)</v-card-title>
         <div class="col-xs-12 col-sm-12 col-lg-12 d-flex noppading-bottom">
-          <div class="col-xs-2 col-sm-2 col-lg-2 nopadding d-flex align-center justify-center">
+          <div :class="[institutionCode === 'LPAH' ? 'col-xs-1 col-sm-1 col-lg-1' : 'col-xs-2 col-sm-2 col-lg-2', 'nopadding', 'd-flex', 'align-center', 'justify-center']" style="margin-right: 4px">
             <p class="nomargin">Disbursed Amt</p>
           </div>
-          <div class="col-xs-1 col-sm-1 col-lg-1 nopadding d-flex align-center justify-center">
+          <div class="col-xs-1 col-sm-1 col-lg-1 nopadding d-flex align-center justify-center" style="margin-right: 4px">
             <p class="nomargin">Reference #</p>
           </div>
-          <div class="col-xs-2 col-sm-2 col-lg-2 nopadding d-flex align-center justify-center">
+          <div class="col-xs-2 col-sm-2 col-lg-2 nopadding d-flex align-center justify-center" style="margin-right: 4px">
             <p class="nomargin">Disbursement Type</p>
           </div>
-          <div class="col-xs-1 col-sm-1 col-lg-1 nopadding d-flex align-center justify-center">
+          <div class="col-xs-1 col-sm-1 col-lg-1 nopadding d-flex align-center justify-center" style="margin-right: 4px">
             <p class="nomargin">Issue Date</p>
           </div>
-          <div class="col-xs-5 col-sm-5 col-lg-5 nopadding d-flex align-center justify-center">
+          <div class="col-xs-1 col-sm-1 col-lg-1 nopadding d-flex align-center justify-center" style="margin-right: 4px" v-if="institutionCode === 'LPAH'">
+                <p class="nomargin" style="font-size: 14px">Tax Year</p>
+            </div>
+            <div class="col-xs-1 col-sm-1 col-lg-1 nopadding d-flex align-center justify-center" style="margin-right: 4px" v-if="institutionCode === 'LPAH'">
+                <p class="nomargin" style="font-size: 14px">Due Date</p>
+            </div>
+          <div :class="[institutionCode === 'LPAH' ? 'col-xs-3 col-sm-3 col-lg-3' : 'col-xs-4 col-sm-4 col-lg-4', 'nopadding', 'd-flex', 'align-center', 'justify-center']" style="margin-right: 4px">
             <p class="nomargin">Change Reason</p>
           </div>
-          <div class="col-xs-1 col-sm-1 col-lg-1 nopadding d-flex align-center justify-center">
+          <div class="col-xs-1 col-sm-1 col-lg-1 nopadding d-flex align-center justify-center" :style="institutionCode === 'LPAH' ? 'margin-right: 4px' : ''">
             <p class="nomargin">Batch ID</p>
           </div>
         </div>
         <div v-for="item, index in disbursements" :key="index">
-          <div class="col-xs-12 col-sm-12 col-lg-12 d-flex noppading-bottom">
-            <div class="col-xs-12 col-sm-12 col-lg-12 nopadding d-flex align-end justify-end">
+          <div class="col-xs-12 col-sm-12 col-lg-12 d-flex noppading-top">
+            <div :class="[institutionCode === 'LPAH' ? 'col-xs-1 col-sm-1 col-lg-1' : 'col-xs-2 col-sm-2 col-lg-2', 'nopadding']" style="margin-right: 6px">
+              <v-text-field
+                outlined
+                dense
+                background-color="white"
+                hide-details
+                @keypress="validate.isNumber($event)"
+                :value="item.disbursed_amount"
+                @input="e => {
+                  if(isNaN(parseInt(e))) {
+                    item.disbursed_amount = 0;
+                  } else {
+                    item.disbursed_amount = parseInt(e);
+                  }
+                }"
+                @change="refresh"
+              ></v-text-field>
+            </div>
+            <div class="col-xs-1 col-sm-1 col-lg-1 nopadding" style="margin-right: 6px">
+              <v-text-field
+                outlined
+                dense
+                background-color="white"
+                hide-details
+                @keypress="validate.isNumber($event)"
+                v-model="item.transaction_number"
+                @change="refresh"
+              ></v-text-field>
+            </div>
+            <div class="col-xs-2 col-sm-2 col-lg-2 nopadding" style="margin-right: 6px">
+              <v-select
+                 
+                outlined
+                dense
+                background-color="white"
+                hide-details
+                v-model="item.disbursement_type_id"
+                @change="refresh"
+                :items="disbursementTypes"
+                item-text="description"
+                item-value="id"
+              ></v-select>
+            </div>
+            <div class="col-xs-1 col-sm-1 col-lg-1 nopadding" style="margin-right: 6px">
+              <v-menu
+                v-model="item.issue_date_menu"
+                :close-on-content-click="false"
+                transition="scale-transition"
+                left
+                nudge-top="26"
+                offset-y
+                min-width="auto"
+              >
+                <template v-slot:activator="{ on, attrs }">
+                  <v-text-field
+                    :value="item.issue_date?.slice(0, 10)"
+                    hide-details
+                    readonly
+                    outlined
+                    dense
+                    background-color="white"
+                    v-bind="attrs"
+                    v-on="on"
+                  ></v-text-field>
+                </template>
+                <v-date-picker
+                  :value="item.issue_date?.slice(0, 10)"
+                  @input="e => {
+                    item.issue_date = e;
+                    item.issue_date_menu = false;
+                  }"
+                  
+                ></v-date-picker>
+              </v-menu>
+            </div>
+            <div v-if="institutionCode === 'LPAH'" class="col-xs-1 col-sm-1 col-lg-1 nopadding" style="margin-right: 6px">
+              <v-text-field
+                outlined
+                dense
+                background-color="white"
+                hide-details
+                @keypress="validate.isNumber($event)"
+                v-model="item.tax_year"
+                @change="refresh"
+              ></v-text-field>
+            </div>
+            <div v-if="institutionCode === 'LPAH'" class="col-xs-1 col-sm-1 col-lg-1 nopadding" style="margin-right: 6px">
+              <v-menu
+                v-model="item.due_date_menu"
+                :close-on-content-click="false"
+                transition="scale-transition"
+                left
+                nudge-top="26"
+                offset-y
+                min-width="auto"
+              >
+                <template v-slot:activator="{ on, attrs }">
+                  <v-text-field
+                    :value="item.due_date?.slice(0, 10)"
+                    hide-details
+                    readonly
+                    outlined
+                    dense
+                    background-color="white"
+                    v-bind="attrs"
+                    v-on="on"
+                  ></v-text-field>
+                </template>
+                <v-date-picker
+                  :value="item.due_date?.slice(0, 10)"
+                  @input="e => {
+                    item.due_date = e;
+                    item.due_date_menu = false;
+                  }"
+                  
+                ></v-date-picker>
+              </v-menu>
+            </div>
+            <div :class="[institutionCode === 'LPAH' ? 'col-xs-3 col-sm-3 col-lg-3' : 'col-xs-4 col-sm-4 col-lg-4', 'nopadding']" style="margin-right: 6px">
+              <v-select               
+                outlined
+                dense
+                background-color="white"
+                hide-details
+                v-model="item.change_reason_id"
+                @change="refresh"
+                :items="changeReasons"
+                item-text="description"
+                item-value="id"
+              ></v-select>
+            </div>
+            <div class="col-xs-1 col-sm-1 col-lg-1 nopadding" style="margin-right: 6px">
+              <v-text-field
+                outlined
+                dense
+                background-color="white"
+                hide-details
+                @keypress="validate.isNumber($event)"
+                v-model="item.financial_batch_id"
+                @change="refresh"
+              ></v-text-field>
+            </div>
+            <div class="col-xs-1 col-sm-1 col-lg-1 nopadding d-flex">
               <v-btn v-if="item?.id"
                   color="error ml-5" 
                   x-small 
@@ -476,78 +649,6 @@
                   >
                 <v-icon>mdi-close</v-icon>
               </v-btn>
-            </div>
-          </div>
-          <div class="col-xs-12 col-sm-12 col-lg-12 d-flex low-margin noppading-top">
-            <div class="col-xs-2 col-sm-2 col-lg-2 nopadding">
-              <v-text-field
-                outlined
-                dense
-                background-color="white"
-                hide-details
-                @keypress="validate.isNumber($event)"
-                v-model="item.disbursed_amount"
-                @change="refresh"
-              ></v-text-field>
-            </div>
-            <div class="col-xs-1 col-sm-1 col-lg-1 nopadding">
-              <v-text-field
-                outlined
-                dense
-                background-color="white"
-                hide-details
-                @keypress="validate.isNumber($event)"
-                v-model="item.transaction_number"
-                @change="refresh"
-              ></v-text-field>
-            </div>
-            <div class="col-xs-2 col-sm-2 col-lg-2 nopadding">
-              <v-select
-                 
-                outlined
-                dense
-                background-color="white"
-                hide-details
-                v-model="item.disbursement_type_id"
-                @change="refresh"
-                item-text="DESCRIPTION"
-                item-value="REQUEST_TYPE_ID"
-              ></v-select>
-            </div>
-            <div class="col-xs-1 col-sm-1 col-lg-1 nopadding">
-              <v-text-field
-                outlined
-                dense
-                background-color="white"
-                hide-details
-                @keypress="validate.isNumber($event)"
-                v-model="item.issue_date"
-                @change="refresh"
-              ></v-text-field>
-            </div>
-            <div class="col-xs-5 col-sm-5 col-lg-5 nopadding">
-              <v-select
-                 
-                outlined
-                dense
-                background-color="white"
-                hide-details
-                v-model="item.change_reason_id"
-                @change="refresh"
-                item-text="DESCRIPTION"
-                item-value="REQUEST_TYPE_ID"
-              ></v-select>
-            </div>
-            <div class="col-xs-1 col-sm-1 col-lg-1 nopadding">
-              <v-text-field
-                outlined
-                dense
-                background-color="white"
-                hide-details
-                @keypress="validate.isNumber($event)"
-                v-model="item.financial_batch_id"
-                @change="refresh"
-              ></v-text-field>
             </div>
           </div>
         </div>
@@ -589,15 +690,22 @@ export default {
       assessment: "assessmentSTA",
       application: "selectedApplication",
       cities: "cities",
+      changeReasons: "changeReasons",
+      disbursementTypes: "disbursementTypes",
     }),
+    institutionCode() {
+      return this.application?.institution?.federal_institution_code  || "";
+    }
   },
   methods: {
     ...mapActions({
+      exit: "resetAssessmetSTA",
       saveSTAAssessment: "saveSTAAssessment",
       addDisburse: "addItemDisbursementListSTA",
       cancelDisburse: "cancelItemDisbursementListSTA",
       removeSTADisbursement: "removeSTADisbursement",
       refresh: "refreshSTA",
+      disburse: "disburseSTA",
     }),
     save() {
       this.saveSTAAssessment(this);
@@ -622,6 +730,8 @@ export default {
     }
     store.dispatch("setAppSidebar", true);
     store.dispatch("setCities");
+    store.dispatch("setChangeReasons");
+    store.dispatch("setDisbursementTypes");
     store.dispatch("staGetAssessment", { funding_request_id: this.fundingRequestId });
   }
 };

@@ -20,6 +20,10 @@ const mutations = {
 };
 
 const actions = {
+    resetAssessmetSTA(state) {
+        state.commit("SET_ASSESSMENT_STA", {});
+        state.commit("SET_DISBURSEMENT_LIST_STA", []);
+    },
     async staGetAssessment(state, vals) {
         try {
 
@@ -133,6 +137,35 @@ const actions = {
         } catch (error) {
             console.log("Error to get assessments", error);
         } finally {
+        }
+    }, 
+    async disburseSTA({ commit, getters, dispatch }, vals) {
+        try {
+            const assessment = getters.assessmentSTA;
+            const disbursements = getters.disbursementListSTA;
+            const application_id = getters.selectedApplication.id;
+
+            const res = await axios.post(
+                `${ASSESSMENT}/sta/disburse`,
+                {
+                    assessment: assessment,
+                    application_id: application_id,
+                }
+            );
+            const success = res?.data?.success;
+            
+            if (success) {
+                const data = res?.data?.data || [];
+                if (data?.length > 0) {
+                    commit("SET_DISBURSEMENT_LIST_STA", [ ...disbursements, ...data ]);
+                }
+                dispatch("refreshSTA");
+            } else {
+                console.log("Error to get disburse");
+            }
+
+        } catch (error) {
+            console.log("Error to get disburse", error);
         }
     },
     addItemDisbursementListSTA({ commit, state }, vals) {
