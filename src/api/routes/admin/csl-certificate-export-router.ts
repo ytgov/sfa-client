@@ -78,7 +78,7 @@ cslCertificateExportRouter.put("/:FROM_DATE_P/:TO_DATE_P/:PREVIEW",
                 .select(db.raw(`sfa.fn_get_count_disbursement_ecerts('${FROM_DATE_P}', '${TO_DATE_P}') AS result`))                                                      
                 if(results[0].result > 0) {
                     const nextVal = await db
-                    .select(db.raw(`NEXT VALUE FOR sfa.csl_cert_seq AS nextVal;`));
+                    .select(db.raw(`NEXT VALUE FOR ${PREVIEW === '1' ?  'sfa.csl_cert_seq_prev' : 'sfa.csl_cert_seq'} AS nextVal;`));
                     
                     const innerSelect = await db('sfa.funding_request as fr')
                     .select('d.id')
@@ -109,7 +109,7 @@ cslCertificateExportRouter.put("/:FROM_DATE_P/:TO_DATE_P/:PREVIEW",
                         .whereIn('fr1.request_type_id', [4, 5]);
                     });          
                                                                                                     
-                    if(innerSelect.length > 0) {                                                
+                    if(innerSelect.length > 0) {                                                                       
                         if(PREVIEW === '1') {
                             for(let element of innerSelect) {                                
                                 const updateDisb = await db.raw(`UPDATE sfa.disbursement SET csl_cert_seq_number_prev = ${nextVal[0].nextVal} WHERE id = ${element.id}`)                                                                                                     
