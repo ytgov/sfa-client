@@ -9,16 +9,17 @@ const db = knex(DB_CONFIG);
 export const cslCertificateExportRouter = express.Router();
 
 
-cslCertificateExportRouter.get("/:FROM_DATE_P/:TO_DATE_P/:CSL_CERT_SEQ_P", 
+cslCertificateExportRouter.get("/:FROM_DATE_P/:TO_DATE_P/:CSL_CERT_SEQ_P/:IS_PREVIEW", 
     [   
         param("CSL_CERT_SEQ_P").isInt().notEmpty(),      
         param("FROM_DATE_P").notEmpty(), 
-        param("TO_DATE_P").notEmpty()
+        param("TO_DATE_P").notEmpty(),
+        param("IS_PREVIEW").notEmpty()
     ], 
     //ReturnValidationErrors, 
     async (req: Request, res: Response) => {
         const { filter = true } = req.query;
-        const { CSL_CERT_SEQ_P, FROM_DATE_P, TO_DATE_P} = req.params;
+        const { CSL_CERT_SEQ_P, FROM_DATE_P, TO_DATE_P, IS_PREVIEW} = req.params;
         
         try {                     
             const results = await db.select('s.id', db.raw('CONCAT(p.last_name, \', \', p.first_name) AS name'), 
@@ -33,13 +34,12 @@ cslCertificateExportRouter.get("/:FROM_DATE_P/:TO_DATE_P/:CSL_CERT_SEQ_P",
             .join('sfa.funding_request AS fr', 'hd.id', '=', 'fr.application_id')
             .join('sfa.disbursement AS d', 'fr.id', '=', 'd.funding_request_id')
             .join('sfa.request_type AS r', 'fr.request_type_id', '=', 'r.id')
-            .join('sfa.msfaa AS m', 's.id', '=', 'm.student_id')
-            .where('d.csl_cert_seq_number', '=', CSL_CERT_SEQ_P)                        
+            .join('sfa.msfaa AS m', 's.id', '=', 'm.student_id')            
+            .where(IS_PREVIEW === '1' ? 'd.csl_cert_seq_number_prev' : 'd.csl_cert_seq_number', '=', CSL_CERT_SEQ_P)                        
             .andWhere('d.issue_date', '>=', FROM_DATE_P)
             .andWhere('d.issue_date', '<=', TO_DATE_P)  
-            .andWhere('m.msfaa_status', '=', 'Received')          
-            .andWhere('m.is_full_time', '=', db.raw('CAST(CASE d.disbursement_type_id WHEN 4 THEN 1 ELSE 0 END AS BIT)'))
-            .orWhere('hd.academic_year_id', '<=', 2012);
+            .andWhere('m.msfaa_status', '=', 'Received')    
+            .andWhere(db.raw("((m.is_full_time = CASE d.disbursement_type_id WHEN 4 THEN 1 ELSE 0 END) OR hd.academic_year_id <= 2012) "))                        
             
             if(results) {
                 const results2 = await db.raw(
@@ -61,17 +61,19 @@ cslCertificateExportRouter.get("/:FROM_DATE_P/:TO_DATE_P/:CSL_CERT_SEQ_P",
 });
 
 
-cslCertificateExportRouter.put("/:FROM_DATE_P/:TO_DATE_P", 
+cslCertificateExportRouter.put("/:FROM_DATE_P/:TO_DATE_P/:PREVIEW", 
     [        
         param("FROM_DATE_P").notEmpty(), 
-        param("TO_DATE_P").notEmpty()
+        param("TO_DATE_P").notEmpty(),
+        param("PREVIEW")
     ], 
     //ReturnValidationErrors, 
     async (req: Request, res: Response) => {
         const { filter = true } = req.query;
-        const { FROM_DATE_P, TO_DATE_P} = req.params;
-        
-        try {                 
+        const { FROM_DATE_P, TO_DATE_P, PREVIEW} = req.params;
+                
+        try {           
+                        
                 const results = await db 
                 .select(db.raw(`sfa.fn_get_count_disbursement_ecerts('${FROM_DATE_P}', '${TO_DATE_P}') AS result`))                                                      
                 if(results[0].result > 0) {
@@ -80,11 +82,11 @@ cslCertificateExportRouter.put("/:FROM_DATE_P/:TO_DATE_P",
                     
                     const innerSelect = await db('sfa.funding_request as fr')
                     .select('d.id')
-                    .join('sfa.disbursement as d', 'fr.id', '=', 'd.funding_request_id')
-                    .join('sfa.request_type as rt', 'fr.request_type_id', '=', 'rt.id')
-                    .join(
+                    .innerJoin('sfa.disbursement as d', 'fr.id', '=', 'd.funding_request_id')
+                    .innerJoin('sfa.request_type as rt', 'fr.request_type_id', '=', 'rt.id')
+                    .innerJoin(
                       db.raw(
-                        '(SELECT m.msfaa_status, app.academic_year_id, app.id FROM sfa.msfaa as m INNER JOIN sfa.application as app ON app.id = m.application_id) mhd'
+                        '(SELECT m.msfaa_status, app.academic_year_id, app.id FROM sfa.msfaa as m INNER JOIN sfa.application as app ON app.id = m.application_id WHERE app.id = m.application_id) mhd'
                       ),
                       'fr.application_id',
                       '=',
@@ -105,16 +107,26 @@ cslCertificateExportRouter.put("/:FROM_DATE_P/:TO_DATE_P",
                         .from('sfa.disbursement as d1')
                         .join('sfa.funding_request as fr1', 'd1.funding_request_id', '=', 'fr1.id')
                         .whereIn('fr1.request_type_id', [4, 5]);
-                    });                                                                            
-
-                    if(innerSelect.length > 0) {                           
-                        for(let element of innerSelect) {
-                            const updateDisb = await db.raw(`UPDATE sfa.disbursement SET csl_cert_seq_number = ${nextVal[0].nextVal} WHERE id = ${element.id}`)                                                        
-                        }
-                        return res.json({data: nextVal[0].nextVal});                                                			
-                    }                                                 
-                }                                 
-                return res.status(404).send();          
+                    });          
+                                                                                                    
+                    if(innerSelect.length > 0) {                                                
+                        if(PREVIEW === '1') {
+                            for(let element of innerSelect) {                                
+                                const updateDisb = await db.raw(`UPDATE sfa.disbursement SET csl_cert_seq_number_prev = ${nextVal[0].nextVal} WHERE id = ${element.id}`)                                                                                                     
+                            }
+                            return res.json({flag: 1, data: nextVal[0].nextVal});    
+                        } else {
+                            for(let element of innerSelect) {
+                                const updateDisb = await db.raw(`UPDATE sfa.disbursement SET csl_cert_seq_number = ${nextVal[0].nextVal} WHERE id = ${element.id}`)                                                                                                                                                    
+                            }
+                            return res.json({flag: 1, data: nextVal[0].nextVal});  
+                        }                                                                 			
+                    }  else {
+                        return res.json({flag: 0, data: `There are no certificates with received MSFAA between ${FROM_DATE_P} and ${TO_DATE_P}`}); 
+                    }                                                              
+                } else {
+                    return res.json({flag: 0, data: `There are no certificates with received MSFAA between ${FROM_DATE_P} and ${TO_DATE_P}`});                                                			                                            
+                }                            
         } catch (error: any) {
             console.log(error);
             return res.status(404).send();

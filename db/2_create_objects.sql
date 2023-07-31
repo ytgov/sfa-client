@@ -1804,6 +1804,7 @@ CREATE TABLE sfa.disbursement
     financial_batch_serial_no FLOAT          NULL,
     transaction_number        VARCHAR(20)    NULL,
     csl_cert_seq_number       INT            NULL,
+    csl_cert_seq_number_prev  INT            NULL,
     ecert_sent_date           DATE           NULL,
     ecert_response_date       DATE           NULL,
     ecert_status              VARCHAR(20)    NULL,
