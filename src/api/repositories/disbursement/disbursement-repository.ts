@@ -2,6 +2,7 @@ import { Knex } from "knex";
 import { BaseRepository } from "../base-repository";
 import { DisbursementDTO, DisbursementTable, disbursementColumns } from "../../models";
 import { IMainTable } from "../i-main-table";
+import { PortalStatusDTO } from "models/dto/PortalStatusDTO";
 
 export class DisbursementRepository extends BaseRepository implements IMainTable {
 
@@ -57,6 +58,20 @@ export class DisbursementRepository extends BaseRepository implements IMainTable
             
             query.forEach((x: DisbursementDTO) => result.push(x));
         }
+        
+        return result;
+    }
+
+    async getPortalStatusList(): Promise<Array<Partial<PortalStatusDTO>>> {
+        let result: Array<Partial<PortalStatusDTO>> = [];
+        
+        const query = await this.mainDb("sfa.portal_status")
+            .select(
+                "*"
+            )
+            .orderBy("id", "asc");
+        
+        query.forEach((x: PortalStatusDTO) => result.push(x));
         
         return result;
     }
