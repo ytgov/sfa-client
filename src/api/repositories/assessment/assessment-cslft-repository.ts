@@ -67,6 +67,7 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
     private funding_request: Partial<FundingRequestDTO> = {};
     private disbursement: Partial<DisbursementDTO> = {};
     private disbursements: Array<Partial<DisbursementDTO>> = [];
+    private e_certs: Array<Partial<DisbursementDTO>> = [];
     private msfaa: Partial<MsfaaDTO> = {};
     private global: Partial<CslftGlobalDTO> = {};
     private resultDto: Partial<CslftResultDTO> = {};
@@ -293,6 +294,7 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
                 this.disbursement = this.disbursements[0] ?? {};
             }                        
             this.msfaa = await this.msfaaRepo.getMsfaaByStudentId(this.student.id);
+            this.e_certs = await this.disbursementRepo.getECertificateList(this.assessment.id);
         }
     }
 
@@ -365,6 +367,7 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
         this.resultDto.disbursements = this.disbursements;
         this.resultDto.funding_request = this.funding_request;        
         this.resultDto.msfaa = this.msfaa;
+        this.resultDto.e_certs = this.e_certs;
 
         return this.resultDto;
     }

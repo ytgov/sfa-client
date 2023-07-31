@@ -7,4 +7,5 @@ export interface CslftResultDTO extends ResultDTO<AssessmentDTO> {
     disbursements: Array<DisbursementDTO>;
     msfaa: MsfaaDTO;
     globals: CslftGlobalDTO;
+    e_certs: Array<DisbursementDTO>;
 }

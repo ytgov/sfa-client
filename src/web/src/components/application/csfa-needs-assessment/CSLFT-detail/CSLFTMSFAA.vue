@@ -271,7 +271,7 @@
             <p class="nomargin">Portal Status</p>
           </div>
         </div>
-        <div class="col-xs-12 col-sm-12 col-lg-12 d-flex low-margin noppading-top">
+        <div class="col-xs-12 col-sm-12 col-lg-12 d-flex low-margin noppading-top" v-for="cert, index in cslft_get_e_certs" :key="index">
           <div class="col-xs-2 col-sm-2 col-lg-2 nopadding">
             <v-text-field
               outlined
@@ -279,51 +279,25 @@
               background-color="white"
               hide-details
               @keypress="validate.isNumber($event)"
-              v-model="reference_number"
+              :disabled="true"
+              v-model="cert.transaction_number"
             ></v-text-field>
           </div>
           <div class="col-xs-2 col-sm-2 col-lg-2 nopadding">
-            <v-text-field
-              outlined
-              dense
-              background-color="white"
-              hide-details
-              @keypress="validate.isNumber($event)"
-              v-model="disbursed_amt"
-            ></v-text-field>
+            <DateInput
+              label="Sent Date"
+              :menu="sent_date_menu"
+              :disabled="true"
+              v-model="cert.ecert_sent_date"
+            ></DateInput>
           </div>
           <div class="col-xs-3 col-sm-2 col-lg-2 nopadding">
-            <v-menu
-              :disabled="showAdd"
-              v-model="response_date_menu"
-              :close-on-content-click="false"
-              transition="scale-transition"
-              left
-              nudge-top="26"
-              offset-y
-              min-width="auto"
-            >
-              <template v-slot:activator="{ on, attrs }">
-                <v-text-field
-                  :disabled="showAdd"
-                  v-model="response_date"
-                  label="Response Date"
-                  append-icon="mdi-calendar"
-                  hide-details
-                  readonly
-                  outlined
-                  dense
-                  background-color="white"
-                  v-bind="attrs"
-                  v-on="on"
-                ></v-text-field>
-              </template>
-              <v-date-picker
-                :disabled="showAdd"
-                v-model="response_date"
-                @input="response_date_menu = false"
-              ></v-date-picker>
-            </v-menu>
+            <DateInput
+              label="Response Date"
+              :menu="response_date_menu"
+              :disabled="true"
+              v-model="cert.ecert_response_date"
+            ></DateInput>
           </div>
           <div class="col-xs-2 col-sm-2 col-lg-2 nopadding">
             <v-text-field
@@ -332,17 +306,18 @@
               background-color="white"
               hide-details
               @keypress="validate.isNumber($event)"
-              v-model="issue_date"
+              :disabled="true"
+              v-model="cert.ecert_status"
             ></v-text-field>
           </div>
           <div class="col-xs-4 col-sm-4 col-lg-4 nopadding">
             <v-select
-              :disabled="showAdd"
               outlined
               dense
               background-color="white"
               hide-details
-              v-model="disbursement_type"
+              v-model="cert.ecert_portal_status_id"
+              :items="portalStatus"
               item-text="description"
               item-value="id"
             ></v-select>
@@ -357,9 +332,13 @@ import store from "@/store";
 import validator from "@/validator";
 import {mapGetters, mapState} from "vuex";
 import {ref} from "vue";
+import DateInput from "../../../DateInput.vue";
 
 export default {
   name: "cslft-msfaa",
+  components: {
+    DateInput,
+  },  
   setup() {
     const showAdd = ref(true);
         
@@ -377,6 +356,8 @@ export default {
       "cslft_msfaa_date_sent_formatted",
       "cslft_msfaa_date_signed_formatted",
       "cslft_msfaa_date_cancelled_formatted",
+      "cslft_get_e_certs",
+      "portalStatus",
     ]),
     application: function () {
       return store.getters.selectedApplication;
@@ -389,6 +370,7 @@ export default {
     if (this.applicationId != storeApp.HISTORY_DETAIL_ID) {
       await store.dispatch("loadApplication", this.applicationId);
     }
+    store.dispatch("setPortalStatus");
   }
 };
 </script>

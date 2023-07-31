@@ -21,6 +21,9 @@ const mutations = {
         {
             state.cslft_msfaa = payload.msfaa;
         }
+        if ((payload.e_certs?.length ?? 0) > 0) {
+            state.cslft_e_certs = payload.e_certs;
+        }
     },
     loadModelsDisburse(state, disburseModel) {
         state.cslft = disburseModel.data;
@@ -245,6 +248,9 @@ const getters = {
     },
     cslft_get_msfaa(state) {
         return state.cslft_msfaa;
+    },
+    cslft_get_e_certs(state) {
+        return state.cslft_e_certs;
     },
     cslft_assessed_date_formatted (state) {
         if (state.cslft.assessed_date) {
