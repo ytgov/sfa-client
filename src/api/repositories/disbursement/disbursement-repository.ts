@@ -43,6 +43,24 @@ export class DisbursementRepository extends BaseRepository implements IMainTable
         return result;
     }
 
+    async getECertificateList(assessment_id: number | undefined): Promise<Array<Partial<DisbursementDTO>>> { 
+        let result: Array<Partial<DisbursementDTO>> = [];
+        
+        if (assessment_id) {
+            const query = await this.mainDb(this.mainTable)
+                .select(
+                    "*"
+                )
+                .where({ assessment_id: assessment_id })
+                .whereNull("financial_batch_id")
+                .orderBy("id", "asc");
+            
+            query.forEach((x: DisbursementDTO) => result.push(x));
+        }
+        
+        return result;
+    }
+
     async getTotalGrantAmount(application_id?: number): Promise<number> { 
         let result = 0;
 

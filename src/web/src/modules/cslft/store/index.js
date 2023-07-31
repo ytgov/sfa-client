@@ -72,7 +72,7 @@ const mutations = {
     setPreviousDisbursement(state, value) {
         state.cslft.previous_disbursement = value;
     },
-    setNetAmount(state, value) {
+    setCslftNetAmount(state, value) {
         state.cslft.net_amount = value;
     }
 };
@@ -228,8 +228,8 @@ const actions = {
     async setPreviousDisbursement(state, value) {
         state.commit("setPreviousDisbursement", value);
     },
-    async setNetAmount(state, value) {
-        state.commit("setNetAmount", value);
+    async setCslftNetAmount(state, value) {
+        state.commit("setCslftNetAmount", value);
     }
 };
 const getters = {
@@ -400,6 +400,14 @@ const getters = {
     cslft_msfaa_date_cancelled_formatted(state) {
         return dateHelper.getDateFromUTC(state.cslft_msfaa.date_cancelled);
     },
+    cslft_get_net_amount(state) {
+        let result = numHelper.getNum(state.cslft.assessed_amount ?? 0) - numHelper.getNum(state.cslft.previous_disbursement ?? 0) + numHelper.getNum(state.cslft.return_uncashable_cert ?? 0);
+        if (result >= -250 && result <= 0) {
+            result = 0;
+        }
+
+        return result;
+    }
 };
 
 export default {

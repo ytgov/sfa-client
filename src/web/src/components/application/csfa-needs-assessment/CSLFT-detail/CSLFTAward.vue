@@ -459,6 +459,7 @@ export default {
         "changeReasons",
         "disbursementTypes",
         "cslft_get_disbursements",
+        "cslft_get_net_amount"
     ]),
     application: function () {
       return store.getters.selectedApplication;
@@ -482,8 +483,13 @@ export default {
     cslft_calculated_award: {
       immediate: true,
       handler(newValue) {
-        console.log(newValue);
         store.dispatch("setCslftCalculatedAward", newValue);
+      },      
+    },
+    cslft_get_net_amount: {
+      immediate: true,
+      handler(newVal) {
+        store.dispatch("setCslftNetAmount", newVal);
       }
     },
     cslft_disbursement: {

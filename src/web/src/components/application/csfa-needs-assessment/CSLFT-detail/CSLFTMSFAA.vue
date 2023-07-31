@@ -253,7 +253,7 @@
     </v-card>
     <div class="col-lg-12">
       <v-card class="default mb-5 bg-color-blue">
-        <v-card-title>Disbursement (s)</v-card-title>
+        <v-card-title>E-Certificate</v-card-title>
         <div class="col-xs-12 col-sm-12 col-lg-12 d-flex noppading-bottom">
           <div class="col-xs-2 col-sm-2 col-lg-2 nopadding d-flex align-center justify-center">
             <p class="nomargin">Cart #</p>
@@ -343,8 +343,8 @@
               background-color="white"
               hide-details
               v-model="disbursement_type"
-              item-text="DESCRIPTION"
-              item-value="REQUEST_TYPE_ID"
+              item-text="description"
+              item-value="id"
             ></v-select>
           </div>
         </div>

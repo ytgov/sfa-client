@@ -4,7 +4,7 @@ import express, { Request, Response } from "express";
 import { body, param } from "express-validator";
 import { ReturnValidationErrors } from "../../middleware";
 import { DB_CONFIG } from "../../config";
-import { AssessmentCslftRepository } from "../../repositories";
+import { AssessmentCslftRepository, DisbursementRepository } from "../../repositories";
 import { AssessmentDTO, CslftResultDTO, DisbursementDTO, UncappedExpensesDTO } from "../../models";
 
 const db = knex(DB_CONFIG)
@@ -229,6 +229,33 @@ assessmentCslftRouter.get("/application/:application_id/expenses/uncapped/:perio
 
             if (application_id && period_id) {
                 results = await expenseRepo.getUncappedExpenseTable(parseInt(application_id), parseInt(period_id));
+            }
+
+            if (results.length > 0) {                
+                return res.status(200).json({ success: true, data: results });
+            } else {
+                return res.status(404).send();
+            }
+
+        } catch (error: any) {
+            console.log(error);
+            return res.status(404).send();
+        }
+    }
+);
+
+assessmentCslftRouter.get("/e-certificate/list/:assessment_id", 
+    [param("assessment_id").isInt().notEmpty()], ReturnValidationErrors,
+    async (req: Request, res: Response) => {
+        const disbursementRepo = new DisbursementRepository(db);
+        const { assessment_id = undefined } = req.params;
+        let results: Array<DisbursementDTO> = [];
+        
+        try {
+           
+
+            if (assessment_id) {
+                results = await disbursementRepo.getECertificateList(parseInt(assessment_id));
             }
 
             if (results.length > 0) {                
