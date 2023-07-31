@@ -3524,7 +3524,7 @@ BEGIN
         WHERE csl_cert_seq_number is null 
            AND issue_date >= @FROM_DATE
            AND issue_date <= @TO_DATE
-           AND disbursement_type_id in (4,5,7,9)
+           AND disbursement_type_id in (3,4,5,7,9)
            AND NOT due_date IS NULL
            AND NOT transaction_number IS NULL;
     OPEN disbursement_count;
