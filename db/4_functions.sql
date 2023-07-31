@@ -4281,7 +4281,7 @@ BEGIN
     DECLARE  @max INT = 0;
 
     SELECT
-        @max = MAX(d.transaction_number)
+        @max = MAX(CONVERT(INT, d.transaction_number))
     FROM sfa.disbursement d 
     WHERE d.funding_request_id = @funding_request_id
 

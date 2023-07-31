@@ -66,6 +66,7 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
     private student: Partial<StudentDTO> = {};
     private funding_request: Partial<FundingRequestDTO> = {};
     private disbursement: Partial<DisbursementDTO> = {};
+    private disbursements: Array<Partial<DisbursementDTO>> = [];
     private msfaa: Partial<MsfaaDTO> = {};
     private global: Partial<CslftGlobalDTO> = {};
     private resultDto: Partial<CslftResultDTO> = {};
@@ -288,8 +289,9 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
             this.student = await this.studentRepo.getStudentById(this.application.student_id);
             if (loadAssessment) {
                 this.assessment = await this.getAssessmentByFundingRequestId(funding_request_id);
-            }
-            this.disbursement = await this.disbursementRepo.getByAssessmentId(this.assessment.id);
+                this.disbursements = await this.disbursementRepo.getByAssessmentId(this.assessment.id);                
+                this.disbursement = this.disbursements[0] ?? {};
+            }                        
             this.msfaa = await this.msfaaRepo.getMsfaaByStudentId(this.student.id);
         }
     }
@@ -360,8 +362,9 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
 
         this.resultDto.data = this.assessment;
         this.resultDto.globals = this.global;
-        this.resultDto.disbursements = [this.disbursement];
-        this.resultDto.funding_request = this.funding_request;
+        this.resultDto.disbursements = this.disbursements;
+        this.resultDto.funding_request = this.funding_request;        
+        this.resultDto.msfaa = this.msfaa;
 
         return this.resultDto;
     }
@@ -455,8 +458,10 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
         await this.getCalcParentContributions(this.student.person_id, this.application.academic_year_id, studyCodes);
 
         // Calculate previous disbursement amount.
-        const disbursed_amt = await this.disbursementRepo.getDisbursedAmount(funding_request_id, this.assessment.id);
-        this.assessment.previous_disbursement = disbursed_amt > 0 ? disbursed_amt : 0;
+        if (!this.assessment.previous_disbursement) {
+            const disbursed_amt = await this.disbursementRepo.getDisbursedAmount(funding_request_id, this.assessment.id);
+            this.assessment.previous_disbursement = disbursed_amt > 0 ? disbursed_amt : 0;
+        }
 
         this.assessment.net_amount = this.getNetAmount(this.assessment.assessed_amount, this.assessment.previous_disbursement, this.assessment.return_uncashable_cert);
 
@@ -603,14 +608,8 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
             if (msfaa_app.msfaa_status === 'Cancelled' || moment(new Date()).diff(msfaa_app.classes_end_date, "year") > 2) {
                 expired = 1;
                 if (msfaa_app.msfaa_status !== "Cancelled") {
-                    this.mainDb("sfa.msfaa")
-                        .where({
-                            id: msfaa_id
-                        })
-                        .update({
-                            cancel_end: this.mainDb.raw(`CONVERT(DATETIME, ${moment(new Date()).format("YYYY-MM-DD")}`),
-                            cancel_reason: "> 2 yrs out of school"
-                        })
+                    this.msfaa.cancel_date = new Date();
+                    this.msfaa.cancel_reason = "> 2 yrs out of school";
                 }
             }
 
@@ -618,27 +617,18 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
                 this.msfaa.application_id = this.application.id;
             }
             else if (expired === 1 && info_type === 'Disburse') {
-                this.mainDb("sfa.msfaa")
-                    .insert([
-                        {
-                            student_id: this.student.id,
-                            msfaa_status: "Pending",
-                            application_id: this.application.id,
-                            is_full_time: 1
-                        }
-                    ]);
+                this.msfaa.id = undefined;
+                this.msfaa.student_id = this.student.id;
+                this.msfaa.msfaa_status = "Pending";
+                this.msfaa.application_id = this.application.id;
+                this.msfaa.is_full_time = true;
             }
             else {
                 if (info_type === "Disburse") {
-                    this.mainDb("sfa.msfaa")
-                        .insert([
-                            {
-                                student_id: this.student.id,
-                                msfaa_status: "Pending",
-                                application_id: this.application.id,
-                                is_full_time: 1
-                            }
-                        ]);
+                    this.msfaa.student_id = this.student.id;
+                    this.msfaa.msfaa_status = "Pending";
+                    this.msfaa.application_id = this.application.id;
+                    this.msfaa.is_full_time = true;
                 }
             }
         }
@@ -924,20 +914,19 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
 
         const assess_needed: number = this.numHelper.round(Math.max((total_study_cost - resources_total), 0));
         const assess_needed_sixty: number = this.numHelper.round(assess_needed * 0.6);
-        
-        
-
+                
         const calculated_award_min = Math.min(assess_needed_sixty - (this.assessment.total_grant_awarded ?? 0), (this.assessment.max_allowable ?? 0));
         const calculated_award: number = Math.max(0, this.numHelper.round(calculated_award_min));
         this.assessment.calculated_award = calculated_award;
     }
 
-    async executeRecalc(funding_request_id: number, assessment: Partial<AssessmentDTO> = {}): Promise<Partial<CslftResultDTO>> {
+    async executeRecalc(funding_request_id: number, assessment: Partial<AssessmentDTO> = {}, disbursements: Array<DisbursementDTO> = []): Promise<Partial<CslftResultDTO>> {
 
         this.assessment = assessment;
+        this.disbursements = disbursements;
         await this.loadData(funding_request_id, false);
 
-        await this.getNewInfo(true);
+        //await this.getNewInfo(true);
 
         await this.setIdGlobals();
 
@@ -947,9 +936,17 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
 
         this.assessment.recovered_overaward = await this.getCslOveraward(this.application.student_id, this.assessment.id);
 
-        const disbursed_amt = await this.disbursementRepo.getDisbursedAmount(funding_request_id, this.assessment.id);
+        let disbursed_amt = 0;
+        if (this.disbursements.length == 0) {
+            disbursed_amt = await this.disbursementRepo.getDisbursedAmount(funding_request_id, this.assessment.id);
+        }
+        else {
+            this.disbursements.forEach((x) => {
+                disbursed_amt += parseInt((x.disbursed_amount?.toString() ?? '0'));
+            });
+        }
+        
         this.assessment.previous_disbursement = disbursed_amt > 0 ? disbursed_amt : 0;
-
         this.assessment.previous_cert = await this.disbursementRepo.getPreviousDisbursedAmount(funding_request_id, this.assessment.id);
 
         await this.getLookupValues(funding_request_id);
@@ -960,8 +957,9 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
 
         this.resultDto.data = this.assessment;
         this.resultDto.globals = this.global;
-        this.resultDto.disbursements = [this.disbursement];
-        this.resultDto.funding_request = this.funding_request;
+        this.resultDto.disbursements = this.disbursements;
+        this.resultDto.funding_request = this.funding_request;        
+        this.resultDto.msfaa = this.msfaa;
 
         return this.resultDto;
     }
@@ -1008,10 +1006,12 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
         return this.assessment.parent_weekly_contrib ?? 0;
     }
 
-    async executeDisburse(funding_request_id: number, assessment: Partial<AssessmentDTO> = {}): Promise<Partial<CslftResultDTO>> {
+    async executeDisburse(funding_request_id: number, assessment: Partial<AssessmentDTO> = {}, disbursements: Array<DisbursementDTO> = []): Promise<Partial<CslftResultDTO>> {
         
-        await this.loadData(funding_request_id, false);
+        disbursements = disbursements.filter((x) => x.transaction_number !== null);
         this.assessment = assessment;
+        this.disbursements = disbursements;
+        await this.loadData(funding_request_id, false);
         
         this.disbursement.assessment_id = this.assessment.id;
         this.disbursement.funding_request_id = funding_request_id;
@@ -1041,8 +1041,8 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
 
                     this.global.update_status = true;
 
-                    this.disbursement.transaction_number = await this.disbursementRepo.getNextTransactionSequenceValue();
                 }
+                this.disbursement.transaction_number = await this.disbursementRepo.getNextTransactionSequenceValue();
             }
         }
 
@@ -1077,15 +1077,30 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
 
         this.global.disbursement_flag = true;
 
-        this.assessment.previous_disbursement = await this.disbursementRepo.getDisbursedAmount(funding_request_id, this.assessment.id);
+        let disbursed_amt = 0;
+        if (this.disbursements.length == 0) {
+            disbursed_amt = await this.disbursementRepo.getDisbursedAmount(funding_request_id, this.assessment.id);
+        }
+        else {
+            this.disbursements.forEach((x) => {
+                disbursed_amt += parseInt((x.disbursed_amount?.toString() ?? '0'));
+            });
+        }
+        
+        this.assessment.previous_disbursement = disbursed_amt > 0 ? disbursed_amt : 0;
         this.assessment.net_amount = this.getNetAmount(this.assessment.assessed_amount, this.assessment.previous_disbursement, this.assessment.return_uncashable_cert);         
 
-        this.resultDto = {
-            data: this.assessment,
-            disbursements: [this.disbursement],
-            funding_request: this.funding_request,
-            globals: this.global
-        };
+        if ((this.disbursement.id ?? -1) < 0) {
+            this.disbursements.push(this.disbursement);
+        }
+
+        this.disbursements.sort((x,y) => parseInt(x.transaction_number ?? '0') - parseInt(y.transaction_number ?? '0'));
+
+        this.resultDto.data = this.assessment;
+        this.resultDto.globals = this.global;        
+        this.resultDto.disbursements = this.disbursements;
+        this.resultDto.funding_request = this.funding_request;        
+        this.resultDto.msfaa = this.msfaa;
        
         return this.resultDto;
     }
@@ -1121,7 +1136,13 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
         {
             if (payload.funding_request.id)
             {
-                // Update the funding request.
+                result.funding_request = await this.fundingRequestRepo.updateFundingRequest(payload.funding_request.id, payload.funding_request);
+            }
+        }
+
+        if (payload.msfaa) {
+            if (payload.msfaa.id) {
+                result.msfaa = await this.msfaaRepo.updateMsfaa(payload.msfaa.id, payload.msfaa);
             }
         }
 
@@ -1172,5 +1193,4 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
 
         return result;
     }
-
 }
