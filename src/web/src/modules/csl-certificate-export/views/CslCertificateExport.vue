@@ -154,7 +154,13 @@ export default {
         if(resInsert.data.flag === 0 || !resInsert.data.data) {        
           this.$emit("showError", resInsert.data.data);
         } else {
-          const resInsert2 = await axios.get(CSL_CERTIFICATE_EXPORT + `/${this.from.date}/${this.to.date}/${resInsert.data.data}`);    
+          let resInsert2;
+          if(isPreview === 1) {
+            resInsert2 = await axios.get(CSL_CERTIFICATE_EXPORT + `/${this.from.date}/${this.to.date}/${resInsert.data.data}/1`);
+          } else {
+            resInsert2 = await axios.get(CSL_CERTIFICATE_EXPORT + `/${this.from.date}/${this.to.date}/${resInsert.data.data}/0`);
+          }
+              
 
           if(resInsert2) {
             this.tableData = resInsert2.data.data1;
