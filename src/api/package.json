@@ -6,7 +6,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "ts-node-dev -r tsconfig-paths/register index.ts",
-    "build": "tsc && tsc-alias"
+    "build": "tsc && tsc-alias",
+    "console": "ts-node -r tsconfig-paths/register"
   },
   "author": "Michael Johnson",
   "license": "ISC",
