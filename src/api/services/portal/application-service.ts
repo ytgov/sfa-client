@@ -16,30 +16,6 @@ import moment from "moment";
 
 const schema = "sfa";
 
-
-export class ApplicationService {
-  #studentId: number
-  #applicationId?: number
-
-  constructor({ studentId, applicationId }: { studentId: number, applicationId?: number }) {
-    this.#studentId = studentId
-    this.#applicationId = applicationId
-  }
-
-  getApplications() {
-    return db("sfa.application").where({ student_id: this.#studentId })
-  }
-
-  getApplication() {
-    if (this.#applicationId === undefined) {
-      throw new Error("Application ID is not set");
-    }
-
-    return db("sfa.application").where({ id: this.#applicationId, student_id: this.#studentId })
-  }
-}
-
-
 export class PortalApplicationService {
   getApplication() {
     return { name: "2022/23" };

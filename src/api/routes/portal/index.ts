@@ -2,7 +2,7 @@ import express, { Request, Response } from "express";
 import { portalApplicationRouter } from "./application-router";
 import { portalReferenceRouter } from "./reference-router";
 import { portalStudentRouter } from "./student-router";
-import ApplicationsController from "../../controllers/portal/applications-controller"
+import ApplicationsController from "@/controllers/portal/students/student-applications-controller"
 
 const applicationsController = new ApplicationsController();
 export const portalRouter = express.Router();
