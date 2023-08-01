@@ -59,8 +59,8 @@ class DevHelper
 
   def debug
     api_container_id = container_id('api')
-    puts 'Awaiting binding.pry to trigger...'
-    puts "'ctrl-c' to exit"
+    puts 'Waiting for breakpoint to trigger...'
+    puts "'ctrl-c' to exit."
     command = "docker attach --detach-keys ctrl-c #{api_container_id}"
     puts "Running: #{command}"
     exec(command)
