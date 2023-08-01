@@ -1,4 +1,5 @@
-import db from '@/db/db-client'
+import knex from "knex";
+import { DB_CONFIG } from "../../config";
 import {
   AddressesFromDraft,
   Application,
@@ -13,7 +14,7 @@ import {
 } from "../../models";
 import moment from "moment";
 
-
+const db = knex(DB_CONFIG);
 const schema = "sfa";
 
 export class PortalApplicationService {
