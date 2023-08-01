@@ -16,10 +16,10 @@
       
     <h1>CSL Certificate Export</h1>
 
-    <v-card class="default mb-5">        
+    <v-card class="default mb-4">        
       <v-card-text>
         <div class="row">
-          <div class="col-md-5">
+          <div class="col-md-4">
             <v-menu                  
             :close-on-content-click="false"
             transition="scale-transition"
@@ -50,7 +50,7 @@
           </v-menu>
         </div>    
 
-        <div class="col-md-5">
+        <div class="col-md-4">
             <v-menu                  
             :close-on-content-click="false"
             transition="scale-transition"
@@ -80,15 +80,12 @@
               ></v-date-picker>
           </v-menu>
         </div> 
-        
-          
-        <div class="col-md-1">
-          <v-btn @click="generateReport(0)" class="my-0" color="primary"><v-icon>mdi-plus</v-icon>Export</v-btn>                   
-        </div>
-
         <div class="col-md-1">
           <v-btn @click="generateReport(1)" class="my-0" color="primary"><v-icon style="margin-right: 2px;">mdi-eye</v-icon>Preview</v-btn>       
-        </div>                    
+        </div>
+        <div class="col-md-1">
+          <v-btn @click="generateReport(0)" class="my-0" color="primary"><v-icon>mdi-plus</v-icon>Export</v-btn>                   
+        </div>      
       </div>
       </v-card-text>
   </v-card>
@@ -173,7 +170,7 @@ export default {
             const resultado = match ? match[0] : null;
 
             let blob = new Blob([resInsert2.data.data2[0][''].replace(/PPYT\.EDU\.CERTS\.D\d+\.001/, '')], {type: "text/plain;charset=utf-8"});    
-            FileSaver.saveAs(blob, `${resultado}.txt`);                    
+            FileSaver.saveAs(blob, `${resultado}`);                    
           } else {
             this.$emit("showError", "Something went wrong!");
           }

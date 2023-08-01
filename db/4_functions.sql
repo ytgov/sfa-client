@@ -2547,7 +2547,7 @@ BEGIN
 		parent2_tax_paid,
 		parent_contribution_override,
 		parent_contribution_review,
-		parent_province,
+		parent_province_id,
 		parent_ps_depend_count,
 		period,
 		pre_leg_amount,
