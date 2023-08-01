@@ -355,7 +355,7 @@ const getters = {
         return numHelper.round(getters.cslft_parent_total_income - getters.cslft_parent_total_tax);
     },
     cslft_parent_discretionary_income(state, getters) {
-        return numHelper.round(getters.cslft_parent_net_income - numHelper.getNum(state.cslft.parent_msol));
+        return Math.max(numHelper.round(getters.cslft_parent_net_income - numHelper.getNum(state.cslft.parent_msol)), 0);
     },
     cslft_calculated_parental_contribution(state, getters) {
         return numHelper.getNum(state.cslft.parent_ps_depend_count) === 0 ? 0 : numHelper.round(numHelper.getNum(state.cslft.parent_weekly_contrib) * numHelper.getNum(state.cslft.study_weeks) / numHelper.getNum(state.cslft.parent_ps_depend_count));

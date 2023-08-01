@@ -102,15 +102,6 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
         this.correspondenceRepo = new CorrespondenceRepository(maindb);
         this.cslReasonRepo = new CslReasonRepository(maindb);
     }
-
-    getAssessmentTable(assessment: AssessmentDTO): AssessmentTable {
-        return Object.keys(assessment)
-            .filter(key => assessmentColumns.includes(key as keyof AssessmentTable))
-            .reduce((obj: any, key) => {
-                obj[key as keyof AssessmentTable] = assessment[key as keyof AssessmentTable];
-                return obj as AssessmentTable;
-            }, {});
-    }
     
     academicYearValidation = (year: number): boolean => {
         return !!(this.application.academic_year_id && this.application.academic_year_id < year);
@@ -1187,11 +1178,15 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
                                 .returning("*");
             }
             else {
-                query = await this.mainDb(this.disbursementRepo.getMainTable()).insert(dis).returning("*");
+                if (dis.assessment_id && dis.funding_request_id) {
+                    query = await this.mainDb(this.disbursementRepo.getMainTable()).insert(dis).returning("*");
+                }                
             }
             
-            record = query[0];
-            result.push(record);
+            if (query) {
+                record = query[0];
+                result.push(record);
+            }
         });
 
         return result;
