@@ -39,6 +39,7 @@ export const PROVINCE=`${config.apiBaseUrl}/api/v2/admin/province`;
 export const COUNTRIES=`${config.apiBaseUrl}/api/v2/admin/countries`;
 export const CITIES=`${config.apiBaseUrl}/api/v2/admin/cities`;
 export const CSL_CODES = `${config.apiBaseUrl}/api/v2/admin/csl-codes`;
+export const CSL_CERTIFICATE_EXPORT = `${config.apiBaseUrl}/api/v2/admin/csl-certificate-export`;
 export const CSL_LOOKUP = `${config.apiBaseUrl}/api/v2/admin/csl-lookup`;
 export const CSL_REASON = `${config.apiBaseUrl}/api/v2/admin/csl-reason`;
 export const COMMUNICATION_TYPES = `${config.apiBaseUrl}/api/v2/admin/communication-types`;
@@ -91,6 +92,9 @@ export const ASSESSMENT = `${config.apiBaseUrl}/api/v2/admin/assessment`;
 
 // Modules
 export const CSLFT = `${ASSESSMENT}/cslft`;
-export const CSLFT_ASSESS_INFO = `${CSLFT}/assess-info`
+export const CSLFT_ASSESS_INFO = `${CSLFT}/assess-info`;
+
+export const CSGFT = `${ASSESSMENT}/csgft`;
+export const CSGFT_ASSESS_INFO = `${CSGFT}/assess-info`;
 
 export const USERS_URL = `${config.apiBaseUrl}/api/v2/admin/users`;

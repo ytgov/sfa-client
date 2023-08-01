@@ -60,6 +60,7 @@ import { disbursementRouter } from "./disbursement";
 import { usersRouter } from "./users-router";
 import { cslLookupRouter } from "./csl-lookup-router";
 import {cslReasonRouter} from "./csl-reason-router";
+import { cslCertificateExportRouter } from "./csl-certificate-export-router";
 
 export const adminRouter = express.Router();
 //adminRouter.use("/", RequireServerAuth, RequireAdmin)
@@ -124,3 +125,4 @@ adminRouter.use("/request-types", requestTypeRouter);
 adminRouter.use("/accommodation-type", accommodationTypeRouter);
 adminRouter.use("/disbursement", disbursementRouter);
 adminRouter.use("/users", usersRouter);
+adminRouter.use("/csl-certificate-export", cslCertificateExportRouter)

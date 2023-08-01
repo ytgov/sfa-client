@@ -44,6 +44,7 @@ import YukonExcellenceAwards from "../components/application/csfa-needs-assessme
 import StudentModuleRoutes from "@/modules/student/router";
 import ApplicationTypeModuleRooutes from "@/modules/application-type/router";
 import InstitutionModuleRoutes from "@/modules/institution/router";
+import CslCertificateExportModuleRoutes from "@/modules/csl-certificate-export/router";
 import ProvinceModuleRoutes from "@/modules/province/router";
 import CountriesModuleRoutes from "@/modules/countries/router";
 import CitiesModuleRoutes from "@/modules/cities/router";
@@ -358,6 +359,7 @@ const routes = [
   ...ApplicationTypeModuleRooutes,
   ...StudentModuleRoutes,
   ...InstitutionModuleRoutes,
+  ...CslCertificateExportModuleRoutes,
   ...ProvinceModuleRoutes,
   ...CountriesModuleRoutes,
   ...CitiesModuleRoutes,

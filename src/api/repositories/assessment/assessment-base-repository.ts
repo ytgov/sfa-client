@@ -1,7 +1,7 @@
 import { Knex } from "knex";
 import { BaseRepository } from "../base-repository";
 import { ScalarResult } from "models/repository";
-import { AssessmentDTO} from "models";
+import { AssessmentDTO, AssessmentTable, assessmentColumns } from "../../models";
 import { IMainTable } from "../i-main-table";
 
 export class AssessmentBaseRepository extends BaseRepository implements IMainTable {
@@ -13,6 +13,15 @@ export class AssessmentBaseRepository extends BaseRepository implements IMainTab
 
     getMainTable(): string {
         return this.mainTable;
+    }
+
+    getAssessmentTable(assessment: AssessmentDTO): AssessmentTable {
+        return Object.keys(assessment)
+            .filter(key => assessmentColumns.includes(key as keyof AssessmentTable))
+            .reduce((obj: any, key) => {
+                obj[key as keyof AssessmentTable] = assessment[key as keyof AssessmentTable];
+                return obj as AssessmentTable;
+            }, {});
     }
 
     async getAssessmentByFundingRequestId(funding_request_id: number | undefined): Promise<AssessmentDTO> {
