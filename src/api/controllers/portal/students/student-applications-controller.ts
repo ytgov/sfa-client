@@ -1,12 +1,12 @@
 import { Request, Response } from "express"
 
-import { ApplicationService } from "../../services/portal";
+import { StudentApplicationsService } from "@/services/portal/students/student-applications-service";
 
-export default class ApplicationsController {
+export default class StudentApplicationsController {
   listStudentApplications(req: Request, res: Response) {
     const studentId = parseInt(req.params.studentId)
 
-    const applicationService = new ApplicationService({ studentId })
+    const applicationService = new StudentApplicationsService({ studentId })
     applicationService
       .getApplications()
       .then((applications) => {
@@ -21,7 +21,7 @@ export default class ApplicationsController {
     const studentId = parseInt(req.params.studentId)
     const applicationId = parseInt(req.params.applicationId)
 
-    const applicationService = new ApplicationService({ studentId, applicationId })
+    const applicationService = new StudentApplicationsService({ studentId, applicationId })
     applicationService
       .getApplication()
       .then((applications) => {
