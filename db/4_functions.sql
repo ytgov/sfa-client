@@ -2547,7 +2547,7 @@ BEGIN
 		parent2_tax_paid,
 		parent_contribution_override,
 		parent_contribution_review,
-		parent_province,
+		parent_province_id,
 		parent_ps_depend_count,
 		period,
 		pre_leg_amount,
@@ -3524,7 +3524,7 @@ BEGIN
         WHERE csl_cert_seq_number is null 
            AND issue_date >= @FROM_DATE
            AND issue_date <= @TO_DATE
-           AND disbursement_type_id in (4,5,7,9)
+           AND disbursement_type_id in (3,4,5,7,9)
            AND NOT due_date IS NULL
            AND NOT transaction_number IS NULL;
     OPEN disbursement_count;

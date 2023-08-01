@@ -1,0 +1,1 @@
+ALTER TABLE sfa.disbursement ADD csl_cert_seq_number_prev INT NULL;

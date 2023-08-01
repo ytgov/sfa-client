@@ -16,10 +16,10 @@
       
     <h1>CSL Certificate Export</h1>
 
-    <v-card class="default mb-5">        
+    <v-card class="default mb-4">        
       <v-card-text>
         <div class="row">
-          <div class="col-md-5">
+          <div class="col-md-4">
             <v-menu                  
             :close-on-content-click="false"
             transition="scale-transition"
@@ -50,7 +50,7 @@
           </v-menu>
         </div>    
 
-        <div class="col-md-5">
+        <div class="col-md-4">
             <v-menu                  
             :close-on-content-click="false"
             transition="scale-transition"
@@ -80,14 +80,19 @@
               ></v-date-picker>
           </v-menu>
         </div> 
-        
-          
-        <div class="col-md-2">
-          <v-btn @click="generateReport" class="my-0" color="primary"><v-icon>mdi-plus</v-icon> Export</v-btn>          
+        <div class="col-md-1">
+          <v-btn @click="generateReport(1)" class="my-0" color="primary"><v-icon style="margin-right: 2px;">mdi-eye</v-icon>Preview</v-btn>       
         </div>
+        <div class="col-md-1">
+          <v-btn @click="generateReport(0)" class="my-0" color="primary"><v-icon>mdi-plus</v-icon>Export</v-btn>                   
+        </div>      
       </div>
       </v-card-text>
   </v-card>
+
+    <modal :title="this.modalTitle" ref="modal">      
+      <p>{{ this.modalText }}</p>
+    </modal>
   </div>
 </template>
 
@@ -99,6 +104,7 @@ import {
   CSL_CERTIFICATE_EXPORT
 } from "../../../urls";
 import jsPDF from 'jspdf';
+import Modal from "../../../components/commonCatalog/Modal.vue";
 
 export default {
   name: "OfficerList",
@@ -112,10 +118,15 @@ export default {
       date: null,
       menu: null
     },
-    seqNum: null,    tableData: null,
-    batch: null
+    seqNum: null,    
+    tableData: null,
+    batch: null,
+    modalText: null,
+    modalTitle: null
   }),
-  components: {},
+  components: {
+    Modal,
+  },
   computed: {
     ...mapState(["showSideBarAdmin"]),            
   },
@@ -123,37 +134,48 @@ export default {
     await store.dispatch("setAppSideBarAdmin", this.$route.path.startsWith("/administration"));      
   },
   methods: {              
-    async generateReport() {  
+    async generateReport(isPreview) {        
       
-      const resInsert = await axios.put(
-        CSL_CERTIFICATE_EXPORT + `/${this.from.date}/${this.to.date}`,            
-      );        
-      
-       if(resInsert.data.data) {
-        const resInsert2 = await axios.get(
-          CSL_CERTIFICATE_EXPORT + `/${this.from.date}/${this.to.date}/${resInsert.data.data}`,                      
-        );    
-
-        if(resInsert2) {
-          this.tableData = resInsert2.data.data1;
-          this.batch =  resInsert2.data.batch;
-
-
-          this.generatePDF();
-          
-          
-          let FileSaver = require('file-saver');                                                            
-          const regex = /PPYT\.EDU\.CERTS\.D\d+\.001/;
-          const match = resInsert2.data.data2[0][''].match(regex);
-          const resultado = match ? match[0] : null;
-
-
-          let blob = new Blob([resInsert2.data.data2[0][''].replace(/PPYT\.EDU\.CERTS\.D\d+\.001/, '')], {type: "text/plain;charset=utf-8"});    
-          FileSaver.saveAs(blob, `${resultado}.txt`);          
-          
+      if(this.from.date === "" || this.from.date === null || this.to.date === "" || this.to.date === null) {
+        this.modalTitle = "Error";
+        this.modalText ="Please fill in all the fields";
+        this.openModal();
+      } else {
+        let resInsert;
+        if(isPreview) {
+          resInsert = await axios.put(CSL_CERTIFICATE_EXPORT + `/${this.from.date}/${this.to.date}/1`);          
+        } else {
+          resInsert = await axios.put(CSL_CERTIFICATE_EXPORT + `/${this.from.date}/${this.to.date}/0`);          
         }
-      }
+      
+        if(resInsert.data.flag === 0 || !resInsert.data.data) {        
+          this.$emit("showError", resInsert.data.data);
+        } else {
+          let resInsert2;
+          if(isPreview === 1) {
+            resInsert2 = await axios.get(CSL_CERTIFICATE_EXPORT + `/${this.from.date}/${this.to.date}/${resInsert.data.data}/1`);
+          } else {
+            resInsert2 = await axios.get(CSL_CERTIFICATE_EXPORT + `/${this.from.date}/${this.to.date}/${resInsert.data.data}/0`);
+          }
+              
 
+          if(resInsert2) {
+            this.tableData = resInsert2.data.data1;
+            this.batch =  resInsert2.data.batch;
+            this.generatePDF();          
+          
+            let FileSaver = require('file-saver');                                                            
+            const regex = /PPYT\.EDU\.CERTS\.D\d+\.001/;
+            const match = resInsert2.data.data2[0][''].match(regex);
+            const resultado = match ? match[0] : null;
+
+            let blob = new Blob([resInsert2.data.data2[0][''].replace(/PPYT\.EDU\.CERTS\.D\d+\.001/, '')], {type: "text/plain;charset=utf-8"});    
+            FileSaver.saveAs(blob, `${resultado}`);                    
+          } else {
+            this.$emit("showError", "Something went wrong!");
+          }
+        }
+      }     
     },
     formattedDate(date, format) {        
       if(format === 1) {               
@@ -166,8 +188,7 @@ export default {
       } else {
           return this.strMonth(date);
       }
-    },
-    
+    },    
     strMonth(month) {
       let stringMonth = "";
       switch(parseInt(month)) {
@@ -322,6 +343,9 @@ export default {
   });
  
     },   
+    openModal() {
+      this.$refs.modal.openModal();
+    },
   },
 };
 </script>
