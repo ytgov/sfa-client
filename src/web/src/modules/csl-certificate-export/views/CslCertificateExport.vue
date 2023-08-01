@@ -16,10 +16,10 @@
       
     <h1>CSL Certificate Export</h1>
 
-    <v-card class="default mb-5">        
+    <v-card class="default mb-4">        
       <v-card-text>
         <div class="row">
-          <div class="col-md-5">
+          <div class="col-md-4">
             <v-menu                  
             :close-on-content-click="false"
             transition="scale-transition"
@@ -50,7 +50,7 @@
           </v-menu>
         </div>    
 
-        <div class="col-md-5">
+        <div class="col-md-4">
             <v-menu                  
             :close-on-content-click="false"
             transition="scale-transition"
@@ -80,15 +80,13 @@
               ></v-date-picker>
           </v-menu>
         </div> 
-        
-          
+        <div class="col-md-1">
+          <v-btn :disabled=disabled.flag @click="generateReport(1)" class="my-0" color="primary"><v-icon style="margin-right: 2px;">mdi-eye</v-icon>Preview</v-btn>       
+        </div>    
         <div class="col-md-1">
           <v-btn :disabled=disabled.flag @click="generateReport(0)" class="my-0" color="primary"><v-icon>mdi-plus</v-icon>Export</v-btn>                   
         </div>
-
-        <div class="col-md-1">
-          <v-btn :disabled=disabled.flag @click="generateReport(1)" class="my-0" color="primary"><v-icon style="margin-right: 2px;">mdi-eye</v-icon>Preview</v-btn>       
-        </div>                    
+                        
       </div>
       </v-card-text>
   </v-card>
@@ -182,6 +180,7 @@ export default {
             FileSaver.saveAs(blob, `${isPreview === 1 ? 'PREVIEW_' : ''}${resultado}.txt`);   
             let newFlag = {flag:false}     
           this.disabled = newFlag;                 
+
           } else {
             this.$emit("showError", "Something went wrong!");
             let newFlag = {flag:true}     

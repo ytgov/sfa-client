@@ -1,14 +1,41 @@
 import { Knex } from "knex";
 import { BaseRepository } from "../base-repository";
-import {ApplicationDTO, MsfaaDTO} from "models";
-import {MsfaaApplicationDTO} from "../../models/dto/MsfaaApplicationDTO";
+import { MsfaaDTO, MsfaaTable, msfaaColumns } from "../../models";
+import { MsfaaApplicationDTO } from "../../models/dto/MsfaaApplicationDTO";
+import { IMainTable } from "../i-main-table";
 
-export class MsfaaRepository extends BaseRepository {
+export class MsfaaRepository extends BaseRepository implements IMainTable {
 
     private msfaa: Partial<MsfaaDTO> = {};
 
+    protected mainTable: string = "sfa.msfaa";
+
     constructor(maindb: Knex<any, unknown>) {
         super(maindb)
+    }
+
+    getMainTable(): string {
+        return this.mainTable;
+    }
+
+    getMsfaaTable(msfaa: MsfaaDTO): MsfaaTable {
+        return Object.keys(msfaa)
+            .filter(key => msfaaColumns.includes(key as keyof MsfaaTable))
+            .reduce((obj: any, key) => {
+                obj[key as keyof MsfaaTable] = msfaa[key as keyof MsfaaTable];
+                return obj as MsfaaTable;
+            }, {});
+    }
+
+    async updateMsfaa(id: number, msfaa: MsfaaDTO): Promise<MsfaaDTO> {
+        const filtered = this.getMsfaaTable(msfaa);
+        const result = await this.mainDb(this.mainTable)
+                                .update(filtered)
+                                .where({
+                                    id: id
+                                })
+                                .returning("*");
+        return result[0];
     }
 
     async getMsfaaById(msfaa_id: number | undefined): Promise<Partial<MsfaaDTO>> {

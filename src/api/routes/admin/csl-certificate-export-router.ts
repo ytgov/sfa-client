@@ -73,7 +73,7 @@ cslCertificateExportRouter.put("/:FROM_DATE_P/:TO_DATE_P/:PREVIEW",
         const { FROM_DATE_P, TO_DATE_P, PREVIEW} = req.params;
                 
         try {           
-                        
+
                 const results = await db 
                 .select(db.raw(`sfa.fn_get_count_disbursement_ecerts('${FROM_DATE_P}', '${TO_DATE_P}') AS result`))                                                      
                 if(results[0].result > 0) {
