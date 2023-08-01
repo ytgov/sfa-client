@@ -1178,11 +1178,15 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
                                 .returning("*");
             }
             else {
-                query = await this.mainDb(this.disbursementRepo.getMainTable()).insert(dis).returning("*");
+                if (dis.assessment_id && dis.funding_request_id) {
+                    query = await this.mainDb(this.disbursementRepo.getMainTable()).insert(dis).returning("*");
+                }                
             }
             
-            record = query[0];
-            result.push(record);
+            if (query) {
+                record = query[0];
+                result.push(record);
+            }
         });
 
         return result;

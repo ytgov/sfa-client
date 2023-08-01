@@ -1,7 +1,7 @@
 import { Knex } from "knex";
 import { BaseRepository } from "../base-repository";
 import { ScalarResult } from "models/repository";
-import { AssessmentDTO, AssessmentTable, assessmentColumns } from "models";
+import { AssessmentDTO, AssessmentTable, assessmentColumns } from "../../models";
 import { IMainTable } from "../i-main-table";
 
 export class AssessmentBaseRepository extends BaseRepository implements IMainTable {
