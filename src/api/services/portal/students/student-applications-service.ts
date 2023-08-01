@@ -1,6 +1,6 @@
 import db from "@/db/db-client"
 
-export class StudentApplicationsService {
+export default class StudentApplicationsService {
   #studentId: number
   #applicationId?: number
 

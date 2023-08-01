@@ -1,6 +1,6 @@
 import { Request, Response } from "express"
 
-import { StudentApplicationsService } from "@/services/portal/students/student-applications-service";
+import StudentApplicationsService from "@/services/portal/students/student-applications-service";
 
 export default class StudentApplicationsController {
   listStudentApplications(req: Request, res: Response) {
