@@ -1,5 +1,4 @@
-import knex from "knex";
-import { DB_CONFIG } from "../../config";
+import db from '../../db/db-client'
 import {
   AddressesFromDraft,
   Application,
@@ -14,8 +13,22 @@ import {
 } from "../../models";
 import moment from "moment";
 
-const db = knex(DB_CONFIG);
+
 const schema = "sfa";
+
+
+export class ApplicationService {
+  #studentId: number
+
+  constructor({ studentId }: { studentId: number }) {
+    this.#studentId = studentId
+  }
+
+  getApplications() {
+    return db("sfa.application").where({ student_id: this.#studentId })
+  }
+}
+
 
 export class PortalApplicationService {
   getApplication() {
