@@ -21,7 +21,15 @@ export default class ApplicationsController {
     const studentId = parseInt(req.params.studentId)
     const applicationId = parseInt(req.params.applicationId)
 
-    res.send(`get student application for Application#${applicationId} with Student#${studentId}`)
+    const applicationService = new ApplicationService({ studentId, applicationId })
+    applicationService
+      .getApplication()
+      .then((applications) => {
+        res.json({ data: applications })
+      })
+      .catch((error: { message: string }) => {
+        res.status(404).json({ error: error.message })
+      })
   }
 
   #getStudent(studentId: number) {}
