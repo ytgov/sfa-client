@@ -81,11 +81,12 @@
           </v-menu>
         </div> 
         <div class="col-md-1">
-          <v-btn @click="generateReport(1)" class="my-0" color="primary"><v-icon style="margin-right: 2px;">mdi-eye</v-icon>Preview</v-btn>       
-        </div>
+          <v-btn :disabled=disabled.flag @click="generateReport(1)" class="my-0" color="primary"><v-icon style="margin-right: 2px;">mdi-eye</v-icon>Preview</v-btn>       
+        </div>    
         <div class="col-md-1">
-          <v-btn @click="generateReport(0)" class="my-0" color="primary"><v-icon>mdi-plus</v-icon>Export</v-btn>                   
-        </div>      
+          <v-btn :disabled=disabled.flag @click="generateReport(0)" class="my-0" color="primary"><v-icon>mdi-plus</v-icon>Export</v-btn>                   
+        </div>
+                        
       </div>
       </v-card-text>
   </v-card>
@@ -122,7 +123,8 @@ export default {
     tableData: null,
     batch: null,
     modalText: null,
-    modalTitle: null
+    modalTitle: null,
+    disabled: {flag: false}
   }),
   components: {
     Modal,
@@ -134,13 +136,16 @@ export default {
     await store.dispatch("setAppSideBarAdmin", this.$route.path.startsWith("/administration"));      
   },
   methods: {              
-    async generateReport(isPreview) {        
+    async generateReport(isPreview) {     
+      console.log(isPreview)
       
       if(this.from.date === "" || this.from.date === null || this.to.date === "" || this.to.date === null) {
         this.modalTitle = "Error";
         this.modalText ="Please fill in all the fields";
         this.openModal();
-      } else {
+      } else {   
+        let newFlag = {flag:true}     
+        this.disabled = newFlag;         
         let resInsert;
         if(isPreview) {
           resInsert = await axios.put(CSL_CERTIFICATE_EXPORT + `/${this.from.date}/${this.to.date}/1`);          
@@ -148,8 +153,10 @@ export default {
           resInsert = await axios.put(CSL_CERTIFICATE_EXPORT + `/${this.from.date}/${this.to.date}/0`);          
         }
       
-        if(resInsert.data.flag === 0 || !resInsert.data.data) {        
-          this.$emit("showError", resInsert.data.data);
+        if(resInsert.data.flag === 0 || !resInsert.data.data) {   
+          let newFlag = {flag:false}     
+          this.disabled = newFlag;                      
+          this.$emit("showError", resInsert.data.data);          
         } else {
           let resInsert2;
           if(isPreview === 1) {
@@ -162,7 +169,7 @@ export default {
           if(resInsert2) {
             this.tableData = resInsert2.data.data1;
             this.batch =  resInsert2.data.batch;
-            this.generatePDF();          
+            this.generatePDF(isPreview);          
           
             let FileSaver = require('file-saver');                                                            
             const regex = /PPYT\.EDU\.CERTS\.D\d+\.001/;
@@ -170,12 +177,18 @@ export default {
             const resultado = match ? match[0] : null;
 
             let blob = new Blob([resInsert2.data.data2[0][''].replace(/PPYT\.EDU\.CERTS\.D\d+\.001/, '')], {type: "text/plain;charset=utf-8"});    
-            FileSaver.saveAs(blob, `${resultado}`);                    
+            FileSaver.saveAs(blob, `${isPreview === 1 ? 'PREVIEW_' : ''}${resultado}.txt`);   
+            let newFlag = {flag:false}     
+          this.disabled = newFlag;                 
+
           } else {
             this.$emit("showError", "Something went wrong!");
+            let newFlag = {flag:true}     
+            this.disabled = newFlag;   
           }
         }
-      }     
+      }  
+      
     },
     formattedDate(date, format) {        
       if(format === 1) {               
@@ -233,7 +246,7 @@ export default {
           }       
       return stringMonth.toUpperCase();                    
     },
-    generatePDF() {                   
+    generatePDF(isPreview) {                   
       const doc = new jsPDF();        
       const formatter = new Intl.NumberFormat('en-US', {
         style: 'currency',
@@ -333,7 +346,7 @@ export default {
 
   let finalHTML = htmlTop + dataColumns + htmlBottom;
       
-  let fileName = `doc`
+  let fileName = `${isPreview === 1 ? 'PREVIEW_' : ''}EDU-SFA`
   doc.html(finalHTML, {
     callback: function (doc) {      
       doc.save(fileName);

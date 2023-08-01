@@ -3428,8 +3428,8 @@ AS
 	BEGIN
 		DECLARE
 		@res_v_weekly_rate INT
-		DECLARE
-		 weekly_rate_cur CURSOR LOCAL FOR 
+		
+        
 		   SELECT 
 		      CASE @dependent_count_p
 		         WHEN 0 THEN st.dependent_0_amount
@@ -4576,3 +4576,79 @@ BEGIN
     RETURN @description;
 END
 GO
+
+
+CREATE OR ALTER PROCEDURE sfa.sp_get_and_update_csl_cert_seq_num_prev 
+(
+	@FROM_DATE_P DATE,
+	@TO_DATE_P DATE,
+	@CSL_CERT_SEQ_NUM INT
+)
+AS
+BEGIN
+	UPDATE sfa.disbursement SET csl_cert_seq_number_prev = @CSL_CERT_SEQ_NUM WHERE id IN 
+	(
+		SELECT d.id
+		FROM sfa.funding_request AS fr
+		INNER JOIN sfa.disbursement AS d ON fr.id = d.funding_request_id
+		INNER JOIN sfa.request_type AS rt ON fr.request_type_id = rt.id
+		INNER JOIN (
+		  SELECT m.msfaa_status, app.academic_year_id, app.id
+		  FROM sfa.msfaa AS m
+		  INNER JOIN sfa.application AS app ON app.id = m.application_id
+		  WHERE app.id = m.application_id
+		) AS mhd ON fr.application_id = mhd.id
+		WHERE (mhd.msfaa_status = 'Received' OR mhd.academic_year_id <= 2012)
+		AND issue_date >= @FROM_DATE_P			
+		AND issue_date <= @TO_DATE_P		
+		AND d.due_date IS NOT NULL
+		AND d.transaction_number IS NOT NULL
+		AND d.csl_cert_seq_number IS NULL
+		AND disbursement_type_id IN (3, 4, 5, 7, 9)
+		AND fr.request_type_id IN (4, 5, 6, 15, 16, 17, 18, 19, 22, 23, 24, 26, 27, 28, 29, 30, 31, 32, 33, 35, 47)
+		AND d.transaction_number IN (
+		  SELECT d1.transaction_number
+		  FROM sfa.disbursement AS d1
+		  INNER JOIN sfa.funding_request AS fr1 ON d1.funding_request_id = fr1.id
+		  WHERE fr1.request_type_id IN (4, 5))
+	)
+END
+GO
+
+CREATE OR ALTER PROCEDURE sfa.sp_get_and_update_csl_cert_seq_num
+(
+	@FROM_DATE_P DATE,
+	@TO_DATE_P DATE,
+	@CSL_CERT_SEQ_NUM INT
+)
+AS
+BEGIN
+	UPDATE sfa.disbursement SET csl_cert_seq_number = @CSL_CERT_SEQ_NUM WHERE id IN 
+	(
+		SELECT d.id
+		FROM sfa.funding_request AS fr
+		INNER JOIN sfa.disbursement AS d ON fr.id = d.funding_request_id
+		INNER JOIN sfa.request_type AS rt ON fr.request_type_id = rt.id
+		INNER JOIN (
+		  SELECT m.msfaa_status, app.academic_year_id, app.id
+		  FROM sfa.msfaa AS m
+		  INNER JOIN sfa.application AS app ON app.id = m.application_id
+		  WHERE app.id = m.application_id
+		) AS mhd ON fr.application_id = mhd.id
+		WHERE (mhd.msfaa_status = 'Received' OR mhd.academic_year_id <= 2012)
+		AND issue_date >= @FROM_DATE_P			
+		AND issue_date <= @TO_DATE_P		
+		AND d.due_date IS NOT NULL
+		AND d.transaction_number IS NOT NULL
+		AND d.csl_cert_seq_number IS NULL
+		AND disbursement_type_id IN (3, 4, 5, 7, 9)
+		AND fr.request_type_id IN (4, 5, 6, 15, 16, 17, 18, 19, 22, 23, 24, 26, 27, 28, 29, 30, 31, 32, 33, 35, 47)
+		AND d.transaction_number IN (
+		  SELECT d1.transaction_number
+		  FROM sfa.disbursement AS d1
+		  INNER JOIN sfa.funding_request AS fr1 ON d1.funding_request_id = fr1.id
+		  WHERE fr1.request_type_id IN (4, 5))
+	)
+END
+GO
+
