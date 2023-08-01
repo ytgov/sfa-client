@@ -146,7 +146,6 @@ export class AssessmentYukonGrant extends AssessmentBaseRepository {
         program_division: number,
 
     ): Promise<AssessmentDTO | undefined> {
-        //fn_disbursments_required FUNCTION REMOVED 
         let refrehData: AssessmentDTO = { ...assessment };
 
         this.application = await this.applicationRepo.getApplicationById(application_id);
@@ -175,6 +174,12 @@ export class AssessmentYukonGrant extends AssessmentBaseRepository {
             assessment.destination_city_id || 0
         ]);
 
+        const disburse_required = await this.getScalarValue<number>("fn_disbursments_required", [
+            application_id,
+            assessment?.id || 0,
+            program_division || 0,
+        ]);
+
         let disbursed_amt = null;
 
         if (disburseAmountList.length) {
@@ -183,9 +188,18 @@ export class AssessmentYukonGrant extends AssessmentBaseRepository {
 
         if (disbursed_amt) {
             refrehData.previous_disbursement = disbursed_amt;
+
+            if (disburse_required > 0 && disburse_required < 1) {
+                refrehData.disbursements_required = 1;
+            } else {
+                refrehData.disbursements_required = Math.floor(disburse_required);
+            }
         } else {
             refrehData.previous_disbursement = 0;
+            refrehData.disbursements_required = Math.floor(disburse_required);
         }
+
+        disburse_required
 
         refrehData.assessed_amount = await this.getScalarValue<number>("fn_get_total", [
             refrehData.disbursements_required || 0,
