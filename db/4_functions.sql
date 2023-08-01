@@ -4583,4 +4583,3 @@ BEGIN
     RETURN @description;
 END
 GO
-END;

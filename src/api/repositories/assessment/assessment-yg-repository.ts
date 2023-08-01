@@ -146,7 +146,7 @@ export class AssessmentYukonGrant extends AssessmentBaseRepository {
         program_division: number,
 
     ): Promise<AssessmentDTO | undefined> {
-        //fn_disbursments_required FUNCION REMOVIDA 
+        //fn_disbursments_required FUNCTION REMOVED 
         let refrehData: AssessmentDTO = { ...assessment };
 
         this.application = await this.applicationRepo.getApplicationById(application_id);
