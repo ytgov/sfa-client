@@ -1,5 +1,6 @@
 import { Request, Response } from "express"
 
+import ApplicationsSerializer from "@/serializers/applications-serializer";
 import StudentApplicationsService from "@/services/portal/students/student-applications-service";
 
 export default class StudentApplicationsController {
@@ -10,7 +11,9 @@ export default class StudentApplicationsController {
     applicationService
       .getApplications()
       .then((applications) => {
-        res.json({ data: applications })
+        const applicationSerializer = new ApplicationsSerializer(applications);
+        const data = applicationSerializer.asListView()
+        res.json({ data })
       })
       .catch((error: { message: string }) => {
         res.status(404).json({ error: error.message })
@@ -24,8 +27,10 @@ export default class StudentApplicationsController {
     const applicationService = new StudentApplicationsService({ studentId, applicationId })
     applicationService
       .getApplication()
-      .then((applications) => {
-        res.json({ data: applications })
+      .then((application) => {
+        const applicationSerializer = new ApplicationsSerializer(application);
+        const data = applicationSerializer.asDetailedView()
+        res.json({ data })
       })
       .catch((error: { message: string }) => {
         res.status(404).json({ error: error.message })
