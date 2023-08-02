@@ -2171,12 +2171,13 @@ END;
 GO
 
 -- Get Parent Family Size
-CREATE OR ALTER FUNCTION sfa.fn_get_parent_family_size(@application_id INT)
+CREATE OR ALTER FUNCTION [sfa].[fn_get_parent_family_size](@application_id INT)
 RETURNS INT
 AS 
 BEGIN
 	DECLARE @count INT = 0;
 	DECLARE @p_count INT = 0;
+    DECLARE @total INT = 0;
 	
 	SELECT
 		@p_count = CASE WHEN p1.first_name IS NOT NULL AND p1.last_name IS NOT NULL THEN 1 ELSE 0 END +
@@ -2189,8 +2190,15 @@ BEGIN
 	WHERE a.id = @application_id;
 
 	SET @count = sfa.fn_get_parent_dependent_count(@application_id, DEFAULT);
+    
+    SET @total = @count + @p_count;
 
-	RETURN @count + @p_count;
+    IF @total > 10
+    BEGIN
+        RETURN 10;
+    END;
+
+	RETURN @total;
 END;
 GO
 
