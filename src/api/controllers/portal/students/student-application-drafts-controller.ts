@@ -1,11 +1,11 @@
-import { Request, Response } from "express"
+import BaseController from "@/controllers/base-controller"
 
 import ApplicationDraftsSerializer from "@/serializers/application-drafts-serializer";
 import StudentApplicationDraftsService from "@/services/portal/students/student-application-drafts-service";
 
-export default class StudentApplicationDraftsController {
-  listStudentApplicationDrafts(req: Request, res: Response) {
-    const studentId = parseInt(req.params.studentId)
+export default class StudentApplicationDraftsController extends BaseController {
+  listStudentApplicationDrafts() {
+    const studentId = parseInt(this.params.studentId)
 
     const applicationService = new StudentApplicationDraftsService({ studentId })
     applicationService
@@ -13,16 +13,16 @@ export default class StudentApplicationDraftsController {
       .then((applicationDrafts) => {
         const applicationDraftsSerializer = new ApplicationDraftsSerializer(applicationDrafts);
         const data = applicationDraftsSerializer.asListView()
-        res.json({ data })
+        this.response.json({ data })
       })
       .catch((error: { message: string }) => {
-        res.status(404).json({ error: error.message })
+        this.response.status(404).json({ error: error.message })
       })
   }
 
-  getStudentApplicationDraft(req: Request, res: Response) {
-    const studentId = parseInt(req.params.studentId)
-    const applicationDraftId = parseInt(req.params.applicationDraftId)
+  getStudentApplicationDraft() {
+    const studentId = parseInt(this.params.studentId)
+    const applicationDraftId = parseInt(this.params.applicationDraftId)
 
     const applicationService = new StudentApplicationDraftsService({ studentId, applicationDraftId })
     applicationService
@@ -30,10 +30,10 @@ export default class StudentApplicationDraftsController {
       .then((applicationDraft) => {
         const applicationDraftsSerializer = new ApplicationDraftsSerializer(applicationDraft);
         const data = applicationDraftsSerializer.asDetailedView()
-        res.json({ data })
+        this.response.json({ data })
       })
       .catch((error: { message: string }) => {
-        res.status(404).json({ error: error.message })
+        this.response.status(404).json({ error: error.message })
       })
   }
 
