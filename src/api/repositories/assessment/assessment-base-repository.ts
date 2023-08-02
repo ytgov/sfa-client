@@ -57,6 +57,19 @@ export class AssessmentBaseRepository extends BaseRepository implements IMainTab
         return assessment;
     }
 
+    async getMaxAssessmentByFundingRequestId(funding_request_id: number | undefined): Promise<AssessmentDTO> {
+        let assessment: Partial<AssessmentDTO> = {};
+
+        if (funding_request_id) {
+            const result = await this.mainDb.raw(`EXEC sfa.sp_get_max_assessment_by_funding_request @funding_request_id = ${funding_request_id}`);
+            if (Array.isArray(result) && result.length > 0) {
+                assessment = this.singleResult(result);
+            }
+        }
+
+        return assessment;
+    }
+
     async getAssessmentInfoPrc(funding_request_id?: number): Promise<number | undefined> {
         let assessment_id = undefined;
         

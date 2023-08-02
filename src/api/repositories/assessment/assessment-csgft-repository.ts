@@ -1,10 +1,12 @@
 import { Knex } from "knex";
 import { AssessmentBaseRepository } from "./assessment-base-repository";
-import { ApplicationDTO, AssessmentDTO, CsgftGlobalDTO, CslftGlobalDTO, DisbursementDTO, FundingRequestDTO, StudentDTO } from "models";
+import { ApplicationDTO, AssessmentDTO, CsgftGlobalDTO, CslftGlobalDTO, DisbursementDTO, FundingRequestDTO, PersonAddressDTO, StudentDTO } from "models";
 import { NumbersHelper } from "utils/NumbersHelper";
-import { ApplicationRepository, CslLookupRepository, DisbursementRepository, DependentRepository, FundingRequestRepository, StudentRepository } from "repositories";
+import { ApplicationRepository, CslLookupRepository, DisbursementRepository, DependentRepository, FundingRequestRepository, StudentRepository, ParentRepository } from "repositories";
 import moment from "moment";
 import { disabilityServiceRouter } from "routes/admin/disability-service-router";
+import { PersonRepository } from "repositories/person";
+import { StandardOfLivingRepository } from "repositories/standard_of_living";
 
 export class AssessmentCsgftRepository extends AssessmentBaseRepository {
 
@@ -15,6 +17,9 @@ export class AssessmentCsgftRepository extends AssessmentBaseRepository {
     private disbursementRepo: DisbursementRepository;
     private dependentRepo: DependentRepository;
     private clsLookupRepo: CslLookupRepository;
+    private personRepo: PersonRepository;
+    private standardLivingRepo: StandardOfLivingRepository;
+    private parentRepo: ParentRepository;
 
     private numHelper: NumbersHelper;
     private assessment: Partial<AssessmentDTO> = {};
@@ -36,6 +41,9 @@ export class AssessmentCsgftRepository extends AssessmentBaseRepository {
         this.disbursementRepo = new DisbursementRepository(maindb);
         this.dependentRepo = new DependentRepository(maindb);
         this.clsLookupRepo = new CslLookupRepository(maindb);
+        this.personRepo = new PersonRepository(maindb);
+        this.standardLivingRepo = new StandardOfLivingRepository(maindb);
+        this.parentRepo = new ParentRepository(maindb);
     }
 
     async getPreviousAssessment(assessment_id?: number): Promise<void> {
@@ -58,6 +66,24 @@ export class AssessmentCsgftRepository extends AssessmentBaseRepository {
                 this.disbursement = this.disbursements[0] ?? {};
             }                        
         }
+    }
+
+    async getAssessedNeed(assessment: Partial<AssessmentDTO>, funding_request: Partial<FundingRequestDTO>, application: Partial<ApplicationDTO>, student: Partial<StudentDTO>): Promise<number> {
+        let result = 0;
+
+        if ((assessment.id ?? 0) > 0) {
+            assessment = await this.getMaxAssessmentByFundingRequestId(funding_request.id);
+        }
+
+        if ((assessment.id ?? 0) > 0) {
+            result = this.getAssessedCost(assessment) - await this.getAssessedResources(assessment, application, student);
+        }
+        
+        if (result < 0) {
+            result = 0;
+        }
+
+        return result;
     }
 
     async newFormInstance(funding_request_id: number): Promise<void> {
@@ -157,7 +183,9 @@ export class AssessmentCsgftRepository extends AssessmentBaseRepository {
             this.assessment.spouse_ln150_income = 0;
         }
 
-        this.assessment.csl_assessed_need = 0;
+        this.assessment.csl_assessed_need = Math.ceil(await this.getAssessedNeed({}, this.funding_request, this.application, this.student));
+
+        
     }
 
     async getNewInfo(): Promise<void> {
@@ -311,10 +339,64 @@ export class AssessmentCsgftRepository extends AssessmentBaseRepository {
                 assets += this.numHelper.round(other_income - (other_income * (asset_tax/100)));
             }
             
+            const getYear = (year?: number, month?: number, sDate?: Date): number => {
+                let result = 0;
+                if (year && month && sDate) {
+                    const date = moment().year(year).month(month - 1).endOf("month");
+                    const diffDays = moment.utc(date).diff(sDate, "day");
+                    result = Math.round(diffDays / 365.25 + 0.4999);
+                }
+                return result;
+            };
+
+            if ((assessment.rrsp_student_gross ?? 0) > 0) {
+                const s_gross = assessment.rrsp_student_gross ?? 0;
+                const s_year = getYear(student.high_school_left_year, student.high_school_left_month, assessment.pstudy_start_date);
+                const s_deduct = await this.clsLookupRepo.getRRSPDeductionYearlyAmount(application.academic_year_id);
+                assets += Math.max(0, (s_gross - (s_year * s_deduct)));
+            }
+
+            if ((assessment.rrsp_spouse_gross ?? 0) > 0) {
+                const sp_gross = assessment.rrsp_spouse_gross ?? 0;
+                const sp_year = getYear(application.spouse_hs_end_year, application.spouse_hs_end_month, assessment.pstudy_start_date);
+                const sp_deduct = await this.clsLookupRepo.getRRSPDeductionYearlyAmount(application.academic_year_id);
+                assets += Math.max(0, (sp_gross - (sp_year * sp_deduct)));
+            }
+
+            let parent_contrib = 0;
+            const netIncome = (p1_income?: number, p2_income?: number, p1_tax?: number, p2_tax?: number): number {
+                return (p1_income ?? 0) + (p2_income ?? 0) - (p1_tax ?? 0) - (p2_tax ?? 0);
+            };
+
+            if ((assessment.csl_classification ?? 0) === 1)
+            {
+                let msol = 0;
+                let parent_contribution = 0;
+                if (!assessment.parent_contribution_override) {
+                    const mailing_address: PersonAddressDTO = await this.personRepo.getPersonAddress(student.id, 4);
+                    if (mailing_address && mailing_address.province_id) {
+                        msol = await this.standardLivingRepo.getStandardLivingAmount(application.academic_year_id, mailing_address.province_id, assessment.family_size ?? 0);
+                    }
+
+                    const discretionary_income = netIncome(assessment.parent1_income, assessment.parent2_income, assessment.parent1_tax_paid, assessment.parent2_tax_paid) - msol;
+                    parent_contribution = await this.parentRepo.getParentContributionAmount(application.academic_year_id, discretionary_income);
+                    parent_contrib = Math.round(parent_contribution * (assessment.study_weeks ?? 0)/Math.max(assessment.parent_ps_depend_count ?? 0, 1));
+                }
+                else {
+                    parent_contrib = assessment.parent_contribution_override ?? 0;
+                }                
+            }
+            else {
+                parent_contrib = 0;
+            }
             
+            assets = Math.max((assessment.married_assets ?? 0), (assets ?? 0));
 
+            result = assets + contrib + ps_contrib + parent_contrib;
         }
-
+        else {
+            result = (assessment.student_contribution ?? 0) + (assessment.spouse_contribution ?? 0);
+        }
 
         return result;
     }
