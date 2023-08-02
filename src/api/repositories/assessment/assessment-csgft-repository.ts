@@ -14,6 +14,7 @@ export class AssessmentCsgftRepository extends AssessmentBaseRepository {
     private fundingRequestRepo: FundingRequestRepository;
     private disbursementRepo: DisbursementRepository;
     private dependentRepo: DependentRepository;
+    private clsLookupRepo: CslLookupRepository;
 
     private numHelper: NumbersHelper;
     private assessment: Partial<AssessmentDTO> = {};
@@ -34,7 +35,7 @@ export class AssessmentCsgftRepository extends AssessmentBaseRepository {
         this.fundingRequestRepo = new FundingRequestRepository(maindb);
         this.disbursementRepo = new DisbursementRepository(maindb);
         this.dependentRepo = new DependentRepository(maindb);
-        
+        this.clsLookupRepo = new CslLookupRepository(maindb);
     }
 
     async getPreviousAssessment(assessment_id?: number): Promise<void> {
@@ -218,6 +219,102 @@ export class AssessmentCsgftRepository extends AssessmentBaseRepository {
         const uncapped = (assessment.uncapped_costs_total ?? 0);
 
         result = tuition + books + shelter + p_trans + x_trans + relocation + r_trans + d_food + d_trans + day_care + discretionary + uncapped;
+
+        return result;
+    }
+
+    async getAssessedResources(assessment: Partial<AssessmentDTO>, application: Partial<ApplicationDTO>, student: Partial<StudentDTO>): Promise<number> {
+        let result = 0;
+        let ps_combined_net = 0;
+        const grossCalc = (gross: number, rate: number): number => {
+            return this.numHelper.round(gross - this.numHelper.round(gross * (rate/100)));
+        }
+
+        if (application.academic_year_id && application.academic_year_id < 2017) {
+
+
+            if ((assessment.stud_pstudy_gross ?? 0) > 0) {
+                ps_combined_net = grossCalc((assessment.stud_pstudy_gross ?? 0), (assessment.stud_pstudy_tax_rate ?? 0));
+            }
+
+            if ((assessment.spouse_pstudy_gross ?? 0) > 0) {
+                ps_combined_net += grossCalc((assessment.spouse_pstudy_gross ?? 0), (assessment.spouse_pstudy_tax_rate ?? 0));
+            }
+
+            // Calculate the total allowable costs for the prestudy period.
+            const calcWithMonths = (value: number, months: number): number => {
+                return this.numHelper.round(value * months);
+            }
+            let ps_allowable_total = 0;
+            ps_allowable_total = calcWithMonths((assessment.pstudy_shelter_month ?? 0), (assessment.pstudy_months ?? 0));
+            ps_allowable_total += calcWithMonths((assessment.pstudy_p_trans_month ?? 0), (assessment.pstudy_months ?? 0));
+            ps_allowable_total += this.numHelper.round((assessment.pstudy_x_trans_total ?? 0));
+            ps_allowable_total += calcWithMonths((Math.min((assessment.pstudy_day_care_actual ?? 0), (assessment.day_care_allowable ?? 0))), (assessment.pstudy_months ?? 0));
+            ps_allowable_total += calcWithMonths((assessment.pstudy_depend_food_allow ?? 0), (assessment.pstudy_months ?? 0));
+            ps_allowable_total += calcWithMonths((assessment.pstudy_depend_tran_allow ?? 0), (assessment.pstudy_months ?? 0));
+
+            const disc_cost = this.numHelper.round(ps_combined_net - (assessment.uncapped_pstudy_total ?? 0) - ps_allowable_total);
+            const disc_80 = this.numHelper.round(Math.max(disc_cost, 0) * 0.8);
+
+            const ps_contrib = (assessment.married_pstudy ?? this.numHelper.round(Math.max((assessment.pstudy_expected_contrib ?? 0), disc_80))); 
+
+            // Calculate the combined net income for the study period.
+            let combined_net = 0;
+            let spouse_exempt_amt = 0;
+            let exempt_amt = await this.clsLookupRepo.getStudentExemptAmount(application.academic_year_id);
+
+            if (application.academic_year_id && application.academic_year_id > 2003) {
+                exempt_amt = exempt_amt * (assessment.study_weeks ?? 0);
+            }
+
+            // Calculate the spouse exempt amount
+            if (application.spouse_study_school_to && application.spouse_study_school_from) {
+                
+                spouse_exempt_amt = await this.clsLookupRepo.getStudentExemptAmount(application.academic_year_id);
+
+                if (application.academic_year_id && application.academic_year_id > 2003) {
+                    const spouse_school_diff = moment.utc(application.spouse_study_school_from).diff(moment(application.spouse_study_school_to), "day");
+                    const spouse_school_weeks = Math.trunc((spouse_school_diff + 1)/7 + .9999);
+                    spouse_exempt_amt = exempt_amt * Math.max((assessment.study_weeks ?? 0), spouse_school_weeks);
+                }              
+            }
+
+            if ((assessment.student_gross_income ?? 0) > 0) {
+                const s_gross = assessment.student_gross_income ?? 0;
+                const s_tax = assessment.student_tax_rate ?? 0;
+                combined_net = Math.max(0, this.numHelper.round(s_gross - this.numHelper.round(s_gross * (s_tax/100))));
+            }
+
+            if ((assessment.spouse_gross_income ?? 0) > 0) {
+                const sp_gross = assessment.spouse_gross_income ?? 0;
+                const sp_tax = assessment.spouse_tax_rate ?? 0;
+
+                combined_net = combined_net + Math.max((this.numHelper.round(sp_gross - (sp_gross - (sp_tax/100)))), spouse_exempt_amt);
+            }
+
+            const contrib = (assessment.married_study ?? (this.numHelper.round(Math.max((assessment.spouse_expected_contribution ?? 0), combined_net))));
+            
+            let assets = 0;
+
+            if ((assessment.vehicle_deduction ?? 0) > 0) {
+                const v_deduction = await this.clsLookupRepo.getVehicleDeductionAmount(application.academic_year_id);
+                assets = this.numHelper.round(Math.max(0, ((assessment.vehicle_deduction ?? 0) - v_deduction)));
+            }
+
+            if ((assessment.financial_investments ?? 0) > 0) {
+                assets += assessment.financial_investments ?? 0;
+            }
+
+            if ((assessment.other_income ?? 0) > 0) {
+                const other_income = assessment.other_income ?? 0;
+                const asset_tax = assessment.asset_tax_rate ?? 0;
+                assets += this.numHelper.round(other_income - (other_income * (asset_tax/100)));
+            }
+            
+            
+
+        }
+
 
         return result;
     }
