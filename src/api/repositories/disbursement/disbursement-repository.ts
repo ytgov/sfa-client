@@ -2,6 +2,7 @@ import { Knex } from "knex";
 import { BaseRepository } from "../base-repository";
 import { DisbursementDTO, DisbursementTable, disbursementColumns } from "../../models";
 import { IMainTable } from "../i-main-table";
+import { PortalStatusDTO } from "models/dto/PortalStatusDTO";
 
 export class DisbursementRepository extends BaseRepository implements IMainTable {
 
@@ -26,19 +27,53 @@ export class DisbursementRepository extends BaseRepository implements IMainTable
             }, {});
     }
 
-    async getByAssessmentId(assessment_id: number | undefined): Promise<Partial<DisbursementDTO>> {
-
+    async getByAssessmentId(assessment_id: number | undefined): Promise<Array<Partial<DisbursementDTO>>> {
+        let result: Array<Partial<DisbursementDTO>> = [];
+        
         if (assessment_id) {
-            this.disbursement = await this.mainDb(this.mainTable)
+            const query = await this.mainDb(this.mainTable)
                 .select(
                     "*"
                 )
                 .where({ assessment_id: assessment_id })
-                .orderBy("id", "desc")
-                .first();
+                .orderBy("id", "asc");
+            
+            query.forEach((x: DisbursementDTO) => result.push(x));
         }
         
-        return this.disbursement;
+        return result;
+    }
+
+    async getECertificateList(assessment_id: number | undefined): Promise<Array<Partial<DisbursementDTO>>> { 
+        let result: Array<Partial<DisbursementDTO>> = [];
+        
+        if (assessment_id) {
+            const query = await this.mainDb(this.mainTable)
+                .select(
+                    "*"
+                )
+                .where({ assessment_id: assessment_id })
+                .whereNull("financial_batch_id")
+                .orderBy("id", "asc");
+            
+            query.forEach((x: DisbursementDTO) => result.push(x));
+        }
+        
+        return result;
+    }
+
+    async getPortalStatusList(): Promise<Array<Partial<PortalStatusDTO>>> {
+        let result: Array<Partial<PortalStatusDTO>> = [];
+        
+        const query = await this.mainDb("sfa.portal_status")
+            .select(
+                "*"
+            )
+            .orderBy("id", "asc");
+        
+        query.forEach((x: PortalStatusDTO) => result.push(x));
+        
+        return result;
     }
 
     async getTotalGrantAmount(application_id?: number): Promise<number> { 
@@ -81,19 +116,19 @@ export class DisbursementRepository extends BaseRepository implements IMainTable
         return result;
     }
 
-    async getMaxTransaction(funding_request_id?: number): Promise<number> {
+    async getMaxTransaction(funding_request_id?: number): Promise<string> {
         let result = 0;
 
         if (funding_request_id) {
             result = await this.getScalarValue<number>("fn_get_disbursement_max_transaction", [funding_request_id]);
         }
 
-        return result;
+        return result.toString();
     }
 
-    async getNextTransactionSequenceValue(): Promise<number> {
+    async getNextTransactionSequenceValue(): Promise<string> {
         const query = await this.mainDb.raw("SELECT NEXT VALUE FOR sfa.CSL_TRANSACTION_SEQ as nextVal;");
         const result: Partial<{ nextVal?: number }> = this.singleResult(query);
-        return result.nextVal ?? 0;
+        return result.nextVal?.toString() ?? '0';
     }
 }

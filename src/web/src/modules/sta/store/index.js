@@ -143,18 +143,22 @@ const actions = {
         try {
             const assessment = getters.assessmentSTA;
             const disbursements = getters.disbursementListSTA;
+            const application_id = getters.selectedApplication.id;
 
             const res = await axios.post(
                 `${ASSESSMENT}/sta/disburse`,
                 {
                     assessment: assessment,
+                    application_id: application_id,
                 }
             );
             const success = res?.data?.success;
             
             if (success) {
-                const data = res?.data?.data || {};
-                commit("SET_DISBURSEMENT_LIST_STA", [ ...disbursements, { ...data } ]);
+                const data = res?.data?.data || [];
+                if (data?.length > 0) {
+                    commit("SET_DISBURSEMENT_LIST_STA", [ ...disbursements, ...data ]);
+                }
                 dispatch("refreshSTA");
             } else {
                 console.log("Error to get disburse");
