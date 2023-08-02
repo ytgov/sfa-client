@@ -139,16 +139,6 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
 
         return result;
     }
-    
-    async getParentFamilySize(application_id?: number): Promise<number> {
-        let result = 0;
-
-        if (application_id) {
-            result = await this.getScalarValue<number>("fn_get_parent_family_size", [application_id]);
-        }
-
-        return result;
-    }
 
     async getOtherIncomeAmount(application_id?: number, academic_year_id?: number): Promise<number> {
         let result = 0;

@@ -24,6 +24,26 @@ export class AssessmentBaseRepository extends BaseRepository implements IMainTab
             }, {});
     }
 
+    async getDependentCount(application_id?: number): Promise<number> {
+        let result = 0;
+
+        if (application_id) {
+            result = await this.getScalarValue<number>("fn_get_dependent_count", [application_id]);
+        }
+
+        return result;
+    }
+
+    async getParentFamilySize(application_id?: number): Promise<number> {
+        let result = 0;
+
+        if (application_id) {
+            result = await this.getScalarValue<number>("fn_get_parent_family_size", [application_id]);
+        }
+
+        return result;
+    }
+
     async getAssessmentByFundingRequestId(funding_request_id: number | undefined): Promise<AssessmentDTO> {
         let assessment: Partial<AssessmentDTO> = {};
 
