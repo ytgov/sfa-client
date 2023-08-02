@@ -43,6 +43,7 @@ import program from "@/modules/program/store";
 import cslClassification from "@/modules/csl-classification/store";
 import cslCode from "@/modules/csl-code/store";
 import cslCertificateExport from "@/modules/csl-certificate-export/store";
+import cslMsfaaReceive from "@/modules/csl-msfaa-receive/store";
 import cslReason from "@/modules/csl-reason/store";
 import inSchoolStatus from "@/modules/in-school-status/store";
 import communicationType from "@/modules/communication-type/store";
@@ -527,6 +528,7 @@ export default new Vuex.Store({
     accommodationType,
     officers,
     cslReason,
-    cslCertificateExport
+    cslCertificateExport,
+    cslMsfaaReceive
   }
 });

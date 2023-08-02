@@ -4000,7 +4000,7 @@ BEGIN
 	    LEFT JOIN sfa.person_address pam ON pa.person_id = p.id AND pa.address_type_id = 2
 	    LEFT JOIN sfa.msfaa m ON s.id = m.student_id
 	WHERE fr.request_type_id IN (4, 5)
-		AND d.csl_cert_seq_number = @CSL_CERT_SEQ_P or d.csl_cert_seq_number IS NULL
+		AND d.csl_cert_seq_number = @CSL_CERT_SEQ_P
 		AND d.issue_date >= @FROM_DATE_P AND d.issue_date <= @TO_DATE_P	   					
 		AND (m.msfaa_status = 'Received' AND m.is_full_time = CASE WHEN d.disbursement_type_id = 4 THEN 1 ELSE 0 END OR app.academic_year_id <= 2012)
 		AND d.ecert_sent_date IS NULL
@@ -4292,15 +4292,15 @@ BEGIN
 					END					
 			END;	
 				
-			SET @out_record3 = 'T' + RIGHT('000000' + CAST(@v_count AS VARCHAR), 6)
-                + RIGHT('000000000' + CAST(ABS(@v_all_disburse) AS VARCHAR), 9)
-                + RIGHT('000000000' + CAST(ABS(@v_cancel_disburse) AS VARCHAR), 9)
+			SET @out_record3 = 'T' + RIGHT('000000' + CAST(ISNULL(@v_count, 0) AS VARCHAR), 6)
+                + RIGHT('000000000' + CAST(ABS(ISNULL(@v_all_disburse, 0)) AS VARCHAR), 9)
+                + RIGHT('000000000' + CAST(ABS(ISNULL(@v_cancel_disburse, 0)) AS VARCHAR), 9)
                 + REPLICATE(' ', 587);				
 		CLOSE cur_cslft;		
 		DEALLOCATE cur_cslft;	
 	
 		SET @out_record4 = @out_record + @out_record2;
-		RETURN @v_file_name + @out_record + @out_record2 + @out_record3;	
+		RETURN @v_file_name + @out_record + ISNULL(@out_record2, '') + ISNULL(@out_record3, '');	
 				
 END
 GO
@@ -4833,6 +4833,42 @@ BEGIN
 
 END;
 GO
+
+CREATE OR ALTER FUNCTION sfa.fn_get_csl_cert_seq_num
+(
+	@FROM_DATE_P DATE,
+	@TO_DATE_P DATE
+) 
+RETURNS INT AS
+BEGIN 
+	DECLARE @v_cert_count NUMERIC = 0;
+
+	SELECT @v_cert_count = count(d.id)
+		FROM sfa.funding_request AS fr
+		INNER JOIN sfa.disbursement AS d ON fr.id = d.funding_request_id
+		INNER JOIN sfa.request_type AS rt ON fr.request_type_id = rt.id
+		INNER JOIN (
+		  SELECT m.msfaa_status, app.academic_year_id, app.id
+		  FROM sfa.msfaa AS m
+		  INNER JOIN sfa.application AS app ON app.id = m.application_id
+		  WHERE app.id = m.application_id
+		) AS mhd ON fr.application_id = mhd.id
+		WHERE (mhd.msfaa_status = 'Received' OR mhd.academic_year_id <= 2012)
+		AND issue_date >= @FROM_DATE_P			
+		AND issue_date <= @TO_DATE_P		
+		AND d.due_date IS NOT NULL
+		AND d.transaction_number IS NOT NULL
+		AND d.csl_cert_seq_number IS NULL
+		AND disbursement_type_id IN (3, 4, 5, 7, 9)
+		AND fr.request_type_id IN (4, 5, 6, 15, 16, 17, 18, 19, 22, 23, 24, 26, 27, 28, 29, 30, 31, 32, 33, 35, 47)
+		AND d.transaction_number IN (
+		  SELECT d1.transaction_number
+		  FROM sfa.disbursement AS d1
+		  INNER JOIN sfa.funding_request AS fr1 ON d1.funding_request_id = fr1.id
+		  WHERE fr1.request_type_id IN (4, 5))
+		  
+		RETURN @v_cert_count;
+END
 
 -- Get Disbursements For Issue Dates
 CREATE OR ALTER FUNCTION sfa.fn_get_top_disbursements(@application_id INT)
