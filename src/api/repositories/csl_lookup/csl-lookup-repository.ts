@@ -103,11 +103,13 @@ export class CslLookupRepository extends BaseRepository {
 
     async getCslLookupByYear(academic_year_id?: number): Promise<CslLookupDTO> {
         let result: Partial<CslLookupDTO> = {};
-
+        console.log('getCslLookupByYear: ' + academic_year_id);
         if (academic_year_id) {
             result = await this.mainDb.raw(`SELECT * FROM sfa.fn_get_csl_lookup_by_year(${academic_year_id})`);
+            console.log(result);
             if (Array.isArray(result)) {
                 result = result[0];
+                console.log(result);
             }
         }
 
