@@ -11,7 +11,7 @@ export default class BaseController {
     this.next = next
   }
 
-  get params() {
+  protected get params() {
     return this.request.params
   }
 }
