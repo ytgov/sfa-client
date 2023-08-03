@@ -1,4 +1,5 @@
 import Attendance from "@/models/attendance"
+import FundingRequest from "@/models/funding-request"
 import Institution from "@/models/institution"
 import Program from "@/models/program"
 
@@ -157,6 +158,7 @@ export default interface Application_ {
   attendance?: Attendance
   institution?: Institution
   program?: Program
+  fundingRequests?: FundingRequest[]
 }
 
 export interface Application {
