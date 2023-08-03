@@ -4760,6 +4760,7 @@ SELECT TOP 1
 	*
 FROM sfa.csg_lookup cl
 WHERE cl.academic_year_id = @academic_year_id;
+GO
 
 -- Get Max Assessment By Funding Request Id
 CREATE OR ALTER PROCEDURE sfa.sp_get_max_assessment_by_funding_request(@funding_request_id INT)
@@ -4778,6 +4779,7 @@ BEGIN
 	FROM sfa.assessment a 
 	WHERE a.id = @assessment_id;
 END;
+GO
 
 CREATE OR ALTER PROCEDURE sfa.sp_get_and_update_csl_cert_seq_num
 (
@@ -4830,3 +4832,4 @@ BEGIN
     RETURN COALESCE(@amt, 0);
 
 END;
+GO
