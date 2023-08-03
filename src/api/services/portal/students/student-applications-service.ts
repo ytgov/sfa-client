@@ -30,6 +30,12 @@ export default class StudentApplicationsService {
         .first()
     }
 
+    if (application.programId) {
+      application.program = await db("sfa.program")
+        .where({ id: application.programId })
+        .first()
+    }
+
     return application
   }
 }
