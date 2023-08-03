@@ -4,11 +4,10 @@ import { ApplicationDTO, AssessmentDTO, CsgLookupDTO, CsgftGlobalDTO, CslftGloba
 import { NumbersHelper } from "../../utils/NumbersHelper";
 import { ApplicationRepository, CslLookupRepository, DisbursementRepository, DependentRepository, FundingRequestRepository, StudentRepository, ParentRepository } from "repositories";
 import moment from "moment";
-import { disabilityServiceRouter } from "routes/admin/disability-service-router";
-import { PersonRepository } from "repositories/person";
-import { StandardOfLivingRepository } from "repositories/standard_of_living";
-import { CsgLookupRepository } from "repositories/csg_lookup";
-import { CsgThresholdRepository } from "repositories/csg_threshold";
+import { PersonRepository } from "../person";
+import { StandardOfLivingRepository } from "../standard_of_living";
+import { CsgLookupRepository } from "../csg_lookup";
+import { CsgThresholdRepository } from "../csg_threshold";
 
 export class AssessmentCsgftRepository extends AssessmentBaseRepository {
 
