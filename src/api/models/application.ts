@@ -3,7 +3,7 @@ import Institution from "@/models/institution"
 import Program from "@/models/program"
 
 // Application with standard JS naming conventions
-// trailing underscore to avoid conflicting with other Application
+// trailing underscore to avoid conflicting with legacy Application format
 export default interface Application_ {
   id: number
   studentId: number
