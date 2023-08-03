@@ -1,5 +1,7 @@
 import db from "@/db/db-client"
 
+import StudentApplicationFundingRequestsService from "@/services/portal/students/student-application-funding-requests-service"
+
 export default class StudentApplicationsService {
   #studentId: number
   #applicationId?: number
@@ -31,9 +33,7 @@ export default class StudentApplicationsService {
     }
 
     if (application.programId) {
-      application.program = await db("sfa.program")
-        .where({ id: application.programId })
-        .first()
+      application.program = await db("sfa.program").where({ id: application.programId }).first()
     }
 
     if (application.attendanceId) {
@@ -42,6 +42,13 @@ export default class StudentApplicationsService {
         .first()
     }
 
+    application.fundingRequests = await this.#getApplicationFundingRequests(application.id)
+
     return application
+  }
+
+  #getApplicationFundingRequests(applicationId: number) {
+    const fundingRequestService = new StudentApplicationFundingRequestsService({ applicationId })
+    return fundingRequestService.getFundingRequests()
   }
 }
