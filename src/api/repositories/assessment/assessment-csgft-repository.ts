@@ -1,12 +1,14 @@
 import { Knex } from "knex";
 import { AssessmentBaseRepository } from "./assessment-base-repository";
-import { ApplicationDTO, AssessmentDTO, CsgftGlobalDTO, CslftGlobalDTO, DisbursementDTO, FundingRequestDTO, PersonAddressDTO, StudentDTO } from "models";
+import { ApplicationDTO, AssessmentDTO, CsgLookupDTO, CsgftGlobalDTO, CslftGlobalDTO, DisbursementDTO, FundingRequestDTO, PersonAddressDTO, StudentDTO } from "models";
 import { NumbersHelper } from "utils/NumbersHelper";
 import { ApplicationRepository, CslLookupRepository, DisbursementRepository, DependentRepository, FundingRequestRepository, StudentRepository, ParentRepository } from "repositories";
 import moment from "moment";
 import { disabilityServiceRouter } from "routes/admin/disability-service-router";
 import { PersonRepository } from "repositories/person";
 import { StandardOfLivingRepository } from "repositories/standard_of_living";
+import { CsgLookupRepository } from "repositories/csg_lookup";
+import { CsgThresholdRepository } from "repositories/csg_threshold";
 
 export class AssessmentCsgftRepository extends AssessmentBaseRepository {
 
@@ -20,6 +22,8 @@ export class AssessmentCsgftRepository extends AssessmentBaseRepository {
     private personRepo: PersonRepository;
     private standardLivingRepo: StandardOfLivingRepository;
     private parentRepo: ParentRepository;
+    private csgLookupRepo: CsgLookupRepository;
+    private csgThresholdRepo: CsgThresholdRepository;
 
     private numHelper: NumbersHelper;
     private assessment: Partial<AssessmentDTO> = {};
@@ -44,6 +48,8 @@ export class AssessmentCsgftRepository extends AssessmentBaseRepository {
         this.personRepo = new PersonRepository(maindb);
         this.standardLivingRepo = new StandardOfLivingRepository(maindb);
         this.parentRepo = new ParentRepository(maindb);
+        this.csgLookupRepo = new CsgLookupRepository(maindb);
+        this.csgThresholdRepo = new CsgThresholdRepository(maindb);
     }
 
     async getPreviousAssessment(assessment_id?: number): Promise<void> {
@@ -86,7 +92,7 @@ export class AssessmentCsgftRepository extends AssessmentBaseRepository {
         return result;
     }
 
-    async newFormInstance(funding_request_id: number): Promise<void> {
+    async newFormInstance(funding_request_id: number): Promise<AssessmentDTO> {
         await this.loadData(funding_request_id, true);
 
         await this.getInitValues();        
@@ -94,6 +100,8 @@ export class AssessmentCsgftRepository extends AssessmentBaseRepository {
         if (this.globals.new_calc) {
             this.globals.new_calc = false;  
         }
+
+        return this.assessment;
     }
 
     async getInitValues(): Promise<void> {
@@ -185,7 +193,18 @@ export class AssessmentCsgftRepository extends AssessmentBaseRepository {
 
         this.assessment.csl_assessed_need = Math.ceil(await this.getAssessedNeed({}, this.funding_request, this.application, this.student));
 
-        
+        // Calculate weekly rate
+        const csgLookupRow: CsgLookupDTO = await this.csgLookupRepo.getCsgLookupByYear(this.application.academic_year_id);
+
+        const max_weekly_rate = ((csgLookupRow.csg_8_month_amount ?? 0)/8*12/52) ?? 0;
+
+        let family_lookup = this.assessment.family_size ?? 0;
+        if (family_lookup > 7) {
+            family_lookup = 7;
+        }
+
+        // For maximum
+        let family_count = await this.csgThresholdRepo.getFamilySizeCount(this.assessment.family_income, family_lookup, this.application.academic_year_id);
     }
 
     async getNewInfo(): Promise<void> {
@@ -364,7 +383,7 @@ export class AssessmentCsgftRepository extends AssessmentBaseRepository {
             }
 
             let parent_contrib = 0;
-            const netIncome = (p1_income?: number, p2_income?: number, p1_tax?: number, p2_tax?: number): number {
+            const netIncome = (p1_income?: number, p2_income?: number, p1_tax?: number, p2_tax?: number): number => {
                 return (p1_income ?? 0) + (p2_income ?? 0) - (p1_tax ?? 0) - (p2_tax ?? 0);
             };
 

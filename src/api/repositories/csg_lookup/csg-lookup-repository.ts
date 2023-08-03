@@ -14,7 +14,7 @@ export class CsgLookupRepository extends BaseRepository {
         let result: Partial<CsgLookupDTO> = {};
 
         if (academic_year_id) {
-            result = await this.mainDb.raw(`SELECT * FROM sfa.fn_get_csl_lookup_by_year(${academic_year_id})`);
+            result = await this.mainDb.raw(`SELECT * FROM sfa.fn_get_csg_lookup_by_year(${academic_year_id})`);
             if (Array.isArray(result)) {
                 result = result[0];
             }
