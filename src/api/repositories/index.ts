@@ -15,5 +15,8 @@ export * from "./csl_reason";
 export * from "./msfaa";
 export * from "./batch_parameter";
 export * from "./correspondence";
-export * from "./csl_reason";
+export * from "./person";
+export * from "./csg_threshold"
+export * from "./csg_lookup";
+export * from "./standard_of_living"
 export * from "./i-main-table";
