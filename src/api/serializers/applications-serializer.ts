@@ -1,8 +1,8 @@
-import { isArray } from "lodash"
+import { compact, isArray, uniq } from "lodash"
 
 import Application from "@/models/application"
 import Institution from "@/models/institution"
-import Program from "@/models/program"
+import FundingRequest from "@/models/funding-request"
 
 export default class ApplicationsSerializer {
   #applications: Application[] = []
@@ -10,9 +10,9 @@ export default class ApplicationsSerializer {
 
   constructor(applicationOrApplications: Application[] | Application) {
     if (isArray(applicationOrApplications)) {
-      this.#applications = applicationOrApplications || [] as Application[]
+      this.#applications = applicationOrApplications || ([] as Application[])
     } else {
-      this.#application = applicationOrApplications || {} as Application
+      this.#application = applicationOrApplications || ({} as Application)
     }
   }
 
@@ -36,16 +36,21 @@ export default class ApplicationsSerializer {
   asDetailedView() {
     return {
       termsAgree: true,
-      programDetails: this.#programDetailsField(this.#application),
+      programDetails: this.#programDetailsSection(this.#application),
+      fundingSources: this.#fundingRequestsAssocation(
+        this.#application.fundingRequests || ([] as FundingRequest[])
+      ),
     }
   }
 
-  #programDetailsField(application: Application) {
+  #programDetailsSection(application: Application) {
     return {
       attendance: application.attendance?.description,
       durationOfProgram: application.programYearTotal, // duplicate of programDuration
       endDateOfClasses: application.classesEndDate,
-      institution: this.#institutionAssociation(this.#application.institution || {} as Institution),
+      institution: this.#institutionAssociation(
+        this.#application.institution || ({} as Institution)
+      ),
       institutionId: application.institutionCampusId,
       program: application.programId,
       programDuration: application.programYearTotal, // duplicate of durationOfProgram
@@ -61,6 +66,16 @@ export default class ApplicationsSerializer {
     return {
       id: institution.id,
       name: institution.name,
+    }
+  }
+
+  #fundingRequestsAssocation(fundingRequests: FundingRequest[]) {
+    const sources = uniq(
+      compact(fundingRequests.map((fundingRequest) => fundingRequest.requestType?.description))
+    )
+    return {
+      sources,
+      csfaAmounts: "TODO",
     }
   }
 }
