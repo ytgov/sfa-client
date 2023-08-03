@@ -1,16 +1,16 @@
-import { isArray, pick } from "lodash"
+import { isArray, isEmpty } from "lodash"
 
 import Application from "@/models/application"
 
 export default class ApplicationsSerializer {
   #applications: Application[] = []
-  #application: Application | {} = {}
+  #application: Application = {} as Application
 
   constructor(applicationOrApplications: Application[] | Application) {
     if (isArray(applicationOrApplications)) {
-      this.#applications = applicationOrApplications || []
+      this.#applications = applicationOrApplications || [] as Application[]
     } else {
-      this.#application = applicationOrApplications || {}
+      this.#application = applicationOrApplications || {} as Application
     }
   }
 
@@ -23,15 +23,38 @@ export default class ApplicationsSerializer {
         updatedAt: application.updatedAt,
         submittedAt: application.onlineSubmitDate,
         // TODO: these don't exist on the Application model, so need to be created here
-        isActive: true ,
-        status: 'TODO',
+        isActive: true,
+        status: "TODO",
         description: "TODO",
-        createdAt: null
+        createdAt: null,
       }
     })
   }
 
   asDetailedView() {
-    return this.#application
+    return {
+      termsAgree: true,
+      programDetails: this.#programDetailsField(this.#application),
+    }
+  }
+
+  #programDetailsField(application: Application) {
+    return {
+      institutionId: application.institutionCampusId,
+      studyArea: application.studyAreaId,
+      program: application.programId,
+
+      startDateOfClasses: application.classesStartDate,
+      endDateOfClasses: application.classesEndDate,
+
+      durationOfProgram: application.programYearTotal,
+      programDuration: application.programYearTotal,
+
+      yearEntering: application.programYear,
+      programName: "TODO",
+      startDate: null, // TODO
+      institution: {}, // TODO
+      attendance: "TODO",
+    }
   }
 }
