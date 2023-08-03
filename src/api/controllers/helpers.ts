@@ -8,10 +8,10 @@ export function routedTo<T extends typeof BaseController>(
 ) {
   return (req: Request, res: Response, next: NextFunction) => {
     const controllerInstance = new controllerClass(req, res, next) as InstanceType<T>
-    const controllerMethod = controllerInstance[method]
+    const unboundControllerMethod = controllerInstance[method]
 
-    if (typeof controllerMethod === "function") {
-      return controllerMethod()
+    if (typeof unboundControllerMethod === "function") {
+      return unboundControllerMethod.call(controllerInstance)
     } else {
       throw new Error(`Method ${method} is not a function on the provided controller class`)
     }
