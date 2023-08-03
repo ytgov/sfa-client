@@ -4,8 +4,8 @@ export default interface ApplicationDraft {
   academicYearId: number
   createDate: Date
   updateDate: Date
-  isActive: boolean
+  isActive?: boolean
   applicationJson: string
-  submitDate: Date
-  status: string
+  submitDate?: Date
+  status?: string
 }
