@@ -4,5 +4,4 @@ export default interface Institution {
   isActive: boolean
   federalInstitutionCode?: string
   institutionLevelId: number
-
 }
