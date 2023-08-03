@@ -1,4 +1,5 @@
-import Institution from '@/models/institution'
+import Institution from "@/models/institution"
+import Program from "@/models/program"
 
 // Application with standard JS naming conventions
 // trailing underscore to avoid conflicting with other Application
@@ -153,6 +154,7 @@ export default interface Application_ {
   persistDisabledStartDate: Date
   isChequesToInstitution: boolean
   institution?: Institution
+  program?: Program
 }
 
 export interface Application {
