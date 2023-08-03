@@ -2,6 +2,7 @@ import { isArray } from "lodash"
 
 import Application from "@/models/application"
 import Institution from "@/models/institution"
+import Program from "@/models/program"
 
 export default class ApplicationsSerializer {
   #applications: Application[] = []
@@ -41,21 +42,18 @@ export default class ApplicationsSerializer {
 
   #programDetailsField(application: Application) {
     return {
-      institutionId: application.institutionCampusId,
-      studyArea: application.studyAreaId,
-      program: application.programId,
-
-      startDateOfClasses: application.classesStartDate,
-      endDateOfClasses: application.classesEndDate,
-
       durationOfProgram: application.programYearTotal, // duplicate of programDuration
-      programDuration: application.programYearTotal, // duplicate of durationOfProgram
-
-      yearEntering: application.programYear,
+      endDateOfClasses: application.classesEndDate,
       institution: this.#institutionAssociation(this.#application.institution || {} as Institution),
-
-      programName: "TODO",
-      startDate: null, // TODO
+      institutionId: application.institutionCampusId,
+      program: this.#programAssociation(this.#application.program || {} as Program),
+      programDuration: application.programYearTotal, // duplicate of durationOfProgram
+      programId: application.programId,
+      programName: application.program?.description,
+      startDateOfClasses: application.classesStartDate, // duplicate of startDate
+      studyArea: application.studyAreaId,
+      yearEntering: application.programYear,
+      startDate: application.classesStartDate, // duplicate of startDateOfClasses
       attendance: "TODO",
     }
   }
@@ -64,6 +62,13 @@ export default class ApplicationsSerializer {
     return {
       id: institution.id,
       name: institution.name,
+    }
+  }
+
+  #programAssociation(program: Program) {
+    return {
+      id: program.id,
+      description: program.description,
     }
   }
 }
