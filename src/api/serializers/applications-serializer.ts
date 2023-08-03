@@ -46,14 +46,13 @@ export default class ApplicationsSerializer {
       endDateOfClasses: application.classesEndDate,
       institution: this.#institutionAssociation(this.#application.institution || {} as Institution),
       institutionId: application.institutionCampusId,
-      program: this.#programAssociation(this.#application.program || {} as Program),
+      program: application.programId,
       programDuration: application.programYearTotal, // duplicate of durationOfProgram
-      programId: application.programId,
       programName: application.program?.description,
+      startDate: application.classesStartDate, // duplicate of startDateOfClasses
       startDateOfClasses: application.classesStartDate, // duplicate of startDate
       studyArea: application.studyAreaId,
       yearEntering: application.programYear,
-      startDate: application.classesStartDate, // duplicate of startDateOfClasses
       attendance: "TODO",
     }
   }
@@ -62,13 +61,6 @@ export default class ApplicationsSerializer {
     return {
       id: institution.id,
       name: institution.name,
-    }
-  }
-
-  #programAssociation(program: Program) {
-    return {
-      id: program.id,
-      description: program.description,
     }
   }
 }
