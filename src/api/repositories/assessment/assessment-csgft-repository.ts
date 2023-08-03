@@ -1,7 +1,7 @@
 import { Knex } from "knex";
 import { AssessmentBaseRepository } from "./assessment-base-repository";
 import { ApplicationDTO, AssessmentDTO, CsgLookupDTO, CsgftGlobalDTO, CslftGlobalDTO, DisbursementDTO, FundingRequestDTO, PersonAddressDTO, StudentDTO } from "models";
-import { NumbersHelper } from "utils/NumbersHelper";
+import { NumbersHelper } from "../../utils/NumbersHelper";
 import { ApplicationRepository, CslLookupRepository, DisbursementRepository, DependentRepository, FundingRequestRepository, StudentRepository, ParentRepository } from "repositories";
 import moment from "moment";
 import { disabilityServiceRouter } from "routes/admin/disability-service-router";
