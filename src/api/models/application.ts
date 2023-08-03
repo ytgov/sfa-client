@@ -1,3 +1,4 @@
+import Attendance from "@/models/attendance"
 import Institution from "@/models/institution"
 import Program from "@/models/program"
 
@@ -153,6 +154,7 @@ export default interface Application_ {
   isPersistDisabled: boolean
   persistDisabledStartDate?: Date
   isChequesToInstitution: boolean
+  attendance?: Attendance
   institution?: Institution
   program?: Program
 }
