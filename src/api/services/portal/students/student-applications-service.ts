@@ -10,14 +10,26 @@ export default class StudentApplicationsService {
   }
 
   getApplications() {
-    return db("sfa.application").where({ student_id: this.#studentId })
+    return db("sfa.application")
+      .select("id", "studentId", "academicYearId", "updatedAt", "onlineSubmitDate")
+      .where({ studentId: this.#studentId })
   }
 
-  getApplication() {
+  async getApplication() {
     if (this.#applicationId === undefined) {
       throw new Error("Application ID is not set")
     }
 
-    return db("sfa.application").where({ id: this.#applicationId, student_id: this.#studentId })
+    const application = await db("sfa.application")
+      .where({ id: this.#applicationId, student_id: this.#studentId })
+      .first()
+
+    if (application.institutionCampusId) {
+      application.institution = await db("sfa.institution")
+        .where({ id: application.institutionCampusId })
+        .first()
+    }
+
+    return application
   }
 }
