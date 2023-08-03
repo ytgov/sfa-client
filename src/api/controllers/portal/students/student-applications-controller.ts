@@ -8,7 +8,7 @@ export default class StudentApplicationsController extends BaseController {
     const studentId = parseInt(this.params.studentId)
 
     const applicationService = new StudentApplicationsService({ studentId })
-    applicationService
+    return applicationService
       .getApplications()
       .then((applications) => {
         const applicationSerializer = new ApplicationsSerializer(applications)
@@ -25,7 +25,7 @@ export default class StudentApplicationsController extends BaseController {
     const applicationId = parseInt(this.params.applicationId)
 
     const applicationService = new StudentApplicationsService({ studentId, applicationId })
-    applicationService
+    return applicationService
       .getApplication()
       .then((application) => {
         const applicationSerializer = new ApplicationsSerializer(application)
