@@ -1,6 +1,6 @@
 import { isArray, pick } from "lodash"
 
-import ApplicationDraft from "@/models/application_draft"
+import ApplicationDraft from "@/models/application-draft"
 
 export default class ApplicationsSerializer {
   #applicationDrafts: ApplicationDraft[] = []
