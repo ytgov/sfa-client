@@ -1,3 +1,5 @@
+import Institution from '@/models/institution'
+
 // Application with standard JS naming conventions
 // trailing underscore to avoid conflicting with other Application
 export default interface Application_ {
@@ -150,6 +152,7 @@ export default interface Application_ {
   isPersistDisabled: boolean
   persistDisabledStartDate: Date
   isChequesToInstitution: boolean
+  institution?: Institution
 }
 
 export interface Application {
