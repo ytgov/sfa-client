@@ -910,7 +910,7 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
         this.disbursements = disbursements;
         await this.loadData(funding_request_id, false);
 
-        //await this.getNewInfo(true);
+        await this.getNewInfo(true);
 
         await this.setIdGlobals();
 
