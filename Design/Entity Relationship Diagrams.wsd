@@ -199,8 +199,32 @@ entity FundingRequest {
   student_w_not_receive_fund_from_otr_org?: boolean
 }
 
+entity RequestType {
+  id: number
+  application_type_id?: number
+  funding_group_id?: number
+  batch_group_id?: number
+  description?: string
+  scholarship_flag: number
+  application_deadline?: string
+  regulation?: string
+  program_type?: string
+  static_description_flag?: number
+  financial_coding?: string
+  t4a_required: boolean
+  csg_other_flag?: number
+  gl_budget?: number
+  auto_appear?: string
+  show_online: boolean
+  short_name?: string
+  help_url?: string
+  help_text?: string
+  is_active: boolean
+}
+
 Application::attendance_id |o--o{ Attendance::id
 Application::institution_campus_id |o--o{ Institution::id
 Application::program_id |o--o{ Program::id
 Application::id }o--|{ FundingRequest::application_id
+FundingRequest::request_type_id |o--o{ RequestType::id
 @enduml

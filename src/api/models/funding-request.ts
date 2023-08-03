@@ -1,3 +1,5 @@
+import RequestType from "@/models/request-type"
+
 export default interface FundingRequest {
   id: number
   applicationId: number
@@ -23,4 +25,5 @@ export default interface FundingRequest {
   studentIsMovToAnthCmmToAttdPrgm?: boolean
   studentIsMainteningTwoResidences?: boolean
   studentWNotReceiveFundFromOtrOrg?: boolean
+  requestType?: RequestType
 }
