@@ -36,6 +36,12 @@ export default class StudentApplicationsService {
         .first()
     }
 
+    if (application.attendanceId) {
+      application.attendance = await db("sfa.attendance")
+        .where({ id: application.attendanceId })
+        .first()
+    }
+
     return application
   }
 }

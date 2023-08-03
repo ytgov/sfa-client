@@ -42,6 +42,7 @@ export default class ApplicationsSerializer {
 
   #programDetailsField(application: Application) {
     return {
+      attendance: application.attendance?.description,
       durationOfProgram: application.programYearTotal, // duplicate of programDuration
       endDateOfClasses: application.classesEndDate,
       institution: this.#institutionAssociation(this.#application.institution || {} as Institution),
@@ -53,7 +54,6 @@ export default class ApplicationsSerializer {
       startDateOfClasses: application.classesStartDate, // duplicate of startDate
       studyArea: application.studyAreaId,
       yearEntering: application.programYear,
-      attendance: "TODO",
     }
   }
 
