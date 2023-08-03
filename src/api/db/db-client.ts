@@ -1,5 +1,6 @@
 import knex from "knex"
 import camelcaseKeys from "camelcase-keys"
+import { snakeCase } from 'lodash'
 
 import { DB_CONFIG } from "@/config";
 
@@ -14,6 +15,7 @@ const db = knex({
       return camelcaseKeys(result, { deep: true })
     }
   },
+  wrapIdentifier: (value, origImpl, queryContext) => origImpl(snakeCase(value)),
 })
 
 export default db
