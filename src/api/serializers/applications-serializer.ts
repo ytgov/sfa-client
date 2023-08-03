@@ -1,6 +1,7 @@
-import { isArray, isEmpty } from "lodash"
+import { isArray } from "lodash"
 
 import Application from "@/models/application"
+import Institution from "@/models/institution"
 
 export default class ApplicationsSerializer {
   #applications: Application[] = []
@@ -22,9 +23,9 @@ export default class ApplicationsSerializer {
         academicYearId: application.academicYearId,
         updatedAt: application.updatedAt,
         submittedAt: application.onlineSubmitDate,
-        // TODO: these don't exist on the Application model, so need to be created here
         isActive: true,
-        status: "TODO",
+        status: "Submitted",
+        // TODO: these don't exist on the Application model, so need to be created here
         description: "TODO",
         createdAt: null,
       }
@@ -47,14 +48,22 @@ export default class ApplicationsSerializer {
       startDateOfClasses: application.classesStartDate,
       endDateOfClasses: application.classesEndDate,
 
-      durationOfProgram: application.programYearTotal,
-      programDuration: application.programYearTotal,
+      durationOfProgram: application.programYearTotal, // duplicate of programDuration
+      programDuration: application.programYearTotal, // duplicate of durationOfProgram
 
       yearEntering: application.programYear,
+      institution: this.#institutionAssociation(this.#application.institution || {} as Institution),
+
       programName: "TODO",
       startDate: null, // TODO
-      institution: {}, // TODO
       attendance: "TODO",
+    }
+  }
+
+  #institutionAssociation(institution: Institution) {
+    return {
+      id: institution.id,
+      name: institution.name,
     }
   }
 }
