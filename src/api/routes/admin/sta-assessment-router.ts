@@ -3,7 +3,7 @@ import { body, param } from "express-validator";
 import knex from "knex";
 import { ReturnValidationErrors } from "../../middleware";
 import { DB_CONFIG } from "../../config";
-import { AssessmentCslftRepository, AssessmentSTA } from "../../repositories";
+import { AssessmentCslftRepository, AssessmentSTA } from "../../repositories/assessment";
 import { AssessmentDTO, AssessmentTable, DisbursementDTO } from "../../models";
 import { assessmentRouter } from "./assessment-router";
 import axios from "axios";
