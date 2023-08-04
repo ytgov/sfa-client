@@ -4,10 +4,12 @@ import { create } from "express-handlebars"
 import { RenderViewOptions } from "express-handlebars/types"
 
 import { generatePDF } from "./pdf-generator"
+import helpers from "./handlebars-helpers"
 
 const hbs = create({
   defaultLayout: "./templates/layouts/pdf-layout",
   extname: ".handlebars",
+  helpers,
 })
 
 // As far as I can tell, express-handlebars is _supposed_ to be able to load templates

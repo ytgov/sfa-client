@@ -18,6 +18,7 @@ export class ApplicationLetterService {
     return renderViewAsPdf(`./templates/admin/application-letter/approval/${this.#fundingType}`, {
       ...this.#applicationData,
       title: "Application Approval Letter",
+      currentDate: new Date(),
     })
   }
 
