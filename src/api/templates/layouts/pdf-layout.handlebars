@@ -1,15 +1,65 @@
-<!DOCTYPE html>
 <html>
+
 <head>
     <title>{{title}}</title>
-    <meta charset="utf-8">
-    <meta http-equiv="Content-type" content="text/html; charset=UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <style type="text/css"></style>
+    <meta charset="utf-8" />
+    <meta http-equiv="Content-type" content="text/html; charset=UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style type="text/css">
+        @page { /* magic tag that affects Puppeteer page formatting. See preferCSSPageSize  */
+            margin: 20mm;
+        }
+
+        /* Example CSS Styling */
+        body {
+            font-family: 'Times New Roman', serif;
+            font-size: 12pt;
+            line-height: 1.5;
+            margin: 50px;
+            color: #000;
+        }
+
+        .header {
+            text-align: right;
+        }
+
+        .date {
+            margin-top: 20px;
+            text-align: right;
+        }
+
+        .address {
+            margin-top: 40px;
+        }
+
+        .salutation {
+            margin-top: 20px;
+        }
+
+        .body {
+            margin-top: 20px;
+        }
+
+        .closing {
+            margin-top: 40px;
+        }
+
+        .signature {
+            margin-top: 40px;
+        }
+
+        .footer {
+            margin-top: 40px;
+            font-size: 10pt;
+            text-align: center;
+        }
+    </style>
 </head>
+
 <body>
-<div>
-    {{{body}}}
-</div>
+    <div>
+        {{{body}}}
+    </div>
 </body>
+
 </html>
