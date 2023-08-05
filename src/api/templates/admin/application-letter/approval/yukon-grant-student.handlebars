@@ -1,99 +1,116 @@
 <div>
   <div class="header">
-    <p class="date">{{ momentDateFormat currentDate "DD MMM YYYY" }}<span class="T1" /></p>
-
-    <p class="address">
-      {{ recipient.firstName }}
-      {{ recipient.initials }}
-      {{ recipient.lastName }}
-      <br />
-      {{ recipient.address }}
-      <br />
-      {{ recipient.city }},
-      {{ recipient.province }}
-      <br />
-      {{ recipient.country }},
-      {{ recipient.postalCode }}
-    </p>
+    <p class="date">{{momentDateFormat currentDate "DD MMM YYYY"}}</p>
   </div>
+
+  <p class="address">
+    {{recipient.firstName}}
+    {{recipient.initials}}
+    {{recipient.lastName}}
+    <br />
+    {{recipient.address}}
+    <br />
+    {{recipient.city}},
+    {{recipient.province}}
+    <br />
+    {{recipient.country}},
+    {{recipient.postalCode}}
+  </p>
 
   <p class="saluation">
     Dear
-    {{ recipient.firstName }}:
+    {{recipient.firstName}}:
   </p>
 
-  <div class="body">
-    <p>I am pleased to inform you that your Yukon Grant application to attend full-time
-      post-secondary has been approved as follows:</p>
+  <p>
+    I am pleased to inform you that your Yukon Grant application to attend full-time
+    post-secondary has been approved as follows:
+  </p>
 
-    <div>
-      <p class="flex justify-between">
-        <strong>Program: {{ program.name }}</strong>
-        <span>
-          <strong>Start Date:</strong>
-          <span class="ml-4">{{ momentDateFormat program.startDate "MMM Do YYYY" }}</span>
-        </span>
-      </p>
-      <p class="flex justify-between">
-        <strong>Institution: {{ program.institutionName }}</strong>
-        <span>
-          <strong>End Date:</strong>
-          <span class="ml-4">{{ momentDateFormat program.endDate "MMM Do YYYY" }}</span>
-        </span>
-      </p>
-
-      <p>
-        <strong>Rate per Week:</strong>
-        <span class="ml-8">{{ centsToDollarString program.ratePerWeekInCents }}</span>
-      </p>
-
-      <p>
-        <strong>Approv. Weeks:</strong>
-        <span class="ml-4">{{ program.approvalWeeks }}</span>
-      </p>
-
-      <p>
-        <strong>Travel/Airfare:</strong>
-        <span class="ml-8">{{ centsToDollarString program.travelAndAirFairCostInCents }}</span>
-      </p>
-    </div>
-    <p class="P3">Disbursements<span> Issue Date – Based on confirmed enrollment before each
-        semester</span>
-
-    </p>
-    <p class="P2"><span class="T4">$xxxx.xx</span><span class="T3">                </span><span class="T4">Mmm
-        yyyy</span>
-    </p>
-
-    <p><span class="T4">$xxxx.xx</span><span class="T3">                </span><span class="T4">Mmm
-        yyyy</span>
-    </p>
-    <p class="P5"> </p>
-    <p><span class="T3">If any of the above information is incorrect or you withdraw from full-time
-        studies or drop to part-time status, you may have to repay some or all of your Yukon Grant.</span></p>
-
-    <p><span class="T3">Your first disbursement has been processed. </span><strong>If more than one
-        payment is listed above, you will be required to submit a Program Information Form (PIF)
-        confirming full-time status prior to the release of any subsequent disbursements.</strong><span class="T3">
-        Our office will accept PIFs completed by the institution and submitted directly to
-      </span><a href="mailto:sfa@yukon.ca" class="Internet_20_link"><span class="Internet_20_link"><span
-            class="T3">sfa@yukon.ca</span></span></a><span class="T3">
-        as early as one month before the issue date(s) outlined above. You can download the PIF at
-        http://yukon.ca/en/program-information-student-financial-assistance.</span></p>
-
-    <p class="P4">If you have any questions regarding your assessment, please contact our office by
-      email at sfa@yukon.ca, by telephone at 867-667-5929, or toll free within Yukon at
-      1-800-661-0408 ext. 5929.
-      <span class="T3" />
-    </p>
-
-    <p><span class="T3">Congratulations on your decision to further your education. On behalf of the
-        Department of Education, I wish you the very best in your studies.  </span></p>
+  <p>
+  <div class="flex justify-between">
+    <strong>Program: {{program.name}}</strong>
+    <span>
+      <strong>Start Date:</strong>
+      <span class="ml-4">{{momentDateFormat program.startDate "MMM Do YYYY"}}</span>
+    </span>
+  </div>
+  <div class="flex justify-between">
+    <strong>Institution: {{program.institutionName}}</strong>
+    <span>
+      <strong>End Date:</strong>
+      <span class="ml-4">{{momentDateFormat program.endDate "MMM Do YYYY"}}</span>
+    </span>
+  </div>
+  <div class="mt-1"></div>
+  <div>
+    <strong>Rate per Week:</strong>
+    <span class="ml-8">{{centsToDollarString program.ratePerWeekInCents}}</span>
   </div>
 
-  <p class="P4">Sincerely,<span class="T3" /></p>
-  <p class="P6"> </p>
-  <p class="P8"><span class="T2">SFAOFirst SFAOLast</span><span class="T1"><br />Student Financial
-      Services Officer<br />Student Funding Programs
-    </span></p>
+  <div>
+    <strong>Approv. Weeks:</strong>
+    <span class="ml-4">{{program.approvalWeeks}}</span>
+  </div>
+
+  <div>
+    <strong>Travel/Airfare:</strong>
+    <span class="ml-8">{{centsToDollarString program.travelAndAirFairCostInCents}}</span>
+  </div>
+  </p>
+
+  <table class="">
+    <thead>
+      <tr>
+        <th>Disbursements<span class="ml-4"></span></th>
+        <th>Issue Date - Based on confirmed enrollment before each semester</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{#each disembursements}}
+      <tr>
+        <td>{{centsToDollarString this.amountInCents}}</td>
+        <td>{{momentDateFormat this.releaseDate "MMM YYYY"}}</td>
+      </tr>
+      {{/each}}
+    </tbody>
+  </table>
+
+  <p>
+    If any of the above information is incorrect or you withdraw from full-time
+    studies or drop to part-time status, you may have to repay some or all of your Yukon Grant.
+  </p>
+
+  <p>
+    Your first disbursement has been processed.
+    <strong>If more than one
+      payment is listed above, you will be required to submit a Program Information Form (PIF)
+      confirming full-time status prior to the release of any subsequent disbursements.
+    </strong>
+    Our office will accept PIFs completed by the institution and submitted directly to
+    <a href="mailto:sfa@yukon.ca">sfa@yukon.ca</a>
+    as early as one month before the issue date(s) outlined above. You can download the PIF at
+    <a
+      href="http://yukon.ca/en/program-information-student-financial-assistance">http://yukon.ca/en/program-information-student-financial-assistance</a>.
+  </p>
+
+  <p>
+    If you have any questions regarding your assessment, please contact our office by
+    email at <a href="mailto:sfa@yukon.ca">sfa@yukon.ca</a>, by telephone at <a
+      href="tel:867-667-5929">867-667-5929</a>,
+    or toll free within Yukon at
+    <a href="tel:1-800-661-0408">1-800-661-0408</a> ext. 5929.
+  </p>
+
+  <p>
+    Congratulations on your decision to further your education. On behalf of the
+    Department of Education, I wish you the very best in your studies.
+  </p>
+</div>
+
+<p class="P4">Sincerely,<span class="T3" /></p>
+<p class="P6"> </p>
+<p class="P8"><span class="T2">SFAOFirst SFAOLast</span><span class="T1"><br />Student Financial
+    Services Officer<br />Student Funding Programs
+  </span></p>
 </div>

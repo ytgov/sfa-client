@@ -39,7 +39,7 @@ export class ApplicationLetterService {
         approvalWeeks: 26,
         travelAndAirFairCostInCents: 1200000,
       },
-      disembursement: [
+      disembursements: [
         { amountInCents: 1000000, releaseDate: new Date("2023-09-15") },
         { amountInCents: 1500000, releaseDate: new Date("2023-12-15") },
       ],
