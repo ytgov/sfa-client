@@ -23,11 +23,11 @@ applicationLetterRouter.get(
     } catch (error) {
       // TODO: standarize this pattern
       if (error instanceof Error) {
-        if (error.message.includes("not found")) {
+        if (error.message.includes("not found") || error.message.includes("no such file or directory")) {
           res.status(404).send({
             statusCode: 404,
             status: "Not Found",
-            message: error.message,
+            message: `Could not find application letter with id "${applicationId}" and funding type "${fundingType}".`,
           })
         } else {
           res.status(422).send({
