@@ -64,7 +64,7 @@ export class ApplicationLetterService {
     }
 
     const formattedData = new Date().toISOString().slice(0, 10) // YYYYY-MM-DD
-    return `Approval Letter, ${studentLastName}, ${formattedData}.pdf`
+    return `Approval Letter, ${studentLastName}, ${formattedData}.${this.#format}`
   }
 
   async buildRejectionLetterFileName() {
