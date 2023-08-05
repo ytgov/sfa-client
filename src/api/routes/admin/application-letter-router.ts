@@ -6,20 +6,30 @@ import { ApplicationLetterService } from "../../services/admin/application-lette
 export const applicationLetterRouter = express.Router()
 
 applicationLetterRouter.get(
-  "/:applicationId/approval/:fundingType",
+  "/:applicationId/approval/:fundingType([^./]+).:format(pdf|html)?",
   [param("id").isInt().notEmpty()],
   async (req: Request, res: Response) => {
     const applicationId = parseInt(req.params.applicationId)
     const fundingType = req.params.fundingType
+    const format = req.params.format || "pdf"
 
     try {
-      const applicationLetterService = new ApplicationLetterService({ applicationId, fundingType })
-      const fileName = await applicationLetterService.buildApprovalLetterFileName()
+      const applicationLetterService = new ApplicationLetterService({ applicationId, fundingType, format })
       const approvalLetter = await applicationLetterService.generateApprovalLetter()
-
-      res.setHeader("Content-disposition", `attachment; filename="${fileName}"`)
-      res.setHeader("Content-type", "application/pdf")
-      res.send(approvalLetter)
+      if (format === "pdf") {
+        const fileName = await applicationLetterService.buildApprovalLetterFileName()
+        res.setHeader("Content-disposition", `attachment; filename="${fileName}"`)
+        res.setHeader("Content-type", "application/pdf")
+        res.send(approvalLetter)
+      } else if (format === "html"){
+        res.send(approvalLetter)
+      } else {
+        res.status(422).send({
+          statusCode: 422,
+          status: "Unprocessable Entity",
+          message: `Could not generate letter in format ${format}`,
+        })
+      }
     } catch (error) {
       // TODO: standarize this pattern
       if (error instanceof Error) {
@@ -47,6 +57,8 @@ applicationLetterRouter.get(
   }
 )
 
+// TODO: support .html and .pdf extensions
+// e.g. "/:applicationId/approval/:fundingType([^.\/]+).:format?"
 applicationLetterRouter.get(
   "/:applicationId/rejection/:fundingType",
   [param("id").isInt().notEmpty()],
@@ -55,7 +67,7 @@ applicationLetterRouter.get(
     const fundingType = req.params.fundingType
 
     try {
-      const applicationLetterService = new ApplicationLetterService({ applicationId, fundingType })
+      const applicationLetterService = new ApplicationLetterService({ applicationId, fundingType, format: "pdf" })
       const fileName = await applicationLetterService.buildRejectionLetterFileName()
       const rejectionLetter = await applicationLetterService.generateRejectionLetter()
 

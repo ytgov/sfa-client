@@ -1,55 +1,49 @@
 import { Application } from "models"
-import { renderViewAsPdf } from "../../utils/express-handlebars-pdf-client"
+import { renderViewAsPdf, renderViewAsPromise } from "../../utils/express-handlebars-pdf-client"
 import db from "../../db/db-client"
 
 export class ApplicationLetterService {
   #applicationId: number
   #fundingType: string
   #applicationData: any
+  #format: string
 
-  constructor({ applicationId, fundingType }: { applicationId: number; fundingType: string }) {
+  constructor({
+    applicationId,
+    fundingType,
+    format,
+  }: {
+    applicationId: number
+    fundingType: string
+    format: string
+  }) {
     this.#applicationId = applicationId
     this.#fundingType = fundingType
+    this.#format = format
   }
 
-  async generateApprovalLetter(): Promise<Buffer> {
-    await this.#getApplicationData()
+  async generateApprovalLetter(): Promise<Buffer | string> {
+    const data = await this.#getApplicationData()
 
-    return renderViewAsPdf(`./templates/admin/application-letter/approval/${this.#fundingType}`, {
-      ...this.#applicationData,
-      title: "Application Approval Letter",
-      currentDate: new Date(),
-      // Example content
-      recipient: {
-        firstName: "James",
-        initials: "A.",
-        lastName: "Thompson",
-        address: "567 Oak Avenue",
-        city: "Metropolis",
-        province: "Quebec",
-        country: "Canada",
-        postalCode: "D4E 5F6",
-      },
-      program: {
-        name: "Software Engineering Bootcamp",
-        startDate: new Date("2023-09-01"),
-        endDate: new Date("2024-03-01"),
-        institutionName: "Tech Academy",
-        ratePerWeekInCents: 400000,
-        approvalWeeks: 26,
-        travelAndAirFairCostInCents: 1200000,
-      },
-      disembursements: [
-        { amountInCents: 1000000, releaseDate: new Date("2023-09-15") },
-        { amountInCents: 1500000, releaseDate: new Date("2023-12-15") },
-      ],
-      studentFinancialAssistanceOfficer: {
-        firstName: "Samantha",
-        lastName: "Smith",
-      },
-    })
+    if (this.#format === "pdf") {
+      return renderViewAsPdf(`./templates/admin/application-letter/approval/${this.#fundingType}`, {
+        ...data,
+      })
+    }
+
+    if (this.#format === "html") {
+      return renderViewAsPromise(
+        `./templates/admin/application-letter/approval/${this.#fundingType}`,
+        {
+          ...data,
+        }
+      )
+    }
+
+    return Promise.reject(new Error(`Invalid format: ${this.#format}`))
   }
 
+  // TODO: add support for html format
   async generateRejectionLetter(): Promise<Buffer> {
     await this.#getApplicationData()
 
@@ -108,6 +102,39 @@ export class ApplicationLetterService {
     application.student = student
 
     this.#applicationData = application
-    return this.#applicationData
+    // return this.#applicationData
+    // TODO: replace dummy data with real data
+    return Promise.resolve({
+      title: "Application Approval Letter",
+      currentDate: new Date(),
+      // Example content
+      recipient: {
+        firstName: "James",
+        initials: "A.",
+        lastName: "Thompson",
+        address: "567 Oak Avenue",
+        city: "Metropolis",
+        province: "Quebec",
+        country: "Canada",
+        postalCode: "D4E 5F6",
+      },
+      program: {
+        name: "Software Engineering Bootcamp",
+        startDate: new Date("2023-09-01"),
+        endDate: new Date("2024-03-01"),
+        institutionName: "Tech Academy",
+        ratePerWeekInCents: 400000,
+        approvalWeeks: 26,
+        travelAndAirFairCostInCents: 1200000,
+      },
+      disembursements: [
+        { amountInCents: 1000000, releaseDate: new Date("2023-09-15") },
+        { amountInCents: 1500000, releaseDate: new Date("2023-12-15") },
+      ],
+      studentFinancialAssistanceOfficer: {
+        firstName: "Samantha",
+        lastName: "Smith",
+      },
+    })
   }
 }
