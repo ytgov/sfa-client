@@ -1,26 +1,25 @@
 <div>
-
   <div class="header">
-    <p class="date">{{momentDateFormat currentDate "DD MMM YYYY"}}<span class="T1" /></p>
+    <p class="date">{{ momentDateFormat currentDate "DD MMM YYYY" }}<span class="T1" /></p>
 
     <p class="address">
-      {{recipient.firstName}}
-      {{recipient.initials}}
-      {{recipient.lastName}}
+      {{ recipient.firstName }}
+      {{ recipient.initials }}
+      {{ recipient.lastName }}
       <br />
-      {{recipient.address}}
+      {{ recipient.address }}
       <br />
-      {{recipient.city}},
-      {{recipient.province}}
+      {{ recipient.city }},
+      {{ recipient.province }}
       <br />
-      {{recipient.country}},
-      {{recipient.postalCode}}
+      {{ recipient.country }},
+      {{ recipient.postalCode }}
     </p>
   </div>
 
   <p class="saluation">
     Dear
-    {{recipient.firstName}}:
+    {{ recipient.firstName }}:
   </p>
 
   <div class="body">
@@ -29,29 +28,34 @@
 
     <div>
       <p class="flex justify-between">
-        <strong>Program: {{program.name}}</strong>
+        <strong>Program: {{ program.name }}</strong>
         <span>
           <strong>Start Date:</strong>
-          <span class="ml-4">{{momentDateFormat program.startDate "MMM Do YYYY"}}</span>
+          <span class="ml-4">{{ momentDateFormat program.startDate "MMM Do YYYY" }}</span>
         </span>
       </p>
       <p class="flex justify-between">
         <strong>Institution: {{ program.institutionName }}</strong>
         <span>
           <strong>End Date:</strong>
-          <span class="ml-4">{{momentDateFormat program.endDate "MMM Do YYYY"}}</span>
+          <span class="ml-4">{{ momentDateFormat program.endDate "MMM Do YYYY" }}</span>
         </span>
       </p>
 
-      <p class="P2">
+      <p>
         <strong>Rate per Week:</strong>
-        <span class="ml-8">{{centsToDollarString program.ratePerWeekInCents }}</span>
+        <span class="ml-8">{{ centsToDollarString program.ratePerWeekInCents }}</span>
       </p>
 
-      <p class="P2"><strong>Approv. Weeks:</strong><span class="T3">        </span><span class="T4">xx</span></p>
+      <p>
+        <strong>Approv. Weeks:</strong>
+        <span class="ml-4">{{ program.approvalWeeks }}</span>
+      </p>
 
-      <p><strong>Travel/Airfare:</strong><span class="T3">               
-        </span><span class="T4">$xxxx.xx</span></p>
+      <p>
+        <strong>Travel/Airfare:</strong>
+        <span class="ml-8">{{ centsToDollarString program.travelAndAirFairCostInCents }}</span>
+      </p>
     </div>
     <p class="P3">Disbursements<span> Issue Date – Based on confirmed enrollment before each
         semester</span>

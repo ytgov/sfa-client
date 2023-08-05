@@ -29,8 +29,6 @@ export class ApplicationLetterService {
         province: "Quebec",
         country: "Canada",
         postalCode: "D4E 5F6",
-        phoneNumber: "987-654-3210",
-        email: "james.thompson@example.com",
       },
       program: {
         name: "Software Engineering Bootcamp",
