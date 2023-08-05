@@ -1,7 +1,7 @@
 import { Knex } from "knex";
 import { BaseRepository } from "../base-repository";
 import { ScalarResult } from "models/repository";
-import { AssessmentDTO} from "models";
+import { AssessmentDTO, AssessmentTable, assessmentColumns } from "../../models";
 import { IMainTable } from "../i-main-table";
 
 export class AssessmentBaseRepository extends BaseRepository implements IMainTable {
@@ -15,11 +15,53 @@ export class AssessmentBaseRepository extends BaseRepository implements IMainTab
         return this.mainTable;
     }
 
+    getAssessmentTable(assessment: AssessmentDTO): AssessmentTable {
+        return Object.keys(assessment)
+            .filter(key => assessmentColumns.includes(key as keyof AssessmentTable))
+            .reduce((obj: any, key) => {
+                obj[key as keyof AssessmentTable] = assessment[key as keyof AssessmentTable];
+                return obj as AssessmentTable;
+            }, {});
+    }
+
+    async getDependentCount(application_id?: number): Promise<number> {
+        let result = 0;
+
+        if (application_id) {
+            result = await this.getScalarValue<number>("fn_get_dependent_count", [application_id]);
+        }
+
+        return result;
+    }
+
+    async getParentFamilySize(application_id?: number): Promise<number> {
+        let result = 0;
+
+        if (application_id) {
+            result = await this.getScalarValue<number>("fn_get_parent_family_size", [application_id]);
+        }
+
+        return result;
+    }
+
     async getAssessmentByFundingRequestId(funding_request_id: number | undefined): Promise<AssessmentDTO> {
         let assessment: Partial<AssessmentDTO> = {};
 
         if (funding_request_id) {
             const result = await this.mainDb.raw(`EXEC sfa.sp_get_assessment_by_funding_request @funding_request_id = ${funding_request_id}`);
+            if (Array.isArray(result) && result.length > 0) {
+                assessment = this.singleResult(result);
+            }
+        }
+
+        return assessment;
+    }
+
+    async getMaxAssessmentByFundingRequestId(funding_request_id: number | undefined): Promise<AssessmentDTO> {
+        let assessment: Partial<AssessmentDTO> = {};
+
+        if (funding_request_id) {
+            const result = await this.mainDb.raw(`EXEC sfa.sp_get_max_assessment_by_funding_request @funding_request_id = ${funding_request_id}`);
             if (Array.isArray(result) && result.length > 0) {
                 assessment = this.singleResult(result);
             }

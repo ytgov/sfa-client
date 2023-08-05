@@ -1,13 +1,20 @@
 import { Knex } from "knex";
 import { FundingRequestDTO, FundingRequestTable, fundingRequestColumns } from "../../models";
 import { BaseRepository } from "../base-repository";
+import { IMainTable } from "repositories/i-main-table";
 
-export class FundingRequestRepository extends BaseRepository {
+export class FundingRequestRepository extends BaseRepository implements IMainTable {
     
     private funding_request: Partial<FundingRequestDTO> = {};
 
+    protected mainTable = "sfa.funding_request";
+
     constructor(maindb: Knex<any, unknown>) {
         super(maindb);
+    }
+
+    getMainTable(): string {
+        return this.mainTable;
     }
 
     getFundingRequestTable(fundingRequest: FundingRequestDTO): FundingRequestTable {
@@ -33,12 +40,23 @@ export class FundingRequestRepository extends BaseRepository {
     async getFundingRequestById(id?: number): Promise<Partial<FundingRequestDTO>> {
 
         if (id) {
-            this.funding_request = await this.mainDb("sfa.funding_request")
+            this.funding_request = await this.mainDb(this.mainTable)
                 .select("*")
                 .where({ id })
                 .first();
         }
                 
         return this.funding_request;
+    }
+
+    async updateFundingRequest(id: number, funding_request: FundingRequestDTO): Promise<FundingRequestDTO> {
+        const filtered = this.getFundingRequestTable(funding_request);
+        const result = await this.mainDb(this.mainTable)
+                                .update(filtered)
+                                .where({
+                                    id: id
+                                })
+                                .returning("*");
+        return result[0];
     }
 }

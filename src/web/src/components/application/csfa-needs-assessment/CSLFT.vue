@@ -47,7 +47,7 @@
           <v-tab key="2">CONTRIBUTION</v-tab>
           <v-tab key="3">PARENTAL</v-tab>
           <v-tab key="4">AWARD</v-tab>
-          <v-tab key="4">MSFAA</v-tab>
+          <v-tab key="5">MSFAA</v-tab>
         </v-tabs>
       </div>
     </div>
@@ -66,28 +66,28 @@
           >
         </CSLFTCosts>
       </v-tab-item>
-      <v-tab-item key="3">
+      <v-tab-item key="2">
         <CSLFTContribution 
           v-on:showSuccess="showSuccess"
           v-on:showError="showError"
           >
         </CSLFTContribution>
       </v-tab-item>
-      <v-tab-item key="4">
+      <v-tab-item key="3">
         <CSLFTParental 
           v-on:showSuccess="showSuccess"
           v-on:showError="showError"
           >
         </CSLFTParental>
       </v-tab-item>
-      <v-tab-item key="5">
+      <v-tab-item key="4">
         <CSLFTAward
           v-on:showSuccess="showSuccess"
           v-on:showError="showError"
           >
         </CSLFTAward>
       </v-tab-item>
-      <v-tab-item key="6">
+      <v-tab-item key="5">
         <CSLFTMSFAA
           v-on:showSuccess="showSuccess"
           v-on:showError="showError"

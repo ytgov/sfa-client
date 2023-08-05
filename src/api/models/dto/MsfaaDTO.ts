@@ -12,3 +12,19 @@ export interface MsfaaDTO {
     last_reminder_sent?: number;
     is_full_time?: boolean;
 }
+
+export type MsfaaTable = Omit<MsfaaDTO, "id">;
+
+export const msfaaColumns: (keyof MsfaaTable)[] = [
+    "application_id",
+    "student_id",
+    "sent_date",
+    "signed_date",
+    "received_date",
+    "cancel_date",
+    "msfaa_status",
+    "cancel_reason",
+    "sent_seq_number",
+    "last_reminder_sent",
+    "is_full_time",
+];

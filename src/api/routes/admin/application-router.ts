@@ -2047,6 +2047,12 @@ applicationRouter.post("/:application_id/:funding_request_id/assessments",
                                 delete dataAssessment.id;
                                 delete dataAssessment.assessment_id;
                                 delete dataAssessment.program_division;
+                                delete dataAssessment.unused_receipts;
+                                delete dataAssessment.yea_balance;
+                                delete dataAssessment.yea_net_amount;
+                                delete dataAssessment.yea_used;
+                                delete dataAssessment.yea_earned;
+
                                 const resUpdate = await db("sfa.assessment")
                                 .where({ id: resSP[0].assessment_id_inserted })
                                 .update({ ...dataAssessment });
@@ -2168,7 +2174,7 @@ applicationRouter.post("/:application_id/:funding_request_id/assessments-with-di
         try {
             const { application_id, funding_request_id } = req.params;
             const { dataDisburse, dataAssessment, dataApplication = null } = req.body;
-            
+
             if (!dataDisburse?.length) {
                 return res.json({
                     messages: [{ variant: "error", text: "No disbursement found" }],
@@ -2197,7 +2203,13 @@ applicationRouter.post("/:application_id/:funding_request_id/assessments-with-di
                             delete dataAssessment.id;
                             delete dataAssessment.assessment_id;
                             delete dataAssessment.program_division;
+                            delete dataAssessment.unused_receipts;
+                            delete dataAssessment.yea_balance;
+                            delete dataAssessment.yea_net_amount;
+                            delete dataAssessment.yea_used;
+                            delete dataAssessment.yea_earned;
                             //Changing values that the user may have updated from preview-assessment
+                          
                             const resUpdate = await db("sfa.assessment")
                                 .where({ id: resSP[0].assessment_id_inserted })
                                 .update({ ...dataAssessment });
