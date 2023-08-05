@@ -19,6 +19,36 @@ export class ApplicationLetterService {
       ...this.#applicationData,
       title: "Application Approval Letter",
       currentDate: new Date(),
+      // Example content
+      recipient: {
+        firstName: "James",
+        initials: "A.",
+        lastName: "Thompson",
+        address: "567 Oak Avenue",
+        city: "Metropolis",
+        province: "Quebec",
+        country: "Canada",
+        postalCode: "D4E 5F6",
+        phoneNumber: "987-654-3210",
+        email: "james.thompson@example.com",
+      },
+      program: {
+        name: "Software Engineering Bootcamp",
+        startDate: new Date("2023-09-01"),
+        endDate: new Date("2024-03-01"),
+        institutionName: "Tech Academy",
+        ratePerWeekInCents: 400000,
+        approvalWeeks: 26,
+        travelAndAirFairCostInCents: 1200000,
+      },
+      disembursement: [
+        { amountInCents: 1000000, releaseDate: new Date("2023-09-15") },
+        { amountInCents: 1500000, releaseDate: new Date("2023-12-15") },
+      ],
+      studentFinancialAssistanceOfficer: {
+        firstName: "Samantha",
+        lastName: "Smith",
+      },
     })
   }
 
