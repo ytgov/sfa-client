@@ -6,7 +6,7 @@ import ApplicationLetterService from "../../services/admin/application-letter-se
 export const applicationLetterRouter = express.Router()
 
 applicationLetterRouter.get(
-  "/:applicationId/approval/:fundingType([^./]+).:format(pdf|html)?",
+  "/:applicationId/approval/:fundingType([^./]+).?:format?",
   [param("id").isInt().notEmpty()],
   async (req: Request, res: Response) => {
     const applicationId = parseInt(req.params.applicationId)
@@ -31,7 +31,6 @@ applicationLetterRouter.get(
         })
       }
     } catch (error) {
-      // TODO: standarize this pattern
       if (error instanceof Error) {
         if (error.message.includes("not found") || error.message.includes("no such file or directory")) {
           res.status(404).send({
@@ -57,31 +56,38 @@ applicationLetterRouter.get(
   }
 )
 
-// TODO: support .html and .pdf extensions
-// e.g. "/:applicationId/approval/:fundingType([^.\/]+).:format?"
 applicationLetterRouter.get(
-  "/:applicationId/rejection/:fundingType",
+  "/:applicationId/rejection/:fundingType([^./]+).?:format?",
   [param("id").isInt().notEmpty()],
   async (req: Request, res: Response) => {
     const applicationId = parseInt(req.params.applicationId)
     const fundingType = req.params.fundingType
+    const format = req.params.format || "pdf"
 
     try {
-      const applicationLetterService = new ApplicationLetterService({ applicationId, fundingType, format: "pdf" })
-      const fileName = await applicationLetterService.buildRejectionLetterFileName()
+      const applicationLetterService = new ApplicationLetterService({ applicationId, fundingType, format })
       const rejectionLetter = await applicationLetterService.generateRejectionLetter()
-
-      res.setHeader("Content-disposition", `attachment; filename="${fileName}"`)
-      res.setHeader("Content-type", "application/pdf")
-      res.send(rejectionLetter)
+      if (format === "pdf") {
+        const fileName = await applicationLetterService.buildRejectionLetterFileName()
+        res.setHeader("Content-disposition", `attachment; filename="${fileName}"`)
+        res.setHeader("Content-type", "application/pdf")
+        res.send(rejectionLetter)
+      } else if (format === "html") {
+        res.send(rejectionLetter)
+      } else {
+        res.status(422).send({
+          statusCode: 422,
+          status: "Unprocessable Entity",
+          message: `Could not generate letter in format ${format}`,
+        })
+      }
     } catch (error) {
-      // TODO: standarize this pattern
       if (error instanceof Error) {
-        if (error.message.includes("not found")) {
+        if (error.message.includes("not found") || error.message.includes("no such file or directory")) {
           res.status(404).send({
             statusCode: 404,
             status: "Not Found",
-            message: error.message,
+            message: `Could not find application letter with id "${applicationId}" and funding type "${fundingType}".`,
           })
         } else {
           res.status(422).send({
