@@ -24,39 +24,50 @@ export default class ApplicationLetterService {
 
   async generateApprovalLetter(): Promise<Buffer | string> {
     const data = await this.#getApplicationData()
+    data.title = "Application Approval Letter"
 
     if (this.#format === "pdf") {
-      return renderViewAsPdf(`./templates/admin/application-letter/approval/${this.#fundingType}`, {
-        ...data,
-      })
+      return renderViewAsPdf(
+        `./templates/admin/application-letter/approval/${this.#fundingType}`,
+        data
+      )
     }
 
     if (this.#format === "html") {
       return renderViewAsPromise(
         `./templates/admin/application-letter/approval/${this.#fundingType}`,
-        {
-          ...data,
-        }
+        data
       )
     }
 
     return Promise.reject(new Error(`Invalid format: ${this.#format}`))
   }
 
-  // TODO: add support for html format
-  async generateRejectionLetter(): Promise<Buffer> {
-    await this.#getApplicationData()
+  async generateRejectionLetter(): Promise<Buffer | string> {
+    const data = await this.#getApplicationData()
+    data.title = "Application Rejection Letter"
 
-    return renderViewAsPdf(`./templates/admin/application-letter/rejection/${this.#fundingType}`, {
-      ...this.#applicationData,
-      title: "Application Rejection Letter",
-    })
+    if (this.#format === "pdf") {
+      return renderViewAsPdf(
+        `./templates/admin/application-letter/rejection/${this.#fundingType}`,
+        data
+      )
+    }
+
+    if (this.#format === "html") {
+      return renderViewAsPromise(
+        `./templates/admin/application-letter/rejection/${this.#fundingType}`,
+        data
+      )
+    }
+
+    return Promise.reject(new Error(`Invalid format: ${this.#format}`))
   }
 
   ////
   // See https://xkcd.com/1179/ -> https://en.wikipedia.org/wiki/ISO_8601 for date format
   async buildApprovalLetterFileName() {
-    await this.#getApplicationData()
+    const data = await this.#getApplicationData()
 
     const studentLastName = this.#applicationData.student.person.last_name
     if (!studentLastName) {
@@ -105,7 +116,6 @@ export default class ApplicationLetterService {
     // return this.#applicationData
     // TODO: replace dummy data with real data
     return Promise.resolve({
-      title: "Application Approval Letter",
       currentDate: new Date(),
       // Example content
       recipient: {
