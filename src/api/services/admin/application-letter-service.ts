@@ -2,7 +2,7 @@ import { Application } from "models"
 import { renderViewAsPdf, renderViewAsPromise } from "../../utils/express-handlebars-pdf-client"
 import db from "../../db/db-client"
 
-export class ApplicationLetterService {
+export default class ApplicationLetterService {
   #applicationId: number
   #fundingType: string
   #applicationData: any

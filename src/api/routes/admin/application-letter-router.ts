@@ -1,7 +1,7 @@
 import express, { Request, Response } from "express"
 import { param } from "express-validator"
 
-import { ApplicationLetterService } from "../../services/admin/application-letter-service"
+import ApplicationLetterService from "../../services/admin/application-letter-service"
 
 export const applicationLetterRouter = express.Router()
 
