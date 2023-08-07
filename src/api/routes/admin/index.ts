@@ -62,6 +62,8 @@ import { cslLookupRouter } from "./csl-lookup-router";
 import {cslReasonRouter} from "./csl-reason-router";
 import { cslCertificateExportRouter } from "./csl-certificate-export-router";
 import { assessmentCsgftRouter } from "./csgft-assessment-router";
+import { chequeReqRouter } from "./cheque-req-list-router";
+
 
 export const adminRouter = express.Router();
 //adminRouter.use("/", RequireServerAuth, RequireAdmin)
@@ -128,3 +130,4 @@ adminRouter.use("/disbursement", disbursementRouter);
 adminRouter.use("/users", usersRouter);
 adminRouter.use("/csl-certificate-export", cslCertificateExportRouter);
 adminRouter.use("/csgft", assessmentCsgftRouter);
+adminRouter.use("/cheque-req-list", chequeReqRouter);
