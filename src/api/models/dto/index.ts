@@ -10,3 +10,4 @@ export * from "./CslReasonDTO";
 export * from "./MsfaaDTO";
 export * from "./MailAddressDTO";
 export * from "./ExpensesDTO";
+export * from "./CsgLookupDTO";

@@ -2171,7 +2171,7 @@ END;
 GO
 
 -- Get Parent Family Size
-CREATE OR ALTER FUNCTION sfa.fn_get_parent_family_size(@application_id INT)
+CREATE OR ALTER FUNCTION [sfa].[fn_get_parent_family_size](@application_id INT)
 RETURNS INT
 AS 
 BEGIN
@@ -4751,6 +4751,36 @@ BEGIN
 END
 GO
 
+-- Get Csg Lookup By Year
+CREATE OR ALTER FUNCTION sfa.fn_get_csg_lookup_by_year(@academic_year_id INT)
+RETURNS TABLE
+AS
+RETURN
+SELECT TOP 1
+	*
+FROM sfa.csg_lookup cl
+WHERE cl.academic_year_id = @academic_year_id;
+GO
+
+-- Get Max Assessment By Funding Request Id
+CREATE OR ALTER PROCEDURE sfa.sp_get_max_assessment_by_funding_request(@funding_request_id INT)
+AS
+BEGIN
+	
+	DECLARE @assessment_id INT;
+
+	SELECT
+		@assessment_id = MAX(a.id)
+	FROM sfa.assessment a
+	WHERE a.funding_request_id = @funding_request_id;
+	
+	SELECT 
+		a.*
+	FROM sfa.assessment a 
+	WHERE a.id = @assessment_id;
+END;
+GO
+
 CREATE OR ALTER PROCEDURE sfa.sp_get_and_update_csl_cert_seq_num
 (
 	@FROM_DATE_P DATE,
@@ -4892,4 +4922,4 @@ BEGIN
 			@v_error_msg			
     	);
 END
-END;
+GO
