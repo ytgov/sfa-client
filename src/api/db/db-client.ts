@@ -25,7 +25,11 @@ const dbWithSchema: Knex = new Proxy(db, {
   },
   get: (target, prop: keyof Knex) => {
     if (typeof target[prop] === "function") {
-      return (...args: any[]) => target[prop](...args).withSchema(DB_CONFIG.defaultSchema)
+      if (prop === "withSchema") {
+        return (schema: string) => target[prop](schema) // format taken from src/api/node_modules/knex/types/index.d.ts
+      } else {
+        return (...args: any[]) => target[prop](...args).withSchema(DB_CONFIG.defaultSchema)
+      }
     }
     return target[prop]
   },
