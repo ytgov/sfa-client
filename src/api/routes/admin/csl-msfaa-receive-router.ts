@@ -1,0 +1,258 @@
+import express, { Request, Response } from "express";
+import knex from "knex";
+import { body, param } from "express-validator";
+import { DB_CONFIG } from "../../config";
+import { Console } from "console";
+const db = knex(DB_CONFIG);
+
+export const cslMsfaaReceiveRouter = express.Router();
+
+cslMsfaaReceiveRouter.post("/:FILE_NAME", 
+    [        
+        param("FILE_NAME").notEmpty(),         
+    ],     
+    async (req: Request, res: Response) => {        
+        const { FILE_NAME } = req.params;
+        const file:any = req.files;     
+        
+        function toDate(inputString:string) {            
+            const year = inputString.substring(0, 4);
+            const month = inputString.substring(4, 6);
+            const day = inputString.substring(6, 8);
+            const hour = inputString.substring(8, 10) ? inputString.substring(8, 10) : "";
+            const minute = inputString.substring(10, 12) ? inputString.substring(10, 12) : "";            
+            return new Date(`${year}-${month}-${day}T${hour}:${minute}Z`);
+        }
+
+        function toStringDate(inputString:string) {
+            const year = inputString.substring(0, 4);
+            const month = inputString.substring(4, 6);
+            const day = inputString.substring(6, 8);
+            return (`${year}-${month}-${day}`);
+        }
+
+        function isValidDate(d:Date) {
+            return d instanceof Date && !isNaN(d.getTime());
+        }
+        
+
+        try {        
+
+            let vInRecord;
+			let vCount = 0;
+			let vTotalSin = 0;
+			let vNonNumericSin = 0;
+			let vNumSin;
+			let vErrorMsg;
+			let vValidDateMsg:string;
+			let vInFile;
+			let vStatusDesc;
+
+            let textContent = file.file.data.toString('utf8');
+            let linesContent = textContent.split("\n");            
+            const fileName = FILE_NAME.trim();        
+            let header = linesContent[0];
+            let headerRecordType = header.substring(0, 3);            
+            let vOriginator = header.substring(3, 7).replaceAll(' ', '');            
+            let vTitle = header.substring(7, 47).replaceAll(' ', '')
+            let vCreateDateTime = header.substring(47, 59);
+            let vSeqNum = header.substring(59, 66);          
+                                                         
+            if(!fileName) {
+                return res.json({flag: 0, data: 'You need to enter a filename'});                    
+            } else {
+                if
+                (
+                    !(fileName.substring(0,1).match(/[A-Z]/))                    
+                    || !(fileName.length > 5)
+                ) {
+                    return res.json({flag: 0, data: 'Please try again with the complete file path and name'});
+                }
+                else {
+
+                    db.raw("DELETE FROM sfa.MSFAA_IMPORT");                    
+                                        
+                    if(headerRecordType !== '100') {
+                        return res.json({flag: 0, data: 'There is no header record on this file'});
+                    } else {                        
+                        if(vOriginator !== '222') {
+                            return res.json({flag: 0, data: 'File has not been provided by the service provider (222) but by: '+ vOriginator});
+                        } else {
+                            if(vTitle !== 'MSFAARECEIVED') {
+                                return res.json({flag: 0, data: 'File is not a MSFAA Received file: '+ vTitle});                                
+                            } else {
+                                if(!isValidDate(toDate(vCreateDateTime))) {
+                                    return res.json({flag: 0, data: 'Invalid creation date/time in header record: ' + vCreateDateTime});         
+                                }
+
+                                if(isNaN(vSeqNum)) {
+                                    return res.json({flag: 0, data: 'Invalid sequence number in header record: ' + vSeqNum});         
+                                }                              
+                            }
+                        }
+                    }
+                    
+                    for(let i = 1; i < linesContent.length; i++) {                        
+                        let currentLine = linesContent[i];
+                        let headerRecordType = currentLine.substring(0, 3);
+                        vErrorMsg = null;
+                        if(headerRecordType === '200') {                            
+                            let vAgreementNumInit = currentLine.substring(3, 4).replaceAll(' ', '');
+                            let vAgreementNum = currentLine.substring(4, 13).replaceAll(' ', '');
+                            let vSin = currentLine.substring(13, 22).replaceAll(' ', '');
+                            let vStatus = currentLine.substring(22, 23).replaceAll(' ', '');
+                            let vBorrowSigned = currentLine.substring(23, 31).replaceAll(' ', '');
+                            let vSpReceived = currentLine.substring(31, 39).replaceAll(' ', '');
+                            let vNewIssueProv = currentLine.substring(48, 50).replaceAll(' ', '');
+                            let vCancelled = currentLine.substring(50, 58).replaceAll(' ', '');                            
+
+                            vNumSin = Number(vSin);
+
+                            if(!vNumSin) {
+                                vErrorMsg = vErrorMsg + 'SIN is not numeric. ';
+						        vNumSin = 0;
+						        vNonNumericSin = vNonNumericSin + 1;
+                            }
+
+                            if(vAgreementNum === '') {
+                                vErrorMsg = vErrorMsg + 'Agreement Number missing. ';
+                            }
+                            
+                            if(vSin === '') {
+                                vErrorMsg = vErrorMsg + 'SIN missing. ';
+                            }
+                           
+                            if(vStatus === '') {
+                                vErrorMsg = vErrorMsg + 'Status code missing. ';
+                            }
+                         
+                            if(vNewIssueProv === '' && vStatus === 'C') {
+                                vErrorMsg = vErrorMsg + 'New issuing provice missing for Cancelled MSFAA. ';
+                            }  
+                            
+                            vValidDateMsg = await db.raw(`select sfa.fn_check_valid_date(${vBorrowSigned}, 'Borrower Signed')`);                            
+                            if(vValidDateMsg !== null && vValidDateMsg !== "EMPTY") {
+                                vErrorMsg = vErrorMsg + vValidDateMsg;
+                            } else if(vValidDateMsg === "EMPTY" && vStatus === "R") {
+                                vErrorMsg = vErrorMsg + 'Borrower signed date missing for Received MSFAA. ';
+                            }
+                         
+                            vValidDateMsg = await db.raw(`select sfa.fn_check_valid_date(${vSpReceived}, 'Service Provider Received')`);  
+                            if(vValidDateMsg !== null && vValidDateMsg !== "EMPTY") {
+                                vErrorMsg = vErrorMsg + vValidDateMsg;
+                            } else if(vValidDateMsg === "EMPTY" && vStatus === "R") {
+                                vErrorMsg = vErrorMsg + 'Service provider received date missing for Received MSFAA. ';
+                            }                          
+
+                            vValidDateMsg = await db.raw(`select sfa.fn_check_valid_date(${vCancelled}, 'Cancelled')`); 
+                            if(vValidDateMsg !== null && vValidDateMsg !== "EMPTY") {
+                                vErrorMsg = vErrorMsg + vValidDateMsg;
+                            } else if(vValidDateMsg === "EMPTY" && vStatus === "C") {
+                                vErrorMsg = vErrorMsg + 'Cancel date missing for Cancelled MSFAA. ';
+                            }    
+
+                            db.raw(`EXEC sfa.sp_insert_msfaa_import 
+                                @v_agreement_num = ${vAgreementNum}, 
+                                @v_sin = ${vSin}, 
+                                @v_status = ${vStatus}, 
+                                @v_borrow_signed = ${vBorrowSigned}, 
+                                @v_sp_received = ${vSpReceived}, 
+                                @v_new_issue_prov = ${vNewIssueProv}, 
+                                @v_cancelled = ${vCancelled}, 
+                                @v_error_msg = ${vErrorMsg};
+                            `);
+
+                            vCount = vCount + 1;
+                            vTotalSin = vTotalSin + vNumSin;	 
+                        } else if(headerRecordType === '999') {  
+                            if(isNaN(parseInt(currentLine.substring(43, 52).replaceAll(' ', '')) + 0)) {
+                                return res.json({flag: 0, data: 'Trailer count is non numeric' + currentLine.substring(43, 52).replaceAll(' ', '')});   
+                            }  
+
+                            if(parseInt(currentLine.substring(43, 52).replaceAll(' ', '')) + 0 !== vCount) {
+                                return res.json({flag: 0, data: 'Trailer count does not equal total detail records: Trailer -' + parseInt(currentLine.substring(43, 52).replaceAll(' ', '')) + 0 + ' Record Count - ' + vCount});         
+                            }                              
+
+                            if(isNaN(parseInt(currentLine.substring(52, 67).replaceAll(' ', '')))) {
+                                return res.json({flag: 0, data: 'Trailer SIN hash is non numeric : ' + currentLine.substring(52, 67).replaceAll(' ', '')});   
+                            }  
+
+                            if(parseInt(currentLine.substring(52, 67).replaceAll(' ', '')) !== vTotalSin) {
+                                return res.json({flag: 0, data: 'Trailer SIN hash total does not equal total of detail records: Trailer - ' + parseInt(currentLine.substring(52, 67).replaceAll(' ', '')) + ' Record SIN - ' + vTotalSin + '. SIN non-numeric count was: ' + vNonNumericSin});   
+                            }                            
+                        }                      
+                    }                                                                                                               
+                    return res.json({flag: 1, data: 'CSL MSFAA response read complete. ' + vCount + ' records processed.' });                    
+                }
+            }                                                 
+        } catch (error: any) {
+            console.log(error);
+            return res.status(404).send();
+        }        
+});
+
+
+cslMsfaaReceiveRouter.put("/", [], 
+    async (req: Request, res: Response) => {
+        try {                       
+            let vStatusDesc;
+            let vCount = 0;
+            const results = await db.select("mi.agreement_number","mi.sin", "mi.status_code", "mi.borrower_signed_date", "mi.sp_received_date", "mi.new_issue_prov", "mi.cancel_date")
+            .from("sfa.msfaa_import AS mi")                    
+            .innerJoin("sfa.msfaa AS m", "m.id", "=", "mi.agreement_number")
+            .whereNull("error_message"); 
+
+            for(let res of results) {                        
+                if(res.status_code === "R") {
+                    vStatusDesc = "Received";
+                } else if (res.status_code === "C") {
+                    vStatusDesc = "Cancelled";
+                } else {
+                    vStatusDesc = "Pending";
+                }
+
+                if(res.status_code === "C") {                    
+                    const updateMSFAA = db('sfa.msfaa')
+                    .where('id', db.raw(`CAST (${res.agreement_number} AS INT)`))
+                    .update({                            
+                        msfaa_status: res.v_status_desc,
+                        cancel_date: db.raw(`CAST('${res.cancel_date}' AS DATE)`),
+                        cancel_reason: db.raw(
+                            `'New MSFAA issued by ' + '${res.new_issue_prov}'`
+                        ),
+                    })
+                    .catch((err: any) => {
+                        console.log("FAILED", err)
+                        res.json({ messages: [{ variant: "error", text: "Save failed" }] })
+                    });      
+                    
+                    updateMSFAA                    
+                    .catch((error) => {
+                        console.error('Error: ', error);
+                    })                                                                               
+                } else {                                                         
+                    const updateMSFAA = db('sfa.msfaa')
+                    .where('id', db.raw(`CAST(${res.agreement_number} AS INT)`))
+                    .update({
+                        msfaa_status: vStatusDesc,                                
+                        signed_date: db.raw(`CAST('${res.borrower_signed_date}' AS DATE)`),                                
+                        received_date: db.raw(`CAST('${res.sp_received_date}' AS DATE)`),
+                    });                            
+                    updateMSFAA
+                    .catch((error) => {
+                        console.error('Error: ', error);
+                    })                                                                                                                          
+                }
+                vCount = vCount + 1;
+            }            
+            return res.json({flag: 1, data: 'CSL MSFAA response update complete. ' + vCount + ' records processed.'   });                
+        } catch (error: any) {
+            console.log(error);
+            return res.status(404).send();
+        }        
+    }
+); 
+
+
+
+
