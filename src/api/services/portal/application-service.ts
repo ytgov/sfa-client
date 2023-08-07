@@ -182,6 +182,7 @@ export class PortalApplicationService {
 
         await db("application_draft").withSchema(schema).where({ id }).update({
           status: "Submitted",
+          application_id: newApplication[0].id,
           submit_date: new Date(),
         });
       }

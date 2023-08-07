@@ -189,6 +189,7 @@ portalApplicationRouter.get("/:sub/:draftId/files/:key", async (req: Request, re
   res.status(404).send();
 });
 
+// creates a new draft application
 portalApplicationRouter.post("/:sub", async (req: Request, res: Response) => {
   const { sub } = req.params;
   const { academic_year_id, student_id, application_json, is_active, create_date, update_date } = req.body;
@@ -207,6 +208,7 @@ portalApplicationRouter.post("/:sub", async (req: Request, res: Response) => {
   res.json({ data: draft });
 });
 
+// saves a draft application
 portalApplicationRouter.put("/:sub/:draftId", async (req: Request, res: Response) => {
   const { sub, draftId } = req.params;
   const { application_json, is_active } = req.body;
@@ -230,6 +232,7 @@ portalApplicationRouter.put("/:sub/:draftId", async (req: Request, res: Response
   res.status(404);
 });
 
+// submits a draft application and creates a real application
 portalApplicationRouter.put("/:sub/:draftId/submit", async (req: Request, res: Response) => {
   const { sub, draftId } = req.params;
   let student = await studentService.getBySub(sub);
@@ -252,6 +255,7 @@ portalApplicationRouter.put("/:sub/:draftId/submit", async (req: Request, res: R
   res.status(404);
 });
 
+// deletes a draft application
 portalApplicationRouter.delete("/:sub/:draftId", async (req: Request, res: Response) => {
   const { sub, draftId } = req.params;
   let student = await studentService.getBySub(sub);
