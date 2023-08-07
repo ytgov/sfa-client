@@ -7,9 +7,13 @@ services:
       dockerfile: development.Dockerfile
     env_file:
       - ./src/api/.env.development
-    environment:
+    environment: &environment-definition
       NODE_ENV: development
+      DB_NAME: SFADB_DEV
       DB_HOST: db
+      DB_USER: sa
+      DB_PASS: &password-definition Testing1122
+      DB_PORT: 1433
       DB_DEFAULT_SCHEMA: sfa
       API_PORT: ${API_PORT:-3000}
       BASE_URL: "http://localhost:${API_PORT:-3000}"
@@ -19,19 +23,29 @@ services:
     volumes:
       - ./src/api:/usr/src/api
     depends_on:
-      - db
+      db:
+        condition: service_healthy
+
   db:
-    image: mcr.microsoft.com/mssql/server:2019-latest
+    build:
+      context: .
+      dockerfile: ./db/db.Dockerfile
     ports:
       - "1433:1433"
     user: root
-    env_file:
-      - db/sqlserver.env
-      - db/sapassword.env
+    environment:
+      MSSQL_SA_PASSWORD: *password-definition
+      ACCEPT_EULA: "Y"
     volumes:
       - ./db/data:/var/opt/mssql/data
       - ./db/log:/var/opt/mssql/log
       - ./db/backups:/var/opt/mssql/data/backups
+    healthcheck: # https://github.com/Microsoft/mssql-docker/issues/133
+      test: "/opt/mssql-tools/bin/sqlcmd -U sa -P \"$$MSSQL_SA_PASSWORD\" -Q \"SELECT 1\" || exit 1"
+      interval: 5s
+      timeout: 10s
+      retries: 3
+      start_period: 5s
   s3:
       image: "minio/minio:latest"
       ports:
