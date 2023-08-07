@@ -47,8 +47,8 @@
                     background-color="white"
                     hide-details
                     @keypress="validate.isNumber($event)"
-                    @change="doSaveApp('program_year', application.program_year)"
-                    v-model="application.program_year"
+                    @change="doSaveApp('program_year_total', application.program_year_total)"
+                    v-model="application.program_year_total"
                   ></v-text-field>
                 </div>
               </div>
@@ -60,7 +60,6 @@
                 background-color="white"
                 hide-details
                 label="Student number"
-                @keypress="validate.isNumber($event)"
                 v-model="application.student_number"
               ></v-text-field>
             </div>
