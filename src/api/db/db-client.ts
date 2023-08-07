@@ -1,11 +1,12 @@
-import knex from "knex"
+import knex, { Knex } from "knex"
 import camelcaseKeys from "camelcase-keys"
 import { snakeCase } from "lodash"
 
 import { DB_CONFIG } from "@/config"
 
 const db = knex({
-  ...DB_CONFIG,
+  client: DB_CONFIG.client,
+  connection: DB_CONFIG.connection,
   postProcessResponse: (result, queryContext) => {
     if (Array.isArray(result)) {
       // For SELECT queries
@@ -18,4 +19,16 @@ const db = knex({
   wrapIdentifier: (value, origImpl, queryContext) => origImpl(snakeCase(value)),
 })
 
-export default db
+const dbWithSchema: Knex = new Proxy(db, {
+  apply: (target, thisArg, argumentsList) => {
+    return target(...argumentsList).withSchema(DB_CONFIG.defaultSchema)
+  },
+  get: (target, prop: keyof Knex) => {
+    if (typeof target[prop] === "function") {
+      return (...args: any[]) => target[prop](...args).withSchema(DB_CONFIG.defaultSchema)
+    }
+    return target[prop]
+  },
+})
+
+export default dbWithSchema

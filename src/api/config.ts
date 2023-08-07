@@ -26,6 +26,7 @@ export const DB_USER = process.env.DB_USER || "";
 export const DB_PASS = process.env.DB_PASS || "";
 export const DB_HOST = process.env.DB_HOST || "";
 export const DB_PORT = process.env.DB_PORT || "";
+export const DB_DEFAULT_SCHEMA = process.env.DB_DEFAULT_SCHEMA;
 
 export const BASE_URL = process.env.BASE_URL || "";
 export const CLIENT_ID = process.env.CLIENT_ID || "";
@@ -41,6 +42,7 @@ export const DB_CONFIG = {
     database: DB_NAME,
     port: parseInt(DB_PORT),
   },
+  defaultSchema: DB_DEFAULT_SCHEMA || 'dbo',
 };
 
 export const MAIL_FROM = process.env.MAIL_FROM || "sfa@yukon.ca";
