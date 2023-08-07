@@ -117,6 +117,11 @@ export interface Application {
   courses_per_week?: number;
   prestudy_start_date?: Date;
   prestudy_end_date?: Date;
+  has_consent_to_share_data?: boolean;
+  attendance_id?: number;
+  has_last_travel?: boolean;
+  last_travel_year?: number;
+  last_travel_month?: number;
 }
 
 export function ApplicationFromDraft(draft: any): Application {
@@ -155,6 +160,15 @@ export function ApplicationFromDraft(draft: any): Application {
     is_disabled: draft.statistical.disability != "None",
     is_perm_disabled: draft.statistical.disability == "Permanent",
     is_minority: draft.statistical.visible_minority || false,
+
+    // new as of 20230805, were missing from original intake
+    has_consent_to_share_data: draft.step_consent,
+    attendance_id: draft.program_details.attendance == "Full Time" ? 1 : 2,
+    csl_classification: studentCategoryToCSLClassification(draft.personal_details.category),
+    prestudy_csl_classification: studentCategoryToCSLClassification(draft.personal_details.category),
+    has_last_travel: draft.residency.has_traveled,
+    last_travel_year: draft.residency.last_return_date ? draft.residency.last_return_date.split("/")[0] : null,
+    last_travel_month: draft.residency.last_return_date ? draft.residency.last_return_date.split("/")[1] : null,
 
     //prestudy_start_date: undefined,
     //prestudy_end_date: undefined,
@@ -339,6 +353,7 @@ export function ResidenceFromDraft(draft: any): any[] {
 
   if (draft.residency && draft.residency.residency_history) {
     let is_in_progress = true;
+
     for (let residence of draft.residency.residency_history) {
       residences.push({
         city_id: residence.city,
@@ -447,4 +462,33 @@ function cleanNumber(input: any): number {
   );
 
   return isNegative ? -num : num;
+}
+
+export function studentCategoryToCSLClassification(category: number): number {
+  switch (category) {
+    case 1:
+      return 1;
+    case 2:
+      return 3;
+    case 3:
+      return 3;
+    case 4:
+      return 1;
+    case 5:
+      return 1;
+    case 6:
+      return 1;
+    case 7:
+      return 1;
+    case 8:
+      return 4;
+    case 9:
+      return 5;
+    case 10:
+      return 1;
+    case 11:
+      return 2;
+    default:
+      return 1;
+  }
 }

@@ -138,7 +138,54 @@
           </v-card-text>
         </v-card>
       </div>
-      
+
+      <div class="col-md-12">
+        <v-card class="default" >
+          <v-card-text>
+            <div class="row">
+              <div class="col-md-4">
+                <v-select
+                  outlined
+                  dense
+                  background-color="white"
+                  hide-details 
+                  label="Travel from school to Yukon" 
+                  :items="[{ text: 'I have returned to the Yukon in this period', value: 1}, 
+                    { text: 'I have not returned to the Yukon in this period', value: 0},
+                    { text: 'I have not left Yukon in this period', value: -1}]"
+                  v-model="application.has_last_travel"
+                  @change="doSaveApp('has_last_travel', application.has_last_travel)" />
+              </div>
+
+              <div class="col-md-4">
+                <v-select
+                  append-icon
+                  outlined 
+                  dense 
+                  background-color="white"
+                  v-model="application.last_travel_year"
+                  :items="yearOptions"
+                  hide-details 
+                  label="Last return year"
+                  @change="doSaveApp('last_travel_year', application.last_travel_year)" />
+              </div>
+              <div class="col-md-4">
+                <v-select
+                  append-icon
+                  outlined 
+                  dense 
+                  background-color="white"
+                  :items="monthOptions"
+                  v-model="application.last_travel_month"
+                  hide-details 
+                  label="Last return month"
+                  @change="doSaveApp('last_travel_month', application.last_travel_month)" />
+              </div>
+            </div>
+          </v-card-text>  
+        </v-card> 
+      </div>  
+
       <div class="col-md-12">
         <v-card class="default mb-5" v-if="showAdd || !filterList.length">
           <v-card-text>
