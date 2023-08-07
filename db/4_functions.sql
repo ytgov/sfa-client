@@ -4823,4 +4823,73 @@ BEGIN
 		  
 		RETURN @v_cert_count;
 END
+GO
+
+CREATE OR ALTER FUNCTION sfa.fn_check_valid_date
+(
+@in_date_p NVARCHAR(100), 
+@date_name_p NVARCHAR(100)
+)
+RETURNS NVARCHAR(100)
+AS
+BEGIN
+	DECLARE @v_check_date DATETIME;
+	DECLARE @v_result VARCHAR(50);
+	IF REPLACE(@in_date_p, ' ', '') = '' OR @in_date_p = '00000000'
+		BEGIN
+	        RETURN 'EMPTY';
+	    END
+    
+    ELSE
+	    BEGIN	        
+			SET @v_check_date = TRY_CONVERT(DATETIME, @in_date_p, 112);
+	        IF @v_check_date IS NULL
+	        	BEGIN
+	        		SET @v_result = 'Invalid ' + @date_name_p + ' date: ' + @in_date_p + '. ';
+	        	END
+	        ELSE
+	        	BEGIN
+	        		 SET @v_result = NULL;
+	        	END	        		        		        	            	        
+	    END;
+	    RETURN @v_result;
+END
+GO
+
+CREATE OR ALTER PROCEDURE sfa.sp_insert_msfaa_import
+(
+	@v_agreement_num NVARCHAR(9), 
+	@v_sin NVARCHAR(9), 
+	@v_status NVARCHAR(1), 
+	@v_borrow_signed NVARCHAR(8), 
+	@v_sp_received NVARCHAR(8), 
+	@v_new_issue_prov NVARCHAR(2), 
+	@v_cancelled NVARCHAR(8), 
+	@v_error_msg NVARCHAR(255)			
+)
+AS
+BEGIN 
+	INSERT INTO sfa.msfaa_import 
+	(
+		agreement_number, 
+		sin, 
+		status_code, 
+		borrower_signed_date, 
+		sp_received_date, 
+		new_issue_prov, 
+		cancel_date, 
+		error_message
+	)
+    values 
+    	(
+    		@v_agreement_num , 
+			@v_sin, 
+			@v_status, 
+			@v_borrow_signed, 
+			@v_sp_received, 
+			@v_new_issue_prov, 
+			@v_cancelled, 
+			@v_error_msg			
+    	);
+END
 END;
