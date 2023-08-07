@@ -26,6 +26,23 @@ services:
       db:
         condition: service_healthy
 
+  test:
+    build:
+      context: ./src/api
+      dockerfile: development.Dockerfile
+    command: /bin/true
+    env_file:
+      - ./src/api/.env.development
+    environment:
+      <<: *environment-definition
+      NODE_ENV: test
+      DB_NAME: sfa_client_test
+    tty: true
+    volumes:
+      - ./src/api:/usr/src/api
+    depends_on:
+      db:
+        condition: service_healthy
   db:
     build:
       context: .
