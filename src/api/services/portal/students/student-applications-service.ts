@@ -23,7 +23,7 @@ export default class StudentApplicationsService {
     }
 
     const application = await db("sfa.application")
-      .where({ id: this.#applicationId, student_id: this.#studentId })
+      .where({ id: this.#applicationId, studentId: this.#studentId })
       .first()
 
     if (application.institutionCampusId) {
@@ -43,6 +43,10 @@ export default class StudentApplicationsService {
     }
 
     application.fundingRequests = await this.#getApplicationFundingRequests(application.id)
+
+    if (application.studentId) {
+      application.student = await db("sfa.student").where({ id: application.studentId }).first()
+    }
 
     return application
   }

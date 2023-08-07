@@ -1,8 +1,9 @@
-import { compact, isArray, uniq } from "lodash"
+import { compact, isArray, sumBy, uniq } from "lodash"
 
 import Application from "@/models/application"
 import Institution from "@/models/institution"
 import FundingRequest from "@/models/funding-request"
+import FundingSources from "@/models/funding-sources"
 
 export default class ApplicationsSerializer {
   #applications: Application[] = []
@@ -73,9 +74,31 @@ export default class ApplicationsSerializer {
     const sources = uniq(
       compact(fundingRequests.map((fundingRequest) => fundingRequest.requestType?.description))
     )
+
+    const hasCsfaRequestAmount = fundingRequests.some(
+      (fundingRequest) => fundingRequest.cslRequestAmount
+    )
+    const isCslFullAmount = fundingRequests.some((fundingRequest) => fundingRequest.isCslFullAmount)
+    const isCsfa =
+      (sources.includes(FundingSources.CANADA_STUDENT_FINANCIAL_ASSISTANCE_FULL_TIME) &&
+        hasCsfaRequestAmount) ||
+      isCslFullAmount
+
+    let csfaAmounts = "Grants only"
+    let csfaLoanAmount = 0
+    if (isCsfa && isCslFullAmount) {
+      csfaAmounts = "Full amount loans and grants"
+    } else if (isCsfa && hasCsfaRequestAmount) {
+      csfaAmounts = "Grants and loans up to"
+      csfaLoanAmount = sumBy(fundingRequests, (r) => r.cslRequestAmount || 0)
+    } else {
+      csfaAmounts = "UNKNOWN"
+    }
+
     return {
       sources,
-      csfaAmounts: "TODO",
+      csfaLoanAmount,
+      csfaAmounts,
     }
   }
 }
