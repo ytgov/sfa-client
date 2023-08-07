@@ -61,10 +61,10 @@
                 hide-details
                 label="Student number"
                 v-model="application.student_number"
+                @change="doSaveApp('student_number', application.student_number)"
               ></v-text-field>
             </div>
           </div>
-          
             
         </div>
         <div class="col-md-9">
