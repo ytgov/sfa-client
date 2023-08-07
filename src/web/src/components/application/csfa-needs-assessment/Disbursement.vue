@@ -80,7 +80,6 @@
                               clearable
                               @change=" e => {
                                 $emit('blockDisburse', true);
-                                refreshData();
                                 item.issue_date = null;
                                 item.issue_date_menu = false;
                               }"
@@ -94,7 +93,6 @@
                             }"
                             @change=" e => {
                               $emit('blockDisburse', true);
-                              refreshData();
                             }"
                           ></v-date-picker>
                         </v-menu>
@@ -131,7 +129,6 @@
                               clearable
                               @change=" e => {
                                 $emit('blockDisburse', true);
-                                refreshData();
                                 item.due_date = null;
                                 item.due_date_menu = false;
                               }"
@@ -145,7 +142,6 @@
                             }"
                             @change=" e => {
                               $emit('blockDisburse', true);
-                              refreshData();
                             }"
                           ></v-date-picker>
                         </v-menu>
@@ -242,7 +238,6 @@
                           }"
                            @change=" e => {
                               $emit('blockDisburse', true);
-                              refreshData();
                             }"
                         ></v-date-picker>
                       </v-menu>
@@ -276,7 +271,6 @@
                             clearable
                             @change=" e => {
                               $emit('blockDisburse', true);
-                              refreshData();
                               item.due_date = null;
                               item.due_date_menu = false;
                             }"
@@ -290,7 +284,6 @@
                           }"
                           @change=" e => {
                             $emit('blockDisburse', true);
-                            refreshData();
                           }"
                         ></v-date-picker>
                       </v-menu>
@@ -450,7 +443,7 @@ export default {
 
       store.dispatch(this.dispatchRefreshFrom, { 
         application_id: this.application.id, 
-        data: { ...this.customAssessment },
+        data: { ...this.customAssessment , program_division: this.application.program_division },
         disburseAmountList: [ ...previewDisburseAmountsList, ...disburseAmountsList ],
       });
     },
