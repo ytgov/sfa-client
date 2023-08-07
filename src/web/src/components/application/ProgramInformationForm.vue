@@ -146,7 +146,8 @@
                 dense
                 background-color="white"
                 hide-details
-                label="GUAB"
+                label="Federal code"
+                :value="selectedInstitution.federal_institution_code"
               ></v-text-field>
             </div>
             <div class="col-md-3">
@@ -168,6 +169,8 @@
                 background-color="white"
                 hide-details
                 label="FOS"
+                readonly
+                :value="application.field_program_code"
               ></v-text-field>
             </div>
           </div>

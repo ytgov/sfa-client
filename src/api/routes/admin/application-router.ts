@@ -242,6 +242,14 @@ applicationRouter.get("/:id",
                 .select("institution.*")
                 .where({ "institution_campus.id": application.institution_campus_id }).first();
 
+            let field_program_code = await db("field_program").withSchema("sfa")
+                .innerJoin("study_area", "field_program.study_field_id", "study_area.study_field_id")
+                .where({"field_program.program_id": application.program_id, "study_area.id": application.study_area_id})
+                .select("field_program_code")
+                .first();
+
+            application.field_program_code = field_program_code ? field_program_code.field_program_code : null;
+
             application.warning_code = await db("sfa.application as app").innerJoin("sfa.csl_code as warning", function () {
                 this.on("warning.id", "=", "csl_restriction_warn_id");
             }).select(
