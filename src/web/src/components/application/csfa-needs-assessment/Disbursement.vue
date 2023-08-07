@@ -77,6 +77,12 @@
                               background-color="white"
                               v-bind="attrs"
                               v-on="on"
+                              clearable
+                              @change=" e => {
+                                $emit('blockDisburse', true);
+                                item.issue_date = null;
+                                item.issue_date_menu = false;
+                              }"
                             ></v-text-field>
                           </template>
                           <v-date-picker
@@ -87,7 +93,6 @@
                             }"
                             @change=" e => {
                               $emit('blockDisburse', true);
-                              refreshData();
                             }"
                           ></v-date-picker>
                         </v-menu>
@@ -121,6 +126,12 @@
                               background-color="white"
                               v-bind="attrs"
                               v-on="on"
+                              clearable
+                              @change=" e => {
+                                $emit('blockDisburse', true);
+                                item.due_date = null;
+                                item.due_date_menu = false;
+                              }"
                             ></v-text-field>
                           </template>
                           <v-date-picker
@@ -131,7 +142,6 @@
                             }"
                             @change=" e => {
                               $emit('blockDisburse', true);
-                              refreshData();
                             }"
                           ></v-date-picker>
                         </v-menu>
@@ -211,6 +221,13 @@
                             background-color="white"
                             v-bind="attrs"
                             v-on="on"
+                            clearable
+                            @change=" e => {
+                              $emit('blockDisburse', true);
+                              refreshData();
+                              item.issue_date = null;
+                              item.issue_date_menu = false;
+                            }"
                           ></v-text-field>
                         </template>
                         <v-date-picker
@@ -219,7 +236,9 @@
                             item.issue_date = e;
                             item.issue_date_menu = false;
                           }"
-                          
+                           @change=" e => {
+                              $emit('blockDisburse', true);
+                            }"
                         ></v-date-picker>
                       </v-menu>
           
@@ -240,7 +259,7 @@
                       >
                         <template v-slot:activator="{ on, attrs }">
                           <v-text-field
-                            :value="item.due_date?.slice(0, 10)"
+                            :value="item.due_date ? item.due_date.slice(0, 10) : null"
                             label="Due Date"
                             hide-details
                             readonly
@@ -249,13 +268,22 @@
                             background-color="white"
                             v-bind="attrs"
                             v-on="on"
+                            clearable
+                            @change=" e => {
+                              $emit('blockDisburse', true);
+                              item.due_date = null;
+                              item.due_date_menu = false;
+                            }"
                           ></v-text-field>
                         </template>
                         <v-date-picker
-                          :value="item.due_date?.slice(0, 10)"
+                          :value="item.due_date ? item.due_date.slice(0, 10) : null"
                           @input="e => {
                             item.due_date = e;
                             item.due_date_menu = false;
+                          }"
+                          @change=" e => {
+                            $emit('blockDisburse', true);
                           }"
                         ></v-date-picker>
                       </v-menu>
@@ -403,7 +431,7 @@ export default {
       const previewDisburseAmountsList = this.previewDisbursementList?.map(d => {
         return Number(d.disbursed_amount);
       }) || [];
-
+      
       const disburseFilter = this.disbursements?.filter(d => d.assessment_id === this.customAssessment?.id )
       let disburseAmountsList = [];
       
@@ -412,10 +440,10 @@ export default {
           return Number(d.disbursed_amount);
         }) || [];
       }
-      console.log(this.dispatchRefreshFrom);
+
       store.dispatch(this.dispatchRefreshFrom, { 
         application_id: this.application.id, 
-        data: { ...this.customAssessment },
+        data: { ...this.customAssessment , program_division: this.application.program_division },
         disburseAmountList: [ ...previewDisburseAmountsList, ...disburseAmountsList ],
       });
     },

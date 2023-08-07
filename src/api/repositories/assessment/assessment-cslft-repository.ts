@@ -139,16 +139,6 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
 
         return result;
     }
-    
-    async getParentFamilySize(application_id?: number): Promise<number> {
-        let result = 0;
-
-        if (application_id) {
-            result = await this.getScalarValue<number>("fn_get_parent_family_size", [application_id]);
-        }
-
-        return result;
-    }
 
     async getOtherIncomeAmount(application_id?: number, academic_year_id?: number): Promise<number> {
         let result = 0;
@@ -846,7 +836,7 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
 
         this.assessment.asset_tax_rate = 0;
 
-        if ((this.assessment.calculated_award ?? 0) === 0 && !isRecalc) {
+        if ((this.assessment.calculated_award ?? 0) === 0) {
             await this.getCalculatedAward();
         }
 
@@ -920,7 +910,7 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
         this.disbursements = disbursements;
         await this.loadData(funding_request_id, false);
 
-        //await this.getNewInfo(true);
+        await this.getNewInfo(true);
 
         await this.setIdGlobals();
 
