@@ -1,8 +1,8 @@
 import knex from "knex"
 import camelcaseKeys from "camelcase-keys"
-import { snakeCase } from 'lodash'
+import { snakeCase } from "lodash"
 
-import { DB_CONFIG } from "@/config";
+import { DB_CONFIG } from "@/config"
 
 const db = knex({
   ...DB_CONFIG,
