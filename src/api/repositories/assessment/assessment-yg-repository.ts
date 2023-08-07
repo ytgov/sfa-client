@@ -199,7 +199,6 @@ export class AssessmentYukonGrant extends AssessmentBaseRepository {
             refrehData.disbursements_required = Math.floor(disburse_required);
         }
 
-        disburse_required
 
         refrehData.assessed_amount = await this.getScalarValue<number>("fn_get_total", [
             refrehData.disbursements_required || 0,
