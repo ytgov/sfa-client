@@ -83,6 +83,7 @@ export default {
         { icon: 'fa-solid fa-calendar-days', title: 'Academic Year', path:''},
         { icon: 'fa-solid fa-user', title: 'Officer Table', path:'/administration/officers'},
         { icon: 'fa-solid fa-file-export', title: 'CSL Certificate Export', path:'/administration/csl-certificate-export'},
+        { icon: 'fa-solid fa-money-check', title: 'Cheque Req List', path:'/administration/cheque-req-list'},
       ],
       currentLink: null,
       position: null

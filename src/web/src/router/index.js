@@ -75,6 +75,7 @@ import disabilityTypeWithoutCSLRoutes from "@/modules/disability-type-without-cs
 import aboriginalStatusRoutes from "@/modules/aboriginal-status/router";
 import disabilityServiceRoutes from "@/modules/disability-service/router";
 import officerRoutes from "@/modules/officer/router";
+import ChequeReqListModuleRoutes from "@/modules/cheque-req-list/router";
 
 Vue.use(VueRouter);
 
@@ -390,6 +391,7 @@ const routes = [
   ...aboriginalStatusRoutes,
   ...disabilityServiceRoutes,
   ...officerRoutes,
+  ...ChequeReqListModuleRoutes,
 
   {
     path: "*",
