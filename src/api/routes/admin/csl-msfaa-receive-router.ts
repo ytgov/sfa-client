@@ -44,7 +44,7 @@ cslMsfaaReceiveRouter.post("/:FILE_NAME",
 			let vNonNumericSin = 0;
 			let vNumSin;
 			let vErrorMsg;
-			let vValidDateMsg:string;
+			let vValidDateMsg:any;
 			let vInFile;
 			let vStatusDesc;
 
@@ -130,26 +130,30 @@ cslMsfaaReceiveRouter.post("/:FILE_NAME",
                                 vErrorMsg = vErrorMsg + 'New issuing provice missing for Cancelled MSFAA. ';
                             }  
                             
-                            vValidDateMsg = await db.raw(`select sfa.fn_check_valid_date(${vBorrowSigned}, 'Borrower Signed')`);                            
-                            if(vValidDateMsg !== null && vValidDateMsg !== "EMPTY") {
+                            vValidDateMsg = await db.raw(`select sfa.fn_check_valid_date(${vBorrowSigned}, 'Borrower Signed') AS result_date`);
+                                                        
+
+                            if(vValidDateMsg[0].result_date !== null && vValidDateMsg[0].result_date !== "EMPTY") {
                                 vErrorMsg = vErrorMsg + vValidDateMsg;
-                            } else if(vValidDateMsg === "EMPTY" && vStatus === "R") {
+                            } else if(vValidDateMsg[0].result_date === "EMPTY" && vStatus === "R") {
                                 vErrorMsg = vErrorMsg + 'Borrower signed date missing for Received MSFAA. ';
                             }
                          
-                            vValidDateMsg = await db.raw(`select sfa.fn_check_valid_date(${vSpReceived}, 'Service Provider Received')`);  
-                            if(vValidDateMsg !== null && vValidDateMsg !== "EMPTY") {
-                                vErrorMsg = vErrorMsg + vValidDateMsg;
-                            } else if(vValidDateMsg === "EMPTY" && vStatus === "R") {
+                            vValidDateMsg = await db.raw(`select sfa.fn_check_valid_date(${vSpReceived}, 'Service Provider Received') AS result_date`);  
+                            if(vValidDateMsg[0].result_date !== null && vValidDateMsg[0].result_date !== "EMPTY") {
+                                vErrorMsg = vErrorMsg + vValidDateMsg[0].result_date;
+                            } else if(vValidDateMsg[0].result_date === "EMPTY" && vStatus === "R") {
                                 vErrorMsg = vErrorMsg + 'Service provider received date missing for Received MSFAA. ';
                             }                          
 
-                            vValidDateMsg = await db.raw(`select sfa.fn_check_valid_date(${vCancelled}, 'Cancelled')`); 
-                            if(vValidDateMsg !== null && vValidDateMsg !== "EMPTY") {
-                                vErrorMsg = vErrorMsg + vValidDateMsg;
-                            } else if(vValidDateMsg === "EMPTY" && vStatus === "C") {
+                            vValidDateMsg = await db.raw(`select sfa.fn_check_valid_date(${vCancelled}, 'Cancelled') AS result_date`); 
+                            if(vValidDateMsg[0].result_date !== null && vValidDateMsg[0].result_date !== "EMPTY") {
+                                vErrorMsg = vErrorMsg + vValidDateMsg[0].result_date;
+                            } else if(vValidDateMsg[0].result_date === "EMPTY" && vStatus === "C") {
                                 vErrorMsg = vErrorMsg + 'Cancel date missing for Cancelled MSFAA. ';
                             }    
+
+                            
 
                             db.raw(`EXEC sfa.sp_insert_msfaa_import 
                                 @v_agreement_num = ${vAgreementNum}, 
