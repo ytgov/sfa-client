@@ -231,8 +231,11 @@ export class AssessmentCsgftRepository extends AssessmentBaseRepository {
         // Calculate weekly rate
         const csgLookupRow: CsgLookupDTO = await this.csgLookupRepo.getCsgLookupByYear(this.application.academic_year_id);
 
-        const max_weekly_rate = ((csgLookupRow.csg_8_month_amount ?? 0)/8*12/52) ?? 0;
-
+        let max_weekly_rate = 0;
+        if (csgLookupRow) {
+            max_weekly_rate = ((csgLookupRow.csg_8_month_amount ?? 0)/8*12/52) ?? 0;
+        }
+        
         let family_lookup = this.assessment.family_size ?? 0;
         if (family_lookup > 7) {
             family_lookup = 7;
@@ -259,9 +262,12 @@ export class AssessmentCsgftRepository extends AssessmentBaseRepository {
             else {
                 const csgThresholdRow = await this.csgThresholdRepo.getIncomeThresholdCutoff(this.assessment.family_income, family_lookup, this.application.academic_year_id);
 
-                income_threshold = csgThresholdRow.income_threshold ?? 0;
-                this.assessment.phase_out_rate = csgThresholdRow.phase_out_rate ?? 0;
-
+                this.assessment.phase_out_rate = 0;
+                if (csgThresholdRow) {
+                    income_threshold = csgThresholdRow.income_threshold ?? 0;
+                    this.assessment.phase_out_rate = csgThresholdRow.phase_out_rate ?? 0;
+                }
+                
                 this.assessment.weekly_phase_out_rate = (this.assessment.phase_out_rate/8*12/52) ?? 0;
 
                 // Divide phase out by 100 for percentage.

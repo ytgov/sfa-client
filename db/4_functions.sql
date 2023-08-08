@@ -5007,6 +5007,7 @@ BEGIN
 			@v_error_msg			
     	);
 END
+GO
 
 -- Get Disbursements For Issue Dates
 CREATE OR ALTER FUNCTION sfa.fn_get_top_disbursements(@application_id INT)
