@@ -47,12 +47,7 @@
               outlined
               label="Federal code"
               background-color="white"
-              @change="
-                doSave(
-                  'federal_institution_code',
-                  campus.federal_institution_code
-                )
-              "
+              @change="doSave('federal_institution_code', campus.federal_institution_code)"
             ></v-text-field>
 
             <v-text-field
@@ -101,23 +96,14 @@
 
         <v-card class="default mb-5">
           <v-card-text>
-            <v-btn
-              color="primary"
-              x-small
-              fab
-              @click="addNote"
-              class="float-right mt-0 mb-2"
+            <v-btn color="primary" x-small fab @click="addNote" class="float-right mt-0 mb-2"
               ><v-icon>mdi-plus</v-icon></v-btn
             >
             <h3 class="float-left">Notes</h3>
 
             <div style="clear: both"></div>
 
-            <v-expansion-panels
-              v-if="campus.notes.length > 0"
-              v-model="noteExpand"
-              accordion
-            >
+            <v-expansion-panels v-if="campus.notes.length > 0" v-model="noteExpand" accordion>
               <v-expansion-panel v-for="(note, idx) of campus.notes" :key="idx">
                 <v-expansion-panel-header>
                   {{ note.create_user.first_name }}
@@ -189,9 +175,7 @@
                   item-value="id"
                   item-text="description"
                   hide-details
-                  @change="
-                    doSave('address_province_id', campus.address_province_id)
-                  "
+                  @change="doSave('address_province_id', campus.address_province_id)"
                 ></v-autocomplete
               ></v-col>
               <v-col cols="6">
@@ -202,9 +186,7 @@
                   background-color="white"
                   label="Postal code"
                   hide-details
-                  @change="
-                    doSave('address_postal_code', campus.address_postal_code)
-                  "
+                  @change="doSave('address_postal_code', campus.address_postal_code)"
                 ></v-text-field
               ></v-col>
               <v-col cols="6">
@@ -218,9 +200,7 @@
                   item-value="id"
                   item-text="description"
                   hide-details
-                  @change="
-                    doSave('address_country_id', campus.address_country_id)
-                  "
+                  @change="doSave('address_country_id', campus.address_country_id)"
                 ></v-autocomplete
               ></v-col>
             </v-row>
@@ -228,27 +208,16 @@
         </v-card>
         <v-card class="default mb-5">
           <v-card-text>
-            <v-btn
-              color="primary"
-              x-small
-              fab
-              @click="addDate"
-              class="float-right mt-0 mb-2"
+            <v-btn color="primary" x-small fab @click="addDate" class="float-right mt-0 mb-2"
               ><v-icon>mdi-plus</v-icon></v-btn
             >
             <h3 class="float-left">Dates</h3>
 
             <div style="clear: both"></div>
 
-            <v-expansion-panels
-              v-if="campus.dates.length > 0"
-              v-model="dateExpand"
-              accordion
-            >
+            <v-expansion-panels v-if="campus.dates.length > 0" v-model="dateExpand" accordion>
               <v-expansion-panel v-for="(date, idx) of campus.dates" :key="idx">
-                <v-expansion-panel-header>
-                  Academic Year: {{ date.academic_year_id }}
-                </v-expansion-panel-header>
+                <v-expansion-panel-header> Academic Year: {{ date.academic_year_id }} </v-expansion-panel-header>
                 <v-expansion-panel-content>
                   <v-row>
                     <v-col>
@@ -328,13 +297,7 @@
 
 <script>
 import axios from "axios";
-import {
-  INSTITUTION_URL,
-  CITY_URL,
-  COUNTRY_URL,
-  PROVINCE_URL,
-  ACADEMIC_YEAR_URL,
-} from "../../../urls";
+import { INSTITUTION_URL, CITY_URL, COUNTRY_URL, PROVINCE_URL, ACADEMIC_YEAR_URL } from "../../../urls";
 import store from "@/store";
 import { mapState } from "vuex";
 
@@ -359,7 +322,7 @@ export default {
   }),
   watch: {
     "$route.params.id": {
-      handler: function (id) {
+      handler: function(id) {
         this.institutionId = id;
         this.loadInstitution(id);
       },
@@ -367,7 +330,7 @@ export default {
       immediate: true,
     },
     "$route.params.campus_id": {
-      handler: function (id) {
+      handler: function(id) {
         this.campusId = id;
       },
       deep: true,
@@ -379,9 +342,7 @@ export default {
     this.loadProvinces();
     this.loadCities();
     this.loadYears();
-    await store.dispatch(
-      "setAppSideBarAdmin",
-      this.$route.path.startsWith("/administration"));
+    await store.dispatch("setAppSideBarAdmin", this.$route.path.startsWith("/administration"));
   },
   methods: {
     loadCountries() {
@@ -421,13 +382,7 @@ export default {
       this.campus = this.institution.campuses.filter((c) => c.id == id)[0];
     },
     async doSave(field, value) {
-      let isError = await store.dispatch("updateCampus", [
-        field,
-        value,
-        this,
-        this.institutionId,
-        this.campusId,
-      ]);
+      let isError = await store.dispatch("updateCampus", [field, value, this, this.institutionId, this.campusId]);
 
       if (isError) this.loadInstitution(this.institutionId);
     },
@@ -437,49 +392,35 @@ export default {
         note: "Enter note text",
       };
 
-      axios
-        .post(
-          `${INSTITUTION_URL}/${this.institutionId}/campus/${this.campusId}/note`,
-          body
-        )
-        .then((resp) => {
-          if (resp.errors) {
-            console.log(resp.error);
-          }
+      axios.post(`${INSTITUTION_URL}/${this.institutionId}/campus/${this.campusId}/note`, body).then((resp) => {
+        if (resp.errors) {
+          console.log(resp.error);
+        }
 
-          this.loadInstitution(this.institutionId);
-        });
+        this.loadInstitution(this.institutionId);
+      });
     },
 
     saveNote(item) {
       let body = { note: item.note };
 
       axios
-        .put(
-          `${INSTITUTION_URL}/${this.institutionId}/campus/${this.campusId}/note/${item.id}`,
-          body
-        )
+        .put(`${INSTITUTION_URL}/${this.institutionId}/campus/${this.campusId}/note/${item.id}`, body)
         .then((resp) => {
           this.$emit("showAPIMessages", resp.data);
         });
     },
 
     removeNote(item) {
-      axios
-        .delete(
-          `${INSTITUTION_URL}/${this.institutionId}/campus/${this.campusId}/note/${item.id}`
-        )
-        .then((resp) => {
-          this.$emit("showAPIMessages", resp.data);
-          this.loadInstitution(this.institutionId);
-        });
+      axios.delete(`${INSTITUTION_URL}/${this.institutionId}/campus/${this.campusId}/note/${item.id}`).then((resp) => {
+        this.$emit("showAPIMessages", resp.data);
+        this.loadInstitution(this.institutionId);
+      });
     },
 
     addDate() {
       let openDates = this.campus.dates.map((d) => d.academic_year_id);
-      this.openYearOptions = this.yearOptions.filter(
-        (y) => y.status == "Open" && openDates.indexOf(y.id) == -1
-      );
+      this.openYearOptions = this.yearOptions.filter((y) => y.status == "Open" && openDates.indexOf(y.id) == -1);
 
       if (this.openYearOptions.length == 0) {
         this.$emit("showError", "All Open Academic Years already exist");
@@ -496,18 +437,13 @@ export default {
         class_end_date: baseEnd,
       };
 
-      axios
-        .post(
-          `${INSTITUTION_URL}/${this.institutionId}/campus/${this.campusId}/dates`,
-          body
-        )
-        .then((resp) => {
-          if (resp.errors) {
-            console.log(resp.error);
-          }
+      axios.post(`${INSTITUTION_URL}/${this.institutionId}/campus/${this.campusId}/dates`, body).then((resp) => {
+        if (resp.errors) {
+          console.log(resp.error);
+        }
 
-          this.loadInstitution(this.institutionId);
-        });
+        this.loadInstitution(this.institutionId);
+      });
     },
 
     saveDate(item) {
@@ -518,24 +454,17 @@ export default {
       };
 
       axios
-        .put(
-          `${INSTITUTION_URL}/${this.institutionId}/campus/${this.campusId}/dates/${item.id}`,
-          body
-        )
+        .put(`${INSTITUTION_URL}/${this.institutionId}/campus/${this.campusId}/dates/${item.id}`, body)
         .then((resp) => {
           this.$emit("showAPIMessages", resp.data);
         });
     },
 
     removeDate(item) {
-      axios
-        .delete(
-          `${INSTITUTION_URL}/${this.institutionId}/campus/${this.campusId}/dates/${item.id}`
-        )
-        .then((resp) => {
-          this.$emit("showAPIMessages", resp.data);
-          this.loadInstitution(this.institutionId);
-        });
+      axios.delete(`${INSTITUTION_URL}/${this.institutionId}/campus/${this.campusId}/dates/${item.id}`).then((resp) => {
+        this.$emit("showAPIMessages", resp.data);
+        this.loadInstitution(this.institutionId);
+      });
     },
   },
   computed: {
