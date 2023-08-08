@@ -7,6 +7,57 @@ const db = knex(DB_CONFIG);
 
 export const cslMsfaaReceiveRouter = express.Router();
 
+function toStringDate(inputString:string, flag = 0) {
+    const year = inputString.substring(0, 4);
+    const month = inputString.substring(4, 6);
+    const day = inputString.substring(6, 8);    
+    if(flag) {
+        let monthWord;
+        switch(month) {
+            case '01':
+                monthWord = "JAN";
+                break;
+            case '02':
+                monthWord = "FEB";
+                break;
+            case '03':
+                monthWord = "MAR";
+                break;
+            case '04': 
+                monthWord = "APR";
+                break;
+            case '05':
+                monthWord = "MAY";
+                break;
+            case '06':
+                monthWord = "JUN";
+                break;
+            case '07':
+                monthWord = "JUL";
+                break;
+            case '08': 
+                monthWord = "AUG";
+                break;
+            case '09':
+                monthWord = "SEP";
+                break;
+            case '10':
+                monthWord = "OCT";
+                break;
+            case '11':
+                monthWord = "NOV";
+                break;
+            case '12': 
+                monthWord = "DEC";
+                break;
+            default:
+                monthWord = "";
+        }
+        return (`${year}-${monthWord}-${day}`);
+    }
+    return (`${year}-${month}-${day}`);
+}
+
 cslMsfaaReceiveRouter.post("/:FILE_NAME", 
     [        
         param("FILE_NAME").notEmpty(),         
@@ -22,13 +73,6 @@ cslMsfaaReceiveRouter.post("/:FILE_NAME",
             const hour = inputString.substring(8, 10) ? inputString.substring(8, 10) : "";
             const minute = inputString.substring(10, 12) ? inputString.substring(10, 12) : "";            
             return new Date(`${year}-${month}-${day}T${hour}:${minute}Z`);
-        }
-
-        function toStringDate(inputString:string) {
-            const year = inputString.substring(0, 4);
-            const month = inputString.substring(4, 6);
-            const day = inputString.substring(6, 8);
-            return (`${year}-${month}-${day}`);
         }
 
         function isValidDate(d:Date) {
@@ -187,7 +231,7 @@ cslMsfaaReceiveRouter.post("/:FILE_NAME",
                             }                            
                         }                      
                     }                                  
-                    return res.json({flag: 1, data: 'CSL MSFAA response read complete. ' + vCount + ' records processed.', date: vCreateDateTime, seq: vSeqNum });                    
+                    return res.json({flag: 1, data: 'CSL MSFAA response read complete. ' + vCount + ' records processed.', date: toStringDate(vCreateDateTime, 1), seq: vSeqNum });                    
                 }
             }                                                 
         } catch (error: any) {
@@ -259,7 +303,6 @@ cslMsfaaReceiveRouter.put("/", [],
 
 
 cslMsfaaReceiveRouter.get("/", 
-//ReturnValidationErrors, 
 async (req: Request, res: Response) => {
     try {        
         let pdfRes = await db('sfa.MSFAA_IMPORT as mi')
@@ -306,20 +349,3 @@ async (req: Request, res: Response) => {
     }
 
 });
-
-/*
-SELECT mi.agreement_number
-, mi.sin
-, mi.status_code
-, mi.borrower_signed_date
-, mi.sp_received_date
-, mi.new_issue_prov
-, mi.cancel_date
-, mi.error_message ||
-  DECODE((SELECT FIRST_NAME ||' '||LAST_NAME FROM STUDENT WHERE SIN = MI.SIN),NULL,' No Student Match',NULL)||
-  DECODE((SELECT msfaa_id FROM msfaa WHERE msfaa_id = TO_NUMBER(mi.agreement_number)),NULL,' No MSFAA Match',NULL) as error_message
-, (SELECT FIRST_NAME ||' '||LAST_NAME FROM STUDENT WHERE SIN = MI.SIN) as student_name
-FROM MSFAA_IMPORT MI
-ORDER BY SIN
-
-*/

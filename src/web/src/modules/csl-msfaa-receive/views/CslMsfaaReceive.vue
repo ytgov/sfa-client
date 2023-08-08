@@ -204,7 +204,7 @@ export default {
 
   <div style="display: flex; margin-bottom: 2px;">
     <p style="font-size: 3px; padding: 0 8px; margin-bottom: 3px">MSFAA File Received Date: ${this.date}</p>
-    <p style="font-size: 3px; padding: 0 8px;">MSFAA Seq:  ${this.seq}</p>
+    <p style="font-size: 3px; padding: 0 8px;">MSFAA Seq:  ${Number(this.seq) ? Number(this.seq) : ""}</p>
   </div>
   <table style="font-size: 3px; margin: 0 8px;"
     <thead>
