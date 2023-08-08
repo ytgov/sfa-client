@@ -550,6 +550,11 @@
                     background-color="white"
                     v-bind="attrs"
                     v-on="on"
+                    clearable
+                    @change=" e => {
+                      $emit('refresh', true);
+                      item.issue_date = null;
+                    }"
                   ></v-text-field>
                 </template>
                 <v-date-picker
@@ -587,12 +592,16 @@
                   <v-text-field
                     :value="item.due_date?.slice(0, 10)"
                     hide-details
-                    readonly
                     outlined
                     dense
                     background-color="white"
                     v-bind="attrs"
                     v-on="on"
+                    clearable
+                    @change=" e => {
+                      $emit('refresh', true);
+                      item.due_date = null;
+                    }"
                   ></v-text-field>
                 </template>
                 <v-date-picker
