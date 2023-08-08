@@ -5,6 +5,7 @@ import CsfaAmounts from "@/models/csfa-amount"
 import FundingRequest from "@/models/funding-request"
 import FundingSource from "@/models/funding-source"
 import Institution from "@/models/institution"
+import Student from "@/models/student"
 
 export default class ApplicationsSerializer {
   #applications: Application[] = []
@@ -42,6 +43,7 @@ export default class ApplicationsSerializer {
       fundingSources: this.#fundingRequestsAssocation(
         this.#application.fundingRequests || ([] as FundingRequest[])
       ),
+      personalDetails: this.#studentAssociation(this.#application.student || ({} as Student)),
     }
   }
 
@@ -97,6 +99,20 @@ export default class ApplicationsSerializer {
       sources,
       csfaLoanAmount,
       csfaAmounts,
+    }
+  }
+
+  #studentAssociation(student: Student) {
+    // TODO: replace placeholder data
+    return {
+      firstName: "Marlen",
+      middleName: null,
+      lastName: "Brunner",
+      homeEmail: "klondikemarlen@gmail.com",
+      homePhone: "12342134123",
+      birthDate: "2023-07-28T00:00:00.000Z",
+      sin: "******868",
+      category: 9,
     }
   }
 }
