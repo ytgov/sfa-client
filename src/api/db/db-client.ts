@@ -1,6 +1,6 @@
 import knex, { Knex } from "knex";
 
-import { DB_CONFIG } from "../config";
+import { DB_CONFIG } from "@/config";
 
 const db =  knex(DB_CONFIG);
 
