@@ -1,4 +1,10 @@
 @startuml
+entity AddressType {
+  id: number
+  description: string
+  is_active: boolean
+}
+
 entity Application {
   id: number
   student_id: number
@@ -315,13 +321,14 @@ entity Student {
 
 Application::attendance_id |o--o{ Attendance::id
 Application::institution_campus_id |o--o{ Institution::id
-Application::primary_address_id |o--|| PrimaryAddress::id
+Application::primary_address_id |o--|| PersonAddress::id
 Application::program_id |o--o{ Program::id
 Application::id }o--|{ FundingRequest::application_id
 Student::id }o--|| Application::student_id
 Student::person_id ||--o| Person::id
 FundingRequest::request_type_id |o--o{ RequestType::id
 Person::id }o--|| PersonAddress::person_id
+PersonAddress::address_type_id ||--o{ AddressType::id
 RequestType::description ||--|| FundingSource
 CsfaAmount ||--|| FundingSource::CANADA_STUDENT_FINANCIAL_ASSISTANCE_FULL_TIME
 @enduml
