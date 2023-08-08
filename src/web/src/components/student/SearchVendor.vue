@@ -8,10 +8,13 @@
         <div class="row mx-4">
             <div class="col-6">
                 <v-text-field
-                    v-model="search"
+                    v-model="searcher"
                     label="Filter"
                     dense
                     outlined
+                    append-icon="mdi-magnify"
+                    @click:append="vendorSearchClick"
+                    @keydown="checkEnter"
                 >
                 </v-text-field>
             </div>
@@ -33,12 +36,12 @@
         </div>
         
         <v-data-table
-            :search="search"
+            :search="searcher"
             height="400px"
             @click:row="enterSelect($event)"
             :headers="[
                 { text: 'Vendor ID', value: 'VendorId', sortable: false, filterable: filterVendorId, },
-                { text: 'Last Name', value: 'VendName', sortable: false, filterable: filterVendorName, },
+                { text: 'Vendor Name', value: 'VendName', sortable: false, filterable: filterVendorName, },
             ]"
             :items="vendorList"
         >
@@ -73,7 +76,7 @@ export default {
         },
     },
     watch: {
-        search (val) {
+        searcher (val) {
             store.dispatch("setSearch", val);
         },
     },
@@ -81,9 +84,9 @@ export default {
 
     },
     data: () => ({
+        searcher: "",
         filterVendorId: true,
         filterVendorName: true,
-        search: '',
         selected: [],
         title: "",
         message: "",
@@ -112,6 +115,13 @@ export default {
             console.log(e);
             this.current = e;
         },
+        vendorSearchClick() {
+            this.doSearch(this.search);
+        },
+        checkEnter(event) {
+            if (event.key === "Enter")
+                this.doSearch(this.search)
+        }
     },
     async created() {
 
@@ -121,6 +131,7 @@ export default {
         showModal: Function,
         getVendorData: Function,
         vendorList: Array,
+        doSearch: Function
     }
 };
 </script>
