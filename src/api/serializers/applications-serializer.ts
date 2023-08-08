@@ -6,8 +6,8 @@ import CsfaAmounts from "@/models/csfa-amount"
 import FundingRequest from "@/models/funding-request"
 import FundingSource from "@/models/funding-source"
 import Institution from "@/models/institution"
+import Person from "@/models/person"
 import PersonAddress from "@/models/person-address"
-import Student from "@/models/student"
 
 import { NON_EXISTANT_ID } from "@/utils/constants"
 
@@ -47,8 +47,8 @@ export default class ApplicationsSerializer {
       fundingSources: this.#fundingRequestsAssocation(
         this.#application.fundingRequests || ([] as FundingRequest[])
       ),
-      personalDetails: this.#studentAssociation(
-        this.#application.student || ({} as Student),
+      personalDetails: this.#personAssociation(
+        this.#application.student?.person || ({} as Person),
         this.#application.categoryId
       ),
       addresses: this.#addressessAssociation(
@@ -113,15 +113,15 @@ export default class ApplicationsSerializer {
     }
   }
 
-  #studentAssociation(student: Student, categoryId?: number) {
+  #personAssociation(person: Person, categoryId?: number) {
     return {
-      firstName: student.person?.firstName,
-      middleName: student.person?.initials,
-      lastName: student.person?.lastName,
-      homeEmail: student.person?.email,
-      homePhone: student.person?.telephone,
-      birthDate: student.person?.birthDate,
-      sin: student.person?.sin,
+      firstName: person?.firstName,
+      middleName: person?.initials,
+      lastName: person?.lastName,
+      homeEmail: person?.email,
+      homePhone: person?.telephone,
+      birthDate: person?.birthDate,
+      sin: person?.sin,
       category: categoryId,
     }
   }
