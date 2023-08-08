@@ -202,6 +202,24 @@ enum FundingSource {
   CANADA_STUDENT_FINANCIAL_ASSISTANCE_FULL_TIME: Canada Student Financial Assistance (Full-Time)
 }
 
+entity Person {
+  id: number
+  language_id?: number
+  sex_id?: number
+  birth_city_id?: number
+  birth_province_id?: number
+  birth_country_id?: number
+  first_name?: string
+  last_name?: string
+  initials?: string
+  previous_last_name?: string
+  sin?: string
+  citizenship_code?: number
+  birth_date?: Date
+  telephone?: string
+  email?: string
+}
+
 entity Program {
   id: number
   description: string
@@ -284,6 +302,7 @@ Application::institution_campus_id |o--o{ Institution::id
 Application::program_id |o--o{ Program::id
 Application::id }o--|{ FundingRequest::application_id
 Student::id }o--|| Application::student_id
+Student::person_id ||--o| Person::id
 FundingRequest::request_type_id |o--o{ RequestType::id
 RequestType::description ||--|| FundingSource
 CsfaAmount ||--|| FundingSource::CANADA_STUDENT_FINANCIAL_ASSISTANCE_FULL_TIME
