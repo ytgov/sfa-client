@@ -156,9 +156,9 @@ export default interface Application_ {
   persistDisabledStartDate?: Date
   isChequesToInstitution: boolean
   attendance?: Attendance
+  fundingRequests?: FundingRequest[]
   institution?: Institution
   program?: Program
-  fundingRequests?: FundingRequest[]
 }
 
 export interface Application {
