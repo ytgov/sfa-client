@@ -43,7 +43,10 @@ export default class ApplicationsSerializer {
       fundingSources: this.#fundingRequestsAssocation(
         this.#application.fundingRequests || ([] as FundingRequest[])
       ),
-      personalDetails: this.#studentAssociation(this.#application.student || ({} as Student)),
+      personalDetails: this.#studentAssociation(
+        this.#application.student || ({} as Student),
+        this.#application.categoryId
+      ),
     }
   }
 
@@ -102,17 +105,16 @@ export default class ApplicationsSerializer {
     }
   }
 
-  #studentAssociation(student: Student) {
-    // TODO: replace placeholder data
+  #studentAssociation(student: Student, categoryId?: number) {
     return {
-      firstName: "Marlen",
-      middleName: null,
-      lastName: "Brunner",
-      homeEmail: "klondikemarlen@gmail.com",
-      homePhone: "12342134123",
-      birthDate: "2023-07-28T00:00:00.000Z",
-      sin: "******868",
-      category: 9,
+      firstName: student.person?.firstName,
+      middleName: student.person?.initials,
+      lastName: student.person?.lastName,
+      homeEmail: student.person?.email,
+      homePhone: student.person?.telephone,
+      birthDate: student.person?.birthDate,
+      sin: student.person?.sin,
+      category: categoryId,
     }
   }
 }

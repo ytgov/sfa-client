@@ -1,8 +1,7 @@
-import { isNil } from "lodash"
-
 import db from "@/db/db-client"
 
 import StudentApplicationFundingRequestsService from "@/services/portal/students/student-application-funding-requests-service"
+import StudentApplicationStudentsService from "@/services/portal/students/student-application-students-service"
 
 export default class StudentApplicationsService {
   #studentId: number
@@ -45,14 +44,7 @@ export default class StudentApplicationsService {
     }
 
     application.fundingRequests = await this.#getApplicationFundingRequests(application.id)
-
-    if (application.studentId) {
-      application.student = await db("student").where({ id: application.studentId }).first()
-    }
-
-    if (!isNil(application.student)) {
-      application.student.person = await db("person").where({ id: application.student.personId }).first()
-    }
+    application.student = await this.#getApplicationStudent(application.studentId)
 
     return application
   }
@@ -60,5 +52,10 @@ export default class StudentApplicationsService {
   #getApplicationFundingRequests(applicationId: number) {
     const fundingRequestService = new StudentApplicationFundingRequestsService({ applicationId })
     return fundingRequestService.getFundingRequests()
+  }
+
+  #getApplicationStudent(studentId: number) {
+    const studentService = new StudentApplicationStudentsService({ studentId })
+    return studentService.getStudent()
   }
 }
