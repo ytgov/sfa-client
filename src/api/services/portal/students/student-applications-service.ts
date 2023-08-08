@@ -61,6 +61,6 @@ export default class StudentApplicationsService {
   }
 
   #getAddresses(personId: number) {
-    return db("person_address").where({ personId })
+    return db("personAddress").where({ personId })
   }
 }

@@ -32,6 +32,7 @@ export default class StudentApplicationStudentsService {
       .then((result) => {
         return {
           id: result.t1Id,
+          personId: result.t2Id,
           person: {
             id: result.t2Id,
             firstName: result.t2FirstName,
@@ -40,10 +41,12 @@ export default class StudentApplicationStudentsService {
             email: result.t2Email,
             telephone: result.t2Telephone,
             birthDate: result.t2BirthDate,
+            languageId: result.t3Id,
             language: {
               id: result.t3Id,
               description: result.t3Description,
             },
+            sexId: result.t4Id,
             sex: {
               id: result.t4Id,
               description: result.t4Description,
