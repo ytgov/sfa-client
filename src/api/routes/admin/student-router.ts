@@ -1033,14 +1033,14 @@ studentRouter.get("/:studentId/applications/:applicationId",
 studentRouter.get("/:student_id/vendor",
 [param("student_id").isInt().notEmpty()], ReturnValidationErrors,
     async (req: Request, res: Response) => {
-        
-        try {
             let { student_id } = req.params;
+
+        try {
 
             const student = await db("sfa.student")
             .where({ id: student_id }).first();
 
-            if (student && Boolean(student?.vendor_id)) {
+            if (student && student.vendor_id) {
                 
                 const vendor = await axios.get(
                         'https://api.gov.yk.ca/finance/api/v1/vendor/'+(student.vendor_id),
@@ -1071,9 +1071,10 @@ studentRouter.get("/:student_id/vendor",
     }
 );
 
-studentRouter.get("/:student_id/vendor-list",
+studentRouter.get("/:student_id/vendor-list/:term",
 [param("student_id").isInt().notEmpty()], ReturnValidationErrors,
     async (req: Request, res: Response) => {
+        let {term} = req.params;
         
         try {
             let { student_id } = req.params;
@@ -1083,7 +1084,7 @@ studentRouter.get("/:student_id/vendor-list",
 
             if (student) {
                 
-                const vendorList = await axios.post(`https://api.gov.yk.ca/finance/api/v1/vendor/search`, { term: "all"}, { 
+                const vendorList = await axios.post(`https://api.gov.yk.ca/finance/api/v1/vendor/search`, { term }, { 
                     headers: { "Ocp-Apim-Subscription-Key": "593e9b12bfb747db862429c0a935482c" },
                 });
                 
