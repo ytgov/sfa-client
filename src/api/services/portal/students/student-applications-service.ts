@@ -1,3 +1,5 @@
+import { isNil } from "lodash"
+
 import db from "@/db/db-client"
 
 import StudentApplicationFundingRequestsService from "@/services/portal/students/student-application-funding-requests-service"
@@ -46,6 +48,10 @@ export default class StudentApplicationsService {
 
     if (application.studentId) {
       application.student = await db("student").where({ id: application.studentId }).first()
+    }
+
+    if (!isNil(application.student)) {
+      application.student.person = await db("person").where({ id: application.student.personId }).first()
     }
 
     return application
