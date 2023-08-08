@@ -10,7 +10,7 @@ export default class StudentApplicationsService {
   }
 
   getApplicationDrafts() {
-    return db("sfa.application_draft").where({ student_id: this.#studentId })
+    return db("application_draft").where({ student_id: this.#studentId })
   }
 
   getApplicationDraft() {
@@ -18,6 +18,6 @@ export default class StudentApplicationsService {
       throw new Error("Application Draft ID is not set")
     }
 
-    return db("sfa.application_draft").where({ id: this.#applicationDraftId, student_id: this.#studentId })
+    return db("application_draft").where({ id: this.#applicationDraftId, student_id: this.#studentId })
   }
 }

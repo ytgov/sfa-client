@@ -8,12 +8,12 @@ export default class StudentApplicationFundingRequestsService {
   }
 
   async getFundingRequests() {
-    const rows = await db("sfa.funding_request")
-      .join("sfa.request_type", "sfa.funding_request.requestTypeId", "sfa.request_type.id")
+    const rows = await db("funding_request")
+      .join("request_type", "funding_request.requestTypeId", "request_type.id")
       .select(
-        "sfa.funding_request.id",
-        "sfa.funding_request.requestTypeId",
-        "sfa.request_type.description"
+        "funding_request.id",
+        "funding_request.requestTypeId",
+        "request_type.description"
       )
       .where({ applicationId: this.#applicationId })
     return rows.map((row) => ({
