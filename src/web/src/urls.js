@@ -96,6 +96,6 @@ export const CSLFT = `${ASSESSMENT}/cslft`;
 export const CSLFT_ASSESS_INFO = `${CSLFT}/assess-info`;
 
 export const CSGFT = `${ASSESSMENT}/csgft`;
-export const CSGFT_ASSESS_INFO = `${CSGFT}/assess-info`;
+export const CSGFT_NEW_INSTANCE = `${CSGFT}/new-instance`;
 
 export const USERS_URL = `${config.apiBaseUrl}/api/v2/admin/users`;
