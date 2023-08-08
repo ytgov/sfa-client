@@ -157,6 +157,12 @@ entity Attendance {
     is_active: boolean
 }
 
+enum CsfaAmount {
+  FULL_AMOUNT_LOANS_AND_GRANTS: Full amount loans and grants
+  GRANTS_AND_LOANS_UP_TO: Grants and loans up to
+  GRANTS_ONLY: Grants only
+}
+
 entity Institution {
     id: number
     name: string
@@ -199,6 +205,10 @@ entity FundingRequest {
   student_w_not_receive_fund_from_otr_org?: boolean
 }
 
+enum FundingSource {
+  CANADA_STUDENT_FINANCIAL_ASSISTANCE_FULL_TIME: Canada Student Financial Assistance (Full-Time)
+}
+
 entity RequestType {
   id: number
   application_type_id?: number
@@ -227,4 +237,6 @@ Application::institution_campus_id |o--o{ Institution::id
 Application::program_id |o--o{ Program::id
 Application::id }o--|{ FundingRequest::application_id
 FundingRequest::request_type_id |o--o{ RequestType::id
+RequestType::description ||--|| FundingSource
+CsfaAmount ||--|| FundingSource::CANADA_STUDENT_FINANCIAL_ASSISTANCE_FULL_TIME
 @enduml
