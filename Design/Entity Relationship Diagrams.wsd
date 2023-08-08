@@ -232,10 +232,58 @@ entity RequestType {
   is_active: boolean
 }
 
+entity Student {
+  id: number
+  person_id: number
+  high_school_id?: number
+  education_level_id?: number
+  indigenous_learner_id?: number
+  vendor_id?: string
+  yukon_id?: string
+  checked_for_yukon_id: boolean
+  national_id?: string
+  locator_number?: string
+  is_crown_ward: boolean
+  high_school_final_grade?: string
+  high_school_left_year?: number
+  high_school_left_month?: number
+  pre_funded_year?: number
+  pre_funding_years_used?: number
+  csl_letter_date?: Date
+  csl_warn_code?: string
+  pre_over_award_amount?: number
+  pre_yea_awards_used_amount?: number
+  user_name?: string
+  user_password?: string
+  is_active: boolean
+  is_first_logon_flg?: string
+  last_logon_date?: Date
+  last_pw_change_date?: Date
+  yea_expiry_date?: Date
+  adj_yg_funding_weeks?: number
+  adj_sta_upgrading_weeks?: number
+  adj_outside_travel_cnt?: number
+  yukon_resident_from_month?: number
+  yukon_resident_from_year?: number
+  canadian_resident_from_month?: number
+  canadian_resident_from_year?: number
+  old_ytid?: string
+  residence_comment?: string
+  kin_first_name?: string
+  kin_last_name?: string
+  kin_address1?: string
+  kin_address2?: string
+  kin_city_id?: number
+  kin_province_id?: number
+  kin_country_id?: number
+  kin_postal_code?: string
+}
+
 Application::attendance_id |o--o{ Attendance::id
 Application::institution_campus_id |o--o{ Institution::id
 Application::program_id |o--o{ Program::id
 Application::id }o--|{ FundingRequest::application_id
+Student::id }o--|| Application::student_id
 FundingRequest::request_type_id |o--o{ RequestType::id
 RequestType::description ||--|| FundingSource
 CsfaAmount ||--|| FundingSource::CANADA_STUDENT_FINANCIAL_ASSISTANCE_FULL_TIME
