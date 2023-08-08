@@ -4833,6 +4833,7 @@ BEGIN
 
 END;
 GO
+
 CREATE OR ALTER FUNCTION sfa.fn_get_csl_cert_seq_num
 (
 	@FROM_DATE_P DATE,
