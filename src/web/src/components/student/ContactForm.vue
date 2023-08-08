@@ -56,7 +56,7 @@
               >
                 <template v-slot:activator="{ on, attrs }">
                   <v-text-field
-                    label="Birth Date"
+                    label="Birth date"
                     append-icon="mdi-calendar"
                     :value="student.birth_date?.slice(0, 10)"
                     hide-details
@@ -78,6 +78,31 @@
                 ></v-date-picker>
               </v-menu>
           </div>
+
+          
+          <div class="col-md-5">
+            <v-text-field outlined dense background-color="white" hide-details label="Student phone"
+              v-model="student.telephone" @change="
+                doSaveStudent(
+                  'telephone',
+                  student.telephone,
+                  'personInfo'
+                )
+              "></v-text-field>
+          </div>
+          
+          
+          <div class="col-md-5">
+            <v-text-field outlined dense background-color="white" hide-details label="Student email"
+              v-model="student.email" @change="
+                doSaveStudent(
+                  'email',
+                  student.email,
+                  'personInfo'
+                )
+              "></v-text-field>
+          </div>
+
         </div>
       </v-card-text>
     </v-card>
@@ -335,7 +360,8 @@ export default {
     countryOptions: [],
     provinceOptions: [],
     cityOptions: [],
-    validate: {}
+    validate: {},
+    show_menu: false
   }),
   created() {
     this.loadCountries();
