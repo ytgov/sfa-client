@@ -111,7 +111,6 @@
                       :value="assessment.effective_rate_date?.slice(0, 10)"
                       @input="e => {
                         assessment.effective_rate_date = e;
-                        assessment.classes_start_date = e;
                         effective_rate_date_menu = false;
                       }"
                       @change="refresh"
