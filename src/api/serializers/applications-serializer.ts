@@ -1,10 +1,10 @@
 import { compact, isArray, sumBy, uniq } from "lodash"
 
 import Application from "@/models/application"
-import Institution from "@/models/institution"
 import CsfaAmounts from "@/models/csfa-amount"
 import FundingRequest from "@/models/funding-request"
 import FundingSource from "@/models/funding-source"
+import Institution from "@/models/institution"
 
 export default class ApplicationsSerializer {
   #applications: Application[] = []
