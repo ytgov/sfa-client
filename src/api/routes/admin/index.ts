@@ -126,5 +126,7 @@ adminRouter.use("/request-types", requestTypeRouter);
 adminRouter.use("/accommodation-type", accommodationTypeRouter);
 adminRouter.use("/disbursement", disbursementRouter);
 adminRouter.use("/users", usersRouter);
+adminRouter.use("/csl-msfaa-receive", cslMsfaaReceiveRouter)
 adminRouter.use("/csl-certificate-export", cslCertificateExportRouter);
 adminRouter.use("/csl-msfaa-receive", cslMsfaaReceiveRouter)
+
