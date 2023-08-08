@@ -47,6 +47,7 @@ export default class ApplicationsSerializer {
         this.#application.student || ({} as Student),
         this.#application.categoryId
       ),
+      addresses: this.#addressessSecion(),
     }
   }
 
@@ -115,6 +116,22 @@ export default class ApplicationsSerializer {
       birthDate: student.person?.birthDate,
       sin: student.person?.sin,
       category: categoryId,
+    }
+  }
+
+  #addressessSecion() {
+    // TODO: replace with real data
+    return {
+      homeAddress1: {
+        first: "asdfsdf",
+        city: 1,
+        region: 3,
+        postal: "Y1A OR1",
+      },
+      homeAddress2: {},
+      primary: "Permanent",
+      homeAddress1Id: -1,
+      homeAddress2Id: -1,
     }
   }
 }
