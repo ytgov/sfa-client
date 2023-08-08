@@ -1,3 +1,5 @@
+import PersonAddress from "@/models/person-address"
+
 export default interface Person {
   id: number
   languageId?: number
@@ -14,4 +16,5 @@ export default interface Person {
   birthDate?: Date
   telephone?: string
   email?: string
+  addresses?: PersonAddress[]
 }

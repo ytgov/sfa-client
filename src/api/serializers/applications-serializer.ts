@@ -1,11 +1,15 @@
 import { compact, isArray, sumBy, uniq } from "lodash"
 
+import AddressType from "@/models/address-type"
 import Application from "@/models/application"
 import CsfaAmounts from "@/models/csfa-amount"
 import FundingRequest from "@/models/funding-request"
 import FundingSource from "@/models/funding-source"
 import Institution from "@/models/institution"
+import PersonAddress from "@/models/person-address"
 import Student from "@/models/student"
+
+import { NON_EXISTANT_ID } from "@/utils/constants"
 
 export default class ApplicationsSerializer {
   #applications: Application[] = []
@@ -47,7 +51,10 @@ export default class ApplicationsSerializer {
         this.#application.student || ({} as Student),
         this.#application.categoryId
       ),
-      addresses: this.#addressessSecion(),
+      addresses: this.#addressessAssociation(
+        this.#application.primaryAddressId || NON_EXISTANT_ID,
+        this.#application.student?.person?.addresses || ([] as PersonAddress[])
+      ),
     }
   }
 
@@ -119,19 +126,35 @@ export default class ApplicationsSerializer {
     }
   }
 
-  #addressessSecion() {
-    // TODO: replace with real data
+  #addressessAssociation(primaryAddressId: number, addresses: PersonAddress[]) {
+    const primaryAddress =
+      addresses.find((address) => address.id === primaryAddressId) ||
+      addresses.find((address) => address.addressTypeId === AddressType.Types.HOME) ||
+      addresses.find((address) => address.addressTypeId === AddressType.Types.SCHOOL) ||
+      ({ id: NON_EXISTANT_ID } as PersonAddress)
+
+    const nonPrimaryAddresses = addresses.filter((address) => address.id !== primaryAddress.id)
+    const secondaryAddress =
+      nonPrimaryAddresses.find((address) => address.addressTypeId === AddressType.Types.HOME) ||
+      nonPrimaryAddresses.find((address) => address.addressTypeId === AddressType.Types.SCHOOL) ||
+      ({ id: NON_EXISTANT_ID } as PersonAddress)
+
     return {
       homeAddress1: {
-        first: "asdfsdf",
-        city: 1,
-        region: 3,
-        postal: "Y1A OR1",
+        first: primaryAddress.address1,
+        city: primaryAddress.cityId,
+        region: primaryAddress.provinceId,
+        postal: primaryAddress.postalCode,
       },
-      homeAddress2: {},
-      primary: "Permanent",
-      homeAddress1Id: -1,
-      homeAddress2Id: -1,
+      homeAddress2: {
+        first: secondaryAddress.address1,
+        city: secondaryAddress.cityId,
+        region: secondaryAddress.provinceId,
+        postal: secondaryAddress.postalCode,
+      },
+      primary: primaryAddress.addressTypeId === AddressType.Types.HOME ? "Permanent" : "School",
+      homeAddress1Id: primaryAddress.id,
+      homeAddress2Id: secondaryAddress.id,
     }
   }
 }
