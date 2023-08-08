@@ -4833,3 +4833,18 @@ BEGIN
 
 END;
 GO
+
+-- Get Disbursements For Issue Dates
+CREATE OR ALTER FUNCTION sfa.fn_get_top_disbursements(@application_id INT)
+RETURNS TABLE
+AS
+RETURN
+SELECT TOP 2
+	d.*
+FROM sfa.disbursement d 
+	INNER JOIN sfa.funding_request fr
+		ON d.funding_request_id = fr.id
+		AND fr.request_type_id IN (4,29,32,35)
+WHERE fr.application_id = @application_id
+ORDER BY d.due_date DESC;
+GO
