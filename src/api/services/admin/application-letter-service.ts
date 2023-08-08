@@ -1,6 +1,6 @@
 import { Application } from "models"
 import { renderViewAsPdf, renderViewAsPromise } from "../../utils/express-handlebars-pdf-client"
-import db from "../../db/db-client"
+import db from "@/db/db-client"
 
 export default class ApplicationLetterService {
   #applicationId: number
@@ -69,7 +69,7 @@ export default class ApplicationLetterService {
   async buildApprovalLetterFileName() {
     const data = await this.#getApplicationData()
 
-    const studentLastName = this.#applicationData.student.person.last_name
+    const studentLastName = this.#applicationData.student.person.lastName
     if (!studentLastName) {
       Promise.reject(new Error("No student last name"))
     }
@@ -81,7 +81,7 @@ export default class ApplicationLetterService {
   async buildRejectionLetterFileName() {
     await this.#getApplicationData()
 
-    const studentLastName = this.#applicationData.student.person.last_name
+    const studentLastName = this.#applicationData.student.person.lastName
     if (!studentLastName) {
       Promise.reject(new Error("No student last name"))
     }
@@ -94,17 +94,17 @@ export default class ApplicationLetterService {
   async #getApplicationData(): Promise<any> {
     if (this.#applicationData) return this.#applicationData
 
-    const application = await db("sfa.application").where({ id: this.#applicationId }).first()
+    const application = await db("application").where({ id: this.#applicationId }).first()
     if (!application) {
       return Promise.reject(new Error("Application not found"))
     }
 
-    const student = await db("sfa.student").where({ id: application.student_id }).first()
+    const student = await db("student").where({ id: application.studentId }).first()
     if (!student) {
       return Promise.reject(new Error("Student not found"))
     }
 
-    const person = await db("sfa.person").where({ id: student.person_id }).first()
+    const person = await db("person").where({ id: student.personId }).first()
     if (!person) {
       return Promise.reject(new Error("Person not found"))
     }
