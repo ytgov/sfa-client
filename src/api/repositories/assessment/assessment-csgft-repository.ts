@@ -231,8 +231,11 @@ export class AssessmentCsgftRepository extends AssessmentBaseRepository {
         // Calculate weekly rate
         const csgLookupRow: CsgLookupDTO = await this.csgLookupRepo.getCsgLookupByYear(this.application.academic_year_id);
 
-        const max_weekly_rate = ((csgLookupRow.csg_8_month_amount ?? 0)/8*12/52) ?? 0;
-
+        let max_weekly_rate = 0;
+        if (csgLookupRow) {
+            max_weekly_rate = ((csgLookupRow.csg_8_month_amount ?? 0)/8*12/52) ?? 0;
+        }
+        
         let family_lookup = this.assessment.family_size ?? 0;
         if (family_lookup > 7) {
             family_lookup = 7;
@@ -259,9 +262,12 @@ export class AssessmentCsgftRepository extends AssessmentBaseRepository {
             else {
                 const csgThresholdRow = await this.csgThresholdRepo.getIncomeThresholdCutoff(this.assessment.family_income, family_lookup, this.application.academic_year_id);
 
-                income_threshold = csgThresholdRow.income_threshold ?? 0;
-                this.assessment.phase_out_rate = csgThresholdRow.phase_out_rate ?? 0;
-
+                this.assessment.phase_out_rate = 0;
+                if (csgThresholdRow) {
+                    income_threshold = csgThresholdRow.income_threshold ?? 0;
+                    this.assessment.phase_out_rate = csgThresholdRow.phase_out_rate ?? 0;
+                }
+                
                 this.assessment.weekly_phase_out_rate = (this.assessment.phase_out_rate/8*12/52) ?? 0;
 
                 // Divide phase out by 100 for percentage.
@@ -602,8 +608,6 @@ export class AssessmentCsgftRepository extends AssessmentBaseRepository {
                 disbursement.assessment_id = this.assessment.id;
                 disbursement.funding_request_id = this.assessment.funding_request_id;
                 disbursement.issue_date = new Date();
-                disbursement.disbursement_type_id = 9;
-                disbursement.transaction_number = await this.disbursementRepo.getNextTransactionSequenceValue();
                 
                 if (!disbursement.financial_batch_id) {
 
@@ -644,8 +648,6 @@ export class AssessmentCsgftRepository extends AssessmentBaseRepository {
             this.disbursement.assessment_id = this.assessment.id;
             this.disbursement.funding_request_id = this.assessment.funding_request_id;
             this.disbursement.issue_date = new Date();
-            this.disbursement.disbursement_type_id = 9;
-            this.disbursement.transaction_number = await this.disbursementRepo.getNextTransactionSequenceValue();
             this.disbursement.disbursed_amount = this.assessment.net_amount;
             this.disbursement.paid_amount = this.disbursement.disbursed_amount;
             local_disbursements.push(this.disbursement);
