@@ -1,6 +1,7 @@
 import Attendance from "@/models/attendance"
 import FundingRequest from "@/models/funding-request"
 import Institution from "@/models/institution"
+import PersonAddress from "@/models/person-address"
 import Program from "@/models/program"
 import Student from "@/models/student"
 
@@ -159,6 +160,7 @@ export default interface Application_ {
   attendance?: Attendance
   fundingRequests?: FundingRequest[]
   institution?: Institution
+  primaryAddress?: PersonAddress
   program?: Program
   student?: Student
 }
