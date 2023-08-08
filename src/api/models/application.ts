@@ -2,6 +2,7 @@ import Attendance from "@/models/attendance"
 import FundingRequest from "@/models/funding-request"
 import Institution from "@/models/institution"
 import Program from "@/models/program"
+import Student from "@/models/student"
 
 // Application with standard JS naming conventions
 // trailing underscore to avoid conflicting with legacy Application format
@@ -159,6 +160,7 @@ export default interface Application_ {
   fundingRequests?: FundingRequest[]
   institution?: Institution
   program?: Program
+  student?: Student
 }
 
 export interface Application {
