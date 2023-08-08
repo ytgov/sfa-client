@@ -2,11 +2,12 @@
     <div v-if="showModal" class="modal-overlay" @click="closeModal">
       <div class="modal modal-export">
         <div class="modal-header">
-          <h2>{{ title }}</h2>
+          <h2>{{ title }}</h2>          
           <span class="close-button" @click="closeModal">&times;</span>
         </div>
         <div class="modal-content">          
           <slot></slot>
+          <v-btn  class="my-0" color="primary" @click="closeModal">Accept</v-btn>
         </div>
       </div>
     </div>
@@ -33,8 +34,7 @@
   };
   </script>
   
-  <style>
-  /* Estilos de la ventana modal */
+  <style>  
   .modal-overlay {
     position: fixed;
     top: 0;

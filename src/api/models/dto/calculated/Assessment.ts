@@ -33,4 +33,12 @@ export interface IAssessmentCalculated {
     new_calc?: boolean;
     previous_upgrade_weeks?: number;
     max_allowable?: number;
+    weekly_rate?: number;
+    phase_out_rate?: number;
+    weekly_phase_out_rate?: number;
+    last_issue_date?: Date;
+    last_due_date?: Date;
+    second_last_issue_date?: Date;
+    second_last_due_date?: Date;
+    category_desc?: string;
 }
