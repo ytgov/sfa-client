@@ -201,8 +201,7 @@ cslMsfaaReceiveRouter.put("/", [],
     async (req: Request, res: Response) => {
         try {                       
             let vStatusDesc;
-            let vCount = 0;
-            let i = 0;
+            let vCount = 0;            
             const results = await db.select("mi.agreement_number","mi.sin", "mi.status_code", "mi.borrower_signed_date", "mi.sp_received_date", "mi.new_issue_prov", "mi.cancel_date")
             .from("sfa.msfaa_import AS mi")                    
             .innerJoin("sfa.msfaa AS m", "m.id", "=", "mi.agreement_number")
