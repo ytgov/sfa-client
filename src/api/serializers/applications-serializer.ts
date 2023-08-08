@@ -1,15 +1,16 @@
 import { compact, isArray, sumBy, uniq } from "lodash"
 
+import { NON_EXISTANT_ID } from "@/utils/constants"
+
 import AddressType from "@/models/address-type"
 import Application from "@/models/application"
 import CsfaAmounts from "@/models/csfa-amount"
 import FundingRequest from "@/models/funding-request"
 import FundingSource from "@/models/funding-source"
 import Institution from "@/models/institution"
+import Language from "@/models/language"
 import Person from "@/models/person"
 import PersonAddress from "@/models/person-address"
-
-import { NON_EXISTANT_ID } from "@/utils/constants"
 
 export default class ApplicationsSerializer {
   #applications: Application[] = []
@@ -55,6 +56,7 @@ export default class ApplicationsSerializer {
         this.#application.primaryAddressId || NON_EXISTANT_ID,
         this.#application.student?.person?.addresses || ([] as PersonAddress[])
       ),
+      statistical: this.#statisticalSection(this.#application.student?.person || ({} as Person)),
     }
   }
 
@@ -155,6 +157,17 @@ export default class ApplicationsSerializer {
       primary: primaryAddress.addressTypeId === AddressType.Types.HOME ? "Permanent" : "School",
       homeAddress1Id: primaryAddress.id,
       homeAddress2Id: secondaryAddress.id,
+    }
+  }
+
+  #statisticalSection(person: Person) {
+    // TODO: replace with real data
+    return {
+      language: person.language?.description,
+      gender: person.sex?.description,
+      disability: "Permanent",
+      maritalStatus: 1,
+      citizenship: 2,
     }
   }
 }
