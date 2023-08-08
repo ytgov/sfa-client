@@ -1,3 +1,5 @@
+import AddressType from "@/models/address-type"
+
 export default interface PersonAddress {
   id: number
   personId: number
@@ -12,4 +14,5 @@ export default interface PersonAddress {
   telephone?: string
   email?: string
   isActive: boolean
+  addressType?: AddressType
 }
