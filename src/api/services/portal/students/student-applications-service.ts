@@ -12,7 +12,7 @@ export default class StudentApplicationsService {
   }
 
   getApplications() {
-    return db("sfa.application")
+    return db("application")
       .select("id", "studentId", "academicYearId", "updatedAt", "onlineSubmitDate")
       .where({ studentId: this.#studentId })
   }
@@ -22,22 +22,22 @@ export default class StudentApplicationsService {
       throw new Error("Application ID is not set")
     }
 
-    const application = await db("sfa.application")
+    const application = await db("application")
       .where({ id: this.#applicationId, studentId: this.#studentId })
       .first()
 
     if (application.institutionCampusId) {
-      application.institution = await db("sfa.institution")
+      application.institution = await db("institution")
         .where({ id: application.institutionCampusId })
         .first()
     }
 
     if (application.programId) {
-      application.program = await db("sfa.program").where({ id: application.programId }).first()
+      application.program = await db("program").where({ id: application.programId }).first()
     }
 
     if (application.attendanceId) {
-      application.attendance = await db("sfa.attendance")
+      application.attendance = await db("attendance")
         .where({ id: application.attendanceId })
         .first()
     }
@@ -45,7 +45,7 @@ export default class StudentApplicationsService {
     application.fundingRequests = await this.#getApplicationFundingRequests(application.id)
 
     if (application.studentId) {
-      application.student = await db("sfa.student").where({ id: application.studentId }).first()
+      application.student = await db("student").where({ id: application.studentId }).first()
     }
 
     return application
