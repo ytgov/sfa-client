@@ -1,4 +1,6 @@
+import Language from "@/models/language"
 import PersonAddress from "@/models/person-address"
+import Sex from "@/models/sex"
 
 export default interface Person {
   id: number
@@ -17,4 +19,6 @@ export default interface Person {
   telephone?: string
   email?: string
   addresses?: PersonAddress[]
+  language?: Language
+  sex?: Sex
 }
