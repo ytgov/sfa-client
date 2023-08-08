@@ -2,6 +2,7 @@ import { compact, isArray, sumBy, uniq } from "lodash"
 
 import Application from "@/models/application"
 import Institution from "@/models/institution"
+import CsfaAmounts from "@/models/csfa-amount"
 import FundingRequest from "@/models/funding-request"
 import FundingSource from "@/models/funding-source"
 
@@ -79,20 +80,17 @@ export default class ApplicationsSerializer {
       (fundingRequest) => fundingRequest.cslRequestAmount
     )
     const isCslFullAmount = fundingRequests.some((fundingRequest) => fundingRequest.isCslFullAmount)
-    const isCsfa =
-      (sources.includes(FundingSource.CANADA_STUDENT_FINANCIAL_ASSISTANCE_FULL_TIME) &&
-        hasCsfaRequestAmount) ||
-      isCslFullAmount
+    const isCsfa = sources.includes(FundingSource.CANADA_STUDENT_FINANCIAL_ASSISTANCE_FULL_TIME)
 
-    let csfaAmounts = "Grants only"
+    let csfaAmounts = null
     let csfaLoanAmount = 0
     if (isCsfa && isCslFullAmount) {
-      csfaAmounts = "Full amount loans and grants"
+      csfaAmounts = CsfaAmounts.FULL_AMOUNT_LOANS_AND_GRANTS
     } else if (isCsfa && hasCsfaRequestAmount) {
-      csfaAmounts = "Grants and loans up to"
+      csfaAmounts = CsfaAmounts.GRANTS_AND_LOANS_UP_TO
       csfaLoanAmount = sumBy(fundingRequests, (r) => r.cslRequestAmount || 0)
     } else {
-      csfaAmounts = "UNKNOWN"
+      csfaAmounts = CsfaAmounts.GRANTS_ONLY
     }
 
     return {
