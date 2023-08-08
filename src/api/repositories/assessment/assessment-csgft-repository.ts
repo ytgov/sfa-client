@@ -608,8 +608,6 @@ export class AssessmentCsgftRepository extends AssessmentBaseRepository {
                 disbursement.assessment_id = this.assessment.id;
                 disbursement.funding_request_id = this.assessment.funding_request_id;
                 disbursement.issue_date = new Date();
-                disbursement.disbursement_type_id = 9;
-                disbursement.transaction_number = await this.disbursementRepo.getNextTransactionSequenceValue();
                 
                 if (!disbursement.financial_batch_id) {
 
@@ -650,8 +648,6 @@ export class AssessmentCsgftRepository extends AssessmentBaseRepository {
             this.disbursement.assessment_id = this.assessment.id;
             this.disbursement.funding_request_id = this.assessment.funding_request_id;
             this.disbursement.issue_date = new Date();
-            this.disbursement.disbursement_type_id = 9;
-            this.disbursement.transaction_number = await this.disbursementRepo.getNextTransactionSequenceValue();
             this.disbursement.disbursed_amount = this.assessment.net_amount;
             this.disbursement.paid_amount = this.disbursement.disbursed_amount;
             local_disbursements.push(this.disbursement);
