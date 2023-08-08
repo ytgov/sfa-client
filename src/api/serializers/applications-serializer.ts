@@ -3,7 +3,7 @@ import { compact, isArray, sumBy, uniq } from "lodash"
 import Application from "@/models/application"
 import Institution from "@/models/institution"
 import FundingRequest from "@/models/funding-request"
-import FundingSources from "@/models/funding-sources"
+import FundingSource from "@/models/funding-source"
 
 export default class ApplicationsSerializer {
   #applications: Application[] = []
@@ -80,7 +80,7 @@ export default class ApplicationsSerializer {
     )
     const isCslFullAmount = fundingRequests.some((fundingRequest) => fundingRequest.isCslFullAmount)
     const isCsfa =
-      (sources.includes(FundingSources.CANADA_STUDENT_FINANCIAL_ASSISTANCE_FULL_TIME) &&
+      (sources.includes(FundingSource.CANADA_STUDENT_FINANCIAL_ASSISTANCE_FULL_TIME) &&
         hasCsfaRequestAmount) ||
       isCslFullAmount
 
