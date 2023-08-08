@@ -186,8 +186,8 @@ cslMsfaaReceiveRouter.post("/:FILE_NAME",
                                 return res.json({flag: 0, data: 'Trailer SIN hash total does not equal total of detail records: Trailer - ' + parseInt(currentLine.substring(52, 67).replaceAll(' ', '')) + ' Record SIN - ' + vTotalSin + '. SIN non-numeric count was: ' + vNonNumericSin});   
                             }                            
                         }                      
-                    }                                                                                                               
-                    return res.json({flag: 1, data: 'CSL MSFAA response read complete. ' + vCount + ' records processed.' });                    
+                    }                                  
+                    return res.json({flag: 1, data: 'CSL MSFAA response read complete. ' + vCount + ' records processed.', date: vCreateDateTime, seq: vSeqNum });                    
                 }
             }                                                 
         } catch (error: any) {
@@ -217,7 +217,7 @@ cslMsfaaReceiveRouter.put("/", [],
 
                 if(res.status_code === "C") {                    
                     const updateMSFAA = db('sfa.msfaa')
-                    .where('id', db.raw(`CAST (${res.agreement_number} AS INT)`))
+                    .where('id', db.raw(`CAST (${res.agreement_number} AS INT)`))                    
                     .update({                            
                         msfaa_status: res.v_status_desc,
                         cancel_date: db.raw(`CAST('${res.cancel_date}' AS DATE)`),
@@ -236,7 +236,7 @@ cslMsfaaReceiveRouter.put("/", [],
                     })                                                                               
                 } else {                                                         
                     const updateMSFAA = db('sfa.msfaa')
-                    .where('id', db.raw(`CAST(${res.agreement_number} AS INT)`))
+                    .where('id', db.raw(`CAST(${res.agreement_number} AS INT)`))                    
                     .update({
                         msfaa_status: vStatusDesc,                                
                         signed_date: db.raw(`CAST('${res.borrower_signed_date}' AS DATE)`),                                
@@ -258,5 +258,68 @@ cslMsfaaReceiveRouter.put("/", [],
 ); 
 
 
+cslMsfaaReceiveRouter.get("/", 
+//ReturnValidationErrors, 
+async (req: Request, res: Response) => {
+    try {        
+        let pdfRes = await db('sfa.MSFAA_IMPORT as mi')
+        .select(
+          'mi.agreement_number',
+          'mi.sin',
+          'mi.status_code',
+          'mi.borrower_signed_date',
+          'mi.sp_received_date',
+          'mi.new_issue_prov',
+          'mi.cancel_date',
+          db.raw(
+            `CASE
+              WHEN (
+                SELECT TOP 1 p.FIRST_NAME + ' ' + p.LAST_NAME 
+                FROM sfa.STUDENT s 
+                INNER JOIN sfa.PERSON p ON s.person_id = p.id 
+                WHERE p.SIN = MI.SIN
+              ) IS NULL THEN ' No Student Match'
+              ELSE ''
+            END +
+            CASE
+              WHEN (
+                SELECT TOP 1 id 
+                FROM sfa.msfaa 
+                WHERE id = CONVERT(INT, mi.agreement_number)
+              ) IS NULL THEN ' No MSFAA Match'
+              ELSE ''
+            END as error_message`
+          ),
+          db.raw(
+            `(SELECT TOP 1 p.FIRST_NAME + ' ' + p.LAST_NAME 
+              FROM sfa.STUDENT s 
+              INNER JOIN sfa.PERSON p ON s.person_id = p.id 
+              WHERE p.SIN = MI.SIN) as student_name`
+          )
+        )
+        .orderBy('mi.sin');
 
+        return res.json({ data: pdfRes });
+    } catch (error) {
+        console.log("/all-ERR: ", error);
+        res.status(404).send(error);
+    }
 
+});
+
+/*
+SELECT mi.agreement_number
+, mi.sin
+, mi.status_code
+, mi.borrower_signed_date
+, mi.sp_received_date
+, mi.new_issue_prov
+, mi.cancel_date
+, mi.error_message ||
+  DECODE((SELECT FIRST_NAME ||' '||LAST_NAME FROM STUDENT WHERE SIN = MI.SIN),NULL,' No Student Match',NULL)||
+  DECODE((SELECT msfaa_id FROM msfaa WHERE msfaa_id = TO_NUMBER(mi.agreement_number)),NULL,' No MSFAA Match',NULL) as error_message
+, (SELECT FIRST_NAME ||' '||LAST_NAME FROM STUDENT WHERE SIN = MI.SIN) as student_name
+FROM MSFAA_IMPORT MI
+ORDER BY SIN
+
+*/
