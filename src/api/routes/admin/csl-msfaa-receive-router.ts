@@ -70,7 +70,7 @@ cslMsfaaReceiveRouter.post("/:FILE_NAME",
                 }
                 else {
 
-                    db.raw("DELETE FROM sfa.MSFAA_IMPORT");                    
+                    const deleteMsfaaImport = await db.raw("DELETE FROM sfa.MSFAA_IMPORT");                    
                                         
                     if(headerRecordType !== '100') {
                         return res.json({flag: 0, data: 'There is no header record on this file'});
@@ -95,7 +95,7 @@ cslMsfaaReceiveRouter.post("/:FILE_NAME",
                     for(let i = 1; i < linesContent.length; i++) {                        
                         let currentLine = linesContent[i];
                         let headerRecordType = currentLine.substring(0, 3);
-                        vErrorMsg = null;
+                        vErrorMsg = '';
                         if(headerRecordType === '200') {                            
                             let vAgreementNumInit = currentLine.substring(3, 4).replaceAll(' ', '');
                             let vAgreementNum = currentLine.substring(4, 13).replaceAll(' ', '');
@@ -134,7 +134,7 @@ cslMsfaaReceiveRouter.post("/:FILE_NAME",
                                                         
 
                             if(vValidDateMsg[0].result_date !== null && vValidDateMsg[0].result_date !== "EMPTY") {
-                                vErrorMsg = vErrorMsg + vValidDateMsg;
+                                vErrorMsg = vErrorMsg + vValidDateMsg[0].result_date;
                             } else if(vValidDateMsg[0].result_date === "EMPTY" && vStatus === "R") {
                                 vErrorMsg = vErrorMsg + 'Borrower signed date missing for Received MSFAA. ';
                             }
@@ -155,19 +155,20 @@ cslMsfaaReceiveRouter.post("/:FILE_NAME",
 
                             
 
-                            db.raw(`EXEC sfa.sp_insert_msfaa_import 
-                                @v_agreement_num = ${vAgreementNum}, 
-                                @v_sin = ${vSin}, 
-                                @v_status = ${vStatus}, 
-                                @v_borrow_signed = ${vBorrowSigned}, 
-                                @v_sp_received = ${vSpReceived}, 
-                                @v_new_issue_prov = ${vNewIssueProv}, 
-                                @v_cancelled = ${vCancelled}, 
-                                @v_error_msg = ${vErrorMsg};
+                            const insert = await db.raw(`EXEC sfa.sp_insert_msfaa_import 
+                                @v_agreement_num = ${vAgreementNum === '' ? null : `'${vAgreementNum}'`}, 
+                                @v_sin = ${vSin === '' ? null : `'${vSin}'`}, 
+                                @v_status = ${vStatus === '' ? null : `'${vStatus}'`}, 
+                                @v_borrow_signed = ${vBorrowSigned === '' ? null : `'${vBorrowSigned}'`}, 
+                                @v_sp_received = ${vSpReceived === '' ? null : `'${vSpReceived}'`}, 
+                                @v_new_issue_prov = ${vNewIssueProv == '' ? null : `'${vNewIssueProv}'`}, 
+                                @v_cancelled = ${vCancelled === '' ? null : `'${vCancelled}'`}, 
+                                @v_error_msg = ${vErrorMsg == '' ? null : `'${vErrorMsg}'`};
                             `);
-
+                            
                             vCount = vCount + 1;
-                            vTotalSin = vTotalSin + vNumSin;	 
+                            vTotalSin = vTotalSin + vNumSin;	
+                            
                         } else if(headerRecordType === '999') {  
                             if(isNaN(parseInt(currentLine.substring(43, 52).replaceAll(' ', '')) + 0)) {
                                 return res.json({flag: 0, data: 'Trailer count is non numeric' + currentLine.substring(43, 52).replaceAll(' ', '')});   
@@ -200,12 +201,11 @@ cslMsfaaReceiveRouter.put("/", [],
     async (req: Request, res: Response) => {
         try {                       
             let vStatusDesc;
-            let vCount = 0;
+            let vCount = 0;            
             const results = await db.select("mi.agreement_number","mi.sin", "mi.status_code", "mi.borrower_signed_date", "mi.sp_received_date", "mi.new_issue_prov", "mi.cancel_date")
             .from("sfa.msfaa_import AS mi")                    
             .innerJoin("sfa.msfaa AS m", "m.id", "=", "mi.agreement_number")
-            .whereNull("error_message"); 
-
+            .whereNull("error_message");                         
             for(let res of results) {                        
                 if(res.status_code === "R") {
                     vStatusDesc = "Received";
