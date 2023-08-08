@@ -1,3 +1,5 @@
+import Person from "@/models/person"
+
 export default interface Student {
   id: number
   personId: number
@@ -43,4 +45,5 @@ export default interface Student {
   kinProvinceId?: number
   kinCountryId?: number
   kinPostalCode?: string
+  person?: Person
 }
