@@ -60,7 +60,7 @@ import {
 import jsPDF from 'jspdf';
 import Modal from "../../../components/commonCatalog/Modal.vue";
 import LoadingAnimation from "../../../components/commonCatalog/LoadingScreen.vue";
-
+import moment from "moment";
 export default {
   name: "OfficerList",
   data: () => ({
@@ -271,9 +271,7 @@ export default {
       </div>`
 
       let finalHTML = htmlTop + dataColumns + htmlBottom;
-      
-      let fileName = `EDU-SFA`;
-
+      let fileName = `${moment(this.date, 'YYYY-MMM-DD').format('YYYY-MM-DD')} MSFAA_RECEIVED_RPT`;
       doc.html(finalHTML, {
         callback: function (doc) {      
           doc.save(fileName);

@@ -575,7 +575,7 @@ applicationRouter.post("/:application_id/status",
                 if (checkIsActive?.is_active) {
 
                     const resInsert = await db("sfa.funding_request")
-                    .insert({ ...newRecord, is_csg_only: false, application_id });
+                    .insert({ ...newRecord, is_csg_only: false, application_id , status_id : 2});
 
                     return resInsert ?
                         res.json({ messages: [{ variant: "success", text: "Saved" }] })

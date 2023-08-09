@@ -3,60 +3,10 @@ import knex from "knex";
 import { body, param } from "express-validator";
 import { DB_CONFIG } from "../../config";
 import { Console } from "console";
+import moment from "moment";
 const db = knex(DB_CONFIG);
 
 export const cslMsfaaReceiveRouter = express.Router();
-
-function toStringDate(inputString:string, flag = 0) {
-    const year = inputString.substring(0, 4);
-    const month = inputString.substring(4, 6);
-    const day = inputString.substring(6, 8);    
-    if(flag) {
-        let monthWord;
-        switch(month) {
-            case '01':
-                monthWord = "JAN";
-                break;
-            case '02':
-                monthWord = "FEB";
-                break;
-            case '03':
-                monthWord = "MAR";
-                break;
-            case '04': 
-                monthWord = "APR";
-                break;
-            case '05':
-                monthWord = "MAY";
-                break;
-            case '06':
-                monthWord = "JUN";
-                break;
-            case '07':
-                monthWord = "JUL";
-                break;
-            case '08': 
-                monthWord = "AUG";
-                break;
-            case '09':
-                monthWord = "SEP";
-                break;
-            case '10':
-                monthWord = "OCT";
-                break;
-            case '11':
-                monthWord = "NOV";
-                break;
-            case '12': 
-                monthWord = "DEC";
-                break;
-            default:
-                monthWord = "";
-        }
-        return (`${year}-${monthWord}-${day}`);
-    }
-    return (`${year}-${month}-${day}`);
-}
 
 cslMsfaaReceiveRouter.post("/:FILE_NAME", 
     [        
@@ -64,21 +14,7 @@ cslMsfaaReceiveRouter.post("/:FILE_NAME",
     ],     
     async (req: Request, res: Response) => {        
         const { FILE_NAME } = req.params;
-        const file:any = req.files;     
-        
-        function toDate(inputString:string) {            
-            const year = inputString.substring(0, 4);
-            const month = inputString.substring(4, 6);
-            const day = inputString.substring(6, 8);
-            const hour = inputString.substring(8, 10) ? inputString.substring(8, 10) : "";
-            const minute = inputString.substring(10, 12) ? inputString.substring(10, 12) : "";            
-            return new Date(`${year}-${month}-${day}T${hour}:${minute}Z`);
-        }
-
-        function isValidDate(d:Date) {
-            return d instanceof Date && !isNaN(d.getTime());
-        }
-        
+        const file:any = req.files;                 
 
         try {        
 
@@ -124,8 +60,8 @@ cslMsfaaReceiveRouter.post("/:FILE_NAME",
                         } else {
                             if(vTitle !== 'MSFAARECEIVED') {
                                 return res.json({flag: 0, data: 'File is not a MSFAA Received file: '+ vTitle});                                
-                            } else {
-                                if(!isValidDate(toDate(vCreateDateTime))) {
+                            } else {                                
+                                if(moment(vCreateDateTime, 'YYYYMMDDHHmm').format('YYYY - MMM - DD HH:mm') === 'Invalid date') {
                                     return res.json({flag: 0, data: 'Invalid creation date/time in header record: ' + vCreateDateTime});         
                                 }
 
@@ -230,8 +166,8 @@ cslMsfaaReceiveRouter.post("/:FILE_NAME",
                                 return res.json({flag: 0, data: 'Trailer SIN hash total does not equal total of detail records: Trailer - ' + parseInt(currentLine.substring(52, 67).replaceAll(' ', '')) + ' Record SIN - ' + vTotalSin + '. SIN non-numeric count was: ' + vNonNumericSin});   
                             }                            
                         }                      
-                    }                                  
-                    return res.json({flag: 1, data: 'CSL MSFAA response read complete. ' + vCount + ' records processed.', date: toStringDate(vCreateDateTime, 1), seq: vSeqNum });                    
+                    }                                       
+                    return res.json({flag: 1, data: 'CSL MSFAA response read complete. ' + vCount + ' records processed.', date: moment(vCreateDateTime.substring(0, 8), 'YYYYMMDD').format('YYYY-MMM-DD'), seq: vSeqNum });                    
                 }
             }                                                 
         } catch (error: any) {
