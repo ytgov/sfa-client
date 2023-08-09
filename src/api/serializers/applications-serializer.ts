@@ -58,9 +58,9 @@ export default class ApplicationsSerializer {
         this.#application.student?.person || ({} as Person),
         this.#application.categoryId
       ),
-      addresses: this.#addressessAssociation(
+      addresses: this.#personAddressessAssociation(
         this.#application.primaryAddressId || NON_EXISTANT_ID,
-        this.#application.student?.person?.addresses || ([] as PersonAddress[])
+        this.#application.student?.person?.personAddresses || ([] as PersonAddress[])
       ),
       statistical: this.#statisticalSection(
         this.#application,
@@ -140,14 +140,14 @@ export default class ApplicationsSerializer {
     }
   }
 
-  #addressessAssociation(primaryAddressId: number, addresses: PersonAddress[]) {
+  #personAddressessAssociation(primaryAddressId: number, personAddresses: PersonAddress[]) {
     const primaryAddress =
-      addresses.find((address) => address.id === primaryAddressId) ||
-      addresses.find((address) => address.addressTypeId === AddressType.Types.HOME) ||
-      addresses.find((address) => address.addressTypeId === AddressType.Types.SCHOOL) ||
+      personAddresses.find((address) => address.id === primaryAddressId) ||
+      personAddresses.find((address) => address.addressTypeId === AddressType.Types.HOME) ||
+      personAddresses.find((address) => address.addressTypeId === AddressType.Types.SCHOOL) ||
       ({ id: NON_EXISTANT_ID } as PersonAddress)
 
-    const nonPrimaryAddresses = addresses.filter((address) => address.id !== primaryAddress.id)
+    const nonPrimaryAddresses = personAddresses.filter((address) => address.id !== primaryAddress.id)
     const secondaryAddress =
       nonPrimaryAddresses.find((address) => address.addressTypeId === AddressType.Types.HOME) ||
       nonPrimaryAddresses.find((address) => address.addressTypeId === AddressType.Types.SCHOOL) ||
