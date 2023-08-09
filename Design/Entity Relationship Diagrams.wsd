@@ -263,6 +263,22 @@ entity Program {
   is_active: boolean
 }
 
+entity Residence {
+  id: number
+  student_id: number
+  address?: string
+  city_id?: number
+  province_id?: number
+  country_id?: number
+  postal_code?: string
+  in_school?: number
+  from_year?: number
+  from_month?: number
+  to_year?: number
+  to_month?: number
+  is_in_progress: boolean
+}
+
 entity RequestType {
   id: number
   application_type_id?: number
@@ -361,6 +377,7 @@ Person::id }o--|| PersonAddress::person_id
 Person::language_id |o--o{ Language::id
 Person::sex_id |o--o{ Sex::id
 PersonAddress::address_type_id ||--o{ AddressType::id
+Residence::student_id ||--o{ Student::id
 RequestType::description ||--|| FundingSource
 Student::id }o--|| Application::student_id
 Student::person_id ||--o| Person::id
