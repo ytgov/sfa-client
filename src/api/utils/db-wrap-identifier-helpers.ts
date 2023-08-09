@@ -1,3 +1,4 @@
+////
 // As seen by
 // SELECT
 //     TABLE_SCHEMA + '.' + TABLE_NAME + '.' + COLUMN_NAME
@@ -9,15 +10,30 @@
 // ORDER BY
 //     TABLE_NAME
 //     , COLUMN_NAME;
+//
+// Except for:
+//   - sfa.csl_nars_history.children_over_12_dis
+//   - sfa.csl_nars_history.children_over_12_not_dis
+//   - sfa.csl_nars_history.children_to_11
+// as they match their snake case value.
+
+// Also ran
+// import { NON_STANDARD_COLUMN_NAMES_TRANSFORMS } from "@/utils/db-wrap-identifier-helpers"
+// import { snakeCase } from "lodash"
+
+// Object.entries(NON_STANDARD_COLUMN_NAMES_TRANSFORMS).forEach(([key, value]) => {
+//   if (snakeCase(key) !== value) {
+//     // console.log(`Key "${key}" does not match its snake-cased value "${snakeCase(key)}".`)
+//   } else {
+//     console.log(`Key "${key}" matches its snake-cased value.`)
+//   }
+// })
 export const NON_STANDARD_COLUMN_NAMES_TRANSFORMS: { [key: string]: string | undefined } = {
   address1: "address1", // sfa.person_address_v.address1, sfa.person_address.address1
   address2: "address2", // sfa.person_address_v.address2, sfa.person_address.address2
   calscRestrict1: "calsc_restrict1", // sfa.csl_restricted.calsc_restrict1
   calscRestrict2: "calsc_restrict2", // sfa.csl_restricted.calsc_restrict2
   calscRestrict3: "calsc_restrict3", // sfa.csl_restricted.calsc_restrict3
-  childrenOver12Dis: "children_over_12_dis", // sfa.csl_nars_history.children_over_12_dis
-  childrenOver12NotDis: "children_over_12_not_dis", // sfa.csl_nars_history.children_over_12_not_dis
-  childrenTo11: "children_to_11", // sfa.csl_nars_history.children_to_11
   csgptDep2PhaseOutRate: "csgpt_dep2_phase_out_rate", // sfa.csg_threshold.csgpt_dep2_phase_out_rate
   csgptDep3PhaseOutRate: "csgpt_dep3_phase_out_rate", // sfa.csg_threshold.csgpt_dep3_phase_out_rate
   fiRestrict1: "fi_restrict1", // sfa.csl_restricted.fi_restrict1
