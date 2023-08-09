@@ -996,6 +996,10 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
         this.assessment = assessment;
         this.disbursements = disbursements;
         await this.loadData(funding_request_id, false);
+
+        if (!this.disbursement.delete_flag) {
+            this.disbursement.delete_flag = false;
+        }
         
         this.disbursement.assessment_id = this.assessment.id;
         this.disbursement.funding_request_id = funding_request_id;

@@ -333,7 +333,8 @@
             <p class="nomargin">Batch ID</p>
           </div>
         </div>        
-        <div class="col-xs-12 col-sm-12 col-lg-12 d-flex low-margin noppading-top" v-for="disbursement, idx in cslft_disbursement" :key="idx">          
+        <div class="col-xs-12 col-sm-12 col-lg-12 d-flex low-margin noppading-top" v-for="disbursement, idx in cslft_disbursement" :key="idx">
+          {{ disbursement.delete_flag }}          
           <div class="col-xs-1 col-sm-1 col-lg-1 nopadding">            
             <v-text-field
               outlined
@@ -409,6 +410,16 @@
         </div>
       </v-card>
     </div>
+    <div class="col-lg-12">
+      <DisbursementList
+        :applicationId="this.applicationId"
+        :fundingRequestId="cslft.funding_request_id"
+        :disbursementList="cslft_disbursement"
+        :singleDisbursement="singleDisbursement"
+        @list-filtered="disbursementListFiltered"
+      >
+      </DisbursementList>
+    </div>
   </div>
 </template>
 <script>
@@ -418,28 +429,26 @@ import {mapGetters, mapState} from "vuex";
 import {ref} from "vue";
 import { DateHelper } from "@/utilities";
 import DateInput from "../../../DateInput.vue";
+import DisbursementList from "../DisbursementList.vue";
 
 const dateHelper = new DateHelper();
 
 export default {
   name: "cslft-award",
   components: {
-    DateInput
+    DateInput,
+    DisbursementList
   },
-  setup() {
-    const isTotal = ref(true);
-    const showAdd = ref(true);
-    const blockDisbursement = ref(false);
-    const issue_date_menu = ref(false);
-    const due_date_menu = ref(false);
-
+  data() {
     return {
-      isTotal,
-      showAdd,
-      blockDisbursement,
-      issue_date_menu,
-      due_date_menu,
-    }
+      isTotal: true,
+      showAdd: true,
+      blockDisbursement: false,
+      issue_date_menu: false,
+      due_date_menu: false,
+      filtered: [],
+      singleDisbursement: false,
+    };
   },
   computed: {
     ...mapState({
@@ -477,6 +486,17 @@ export default {
         return dateHelper.getDateFromUTC(value);
       }
       return null;
+    },
+    disbursementListFiltered(value) {
+      console.log("filtered:", value);
+      if (value.length === 0) {
+        store.dispatch("setDefaultCslftDisbursement");
+        this.singleDisbursement = true;
+      }
+      else {
+        this.singleDisbursement = false;
+      }
+      this.filtered = value;
     }
   },
   watch: {
@@ -492,7 +512,7 @@ export default {
         store.dispatch("setCslftNetAmount", newVal);
       }
     },
-    cslft_disbursement: {
+    filtered: {
       immediate: true,
       deep: true,
       handler(newVal) {

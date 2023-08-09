@@ -2,7 +2,7 @@ import axios from "axios";
 import {CSL_LOOKUP, CSLFT, CSLFT_ASSESS_INFO } from "@/urls";
 import moment from "moment";
 import { NumbersHelper, DateHelper } from "@/utilities";
-import { defaultState } from "./default";
+import { defaultState, defaultDisbursement } from "./default";
 const numHelper = new NumbersHelper();
 const dateHelper = new DateHelper();
 
@@ -32,6 +32,11 @@ const mutations = {
             state.cslft_disbursement = disburseModel.disbursements;
         }
         state.cslft_msfaa = disburseModel.msfaa;
+    },
+    setDefaultCslftDisbursement(state) {
+        let disbursement = defaultDisbursement;
+        disbursement.delete_flag = false;
+        state.cslft_disbursement.push(disbursement);
     },
     loadFundingRequest(state, funding_request) {
         state.funding_request = funding_request;
@@ -124,6 +129,9 @@ const actions = {
         if (res?.data?.success) {
             commit("loadModelsDisburse", res.data);
         }
+    },
+    async setDefaultCslftDisbursement(state) {
+        state.commit("setDefaultCslftDisbursement");
     },
     async saveCslftAssessment({ getters, dispatch }, vm) {
         const assessment = getters.cslft_get_assessment;
