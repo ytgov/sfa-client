@@ -111,7 +111,7 @@ import {
 import jsPDF from 'jspdf';
 import Modal from "../../../components/commonCatalog/Modal.vue";
 import LoadingAnimation from "../../../components/commonCatalog/LoadingScreen.vue";
-
+import moment from "moment";
 
 export default {
   name: "OfficerList",
@@ -165,8 +165,7 @@ export default {
       
         if(resInsert.data.flag === 0 || !resInsert.data.data) {   
           let newFlag = {flag:false}     
-          this.disabled = newFlag;       
-          
+          this.disabled = newFlag;                 
           let newLoading = {flag:false}     
         this.isLoading = newFlag; 
           this.$emit("showError", resInsert.data.data);          
@@ -208,18 +207,6 @@ export default {
         }
       }  
       
-    },
-    formattedDate(date, format) {        
-      if(format === 1) {               
-          const inputDate = date.slice(0, 10);
-          const day = inputDate.slice(8, 10)
-          const month = inputDate.slice(5, 7);
-          const year = inputDate.slice(0, 4);                                        
-          let stringMonth = this.strMonth(month);
-          return `${day} ${stringMonth} ${year}`;
-      } else {
-          return this.strMonth(date);
-      }
     },    
     strMonth(month) {
       let stringMonth = "";
@@ -303,10 +290,10 @@ export default {
     >
       <p>GOVERNMENT OF YUKON, DEPARTMENT OF EDUCATION</p>
       <p>STUDENT FINANCIAL ASSISTANCE</p>
-      <p style="font-size: 5px; margin-bottom: 1px;">CSL Entitlement List</p>
-      <p style="font-size: 3.1px; font-weight: 400;">FROM: ${this.formattedDate(this.from.date, 1)} TO: ${this.formattedDate(this.to.date, 1)}</p>
+      <p style="font-size: 5px; margin-bottom: 1px;">CSL Entitlement List</p>      
+      <p style="font-size: 3.1px; font-weight: 400;">FROM: ${moment(this.from.date.slice(0, 10), 'YYYY-MM-DD').format('YYYY MMM DD').toUpperCase()} TO: ${moment(this.to.date, 'YYYY-MM-DD').format('YYYY MMM DD').toUpperCase()}</p>
     </div>
-  </header>
+  </header>  
 
   <img
     style="width: 100%; height: 1px; padding: 0 15px"
@@ -331,8 +318,9 @@ export default {
 
       let dataColumns = "";
       let idx = 0;
-
-      for(let col of this.tableData) {             
+      
+      if(this.tableData) {
+        for(let col of this.tableData) {             
           dataColumns += "<tr style='text-align: center;'>"
           dataColumns += "<td>"
             dataColumns += col.id;
@@ -351,15 +339,16 @@ export default {
           dataColumns += "</td>"
 
           dataColumns += "<td>"          
-          dataColumns += col.issue_date ? this.formattedDate(col.issue_date, 1) : null;
+          dataColumns += col.issue_date ? moment(col.issue_date, 'YYYY-MM-DD').format('YYYY MMM DD').toUpperCase() : null;
           dataColumns += "</td>"
 
           dataColumns += "<td>"
-          dataColumns += col.due_date ? this.formattedDate(col.due_date, 1) : null;
+          dataColumns += col.due_date ? moment(col.due_date, 'YYYY-MM-DD').format('YYYY MMM DD').toUpperCase() : null;
 
           dataColumns += "</td>"                         
         dataColumns += "</tr>"                              
       }
+      }      
 
       let htmlBottom = `
       </table>
