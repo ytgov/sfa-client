@@ -1,5 +1,10 @@
 import db from "@/db/db-client"
 
+import Language from "@/models/language"
+import Person from "@/models/person"
+import Sex from "@/models/sex"
+import Student from "@/models/student"
+
 export default class StudentApplicationStudentsService {
   #studentId: number
 
@@ -47,14 +52,28 @@ export default class StudentApplicationStudentsService {
             language: {
               id: result.t3Id,
               description: result.t3Description,
-            },
+            } as Language,
             sexId: result.t4Id,
             sex: {
               id: result.t4Id,
               description: result.t4Description,
-            },
-          },
-        }
+            } as Sex,
+          } as Person,
+        } as Student
       })
+      .then(async (student) => {
+        if (student.person) {
+          const personAddresses = await this.#getPersonAddresses(student.personId)
+          student.person.personAddresses = personAddresses
+        }
+        return student
+      })
+  }
+
+  #getPersonAddresses(personId: number) {
+    return db
+      .select("id", "addressTypeId", "address1", "cityId", "provinceId", "postalCode")
+      .from("personAddress")
+      .where({ personId })
   }
 }
