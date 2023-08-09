@@ -169,6 +169,14 @@ enum CsfaAmount {
   GRANTS_ONLY: Grants only
 }
 
+entity Disability {
+  id: number
+  application_id: number
+  disability_type_id: number
+  description?: string
+  verified_disability_need: boolean
+}
+
 entity Institution {
   id: number
   name: string
@@ -206,6 +214,12 @@ entity FundingRequest {
 
 enum FundingSource {
   CANADA_STUDENT_FINANCIAL_ASSISTANCE_FULL_TIME: Canada Student Financial Assistance (Full-Time)
+}
+
+entity Language {
+  id: number
+  description: string
+  is_active: boolean
 }
 
 entity Person {
@@ -272,6 +286,12 @@ entity RequestType {
   is_active: boolean
 }
 
+entity Sex {
+  id: number
+  description: string
+  is_active: boolean
+}
+
 entity Student {
   id: number
   person_id: number
@@ -319,16 +339,30 @@ entity Student {
   kin_postal_code?: string
 }
 
+entity StudentConsent {
+  id: number
+  student_id: number
+  start_academic_year_id: number
+  end_academic_year_id?: number
+  consent_person: string
+  consent_sfa: boolean
+  consent_csl: boolean
+}
+
 Application::attendance_id |o--o{ Attendance::id
+Application::id }o--|{ FundingRequest::application_id
 Application::institution_campus_id |o--o{ Institution::id
 Application::primary_address_id |o--|| PersonAddress::id
 Application::program_id |o--o{ Program::id
-Application::id }o--|{ FundingRequest::application_id
-Student::id }o--|| Application::student_id
-Student::person_id ||--o| Person::id
+CsfaAmount ||--|| FundingSource::CANADA_STUDENT_FINANCIAL_ASSISTANCE_FULL_TIME
+Disability::application_id ||--o{ Application::id
 FundingRequest::request_type_id |o--o{ RequestType::id
 Person::id }o--|| PersonAddress::person_id
+Person::language_id |o--o{ Language::id
+Person::sex_id |o--o{ Sex::id
 PersonAddress::address_type_id ||--o{ AddressType::id
 RequestType::description ||--|| FundingSource
-CsfaAmount ||--|| FundingSource::CANADA_STUDENT_FINANCIAL_ASSISTANCE_FULL_TIME
+Student::id }o--|| Application::student_id
+Student::person_id ||--o| Person::id
+StudentConsent::student_id ||--o{ Student::id
 @enduml
