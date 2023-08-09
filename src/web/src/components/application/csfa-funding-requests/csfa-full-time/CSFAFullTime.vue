@@ -71,8 +71,14 @@
                             label="Requested amount"
                             @keypress="validate.isNumber($event)"
                             :value="'$'+(CSFAFullTimeRequest.csl_request_amount ?? 0)"
+
+
                             @input="e => {
-                                CSFAFullTimeRequest.csl_request_amount = Number(e.slice(1));
+                                if (e.includes('$') && e.slice(1) > 0) {
+                                    CSFAFullTimeRequest.csl_request_amount  = parseFloat(e.slice(1));
+                                } else {
+                                    CSFAFullTimeRequest.csl_request_amount  = isNaN(e) ? 0 : parseFloat(e);
+                                }
                             }"
                             @change="updateFundingRequest({
                                 csl_request_amount: CSFAFullTimeRequest.csl_request_amount
@@ -91,8 +97,13 @@
                     hide-details 
                     label="Student gross income (Ln 15000)"
                     :value="'$'+(application.student_ln150_income?? 0)"
+                    @keypress="validate.isNumber($event)"
                     @input="e => {
-                        application.student_ln150_income = Number(e.slice(1));
+                        if (e.includes('$') && e.slice(1) > 0) {
+                        application.student_ln150_income = parseFloat(e.slice(1));
+                        } else {
+                            application.student_ln150_income = isNaN(e) ? 0 : parseFloat(e);
+                        }
                     }"
                     @change="doSaveApp('student_ln150_income', application.student_ln150_income)"
                 >

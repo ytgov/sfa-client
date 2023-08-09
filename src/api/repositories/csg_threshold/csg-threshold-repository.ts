@@ -1,7 +1,7 @@
 import { Knex } from "knex";
 import { BaseRepository } from "../base-repository";
 import { IMainTable } from "repositories/i-main-table";
-import { bind } from "lodash";
+import { CsgThresholdDTO } from "../../models";
 
 export class CsgThresholdRepository extends BaseRepository implements IMainTable {
     constructor(maindb: Knex<any, unknown>) {
@@ -25,14 +25,53 @@ export class CsgThresholdRepository extends BaseRepository implements IMainTable
         let result = 0;
 
         const query = await this.mainDb(this.getMainTable())
-                            .count("family_size")
+                            .count({count: "family_size"})
                             .where((builder) => {
-                                builder.where("family_threshold", ">=", family_income ?? 0);
+                                builder.where("income_threshold", ">=", family_income ?? 0);
                                 builder.andWhere("family_size", "=", family_size ?? 0);
                                 builder.andWhere("academic_year_id", "=", academic_year_id ?? 0)
                             });
 
-        console.log(query);
+        if (query.length > 0) {
+            result = query[0].count as number ?? 0;
+        }
+
+        return result;
+    }
+
+    async getFamilySizeCountCutOff(family_income?: number, family_size?: number, academic_year_id?: number): Promise<number> {
+        let result = 0;
+
+        const query = await this.mainDb(this.getMainTable())
+                            .count({count: "family_size"})
+                            .where((builder) => {
+                                builder.where("income_threshold", "<", family_income ?? 0);
+                                builder.andWhere("income_cutoff", ">=", family_income ?? 0);
+                                builder.andWhere("family_size", "=", family_size ?? 0);
+                                builder.andWhere("academic_year_id", "=", academic_year_id ?? 0)
+                            });
+
+        if (query.length > 0) {
+            result = query[0].count as number ?? 0;
+        }
+
+        return result;
+    }
+
+    async getIncomeThresholdCutoff(family_income?: number, family_size?: number, academic_year_id?: number): Promise<CsgThresholdDTO> {
+        let result = {};
+
+        const query = await this.mainDb(this.getMainTable())
+                            .where((builder) => {
+                                builder.where("income_threshold", "<=", family_income ?? 0);
+                                builder.andWhere("income_cutoff", ">=", family_income ?? 0);
+                                builder.andWhere("family_size", "=", family_size ?? 0);
+                                builder.andWhere("academic_year_id", "=", academic_year_id ?? 0)
+                            });
+
+        if (query.length > 0) {
+            result = query[0] as CsgThresholdDTO;
+        }
 
         return result;
     }

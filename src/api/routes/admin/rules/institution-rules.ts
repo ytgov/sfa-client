@@ -137,6 +137,6 @@ export class InstitutionRules {
             await this.db("sfa.institution").where({ id: institutionId }).update({ is_active: false });
         }
 
-        return true;
+        return undefined;
     }
 }

@@ -4818,6 +4818,91 @@ BEGIN
 END
 GO
 
+-- Get student exempt amount
+CREATE OR ALTER FUNCTION sfa.fn_get_student_exempt_amount(@academic_year_id INT)
+RETURNS FLOAT(8)
+AS 
+BEGIN
+	DECLARE  @amt FLOAT(8);
+
+    SELECT @amt = COALESCE(cl.student_exempt_amount, 0)
+    FROM sfa.csl_lookup cl
+    WHERE cl.academic_year_id = @academic_year_id;
+    
+    RETURN COALESCE(@amt, 0);
+
+END;
+GO
+
+CREATE OR ALTER FUNCTION sfa.fn_get_csl_cert_seq_num
+(
+	@FROM_DATE_P DATE,
+	@TO_DATE_P DATE
+) 
+RETURNS INT AS
+BEGIN 
+	DECLARE @v_cert_count NUMERIC = 0;
+
+	SELECT @v_cert_count = count(d.id)
+		FROM sfa.funding_request AS fr
+		INNER JOIN sfa.disbursement AS d ON fr.id = d.funding_request_id
+		INNER JOIN sfa.request_type AS rt ON fr.request_type_id = rt.id
+		INNER JOIN (
+		  SELECT m.msfaa_status, app.academic_year_id, app.id
+		  FROM sfa.msfaa AS m
+		  INNER JOIN sfa.application AS app ON app.id = m.application_id
+		  WHERE app.id = m.application_id
+		) AS mhd ON fr.application_id = mhd.id
+		WHERE (mhd.msfaa_status = 'Received' OR mhd.academic_year_id <= 2012)
+		AND issue_date >= @FROM_DATE_P			
+		AND issue_date <= @TO_DATE_P		
+		AND d.due_date IS NOT NULL
+		AND d.transaction_number IS NOT NULL
+		AND d.csl_cert_seq_number IS NULL
+		AND disbursement_type_id IN (3, 4, 5, 7, 9)
+		AND fr.request_type_id IN (4, 5, 6, 15, 16, 17, 18, 19, 22, 23, 24, 26, 27, 28, 29, 30, 31, 32, 33, 35, 47)
+		AND d.transaction_number IN (
+		  SELECT d1.transaction_number
+		  FROM sfa.disbursement AS d1
+		  INNER JOIN sfa.funding_request AS fr1 ON d1.funding_request_id = fr1.id
+		  WHERE fr1.request_type_id IN (4, 5))
+		  
+		RETURN @v_cert_count;
+END
+GO
+
+CREATE OR ALTER FUNCTION sfa.fn_check_valid_date
+(
+@in_date_p NVARCHAR(100), 
+@date_name_p NVARCHAR(100)
+)
+RETURNS NVARCHAR(100)
+AS
+BEGIN
+	DECLARE @v_check_date DATETIME;
+	DECLARE @v_result VARCHAR(50);
+	IF REPLACE(@in_date_p, ' ', '') = '' OR @in_date_p = '00000000'
+		BEGIN
+	        RETURN 'EMPTY';
+	    END
+    
+    ELSE
+	    BEGIN	        
+			SET @v_check_date = TRY_CONVERT(DATETIME, @in_date_p, 112);
+	        IF @v_check_date IS NULL
+	        	BEGIN
+	        		SET @v_result = 'Invalid ' + @date_name_p + ' date: ' + @in_date_p + '. ';
+	        	END
+	        ELSE
+	        	BEGIN
+	        		 SET @v_result = NULL;
+	        	END	        		        		        	            	        
+	    END;
+	    RETURN @v_result;
+END
+GO
+
+
 CREATE OR ALTER FUNCTION sfa.fn_get_csl_cert_seq_num
 (
 	@FROM_DATE_P DATE,
@@ -4922,4 +5007,19 @@ BEGIN
 			@v_error_msg			
     	);
 END
+GO
+
+-- Get Disbursements For Issue Dates
+CREATE OR ALTER FUNCTION sfa.fn_get_top_disbursements(@application_id INT)
+RETURNS TABLE
+AS
+RETURN
+SELECT TOP 2
+	d.*
+FROM sfa.disbursement d 
+	INNER JOIN sfa.funding_request fr
+		ON d.funding_request_id = fr.id
+		AND fr.request_type_id IN (4,29,32,35)
+WHERE fr.application_id = @application_id
+ORDER BY d.due_date DESC;
 GO
