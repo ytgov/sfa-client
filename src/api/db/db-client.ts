@@ -4,7 +4,7 @@ import { snakeCase } from "lodash"
 
 import { DB_CONFIG } from "@/config"
 
-import { NON_STANDARD_COLUMN_NAMES_TRANSFORMS } from '@/utils/db-wrap-identifier-helpers'
+import { NON_STANDARD_COLUMN_NAMES_TRANSFORMS } from "@/utils/db-wrap-identifier-helpers"
 
 const db = knex({
   client: DB_CONFIG.client,
@@ -36,6 +36,8 @@ const dbWithSchema: Knex = new Proxy(db, {
     if (typeof target[prop] === "function") {
       if (prop === "withSchema") {
         return (schema: string) => target[prop](schema) // format taken from src/api/node_modules/knex/types/index.d.ts
+      } else if (prop === "destroy") {
+        return (callback: Function) => db.destroy(callback)
       } else {
         return (...args: any[]) => target[prop](...args).withSchema(DB_CONFIG.defaultSchema)
       }
