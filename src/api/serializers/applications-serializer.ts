@@ -61,6 +61,7 @@ export default class ApplicationsSerializer {
         this.#application.student?.person?.addresses || ([] as PersonAddress[])
       ),
       statistical: this.#statisticalSection(this.#application.student?.person || ({} as Person)),
+      // TODO: investigate if I need a "parents" field
     }
   }
 
