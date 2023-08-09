@@ -18,6 +18,7 @@ export default class StudentApplicationStudentsService {
         t2Email: "person.email",
         t2Telephone: "person.telephone",
         t2BirthDate: "person.birthDate",
+        t2CitizenshipCode: "person.citizenshipCode",
         t3Id: "language.id",
         t3Description: "language.description",
         t4Id: "sex.id",
@@ -41,6 +42,7 @@ export default class StudentApplicationStudentsService {
             email: result.t2Email,
             telephone: result.t2Telephone,
             birthDate: result.t2BirthDate,
+            citzenshipCode: result.t2CitizenshipCode,
             languageId: result.t3Id,
             language: {
               id: result.t3Id,
