@@ -7,18 +7,19 @@
           <div class="col-xs-12 col-lg-4 nopadding d-flex">
             <div class="col-xs-4 col-sm-4">
               <v-btn 
-                :disabled="showAdd"
+                :disabled="!showAdd"
                 dense
                 color="green" 
                 class="my-0"
                 block
+                @click="saveAssessment"
               >
               SAVE
               </v-btn>
             </div>
             <div class="col-xs-4 col-sm-4">
               <v-btn 
-                :disabled="showAdd"
+                :disabled="!showAdd"
                 dense
                 color="orange" 
                 class="my-0"
@@ -29,7 +30,7 @@
             </div>
             <div class="col-xs-4 col-sm-4">
               <v-btn 
-                :disabled="showAdd"
+                :disabled="!showAdd"
                 dense
                 color="red" 
                 class="my-0"
@@ -46,138 +47,36 @@
               <div class="col-xs-12 col-lg-12 nopadding d-flex mobile-column-flex low-margin">
                 <div class="col-xs-12 col-lg-4 nopadding d-flex flex-wrap">
                   <div class="col-xs-12 col-lg-12">
-                    <v-menu
-                      :disabled="showAdd"
-                      v-model="assessed_date_menu"
-                      :close-on-content-click="false"
-                      transition="scale-transition"
-                      left
-                      nudge-top="26"
-                      offset-y
-                      min-width="auto"
-                    >
-                      <template v-slot:activator="{ on, attrs }">
-                        <v-text-field
-                          :disabled="showAdd"
-                          v-model="assessed_date"
-                          label="Assessed Date"
-                          append-icon="mdi-calendar"
-                          hide-details
-                          readonly
-                          outlined
-                          dense
-                          background-color="white"
-                          v-bind="attrs"
-                          v-on="on"
-                        ></v-text-field>
-                      </template>
-                      <v-date-picker
-                        :disabled="showAdd"
-                        v-model="assessed_date"
-                        @input="assessed_date_menu = false"
-                      ></v-date-picker>
-                    </v-menu>
+                    <DateInput
+                      label="Assessed Date"
+                      :menu="assessed_date_menu"
+                      v-model="csgft.assessed_date"
+                    ></DateInput>
                   </div>
                   <div class="col-xs-12 col-lg-12">
-                    <v-menu
-                      :disabled="showAdd"
-                      v-model="effective_rate_date_menu"
-                      :close-on-content-click="false"
-                      transition="scale-transition"
-                      left
-                      nudge-top="26"
-                      offset-y
-                      min-width="auto"
-                    >
-                      <template v-slot:activator="{ on, attrs }">
-                        <v-text-field
-                          :disabled="showAdd"
-                          v-model="effective_rate_date"
-                          label="Effective Rate Date"
-                          append-icon="mdi-calendar"
-                          hide-details
-                          readonly
-                          outlined
-                          dense
-                          background-color="white"
-                          v-bind="attrs"
-                          v-on="on"
-                        ></v-text-field>
-                      </template>
-                      <v-date-picker
-                        :disabled="showAdd"
-                        v-model="effective_rate_date"
-                        @input="effective_rate_date_menu = false"
-                      ></v-date-picker>
-                    </v-menu>
+                    <DateInput
+                      label="Effective Rate Date"
+                      :menu="effective_rate_date_menu"
+                      v-model="csgft.effective_rate_date"
+                    ></DateInput>
                   </div>
                 </div>
                 <div class="col-xs-12 col-lg-4 nopadding">
                   <div class="col-xs-12 col-lg-12">
-                    <v-menu
-                        :disabled="showAdd"
-                        v-model="classes_start_date_menu"
-                        :close-on-content-click="false"
-                        transition="scale-transition"
-                        left
-                        nudge-top="26"
-                        offset-y
-                        min-width="auto"
-                      >
-                        <template v-slot:activator="{ on, attrs }">
-                          <v-text-field
-                            :disabled="showAdd"
-                            v-model="classes_start_date"
-                            label="Classes Start Date"
-                            append-icon="mdi-calendar"
-                            hide-details
-                            readonly
-                            outlined
-                            dense
-                            background-color="white"
-                            v-bind="attrs"
-                            v-on="on"
-                          ></v-text-field>
-                        </template>
-                        <v-date-picker
-                          :disabled="showAdd"
-                          v-model="classes_start_date"
-                          @input="classes_start_date_menu = false"
-                        ></v-date-picker>
-                    </v-menu>
+                    <DateInput
+                      label="Classes Start Date"
+                      :menu="classes_start_date_menu"
+                      :disabled="isTotal"
+                      v-model="csgft.classes_start_date"
+                    ></DateInput>
                   </div>
                   <div class="col-xs-12 col-lg-12">
-                    <v-menu
-                        :disabled="showAdd"
-                        v-model="classes_end_date_menu"
-                        :close-on-content-click="false"
-                        transition="scale-transition"
-                        left
-                        nudge-top="26"
-                        offset-y
-                        min-width="auto"
-                      >
-                        <template v-slot:activator="{ on, attrs }">
-                          <v-text-field
-                            :disabled="showAdd"
-                            v-model="classes_start_date"
-                            label="Classes End Date"
-                            append-icon="mdi-calendar"
-                            hide-details
-                            readonly
-                            outlined
-                            dense
-                            background-color="white"
-                            v-bind="attrs"
-                            v-on="on"
-                          ></v-text-field>
-                        </template>
-                        <v-date-picker
-                          :disabled="showAdd"
-                          v-model="classes_end_date"
-                          @input="classes_end_date_menu = false"
-                        ></v-date-picker>
-                    </v-menu>
+                    <DateInput
+                      label="Classes End Date"
+                      :menu="classes_end_date_menu"
+                      :disabled="isTotal"
+                      v-model="csgft.classes_end_date"
+                    ></DateInput>
                   </div>
                 </div>
                 <div class="col-xs-12 col-lg-4 nopadding">
@@ -189,7 +88,8 @@
                       hide-details
                       label="Study Week"
                       @keypress="validate.isNumber($event)"
-                      v-model="study_week"
+                      :disabled="isTotal"
+                      v-model="csgft.study_weeks"
                     ></v-text-field>
                   </div>
                   <div class="col-xs-12 col-lg-12">
@@ -198,9 +98,10 @@
                       dense
                       background-color="white"
                       hide-details
-                      label="Allowed Weeks"
+                      label="Assessed Weeks"
                       @keypress="validate.isNumber($event)"
-                      v-model="allowed_weeks"
+                      :disabled="isTotal"
+                      v-model="csgft.assessed_weeks"
                     ></v-text-field>
                   </div>
                 </div>
@@ -210,26 +111,10 @@
               <div class="col-lg-12 nopadding d-flex align-center flex-wrap">
                 <div class="col-xs-12 col-sm-6 col-lg-6 nopadding d-flex flex-wrap">
                   <div class="col-xs-12 col-sm-12 col-lg-10">
-                    <v-text-field
-                      outlined
-                      dense
-                      background-color="white"
-                      hide-details
-                      label="Study Months"
-                      @keypress="validate.isNumber($event)"
-                      v-model="study_months"
-                    ></v-text-field>
+                    
                   </div>
                   <div class="col-xs-12 col-sm-12 col-lg-10">
-                    <v-text-field
-                      outlined
-                      dense
-                      background-color="white"
-                      hide-details
-                      label="Allowed Months"
-                      @keypress="validate.isNumber($event)"
-                      v-model="travel_allowance"
-                    ></v-text-field>
+                    
                   </div>
                   <div class="col-xs-12 col-lg-11 line-jump-height"></div>
                 </div>
@@ -242,7 +127,8 @@
                       hide-details
                       label="Family Size"
                       @keypress="validate.isNumber($event)"
-                      v-model="family_size"
+                      :disabled="isTotal"
+                      v-model="csgft.family_size"
                     ></v-text-field>
                   </div>
                   <div class="col-xs-12 col-sm-12 col-lg-10">
@@ -253,7 +139,8 @@
                       hide-details
                       label="No. of Dependents"
                       @keypress="validate.isNumber($event)"
-                      v-model="no_of_dependents"
+                      :disabled="isTotal"
+                      v-model="csgft.dependent_count"
                     ></v-text-field>
                   </div>
                   <div class="col-xs-12 col-lg-12">
@@ -264,7 +151,8 @@
                       hide-details
                       label="Student Category"
                       @keypress="validate.isNumber($event)"
-                      v-model="student_category"
+                      :disabled="isTotal"
+                      v-model="csgft.category_desc"
                     ></v-text-field>
                   </div>
                 </div>
@@ -282,7 +170,8 @@
                       hide-details
                       label="Student Income"
                       @keypress="validate.isNumber($event)"
-                      v-model="student_income"
+                      :disabled="isTotal"
+                      v-model="csgft.student_ln150_income"
                     ></v-text-field>
                 </div>
                 <div class="col-xs-12 col-lg-12">
@@ -293,7 +182,8 @@
                       hide-details
                       label="Spouse Income"
                       @keypress="validate.isNumber($event)"
-                      v-model="spouse_income"
+                      :disabled="isTotal"
+                      v-model="csgft.spouse_ln150_income"
                     ></v-text-field>
                 </div>
                 <div class="col-xs-12 col-lg-12">
@@ -304,7 +194,8 @@
                       hide-details
                       label="Parent 1 Income"
                       @keypress="validate.isNumber($event)"
-                      v-model="parent_1_income"
+                      :disabled="isTotal"
+                      v-model="csgft.parent1_income"
                     ></v-text-field>
                 </div>
                 <div class="col-xs-12 col-lg-12">
@@ -315,7 +206,8 @@
                       hide-details
                       label="Parent 2 Income"
                       @keypress="validate.isNumber($event)"
-                      v-model="parent_2_income"
+                      :disabled="isTotal"
+                      v-model="csgft.parent2_income"
                     ></v-text-field>
                 </div>
                 <div class="col-xs-12 col-lg-12">
@@ -328,7 +220,8 @@
                       hide-details
                       label="Family Income"
                       @keypress="validate.isNumber($event)"
-                      v-model="family_income"
+                      :disabled="isTotal"
+                      v-model="csgft.family_income"
                     ></v-text-field>
                 </div>
               </div>
@@ -341,7 +234,8 @@
                     hide-details
                     label="8 Month Phase Out Rate"
                     @keypress="validate.isNumber($event)"
-                    v-model="eight_month_phase_out_rate"
+                    :disabled="isTotal"
+                    v-model="csgft.phase_out_rate"
                   ></v-text-field>
                 </div>
                 <div class="col-xs-12 col-lg-12">
@@ -351,7 +245,8 @@
                     background-color="white"
                     hide-details
                     label="Weekly Rate"
-                    v-model="weekly_rate"
+                    :disabled="isTotal"
+                    v-model="csgft.weekly_rate"
                   ></v-text-field>
                 </div>
               </div>
@@ -368,19 +263,21 @@
                       dense
                       background-color="white"
                       hide-details
-                      label="Travel Allowance"
+                      label="Assess Need"
                       @keypress="validate.isNumber($event)"
-                      v-model="travel_allowance"
+                      :disabled="isTotal"
+                      v-model="csgft.csl_assessed_need"
                   ></v-text-field>
                 </div>
               </div>
               <div class="col-xs-12 col-sm-4 col-lg-5">
                 <v-btn 
-                  :disabled="showAdd"
+                  :disabled="!showAdd"
                   dense
                   color="blue" 
                   class="my-0"
                   block
+                  @click="executeRecalc"
                 >
                 RE-CALC
                 </v-btn>
@@ -396,7 +293,8 @@
                     hide-details
                     label="Assessed Amount"
                     @keypress="validate.isNumber($event)"
-                    v-model="assessed_amount"
+                    :disabled="isTotal"
+                    v-model="csgft.assessed_amount"
                   ></v-text-field>
                 </div>
                 <div class="col-xs-12 col-lg-12 low-margin">
@@ -405,9 +303,9 @@
                     dense
                     background-color="white"
                     hide-details
-                    label="Previous Disbursement"
+                    label="Number of Disbursements"
                     @keypress="validate.isNumber($event)"
-                    v-model="previous_disbursement"
+                    v-model="csgft.disbursements_required"
                   ></v-text-field>
                 </div>
                 <div class="col-xs-12 col-lg-12">
@@ -418,7 +316,8 @@
                     hide-details
                     label="Previous Disbursement"
                     @keypress="validate.isNumber($event)"
-                    v-model="previous_disbursement"
+                    :disabled="isTotal"
+                    v-model="csgft.previous_disbursement"
                   ></v-text-field>
                 </div>
                 <div class="col-xs-12 col-lg-12 low-margin mobile-noppading-bottom">
@@ -429,18 +328,20 @@
                     hide-details
                     label="Net Amount"
                     @keypress="validate.isNumber($event)"
-                    v-model="previous_disbursement"
+                    :disabled="isTotal"
+                    v-model="csgft.net_amount"
                   ></v-text-field>
                 </div>
               </div>
               <div class="col-sm-4 col-lg-5 d-flex nopadding line-jump-height align-center low-margin">
                 <div class="col-xs-12 col-lg-12 height-fit-content mobile-noppading-top">
                   <v-btn 
-                    :disabled="showAdd"
+                    :disabled="!showAdd"
                     dense
                     color="blue" 
                     class="my-0"
                     block
+                    @click="executeDisburse"
                   >
                   DISBURSE
                   </v-btn>
@@ -476,16 +377,17 @@
           <div class="col-xs-1 col-sm-1 col-lg-1 nopadding d-flex align-center justify-center">
             <p class="nomargin">Batch ID</p>
           </div>
-        </div>
-        <div class="col-xs-12 col-sm-12 col-lg-12 d-flex low-margin noppading-top">
-          <div class="col-xs-1 col-sm-1 col-lg-1 nopadding">
+        </div>        
+        <div class="col-xs-12 col-sm-12 col-lg-12 d-flex low-margin noppading-top" v-for="disbursement, idx in csgft_disbursement" :key="idx">          
+          <div class="col-xs-1 col-sm-1 col-lg-1 nopadding">            
             <v-text-field
               outlined
               dense
               background-color="white"
               hide-details
               @keypress="validate.isNumber($event)"
-              v-model="reference_number"
+              v-model="disbursement.transaction_number"
+              :disabled="blockDisbursement"
             ></v-text-field>
           </div>
           <div class="col-xs-2 col-sm-2 col-lg-2 nopadding">
@@ -495,51 +397,47 @@
               background-color="white"
               hide-details
               @keypress="validate.isNumber($event)"
-              v-model="disbursed_amt"
+              v-model="disbursement.disbursed_amount"
             ></v-text-field>
           </div>
           <div class="col-xs-2 col-sm-2 col-lg-2 nopadding">
             <v-select
-              :disabled="showAdd"
+              :disabled="blockDisbursement"
               outlined
               dense
               background-color="white"
               hide-details
-              v-model="disbursement_type"
-              item-text="DESCRIPTION"
-              item-value="REQUEST_TYPE_ID"
+              v-model="disbursement.disbursement_type_id"
+              :items="disbursementTypes"
+              item-text="description"
+              item-value="id"
             ></v-select>
           </div>
           <div class="col-xs-1 col-sm-1 col-lg-1 nopadding">
-            <v-text-field
-              outlined
-              dense
-              background-color="white"
-              hide-details
-              @keypress="validate.isNumber($event)"
-              v-model="due_date"
-            ></v-text-field>
+            <DateInput
+              label="Due Date"
+              :menu="due_date_menu"
+              v-model="disbursement.due_date"
+            ></DateInput>
           </div>
           <div class="col-xs-1 col-sm-1 col-lg-1 nopadding">
-            <v-text-field
-              outlined
-              dense
-              background-color="white"
-              hide-details
-              @keypress="validate.isNumber($event)"
-              v-model="issue_date"
-            ></v-text-field>
+            <DateInput
+              label="Issue Date"
+              :menu="issue_date_menu"
+              :disabled="true"
+              v-model="disbursement.issue_date"
+            ></DateInput>
           </div>
           <div class="col-xs-4 col-sm-4 col-lg-4 nopadding">
             <v-select
-              :disabled="showAdd"
               outlined
               dense
               background-color="white"
               hide-details
-              v-model="disbursement_type"
-              item-text="DESCRIPTION"
-              item-value="REQUEST_TYPE_ID"
+              v-model="disbursement.change_reason_id"
+              :items="changeReasons"
+              item-text="description"
+              item-value="id"
             ></v-select>
           </div>
           <div class="col-xs-1 col-sm-1 col-lg-1 nopadding">
@@ -549,7 +447,8 @@
               background-color="white"
               hide-details
               @keypress="validate.isNumber($event)"
-              v-model="family_size"
+              :disabled="blockDisbursement"
+              v-model="disbursement.financial_batch_id"
             ></v-text-field>
           </div>
         </div>
@@ -560,14 +459,73 @@
 <script>
 import store from "../../../store";
 import validator from "@/validator";
+import DateInput from "../../DateInput.vue"
+import {mapGetters, mapState} from "vuex";
+import {ref} from "vue";
+
 export default {
-  name: "Home",
+  name: "csgft-assessment",
+  props: ["request_type_id", "fundingRequestId"],
+  components: {
+    DateInput
+  },
+  setup() {
+    const isTotal = ref(true);
+    const showAdd = ref(true);
+    const blockDisbursement = ref(true);
+    const issue_date_menu = ref(false);
+    const due_date_menu = ref(false);
+    const effective_rate_date_menu = ref(false);
+    const assessed_date_menu = ref(false);
+    const classes_start_date_menu = ref(false);
+    const classes_end_date_menu = ref(false);
+
+    return {
+      isTotal,
+      showAdd,
+      blockDisbursement,
+      issue_date_menu,
+      due_date_menu,
+      effective_rate_date_menu,
+      assessed_date_menu,
+      classes_start_date_menu,
+      classes_end_date_menu,
+    }
+  },
   computed: {
+    ...mapState({
+      csgft: state => state.csgft.csgft,
+      csgft_disbursement: state => state.csgft.csgft_disbursement
+    }),
+    ...mapGetters([
+        "changeReasons",
+        "disbursementTypes",
+        "csgft_get_disbursements",
+    ]),
     application: function () {
       return store.getters.selectedApplication;
+    }
+  },
+  methods: {
+    showSuccess(mgs) {
+      this.$emit("showSuccess", mgs);
+    },
+    showError(mgs) {
+      this.$emit("showError", mgs);
+    },
+    saveAssessment() {
+      store.dispatch("saveCsgftAssessment", this);
+    },
+    executeRecalc() {
+      store.dispatch("getCsgftRecalc");
+    },
+    executeDisburse() {
+      store.dispatch("getCsgftDisburse");
     },
   },
   async created() {
+    const frId = this.$props.fundingRequestId;
+    console.log(frId);
     this.validate = validator;
     this.applicationId = this.$route.params.id;
     let storeApp = store.getters.selectedApplication;
@@ -575,6 +533,9 @@ export default {
       await store.dispatch("loadApplication", this.applicationId);
     }
     store.dispatch("setAppSidebar", true);
+    store.dispatch("getCsgftNewInstance", frId);
+    store.dispatch("setDisbursementTypes");
+    store.dispatch("setChangeReasons");
   }
 };
 </script>

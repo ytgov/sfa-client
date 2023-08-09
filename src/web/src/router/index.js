@@ -45,6 +45,7 @@ import StudentModuleRoutes from "@/modules/student/router";
 import ApplicationTypeModuleRooutes from "@/modules/application-type/router";
 import InstitutionModuleRoutes from "@/modules/institution/router";
 import CslCertificateExportModuleRoutes from "@/modules/csl-certificate-export/router";
+import CslMsfaaReceiveModuleRoutes from "@/modules/csl-msfaa-receive/router";
 import ProvinceModuleRoutes from "@/modules/province/router";
 import CountriesModuleRoutes from "@/modules/countries/router";
 import CitiesModuleRoutes from "@/modules/cities/router";
@@ -361,6 +362,7 @@ const routes = [
   ...StudentModuleRoutes,
   ...InstitutionModuleRoutes,
   ...CslCertificateExportModuleRoutes,
+  ...CslMsfaaReceiveModuleRoutes,
   ...ProvinceModuleRoutes,
   ...CountriesModuleRoutes,
   ...CitiesModuleRoutes,

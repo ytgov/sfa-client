@@ -92,6 +92,7 @@ import axios from "axios";
 import { INSTITUTION_URL } from "@/urls";
 import store from "@/store";
 import { mapState } from "vuex";
+import { INSTITUTION_LEVEL_URL } from "../../../urls";
 
 export default {
   data: () => ({
@@ -129,14 +130,14 @@ export default {
   },
   methods: {
     loadLevels() {
-      axios.get(`${INSTITUTION_URL}/levels`).then((resp) => {
+      axios.get(`${INSTITUTION_LEVEL_URL}`).then((resp) => {
         this.levelOptions = resp.data.data;
         this.institution.institution_level_id = this.levelOptions[0].id;
       });
     },
     checkName() {
       axios
-        .get(`${INSTITUTION_URL}?name=${this.institution.name}`)
+        .get(`${INSTITUTION_URL}?nameQ=${this.institution.name}`)
         .then((resp) => {
           if (resp.data.data.length > 0) {
             this.nameError = "This institution already exists";
@@ -159,7 +160,7 @@ export default {
 
       axios
         .get(
-          `${INSTITUTION_URL}?code=${this.institution.federal_institution_code}`
+          `${INSTITUTION_URL}?codeQ=${this.institution.federal_institution_code}`
         )
         .then((resp) => {
           if (resp.data.data.length > 0) {

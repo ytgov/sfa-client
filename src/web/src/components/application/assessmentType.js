@@ -36,7 +36,7 @@ const assessmentComponentList = {
     31: { component: CSGPT, props: { year_to_compare: 2018 } }, // Grant for Part-time Studies
     32: { component: CSGFTDEP, props: { year_to_compare: 2017 } }, // Grant for Students with Dependents FT
     33: { component: CSGPTDEP, props: { year_to_compare: 2018 } }, // Grant for Students with Dependents PT
-    35: { component: CSGFT, props: {} }, // Grant for Full-time Students
+    35: { component: CSGFT, props: { request_type_id: 4 } }, // Grant for Full-time Students
 };
 
 const deadlineCheck = async (applicationId, requestTypeId) => {

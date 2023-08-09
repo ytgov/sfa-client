@@ -181,6 +181,10 @@ e.g
 - `dev build api` will only build the api service
 - `dev logs api` will only watch logs for the api service
 
+### Helpful Customizations
+
+- `API_PORT=3100 dev up` will boot the api service on port 3100 with a base url to match.
+
 ## Contributing code
 
 To process to contribute code to this repository is via pull requests initiated from a forked copy of this repository.
@@ -246,7 +250,7 @@ You can boot the production environment locally via:
 5. Booting the development database.
 
    ```bash
-   dev db
+   dev up db
 
    # Or
    docker compose -f docker-compose.development.yaml up --remove-orphans db
@@ -259,6 +263,8 @@ You can boot the production environment locally via:
    ```
 
    > Note that you must always boot the production app after booting the database.
+
+7. Log in to the app at http://localhost:3000/dashboard.
 
 ### User Acceptance Testing (UAT)
 

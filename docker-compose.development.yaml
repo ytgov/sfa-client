@@ -10,8 +10,11 @@ services:
     environment:
       NODE_ENV: development
       DB_HOST: db
+      DB_DEFAULT_SCHEMA: sfa
+      API_PORT: ${API_PORT:-3000}
+      BASE_URL: "http://localhost:${API_PORT:-3000}"
     ports:
-      - "3000:3000"
+      - "${API_PORT:-3000}:${API_PORT:-3000}"
     volumes:
       - ./src/api:/usr/src/api
     depends_on:
