@@ -4884,7 +4884,7 @@ BEGIN
 END
 GO
 
-CREATE OR ALTER FUNCTION sfa.get_records_for_dat_file(
+CREATE OR ALTER FUNCTION sfa.get_records_for_cheque_req_dat_file(
     @issueDateStr DATE,
     @serial_no INT
 )
