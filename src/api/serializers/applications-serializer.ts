@@ -167,7 +167,7 @@ export default class ApplicationsSerializer {
       gender: person.sex?.description,
       disability: "Permanent",
       maritalStatus: 1,
-      citizenship: 2,
+      citizenship: person.citizenshipCode,
     }
   }
 }

@@ -1,3 +1,4 @@
+import Citizenship from "@/models/citizenship"
 import Language from "@/models/language"
 import PersonAddress from "@/models/person-address"
 import Sex from "@/models/sex"
@@ -19,6 +20,7 @@ export default interface Person {
   telephone?: string
   email?: string
   addresses?: PersonAddress[]
+  citizenship?: Citizenship // foreign key on citizenshipCode
   language?: Language
   sex?: Sex
 }
