@@ -169,6 +169,19 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
         const totalGrantAmount = await this.disbursementRepo.getTotalGrantAmount(this.application.id)
         const grantAmount = await this.disbursementRepo.getGrantAmount(this.application.id, 30);
         this.assessment.total_grant_awarded = totalGrantAmount - grantAmount;
+
+        const cslLookup = await this.cslLookupRepo.getCslLookupByYear(this.application.academic_year_id);
+
+        this.assessment.max_allowable = 0;
+        if (cslLookup) {
+            this.assessment.max_allowable = (cslLookup.allowable_weekly_amount ?? 0) * (this.assessment.study_weeks ?? 0);
+        }
+
+        this.assessment.asset_tax_rate = 0;
+
+        if ((this.assessment.calculated_award ?? 0) === 0) {
+            await this.getCalculatedAward();
+        }
     }
 
     async getContributionValues(): Promise<void> {
@@ -305,6 +318,7 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
                 }
             }
             else {
+                this.global.new_calc = true;
                 this.assessment_id = this.assessment.id;
             }
 
@@ -996,6 +1010,10 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
         this.assessment = assessment;
         this.disbursements = disbursements;
         await this.loadData(funding_request_id, false);
+
+        if (!this.disbursement.delete_flag) {
+            this.disbursement.delete_flag = false;
+        }
         
         this.disbursement.assessment_id = this.assessment.id;
         this.disbursement.funding_request_id = funding_request_id;
@@ -1092,6 +1110,7 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
     async insertUpdateAll(payload: Partial<CslftResultDTO>): Promise<Partial<CslftResultDTO>> {
 
         const result: Partial<CslftResultDTO> = {};
+        let assessment_id = undefined;
 
         if (payload.data) {
             
@@ -1109,11 +1128,12 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
                     }
                 }
             }
+            assessment_id = result.data.id;
         }
 
         if (payload.disbursements)
         {            
-            result.disbursements = await this.processDisbursements(payload.disbursements);
+            result.disbursements = await this.processDisbursements(payload.disbursements, assessment_id);
         }
 
         if (payload.funding_request)
@@ -1150,8 +1170,12 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
         return result[0];
     }
 
-    async processDisbursements(disbursements: Array<DisbursementDTO>): Promise<DisbursementDTO[]> {
+    async processDisbursements(disbursements: Array<DisbursementDTO>, assessment_id?: number): Promise<DisbursementDTO[]> {
         let result: Array<DisbursementDTO> = [];
+        let stored: Array<DisbursementDTO> = [];
+        if (assessment_id) {
+            stored = await this.disbursementRepo.getByAssessmentId(assessment_id);            
+        }
 
         disbursements.forEach(async (x: DisbursementDTO) => {
             const dis = this.disbursementRepo.getDisbursementTable(x);
@@ -1179,6 +1203,18 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
             }
         });
 
+        // Delete missing disbursements
+        if (stored) {
+            stored.forEach(async (x) => {
+                let matched = disbursements.find((d) => d.id === x.id);
+                if (!matched) {
+                    await this.mainDb(this.disbursementRepo.getMainTable())
+                            .where("id", x.id)
+                            .del();
+                }
+            });
+        }
+        
         return result;
     }
 }
