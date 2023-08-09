@@ -152,6 +152,10 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
 
     async getCalculatedValues(): Promise<void> {
 
+        const pDaysDiff = moment.utc(this.assessment.pstudy_end_date).diff(moment.utc(this.assessment.pstudy_start_date), "day");
+        this.assessment.pstudy_weeks = Math.trunc((pDaysDiff + 1)/7 + .9999);
+        this.assessment.pstudy_months = Math.trunc((pDaysDiff + 1)/30.44 + .9999);
+
         // Get the study expenses.
         this.assessment.uncapped_costs_total = await this.getExpenseAmount(this.application.id, 2);
 
@@ -1116,6 +1120,7 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
             
             if (payload.data.id && payload.data.id > 0)
             {
+                console.log(payload.data);
                 result.data = await this.updateAssessment(payload.data.id, payload.data);
             }
             else
