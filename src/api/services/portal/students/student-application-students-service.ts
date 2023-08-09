@@ -68,6 +68,7 @@ export default class StudentApplicationStudentsService {
         }
 
         student.studentConsents = await this.#getStudentConsents(student.id)
+        student.residences = await this.#getResidences(student.id)
 
         return student
       })
@@ -82,5 +83,9 @@ export default class StudentApplicationStudentsService {
 
   #getStudentConsents(studentId: number) {
     return db("studentConsent").where({ studentId })
+  }
+
+  #getResidences(studentId: number) {
+    return db("residence").where({ studentId })
   }
 }

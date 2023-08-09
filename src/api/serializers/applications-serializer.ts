@@ -1,4 +1,4 @@
-import { compact, isArray, isEmpty, sumBy, uniq } from "lodash"
+import { compact, isArray, isEmpty, last, sortBy, sumBy, uniq } from "lodash"
 
 import { NON_EXISTANT_ID } from "@/utils/constants"
 
@@ -11,6 +11,7 @@ import FundingSource from "@/models/funding-source"
 import Institution from "@/models/institution"
 import Person from "@/models/person"
 import PersonAddress from "@/models/person-address"
+import Residence from "@/models/residence"
 import Student from "@/models/student"
 import StudentConsent from "@/models/student-consent"
 
@@ -70,6 +71,10 @@ export default class ApplicationsSerializer {
       ),
       consent: this.#consentSection(
         this.#application.student?.studentConsents || ([] as StudentConsent[])
+      ),
+      residency: this.#residencySection(
+        this.#application,
+        this.#application.student?.residences || ([] as Residence[])
       ),
       // TODO: investigate if I need a "parents" field
     }
@@ -213,5 +218,36 @@ export default class ApplicationsSerializer {
     const allowOthers = !isEmpty(relevantConsents)
 
     return { consents, allowOthers }
+  }
+
+  #residencySection(application: Application, residences: Residence[]) {
+    const sortedResidences = sortBy(residences, [
+      (residence) => `${residence.fromYear}/${residence.fromMonth}`,
+      (residence) => `${residence.toYear}/${residence.toMonth}`,
+    ])
+
+    const residencyHistory = sortedResidences.map((residence) => ({
+      start: `${residence.fromYear}/${residence.fromMonth}`,
+      end: `${residence.toYear}/${residence.toMonth}`,
+      city: residence.cityId,
+      province: residence.provinceId,
+      country: residence.countryId,
+      inSchool: residence.inSchool,
+    }))
+
+    const lastResidency = last(sortedResidences)
+
+    let hasTraveled = false
+    let lastReturnDate = null
+    if (lastResidency !== undefined) {
+      hasTraveled = true
+      lastReturnDate = `${lastResidency.toYear}/${lastResidency.toMonth}`
+    }
+
+    return {
+      residencyHistory,
+      hasTraveled,
+      lastReturnDate,
+    }
   }
 }
