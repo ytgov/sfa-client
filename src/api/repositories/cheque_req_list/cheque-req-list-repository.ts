@@ -226,7 +226,7 @@ export class ChequeReqList extends BaseRepository {
     ): Promise<any[] | undefined> {
         try {
             const records = await this.mainDb.raw(`
-                SELECT * FROM sfa.get_records_for_dat_file('${issueDate}', ${serial_no});
+                SELECT * FROM sfa.get_records_for_cheque_req_dat_file('${issueDate}', ${serial_no});
             `); //recordsForDATFile
 
             return records;
