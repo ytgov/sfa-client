@@ -40,6 +40,11 @@ export default class ApplicationsSerializer {
     })
   }
 
+  // FUTURE: this should accept multiple "view" options
+  // with custom views moved to their own serializer
+  // e.g. 'PORTAL_STUDENT_VIEW' vs. default application view
+  // Its also might be a good idea to move most of this logic to the front-end
+  // and simply serve up the sanitized model data here instead
   asDetailedView() {
     return {
       termsAgree: true,
