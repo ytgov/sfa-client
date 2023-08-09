@@ -1,5 +1,5 @@
 
-CREATE TABLE sfaadmin.msfaa_import (
+CREATE TABLE sfa.msfaa_import (
     agreement_number varchar(10) NULL,
     sin varchar(9) NULL,
     status_code varchar(1) NULL,
