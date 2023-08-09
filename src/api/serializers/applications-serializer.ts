@@ -76,6 +76,7 @@ export default class ApplicationsSerializer {
         this.#application,
         this.#application.student?.residences || ([] as Residence[])
       ),
+      education: this.#educationAssociation(),
       // TODO: investigate if I need a "parents" field
     }
   }
@@ -248,6 +249,13 @@ export default class ApplicationsSerializer {
       residencyHistory,
       hasTraveled,
       lastReturnDate,
+    }
+  }
+
+  #educationAssociation() {
+    // TODO: replace with real data
+    return {
+      educationHistory: [{ leftHighSchool: "2023/02", school: 310 }],
     }
   }
 }
