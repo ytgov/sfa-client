@@ -1096,6 +1096,7 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
     async insertUpdateAll(payload: Partial<CslftResultDTO>): Promise<Partial<CslftResultDTO>> {
 
         const result: Partial<CslftResultDTO> = {};
+        let assessment_id = undefined;
 
         if (payload.data) {
             
@@ -1113,11 +1114,12 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
                     }
                 }
             }
+            assessment_id = result.data.id;
         }
 
         if (payload.disbursements)
         {            
-            result.disbursements = await this.processDisbursements(payload.disbursements);
+            result.disbursements = await this.processDisbursements(payload.disbursements, assessment_id);
         }
 
         if (payload.funding_request)
@@ -1154,8 +1156,12 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
         return result[0];
     }
 
-    async processDisbursements(disbursements: Array<DisbursementDTO>): Promise<DisbursementDTO[]> {
+    async processDisbursements(disbursements: Array<DisbursementDTO>, assessment_id?: number): Promise<DisbursementDTO[]> {
         let result: Array<DisbursementDTO> = [];
+        let stored: Array<DisbursementDTO> = [];
+        if (assessment_id) {
+            stored = await this.disbursementRepo.getByAssessmentId(assessment_id);            
+        }
 
         disbursements.forEach(async (x: DisbursementDTO) => {
             const dis = this.disbursementRepo.getDisbursementTable(x);
@@ -1183,6 +1189,18 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
             }
         });
 
+        // Delete missing disbursements
+        if (stored) {
+            stored.forEach(async (x) => {
+                let matched = disbursements.find((d) => d.id === x.id);
+                if (!matched) {
+                    await this.mainDb(this.disbursementRepo.getMainTable())
+                            .where("id", x.id)
+                            .del();
+                }
+            });
+        }
+        
         return result;
     }
 }

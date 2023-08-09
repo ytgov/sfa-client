@@ -38,6 +38,9 @@ const mutations = {
         disbursement.delete_flag = false;
         state.cslft_disbursement.push(disbursement);
     },
+    removeCslftDisbursement(state, index) {
+        state.cslft_disbursement.splice(index, 1);
+    },
     loadFundingRequest(state, funding_request) {
         state.funding_request = funding_request;
     },
@@ -132,6 +135,9 @@ const actions = {
     },
     async setDefaultCslftDisbursement(state) {
         state.commit("setDefaultCslftDisbursement");
+    },
+    async removeCslftDisbursement(state, index) {
+        state.commit("removeCslftDisbursement", index);
     },
     async saveCslftAssessment({ getters, dispatch }, vm) {
         const assessment = getters.cslft_get_assessment;

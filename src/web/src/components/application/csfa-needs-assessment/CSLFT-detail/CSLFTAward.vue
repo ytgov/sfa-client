@@ -306,120 +306,13 @@
           </div>
         </div>
       </v-card-text>
-    </v-card>
-    <div class="col-lg-12">
-      <v-card class="default mb-5 bg-color-blue">
-        <v-card-title>Disbursement (s)</v-card-title>
-        <div class="col-xs-12 col-sm-12 col-lg-12 d-flex noppading-bottom">
-          <div class="col-xs-1 col-sm-1 col-lg-1 nopadding d-flex align-center justify-center">
-            <p class="nomargin">Reference #</p>
-          </div>
-          <div class="col-xs-2 col-sm-2 col-lg-2 nopadding d-flex align-center justify-center">
-            <p class="nomargin">Disbursed Amt</p>
-          </div>
-          <div class="col-xs-2 col-sm-2 col-lg-2 nopadding d-flex align-center justify-center">
-            <p class="nomargin">Disbursement Type</p>
-          </div>
-          <div class="col-xs-1 col-sm-1 col-lg-1 nopadding d-flex align-center justify-center">
-            <p class="nomargin">Due Date</p>
-          </div>
-          <div class="col-xs-1 col-sm-1 col-lg-1 nopadding d-flex align-center justify-center">
-            <p class="nomargin">Issue Date</p>
-          </div>
-          <div class="col-xs-4 col-sm-4 col-lg-4 nopadding d-flex align-center justify-center">
-            <p class="nomargin">Change Reason</p>
-          </div>
-          <div class="col-xs-1 col-sm-1 col-lg-1 nopadding d-flex align-center justify-center">
-            <p class="nomargin">Batch ID</p>
-          </div>
-        </div>        
-        <div class="col-xs-12 col-sm-12 col-lg-12 d-flex low-margin noppading-top" v-for="disbursement, idx in cslft_disbursement" :key="idx">
-          {{ disbursement.delete_flag }}          
-          <div class="col-xs-1 col-sm-1 col-lg-1 nopadding">            
-            <v-text-field
-              outlined
-              dense
-              background-color="white"
-              hide-details
-              @keypress="validate.isNumber($event)"
-              v-model="disbursement.transaction_number"
-            ></v-text-field>
-          </div>
-          <div class="col-xs-2 col-sm-2 col-lg-2 nopadding">
-            <v-text-field
-              outlined
-              dense
-              background-color="white"
-              hide-details
-              @keypress="validate.isNumber($event)"
-              v-model="disbursement.disbursed_amount"
-            ></v-text-field>
-          </div>
-          <div class="col-xs-2 col-sm-2 col-lg-2 nopadding">
-            <v-select
-              :disabled="blockDisbursement"
-              outlined
-              dense
-              background-color="white"
-              hide-details
-              v-model="disbursement.disbursement_type_id"
-              :items="disbursementTypes"
-              item-text="description"
-              item-value="id"
-            ></v-select>
-          </div>
-          <div class="col-xs-1 col-sm-1 col-lg-1 nopadding">
-            <DateInput
-              label="Due Date"
-              :menu="due_date_menu"
-              :disabled="blockDisbursement"
-              v-model="disbursement.due_date"
-            ></DateInput>
-          </div>
-          <div class="col-xs-1 col-sm-1 col-lg-1 nopadding">
-            <DateInput
-              label="Issue Date"
-              :menu="issue_date_menu"
-              :disabled="true"
-              v-model="disbursement.issue_date"
-            ></DateInput>
-          </div>
-          <div class="col-xs-4 col-sm-4 col-lg-4 nopadding">
-            <v-select
-              :disabled="blockDisbursement"
-              outlined
-              dense
-              background-color="white"
-              hide-details
-              v-model="disbursement.change_reason_id"
-              :items="changeReasons"
-              item-text="description"
-              item-value="id"
-            ></v-select>
-          </div>
-          <div class="col-xs-1 col-sm-1 col-lg-1 nopadding">
-            <v-text-field
-              outlined
-              dense
-              background-color="white"
-              hide-details
-              @keypress="validate.isNumber($event)"
-              v-model="disbursement.financial_batch_id"
-            ></v-text-field>
-          </div>
-        </div>
-      </v-card>
-    </div>
-    <div class="col-lg-12">
-      <DisbursementList
-        :applicationId="this.applicationId"
-        :fundingRequestId="cslft.funding_request_id"
-        :disbursementList="cslft_disbursement"
-        :singleDisbursement="singleDisbursement"
-        @list-filtered="disbursementListFiltered"
-      >
-      </DisbursementList>
-    </div>
+    </v-card>    
+    <DisbursementList
+      :applicationId="this.applicationId"
+      :fundingRequestId="cslft.funding_request_id"
+      :disbursementList="cslft_disbursement"
+    >
+    </DisbursementList>
   </div>
 </template>
 <script>
@@ -486,17 +379,6 @@ export default {
         return dateHelper.getDateFromUTC(value);
       }
       return null;
-    },
-    disbursementListFiltered(value) {
-      console.log("filtered:", value);
-      if (value.length === 0) {
-        store.dispatch("setDefaultCslftDisbursement");
-        this.singleDisbursement = true;
-      }
-      else {
-        this.singleDisbursement = false;
-      }
-      this.filtered = value;
     }
   },
   watch: {
@@ -512,7 +394,7 @@ export default {
         store.dispatch("setCslftNetAmount", newVal);
       }
     },
-    filtered: {
+    cslft_disbursement: {
       immediate: true,
       deep: true,
       handler(newVal) {
@@ -525,6 +407,10 @@ export default {
             prevDis = 0;
           }
           store.dispatch("setPreviousDisbursement", prevDis);
+        }
+
+        if (newVal.length === 0) {
+          store.dispatch("setDefaultCslftDisbursement");
         }
       }
     }

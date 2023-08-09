@@ -1,127 +1,130 @@
 <template>
-    <div class="col-lg-12">
-        <v-card class="default mb-5 bg-color-blue">
-            
-          <div v-if="smallTitle" class="col-lg-12 d-flex align-center  line-jump-height">
-            <H3 class="nomargin nopadding">Disbursement (s)</H3>
-          </div>
-          <v-card-title v-else>Disbursement (s)</v-card-title>
-          
-          <div class="col-xs-12 col-sm-12 col-lg-12 d-flex noppading-bottom">
-            <div class="col-xs-1 col-sm-1 col-lg-1 nopadding d-flex align-center justify-center">
-              <p class="nomargin">Reference #</p>
-            </div>
-            <div class="col-xs-2 col-sm-2 col-lg-2 nopadding d-flex align-center justify-center">
-              <p class="nomargin">Disbursed Amt</p>
-            </div>
-            <div class="col-xs-2 col-sm-2 col-lg-2 nopadding d-flex align-center justify-center">
-              <p class="nomargin">Disbursement Type</p>
-            </div>
-            <div class="col-xs-1 col-sm-1 col-lg-1 nopadding d-flex align-center justify-center">
-              <p class="nomargin">Due Date</p>
-            </div>
-            <div class="col-xs-1 col-sm-1 col-lg-1 nopadding d-flex align-center justify-center">
-              <p class="nomargin">Issue Date</p>
-            </div>
-            <div class="col-xs-4 col-sm-4 col-lg-4 nopadding d-flex align-center justify-center">
-              <p class="nomargin">Change Reason</p>
-            </div>
-            <div class="col-xs-1 col-sm-1 col-lg-1 nopadding d-flex align-center justify-center">
-              <p class="nomargin">Batch ID</p>
-            </div>
-          </div>        
-          <div class="col-xs-12 col-sm-12 col-lg-12 d-flex low-margin noppading-top" v-for="disbursement, idx in disbursementList.filter((x) => !x.delete_flag)" :key="idx">          
-            <div class="col-xs-1 col-sm-1 col-lg-1 nopadding">            
-              <v-text-field
-                outlined
-                dense
-                background-color="white"
-                hide-details
-                @keypress="validate.isNumber($event)"
-                v-model="disbursement.transaction_number"
-              ></v-text-field>
-            </div>
-            <div class="col-xs-2 col-sm-2 col-lg-2 nopadding">
-              <v-text-field
-                outlined
-                dense
-                background-color="white"
-                hide-details
-                @keypress="validate.isNumber($event)"
-                v-model="disbursement.disbursed_amount"
-              ></v-text-field>
-            </div>
-            <div class="col-xs-2 col-sm-2 col-lg-2 nopadding">
-              <v-select
-                :disabled="blockDisbursement"
-                outlined
-                dense
-                background-color="white"
-                hide-details
-                v-model="disbursement.disbursement_type_id"
-                :items="disbursementTypes"
-                item-text="description"
-                item-value="id"
-              ></v-select>
-            </div>
-            <div class="col-xs-1 col-sm-1 col-lg-1 nopadding">
-              <DateInput
-                label="Due Date"
-                :menu="due_date_menu"
-                :disabled="blockDisbursement"
-                v-model="disbursement.due_date"
-              ></DateInput>
-            </div>
-            <div class="col-xs-1 col-sm-1 col-lg-1 nopadding">
-              <DateInput
-                label="Issue Date"
-                :menu="issue_date_menu"
-                :disabled="true"
-                v-model="disbursement.issue_date"
-              ></DateInput>
-            </div>
-            <div class="col-xs-4 col-sm-4 col-lg-4 nopadding">
-              <v-select
-                :disabled="blockDisbursement"
-                outlined
-                dense
-                background-color="white"
-                hide-details
-                v-model="disbursement.change_reason_id"
-                :items="changeReasons"
-                item-text="description"
-                item-value="id"
-              ></v-select>
-            </div>
-            <div class="col-xs-1 col-sm-1 col-lg-1 nopadding">
-              <v-text-field
-                outlined
-                dense
-                background-color="white"
-                hide-details
-                @keypress="validate.isNumber($event)"
-                v-model="disbursement.financial_batch_id"
-              ></v-text-field>
-            </div>
-            <div class="col-xs-1 col-sm-1 col-lg-1 nopadding">
-              <v-switch label="Change Flag" v-model="disbursement.delete_flag" v-if="!singleDisbursement">
-              </v-switch>
-            </div>
-          </div>
-            {{ allowDelete }}
-          <div class="col-xs-12 col-sm-12 col-lg-12 d-flex noppading-bottom" v-if="showAdd">
-            <div class="col-xs-12 col-sm-12 col-lg-12 nopadding d-flex align-end justify-end">
-                <v-btn @click="e => {
-                  addDisbursement();
-                }" color="success" class=""
-                >
-                  Add
-                </v-btn>
-            </div>
-          </div>
-        </v-card>
-        <confirm-dialog ref="confirm"></confirm-dialog>
-    </div>
+  <div>
+    <v-card class="default mb-5 bg-color-blue">
+        
+      <div v-if="smallTitle" class="col-lg-12 d-flex align-center  line-jump-height">
+        <H3 class="nomargin nopadding">Disbursement (s)</H3>
+      </div>
+      <v-card-title v-else>Disbursement (s)</v-card-title>
+      
+      <div class="col-xs-12 col-sm-12 col-lg-12 d-flex noppading-bottom">
+        <div class="col-xs-1 col-sm-1 col-lg-1 nopadding d-flex align-center justify-center">
+          <p class="nomargin">Reference #</p>
+        </div>
+        <div class="col-xs-2 col-sm-2 col-lg-2 nopadding d-flex align-center justify-center">
+          <p class="nomargin">Disbursed Amt</p>
+        </div>
+        <div class="col-xs-2 col-sm-2 col-lg-2 nopadding d-flex align-center justify-center">
+          <p class="nomargin">Disbursement Type</p>
+        </div>
+        <div class="col-xs-1 col-sm-1 col-lg-1 nopadding d-flex align-center justify-center">
+          <p class="nomargin">Due Date</p>
+        </div>
+        <div class="col-xs-1 col-sm-1 col-lg-1 nopadding d-flex align-center justify-center">
+          <p class="nomargin">Issue Date</p>
+        </div>
+        <div class="col-xs-3 col-sm-3 col-lg-3 nopadding d-flex align-center justify-center">
+          <p class="nomargin">Change Reason</p>
+        </div>
+        <div class="col-xs-1 col-sm-1 col-lg-1 nopadding d-flex align-center justify-center">
+          <p class="nomargin">Batch ID</p>
+        </div>
+        <div class="col-xs-1 col-sm-1 col-lg-1 nopadding d-flex align-center justify-center">
+          <p class="nomargin"></p>
+        </div>
+      </div>        
+      <div class="col-xs-12 col-sm-12 col-lg-12 d-flex low-margin noppading-top" v-for="disbursement, idx in disbursementList" :key="idx">          
+        <div class="col-xs-1 col-sm-1 col-lg-1 nopadding">            
+          <v-text-field
+            outlined
+            dense
+            background-color="white"
+            hide-details
+            @keypress="validate.isNumber($event)"
+            v-model="disbursement.transaction_number"
+          ></v-text-field>
+        </div>
+        <div class="col-xs-2 col-sm-2 col-lg-2 nopadding">
+          <v-text-field
+            outlined
+            dense
+            background-color="white"
+            hide-details
+            @keypress="validate.isNumber($event)"
+            v-model="disbursement.disbursed_amount"
+          ></v-text-field>
+        </div>
+        <div class="col-xs-2 col-sm-2 col-lg-2 nopadding">
+          <v-select
+            :disabled="blockDisbursement"
+            outlined
+            dense
+            background-color="white"
+            hide-details
+            v-model="disbursement.disbursement_type_id"
+            :items="disbursementTypes"
+            item-text="description"
+            item-value="id"
+          ></v-select>
+        </div>
+        <div class="col-xs-1 col-sm-1 col-lg-1 nopadding">
+          <DateInput
+            label="Due Date"
+            :menu="due_date_menu"
+            :disabled="blockDisbursement"
+            v-model="disbursement.due_date"
+          ></DateInput>
+        </div>
+        <div class="col-xs-1 col-sm-1 col-lg-1 nopadding">
+          <DateInput
+            label="Issue Date"
+            :menu="issue_date_menu"
+            :disabled="true"
+            v-model="disbursement.issue_date"
+          ></DateInput>
+        </div>
+        <div class="col-xs-3 col-sm-3 col-lg-3 nopadding">
+          <v-select
+            :disabled="blockDisbursement"
+            outlined
+            dense
+            background-color="white"
+            hide-details
+            v-model="disbursement.change_reason_id"
+            :items="changeReasons"
+            item-text="description"
+            item-value="id"
+          ></v-select>
+        </div>
+        <div class="col-xs-1 col-sm-1 col-lg-1 nopadding">
+          <v-text-field
+            outlined
+            dense
+            background-color="white"
+            hide-details
+            @keypress="validate.isNumber($event)"
+            v-model="disbursement.financial_batch_id"
+          ></v-text-field>
+        </div>
+        <div class="col-xs-1 col-sm-1 col-lg-1 nopadding d-flex justify-center">
+            <v-btn color="error" x-small fab class="my-1" @click="removeDisbursement(idx)">
+                <v-icon>mdi-delete</v-icon>
+            </v-btn>
+        </div>
+      </div>
+      <div class="col-xs-12 col-sm-12 col-lg-12 d-flex noppading-bottom" v-if="showAdd">
+        <div class="col-xs-12 col-sm-12 col-lg-12 nopadding d-flex align-end justify-end">
+            <v-btn @click="e => {
+              addDisbursement();
+            }" color="success" class=""
+            >
+              Add
+            </v-btn>
+        </div>
+      </div>
+    </v-card>
+    <confirm-dialog ref="confirm"></confirm-dialog>
+  </div>
 </template>
 
 <script>
@@ -138,26 +141,13 @@ export default {
   props: {
     refreshFrom: String,
     disbursementList: Array,
-    singleDisbursement: Boolean,
     smallTitle: {
       type: Boolean,
       default: false
     },
   },
-  emits: ["list-filtered"],
-  watch: {
-    disbursementList: {
-      deep: true,
-      immediate: true,
-      handler(newVal) {
-        const filtered = newVal.filter((x) => !x.delete_flag);
-        this.$emit("list-filtered", filtered);
-      }
-    }
-  },
   data() {
     return {
-      allowDelete: true,
       blockDisbursement: false,
       showAdd: false,
       currentIndex: null,
@@ -180,56 +170,12 @@ export default {
     };
   },
   methods: {
-    setShow(show) {
-      this.newDibursement = {};
-      this.$emit('blockDisburse', show);
-      this.show = show;
-    },
-    editing(disbursement, index) {
-      if (this.currentEditing === null) {
-        this.currentIndex = index;
-        this.$emit("blockDisburse", true);
-        this.$emit("currentEditing", true);
-        this.currentEditing = disbursement;
-      }
-
-    },
-    closeEditor() {
-      const list = [ ...this.disbursements ];
-      list[this.currentIndex] = { ...this.currentEditing };
-      store.dispatch("backDisbursement", list);
-      this.$emit("blockDisburse", false);
-      this.$emit("currentEditing", false);
-      this.currentEditing = null;
-      this.currentIndex = null;
-    },
-    saveEdition() {
-      this.$emit("blockDisburse", false);
-      this.$emit("currentEditing", false);
-      this.currentEditing = null;
-    },
-    saveDisbursement(item) {
-      store.dispatch("updateCslDisbursement", {
-        data: { ...item },
-        disbursement_id: item.id,
-        application_id: this.application.id,
-        funding_request_id: this.fundingRequestId, 
-        emiter: this
-      });
-    },
-    addDisbursement() {
-      store.dispatch("addItemPreviewCslDisbursementList");
-    },
-    cancelDisbursement(index = -1) {
-      store.dispatch("cancelItemPreviewCslDisbursementList", { index });
-      this.refreshData();
-    },
-    removeDisbursement(id) {
+    removeDisbursement(idx) {
       this.$refs.confirm.show(
         "Are you sure?",
         "Click 'Confirm' below to permanently remove this disbursement.",
         () => {
-          store.dispatch("removeCslDisbursement", {  application_id: this.application.id, emiter:this, disbursement_id: id, funding_request_id: this.fundingRequestId });
+          store.dispatch("removeCslftDisbursement", idx);
         },
         () => {}
       );
@@ -239,26 +185,6 @@ export default {
     },
     showError(mgs) {
       this.$emit("showError", mgs);
-    },
-    refreshData() {
-      const previewDisburseAmountsList = this.previewDisbursementList?.map(d => {
-        return Number(d.disbursed_amount);
-      }) || [];
-      
-      const disburseFilter = this.disbursements?.filter(d => d.assessment_id === this.customAssessment?.id )
-      let disburseAmountsList = [];
-      
-      if (disburseFilter?.length) {
-        disburseAmountsList = disburseFilter.map(d => {
-          return Number(d.disbursed_amount);
-        }) || [];
-      }
-
-      store.dispatch(this.dispatchRefreshFrom, { 
-        application_id: this.application.id, 
-        data: { ...this.customAssessment , program_division: this.application.program_division },
-        disburseAmountList: [ ...previewDisburseAmountsList, ...disburseAmountsList ],
-      });
     },
   },
   computed: {
