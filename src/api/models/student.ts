@@ -1,4 +1,5 @@
 import Person from "@/models/person"
+import StudentConsent from "@/models/student-consent"
 
 export default interface Student {
   id: number
@@ -46,4 +47,5 @@ export default interface Student {
   kinCountryId?: number
   kinPostalCode?: string
   person?: Person
+  studentConsents?: StudentConsent[]
 }
