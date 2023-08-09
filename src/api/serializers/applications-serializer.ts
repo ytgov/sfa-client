@@ -66,6 +66,7 @@ export default class ApplicationsSerializer {
 
   #programDetailsSection(application: Application) {
     return {
+      attendanceId: application.attendanceId,
       attendance: application.attendance?.description,
       durationOfProgram: application.programYearTotal, // duplicate of programDuration
       endDateOfClasses: application.classesEndDate,
