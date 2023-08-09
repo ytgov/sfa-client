@@ -116,6 +116,8 @@
                     background-color="white"
                     hide-details
                     label="Contribution Override"
+                    type="number"
+                    hide-spin-buttons
                     @keypress="validate.isNumber($event)"
                     v-model="cslft.student_contribution_override"
                   ></v-text-field>
@@ -246,6 +248,8 @@
                     background-color="white"
                     hide-details
                     label="Contribution Override"
+                    type="number"
+                    hide-spin-buttons
                     @keypress="validate.isNumber($event)"
                     v-model="cslft.spouse_contribution_override"
                   ></v-text-field>
@@ -275,6 +279,8 @@
                 hide-details
                 label="Gross"
                 @keypress="validate.isNumber($event)"
+                type="number"
+                hide-spin-buttons
                 v-model="cslft.other_income"
               ></v-text-field>
             </div>
@@ -333,7 +339,7 @@
                   hide-details
                   @keypress="validate.isNumber($event)"
                   :disabled="isTotal"
-                  v-model="cslft.combined_contribution"
+                  v-model="cslft_total_assets_combined_contribution"
                 ></v-text-field>
               </div>
             </div>
@@ -361,6 +367,7 @@ export default {
   computed: {
     ...mapGetters([
       "cslft_total_assets",
+      "cslft_total_assets_combined_contribution"
     ]),
     ...mapState({
       cslft: state => state.cslft.cslft
