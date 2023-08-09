@@ -66,6 +66,9 @@ export default class StudentApplicationStudentsService {
           const personAddresses = await this.#getPersonAddresses(student.personId)
           student.person.personAddresses = personAddresses
         }
+
+        student.studentConsents = await this.#getStudentConsents(student.id)
+
         return student
       })
   }
@@ -75,5 +78,9 @@ export default class StudentApplicationStudentsService {
       .select("id", "addressTypeId", "address1", "cityId", "provinceId", "postalCode")
       .from("personAddress")
       .where({ personId })
+  }
+
+  #getStudentConsents(studentId: number) {
+    return db("studentConsent").where({ studentId })
   }
 }

@@ -1,4 +1,4 @@
-import { compact, isArray, sumBy, uniq } from "lodash"
+import { compact, isArray, isEmpty, sumBy, uniq } from "lodash"
 
 import { NON_EXISTANT_ID } from "@/utils/constants"
 
@@ -12,6 +12,7 @@ import Institution from "@/models/institution"
 import Person from "@/models/person"
 import PersonAddress from "@/models/person-address"
 import Student from "@/models/student"
+import StudentConsent from "@/models/student-consent"
 
 export default class ApplicationsSerializer {
   #applications: Application[] = []
@@ -66,6 +67,9 @@ export default class ApplicationsSerializer {
         this.#application,
         this.#application.student || ({} as Student),
         this.#application.student?.person || ({} as Person)
+      ),
+      consent: this.#consentSection(
+        this.#application.student?.studentConsents || ([] as StudentConsent[])
       ),
       // TODO: investigate if I need a "parents" field
     }
@@ -147,7 +151,9 @@ export default class ApplicationsSerializer {
       personAddresses.find((address) => address.addressTypeId === AddressType.Types.SCHOOL) ||
       ({ id: NON_EXISTANT_ID } as PersonAddress)
 
-    const nonPrimaryAddresses = personAddresses.filter((address) => address.id !== primaryAddress.id)
+    const nonPrimaryAddresses = personAddresses.filter(
+      (address) => address.id !== primaryAddress.id
+    )
     const secondaryAddress =
       nonPrimaryAddresses.find((address) => address.addressTypeId === AddressType.Types.HOME) ||
       nonPrimaryAddresses.find((address) => address.addressTypeId === AddressType.Types.SCHOOL) ||
@@ -195,5 +201,17 @@ export default class ApplicationsSerializer {
     } else {
       return Disability.Types.OTHER
     }
+  }
+
+  #consentSection(studentConsents: StudentConsent[]) {
+    const relevantConsents = studentConsents.filter(
+      (consent) => consent.consentSfa === true && consent.consentCsl === true
+    )
+
+    const consents = relevantConsents.map((consent) => ({ person: consent.consentPerson }))
+
+    const allowOthers = !isEmpty(relevantConsents)
+
+    return { consents, allowOthers }
   }
 }
