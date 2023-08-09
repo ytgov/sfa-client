@@ -196,4 +196,5 @@ export const defaultDisbursement = {
     ecert_response_date: null,
     ecert_status: null,
     ecert_portal_status_id: null,
+    delete_flag: false,
 };
