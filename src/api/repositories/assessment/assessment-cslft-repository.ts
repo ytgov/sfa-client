@@ -169,6 +169,19 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
         const totalGrantAmount = await this.disbursementRepo.getTotalGrantAmount(this.application.id)
         const grantAmount = await this.disbursementRepo.getGrantAmount(this.application.id, 30);
         this.assessment.total_grant_awarded = totalGrantAmount - grantAmount;
+
+        const cslLookup = await this.cslLookupRepo.getCslLookupByYear(this.application.academic_year_id);
+
+        this.assessment.max_allowable = 0;
+        if (cslLookup) {
+            this.assessment.max_allowable = (cslLookup.allowable_weekly_amount ?? 0) * (this.assessment.study_weeks ?? 0);
+        }
+
+        this.assessment.asset_tax_rate = 0;
+
+        if ((this.assessment.calculated_award ?? 0) === 0) {
+            await this.getCalculatedAward();
+        }
     }
 
     async getContributionValues(): Promise<void> {
@@ -305,6 +318,7 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
                 }
             }
             else {
+                this.global.new_calc = true;
                 this.assessment_id = this.assessment.id;
             }
 

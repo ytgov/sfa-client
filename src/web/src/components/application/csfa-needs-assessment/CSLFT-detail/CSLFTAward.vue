@@ -177,7 +177,7 @@
                       hide-details
                       label="Returned/Uncashable Cert"
                       @keypress="validate.isNumber($event)"
-                      v-model="cslft.returned_uncashable_cert"
+                      v-model="cslft.return_uncashable_cert"
                     ></v-text-field>
                   </div>
                 </div>
