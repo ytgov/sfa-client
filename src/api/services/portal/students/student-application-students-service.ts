@@ -26,8 +26,8 @@ export default class StudentApplicationStudentsService {
       })
       .from("student")
       .innerJoin("person", "person.id", "student.personId")
-      .innerJoin("language", "language.id", "person.languageId")
-      .innerJoin("sex", "sex.id", "person.sexId")
+      .leftJoin("language", "language.id", "person.languageId")
+      .leftJoin("sex", "sex.id", "person.sexId")
       .where({ ["student.id"]: this.#studentId })
       .first()
       .then((result) => {
