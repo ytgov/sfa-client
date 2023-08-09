@@ -239,17 +239,14 @@ export class ChequeReqList extends BaseRepository {
         issueDateStr: string,
         serialNo: number
     ): string {
-        // Convertir la fecha a formato RRMMDD
         const issueDate = new Date(issueDateStr);
 
         const formattedDate = issueDate.getFullYear().toString().slice(-2) +
                              ('0' + (issueDate.getMonth() + 1)).slice(-2) +
                              ('0' + issueDate.getDate()).slice(-2);
     
-        // Convertir el número de serie a una cadena de 2 dígitos con ceros a la izquierda si es necesario
         const formattedSerialNo = ('0' + serialNo).slice(-2);
     
-        // Generar el nombre del archivo
         const fileName = 'SFVO_' + formattedDate + '_' + formattedSerialNo + '.dat';
         
         return fileName;
