@@ -134,7 +134,7 @@ export class AssessmentSTA extends AssessmentBaseRepository {
 
         ]);
         values.assessed_weeks = await this.getScalarValue<number>("fn_get_allowed_weeks", [
-            `'${moment(values.classes_start_date).format("YYYY-MM-DD")}'`,
+            `'${moment(values.effective_rate_date).format("YYYY-MM-DD")}'`,
             `'${moment(values.classes_end_date).format("YYYY-MM-DD")}'`
         ]);
         values.previous_upgrade_weeks = await this.getScalarValue<number>("fn_get_previous_weeks_sfa", [
@@ -189,8 +189,9 @@ export class AssessmentSTA extends AssessmentBaseRepository {
             this.application.id || 0
 
         ]);
+
         refreshData.assessed_weeks = await this.getScalarValue<number>("fn_get_allowed_weeks", [
-            `'${moment(refreshData.classes_start_date).format("YYYY-MM-DD")}'`,
+            `'${moment(refreshData.effective_rate_date).format("YYYY-MM-DD")}'`,
             `'${moment(refreshData.classes_end_date).format("YYYY-MM-DD")}'`
         ]);
 

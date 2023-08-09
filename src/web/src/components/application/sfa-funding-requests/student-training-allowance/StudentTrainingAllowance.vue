@@ -82,13 +82,11 @@
                     background-color="white" 
                     hide-details
                     :items="itemOptions"
-                    :value="!!STARequest.student_is_maintening_two_residences"
+                    :value="!!application.is_two_residence"
                     @input="e => {
-                        STARequest.student_is_maintening_two_residences = e;
+                        application.is_two_residence = e;
                     }"
-                    @change="updateFundingRequest({
-                        student_is_maintening_two_residences: STARequest.student_is_maintening_two_residences
-                    }, STARequest.id)"
+                    @change="doSaveApp('is_two_residence', application.is_two_residence, application.id)"
                 >
                 </v-select>
             </div>

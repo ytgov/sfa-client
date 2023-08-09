@@ -1,8 +1,7 @@
 export const defaultState = () => {
     return {
         funding_request: {},
-        uncapped_expenses: [],
-        cslft: {
+        csgft: {
             id: null,
             air_travel_disbursement_period: null,
             airfare_amount: null,
@@ -130,7 +129,14 @@ export const defaultState = () => {
             parent_discretionary_income: null,
             parent_weekly_contrib: null,
             calculated_award: null,
-            max_allowable: null,
+            weekly_rate: null,
+            phase_out_rate: null,
+            weekly_phase_out_rate: null,
+            last_issue_date: null,
+            last_due_date: null,
+            second_last_issue_date: null,
+            second_last_due_date: null,
+            category_desc: null,
         },
         csl_lookup: {
             id: null,
@@ -154,24 +160,9 @@ export const defaultState = () => {
             csl_pt_max_amount: null,
             csl_pt_wk_misc_amount: null,
         },
-        cslft_disbursement: [
+        csgft_disbursement: [
             defaultDisbursement
         ],
-        cslft_msfaa: {
-            id: null,
-            application_id: null,
-            student_id: null,
-            sent_date: null,
-            signed_date: null,
-            received_date: null,
-            cancel_date: null,
-            msfaa_status: null,
-            cancel_reason: null,
-            sent_seq_number: null,
-            last_reminder_sent: null,
-            is_full_time: null,
-        },
-        cslft_e_certs: []
     };
 };
 
