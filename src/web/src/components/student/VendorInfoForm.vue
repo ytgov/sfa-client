@@ -16,7 +16,6 @@
                                 color="success"
                                 block
                                 @click="e => {
-                                    getVendorList();
                                     showModal();
                                 }"
                                 >
@@ -105,7 +104,7 @@
             <v-card-text>
                 <div class="row">
                     <div class="col-md-3 mb-n2">
-                    <v-text-subtitle class="text-subtitle-1">Permanent Address</v-text-subtitle>
+                    <div class="text-subtitle-1">Permanent Address</div>
                     </div>
                 </div> 
                 <div class="row">
@@ -208,7 +207,7 @@
             <v-card-text>
                 <div class="row">
                     <div class="col-md-3 mb-n2">
-                    <v-text-subtitle class="text-subtitle-1">Address While in School</v-text-subtitle>
+                    <div class="text-subtitle-1">Address While in School</div>
                     </div>
                 </div> 
                 <div class="row">
@@ -632,6 +631,7 @@
             :getVendorData="getVendorData"
             v-on:showSuccess="showSuccess"
             v-on:showError="showError"
+            :doSearch="doVendorSearch"
         />
         <confirm-dialog ref="confirm"></confirm-dialog>
     </div>
@@ -1237,9 +1237,9 @@ export default {
                 console.log("Error to get Vendor Data", error);
             }
         },
-        async getVendorList() {
+        async getVendorList(term) {
             try {
-                const res = await axios.get(STUDENT_URL+`/${this.student.id}/vendor-list`);
+                const res = await axios.get(STUDENT_URL+`/${this.student.id}/vendor-list/${term}`);
                 if (res?.data?.success) {
                     this.vendorList = [ ...res.data.data.data ];
                 }
@@ -1307,6 +1307,9 @@ export default {
         showError(mgs) {
             this.$emit("showError", mgs);
         },
+        doVendorSearch(term) {
+            this.getVendorList(term);
+        }
     },
     components: {
         SearchVendor,

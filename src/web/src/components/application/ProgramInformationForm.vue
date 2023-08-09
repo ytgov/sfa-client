@@ -47,8 +47,8 @@
                     background-color="white"
                     hide-details
                     @keypress="validate.isNumber($event)"
-                    @change="doSaveApp('program_year', application.program_year)"
-                    v-model="application.program_year"
+                    @change="doSaveApp('program_year_total', application.program_year_total)"
+                    v-model="application.program_year_total"
                   ></v-text-field>
                 </div>
               </div>
@@ -60,12 +60,11 @@
                 background-color="white"
                 hide-details
                 label="Student number"
-                @keypress="validate.isNumber($event)"
                 v-model="application.student_number"
+                @change="doSaveApp('student_number', application.student_number)"
               ></v-text-field>
             </div>
           </div>
-          
             
         </div>
         <div class="col-md-9">
@@ -147,7 +146,8 @@
                 dense
                 background-color="white"
                 hide-details
-                label="GUAB"
+                label="Federal code"
+                :value="selectedInstitution.federal_institution_code"
               ></v-text-field>
             </div>
             <div class="col-md-3">
@@ -169,6 +169,8 @@
                 background-color="white"
                 hide-details
                 label="FOS"
+                readonly
+                :value="application.field_program_code"
               ></v-text-field>
             </div>
           </div>

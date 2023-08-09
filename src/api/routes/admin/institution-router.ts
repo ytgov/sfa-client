@@ -56,7 +56,7 @@ institutionRouter.post("/",
     [body("name").notEmpty()], ReturnValidationErrors,
     async (req: Request, res: Response) => {
         let { name, institution_level_id, federal_institution_code } = req.body;
-        let item = { name, institution_level_id, federal_institution_code, is_active: false, created_by: req.user.email };
+        let item = { name, institution_level_id, federal_institution_code, is_active: false }; //, created_by: req.user.email
 
         let error = await rulesEngine.applyApplicableRules(req.body);
 
@@ -248,7 +248,7 @@ institutionRouter.put("/:id/campus/:campusId",
 
         let error = await rulesEngine.applyApplicableCampusRules(req.body, parseInt(id), parseInt(campusId));
 
-        if (error) {
+        if (error) {            
             console.log(error);
             return res.json({ messages: [{ variant: "error", text: error }] });
         }

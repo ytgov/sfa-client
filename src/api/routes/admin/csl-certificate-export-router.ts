@@ -45,12 +45,12 @@ cslCertificateExportRouter.get("/:FROM_DATE_P/:TO_DATE_P/:CSL_CERT_SEQ_P/:IS_PRE
                 const results2 = await db.raw(
                     'SELECT sfa.fn_cert_data(?, ?, ?)',
                     [CSL_CERT_SEQ_P, FROM_DATE_P, TO_DATE_P]                                        
-                  );     
+                  );                       
                                     
-                  if (results2) {
+                  if (results2[""]) {                    
                     return res.status(200).json({ success: true, data1: results, data2:results2, batch: CSL_CERT_SEQ_P});
                 } else {
-                    return res.status(404).send();
+                    return res.status(200).json({ success: false, data1: results, data2:results2, batch: CSL_CERT_SEQ_P});
                 }                
             }
                           
@@ -75,23 +75,25 @@ cslCertificateExportRouter.put("/:FROM_DATE_P/:TO_DATE_P/:PREVIEW",
         try {           
 
                 const results = await db 
-                .select(db.raw(`sfa.fn_get_count_disbursement_ecerts('${FROM_DATE_P}', '${TO_DATE_P}') AS result`))                                                      
-                if(results[0].result > 0) {
+                .select(db.raw(`sfa.fn_get_count_disbursement_ecerts('${FROM_DATE_P}', '${TO_DATE_P}') AS result`))               
+                                                                 
+                if(results[0].result > 0) {                    
                     const nextVal = await db
                     .select(db.raw(`NEXT VALUE FOR ${PREVIEW === '1' ?  'sfa.csl_cert_seq_prev' : 'sfa.csl_cert_seq'} AS nextVal;`));
                                         
                     const innerSelect = await db.raw(`EXEC ${PREVIEW === '1' ? 'sfa.sp_get_and_update_csl_cert_seq_num_prev' : 'sfa.sp_get_and_update_csl_cert_seq_num'} '${FROM_DATE_P}','${TO_DATE_P}', ${nextVal[0].nextVal};`);     
                     
-                    const resultsCheck = await db.raw(`SELECT count(id) FROM sfa.disbursement d where csl_cert_seq_number_prev = ${nextVal[0].nextVal}`);
+                    const resultsCheck = await db.raw(`SELECT count(id) FROM sfa.disbursement d where ${PREVIEW === '1' ? 'csl_cert_seq_number_prev' : 'csl_cert_seq_number'} = ${nextVal[0].nextVal}`);
                     
                     if(resultsCheck) {
                         return res.json({flag: 1, data: nextVal[0].nextVal});  
                     } else {
                         return res.json({flag: 0, data: `Something went wrong! ${FROM_DATE_P} and ${TO_DATE_P}`}); 
-                    }                                                          
+                    }                                                                           
                 } else {
                     return res.json({flag: 0, data: `There are no certificates with received MSFAA between ${FROM_DATE_P} and ${TO_DATE_P}`});                                                			                                            
-                }                            
+                } 
+                               
         } catch (error: any) {
             console.log(error);
             return res.status(404).send();

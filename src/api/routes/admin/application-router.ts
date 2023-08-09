@@ -242,6 +242,14 @@ applicationRouter.get("/:id",
                 .select("institution.*")
                 .where({ "institution_campus.id": application.institution_campus_id }).first();
 
+            let field_program_code = await db("field_program").withSchema("sfa")
+                .innerJoin("study_area", "field_program.study_field_id", "study_area.study_field_id")
+                .where({"field_program.program_id": application.program_id, "study_area.id": application.study_area_id})
+                .select("field_program_code")
+                .first();
+
+            application.field_program_code = field_program_code ? field_program_code.field_program_code : null;
+
             application.warning_code = await db("sfa.application as app").innerJoin("sfa.csl_code as warning", function () {
                 this.on("warning.id", "=", "csl_restriction_warn_id");
             }).select(
@@ -567,7 +575,7 @@ applicationRouter.post("/:application_id/status",
                 if (checkIsActive?.is_active) {
 
                     const resInsert = await db("sfa.funding_request")
-                    .insert({ ...newRecord, is_csg_only: false, application_id });
+                    .insert({ ...newRecord, is_csg_only: false, application_id , status_id : 2});
 
                     return resInsert ?
                         res.json({ messages: [{ variant: "success", text: "Saved" }] })
@@ -2047,6 +2055,12 @@ applicationRouter.post("/:application_id/:funding_request_id/assessments",
                                 delete dataAssessment.id;
                                 delete dataAssessment.assessment_id;
                                 delete dataAssessment.program_division;
+                                delete dataAssessment.unused_receipts;
+                                delete dataAssessment.yea_balance;
+                                delete dataAssessment.yea_net_amount;
+                                delete dataAssessment.yea_used;
+                                delete dataAssessment.yea_earned;
+
                                 const resUpdate = await db("sfa.assessment")
                                 .where({ id: resSP[0].assessment_id_inserted })
                                 .update({ ...dataAssessment });
@@ -2168,7 +2182,7 @@ applicationRouter.post("/:application_id/:funding_request_id/assessments-with-di
         try {
             const { application_id, funding_request_id } = req.params;
             const { dataDisburse, dataAssessment, dataApplication = null } = req.body;
-            
+
             if (!dataDisburse?.length) {
                 return res.json({
                     messages: [{ variant: "error", text: "No disbursement found" }],
@@ -2197,7 +2211,13 @@ applicationRouter.post("/:application_id/:funding_request_id/assessments-with-di
                             delete dataAssessment.id;
                             delete dataAssessment.assessment_id;
                             delete dataAssessment.program_division;
+                            delete dataAssessment.unused_receipts;
+                            delete dataAssessment.yea_balance;
+                            delete dataAssessment.yea_net_amount;
+                            delete dataAssessment.yea_used;
+                            delete dataAssessment.yea_earned;
                             //Changing values that the user may have updated from preview-assessment
+                          
                             const resUpdate = await db("sfa.assessment")
                                 .where({ id: resSP[0].assessment_id_inserted })
                                 .update({ ...dataAssessment });

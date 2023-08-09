@@ -98,7 +98,6 @@ disbursementRouter.patch("/:id", [ param("id").isInt().notEmpty(), ], ReturnVali
     async (req: Request, res: Response) => {
         const { data } = req.body;
         const { id } = req.params;
-
         try {
             if (!data.funding_request_id) return res.json({ success: false, message: "funding request id is required", });
 

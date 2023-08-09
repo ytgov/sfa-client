@@ -232,10 +232,7 @@ export default {
 
     this.applicationId = this.$route.params.id;
     let storeApp = store.getters.selectedApplication;
-
-    // if (this.applicationId != storeApp.HISTORY_DETAIL_ID) {
-      await store.dispatch("loadApplication", this.applicationId);
-    // }
+    await store.dispatch("loadApplication", this.applicationId);
 
     store.dispatch("setAppSidebar", true);
   },
@@ -256,12 +253,23 @@ export default {
       this.fundingRequestId = funding_request_id;
       this.assessmentTypeC();
     },
-    showFundingStatus() {
-
+    async showFundingStatus() {
       this.showFundings = true;
       this.assessmentTypeId = null;
       this.fundingRequestId = null;
       this.assessmentComponent = null;
+      await this.loadFundingData();
+    },
+    async loadFundingData() {
+      try {
+        await store.dispatch("loadApplication", this.applicationId);
+        this.loadRequirementTypes();
+        this.loadFundingTypes();
+        this.loadStatus();
+        this.loadReasons();
+      } catch (error) {
+        console.error("Error loading funding data:", error);
+      }
     },
     setClose() {
       this.newRecord = {

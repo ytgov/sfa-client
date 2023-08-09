@@ -38,7 +38,10 @@ export class DisbursementRepository extends BaseRepository implements IMainTable
                 .where({ assessment_id: assessment_id })
                 .orderBy("id", "asc");
             
-            query.forEach((x: DisbursementDTO) => result.push(x));
+            query.forEach((x: DisbursementDTO) => {
+                x.delete_flag = false;
+                result.push(x);
+            });
         }
         
         return result;
@@ -130,5 +133,18 @@ export class DisbursementRepository extends BaseRepository implements IMainTable
         const query = await this.mainDb.raw("SELECT NEXT VALUE FOR sfa.CSL_TRANSACTION_SEQ as nextVal;");
         const result: Partial<{ nextVal?: number }> = this.singleResult(query);
         return result.nextVal?.toString() ?? '0';
+    }
+
+    async getTopDisbursements(application_id?: number): Promise<Array<Partial<DisbursementDTO>>> {
+        let result: Array<Partial<DisbursementDTO>> = [];
+
+        if (application_id) {
+            result = await this.mainDb.raw(`SELECT * FROM sfa.fn_get_top_disbursements(${application_id})`);
+            if (!Array.isArray(result)) {
+                result = [];
+            }
+        }
+
+        return result;
     }
 }
