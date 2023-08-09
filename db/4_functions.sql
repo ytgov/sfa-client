@@ -4881,3 +4881,114 @@ BEGIN
 
     RETURN 3;
 END
+GO
+
+CREATE OR ALTER FUNCTION sfa.get_records_for_dat_file(
+    @issueDateStr DATE,
+    @serial_no INT
+)
+RETURNS TABLE
+AS
+    RETURN
+    SELECT
+    '1' + RIGHT('0' + LTRIM(STR(d.financial_batch_id_year, 2)) + '-' + LTRIM(STR(d.financial_batch_id)), 12)+
+    SPACE(30) + ' ' + '0000000' + '000000000000000' + '0' + '2021-01-12' + '0' + '03    ' + 'CAD ' +
+    '0000000000000' + '0000000000000' + ' ' + '1' + '  ' + '0000000000000' + '0000000000000' + '  ' + '    ' 
+    AS record1,
+
+    '2'+ RIGHT(REPLICATE(' ', 12) + s.vendor_id, 12)  + '03    ' + '000000000' +
+            RIGHT(REPLICATE(' ', 12) + CONCAT(RIGHT('00' + CAST(d.financial_batch_id_year AS VARCHAR(2)), 2), '-', d.financial_batch_id), 12) +
+            RIGHT(REPLICATE(' ', 22) + 
+                CASE WHEN app.student_number IS NULL THEN 'Yukon Student'
+                    ELSE app.student_number
+                END, 
+                22) +
+            'EX'+ 'RE'+ 'CAD '+ '            '+
+            '0'+CAST(@issueDateStr AS VARCHAR(10))+ '0'+ '000000000'+ '        '+ '        '+
+            '              '+ '0  '+
+            SUBSTRING(CONVERT(VARCHAR, ABS(d.disbursed_amount), 128), 1, 15) +
+            REPLICATE(' ', 30) + '      '+ '0' + FORMAT(d.due_date, 'yyyyMMdd')+ '000000000'+
+            '000000000000000'+ '0'+ '000000000000000'+ '0'+ '000000000000000'+ '0'+
+            '000000000000000'+ '0'+ '000000000000000'+ '000000000000000'+ '0'+
+    --	'0000000000000'+' '+ 'TDCAD   '+ ' '+ '   '+ '                '+
+        '0000000000000'+' '+ '        '+ ' '+ '   '+ '                '+
+            '                '+ '                '
+    --		+ '1' -- change 0 to 1 for sep payment - Lidwien January 2008, Jira SFA 199
+            + '1' -- change 1 to 0 for sep payment - Lidwien 2020-08-25 as per Sharon for SFA EFT		
+            + ' '+ ' '+ 
+            --decode(institution_pck.get_institution_code_fct(history_detail.institution_id),'BUAA','G','S')+ -- Changed else condition from ' ' to 'S' Lidwien February 2009, Jira SFA 258
+    --			'S'+ -- adjusted special handling code to always be S as per Sheila, 2014-01-29 Lidwien SFA-362
+                ' '+ -- adjusted special handling code to always be space as optional, for NEW EFT no longer required, 2020-08-25 Lidwien 
+            '0000000000000'+ '0000000000000'+ '0000000000000'+ '0000000000000'
+    --		+ 'C'  -- change space to C for cheque payment type - Lidwien January 2008, Jira SFA 199
+            + ' '  -- change C to space for cheque payment type - for NEW EFT no longer required, 2020-08-25 Lidwien		
+            +'000000000'+ '9990206016050                                '+ '      '+
+            REPLICATE(' ', 22) + '000000000'+ 'CTL-YUKON   '+ '0'+ CAST(@issueDateStr AS VARCHAR(10)) +
+            '0'+ CAST(@issueDateStr AS VARCHAR(10))+ '000000000'+ '000000000'+ '  '+ '     '+ '000000000000000'+
+            '0'+ '     '+ '000000000000000'+ '0'+ '     '+ '000000000000000'+ '0'+
+            '     '+ '000000000000000'+ '0'+ ' '+ '000000000'+ '0'+ CAST(@issueDateStr AS VARCHAR(10))+ '000000000'+
+            '000000000000000'+ ' '+ '000000000000000'+ '0'+ '1'+ 'N'+ '2'+ '0'+ CAST(@issueDateStr AS VARCHAR(10))+
+            '     '+ '     '+ '     '+ REPLICATE(' ', 25) + '            '+
+            '0'+ ' '+ '    '
+        as record2, -- Voucher Header (VOH)
+    '3'+ REPLICATE(' ', 12 - LEN(s.vendor_id)) + s.vendor_id + '03    '+ '000000000'+
+            '00001' + RIGHT(REPLICATE(' ', 12) + 
+                RIGHT('00' + COALESCE(CAST(d.financial_batch_id_year AS VARCHAR(2)), 2), '') + '-' + 
+                d.financial_batch_id,
+                12) +
+            RIGHT(REPLICATE(' ', 22) + 
+                CASE WHEN app.student_number IS NULL THEN 'Yukon Student'
+                    ELSE app.student_number
+                END, 
+                22)
+            + '                              ' +
+            SUBSTRING(CONVERT(VARCHAR(15), ABS(FLOOR(d.disbursed_amount * 100)), 128), 1, 15)  +
+            SUBSTRING(CONVERT(VARCHAR(15), ABS(FLOOR(d.disbursed_amount * 100)), 128), 1, 15)  +
+            ' ' + REPLICATE(' ', 20) + '000000000000000' + '    ' + '0' + '000000000000000' + '0' +
+            '000000000000000' + '0' + '000000000000000' + '0' + '000000000000000'+ '0' + '000000000000000' +
+            '        ' + '      ' + '      ' + '                ' + '                ' + '                ' +
+            '              ' + '000' + '00000' + '000000000' + '000000000' + '000000000' + ' ' + '        ' +
+            ' ' + '   ' + ' ' + ' ' + ' '+ '     ' + '000000000000000' + '0' + '     ' + '000000000000000' +
+            '0' + '     ' + '000000000000000' + '0' + '     ' + '000000000000000' + '0' + '               ' +
+            '               ' + ' ' + ' ' + REPLICATE(' ', 22) + ' ' + '000000000000000' + '0' + '    '+REPLICATE(' ',245)
+        as record3, --   Voucher Line Record -- (VOL)
+    '4'+ REPLICATE(' ', 12 - LEN(s.vendor_id)) + s.vendor_id  + '03    '+ '000000000'
+            +'00001' + '00001' 
+            +RIGHT('0' + LTRIM(STR(d.financial_batch_id_year, 2)) + '-' + LTRIM(STR(d.financial_batch_id)), 12) 
+            +RIGHT(REPLICATE(' ', 22) + 
+                CASE WHEN app.student_number IS NULL THEN 'Yukon Student'
+                    ELSE app.student_number
+                END, 
+                22) 
+            + RIGHT(REPLICATE(' ', 45) + rt.financial_coding, 45) +'03    ' + SUBSTRING(CONVERT(VARCHAR, ABS(d.disbursed_amount), 128), 1, 15) 
+            +'            ' + '            ' + '    ' 
+            + RIGHT(REPLICATE(' ', 16) + LTRIM(d.tax_year), 16)
+            + '000000000000000' 
+            +'     ' + '     ' + '    '+REPLICATE(' ', 573)
+        as record4
+-- Voucher Distribution (VOD)
+FROM sfa.request_type rt
+    INNER JOIN sfa.funding_request fr ON rt.id = fr.request_type_id
+    INNER JOIN sfa.disbursement d ON fr.id = d.funding_request_id
+    INNER JOIN sfa.application app ON app.id = fr.application_id
+    INNER JOIN sfa.student s ON s.id = app.student_id
+WHERE NOT s.vendor_id IS NULL
+    AND d.disbursed_amount > 0
+    AND d.disbursement_type_id = 1
+    AND NOT d.due_date IS NULL
+    AND d.financial_batch_run_date = @issueDateStr
+    AND d.financial_batch_serial_no = @serial_no
+    AND (
+        CASE WHEN rt.batch_group_id = 5 THEN
+            CASE 
+                WHEN fr.yea_request_type = 1 THEN 3
+                WHEN fr.yea_request_type = 2 THEN 4
+                ELSE 1
+            END
+            WHEN rt.batch_group_id = 1 THEN sfa.get_batch_group_id_fct(fr.id)
+            ELSE rt.batch_group_id
+        END
+    ) = 3
+-- LOKINGFOR
+-- ORDER BY d.financial_batch_id_year, d.financial_batch_id, s.vendor_id;
+GO
