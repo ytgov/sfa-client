@@ -271,7 +271,6 @@ export default {
       </div>`
 
       let finalHTML = htmlTop + dataColumns + htmlBottom;
-      
       let fileName = `${moment(this.date, 'YYYY-MMM-DD').format('YYYY-MM-DD')} MSFAA_RECEIVED_RPT`;
 
       doc.html(finalHTML, {

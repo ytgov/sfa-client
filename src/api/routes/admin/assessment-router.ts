@@ -5,12 +5,14 @@ import { ReturnValidationErrors } from "../../middleware";
 import { DB_CONFIG } from "../../config";
 import { assessmentCslftRouter } from "./cslft-assessment-router";
 import { assessmentSTARouter } from "./sta-assessment-router";
+import { assessmentCsgftRouter } from "./csgft-assessment-router";
 
 const db = knex(DB_CONFIG)
 export const assessmentRouter = express.Router();
 
 assessmentRouter.use("/cslft", assessmentCslftRouter);
 assessmentRouter.use("/sta", assessmentSTARouter);
+assessmentRouter.use("/csgft", assessmentCsgftRouter);
 
 const mainTable = "sfa.assessment";
 

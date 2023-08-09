@@ -1,15 +1,96 @@
-<!DOCTYPE html>
 <html>
+
 <head>
     <title>{{title}}</title>
-    <meta charset="utf-8">
-    <meta http-equiv="Content-type" content="text/html; charset=UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <style type="text/css"></style>
+    <meta charset="utf-8" />
+    <meta http-equiv="Content-type" content="text/html; charset=UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style type="text/css">
+        @page {
+            /* magic tag that affects Puppeteer page formatting. See preferCSSPageSize  */
+            margin: 20mm;
+        }
+
+        /* Example CSS Styling */
+        body {
+            font-family: Calibri;
+            font-size: 12pt;
+            line-height: 1.2;
+            margin: 50px;
+            color: #000;
+        }
+
+        .header {}
+
+        .date {
+            margin-top: 0.139in;
+        }
+
+        .address {
+            margin-top: 0.139in;
+            line-height: 1;
+        }
+
+        .salutation {
+            margin-top: 0.139in;
+        }
+
+        .body {
+            margin-top: 0.139in;
+        }
+
+        .closing {
+            margin-top: 40px;
+        }
+
+        .signature {
+            margin-top: 40px;
+        }
+
+        .footer {
+            margin-top: 40px;
+            font-size: 10pt;
+            text-align: center;
+        }
+
+        /*
+            General helpers in Tailswinds CSS style
+            e.g. https://tailwindcss.com/docs/display#flex
+        */
+        .flex {
+            display: flex;
+        }
+
+        .justify-between {
+            justify-content: space-between;
+        }
+
+        .mt-1 {
+            margin-top: 0.25rem;
+            /* 4px */
+        }
+
+        .mt-10 {
+            margin-top: 2.5rem;
+            /* 40px */
+        }
+
+        .ml-4 {
+            margin-left: 1rem;
+            /* 16px */
+        }
+
+        .ml-8 {
+            margin-left: 2rem;
+            /* 32px */
+        }
+    </style>
 </head>
+
 <body>
-<div>
-    {{{body}}}
-</div>
+    <div>
+        {{{body}}}
+    </div>
 </body>
+
 </html>

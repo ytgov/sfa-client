@@ -124,7 +124,6 @@ const actions = {
                     application_id
                 }
             );
-            console.log("GET refreshdata", res);
             const success = res?.data?.success;
 
             if (success) {

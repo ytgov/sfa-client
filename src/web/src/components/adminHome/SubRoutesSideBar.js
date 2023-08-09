@@ -43,4 +43,13 @@ export default {
         {title:"Status", path: "/administration/status"},
         {title:"Status Reason", path: "/administration/status-reason"},
     ],
+    ecerts_reports:[
+        {title:"CSL MSFAA Receive", path: "/administration/csl-msfaa-receive"},
+        //{title:"CSL Entitlement Feedback", path: "/"},
+        //{title:"CSL Certificate Audit Report", path: "/"}, 
+        {title:"CSL Certificate Export ", path: "/administration/csl-certificate-export"}, 
+        //{title:"CSL MSFAA Send", path: "/"},
+        //{title:"CSL Restricted Data", path: "/"},
+       
+    ]
 };
