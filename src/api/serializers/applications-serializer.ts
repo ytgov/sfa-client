@@ -5,11 +5,13 @@ import { NON_EXISTANT_ID } from "@/utils/constants"
 import AddressType from "@/models/address-type"
 import Application from "@/models/application"
 import CsfaAmounts from "@/models/csfa-amount"
+import Disability from "@/models/disability"
 import FundingRequest from "@/models/funding-request"
 import FundingSource from "@/models/funding-source"
 import Institution from "@/models/institution"
 import Person from "@/models/person"
 import PersonAddress from "@/models/person-address"
+import Student from "@/models/student"
 
 export default class ApplicationsSerializer {
   #applications: Application[] = []
@@ -60,7 +62,11 @@ export default class ApplicationsSerializer {
         this.#application.primaryAddressId || NON_EXISTANT_ID,
         this.#application.student?.person?.addresses || ([] as PersonAddress[])
       ),
-      statistical: this.#statisticalSection(this.#application.student?.person || ({} as Person)),
+      statistical: this.#statisticalSection(
+        this.#application,
+        this.#application.student || ({} as Student),
+        this.#application.student?.person || ({} as Person)
+      ),
       // TODO: investigate if I need a "parents" field
     }
   }
@@ -166,14 +172,28 @@ export default class ApplicationsSerializer {
     }
   }
 
-  #statisticalSection(person: Person) {
-    // TODO: replace with real data
+  #statisticalSection(application: Application, student: Student, person: Person) {
     return {
       language: person.language?.description,
       gender: person.sex?.description,
-      disability: "Permanent",
-      maritalStatus: 1,
-      citizenship: person.citizenshipCode,
+      // citizenship data is duplicated across person and application tables
+      citizenship: person.citizenshipCode || application.citizenshipStatus,
+      firstNation: application.firstNationId,
+      aboriginalStatus: application.aboriginalStatusId,
+      maritalStatus: application.maritalStatusId,
+      disability: this.#disabilityStatus(application),
+      visibleMinority: application.isMinority,
+      crownWard: student.isCrownWard,
+    }
+  }
+
+  #disabilityStatus(application: Application) {
+    if (application.isDisabled === false) {
+      return Disability.Types.NONE
+    } else if (application.isPermDisabled === true) {
+      return Disability.Types.PERMANENT
+    } else {
+      return Disability.Types.OTHER
     }
   }
 }
