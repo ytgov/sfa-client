@@ -3,6 +3,7 @@ import knex from "knex";
 import { body, param } from "express-validator";
 import { DB_CONFIG } from "../../config";
 import { Console } from "console";
+import moment from "moment";
 const db = knex(DB_CONFIG);
 
 export const cslMsfaaReceiveRouter = express.Router();
@@ -13,28 +14,7 @@ cslMsfaaReceiveRouter.post("/:FILE_NAME",
     ],     
     async (req: Request, res: Response) => {        
         const { FILE_NAME } = req.params;
-        const file:any = req.files;     
-        
-        function toDate(inputString:string) {            
-            const year = inputString.substring(0, 4);
-            const month = inputString.substring(4, 6);
-            const day = inputString.substring(6, 8);
-            const hour = inputString.substring(8, 10) ? inputString.substring(8, 10) : "";
-            const minute = inputString.substring(10, 12) ? inputString.substring(10, 12) : "";            
-            return new Date(`${year}-${month}-${day}T${hour}:${minute}Z`);
-        }
-
-        function toStringDate(inputString:string) {
-            const year = inputString.substring(0, 4);
-            const month = inputString.substring(4, 6);
-            const day = inputString.substring(6, 8);
-            return (`${year}-${month}-${day}`);
-        }
-
-        function isValidDate(d:Date) {
-            return d instanceof Date && !isNaN(d.getTime());
-        }
-        
+        const file:any = req.files;                 
 
         try {        
 
@@ -80,8 +60,8 @@ cslMsfaaReceiveRouter.post("/:FILE_NAME",
                         } else {
                             if(vTitle !== 'MSFAARECEIVED') {
                                 return res.json({flag: 0, data: 'File is not a MSFAA Received file: '+ vTitle});                                
-                            } else {
-                                if(!isValidDate(toDate(vCreateDateTime))) {
+                            } else {                                
+                                if(moment(vCreateDateTime, 'YYYYMMDDHHmm').format('YYYY - MMM - DD HH:mm') === 'Invalid date') {
                                     return res.json({flag: 0, data: 'Invalid creation date/time in header record: ' + vCreateDateTime});         
                                 }
 
@@ -186,8 +166,8 @@ cslMsfaaReceiveRouter.post("/:FILE_NAME",
                                 return res.json({flag: 0, data: 'Trailer SIN hash total does not equal total of detail records: Trailer - ' + parseInt(currentLine.substring(52, 67).replaceAll(' ', '')) + ' Record SIN - ' + vTotalSin + '. SIN non-numeric count was: ' + vNonNumericSin});   
                             }                            
                         }                      
-                    }                                  
-                    return res.json({flag: 1, data: 'CSL MSFAA response read complete. ' + vCount + ' records processed.', date: vCreateDateTime, seq: vSeqNum });                    
+                    }                                       
+                    return res.json({flag: 1, data: 'CSL MSFAA response read complete. ' + vCount + ' records processed.', date: moment(vCreateDateTime.substring(0, 8), 'YYYYMMDD').format('YYYY-MMM-DD'), seq: vSeqNum });                    
                 }
             }                                                 
         } catch (error: any) {
@@ -259,7 +239,6 @@ cslMsfaaReceiveRouter.put("/", [],
 
 
 cslMsfaaReceiveRouter.get("/", 
-//ReturnValidationErrors, 
 async (req: Request, res: Response) => {
     try {        
         let pdfRes = await db('sfa.MSFAA_IMPORT as mi')
@@ -306,20 +285,3 @@ async (req: Request, res: Response) => {
     }
 
 });
-
-/*
-SELECT mi.agreement_number
-, mi.sin
-, mi.status_code
-, mi.borrower_signed_date
-, mi.sp_received_date
-, mi.new_issue_prov
-, mi.cancel_date
-, mi.error_message ||
-  DECODE((SELECT FIRST_NAME ||' '||LAST_NAME FROM STUDENT WHERE SIN = MI.SIN),NULL,' No Student Match',NULL)||
-  DECODE((SELECT msfaa_id FROM msfaa WHERE msfaa_id = TO_NUMBER(mi.agreement_number)),NULL,' No MSFAA Match',NULL) as error_message
-, (SELECT FIRST_NAME ||' '||LAST_NAME FROM STUDENT WHERE SIN = MI.SIN) as student_name
-FROM MSFAA_IMPORT MI
-ORDER BY SIN
-
-*/

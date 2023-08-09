@@ -60,7 +60,7 @@ import {
 import jsPDF from 'jspdf';
 import Modal from "../../../components/commonCatalog/Modal.vue";
 import LoadingAnimation from "../../../components/commonCatalog/LoadingScreen.vue";
-
+import moment from "moment";
 export default {
   name: "OfficerList",
   data: () => ({
@@ -204,7 +204,7 @@ export default {
 
   <div style="display: flex; margin-bottom: 2px;">
     <p style="font-size: 3px; padding: 0 8px; margin-bottom: 3px">MSFAA File Received Date: ${this.date}</p>
-    <p style="font-size: 3px; padding: 0 8px;">MSFAA Seq:  ${this.seq}</p>
+    <p style="font-size: 3px; padding: 0 8px;">MSFAA Seq:  ${Number(this.seq) ? Number(this.seq) : ""}</p>
   </div>
   <table style="font-size: 3px; margin: 0 8px;"
     <thead>
@@ -271,8 +271,7 @@ export default {
       </div>`
 
       let finalHTML = htmlTop + dataColumns + htmlBottom;
-      
-      let fileName = `EDU-SFA`;
+      let fileName = `${moment(this.date, 'YYYY-MMM-DD').format('YYYY-MM-DD')} MSFAA_RECEIVED_RPT`;
 
       doc.html(finalHTML, {
         callback: function (doc) {      
