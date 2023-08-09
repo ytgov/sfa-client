@@ -4834,6 +4834,55 @@ BEGIN
 END;
 GO
 
+
+CREATE OR ALTER FUNCTION sfa.get_serial_fct(@date_p DATE)
+RETURNS INT
+AS
+BEGIN
+    DECLARE @v_fbsn INT;
+
+    SELECT @v_fbsn = ISNULL(MAX(financial_batch_serial_no), 0) + 1
+    FROM disbursement
+    WHERE financial_batch_run_date = @date_p;
+
+    RETURN @v_fbsn;
+END
+GO
+
+CREATE OR ALTER FUNCTION sfa.get_fiscal_year_fct(@date_p DATE)
+RETURNS INT
+AS
+BEGIN
+    /* Determine the batch year the disbursement is part of */
+    DECLARE @fb_year INT = YEAR(@date_p);
+
+    IF @date_p < DATEFROMPARTS(@fb_year, 04, 01) 
+        SET @fb_year = @fb_year - 1;
+
+    RETURN @fb_year;
+END
+GO
+
+CREATE OR ALTER FUNCTION sfa.get_batch_group_id_fct (@funding_request_id_p INT)
+RETURNS INT
+AS
+BEGIN
+    DECLARE @federal_institution_code NVARCHAR(30);
+
+    SELECT @federal_institution_code = ic.federal_institution_code
+    FROM sfa.funding_request fr
+    INNER JOIN sfa.application app ON fr.application_id = app.id
+    INNER JOIN sfa.institution_campus ic ON app.institution_campus_id = ic.id
+    WHERE fr.funding_request_id = @funding_request_id_p;
+
+    IF (@federal_institution_code = 'LVAA') -- 'Yukon Col' OR 'Yukon U'
+    BEGIN
+        RETURN 1;
+    END
+
+    RETURN 3;
+END
+
 CREATE OR ALTER FUNCTION sfa.fn_get_csl_cert_seq_num
 (
 	@FROM_DATE_P DATE,
@@ -5023,3 +5072,4 @@ FROM sfa.disbursement d
 WHERE fr.application_id = @application_id
 ORDER BY d.due_date DESC;
 GO
+
