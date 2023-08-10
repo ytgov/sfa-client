@@ -602,36 +602,37 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
     async getMsfaaInfo(info_type: string): Promise<void> {
         const msfaa_id = this.msfaa.id;
         const count = await this.msfaaRepo.getCountMsfaaFullTimeStudent(this.student.id);
-        let expired = 0;
+        let expired = false;
 
         if (count > 0) {
             const msfaa_app = await this.msfaaRepo.getMsfaaApplicationByStudentId(this.student.id);
 
             if (msfaa_app.msfaa_status === 'Cancelled' || moment(new Date()).diff(msfaa_app.classes_end_date, "year") > 2) {
-                expired = 1;
+                expired = true;
                 if (msfaa_app.msfaa_status !== "Cancelled") {
                     this.msfaa.cancel_date = new Date();
                     this.msfaa.cancel_reason = "> 2 yrs out of school";
                 }
             }
 
-            if (this.application.id !== msfaa_app.application_id && expired === 0) {
+            if (this.application.id !== msfaa_app.application_id && !expired) {
                 this.msfaa.application_id = this.application.id;
             }
-            else if (expired === 1 && info_type === 'Disburse') {
+            else if (expired && info_type === 'Disburse') {
                 this.msfaa.id = undefined;
                 this.msfaa.student_id = this.student.id;
                 this.msfaa.msfaa_status = "Pending";
                 this.msfaa.application_id = this.application.id;
                 this.msfaa.is_full_time = true;
             }
-            else {
-                if (info_type === "Disburse") {
-                    this.msfaa.student_id = this.student.id;
-                    this.msfaa.msfaa_status = "Pending";
-                    this.msfaa.application_id = this.application.id;
-                    this.msfaa.is_full_time = true;
-                }
+        }
+        else {
+            if (info_type === "Disburse") {
+                this.msfaa.id = undefined;
+                this.msfaa.student_id = this.student.id;
+                this.msfaa.msfaa_status = "Pending";
+                this.msfaa.application_id = this.application.id;
+                this.msfaa.is_full_time = true;
             }
         }
     }
@@ -1120,7 +1121,6 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
             
             if (payload.data.id && payload.data.id > 0)
             {
-                console.log(payload.data);
                 result.data = await this.updateAssessment(payload.data.id, payload.data);
             }
             else
@@ -1150,8 +1150,11 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
         }
 
         if (payload.msfaa) {
-            if (payload.msfaa.id) {
+            if (payload.msfaa.id && payload.msfaa.id > 0) {
                 result.msfaa = await this.msfaaRepo.updateMsfaa(payload.msfaa.id, payload.msfaa);
+            }
+            else {
+                result.msfaa = await this.msfaaRepo.insertMsfaa(payload.msfaa);
             }
         }
 
