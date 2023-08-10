@@ -37,6 +37,7 @@ services:
       <<: *environment-definition
       NODE_ENV: test
       DB_NAME: sfa_client_test
+      DB_DEFAULT_SCHEMA: dbo
     tty: true
     volumes:
       - ./src/api:/usr/src/api
