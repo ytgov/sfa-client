@@ -2,7 +2,7 @@ import axios from "axios";
 import {CSGFT, CSGFT_NEW_INSTANCE} from "@/urls";
 import moment from "moment";
 import { NumbersHelper, DateHelper } from "@/utilities";
-import { defaultState } from "./default";
+import { defaultState, defaultDisbursement } from "./default";
 const numHelper = new NumbersHelper();
 const dateHelper = new DateHelper();
 
@@ -27,6 +27,12 @@ const mutations = {
     },
     csgftLoadFundingRequest(state, funding_request) {
         state.funding_request = funding_request;
+    },
+    setDefaultCsgftDisbursement(state) {
+        state.csgft_disbursement.push(defaultDisbursement);
+    },
+    removeCsgftDisbursement(state, index) {
+        state.csgft_disbursement.splice(index, 1);
     },
 };
 const actions = {
@@ -66,6 +72,12 @@ const actions = {
         if (res?.data?.success) {
             commit("csgftLoadModelsDisburse", res.data);
         }
+    },
+    async setDefaultCsgftDisbursement(state) {
+        state.commit("setDefaultCsgftDisbursement");
+    },
+    async removeCsgftDisbursement(state, index) {
+        state.commit("removeCsgftDisbursement", index);
     },
     async saveCsgftAssessment({ getters, dispatch }, vm) {
         const assessment = getters.csgft_get_assessment;
