@@ -1,9 +1,7 @@
 import { Express, Request, Response } from "express";
-import Knex from "knex";
 import { join } from "path";
-import { DB_CONFIG } from "../config";
 
-const db = Knex(DB_CONFIG);
+import db from '@/db/db-client'
 
 export async function migrateUp() {
     console.log("-------- MIGRATE UP ---------")

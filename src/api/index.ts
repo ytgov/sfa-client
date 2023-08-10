@@ -12,8 +12,14 @@ import { doHealthCheck } from "./utils/health_check";
 import { RequireActive, configureAuthentication } from "./routes/auth";
 
 import * as Sentry from "@sentry/node";
-import { CreateMigrationRoutes } from "./data/migrator";
+import { CreateMigrationRoutes, migrateLatest } from "./data/migrator";
 if (config.SENTRY_DSN.length > 0) Sentry.init({ dsn: config.SENTRY_DSN });
+
+// TODO: investigate if we want this in production as well
+// In the past, I've worked on projects that _do_ automatically run all migrations on boot.
+if (process.env.NODE_ENV === "development") {
+  migrateLatest()
+}
 
 const app = express();
 app.use(express.json()); // for parsing application/json

@@ -1,11 +1,21 @@
 import { Knex } from "knex";
-import { studentCategoryToCSLClassification } from "../../models";
+import { studentCategoryToCSLClassification } from "@/models";
+
+import { DB_CONFIG } from '@/config'
+
+const DEFAULT_SCHEMA = DB_CONFIG.defaultSchema
 
 exports.up = async function (knex: Knex, Promise: any) {
-  let subs = await knex("application_draft").withSchema("sfa").where({ status: "Submitted" });
+  let subs = await knex("application_draft").withSchema(DEFAULT_SCHEMA).where({ status: "Submitted" });
 
   for (let sub of subs) {
-    let app = JSON.parse(sub.application_json);
+    let app
+    try {
+      app = JSON.parse(sub.application_json);
+    } catch (e) {
+      console.log("Failed to parse application json: " + e)
+      continue
+    }
 
     let attendance_id = app.program_details.attendance == "Full Time" ? 1 : 2;
     let has_last_travel = app.residency.has_traveled;
@@ -21,14 +31,14 @@ exports.up = async function (knex: Knex, Promise: any) {
     console.log("PSCSLCLASS", prestudy_csl_classification);
 
     let studentApps = await knex("application")
-      .withSchema("sfa")
+      .withSchema(DEFAULT_SCHEMA)
       .where({ student_id: sub.student_id, academic_year_id: 2023 });
 
     console.log("STUDENT HAS: ", studentApps.length);
 
     for (let submittedApp of studentApps) {
       await knex("application")
-        .withSchema("sfa")
+        .withSchema(DEFAULT_SCHEMA)
         .where({ id: submittedApp.id })
         .update({
           attendance_id,
