@@ -201,6 +201,7 @@ assessmentCslftRouter.post("/:funding_request_id/disburse",
                 results.disbursements = disburse.disbursements;
                 results.funding_request = disburse.funding_request;
                 results.globals = disburse.globals;
+                results.msfaa = disburse.msfaa;
             }
 
             if (Object.keys(results.data ?? {}).length > 0) {

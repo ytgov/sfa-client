@@ -40,7 +40,7 @@
                       label="Assessed Need"
                       @keypress="validate.isNumber($event)"
                       :disabled="isTotal"
-                      v-model="cslft_assess_needed"
+                      v-model="cslft.csl_assessed_need"
                     ></v-text-field>
                   </div>
                   <div class="col-xs-12 col-lg-12">
@@ -395,6 +395,12 @@ export default {
         store.dispatch("setCslftNetAmount", newVal);
       }
     },
+    cslft_assess_needed: {
+      immediate: true,
+      handler(newVal) {
+        store.dispatch("setCslftAssessedNeed", newVal);
+      }
+    },  
     cslft_disbursement: {
       immediate: true,
       deep: true,
