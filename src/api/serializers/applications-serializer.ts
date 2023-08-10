@@ -53,7 +53,7 @@ export default class ApplicationsSerializer {
     return {
       termsAgree: true,
       programDetails: this.#programDetailsSection(this.#application),
-      fundingSources: this.#fundingRequestsAssocation(
+      fundingSources: this.#fundingSourcesSection(
         this.#application.fundingRequests || ([] as FundingRequest[])
       ),
       personalDetails: this.#personAssociation(
@@ -108,7 +108,7 @@ export default class ApplicationsSerializer {
     }
   }
 
-  #fundingRequestsAssocation(fundingRequests: FundingRequest[]) {
+  #fundingSourcesSection(fundingRequests: FundingRequest[]) {
     const sources = uniq(
       compact(fundingRequests.map((fundingRequest) => fundingRequest.requestType?.description))
     )
