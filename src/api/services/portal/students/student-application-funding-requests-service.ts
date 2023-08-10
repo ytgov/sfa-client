@@ -1,4 +1,10 @@
+import { keyBy } from "lodash"
+
 import db from "@/db/db-client"
+
+import { NON_EXISTANT_ID } from "@/utils/constants"
+
+import FundingRequest from "@/models/funding-request"
 
 export default class StudentApplicationFundingRequestsService {
   #applicationId: number
@@ -8,18 +14,23 @@ export default class StudentApplicationFundingRequestsService {
   }
 
   async getFundingRequests() {
-    const rows = await db("funding_request")
-      .join("request_type", "funding_request.requestTypeId", "request_type.id")
-      .select(
-        "funding_request.id",
-        "funding_request.requestTypeId",
-        "request_type.description"
-      )
-      .where({ applicationId: this.#applicationId })
-    return rows.map((row) => ({
-      id: row.id,
-      requestTypeId: row.requestTypeId,
-      requestType: { id: row.requestTypeId, description: row.description },
-    }))
+    const fundingRequests = await db("fundingRequest").where({ applicationId: this.#applicationId })
+
+    await this.#injectRequestTypes(fundingRequests)
+    await this.#injectAssessments(fundingRequests)
+
+    return fundingRequests
+  }
+
+  async #injectRequestTypes(fundingRequests: FundingRequest[]) {
+    const requestTypeIds = fundingRequests.map((fundingRequest) => fundingRequest.requestTypeId)
+    const requestTypeHash = await db("requestType")
+      .where("id", "in", requestTypeIds)
+      .then((rows) => keyBy(rows, "id"))
+
+    fundingRequests.forEach((fundingRequest) => {
+      const requestTypeId = fundingRequest.requestTypeId || NON_EXISTANT_ID
+      fundingRequest.requestType = requestTypeHash[requestTypeId]
+    })
   }
 }

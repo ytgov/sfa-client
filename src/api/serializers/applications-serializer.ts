@@ -56,6 +56,9 @@ export default class ApplicationsSerializer {
       fundingSources: this.#fundingSourcesSection(
         this.#application.fundingRequests || ([] as FundingRequest[])
       ),
+      fundingRequests: this.#fundingRequestsAssocation(
+        this.#application.fundingRequests || ([] as FundingRequest[])
+      ),
       personalDetails: this.#personAssociation(
         this.#application.student?.person || ({} as Person),
         this.#application.categoryId
@@ -135,6 +138,10 @@ export default class ApplicationsSerializer {
       csfaLoanAmount,
       csfaAmounts,
     }
+  }
+
+  #fundingRequestsAssocation(fundingRequests: FundingRequest[]) {
+    return fundingRequests
   }
 
   #personAssociation(person: Person, categoryId?: number) {
