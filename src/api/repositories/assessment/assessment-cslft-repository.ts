@@ -1149,7 +1149,7 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
             }
         }
 
-        if (payload.msfaa) {
+        if (payload.msfaa && Object.keys(payload.msfaa).length > 0) {
             if (payload.msfaa.id && payload.msfaa.id > 0) {
                 result.msfaa = await this.msfaaRepo.updateMsfaa(payload.msfaa.id, payload.msfaa);
             }
