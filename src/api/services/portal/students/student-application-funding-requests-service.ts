@@ -1,4 +1,4 @@
-import { keyBy } from "lodash"
+import { groupBy, keyBy } from "lodash"
 
 import db from "@/db/db-client"
 
@@ -31,6 +31,18 @@ export default class StudentApplicationFundingRequestsService {
     fundingRequests.forEach((fundingRequest) => {
       const requestTypeId = fundingRequest.requestTypeId || NON_EXISTANT_ID
       fundingRequest.requestType = requestTypeHash[requestTypeId]
+    })
+  }
+
+  async #injectAssessments(fundingRequests: FundingRequest[]) {
+    const fundingRequestIds = fundingRequests.map((fundingRequest) => fundingRequest.id)
+
+    const assessments = await db("assessment").whereIn("fundingRequestId", fundingRequestIds)
+    const assessmentsHash = groupBy(assessments, "fundingRequestId")
+
+    fundingRequests.forEach((fundingRequest) => {
+      const fundingRequestId = fundingRequest.id || NON_EXISTANT_ID
+      fundingRequest.assessments = assessmentsHash[fundingRequestId]
     })
   }
 }

@@ -1,3 +1,4 @@
+import Assessment from "@/models/assessment"
 import RequestType from "@/models/request-type"
 
 export default interface FundingRequest {
@@ -25,5 +26,6 @@ export default interface FundingRequest {
   studentIsMovToAnthCmmToAttdPrgm?: boolean
   studentIsMainteningTwoResidences?: boolean
   studentWNotReceiveFundFromOtrOrg?: boolean
+  assessments?: Assessment[]
   requestType?: RequestType
 }
