@@ -1037,7 +1037,7 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
         else {
             if (isNetAmountAndAssessmentType(3)) {
                 this.disbursement.disbursement_type_id = 4;
-
+               
                 if ((this.assessment.csl_assessed_need ?? 0) > 0 || (this.assessment.total_grant_awarded ?? 0) > 0 && (this.application.academic_year_id ?? 0) > 2012) {
                     await this.getMsfaaInfo("Disburse");
                 }

@@ -85,6 +85,9 @@ const mutations = {
     },
     setCslftNetAmount(state, value) {
         state.cslft.net_amount = value;
+    },
+    setCslftAssessedNeed(state, value) {
+        state.cslft.csl_assessed_need = value;
     }
 };
 const actions = {
@@ -247,6 +250,9 @@ const actions = {
     },
     async setCslftNetAmount(state, value) {
         state.commit("setCslftNetAmount", value);
+    },
+    async setCslftAssessedNeed(state, value) {        
+        state.commit("setCslftAssessedNeed", value);
     }
 };
 const getters = {
