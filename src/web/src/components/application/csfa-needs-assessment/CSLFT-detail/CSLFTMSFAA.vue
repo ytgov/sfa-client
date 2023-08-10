@@ -57,7 +57,7 @@
                 <div class="col-xs-12 col-sm-10 col-md-10 col-lg-10">
                   <v-menu
                     :disabled="showAdd"
-                    v-model="date_sent_to_nslsc_menu"
+                    v-model="sent_date_to_nslsc_menu"
                     :close-on-content-click="false"
                     transition="scale-transition"
                     left
@@ -68,7 +68,7 @@
                     <template v-slot:activator="{ on, attrs }">
                       <v-text-field
                         :disabled="showAdd"
-                        v-model="cslft_msfaa_date_sent_formatted"
+                        v-model="cslft_msfaa_sent_date_formatted"
                         label="Date Sent to NSLSC"
                         append-icon="mdi-calendar"
                         hide-details
@@ -83,7 +83,7 @@
                     <v-date-picker
                       :disabled="showAdd"
                       v-model="cslft_msfaa.sent_date"
-                      @input="date_sent_to_nslsc_menu = false"
+                      @input="sent_date_to_nslsc_menu = false"
                     ></v-date-picker>
                   </v-menu>
                 </div>
@@ -101,7 +101,7 @@
                     <template v-slot:activator="{ on, attrs }">
                       <v-text-field
                         :disabled="showAdd"
-                        v-model="cslft_msfaa_date_signed_formatted"
+                        v-model="cslft_msfaa_signed_date_formatted"
                         label="Date Student Signed"
                         append-icon="mdi-calendar"
                         hide-details
@@ -115,7 +115,7 @@
                     </template>
                     <v-date-picker
                       :disabled="showAdd"
-                      v-model="cslft_msfaa.date_signed"
+                      v-model="cslft_msfaa.signed_date"
                       @input="date_student_signed_menu = false"
                     ></v-date-picker>
                   </v-menu>
@@ -123,7 +123,7 @@
                 <div class="col-xs-12 col-sm-10 col-md-10 col-lg-10">
                   <v-menu
                     :disabled="showAdd"
-                    v-model="date_received_by_nslsc_menu"
+                    v-model="received_date_by_nslsc_menu"
                     :close-on-content-click="false"
                     transition="scale-transition"
                     left
@@ -134,7 +134,7 @@
                     <template v-slot:activator="{ on, attrs }">
                       <v-text-field
                         :disabled="showAdd"
-                        v-model="cslft_msfaa_date_received_formatted"
+                        v-model="cslft_msfaa_received_date_formatted"
                         label="Date Received by NSLSC"
                         append-icon="mdi-calendar"
                         hide-details
@@ -148,8 +148,8 @@
                     </template>
                     <v-date-picker
                       :disabled="showAdd"
-                      v-model="cslft_msfaa.date_received"
-                      @input="date_received_by_nslsc_menu = false"
+                      v-model="cslft_msfaa.received_date"
+                      @input="received_date_by_nslsc_menu = false"
                     ></v-date-picker>
                   </v-menu>
                 </div>
@@ -170,7 +170,7 @@
                 <div class="col-xs-12 col-sm-10 col-md-10 col-lg-6">
                   <v-menu
                     :disabled="showAdd"
-                    v-model="date_cancelled_menu"
+                    v-model="cancel_date_menu"
                     :close-on-content-click="false"
                     transition="scale-transition"
                     left
@@ -181,7 +181,7 @@
                     <template v-slot:activator="{ on, attrs }">
                       <v-text-field
                         :disabled="showAdd"
-                        v-model="cslft_msfaa_date_cancelled_formatted"
+                        v-model="cslft_msfaa_cancel_date_formatted"
                         label="Date Cancelled"
                         append-icon="mdi-calendar"
                         hide-details
@@ -195,8 +195,8 @@
                     </template>
                     <v-date-picker
                       :disabled="showAdd"
-                      v-model="cslft_msfaa.date_cancelled"
-                      @input="date_cancelled_menu = false"
+                      v-model="cslft_msfaa.cancel_date"
+                      @input="cancel_date_menu = false"
                     ></v-date-picker>
                   </v-menu>
                 </div>
@@ -219,7 +219,7 @@
                     hide-details
                     label="Home Email"
                     :disabled="showAdd"
-                    v-model="home_email"
+                    v-model="cslft_msfaa.email"
                   ></v-text-field>
                 </div>
                 <div class="col-xs-12 col-sm-10 col-md-10 col-lg-6">
@@ -338,6 +338,17 @@ export default {
   components: {
     DateInput,
   },  
+  data() {
+    return {
+      date_issued_menu: null, 
+      sent_date_to_nslsc_menu: null,
+      date_student_signed_menu:null,
+      received_date_by_nslsc_menu:null,
+      cancel_date_menu:null,
+      email:null,
+
+    };
+  },
   setup() {
     const showAdd = ref(true);
         
@@ -351,10 +362,10 @@ export default {
     }),
     ...mapGetters([
       "cslft_msfaa_date_issued_formatted",
-      "cslft_msfaa_date_received_formatted",
-      "cslft_msfaa_date_sent_formatted",
-      "cslft_msfaa_date_signed_formatted",
-      "cslft_msfaa_date_cancelled_formatted",
+      "cslft_msfaa_received_date_formatted",
+      "cslft_msfaa_sent_date_formatted",
+      "cslft_msfaa_signed_date_formatted",
+      "cslft_msfaa_cancel_date_formatted",
       "cslft_get_e_certs",
       "portalStatus",
     ]),

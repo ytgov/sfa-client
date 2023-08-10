@@ -11,6 +11,8 @@ export interface MsfaaDTO {
     sent_seq_number?: number;
     last_reminder_sent?: number;
     is_full_time?: boolean;
+    email?: string;
+    rec_create_date?: Date;
 }
 
 export type MsfaaTable = Omit<MsfaaDTO, "id">;
@@ -27,4 +29,6 @@ export const msfaaColumns: (keyof MsfaaTable)[] = [
     "sent_seq_number",
     "last_reminder_sent",
     "is_full_time",
+    "email",
+    "rec_create_date"
 ];
