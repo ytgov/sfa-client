@@ -16,7 +16,7 @@ export function up(knex: Knex) {
 }
 
 export function down(knex: Knex) {
-  knex.schema
+  return knex.schema
     .withSchema(DB_CONFIG.defaultSchema)
     .table("application_draft", (table) => {
       table.dropColumn("application_id")
