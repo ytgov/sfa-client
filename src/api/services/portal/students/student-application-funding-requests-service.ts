@@ -1,9 +1,9 @@
 import { groupBy, keyBy } from "lodash"
 
 import db from "@/db/db-client"
-
 import { NON_EXISTANT_ID } from "@/utils/constants"
 
+import Assessment from "@/models/assessment"
 import FundingRequest from "@/models/funding-request"
 
 export default class StudentApplicationFundingRequestsService {
@@ -13,6 +13,21 @@ export default class StudentApplicationFundingRequestsService {
     this.#applicationId = applicationId
   }
 
+  ////
+  // Data format
+  // fundingRequests: [
+  //   {
+  //      id
+  //      requestType: {},
+  //      ...
+  //      assessments: [
+  //        {
+  //          id:112,
+  //          disbursements: [{}]
+  //        }
+  //      ]
+  //    }
+  // ]
   async getFundingRequests() {
     const fundingRequests = await db("fundingRequest").where({ applicationId: this.#applicationId })
 
@@ -36,13 +51,27 @@ export default class StudentApplicationFundingRequestsService {
 
   async #injectAssessments(fundingRequests: FundingRequest[]) {
     const fundingRequestIds = fundingRequests.map((fundingRequest) => fundingRequest.id)
-
     const assessments = await db("assessment").whereIn("fundingRequestId", fundingRequestIds)
-    const assessmentsHash = groupBy(assessments, "fundingRequestId")
 
+    await this.#injectDisbursements(assessments)
+
+    const assessmentsHash = groupBy(assessments, "fundingRequestId")
     fundingRequests.forEach((fundingRequest) => {
       const fundingRequestId = fundingRequest.id || NON_EXISTANT_ID
       fundingRequest.assessments = assessmentsHash[fundingRequestId]
+    })
+  }
+
+  async #injectDisbursements(assessments: Assessment[]) {
+    const assessmentIds = assessments.map((assessment) => assessment.id)
+
+    const disbursementsHash = await db("disbursement")
+      .whereIn("assessmentId", assessmentIds)
+      .then((rows) => groupBy(rows, "assessmentId"))
+
+    assessments.forEach((assessment) => {
+      const assessmentId = assessment.id || NON_EXISTANT_ID
+      assessment.disbursements = disbursementsHash[assessmentId]
     })
   }
 }

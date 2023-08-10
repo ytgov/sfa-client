@@ -1,3 +1,5 @@
+import Disbursement from "@/models/disbursement"
+
 export default interface Assessment {
   id: number
   allowedBooks?: number
@@ -118,4 +120,5 @@ export default interface Assessment {
   studentContributionOverride?: number
   spouseContributionOverride?: number
   parentProvinceId?: number
+  disbursements?: Disbursement[]
 }
