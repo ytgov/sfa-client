@@ -19,6 +19,10 @@ const db = knex({
     }
   },
   wrapIdentifier: (value, origImpl, queryContext) => {
+    if (value === '*') {
+      return origImpl(value)
+    }
+
     const specialValue = NON_STANDARD_COLUMN_NAMES_TRANSFORMS[value]
     if (specialValue) {
       return origImpl(specialValue)
