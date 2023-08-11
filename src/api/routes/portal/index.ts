@@ -31,6 +31,6 @@ portalRouter.get(
   routedTo(StudentApplicationDraftsController, "listStudentApplicationDrafts")
 )
 portalRouter.get(
-  "/students/:studentId/draft-applications/:applicationDraftId",
+  "/students/:studentId/application-drafts/:applicationDraftId",
   routedTo(StudentApplicationDraftsController, 'getStudentApplicationDraft')
 )
