@@ -1,1 +1,0 @@
-ALTER TABLE [sfa].[msfaa] ADD [rec_create_date] DATETIME NOT NULL DEFAULT GETDATE(); 

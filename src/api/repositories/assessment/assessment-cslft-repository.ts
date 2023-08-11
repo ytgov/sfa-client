@@ -527,8 +527,9 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
     async getContribDisplayValues(): Promise<void> {
 
         const student_cppd_count = await this.countIncomeTypeByApplication(3, this.application.id);
+        const aboriginalStatusCount = await this.aboriginalStatusRepo.getAboriginalStatusCount(this.application.aboriginal_status_id);
 
-        if (this.application.is_perm_disabled) {
+        if (this.application.is_perm_disabled || this.application.is_disabled) {
             this.assessment.student_exemption_reason = "Is Disabled";
         }
 
@@ -544,7 +545,7 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
             this.assessment.student_exemption_reason = "Crown Ward";
         }
 
-        if (this.student.indigenous_learner_id && this.student.indigenous_learner_id > 0) {
+        if ((this.student.indigenous_learner_id && this.student.indigenous_learner_id > 0) || aboriginalStatusCount > 0) {
             this.assessment.student_exemption_reason = "Indigenous Learner";
         }
 
@@ -833,13 +834,13 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
             const aStatusCount = await this.aboriginalStatusRepo.getAboriginalStatusCount(this.application.aboriginal_status_id);
             student_cppd_count = await this.incomeRepo.getIncomeByType(this.application.id, [3]);
 
-            if (aStatusCount > 0 || this.student.indigenous_learner_id === 1 || this.student.is_crown_ward || this.application.is_perm_disabled || this.assessment.dependent_count > 0 || student_cppd_count > 0) {
+            if (aStatusCount > 0 || this.student.indigenous_learner_id === 1 || this.student.is_crown_ward || this.application.is_disabled || this.application.is_perm_disabled || this.assessment.dependent_count > 0 || student_cppd_count > 0) {
                 this.assessment.student_contrib_exempt = "YES";
             }
             
-            let spouse_exempt_count = 0;
-            spouse_exempt_count = await this.incomeRepo.getIncomeByType(this.application.id, [2,3,21]);
+            let spouse_exempt_count = this.application.spouse_ln150_income ?? 0;
 
+            // Validation change accordingly to an email from SFA team.
             if (spouse_exempt_count > 0 || this.application.spouse_study_school_from) {
                 this.assessment.spouse_contrib_exempt = "YES";
             }
