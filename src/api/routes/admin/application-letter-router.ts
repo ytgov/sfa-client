@@ -40,7 +40,8 @@ applicationLetterRouter.get(
             statusCode: 404,
             status: "Not Found",
             message: `Could not find application letter with id "${applicationId}" and funding request "${fundingRequestId}".`,
-            error
+            error: error.message,
+            t: error.stack
           })
         } else {
           res.status(422).send({
