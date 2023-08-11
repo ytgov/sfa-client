@@ -26,5 +26,6 @@ export default class StudentApplicationsService {
 
     return db("applicationDraft")
       .where({ id: this.#applicationDraftId, studentId: this.#studentId })
+      .first()
   }
 }
