@@ -50,7 +50,7 @@ export interface AssessmentDTO extends IAssessmentCalculated{
     parent2_income?: number;
     parent2_tax_paid?: number;
     parent_contribution_override?: number;
-    parent_contribution_review?: boolean;
+    parent_contribution_review?: string;
     parent_province_id?: number;
     parent_ps_depend_count?: number;
     period?: string;
@@ -80,7 +80,7 @@ export interface AssessmentDTO extends IAssessmentCalculated{
     spouse_contrib_exempt?: string;
     spouse_contribution?: number;
     spouse_contribution_override?: number;
-    spouse_contribution_review?: boolean;
+    spouse_contribution_review?: string;
     spouse_expected_contribution?: number;
     spouse_expected_income?: number;
     spouse_gross_income?: number;
@@ -95,7 +95,7 @@ export interface AssessmentDTO extends IAssessmentCalculated{
     student_contrib_exempt?: string;
     student_contribution?: number;
     student_contribution_override?: number;
-    student_contribution_review?: boolean;
+    student_contribution_review?: string;
     student_expected_contribution?: number;
     student_family_size?: number;
     student_gross_income?: number;

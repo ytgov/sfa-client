@@ -360,9 +360,9 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
                 }
             }
 
-            this.assessment.student_contribution_review = this.assessment.assessment_type_id === 2;
-            this.assessment.spouse_contribution_review = this.assessment.assessment_type_id === 2;
-            this.assessment.parent_contribution_review = this.assessment.assessment_type_id === 2;
+            this.assessment.student_contribution_review = this.assessment.assessment_type_id === 2 ? "YES" : "NO";
+            this.assessment.spouse_contribution_review = this.assessment.assessment_type_id === 2 ? "YES" : "NO";
+            this.assessment.parent_contribution_review = this.assessment.assessment_type_id === 2 ? "YES" : "NO";
         }
 
         this.resultDto.data = this.assessment;
@@ -589,11 +589,11 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
 
     getCombinedContribution(): void {
         let combined: number = this.numHelper.getNum(this.assessment.student_contribution ?? 0);
-        if (this.numHelper.getNum(this.assessment.student_contribution_override ?? 0) !== 0 || this.assessment.student_contribution_review) {
+        if (this.numHelper.getNum(this.assessment.student_contribution_override ?? 0) !== 0 || this.assessment.student_contribution_review === "YES") {
             combined = this.numHelper.getNum(this.assessment.student_contribution_override ?? 0);
         }
 
-        if (this.numHelper.getNum(this.assessment.spouse_contribution_override ?? 0) !== 0 || this.assessment.spouse_contribution_review) {
+        if (this.numHelper.getNum(this.assessment.spouse_contribution_override ?? 0) !== 0 || this.assessment.spouse_contribution_review === "YES") {
             combined = combined + this.numHelper.getNum(this.assessment.spouse_contribution_override ?? 0);
         }
         else {
