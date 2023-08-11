@@ -5,6 +5,7 @@ import { RenderViewOptions } from "express-handlebars/types"
 
 import { generatePDF } from "./pdf-generator"
 import helpers from "./handlebars-helpers"
+import { PaperFormat } from "puppeteer";
 
 const hbs = create({
   defaultLayout: "./templates/layouts/pdf-layout",
@@ -38,8 +39,8 @@ export function renderViewAsPromise(viewPath: string, options: RenderViewOptions
   })
 }
 
-export function renderViewAsPdf(viewPath: string, options: RenderViewOptions) {
+export function renderViewAsPdf(viewPath: string, options: RenderViewOptions, format: PaperFormat = "letter", landscape: boolean = false) {
   return renderViewAsPromise(viewPath, options).then((htmlToRenderAsPDF) => {
-    return generatePDF(htmlToRenderAsPDF)
+    return generatePDF(htmlToRenderAsPDF, format, landscape)
   })
 }
