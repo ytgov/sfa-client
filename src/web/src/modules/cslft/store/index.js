@@ -106,7 +106,6 @@ const actions = {
     async cslftLoadUncappedExpenses(state, application_id) {
         const period_id = 2;
         const res = await axios.get(`${CSLFT}/application/${application_id}/expenses/uncapped/${period_id}`);
-        console.log(res);
         if (res?.data?.success) {            
             state.commit("cslftLoadUncappedExpenses", res.data.data);
         }
