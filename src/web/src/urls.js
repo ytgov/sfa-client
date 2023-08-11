@@ -91,6 +91,8 @@ export const ACCOMMODATION_TYPE =`${config.apiBaseUrl}/api/v2/admin/accommodatio
 export const DISBURSEMENT =`${config.apiBaseUrl}/api/v2/admin/disbursement`;
 export const ASSESSMENT = `${config.apiBaseUrl}/api/v2/admin/assessment`;
 
+export const APPLICATION_LETTER_URL = `${config.apiBaseUrl}/api/v2/admin/application-letter`;
+
 // Modules
 export const CSLFT = `${ASSESSMENT}/cslft`;
 export const CSLFT_ASSESS_INFO = `${CSLFT}/assess-info`;
