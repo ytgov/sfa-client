@@ -19,7 +19,7 @@ const db = knex({
     }
   },
   wrapIdentifier: (value, origImpl, queryContext) => {
-    if (value === '*') {
+    if (value === "*") {
       return origImpl(value)
     }
 
@@ -40,12 +40,18 @@ const dbWithSchema: Knex = new Proxy(db, {
     if (typeof target[prop] === "function") {
       if (prop === "withSchema") {
         return (schema: string) => target[prop](schema) // format taken from src/api/node_modules/knex/types/index.d.ts
-      } else if (prop === "destroy") {
-        return (callback: Function) => db.destroy(callback)
-      } else {
-        return (...args: any[]) => target[prop](...args).withSchema(DB_CONFIG.defaultSchema)
+      }
+
+      return (...args: any[]) => {
+        const result = target[prop](...args)
+        if (typeof result === "object" && typeof result["withSchema"] === "function") {
+          return result.withSchema(DB_CONFIG.defaultSchema)
+        }
+
+        return result
       }
     }
+
     return target[prop]
   },
 })
