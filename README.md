@@ -21,13 +21,13 @@ Writing code and developing in this application requires running three services:
 2. To run the database locally, you must have Docker installed as well as Docker Compose; afterwards, run the following command from the root directory:
 
    ```bash
-   docker compose -f docker-compose.dev.yml up -d
+   docker compose -f docker-compose.development.yaml up -d
    ```
 
    or if your docker compose is old
 
    ```bash
-   docker-compose -f docker-compose.dev.yml up -d
+   docker-compose -f docker-compose.development.yaml up -d
    ```
 
    This command will start API, SQL, Email, and S3 services, and bind them to appropriate ports on your local machine as specified in [docker-compose.development.yaml](./docker-compose.development.yaml).
@@ -37,13 +37,13 @@ Writing code and developing in this application requires running three services:
    ```bash
    dev up db
    #
-   docker compose -f docker-compose.development.yml up db
+   docker compose -f docker-compose.development.yaml up db
    ```
 
    If you need to debug the restore, you can connect to the running SQL Server via
 
    ```bash
-   docker compose -f docker-compose.development.yml exec -it db bash
+   docker compose -f docker-compose.development.yaml exec -it db bash
    ```
 
 4. The first time you start the application, you must create a bucket named `documents` and an Access Key. Copy the access key id and secret and drop those values into the appropriate spots in the environment file. The Minio Web interface located at http://localhost:9090. Subsequent starts, it is not required to access the Minio interface.
@@ -55,7 +55,7 @@ Writing code and developing in this application requires running three services:
    ```bash
    dev up
    # or
-   docker compose -f docker-compose.development.yml up
+   docker compose -f docker-compose.development.yaml up
    ```
 
    If you don't use docker see the "Without Docker" section
@@ -74,7 +74,7 @@ Writing code and developing in this application requires running three services:
 
    ```bash
    docker compose \
-      -f docker-compose.dev.yml \
+      -f docker-compose.development.yaml \
       exec -it db \
       /opt/mssql-tools/bin/sqlcmd \
          -U sa \
@@ -104,7 +104,7 @@ Writing code and developing in this application requires running three services:
 To access the Database console directly use:
 
 ```bash
-docker compose -f docker-compose.development.yml exec db /opt/mssql-tools/bin/sqlcmd -U sa -s localhost -P Testing1122
+docker compose -f docker-compose.development.yaml exec db /opt/mssql-tools/bin/sqlcmd -U sa -s localhost -P Testing1122
 ```
 
 #### Without Docker
