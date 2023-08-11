@@ -21,13 +21,13 @@ Writing code and developing in this application requires running three services:
 2. To run the database locally, you must have Docker installed as well as Docker Compose; afterwards, run the following command from the root directory:
 
    ```bash
-   docker compose -f docker-compose.dev.yml up -d
+   docker compose -f docker-compose.development.yaml up -d
    ```
 
    or if your docker compose is old
 
    ```bash
-   docker-compose -f docker-compose.dev.yml up -d
+   docker-compose -f docker-compose.development.yaml up -d
    ```
 
    This command will start API, SQL, Email, and S3 services, and bind them to appropriate ports on your local machine as specified in [docker-compose.development.yaml](./docker-compose.development.yaml).
@@ -35,29 +35,83 @@ Writing code and developing in this application requires running three services:
 3. When the database starts the first time, the database will be empty. To load some seed data, you must obtain a database backup, and put it into `/db/backups/sfa.bak`, then run the follow commands:
 
    ```bash
-   docker compose \
-      -f docker-compose.dev.yml \
-      exec -it db \
-      /opt/mssql-tools/bin/sqlcmd \
-         -U sa \
-         -s localhost \
-         -P Testing1122 \
-         -Q "RESTORE DATABASE SFADB_DEV FROM DISK = N'backups/sfa.bak' WITH FILE = 1"
+   dev up db
+   #
+   docker compose -f docker-compose.development.yaml up db
    ```
 
    If you need to debug the restore, you can connect to the running SQL Server via
 
    ```bash
-   docker compose -f docker-compose.dev.yml exec -it db bash
+   docker compose -f docker-compose.development.yaml exec -it db bash
    ```
 
 4. The first time you start the application, you must create a bucket named `documents` and an Access Key. Copy the access key id and secret and drop those values into the appropriate spots in the environment file. The Minio Web interface located at http://localhost:9090. Subsequent starts, it is not required to access the Minio interface.
 
 5. To preview sent emails, the MailSlurper web interface is located at http://localhost:8081.
 
-6. Install `asdf` using instructions at https://asdf-vm.com/guide/getting-started.html.
+6. To boot the api, test, db, s3 and email services you can use the docker compose setup.
 
-7. Install the `nodejs` plugin via and the appropriate nodejs version.
+   ```bash
+   dev up
+   # or
+   docker compose -f docker-compose.development.yaml up
+   ```
+
+   If you don't use docker see the "Without Docker" section
+
+7. Last to start is the the Vue.js web front-end. To run this, open a second terminal window at this directory and run the following commands:
+
+   ```bash
+   cd src/web
+   npm install
+   npm run start
+   ```
+
+   You will now have the Vue CLI server hosting the application at http://localhost:8080 and you can begin editing the API or front-end code. **All changes to the files in the `src/api` and `src/web` will automatically reload there respective applications.**
+
+8. Manually add your user account info to the database via
+
+   ```bash
+   docker compose \
+      -f docker-compose.development.yaml \
+      exec -it db \
+      /opt/mssql-tools/bin/sqlcmd \
+         -U sa \
+         -s localhost \
+         -P Testing1122 \
+         -d SFADB_DEV \
+         -Q "INSERT INTO sfa.[USER](
+               email
+               , email_public
+               , is_active
+               , first_name
+               , last_name
+               , roles)
+            VALUES (
+               N'your.email@something.com'
+               , N'your.email@something.com'
+               , 1
+               , N'YourFirstName'
+               , N'YourLastName'
+               , N'Admin');"
+   ```
+
+9. You should now be able to log in at http://localhost:8080, assuming you have an appropriate Auth0 or YNet account.
+
+---
+
+To access the Database console directly use:
+
+```bash
+docker compose -f docker-compose.development.yaml exec db /opt/mssql-tools/bin/sqlcmd -U sa -s localhost -P Testing1122
+```
+
+#### Without Docker
+
+1. Install `asdf` using instructions at https://asdf-vm.com/guide/getting-started.html.
+
+2. Install the `nodejs` plugin via and the appropriate nodejs version.
 
    ```bash
    asdf plugin add nodejs
@@ -71,7 +125,7 @@ Writing code and developing in this application requires running three services:
    node -v
    ```
 
-8. (optional) You will now have a local database with data ready for the API. To run the API, run the following commands:
+3. (optional) You will now have a local database with data ready for the API. To run the API, run the following commands:
 
    ```bash
    cd src/api
@@ -95,53 +149,6 @@ Writing code and developing in this application requires running three services:
     The API will bind to your local machines port 3000 and be available at http://localhost:3000
 
 > You no longer need this step if you are using docker compose.
-
-12. Last to start is the the Vue.js web front-end. To run this, open a second terminal window at this directory and run the following commands:
-
-    ```bash
-    cd src/web
-    npm install
-    npm run start
-    ```
-
-    You will now have the Vue CLI server hosting the application at http://localhost:8080 and you can begin editing the API or front-end code. **All changes to the files in the `src/api` and `src/web` will automatically reload there respective applications.**
-
-13. Manually add your user account info to the database via
-
-    ```bash
-    docker compose \
-       -f docker-compose.dev.yml \
-       exec -it db \
-       /opt/mssql-tools/bin/sqlcmd \
-          -U sa \
-          -s localhost \
-          -P Testing1122 \
-          -d SFADB_DEV \
-          -Q "INSERT INTO sfa.[USER](
-                email
-                , email_public
-                , is_active
-                , first_name
-                , last_name
-                , roles)
-             VALUES (
-                N'your.email@something.com'
-                , N'your.email@something.com'
-                , 1
-                , N'YourFirstName'
-                , N'YourLastName'
-                , N'Admin');"
-    ```
-
-14. You should now be able to log in at http://localhost:8080, assuming you have an appropriate Auth0 or YNet account.
-
----
-
-To access the Database console directly use:
-
-```bash
-docker compose -f docker-compose.dev.yml exec db /opt/mssql-tools/bin/sqlcmd -U sa -s localhost -P Testing1122
-```
 
 ## Dev Command Usage
 
