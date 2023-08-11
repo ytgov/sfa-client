@@ -12,7 +12,7 @@ import { doHealthCheck } from "./utils/health_check";
 import { RequireActive, configureAuthentication } from "./routes/auth";
 
 import * as Sentry from "@sentry/node";
-import { CreateMigrationRoutes } from "./data/migrator";
+import { CreateMigrationRoutes, migrateLatest } from "./data/migrator";
 if (config.SENTRY_DSN.length > 0) Sentry.init({ dsn: config.SENTRY_DSN });
 
 const app = express();
