@@ -201,6 +201,7 @@ assessmentCslftRouter.post("/:funding_request_id/disburse",
                 results.disbursements = disburse.disbursements;
                 results.funding_request = disburse.funding_request;
                 results.globals = disburse.globals;
+                results.msfaa = disburse.msfaa;
             }
 
             if (Object.keys(results.data ?? {}).length > 0) {
@@ -225,8 +226,7 @@ assessmentCslftRouter.get("/application/:application_id/expenses/uncapped/:perio
         let results: Array<UncappedExpensesDTO> = [];
         
         try {
-           
-
+            
             if (application_id && period_id) {
                 results = await expenseRepo.getUncappedExpenseTable(parseInt(application_id), parseInt(period_id));
             }
@@ -234,7 +234,7 @@ assessmentCslftRouter.get("/application/:application_id/expenses/uncapped/:perio
             if (results.length > 0) {                
                 return res.status(200).json({ success: true, data: results });
             } else {
-                return res.status(404).send();
+                return res.status(200).json({ success: true, data: [] });
             }
 
         } catch (error: any) {

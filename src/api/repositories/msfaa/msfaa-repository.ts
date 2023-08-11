@@ -38,6 +38,12 @@ export class MsfaaRepository extends BaseRepository implements IMainTable {
         return result[0];
     }
 
+    async insertMsfaa(msfaa: MsfaaDTO): Promise<MsfaaDTO> {
+        const filtered = this.getMsfaaTable(msfaa);
+        const result = await this.mainDb(this.mainTable).insert(filtered).returning("*");        
+        return result[0];
+    }
+
     async getMsfaaById(msfaa_id: number | undefined): Promise<Partial<MsfaaDTO>> {
         if (msfaa_id) {
             this.msfaa = await this.mainDb("sfa.msfaa")

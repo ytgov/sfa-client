@@ -85,6 +85,9 @@ const mutations = {
     },
     setCslftNetAmount(state, value) {
         state.cslft.net_amount = value;
+    },
+    setCslftAssessedNeed(state, value) {
+        state.cslft.csl_assessed_need = value;
     }
 };
 const actions = {
@@ -103,7 +106,6 @@ const actions = {
     async cslftLoadUncappedExpenses(state, application_id) {
         const period_id = 2;
         const res = await axios.get(`${CSLFT}/application/${application_id}/expenses/uncapped/${period_id}`);
-        console.log(res);
         if (res?.data?.success) {            
             state.commit("cslftLoadUncappedExpenses", res.data.data);
         }
@@ -247,6 +249,9 @@ const actions = {
     },
     async setCslftNetAmount(state, value) {
         state.commit("setCslftNetAmount", value);
+    },
+    async setCslftAssessedNeed(state, value) {        
+        state.commit("setCslftAssessedNeed", value);
     }
 };
 const getters = {

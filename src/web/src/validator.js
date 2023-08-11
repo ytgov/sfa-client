@@ -27,6 +27,13 @@ const validator = {
             return true;
         }
     },
+    isNumeric(evt) {
+        const regEx = /^-?\d*\.?\d{0,6}$/g;
+        if (regEx.test(evt.key)) {
+            return true;
+        }
+        evt.preventDefault();
+    },
     isLetter(evt) {
         const regex = /^[a-zA-Z]+$/;
         if ((!regex.test(evt.key))) {

@@ -40,7 +40,7 @@
                       label="Assessed Need"
                       @keypress="validate.isNumber($event)"
                       :disabled="isTotal"
-                      v-model="cslft_assess_needed"
+                      v-model="cslft.csl_assessed_need"
                     ></v-text-field>
                   </div>
                   <div class="col-xs-12 col-lg-12">
@@ -176,7 +176,9 @@
                       background-color="white"
                       hide-details
                       label="Returned/Uncashable Cert"
-                      @keypress="validate.isNumber($event)"
+                      type="number"
+                      hide-spin-buttons
+                      @keypress="validate.isNumeric($event)"
                       v-model="cslft.return_uncashable_cert"
                     ></v-text-field>
                   </div>
@@ -308,9 +310,8 @@
       </v-card-text>
     </v-card>    
     <DisbursementList
-      :applicationId="this.applicationId"
-      :fundingRequestId="cslft.funding_request_id"
       :disbursementList="cslft_disbursement"
+      :disbursementRemove="'removeCslftDisbursement'"
     >
     </DisbursementList>
   </div>
@@ -394,6 +395,12 @@ export default {
         store.dispatch("setCslftNetAmount", newVal);
       }
     },
+    cslft_assess_needed: {
+      immediate: true,
+      handler(newVal) {
+        store.dispatch("setCslftAssessedNeed", newVal);
+      }
+    },  
     cslft_disbursement: {
       immediate: true,
       deep: true,
