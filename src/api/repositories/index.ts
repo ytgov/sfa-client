@@ -19,4 +19,6 @@ export * from "./person";
 export * from "./csg_threshold"
 export * from "./csg_lookup";
 export * from "./standard_of_living"
+export * from "./aboriginal_status";
+export * from "./income";
 export * from "./i-main-table";

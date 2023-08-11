@@ -104,7 +104,9 @@ export class AssessmentCsgftRepository extends AssessmentBaseRepository {
         }
 
         if ((assessment.id ?? 0) > 0) {
-            result = this.getAssessedCost(assessment) - await this.getAssessedResources(assessment, application, student);
+            const assessedResources: number = await this.getAssessedResources(assessment, application, student);
+            const assessedCost: number = this.getAssessedCost(assessment);
+            result = assessedCost - assessedResources;
         }
         
         if (result < 0) {

@@ -269,8 +269,13 @@
                     </div>
                   </div>
                   <div class="col-xs-12 col-lg-12 nopadding height-fit-content d-flex justify-start align-center">
-                    <v-switch label="Reduce on Re-Assess" v-model="cslft.parent_contribution_review">
-                  </v-switch>
+                    <v-switch 
+                      label="Reduce on Re-Assess" 
+                      v-model="cslft.parent_contribution_review"
+                      true-value="YES"
+                      false-value="NO"
+                    >
+                    </v-switch>
                 </div>
               </div>
             </div>
