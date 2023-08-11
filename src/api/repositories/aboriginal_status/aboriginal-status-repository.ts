@@ -6,18 +6,21 @@ export class AboriginalStatusRepository extends BaseRepository {
         super(maindb);
     }
     
-    async getAboriginalStatusCount(): Promise<number> { 
+    async getAboriginalStatusCount(status_id?: number): Promise<number> { 
         let result = 0;
 
-        const query = await this.mainDb
+        if (status_id) {
+            const query = await this.mainDb
             .count("*", { as: "count" })
             .from("sfa.aboriginal_status")
-            .where("is_active", "=", 1)
+            .where("id", "=", status_id)
+            .andWhere("is_active", "=", 1)
             .andWhere("nars_status_id", ">", 0);
 
-        if (Array.isArray(query)) {
-            result = query[0].count;
-        }
+            if (Array.isArray(query)) {
+                result = query[0].count;
+            }
+        }        
 
         return result;
     }
