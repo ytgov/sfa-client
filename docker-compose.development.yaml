@@ -37,7 +37,7 @@ services:
       <<: *environment-definition
       NODE_ENV: test
       DB_NAME: sfa_client_test
-      DB_DEFAULT_SCHEMA: dbo
+      DB_DEFAULT_SCHEMA: sfa
     tty: true
     volumes:
       - ./src/api:/usr/src/api
@@ -84,6 +84,16 @@ services:
       - 2500:2500
       - 8081:8080
       - 8085:8085
+
+  # For easily generating large PlantUML diagrams
+  # Not relevant to production environment.
+  # Accessible at http://localhost:9999
+  plantuml:
+    image: plantuml/plantuml-server:jetty
+    ports:
+      - 9999:8080
+    environment:
+      PLANTUML_LIMIT_SIZE: 8192
 
 volumes:
   db_data:
