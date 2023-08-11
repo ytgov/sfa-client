@@ -1,4 +1,4 @@
-import { compact, isArray, isEmpty, last, sortBy, sumBy, uniq } from "lodash"
+import { compact, isArray, isEmpty, isNil, last, sortBy, sumBy, uniq } from "lodash"
 
 import { NON_EXISTANT_ID } from "@/utils/constants"
 
@@ -79,8 +79,7 @@ export default class ApplicationsSerializer {
         this.#application,
         this.#application.student?.residences || ([] as Residence[])
       ),
-      education: this.#educationAssociation(),
-      // TODO: investigate if I need a "parents" field
+      education: this.#educationAssociation(this.#application.student || ({} as Student)),
     }
   }
 
@@ -259,10 +258,25 @@ export default class ApplicationsSerializer {
     }
   }
 
-  #educationAssociation() {
-    // TODO: replace with real data
+  // FUTURE: this will probably pull from the education table at some point?
+  #educationAssociation(student: Student) {
+    const educationHistory = []
+
+    if (
+      !isNil(student.highSchoolId) &&
+      !isNil(student.highSchoolLeftYear) &&
+      !isNil(student.highSchoolLeftMonth)
+    ) {
+      educationHistory.push({
+        leftHighSchool: `${student.highSchoolLeftYear}/${student.highSchoolLeftMonth}`,
+        school: student.highSchoolId,
+      })
+    } else {
+      educationHistory.push({})
+    }
+
     return {
-      educationHistory: [{ leftHighSchool: "2023/02", school: 310 }],
+      educationHistory,
     }
   }
 }
