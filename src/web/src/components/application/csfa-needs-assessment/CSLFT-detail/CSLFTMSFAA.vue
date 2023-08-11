@@ -160,7 +160,6 @@
                     background-color="white"
                     hide-details
                     label="NSLSC Status"
-                    @keypress="validate.isNumber($event)"
                     :disabled="showAdd"
                     v-model="cslft_msfaa.msfaa_status"
                   ></v-text-field>
@@ -209,7 +208,7 @@
                     hide-details
                     label="Cancelled Reason"
                     :disabled="showAdd"
-                    v-model="cslft_msfaa.cancelled_reason"
+                    v-model="cslft_msfaa.cancel_reason"
                   ></v-text-field>
                 </div>
                 <div class="col-xs-12 col-sm-10 col-md-10 col-lg-6">
@@ -241,7 +240,7 @@
                     background-color="white"
                     hide-details
                     label="Update Status"
-                    :items="['Pending', 'Received']"                    
+                    :items="['Pending', 'Received', 'Cancelled']"                    
                     v-model="cslft_msfaa.msfaa_status"
                   ></v-select>
                 </div>
