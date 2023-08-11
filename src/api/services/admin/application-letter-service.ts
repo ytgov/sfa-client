@@ -22,7 +22,7 @@ export default class ApplicationLetterService {
     this.#format = format;
   }
 
-  async generateApprovalLetter(name:string, position:string): Promise<Buffer | string> {
+  async generateApprovalLetter(name: string, position: string): Promise<Buffer | string> {
     const data = await this.#getApplicationData(name, position);
     const fundingRequest = await this.#getFundingRequest();
     data.title = "Application Approval Letter";
@@ -38,7 +38,7 @@ export default class ApplicationLetterService {
     return Promise.reject(new Error(`Invalid format: ${this.#format}`));
   }
 
-  async generateRejectionLetter(name:string, position:string): Promise<Buffer | string> {
+  async generateRejectionLetter(name: string, position: string): Promise<Buffer | string> {
     const data = await this.#getApplicationData(name, position);
     const fundingRequest = await this.#getFundingRequest();
     data.title = "Application Rejection Letter";
@@ -81,7 +81,7 @@ export default class ApplicationLetterService {
   }
 
   // Private Methods
-  async #getApplicationData(name:string, position:string): Promise<any> {
+  async #getApplicationData(name: string, position: string): Promise<any> {
     if (this.#applicationData) return this.#applicationData;
 
     const application = await db("application").where({ id: this.#applicationId }).first();
@@ -122,7 +122,7 @@ export default class ApplicationLetterService {
       return Promise.reject(new Error("Assessment not found"));
     }
 
-    const disbursementList = await db("disbursement").where({ funding_request_id: this.#fundingRequestId }).first();
+    const disbursementList = await db("disbursement").where({ funding_request_id: this.#fundingRequestId });
     if (!assessment) {
       return Promise.reject(new Error("Assessment not found"));
     }
@@ -136,7 +136,7 @@ export default class ApplicationLetterService {
     if (!institution) {
       return Promise.reject(new Error("Institution not found"));
     }
-    
+
     const program = await db("study_area").where({ id: application.studyAreaId }).first();
     if (!program) {
       return Promise.reject(new Error("Progrm not found"));
@@ -149,7 +149,7 @@ export default class ApplicationLetterService {
 
     this.#applicationData = application;
 
-    let disbursements = [];
+    let disbursements = new Array<any>();
     if (disbursementList) {
       disbursements = disbursementList.map((d: any) => {
         return { amountInCents: d.paidAmount * 100, releaseDate: d.issueDate };
@@ -184,7 +184,7 @@ export default class ApplicationLetterService {
       disbursements,
       studentFinancialAssistanceOfficer: {
         name,
-        position
+        position,
       },
     });
   }
