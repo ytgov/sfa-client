@@ -35,20 +35,15 @@ Writing code and developing in this application requires running three services:
 3. When the database starts the first time, the database will be empty. To load some seed data, you must obtain a database backup, and put it into `/db/backups/sfa.bak`, then run the follow commands:
 
    ```bash
-   docker compose \
-      -f docker-compose.dev.yml \
-      exec -it db \
-      /opt/mssql-tools/bin/sqlcmd \
-         -U sa \
-         -s localhost \
-         -P Testing1122 \
-         -Q "RESTORE DATABASE SFADB_DEV FROM DISK = N'backups/sfa.bak' WITH FILE = 1"
+   dev up db
+   #
+   docker compose -f docker-compose.development.yml
    ```
 
    If you need to debug the restore, you can connect to the running SQL Server via
 
    ```bash
-   docker compose -f docker-compose.dev.yml exec -it db bash
+   docker compose -f docker-compose.development.yml exec -it db bash
    ```
 
 4. The first time you start the application, you must create a bucket named `documents` and an Access Key. Copy the access key id and secret and drop those values into the appropriate spots in the environment file. The Minio Web interface located at http://localhost:9090. Subsequent starts, it is not required to access the Minio interface.
@@ -140,7 +135,7 @@ Writing code and developing in this application requires running three services:
 To access the Database console directly use:
 
 ```bash
-docker compose -f docker-compose.dev.yml exec db /opt/mssql-tools/bin/sqlcmd -U sa -s localhost -P Testing1122
+docker compose -f docker-compose.development.yml exec db /opt/mssql-tools/bin/sqlcmd -U sa -s localhost -P Testing1122
 ```
 
 ## Dev Command Usage
