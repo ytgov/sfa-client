@@ -37,4 +37,8 @@ ARG IMAGE_TAG=0.0.0
 ENV IMAGE_TAG=$IMAGE_TAG
 
 RUN npm run build
+
+COPY --chown=node:node src/api/templates/* /home/node/app/dist/templates/
+COPY --chown=node:node src/api/web/*.png /home/node/app/dist/web/
+
 CMD [ "node", "./dist/index.js" ]
