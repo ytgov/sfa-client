@@ -3,7 +3,7 @@ import { isArray } from "lodash"
 import Application from "@/models/application"
 import ApplicationDraft from "@/models/application-draft"
 
-export default class ApplicationsSerializer {
+export default class ApplicationDraftsSerializer {
   #applicationDrafts: ApplicationDraft[] = []
   #applicationDraft: ApplicationDraft = {} as ApplicationDraft
 
