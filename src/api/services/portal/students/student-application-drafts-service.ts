@@ -1,16 +1,22 @@
 import db from "@/db/db-client"
 
-export default class StudentApplicationsService {
+export default class StudentApplicationDraftsService {
   #studentId: number
   #applicationDraftId?: number
 
-  constructor({ studentId, applicationDraftId }: { studentId: number; applicationDraftId?: number }) {
+  constructor({
+    studentId,
+    applicationDraftId,
+  }: {
+    studentId: number
+    applicationDraftId?: number
+  }) {
     this.#studentId = studentId
     this.#applicationDraftId = applicationDraftId
   }
 
   getApplicationDrafts() {
-    return db("application_draft").where({ student_id: this.#studentId })
+    return db("applicationDraft").where({ studentId: this.#studentId })
   }
 
   getApplicationDraft() {
@@ -18,6 +24,8 @@ export default class StudentApplicationsService {
       throw new Error("Application Draft ID is not set")
     }
 
-    return db("application_draft").where({ id: this.#applicationDraftId, student_id: this.#studentId })
+    return db("applicationDraft")
+      .where({ id: this.#applicationDraftId, studentId: this.#studentId })
+      .first()
   }
 }

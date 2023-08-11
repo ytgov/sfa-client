@@ -16,6 +16,9 @@ export default class StudentApplicationStudentsService {
     return db
       .select({
         t1Id: "student.id",
+        t1HighSchoolId: "highSchoolId",
+        t1HighSchoolLeftYear: "highSchoolLeftYear",
+        t1HighSchoolLeftMonth: "highSchoolLeftMonth",
         t2Id: "person.id",
         t2FirstName: "person.firstName",
         t2LastName: "person.lastName",
@@ -38,6 +41,9 @@ export default class StudentApplicationStudentsService {
       .then((result) => {
         return {
           id: result.t1Id,
+          highSchoolId: result.t1HighSchoolId,
+          highSchoolLeftYear: result.t1HighSchoolLeftYear,
+          highSchoolLeftMonth: result.t1HighSchoolLeftMonth,
           personId: result.t2Id,
           person: {
             id: result.t2Id,
