@@ -26,7 +26,12 @@
             <div class="col-xs-12 col-sm-12 col-md-12 nopadding col-lg-12 d-flex">
               <div class="col-xs-12 col-sm-4 col-lg-4 nopadding d-flex flex-wrap mobile-low-margin">
                 <div class="col-xs-12 col-lg-12 nopadding height-fit-content d-flex justify-center">
-                  <v-switch label="Exempt" v-model="cslft.student_contrib_exempt">
+                  <v-switch 
+                    label="Exempt" 
+                    v-model="cslft.student_contrib_exempt"
+                    true-value="YES"
+                    false-value="NO"
+                  >
                   </v-switch>
                 </div>
               </div>
@@ -158,7 +163,12 @@
             <div class="col-xs-12 col-sm-12 col-md-12 nopadding col-lg-12 d-flex">
               <div class="col-xs-12 col-sm-4 col-lg-4 nopadding d-flex flex-wrap mobile-low-margin">
                 <div class="col-xs-12 col-lg-12 nopadding height-fit-content d-flex justify-center">
-                  <v-switch label="Exempt" v-model="cslft.spouse_contrib_exempt">
+                  <v-switch 
+                    label="Exempt" 
+                    v-model="cslft.spouse_contrib_exempt"
+                    true-value="YES"
+                    false-value="NO"
+                  >
                   </v-switch>
                 </div>
               </div>
