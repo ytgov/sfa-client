@@ -27,6 +27,10 @@ export default class StudentApplicationsService {
       .where({ id: this.#applicationId, studentId: this.#studentId })
       .first()
 
+    if (application === undefined) {
+      throw new Error(`Application not found for id=${this.#applicationId} and studentId=${this.#studentId}`)
+    }
+
     if (application.institutionCampusId) {
       application.institution = await db("institution")
         .where({ id: application.institutionCampusId })
