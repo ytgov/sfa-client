@@ -9,15 +9,15 @@ DBSTATUS=1
 ERRCODE=1
 i=0
 
-while [[ $DBSTATUS -ne 0 ]] && [[ $i -lt 60 ]] && [[ $ERRCODE -ne 0 ]]; do
-	i=$i+1
+while [[ $DBSTATUS -ne 0 ]] && [[ $i -lt 3600 ]] && [[ $ERRCODE -ne 0 ]]; do
+	i=$i+5
 	DBSTATUS=$(/opt/mssql-tools/bin/sqlcmd -h -1 -t 1 -U sa -P "$MSSQL_SA_PASSWORD" -Q "SET NOCOUNT ON; Select SUM(state) from sys.databases WHERE name = 'master'")
 	ERRCODE=$?
-	sleep 1
+	sleep 5
 done
 
 if [[ $DBSTATUS -ne 0 ]] || [[ $ERRCODE -ne 0 ]]; then
-	echo "SQL Server took more than 60 seconds to start up, master database is not in an ONLINE state"
+	echo "SQL Server took more than 3600 seconds to start up, master database is not in an ONLINE state"
 	exit 1
 fi
 

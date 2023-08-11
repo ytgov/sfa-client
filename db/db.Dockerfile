@@ -8,9 +8,8 @@ USER mssql
 WORKDIR /usr/src/db
 
 # Data
-# COPY ./db/data /var/opt/mssql/data
 # COPY ./db/log /var/opt/mssql/log
-# COPY ./db/backups /var/opt/mssql/data/backups
+COPY ./db/backups /var/opt/mssql/data/backups
 
 # Intialization
 COPY --chown=mssql:root --chmod=+x ./db/entrypoint.sh ./

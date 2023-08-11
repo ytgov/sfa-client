@@ -57,7 +57,7 @@ services:
     volumes:
       - ./db/bin:/usr/src/db/bin
       - ./db/initializers:/usr/src/db/initializers
-      - ./db/data:/var/opt/mssql/data
+      - db_data:/var/opt/mssql/data
       - ./db/log:/var/opt/mssql/log
       - ./db/backups:/var/opt/mssql/data/backups
     healthcheck: # https://github.com/Microsoft/mssql-docker/issues/133
@@ -86,4 +86,5 @@ services:
       - 8085:8085
 
 volumes:
+  db_data:
   s3storage:
