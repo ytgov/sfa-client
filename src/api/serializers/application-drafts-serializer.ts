@@ -1,4 +1,5 @@
 import { isArray } from "lodash"
+import camelcaseKeys from "camelcase-keys"
 
 import Application from "@/models/application"
 import ApplicationDraft from "@/models/application-draft"
@@ -60,7 +61,6 @@ export default class ApplicationDraftsSerializer {
   }
 
   #applicationAssocation(application: Application) {
-    // Makes space for future filtering or mutations
-    return application
+    return camelcaseKeys(application, { deep: true })
   }
 }
