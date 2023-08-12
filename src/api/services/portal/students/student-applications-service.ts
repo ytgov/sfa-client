@@ -28,7 +28,9 @@ export default class StudentApplicationsService {
       .first()
 
     if (application === undefined) {
-      throw new Error(`Application not found for id=${this.#applicationId} and studentId=${this.#studentId}`)
+      throw new Error(
+        `Application not found for id=${this.#applicationId} and studentId=${this.#studentId}`
+      )
     }
 
     if (application.institutionCampusId) {
