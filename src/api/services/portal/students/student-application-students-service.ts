@@ -1,9 +1,11 @@
 import db from "@/db/db-client"
 
+import Dependent from "@/models/dependent"
 import Language from "@/models/language"
 import Person from "@/models/person"
 import Sex from "@/models/sex"
 import Student from "@/models/student"
+import StudentApplicationDependentsService from "@/services/portal/students/student-application-dependents-service"
 
 export default class StudentApplicationStudentsService {
   #studentId: number
@@ -73,11 +75,17 @@ export default class StudentApplicationStudentsService {
           student.person.personAddresses = personAddresses
         }
 
+        student.dependents = await this.#getDependents(student.id)
         student.studentConsents = await this.#getStudentConsents(student.id)
         student.residences = await this.#getResidences(student.id)
 
         return student
       })
+  }
+
+  #getDependents(studentId: number) {
+    const dependentsService = new StudentApplicationDependentsService({ studentId })
+    return dependentsService.getDependents()
   }
 
   #getPersonAddresses(personId: number) {

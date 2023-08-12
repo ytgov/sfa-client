@@ -1,3 +1,4 @@
+import Dependent from "@/models/dependent"
 import Person from "@/models/person"
 import Residence from "@/models/residence"
 import StudentConsent from "@/models/student-consent"
@@ -47,6 +48,7 @@ export default interface Student {
   kinProvinceId?: number
   kinCountryId?: number
   kinPostalCode?: string
+  dependents?: Dependent[]
   person?: Person
   residences?: Residence[]
   studentConsents?: StudentConsent[]
