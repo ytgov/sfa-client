@@ -333,8 +333,8 @@ export class AssessmentCsgftRepository extends AssessmentBaseRepository {
 
         this.assessment.assessed_date = moment.utc().toDate();
 
-        this.assessment.student_contrib_exempt = false;
-        this.assessment.spouse_contrib_exempt = false;
+        this.assessment.student_contrib_exempt = "NO";
+        this.assessment.spouse_contrib_exempt = "NO";
     
         this.assessment.dependent_count = await this.getDependentCount(this.application.id);
         this.assessment.classes_start_date = this.application.classes_start_date;
@@ -384,9 +384,9 @@ export class AssessmentCsgftRepository extends AssessmentBaseRepository {
             this.assessment.disbursements_required = 1;
         }
             
-        this.assessment.student_contribution_review = this.assessment.assessment_type_id === 2;
-        this.assessment.spouse_contribution_review = this.assessment.assessment_type_id === 2;
-        this.assessment.parent_contribution_review = this.assessment.assessment_type_id === 2;
+        this.assessment.student_contribution_review = this.assessment.assessment_type_id === 2 ? "YES" : "NO";
+        this.assessment.spouse_contribution_review = this.assessment.assessment_type_id === 2 ? "YES" : "NO";
+        this.assessment.parent_contribution_review = this.assessment.assessment_type_id === 2 ? "YES" : "NO";
     }
 
     getAssessedCost(assessment: Partial<AssessmentDTO>): number {
