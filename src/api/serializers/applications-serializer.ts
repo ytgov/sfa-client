@@ -3,9 +3,11 @@ import { compact, isArray, isEmpty, isNil, last, sortBy, sumBy, uniq } from "lod
 import { NON_EXISTANT_ID } from "@/utils/constants"
 
 import AddressType from "@/models/address-type"
+import AgencyAssistance from "@/models/agency-assistance"
 import Application from "@/models/application"
 import CsfaAmounts from "@/models/csfa-amount"
 import Disability from "@/models/disability"
+import FundingPurpose from "@/models/funding-purpose"
 import FundingRequest from "@/models/funding-request"
 import FundingSource from "@/models/funding-source"
 import Institution from "@/models/institution"
@@ -80,6 +82,9 @@ export default class ApplicationsSerializer {
         this.#application.student?.residences || ([] as Residence[])
       ),
       education: this.#educationAssociation(this.#application.student || ({} as Student)),
+      otherFunding: this.#otherFundingSection(
+        this.#application.agencyAssistances || ([] as AgencyAssistance[])
+      ),
     }
   }
 
@@ -277,6 +282,40 @@ export default class ApplicationsSerializer {
 
     return {
       educationHistory,
+    }
+  }
+
+  #otherFundingSection(agencyAssistances: AgencyAssistance[]) {
+    const otherFundings = agencyAssistances.map((agencyAssistance) => {
+      const purposes = []
+      if (agencyAssistance.isTuition) {
+        purposes.push(FundingPurpose.TUITION)
+      }
+
+      if (agencyAssistance.isLivingExpenses) {
+        purposes.push(FundingPurpose.LIVING_EXPENSES)
+      }
+
+      if (agencyAssistance.isBooks) {
+        purposes.push(FundingPurpose.BOOKS)
+      }
+
+      if (agencyAssistance.isTransportation) {
+        purposes.push(FundingPurpose.TRANSPORTATION)
+      }
+
+      return {
+        agency: agencyAssistance.agencyId,
+        amount: agencyAssistance.amount,
+        other: agencyAssistance.otherPurpose,
+        comments: agencyAssistance.agencyComment,
+        purposes,
+      }
+    })
+
+    return {
+      hasFunding: !isEmpty(otherFundings),
+      otherFundings,
     }
   }
 }

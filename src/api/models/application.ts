@@ -1,3 +1,4 @@
+import AgencyAssistance from "@/models/agency-assistance"
 import Attendance from "@/models/attendance"
 import FundingRequest from "@/models/funding-request"
 import Institution from "@/models/institution"
@@ -157,6 +158,7 @@ export default interface Application_ {
   isPersistDisabled: boolean
   persistDisabledStartDate?: Date
   isChequesToInstitution: boolean
+  agencyAssistances?: AgencyAssistance[]
   attendance?: Attendance
   fundingRequests?: FundingRequest[]
   institution?: Institution

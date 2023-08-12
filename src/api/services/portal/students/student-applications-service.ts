@@ -49,6 +49,7 @@ export default class StudentApplicationsService {
 
     application.fundingRequests = await this.#getApplicationFundingRequests(application.id)
     application.student = await this.#getApplicationStudent(application.studentId)
+    application.agencyAssistances = await this.#getApplicationAgencyAssistances(application.id)
 
     return application
   }
@@ -61,5 +62,9 @@ export default class StudentApplicationsService {
   #getApplicationStudent(studentId: number) {
     const studentService = new StudentApplicationStudentsService({ studentId })
     return studentService.getStudent()
+  }
+
+  #getApplicationAgencyAssistances(applicationId: number) {
+    return db("agencyAssistance").where({ applicationId })
   }
 }
