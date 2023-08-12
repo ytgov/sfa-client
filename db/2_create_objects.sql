@@ -1959,4 +1959,3 @@ IF COL_LENGTH('sfa.user', 'roles') IS NULL
 BEGIN
     ALTER TABLE sfa.[user] ADD roles NVARCHAR(100) NULL;
 END
-

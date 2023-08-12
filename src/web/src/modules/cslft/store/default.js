@@ -170,6 +170,7 @@ export const defaultState = () => {
             sent_seq_number: null,
             last_reminder_sent: null,
             is_full_time: null,
+            rec_create_date: null,
         },
         cslft_e_certs: []
     };

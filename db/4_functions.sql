@@ -3213,8 +3213,11 @@ CREATE OR ALTER PROCEDURE sfa.sp_get_msfaa_by_student_id(@student_id INT)
 AS
 BEGIN
 	SELECT 
-		m.*
+		m.*,
+		p.email
 	FROM sfa.msfaa m 
+    INNER JOIN sfa.student s ON  m.student_id = s.id
+    INNER JOIN sfa.person p ON p.id = s.person_id
 	WHERE m.student_id = @student_id
 	AND m.id = (
 		SELECT MAX(m2.id)
