@@ -41,6 +41,7 @@ export const CITIES=`${config.apiBaseUrl}/api/v2/admin/cities`;
 export const CSL_CODES = `${config.apiBaseUrl}/api/v2/admin/csl-codes`;
 export const CSL_CERTIFICATE_EXPORT = `${config.apiBaseUrl}/api/v2/admin/csl-certificate-export`;
 export const CSL_MSFAA_RECEIVE = `${config.apiBaseUrl}/api/v2/admin/csl-msfaa-receive`;
+export const CSL_ENTITLEMENT_FEEDBACK = `${config.apiBaseUrl}/api/v2/admin/csl-entitlement-feedback`
 export const CSL_LOOKUP = `${config.apiBaseUrl}/api/v2/admin/csl-lookup`;
 export const CSL_REASON = `${config.apiBaseUrl}/api/v2/admin/csl-reason`;
 export const COMMUNICATION_TYPES = `${config.apiBaseUrl}/api/v2/admin/communication-types`;

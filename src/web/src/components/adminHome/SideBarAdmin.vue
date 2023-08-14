@@ -84,6 +84,7 @@ export default {
         { icon: 'fa-solid fa-user', title: 'Officer Table', path:'/administration/officers'},
         { icon: 'fa-solid fa-file-export', title: 'CSL Certificate Export', path:'/administration/csl-certificate-export'},
         { icon: 'fa-solid fa-file-import', title: 'CSL MSFAA Receive', path:'/administration/csl-msfaa-receive'},
+        { icon: 'fa-solid fa-comments', title: 'CSL Entitlement Feedback', path:'/administration/csl-entitlement-feedback'},
       ],
       currentLink: null,
       position: null
