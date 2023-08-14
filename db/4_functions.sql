@@ -5040,3 +5040,132 @@ WHERE fr.application_id = @application_id
 ORDER BY d.due_date DESC;
 GO
 
+CREATE OR ALTER PROCEDURE sfa.sp_check_error_status
+    @error_code_p VARCHAR(255),
+    @disbursement_id_p INT,
+    @is_resend_p INT OUTPUT,
+    @error_id_p INT OUTPUT
+AS
+BEGIN
+    DECLARE @is_resend_flg VARCHAR(255), @error_id INT;
+
+    SELECT @is_resend_flg = is_resend, @error_id = id
+    FROM sfa.entitlement_error_codes
+    WHERE code = @error_code_p;
+
+    INSERT INTO sfa.ENTITLEMENT_ERROR
+    (
+        disbursement_id,
+        entitlement_error_code_id,
+        is_resend
+    )
+    VALUES
+    (
+        @disbursement_id_p,
+        @error_id,
+        @is_resend_flg
+    );
+
+    SET @is_resend_p = @is_resend_flg;
+    SET @error_id_p = @error_id;
+END
+GO
+
+CREATE OR ALTER PROCEDURE sfa.sp_update_disbursement_by_id
+AS
+BEGIN
+    DECLARE @sequence_number INT,
+            @sin VARCHAR(50),
+            @ecert_sent_date DATE,
+            @response_date DATE,
+            @certificate_number VARCHAR(50),
+            @disbursement_id INT,
+            @ecert_status VARCHAR(50);
+
+    DECLARE cur_ecert_import CURSOR FOR
+    SELECT 
+        ei.sequence_number,
+        ei.sin,
+        ei.ecert_sent_date,
+        ei.response_date,
+        ei.certificate_number,
+        ei.disbursement_id,
+        CASE 
+            WHEN ei.is_resend_flg = 'Yes' THEN 'Rejected'
+            ELSE 'Warning'
+        END AS ecert_status
+    FROM sfa.ecert_import ei
+    WHERE error_message IS NOT NULL;
+
+    OPEN cur_ecert_import;
+    FETCH NEXT FROM cur_ecert_import INTO 
+        @sequence_number, @sin, @ecert_sent_date, @response_date,
+        @certificate_number, @disbursement_id, @ecert_status;
+
+    WHILE @@FETCH_STATUS = 0
+    BEGIN
+        UPDATE sfa.disbursement
+        SET ecert_status = @ecert_status, ecert_response_date = CONVERT(DATE, GETDATE())
+        WHERE id = @disbursement_id;
+
+        FETCH NEXT FROM cur_ecert_import INTO 
+            @sequence_number, @sin, @ecert_sent_date, @response_date,
+            @certificate_number, @disbursement_id, @ecert_status;
+    END;
+
+    CLOSE cur_ecert_import;
+    DEALLOCATE cur_ecert_import;
+END
+GO
+
+CREATE OR ALTER PROCEDURE sfa.sp_update_disbursement_by_seq
+	@v_create_date DATE,
+	@v_seq_num INT,
+	@v_ecert_sent_date DATE
+AS 
+BEGIN 
+	UPDATE sfa.disbursement 
+		SET ecert_response_date = @v_create_date, ecert_status = 'Accepted'
+	WHERE csl_cert_seq_number = @v_seq_num
+		AND disbursement_type_id in (4,3)
+		AND ecert_sent_date = @v_ecert_sent_date
+		AND ecert_status IS NULL;			 	
+END
+GO
+
+CREATE OR ALTER PROCEDURE sfa.sp_insert_ecert_import		
+	@v_seq_num NVARCHAR(20), 
+	@v_ecert_sent_date DATE, 
+	@v_sin NVARCHAR(9), 
+	@v_cert_number NVARCHAR(20), 
+	@v_create_date DATE, 
+	@v_is_resend NVARCHAR(3), 
+	@v_error_msg NVARCHAR(4000), 
+	@v_disbursement_id INT
+AS
+BEGIN
+	INSERT INTO sfa.ecert_import 
+	(
+		sequence_number
+		, ecert_sent_date
+		, sin
+		, certificate_number
+		, response_date
+		, is_resend_flg
+		, error_message
+		, disbursement_id
+	)
+	values 
+	( 
+		@v_seq_num, 
+		@v_ecert_sent_date, 
+		@v_sin, 
+		@v_cert_number, 
+		@v_create_date, 
+		@v_is_resend, 
+		@v_error_msg, 
+		@v_disbursement_id
+	);		
+END
+GO
+
