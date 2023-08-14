@@ -335,7 +335,7 @@ export default class StudentApplicationsSerializer {
     })
 
     return {
-      hasDependants: !isNil(serializedDependents),
+      hasDependants: !isEmpty(serializedDependents),
       dependants: serializedDependents,
     }
   }
