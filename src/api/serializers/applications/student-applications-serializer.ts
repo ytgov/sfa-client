@@ -67,6 +67,7 @@ export default class StudentApplicationsSerializer {
       studentDependants: this.#studentDependantsSection(
         this.#application.student?.dependents || ([] as Dependent[])
       ),
+      csfaAccommodation: this.#csfaAccomodationSection(this.#application),
     }
   }
 
@@ -337,6 +338,41 @@ export default class StudentApplicationsSerializer {
     return {
       hasDependants: !isEmpty(serializedDependents),
       dependants: serializedDependents,
+    }
+  }
+
+  #csfaAccomodationSection(application: Application) {
+    const accommodations = []
+    if (!isNil(application.prestudyAccomCode)) {
+      accommodations.push({
+        living: application.prestudyAccomCode,
+        ownHome: application.prestudyOwnHome,
+        rentToParents: application.prestudyBoardAmount,
+        cityId: application.prestudyCityId,
+        city: application.prestudyCityId,
+        provinceId: application.prestudyProvinceId,
+        province: application.prestudyProvinceId,
+        busService: application.prestudyBus,
+        distanceFromSchool: application.prestudyDistance, // NOTE: spelling updated from distinct_from_school used in front-end
+      })
+    }
+
+    if (!isNil(application.studyAccomCode)) {
+      accommodations.push({
+        living: application.studyAccomCode,
+        ownHome: application.studyOwnHome,
+        rentToParents: application.studyBoardAmount,
+        cityId: application.studyCityId,
+        city: application.studyCityId,
+        provinceId: application.studyProvinceId,
+        province: application.studyProvinceId,
+        busService: application.studyBus,
+        distanceFromSchool: application.studyDistance, // NOTE: spelling updated from distinct_from_school used in front-end
+      })
+    }
+
+    return {
+      accommodations // NOTE: spelling updated from accomodations (one m) used in front-end
     }
   }
 }
