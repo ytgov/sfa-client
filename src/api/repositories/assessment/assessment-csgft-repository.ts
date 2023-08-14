@@ -104,7 +104,9 @@ export class AssessmentCsgftRepository extends AssessmentBaseRepository {
         }
 
         if ((assessment.id ?? 0) > 0) {
-            result = this.getAssessedCost(assessment) - await this.getAssessedResources(assessment, application, student);
+            const assessedResources: number = await this.getAssessedResources(assessment, application, student);
+            const assessedCost: number = this.getAssessedCost(assessment);
+            result = assessedCost - assessedResources;
         }
         
         if (result < 0) {
@@ -331,8 +333,8 @@ export class AssessmentCsgftRepository extends AssessmentBaseRepository {
 
         this.assessment.assessed_date = moment.utc().toDate();
 
-        this.assessment.student_contrib_exempt = false;
-        this.assessment.spouse_contrib_exempt = false;
+        this.assessment.student_contrib_exempt = "NO";
+        this.assessment.spouse_contrib_exempt = "NO";
     
         this.assessment.dependent_count = await this.getDependentCount(this.application.id);
         this.assessment.classes_start_date = this.application.classes_start_date;
@@ -382,9 +384,9 @@ export class AssessmentCsgftRepository extends AssessmentBaseRepository {
             this.assessment.disbursements_required = 1;
         }
             
-        this.assessment.student_contribution_review = this.assessment.assessment_type_id === 2;
-        this.assessment.spouse_contribution_review = this.assessment.assessment_type_id === 2;
-        this.assessment.parent_contribution_review = this.assessment.assessment_type_id === 2;
+        this.assessment.student_contribution_review = this.assessment.assessment_type_id === 2 ? "YES" : "NO";
+        this.assessment.spouse_contribution_review = this.assessment.assessment_type_id === 2 ? "YES" : "NO";
+        this.assessment.parent_contribution_review = this.assessment.assessment_type_id === 2 ? "YES" : "NO";
     }
 
     getAssessedCost(assessment: Partial<AssessmentDTO>): number {
@@ -683,6 +685,7 @@ export class AssessmentCsgftRepository extends AssessmentBaseRepository {
     async insertUpdateAll(payload: Partial<CsgftResultDTO>): Promise<Partial<CsgftResultDTO>> {
 
         const result: Partial<CsgftResultDTO> = {};
+        let assessment_id = undefined;
 
         if (payload.data) {
             
@@ -700,11 +703,12 @@ export class AssessmentCsgftRepository extends AssessmentBaseRepository {
                     }
                 }
             }
+            assessment_id = result.data.id;
         }
 
         if (payload.disbursements)
         {            
-            result.disbursements = await this.processDisbursements(payload.disbursements);
+            result.disbursements = await this.processDisbursements(payload.disbursements, assessment_id);
         }
 
         if (payload.funding_request)
@@ -735,8 +739,12 @@ export class AssessmentCsgftRepository extends AssessmentBaseRepository {
         return result[0];
     }
 
-    async processDisbursements(disbursements: Array<DisbursementDTO>): Promise<DisbursementDTO[]> {
+    async processDisbursements(disbursements: Array<DisbursementDTO>, assessment_id?: number): Promise<DisbursementDTO[]> {
         let result: Array<DisbursementDTO> = [];
+        let stored: Array<DisbursementDTO> = [];
+        if (assessment_id) {
+            stored = await this.disbursementRepo.getByAssessmentId(assessment_id);            
+        }
 
         disbursements.forEach(async (x: DisbursementDTO) => {
             const dis = this.disbursementRepo.getDisbursementTable(x);
@@ -763,6 +771,18 @@ export class AssessmentCsgftRepository extends AssessmentBaseRepository {
                 result.push(record);
             }
         });
+
+        // Delete missing disbursements
+        if (stored) {
+            stored.forEach(async (x) => {
+                let matched = disbursements.find((d) => d.id === x.id);
+                if (!matched) {
+                    await this.mainDb(this.disbursementRepo.getMainTable())
+                            .where("id", x.id)
+                            .del();
+                }
+            });
+        }
 
         return result;
     }

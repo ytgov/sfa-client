@@ -5,6 +5,8 @@ import { RenderViewOptions } from "express-handlebars/types"
 
 import { generatePDF } from "./pdf-generator"
 import helpers from "./handlebars-helpers"
+import { PaperFormat } from "puppeteer";
+import { API_PORT } from "@/config";
 
 const hbs = create({
   defaultLayout: "./templates/layouts/pdf-layout",
@@ -25,6 +27,7 @@ function patchExtensionlessPath(viewPath: string) {
 
 export function renderViewAsPromise(viewPath: string, options: RenderViewOptions): Promise<string> {
   const patchedViewPath = patchExtensionlessPath(viewPath)
+  options = { ...options, API_PORT }
   return new Promise((resolve, reject) => {
     hbs.renderView(patchedViewPath, options, (error, result) => {
       if (error) {
@@ -38,8 +41,8 @@ export function renderViewAsPromise(viewPath: string, options: RenderViewOptions
   })
 }
 
-export function renderViewAsPdf(viewPath: string, options: RenderViewOptions) {
+export function renderViewAsPdf(viewPath: string, options: RenderViewOptions, format: PaperFormat = "letter", landscape: boolean = false) {
   return renderViewAsPromise(viewPath, options).then((htmlToRenderAsPDF) => {
-    return generatePDF(htmlToRenderAsPDF)
+    return generatePDF(htmlToRenderAsPDF, format, landscape)
   })
 }
