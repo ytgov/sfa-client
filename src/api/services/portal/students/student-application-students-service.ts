@@ -9,9 +9,11 @@ import StudentApplicationDependentsService from "@/services/portal/students/stud
 
 export default class StudentApplicationStudentsService {
   #studentId: number
+  #applicationId?: number
 
-  constructor({ studentId }: { studentId: number }) {
+  constructor({ studentId, applicationId }: { studentId: number; applicationId?: number }) {
     this.#studentId = studentId
+    this.#applicationId = applicationId
   }
 
   async getStudent() {
@@ -75,7 +77,12 @@ export default class StudentApplicationStudentsService {
           student.person.personAddresses = personAddresses
         }
 
-        student.dependents = await this.#getDependents(student.id)
+        if (this.#applicationId === undefined) {
+          throw new Error("Application ID is not set")
+        } else {
+          student.dependents = await this.#getDependents(student.id, this.#applicationId)
+        }
+
         student.studentConsents = await this.#getStudentConsents(student.id)
         student.residences = await this.#getResidences(student.id)
 
@@ -83,8 +90,8 @@ export default class StudentApplicationStudentsService {
       })
   }
 
-  #getDependents(studentId: number) {
-    const dependentsService = new StudentApplicationDependentsService({ studentId })
+  #getDependents(studentId: number, applicationId: number) {
+    const dependentsService = new StudentApplicationDependentsService({ studentId, applicationId })
     return dependentsService.getDependents()
   }
 

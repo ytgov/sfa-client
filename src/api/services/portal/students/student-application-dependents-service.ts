@@ -1,27 +1,41 @@
+import { groupBy } from "lodash"
+
 import db from "@/db/db-client"
 
 import Dependent from "@/models/dependent"
 
 export default class StudentApplicationDependentsService {
   #studentId: number
+  #applicationId?: number
 
-  constructor({ studentId }: { studentId: number }) {
+  constructor({ studentId, applicationId }: { studentId: number; applicationId?: number }) {
     this.#studentId = studentId
+    this.#applicationId = applicationId
   }
 
-  ////
-  // Data format
-  // dependents: [
-  //   {
-  //      id: 124
-  //      ...
-  //      relationship: {
-  //        id: 112,
-  //      }
-  //    }
-  // ]
+  /*
+  Data format
+
+  dependents: [
+    {
+      id: 124,
+      ...
+      relationship: {
+        id: 112,
+        ...
+      },
+      dependentEligibilities: [
+        {
+          id: 243,
+          dependentId: 124,
+          ...
+        }
+      ]
+    }
+  ]
+  */
   async getDependents(): Promise<Dependent[]> {
-    return db
+    const dependents = await db
       .select({
         t1Id: "dependent.id",
         t1StudentId: "dependent.studentId",
@@ -59,5 +73,26 @@ export default class StudentApplicationDependentsService {
           },
         }))
       )
+
+    if (this.#applicationId === undefined) {
+      throw new Error("Application ID is not set")
+    } else {
+      await this.#injectDependentEligibilities(dependents, this.#applicationId)
+    }
+
+    return dependents
+  }
+
+  async #injectDependentEligibilities(dependents: Dependent[], applicationId: number) {
+    const dependentIds = dependents.map((dependent) => dependent.id)
+    const dependentEligibilityHash = await db("dependentEligibility")
+      .where({ applicationId })
+      .where("id", "in", dependentIds)
+      .then((rows) => groupBy(rows, "dependentId"))
+
+    dependents.forEach((dependent) => {
+      const dependentId = dependent.id
+      dependent.dependentEligibilities = dependentEligibilityHash[dependentId]
+    })
   }
 }
