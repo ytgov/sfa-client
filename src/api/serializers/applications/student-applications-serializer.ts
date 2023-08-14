@@ -6,6 +6,7 @@ import AddressType from "@/models/address-type"
 import AgencyAssistance from "@/models/agency-assistance"
 import Application from "@/models/application"
 import CsfaAmounts from "@/models/csfa-amount"
+import Dependent from "@/models/dependent"
 import Disability from "@/models/disability"
 import FundingPurpose from "@/models/funding-purpose"
 import FundingRequest from "@/models/funding-request"
@@ -62,6 +63,9 @@ export default class StudentApplicationsSerializer {
       education: this.#educationAssociation(this.#application.student || ({} as Student)),
       otherFunding: this.#otherFundingSection(
         this.#application.agencyAssistances || ([] as AgencyAssistance[])
+      ),
+      studentDependants: this.#studentDependantsSection(
+        this.#application.student?.dependents || ([] as Dependent[])
       ),
     }
   }
@@ -294,6 +298,45 @@ export default class StudentApplicationsSerializer {
     return {
       hasFunding: !isEmpty(otherFundings),
       otherFundings,
+    }
+  }
+
+  #studentDependantsSection(dependents: Dependent[]) {
+    const serializedDependents = dependents.map((dependent) => {
+      const dependentEligibilities = dependent.dependentEligibilities || []
+
+      const isSharesCustody = dependentEligibilities.some(
+        (dependentEligibility) => dependentEligibility.isSharesCustody
+      )
+      const residesWithStudent = dependentEligibilities.some(
+        (dependentEligibility) => dependentEligibility.residesWithStudent
+      )
+      const isPostSecondary = dependentEligibilities.some(
+        (dependentEligibility) => dependentEligibility.isPostSecondary
+      )
+
+      const custodyDetails = dependentEligibilities
+        .map((dependentEligibility) => dependentEligibility.sharesCustodyDetails)
+        .join(", ")
+
+      return {
+        id: dependent.id,
+        firstName: dependent.firstName,
+        lastName: dependent.lastName,
+        dob: dependent.birthDate,
+        relationshipId: dependent.relationshipId,
+        comments: dependent.comments,
+        relationship: dependent.relationship,
+        sharedCustody: isSharesCustody,
+        residesWith: residesWithStudent,
+        inPostSecondary: isPostSecondary,
+        custodyDetails,
+      }
+    })
+
+    return {
+      hasDependants: !isNil(serializedDependents),
+      dependants: serializedDependents,
     }
   }
 }
