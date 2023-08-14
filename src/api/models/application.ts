@@ -1,6 +1,7 @@
 import AgencyAssistance from "@/models/agency-assistance"
 import Attendance from "@/models/attendance"
 import FundingRequest from "@/models/funding-request"
+import Income from "@/models/income"
 import Institution from "@/models/institution"
 import PersonAddress from "@/models/person-address"
 import Program from "@/models/program"
@@ -161,6 +162,7 @@ export default interface Application_ {
   agencyAssistances?: AgencyAssistance[]
   attendance?: Attendance
   fundingRequests?: FundingRequest[]
+  incomes?: Income[]
   institution?: Institution
   primaryAddress?: PersonAddress
   program?: Program

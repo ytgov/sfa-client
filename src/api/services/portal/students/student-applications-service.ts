@@ -52,6 +52,7 @@ export default class StudentApplicationsService {
     application.fundingRequests = await this.#getApplicationFundingRequests(application.id)
     application.student = await this.#getApplicationStudent(application.studentId, this.#applicationId)
     application.agencyAssistances = await this.#getApplicationAgencyAssistances(application.id)
+    application.incomes = await this.#getApplicationIncomes(application.id)
 
     return application
   }
@@ -68,5 +69,9 @@ export default class StudentApplicationsService {
 
   #getApplicationAgencyAssistances(applicationId: number) {
     return db("agencyAssistance").where({ applicationId })
+  }
+
+  #getApplicationIncomes(applicationId: number) {
+    return db("income").where({ applicationId })
   }
 }
