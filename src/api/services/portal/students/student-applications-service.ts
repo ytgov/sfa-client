@@ -50,7 +50,7 @@ export default class StudentApplicationsService {
     }
 
     application.fundingRequests = await this.#getApplicationFundingRequests(application.id)
-    application.student = await this.#getApplicationStudent(application.studentId)
+    application.student = await this.#getApplicationStudent(application.studentId, this.#applicationId)
     application.agencyAssistances = await this.#getApplicationAgencyAssistances(application.id)
 
     return application
@@ -61,8 +61,8 @@ export default class StudentApplicationsService {
     return fundingRequestService.getFundingRequests()
   }
 
-  #getApplicationStudent(studentId: number) {
-    const studentService = new StudentApplicationStudentsService({ studentId })
+  #getApplicationStudent(studentId: number, applicationId: number) {
+    const studentService = new StudentApplicationStudentsService({ studentId, applicationId })
     return studentService.getStudent()
   }
 
