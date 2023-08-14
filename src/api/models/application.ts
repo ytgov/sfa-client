@@ -1,5 +1,6 @@
 import AgencyAssistance from "@/models/agency-assistance"
 import Attendance from "@/models/attendance"
+import Expense from "@/models/expense"
 import FundingRequest from "@/models/funding-request"
 import Income from "@/models/income"
 import Institution from "@/models/institution"
@@ -161,6 +162,7 @@ export default interface Application_ {
   isChequesToInstitution: boolean
   agencyAssistances?: AgencyAssistance[]
   attendance?: Attendance
+  expenses?: Expense[]
   fundingRequests?: FundingRequest[]
   incomes?: Income[]
   institution?: Institution

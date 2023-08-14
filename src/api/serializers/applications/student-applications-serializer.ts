@@ -8,6 +8,7 @@ import Application from "@/models/application"
 import CsfaAmounts from "@/models/csfa-amount"
 import Dependent from "@/models/dependent"
 import Disability from "@/models/disability"
+import Expense from "@/models/expense"
 import FundingPurpose from "@/models/funding-purpose"
 import FundingRequest from "@/models/funding-request"
 import FundingSource from "@/models/funding-source"
@@ -70,6 +71,7 @@ export default class StudentApplicationsSerializer {
       ),
       csfaAccommodation: this.#csfaAccomodationSection(this.#application),
       csfaIncome: this.#csfaIncomeSection(this.#application.incomes || ([] as Income[])),
+      csfaExpenses: this.#csfaExpensesSection(this.#application.expenses || ([] as Expense[])),
     }
   }
 
@@ -389,6 +391,20 @@ export default class StudentApplicationsSerializer {
     return {
       hasIncome: !isEmpty(serializedIncomes),
       incomes: serializedIncomes,
+    }
+  }
+
+  #csfaExpensesSection(expenses: Expense[]) {
+    const serializedExpenses = expenses.map((expense) => ({
+      type: expense.categoryId,
+      expenseCategoryId: expense.categoryId,
+      comment: expense.description,
+      amount: expense.amount,
+      required: expense.expenseCategory?.isRequired,
+    }))
+
+    return {
+      expenses: serializedExpenses,
     }
   }
 }
