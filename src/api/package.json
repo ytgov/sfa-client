@@ -4,9 +4,11 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "jest --watchAll",
     "start": "ts-node-dev -r tsconfig-paths/register index.ts",
-    "build": "tsc && tsc-alias"
+    "build": "tsc && tsc-alias",
+    "console": "ts-node -r tsconfig-paths/register",
+    "migrate:latest": "ts-node -r tsconfig-paths/register ./utils/run-migrations.ts"
   },
   "author": "Michael Johnson",
   "license": "ISC",
@@ -42,9 +44,12 @@
     "@types/express": "^4.17.13",
     "@types/express-fileupload": "^1.4.1",
     "@types/express-session": "^1.17.0",
+    "@types/jest": "^29.5.3",
     "@types/lodash": "^4.14.172",
     "@types/node": "^14.14.5",
     "@types/nodemailer": "^6.4.7",
+    "jest": "^29.6.2",
+    "ts-jest": "^29.1.1",
     "ts-node": "^9.1.1",
     "ts-node-dev": "^2.0.0",
     "tsconfig-paths": "^4.2.0",

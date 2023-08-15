@@ -59,19 +59,17 @@ class DevHelper
 
   def debug
     api_container_id = container_id('api')
-    puts 'Awaiting binding.pry to trigger...'
-    puts "'ctrl-c' to exit"
+    puts 'Waiting for breakpoint to trigger...'
+    puts "'ctrl-c' to exit."
     command = "docker attach --detach-keys ctrl-c #{api_container_id}"
     puts "Running: #{command}"
     exec(command)
     exit 0
   end
 
-  # def mocha(*args, **kwargs)
-  #   run(*%w[test npm run test], *args, **kwargs)
-  # end
-
-  # alias test mocha
+  def test(*args, **kwargs)
+    run(*%w[test npm run test], *args, **kwargs)
+  end
 
   def npm(*args, **kwargs)
     run(*%w[api npm], *args, **kwargs)
