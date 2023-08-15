@@ -56,96 +56,56 @@ export default class Student {
   studentConsents?: StudentConsent[]
   studentPersons?: StudentPerson[]
 
-  constructor({
-    id,
-    personId,
-    highSchoolId,
-    educationLevelId,
-    indigenousLearnerId,
-    vendorId,
-    yukonId,
-    checkedForYukonId,
-    nationalId,
-    locatorNumber,
-    isCrownWard,
-    highSchoolFinalGrade,
-    highSchoolLeftYear,
-    highSchoolLeftMonth,
-    preFundedYear,
-    preFundingYearsUsed,
-    cslLetterDate,
-    cslWarnCode,
-    preOverAwardAmount,
-    preYeaAwardsUsedAmount,
-    userName,
-    userPassword,
-    isActive,
-    isFirstLogonFlg,
-    lastLogonDate,
-    lastPwChangeDate,
-    yeaExpiryDate,
-    adjYgFundingWeeks,
-    adjStaUpgradingWeeks,
-    adjOutsideTravelCnt,
-    yukonResidentFromMonth,
-    yukonResidentFromYear,
-    canadianResidentFromMonth,
-    canadianResidentFromYear,
-    oldYtid,
-    residenceComment,
-    kinFirstName,
-    kinLastName,
-    kinAddress1,
-    kinAddress2,
-    kinCityId,
-    kinProvinceId,
-    kinCountryId,
-    kinPostalCode,
-  }: Student) {
-    this.id = id
-    this.personId = personId
-    this.highSchoolId = highSchoolId
-    this.educationLevelId = educationLevelId
-    this.indigenousLearnerId = indigenousLearnerId
-    this.vendorId = vendorId
-    this.yukonId = yukonId
-    this.checkedForYukonId = checkedForYukonId
-    this.nationalId = nationalId
-    this.locatorNumber = locatorNumber
-    this.isCrownWard = isCrownWard
-    this.highSchoolFinalGrade = highSchoolFinalGrade
-    this.highSchoolLeftYear = highSchoolLeftYear
-    this.highSchoolLeftMonth = highSchoolLeftMonth
-    this.preFundedYear = preFundedYear
-    this.preFundingYearsUsed = preFundingYearsUsed
-    this.cslLetterDate = cslLetterDate
-    this.cslWarnCode = cslWarnCode
-    this.preOverAwardAmount = preOverAwardAmount
-    this.preYeaAwardsUsedAmount = preYeaAwardsUsedAmount
-    this.userName = userName
-    this.userPassword = userPassword
-    this.isActive = isActive
-    this.isFirstLogonFlg = isFirstLogonFlg
-    this.lastLogonDate = lastLogonDate
-    this.lastPwChangeDate = lastPwChangeDate
-    this.yeaExpiryDate = yeaExpiryDate
-    this.adjYgFundingWeeks = adjYgFundingWeeks
-    this.adjStaUpgradingWeeks = adjStaUpgradingWeeks
-    this.adjOutsideTravelCnt = adjOutsideTravelCnt
-    this.yukonResidentFromMonth = yukonResidentFromMonth
-    this.yukonResidentFromYear = yukonResidentFromYear
-    this.canadianResidentFromMonth = canadianResidentFromMonth
-    this.canadianResidentFromYear = canadianResidentFromYear
-    this.oldYtid = oldYtid
-    this.residenceComment = residenceComment
-    this.kinFirstName = kinFirstName
-    this.kinLastName = kinLastName
-    this.kinAddress1 = kinAddress1
-    this.kinAddress2 = kinAddress2
-    this.kinCityId = kinCityId
-    this.kinProvinceId = kinProvinceId
-    this.kinCountryId = kinCountryId
-    this.kinPostalCode = kinPostalCode
+  constructor(params: Omit<Student, 'parents'>) {
+    this.id = params.id
+    this.personId = params.personId
+    this.highSchoolId = params.highSchoolId
+    this.educationLevelId = params.educationLevelId
+    this.indigenousLearnerId = params.indigenousLearnerId
+    this.vendorId = params.vendorId
+    this.yukonId = params.yukonId
+    this.checkedForYukonId = params.checkedForYukonId
+    this.nationalId = params.nationalId
+    this.locatorNumber = params.locatorNumber
+    this.isCrownWard = params.isCrownWard
+    this.highSchoolFinalGrade = params.highSchoolFinalGrade
+    this.highSchoolLeftYear = params.highSchoolLeftYear
+    this.highSchoolLeftMonth = params.highSchoolLeftMonth
+    this.preFundedYear = params.preFundedYear
+    this.preFundingYearsUsed = params.preFundingYearsUsed
+    this.cslLetterDate = params.cslLetterDate
+    this.cslWarnCode = params.cslWarnCode
+    this.preOverAwardAmount = params.preOverAwardAmount
+    this.preYeaAwardsUsedAmount = params.preYeaAwardsUsedAmount
+    this.userName = params.userName
+    this.userPassword = params.userPassword
+    this.isActive = params.isActive
+    this.isFirstLogonFlg = params.isFirstLogonFlg
+    this.lastLogonDate = params.lastLogonDate
+    this.lastPwChangeDate = params.lastPwChangeDate
+    this.yeaExpiryDate = params.yeaExpiryDate
+    this.adjYgFundingWeeks = params.adjYgFundingWeeks
+    this.adjStaUpgradingWeeks = params.adjStaUpgradingWeeks
+    this.adjOutsideTravelCnt = params.adjOutsideTravelCnt
+    this.yukonResidentFromMonth = params.yukonResidentFromMonth
+    this.yukonResidentFromYear = params.yukonResidentFromYear
+    this.canadianResidentFromMonth = params.canadianResidentFromMonth
+    this.canadianResidentFromYear = params.canadianResidentFromYear
+    this.oldYtid = params.oldYtid
+    this.residenceComment = params.residenceComment
+    this.kinFirstName = params.kinFirstName
+    this.kinLastName = params.kinLastName
+    this.kinAddress1 = params.kinAddress1
+    this.kinAddress2 = params.kinAddress2
+    this.kinCityId = params.kinCityId
+    this.kinProvinceId = params.kinProvinceId
+    this.kinCountryId = params.kinCountryId
+    this.kinPostalCode = params.kinPostalCode
+    this.dependents = params.dependents
+    this.person = params.person
+    this.residences = params.residences
+    this.studentConsents = params.studentConsents
+    this.studentPersons = params.studentPersons
   }
 
   get parents(): Person[] | undefined {
