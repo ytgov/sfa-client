@@ -247,7 +247,7 @@ cslEntitlementFeedbackRouter.post("/:FILE_NAME", [param("FILE_NAME").notEmpty()]
 									
 								is_resend_p = result[0].is_resend_p;
 								error_id_p = result[0].error_id_p;																
-								vErrorMsg = vErrorMsg + ' ' + vErrorDesc;
+								vErrorMsg = vErrorMsg + ' ' + `${vErrorDesc ? vErrorDesc : ""}`;
 							}	
 							console.log("ERROR CODE 1 FINISH")
 
@@ -269,7 +269,7 @@ cslEntitlementFeedbackRouter.post("/:FILE_NAME", [param("FILE_NAME").notEmpty()]
 								if(vErrorMsg.length > 1) {
 									vErrorMsg = vErrorMsg + ', ';									
 								}
-								vErrorMsg = vErrorMsg + ' ' + error_id_p;
+								vErrorMsg = vErrorMsg + ' ' + `${error_id_p ? error_id_p : ""}`;
 
 								if(is_resend_p === 1) {
 									vIsResend = is_resend_p;
@@ -297,7 +297,7 @@ cslEntitlementFeedbackRouter.post("/:FILE_NAME", [param("FILE_NAME").notEmpty()]
 								if(vErrorMsg.length > 1) {
 									vErrorMsg = vErrorMsg + ', ';
 								}
-								vErrorMsg = vErrorMsg + ' ' + error_id_p;
+								vErrorMsg = vErrorMsg + ' ' + `${error_id_p ? error_id_p : ""}`;
 
 								if(is_resend_p === 1) {
 									vIsResend = is_resend_p;
@@ -325,7 +325,7 @@ cslEntitlementFeedbackRouter.post("/:FILE_NAME", [param("FILE_NAME").notEmpty()]
 								if(vErrorMsg.length > 1) {
 									vErrorMsg = vErrorMsg + ', ';
 								}
-								vErrorMsg = vErrorMsg + ' ' + error_id_p;
+								vErrorMsg = vErrorMsg + ' ' + `${error_id_p ? error_id_p : ""}`;
 
 								if(is_resend_p === 1) {
 									vIsResend = is_resend_p;
@@ -353,7 +353,7 @@ cslEntitlementFeedbackRouter.post("/:FILE_NAME", [param("FILE_NAME").notEmpty()]
 								if(vErrorMsg.length > 1) {
 									vErrorMsg = vErrorMsg + ', ';
 								}
-								vErrorMsg = vErrorMsg + ' ' + error_id_p;
+								vErrorMsg = vErrorMsg + ' ' + `${error_id_p ? error_id_p : ""}`;
 
 								if(is_resend_p === 1) {
 									vIsResend = is_resend_p;
@@ -473,7 +473,7 @@ cslEntitlementFeedbackRouter.post("/:FILE_NAME", [param("FILE_NAME").notEmpty()]
 					const queryPDF = await db("sfa.ecert_import AS ei")
 					.select("ei.sequence_number", "ei.sin", "ei.ecert_sent_date", "ei.response_date", "ei.certificate_number", db.raw("CASE WHEN ei.is_resend_flg = 'Yes' THEN 'Rejected' ELSE 'Warning' END AS ecert_status"), db.raw("ei.error_message + ISNULL((SELECT CONCAT(FIRST_NAME, ' ', LAST_NAME) FROM sfa.person WHERE SIN = ei.SIN), ' No Student Match') + ISNULL((SELECT DISTINCT transaction_number FROM sfa.disbursement WHERE transaction_number = ei.certificate_number AND ecert_sent_date = ei.ecert_sent_date), ' No CSL Certificate Match') AS error_message"), db.raw(`ISNULL((SELECT CONCAT(FIRST_NAME, ' ', LAST_NAME) FROM sfa.person WHERE SIN = ei.SIN), '') AS student_name`))
 					.orderBy('ei.sin');
-					console.log(queryPDF);
+					console.log("*****", queryPDF);
 
 					//responseRead.tableData = queryPDF;
 
