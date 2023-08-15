@@ -121,6 +121,7 @@ export default class StudentApplicationsService {
         relationshipId: parentRelationship.id,
         isActive: true,
         person: parent1,
+        relationship: parentRelationship,
       })
     }
 
@@ -134,6 +135,7 @@ export default class StudentApplicationsService {
         relationshipId: parentRelationship.id,
         isActive: true,
         person: parent2,
+        relationship: parentRelationship,
       })
     }
   }
