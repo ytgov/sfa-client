@@ -38,7 +38,10 @@ export class DisbursementRepository extends BaseRepository implements IMainTable
                 .where({ assessment_id: assessment_id })
                 .orderBy("id", "asc");
             
-            query.forEach((x: DisbursementDTO) => result.push(x));
+            query.forEach((x: DisbursementDTO) => {
+                x.delete_flag = false;
+                result.push(x);
+            });
         }
         
         return result;

@@ -1,3 +1,172 @@
+import AgencyAssistance from "@/models/agency-assistance"
+import Attendance from "@/models/attendance"
+import FundingRequest from "@/models/funding-request"
+import Institution from "@/models/institution"
+import PersonAddress from "@/models/person-address"
+import Program from "@/models/program"
+import Student from "@/models/student"
+
+// Application with standard JS naming conventions
+// trailing underscore to avoid conflicting with legacy Application format
+export default interface Application_ {
+  id: number
+  studentId: number
+  academicYearId: number
+  institutionCampusId?: number
+  studyAreaId?: number
+  programId?: number
+  aboriginalStatusId?: number
+  maritalStatusId?: number
+  categoryId?: number
+  firstNationId?: number
+  spouseId?: number
+  parent1Id?: number
+  parent2Id?: number
+  primaryAddressId?: number
+  parent1RelationshipId?: number
+  parent2RelationshipId?: number
+  parent1Income?: number
+  parent1NetIncome?: number
+  parent1TaxPaid?: number
+  parent2Income?: number
+  parent2NetIncome?: number
+  parent2TaxPaid?: number
+  schoolEmail?: string
+  schoolTelephone?: string
+  spouseHsEndYear?: number
+  spouseHsEndMonth?: number
+  spousePrestudyEmpStatusId?: number
+  spousePstudySchoolFrom?: Date
+  spousePstudySchoolTo?: Date
+  spousePstudyIncomeComment?: string
+  spouseStudyEmpStatusId?: number
+  spouseStudySchoolFrom?: Date
+  spouseStudySchoolTo?: Date
+  isSpouseStudyCsl: boolean
+  isSpouseStudyBus: boolean
+  spouseStudyDistance?: number
+  spouseStudyIncomeComment?: string
+  classesStartDate?: Date
+  classesEndDate?: Date
+  isCorrespondence: boolean
+  isCoopPaid: boolean
+  citizenshipStatus?: number
+  isDisabled: boolean
+  isMinority: boolean
+  studentNumber?: string
+  programYearTotal?: number
+  programYear?: number
+  isTwoResidence: boolean
+  isMoving: boolean
+  cslClassification?: number
+  cslPreviousProvinceId?: number
+  programDivisionExplanation?: string
+  prestudyAccomCode?: number
+  prestudyOwnHome: boolean
+  prestudyBoardAmount?: number
+  prestudyCityId?: number
+  prestudyProvinceId?: number
+  prestudyBus: boolean
+  prestudyDistance?: number
+  prestudyEmployStatusId?: number
+  prestudyEmployedFromDate?: Date
+  prestudyEmployedToDate?: Date
+  prestudyEmployerName?: string
+  prestudyEmployerCityId?: number
+  prestudyEmployerProvinceId?: number
+  studyAccomCode?: number
+  studyOwnHome: boolean
+  studyBoardAmount?: number
+  studyCityId?: number
+  studyProvinceId?: number
+  studyBus: boolean
+  studyDistance?: number
+  statInfoComment?: string
+  booksSuppliesCost?: number
+  outstandingCslptAmount?: number
+  previousCsgPtAmount?: number
+  percentOfFullTime?: number
+  isPartOfFt: boolean
+  studyWeeksCount?: number
+  classHoursPerWeek?: number
+  parentResidenceComment?: string
+  studyLivingWSpouse: boolean
+  prestudyLivingWSpouse: boolean
+  tuitionEstimateAmount?: number
+  programDivision?: number
+  isPreviousCslft: boolean
+  isPreviousCslpt: boolean
+  coopStartYear?: number
+  coopStartMonth?: number
+  coopEndYear?: number
+  coopEndMonth?: number
+  excludeFromCount: boolean
+  isPermDisabled: boolean
+  disabledEquipment?: string
+  previousCsgDisabilityAmount?: number
+  previousCsgFemDocAmount?: number
+  creditChkReqdDate?: Date
+  creditChkFaxSentDate?: Date
+  creditChkPassedDate?: Date
+  creditChkPassed: boolean
+  creditChkAppealDate?: Date
+  creditChkAppCompDate?: Date
+  creditChkAppComp: boolean
+  creditChkCompDate?: Date
+  cslClearanceDate?: Date
+  prestudyCslClassification?: number
+  yeaTotReceiptAmount?: number
+  academicPercent?: number
+  cslRestrictionComment?: string
+  inProgressPage?: number
+  onlineStartDate?: Date
+  onlineSubmitDate?: Date
+  remTransitionGrantYears?: number
+  studentLn150Income?: number
+  spouseLn150Income?: number
+  taxes1FiledYear?: number
+  taxes2FiledYear?: number
+  taxes1FiledProvinceId?: number
+  taxes2FiledProvinceId?: number
+  taxes1NotFiled: boolean
+  taxes2NotFiled: boolean
+  taxes1Verified: boolean
+  taxes2Verified: boolean
+  appliedOtherFunding: boolean
+  cslRestrictionWarnId?: number
+  cslRestrictionReasonId?: number
+  coursesPerWeek?: number
+  prestudyStartDate?: Date
+  prestudyEndDate?: Date
+  validDriverLicense?: boolean
+  validDriverLicenseComment?: string
+  validYhcip?: boolean
+  validYhcipComment?: string
+  attendanceId?: number
+  hasConsentToShareData: boolean
+  permanentDisability: boolean
+  persOrProlongDisability: boolean
+  disabilityStartDate?: Date
+  requiresCreditCheck: boolean
+  lastCheckedOn?: Date
+  seen: boolean
+  updatedAt?: Date
+  lastJurisdictionId?: number
+  otherJurisdiction?: string
+  spouseLastJurisdictionId?: number
+  spouseOtherJurisdiction?: string
+  isPersistDisabled: boolean
+  persistDisabledStartDate?: Date
+  isChequesToInstitution: boolean
+  agencyAssistances?: AgencyAssistance[]
+  attendance?: Attendance
+  fundingRequests?: FundingRequest[]
+  institution?: Institution
+  primaryAddress?: PersonAddress
+  program?: Program
+  student?: Student
+}
+
 export interface Application {
   id: number;
   student_id: number;

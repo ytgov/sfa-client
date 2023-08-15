@@ -110,7 +110,7 @@ cslMsfaaReceiveRouter.post("/:FILE_NAME",
                                 vErrorMsg = vErrorMsg + 'New issuing provice missing for Cancelled MSFAA. ';
                             }  
                             
-                            vValidDateMsg = await db.raw(`select sfa.fn_check_valid_date(${vBorrowSigned}, 'Borrower Signed') AS result_date`);
+                            vValidDateMsg = await db.raw(`select sfa.fn_check_valid_date( '${vBorrowSigned}', 'Borrower Signed') AS result_date`);
                                                         
 
                             if(vValidDateMsg[0].result_date !== null && vValidDateMsg[0].result_date !== "EMPTY") {
@@ -119,21 +119,19 @@ cslMsfaaReceiveRouter.post("/:FILE_NAME",
                                 vErrorMsg = vErrorMsg + 'Borrower signed date missing for Received MSFAA. ';
                             }
                          
-                            vValidDateMsg = await db.raw(`select sfa.fn_check_valid_date(${vSpReceived}, 'Service Provider Received') AS result_date`);  
+                            vValidDateMsg = await db.raw(`select sfa.fn_check_valid_date('${vSpReceived}', 'Service Provider Received') AS result_date`);  
                             if(vValidDateMsg[0].result_date !== null && vValidDateMsg[0].result_date !== "EMPTY") {
                                 vErrorMsg = vErrorMsg + vValidDateMsg[0].result_date;
                             } else if(vValidDateMsg[0].result_date === "EMPTY" && vStatus === "R") {
                                 vErrorMsg = vErrorMsg + 'Service provider received date missing for Received MSFAA. ';
                             }                          
 
-                            vValidDateMsg = await db.raw(`select sfa.fn_check_valid_date(${vCancelled}, 'Cancelled') AS result_date`); 
+                            vValidDateMsg = await db.raw(`select sfa.fn_check_valid_date('${vCancelled}', 'Cancelled') AS result_date`); 
                             if(vValidDateMsg[0].result_date !== null && vValidDateMsg[0].result_date !== "EMPTY") {
                                 vErrorMsg = vErrorMsg + vValidDateMsg[0].result_date;
                             } else if(vValidDateMsg[0].result_date === "EMPTY" && vStatus === "C") {
                                 vErrorMsg = vErrorMsg + 'Cancel date missing for Cancelled MSFAA. ';
                             }    
-
-                            
 
                             const insert = await db.raw(`EXEC sfa.sp_insert_msfaa_import 
                                 @v_agreement_num = ${vAgreementNum === '' ? null : `'${vAgreementNum}'`}, 
@@ -186,20 +184,24 @@ cslMsfaaReceiveRouter.put("/", [],
             .from("sfa.msfaa_import AS mi")                    
             .innerJoin("sfa.msfaa AS m", "m.id", "=", "mi.agreement_number")
             .whereNull("error_message");                         
-            for(let res of results) {                        
-                if(res.status_code === "R") {
-                    vStatusDesc = "Received";
-                } else if (res.status_code === "C") {
-                    vStatusDesc = "Cancelled";
-                } else {
-                    vStatusDesc = "Pending";
+            for(let res of results) {
+                switch(res.status_code){
+                    case  "R":
+                        vStatusDesc = "Received";
+                        break;
+                    case "C":
+                        vStatusDesc = "Cancelled";
+                        break; 
+                    default:
+                        vStatusDesc = "Pending";
+                        break;
                 }
 
                 if(res.status_code === "C") {                    
-                    const updateMSFAA = db('sfa.msfaa')
+                    const updateMSFAA = await db('sfa.msfaa')
                     .where('id', db.raw(`CAST (${res.agreement_number} AS INT)`))                    
                     .update({                            
-                        msfaa_status: res.v_status_desc,
+                        msfaa_status: vStatusDesc,
                         cancel_date: db.raw(`CAST('${res.cancel_date}' AS DATE)`),
                         cancel_reason: db.raw(
                             `'New MSFAA issued by ' + '${res.new_issue_prov}'`
@@ -208,22 +210,17 @@ cslMsfaaReceiveRouter.put("/", [],
                     .catch((err: any) => {
                         console.log("FAILED", err)
                         res.json({ messages: [{ variant: "error", text: "Save failed" }] })
-                    });      
-                    
-                    updateMSFAA                    
-                    .catch((error) => {
+                    }).catch((error) => {
                         console.error('Error: ', error);
                     })                                                                               
                 } else {                                                         
-                    const updateMSFAA = db('sfa.msfaa')
+                    const updateMSFAA = await db('sfa.msfaa')
                     .where('id', db.raw(`CAST(${res.agreement_number} AS INT)`))                    
                     .update({
                         msfaa_status: vStatusDesc,                                
                         signed_date: db.raw(`CAST('${res.borrower_signed_date}' AS DATE)`),                                
                         received_date: db.raw(`CAST('${res.sp_received_date}' AS DATE)`),
-                    });                            
-                    updateMSFAA
-                    .catch((error) => {
+                    }).catch((error) => {
                         console.error('Error: ', error);
                     })                                                                                                                          
                 }

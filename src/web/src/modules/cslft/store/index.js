@@ -2,7 +2,7 @@ import axios from "axios";
 import {CSL_LOOKUP, CSLFT, CSLFT_ASSESS_INFO } from "@/urls";
 import moment from "moment";
 import { NumbersHelper, DateHelper } from "@/utilities";
-import { defaultState } from "./default";
+import { defaultState, defaultDisbursement } from "./default";
 const numHelper = new NumbersHelper();
 const dateHelper = new DateHelper();
 
@@ -32,6 +32,14 @@ const mutations = {
             state.cslft_disbursement = disburseModel.disbursements;
         }
         state.cslft_msfaa = disburseModel.msfaa;
+    },
+    setDefaultCslftDisbursement(state) {
+        let disbursement = defaultDisbursement;
+        disbursement.delete_flag = false;
+        state.cslft_disbursement.push(disbursement);
+    },
+    removeCslftDisbursement(state, index) {
+        state.cslft_disbursement.splice(index, 1);
     },
     loadFundingRequest(state, funding_request) {
         state.funding_request = funding_request;
@@ -77,6 +85,9 @@ const mutations = {
     },
     setCslftNetAmount(state, value) {
         state.cslft.net_amount = value;
+    },
+    setCslftAssessedNeed(state, value) {
+        state.cslft.csl_assessed_need = value;
     }
 };
 const actions = {
@@ -95,7 +106,6 @@ const actions = {
     async cslftLoadUncappedExpenses(state, application_id) {
         const period_id = 2;
         const res = await axios.get(`${CSLFT}/application/${application_id}/expenses/uncapped/${period_id}`);
-        console.log(res);
         if (res?.data?.success) {            
             state.commit("cslftLoadUncappedExpenses", res.data.data);
         }
@@ -124,6 +134,12 @@ const actions = {
         if (res?.data?.success) {
             commit("loadModelsDisburse", res.data);
         }
+    },
+    async setDefaultCslftDisbursement(state) {
+        state.commit("setDefaultCslftDisbursement");
+    },
+    async removeCslftDisbursement(state, index) {
+        state.commit("removeCslftDisbursement", index);
     },
     async saveCslftAssessment({ getters, dispatch }, vm) {
         const assessment = getters.cslft_get_assessment;
@@ -233,6 +249,9 @@ const actions = {
     },
     async setCslftNetAmount(state, value) {
         state.commit("setCslftNetAmount", value);
+    },
+    async setCslftAssessedNeed(state, value) {        
+        state.commit("setCslftAssessedNeed", value);
     }
 };
 const getters = {
@@ -392,19 +411,36 @@ const getters = {
         return Math.max(0, numHelper.round(minVal));
     },
     cslft_msfaa_date_issued_formatted(state) {
-        return dateHelper.getDateFromUTC(state.cslft_msfaa.date_issued);
+        if(state.cslft_msfaa.date_issued){
+            return dateHelper.getDateFromUTC(state.cslft_msfaa.date_issued);
+        }
+        return null;
     },
-    cslft_msfaa_date_received_formatted(state) {
-        return dateHelper.getDateFromUTC(state.cslft_msfaa.date_received);
+    cslft_msfaa_received_date_formatted(state) {
+        if(state.cslft_msfaa.received_date){
+            return dateHelper.getDateFromUTC(state.cslft_msfaa.received_date);
+        }
+        return null;
     },
-    cslft_msfaa_date_sent_formatted(state) {
-        return dateHelper.getDateFromUTC(state.cslft_msfaa.date_sent);
+    cslft_msfaa_sent_date_formatted(state) {
+        if(state.cslft_msfaa.sent_date){
+            return dateHelper.getDateFromUTC(state.cslft_msfaa.sent_date);
+        }
+        return null;
     },
-    cslft_msfaa_date_signed_formatted(state) {
-        return dateHelper.getDateFromUTC(state.cslft_msfaa.date_signed);
+    cslft_msfaa_signed_date_formatted(state) {
+        console.log(state.cslft_msfaa);
+        if(state.cslft_msfaa.signed_date){
+            return dateHelper.getDateFromUTC(state.cslft_msfaa.signed_date);
+        }
+        return null;
     },
-    cslft_msfaa_date_cancelled_formatted(state) {
-        return dateHelper.getDateFromUTC(state.cslft_msfaa.date_cancelled);
+    cslft_msfaa_cancel_date_formatted(state) {
+        if(state.cslft_msfaa.cancel_date){
+            return dateHelper.getDateFromUTC(state.cslft_msfaa.cancel_date);
+        }
+        return null;
+       
     },
     cslft_get_net_amount(state) {
         let result = numHelper.getNum(state.cslft.assessed_amount ?? 0) - numHelper.getNum(state.cslft.previous_disbursement ?? 0) + numHelper.getNum(state.cslft.return_uncashable_cert ?? 0);

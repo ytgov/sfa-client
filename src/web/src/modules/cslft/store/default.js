@@ -170,6 +170,7 @@ export const defaultState = () => {
             sent_seq_number: null,
             last_reminder_sent: null,
             is_full_time: null,
+            rec_create_date: null,
         },
         cslft_e_certs: []
     };
@@ -196,4 +197,5 @@ export const defaultDisbursement = {
     ecert_response_date: null,
     ecert_status: null,
     ecert_portal_status_id: null,
+    delete_flag: false,
 };

@@ -15,4 +15,6 @@ RUN npm install
 
 COPY . .
 
-CMD ["npm", "run", "start"]
+RUN chmod +x ./bin/boot-app.sh
+
+CMD ["./bin/boot-app.sh"]
