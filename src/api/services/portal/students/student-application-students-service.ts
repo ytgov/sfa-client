@@ -1,11 +1,12 @@
 import db from "@/db/db-client"
 
-import Dependent from "@/models/dependent"
 import Language from "@/models/language"
 import Person from "@/models/person"
 import Sex from "@/models/sex"
 import Student from "@/models/student"
+
 import StudentApplicationDependentsService from "@/services/portal/students/student-application-dependents-service"
+import StudentApplicationStudentPersonsService from "@/services/portal/students/student-application-student-persons-service"
 
 export default class StudentApplicationStudentsService {
   #studentId: number
@@ -20,9 +21,9 @@ export default class StudentApplicationStudentsService {
     const student = await db
       .select({
         t1Id: "student.id",
-        t1HighSchoolId: "highSchoolId",
-        t1HighSchoolLeftYear: "highSchoolLeftYear",
-        t1HighSchoolLeftMonth: "highSchoolLeftMonth",
+        t1HighSchoolId: "student.highSchoolId",
+        t1HighSchoolLeftYear: "student.highSchoolLeftYear",
+        t1HighSchoolLeftMonth: "student.highSchoolLeftMonth",
         t2Id: "person.id",
         t2FirstName: "person.firstName",
         t2LastName: "person.lastName",
@@ -85,6 +86,7 @@ export default class StudentApplicationStudentsService {
 
     student.studentConsents = await this.#getStudentConsents(student.id)
     student.residences = await this.#getResidences(student.id)
+    student.studentPersons = await this.#getStudentPersons(student.id)
 
     return student
   }
@@ -103,6 +105,11 @@ export default class StudentApplicationStudentsService {
 
   #getStudentConsents(studentId: number) {
     return db("studentConsent").where({ studentId })
+  }
+
+  #getStudentPersons(studentId: number) {
+    const studentPersonsService = new StudentApplicationStudentPersonsService({ studentId })
+    return studentPersonsService.getStudentPersons()
   }
 
   #getResidences(studentId: number) {
