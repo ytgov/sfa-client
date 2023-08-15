@@ -197,8 +197,8 @@ export default {
       let dataColumns = "";
       let idx = 0;
           
-      
-      for(let col of this.pdfData) {             
+      if(this.pdfData) {
+        for(let col of this.pdfData) {             
           dataColumns += "<tr style='text-align: center;'>"
           dataColumns += "<td>"
             dataColumns += col.sin ? col.sin : "";
@@ -226,6 +226,8 @@ export default {
                   
         dataColumns += "</tr>"                              
       }      
+      }
+      
       
       
       let htmlBottom = `
