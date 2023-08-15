@@ -1,16 +1,15 @@
 <template>
   <div>
     <v-card class="default mb-5">
-      <v-card-text>
-        <div class="row">
-          <div class="col-md-6">
-            <v-card-title class="my-n4 ml-n4">Vendor</v-card-title>
-          </div>
-          <div class="col-md-6 text-right">
-            <v-btn class="my-0 mr-5" color="success" @click="showModal()">Search</v-btn>
-            <v-btn class="my-0" color="error" :disabled="!student.vendor_id" @click="removeVendor">Remove</v-btn>
-          </div>
+      <v-card-title>
+        Vendor
+        <v-spacer />
+        <div>
+          <v-btn class="my-0 mr-5" color="success" @click="showModal()">Search</v-btn>
+          <v-btn class="my-0" color="error" :disabled="!student.vendor_id" @click="removeVendor">Remove</v-btn>
         </div>
+      </v-card-title>
+      <v-card-text>
         <div class="row">
           <div class="col-md-6">
             <v-text-field
@@ -50,8 +49,8 @@
       </v-card-text>
     </v-card>
     <v-card class="default mb-5">
+      <v-card-title>SFA Address Data</v-card-title>
       <v-card-text>
-        <v-card-title class="my-n4 ml-n4">SFA Address Data</v-card-title>
         <div class="row">
           <div class="col-12 mb-n2">
             <div class="text-subtitle-1">Permanent Address</div>
