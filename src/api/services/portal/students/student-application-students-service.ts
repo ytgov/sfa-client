@@ -1,8 +1,5 @@
 import db from "@/db/db-client"
 
-import Language from "@/models/language"
-import Person from "@/models/person"
-import Sex from "@/models/sex"
 import Student from "@/models/student"
 
 import StudentApplicationDependentsService from "@/services/portal/students/student-application-dependents-service"
