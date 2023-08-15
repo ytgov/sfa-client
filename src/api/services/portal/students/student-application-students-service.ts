@@ -17,7 +17,7 @@ export default class StudentApplicationStudentsService {
   }
 
   async getStudent() {
-    return db
+    const student = await db
       .select({
         t1Id: "student.id",
         t1HighSchoolId: "highSchoolId",
@@ -71,23 +71,22 @@ export default class StudentApplicationStudentsService {
           } as Person,
         } as Student
       })
-      .then(async (student) => {
-        if (student.person) {
-          const personAddresses = await this.#getPersonAddresses(student.personId)
-          student.person.personAddresses = personAddresses
-        }
 
-        if (this.#applicationId === undefined) {
-          throw new Error("Application ID is not set")
-        } else {
-          student.dependents = await this.#getDependents(student.id, this.#applicationId)
-        }
+    if (student.person) {
+      const personAddresses = await this.#getPersonAddresses(student.personId)
+      student.person.personAddresses = personAddresses
+    }
 
-        student.studentConsents = await this.#getStudentConsents(student.id)
-        student.residences = await this.#getResidences(student.id)
+    if (this.#applicationId === undefined) {
+      throw new Error("Application ID is not set")
+    } else {
+      student.dependents = await this.#getDependents(student.id, this.#applicationId)
+    }
 
-        return student
-      })
+    student.studentConsents = await this.#getStudentConsents(student.id)
+    student.residences = await this.#getResidences(student.id)
+
+    return student
   }
 
   #getDependents(studentId: number, applicationId: number) {
