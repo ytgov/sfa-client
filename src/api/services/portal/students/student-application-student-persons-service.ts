@@ -34,8 +34,9 @@ export default class StudentApplicationStudentPersonsService {
         t3Description: "relationship.description",
         t3IsActive: "relationship.isActive",
       })
-      .from("studentPerson")
-      .leftJoin("person", "person.id", "=", "studentPerson.personId")
+      .from("studentPersons")
+      .innerJoin("relationship", "relationship.id", "=", "studentPersons.relationshipId")
+      .leftJoin("person", "person.id", "=", "studentPersons.personId")
       .where({ studentId: this.#studentId })
 
     const studentPersons = studentPersonRows.map((row) => ({
