@@ -50,8 +50,8 @@
       </v-card-text>
     </v-card>
     <v-card class="default mb-5">
-      <v-card-title>SFA Address Data</v-card-title>
       <v-card-text>
+        <v-card-title class="my-n4 ml-n4">SFA Address Data</v-card-title>
         <div class="row">
           <div class="col-12 mb-n2">
             <div class="text-subtitle-1">Permanent Address</div>
