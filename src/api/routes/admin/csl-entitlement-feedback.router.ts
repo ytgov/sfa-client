@@ -200,10 +200,10 @@ cslEntitlementFeedbackRouter.post("/:FILE_NAME", [param("FILE_NAME").notEmpty()]
 								.first();
 								
 								if(!vDisbursementId) {
-									//return res.json({flag: 2, data: 'No records found with transaction number: ' + vCertNumber + ", CSL Cert Number: " + vSeqNum + ", or disbursed amount: " + vCslAmountNum, date: vEcertSentDate, seq: vSeqNum});
+									return res.json({flag: 2, data: 'No records found with transaction number: ' + vCertNumber + ", CSL Cert Number: " + vSeqNum + ", or disbursed amount: " + vCslAmountNum, date: vEcertSentDate, seq: vSeqNum});
 
 									//CHANGE LATER
-									vDisbursementId = 92;
+									//vDisbursementId = 64277;									
 								}
 							}					
 
@@ -234,11 +234,17 @@ cslEntitlementFeedbackRouter.post("/:FILE_NAME", [param("FILE_NAME").notEmpty()]
 								vErrorMsg = vErrorMsg + ' First error code is missing. ';
 							} else {
 								console.log("ERRORCODE 1 OK", vErrorCode1.replaceAll("\r", ''), vDisbursementId);
-								const result = await db.raw(
-									'DECLARE @is_resend_p VARCHAR(255), @error_id_p INT; ' +
-									`EXEC sfa.sp_check_error_status '${vErrorCode1.replaceAll("\r", '')}', ${vDisbursementId}, @is_resend_p OUTPUT, @error_id_p OUTPUT; ` +
-									'SELECT @is_resend_p as is_resend_p, @error_id_p as error_id_p;'									
-									);		
+								let result;
+								try {
+									result  = await db.raw(
+										'DECLARE @is_resend_p VARCHAR(255), @error_id_p INT; ' +
+										`EXEC sfa.sp_check_error_status '${vErrorCode1.replaceAll("\r", '')}', ${vDisbursementId}, @is_resend_p OUTPUT, @error_id_p OUTPUT; ` +
+										'SELECT @is_resend_p as is_resend_p, @error_id_p as error_id_p;'									
+										);	
+								} catch (error: any) {									
+									return res.json({flag: 0, data: 'Something went wrong, please contact the administrator. '});
+								}
+									
 								is_resend_p = result[0].is_resend_p;
 								error_id_p = result[0].error_id_p;																
 								vErrorMsg = vErrorMsg + ' ' + vErrorDesc;
@@ -247,12 +253,16 @@ cslEntitlementFeedbackRouter.post("/:FILE_NAME", [param("FILE_NAME").notEmpty()]
 
 							if(vErrorCode2.length > 1) {	
 								console.log("ERRORCODE 2 IN", vErrorCode2.replaceAll("\r", ''), vDisbursementId);															
-								const result = await db.raw(
+								let result;
+								try {
+								result = await db.raw(
 									'DECLARE @is_resend_p VARCHAR(255), @error_id_p INT; ' +
 									`EXEC sfa.sp_check_error_status '${vErrorCode2.replaceAll("\r", '')}', ${vDisbursementId}, @is_resend_p OUTPUT, @error_id_p OUTPUT; ` +
 									'SELECT @is_resend_p as is_resend_p, @error_id_p as error_id_p;'
 								  );									
-								
+								} catch (error: any) {									
+									return res.json({flag: 0, data: 'Something went wrong, please contact the administrator. '});
+								} 
 								is_resend_p = result[0].is_resend_p;
 								error_id_p = result[0].error_id_p;				
 
@@ -269,12 +279,17 @@ cslEntitlementFeedbackRouter.post("/:FILE_NAME", [param("FILE_NAME").notEmpty()]
 							console.log("ERROR CODE 2 FINISH")
 
 							if(vErrorCode3.length > 1) {
-								console.log("ERRORCODE 3 IN", vErrorCode3.replaceAll("\r", ''), vDisbursementId);															
-								const result = await db.raw(
+								console.log("ERRORCODE 3 IN", vErrorCode3.replaceAll("\r", ''), vDisbursementId);		
+								let result;
+								try {													
+								result = await db.raw(
 									'DECLARE @is_resend_p VARCHAR(255), @error_id_p INT; ' +
 									`EXEC sfa.sp_check_error_status '${vErrorCode3.replaceAll("\r", '')}', ${vDisbursementId}, @is_resend_p OUTPUT, @error_id_p OUTPUT; ` +
 									'SELECT @is_resend_p as is_resend_p, @error_id_p as error_id_p;'									
 								  );
+								} catch (error: any) {									
+									return res.json({flag: 0, data: 'Something went wrong, please contact the administrator. '});
+								} 
 
 								is_resend_p = result[0].is_resend_p;
 								error_id_p = result[0].error_id_p;		
@@ -293,11 +308,16 @@ cslEntitlementFeedbackRouter.post("/:FILE_NAME", [param("FILE_NAME").notEmpty()]
 
 							if(vErrorCode4.length > 1) {
 								console.log("ERRORCODE 4 IN", vErrorCode4.replaceAll("\r", ''), vDisbursementId);
-								const result = await db.raw(
+								let result;
+								try {
+								result = await db.raw(
 									'DECLARE @is_resend_p VARCHAR(255), @error_id_p INT; ' +
 									`EXEC sfa.sp_check_error_status '${vErrorCode4.replaceAll("\r", '')}', ${vDisbursementId}, @is_resend_p OUTPUT, @error_id_p OUTPUT; ` +
 									'SELECT @is_resend_p as is_resend_p, @error_id_p as error_id_p;'									
 								  );
+								} catch (error: any) {									
+									return res.json({flag: 0, data: 'Something went wrong, please contact the administrator. '});
+								} 
 
 								is_resend_p = result[0].is_resend_p;
 								error_id_p = result[0].error_id_p;		
@@ -316,11 +336,16 @@ cslEntitlementFeedbackRouter.post("/:FILE_NAME", [param("FILE_NAME").notEmpty()]
 
 							if(vErrorCode5.length > 1) {
 								console.log("ERRORCODE 5 IN", vErrorCode5.replaceAll("\r", ''), vDisbursementId);								
-								const result = await db.raw(
+								let result;
+								try {
+								result = await db.raw(
 									'DECLARE @is_resend_p VARCHAR(255), @error_id_p INT; ' +
 									`EXEC sfa.sp_check_error_status '${vErrorCode5.replaceAll("\r", '')}', ${vDisbursementId}, @is_resend_p OUTPUT, @error_id_p OUTPUT; ` +
 									'SELECT @is_resend_p as is_resend_p, @error_id_p as error_id_p;'									
 								  );
+								} catch (error: any) {									
+									return res.json({flag: 0, data: 'Something went wrong, please contact the administrator. '});
+								} 
 
 								is_resend_p = result[0].is_resend_p;
 								error_id_p = result[0].error_id_p;		
@@ -337,17 +362,22 @@ cslEntitlementFeedbackRouter.post("/:FILE_NAME", [param("FILE_NAME").notEmpty()]
 
 							console.log("ERROR CODE 5 FINISH")
 
-							const insertEcertImport = await db.raw(`
-							EXEC sfa.sp_insert_ecert_import 
-							${vSeqNum ? `'${vSeqNum}'` : null},
-							${vEcertSentDate ? `'${vEcertSentDate}'` : null},
-							${vSin ? `'${vSin}'` : null},
-							${vCertNumber ? `'${vCertNumber}'` : null},
-							${vCreateDate ? `'${vCreateDate}'` : null},
-							${vIsResend ? `'${vIsResend}'` : null},
-							${vErrorMsg ? `'${vErrorMsg}'` : null},
-							${vDisbursementId.id ? vDisbursementId : null};
-							`);				
+							try {
+								const insertEcertImport = await db.raw(`
+								EXEC sfa.sp_insert_ecert_import 
+								${vSeqNum ? `'${vSeqNum}'` : null},
+								${vEcertSentDate ? `'${vEcertSentDate}'` : null},
+								${vSin ? `'${vSin}'` : null},
+								${vCertNumber ? `'${vCertNumber}'` : null},
+								${vCreateDate ? `'${vCreateDate}'` : null},
+								${vIsResend ? `'${vIsResend}'` : null},
+								${vErrorMsg ? `'${vErrorMsg}'` : null},
+								${vDisbursementId.id ? vDisbursementId : null};
+								`);		
+							} catch (error:any) {
+								return res.json({flag: 0, data: 'Something went wrong, please contact the administrator. '});
+							}
+									
 
 							vTotalSin = vTotalSin + vNumSin;
 							vRejectedCount = vRejectedCount + 1;						
@@ -416,11 +446,20 @@ cslEntitlementFeedbackRouter.post("/:FILE_NAME", [param("FILE_NAME").notEmpty()]
 				if(!vEcertSentDate) {
 					vEcertSentDate = null;
 				}				
-				const execSPDisbursementById = await db.raw("EXEC sfa.sp_update_disbursement_by_id");
-				console.log("SP 1 EXECUTED", execSPDisbursementById)
-				const execSPDisbursementBySeq = await db.raw(`EXEC sfa.sp_update_disbursement_by_seq ${vCreateDate ? `'${moment(vCreateDate, 'YYYYMMDD').format("YYYY-MM-DD")}'` : null}, ${vSeqNum}, ${vEcertSentDate ? `'${moment(vEcertSentDate, 'YYYYMMDD').format("YYYY-MM-DD")}'` : null}`);
-				console.log("SP 2 EXECUTED", execSPDisbursementBySeq)
-								
+
+				try {
+					const execSPDisbursementById = await db.raw("EXEC sfa.sp_update_disbursement_by_id");
+					console.log("SP 1 EXECUTED", execSPDisbursementById)
+				} catch (error: any) {
+					return res.json({flag: 0, data: 'Something went wrong, please contact the administrator. '});
+				}
+				try {
+					const execSPDisbursementBySeq = await db.raw(`EXEC sfa.sp_update_disbursement_by_seq ${vCreateDate ? `'${moment(vCreateDate, 'YYYYMMDD').format("YYYY-MM-DD")}'` : null}, ${vSeqNum}, ${vEcertSentDate ? `'${moment(vEcertSentDate, 'YYYYMMDD').format("YYYY-MM-DD")}'` : null}`);
+					console.log("SP 2 EXECUTED", execSPDisbursementBySeq)
+				} catch(error: any) {
+					return res.json({flag: 0, data: 'Something went wrong, please contact the administrator. '});
+				}
+												
 				const count = await db.raw("SELECT COUNT(*)	AS count FROM SFA.msfaa_import;")
 				console.log(count)
 				
