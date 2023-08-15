@@ -193,7 +193,6 @@ export default class StudentApplicationStudentsService {
 
   #getPersonAddresses(personId: number) {
     return db
-      .select("id", "addressTypeId", "address1", "cityId", "provinceId", "postalCode")
       .from("personAddress")
       .where({ personId })
   }
