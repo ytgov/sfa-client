@@ -200,11 +200,10 @@ cslEntitlementFeedbackRouter.post("/:FILE_NAME", [param("FILE_NAME").notEmpty()]
 								.first();
 								
 								if(!vDisbursementId) {
-									//return res.json({flag: 2, data: 'No records found with transaction number: ' + vCertNumber + ", CSL Cert Number: " + vSeqNum + ", or disbursed amount: " + vCslAmountNum, date: vEcertSentDate, seq: vSeqNum});
+									return res.json({flag: 2, data: 'No records found with transaction number: ' + vCertNumber + ", CSL Cert Number: " + vSeqNum + ", or disbursed amount: " + vCslAmountNum, date: vEcertSentDate, seq: vSeqNum});
 
 									//CHANGE LATER
-									//vDisbursementId = 64277;
-									vDisbursementId = 1;
+									//vDisbursementId = 64277;									
 								}
 							}					
 
