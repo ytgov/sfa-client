@@ -16,9 +16,11 @@ import Income from "@/models/income"
 import Institution from "@/models/institution"
 import Person from "@/models/person"
 import PersonAddress from "@/models/person-address"
+import Relationship from "@/models/relationship"
 import Residence from "@/models/residence"
 import Student from "@/models/student"
 import StudentConsent from "@/models/student-consent"
+import StudentPerson from "@/models/student-person"
 
 export default class StudentApplicationsSerializer {
   #applications: Application[] = []
@@ -72,6 +74,9 @@ export default class StudentApplicationsSerializer {
       csfaAccommodation: this.#csfaAccomodationSection(this.#application),
       csfaIncome: this.#csfaIncomeSection(this.#application.incomes || ([] as Income[])),
       csfaExpenses: this.#csfaExpensesSection(this.#application.expenses || ([] as Expense[])),
+      parents: this.#parentsSection(
+        this.#application?.student?.studentPersons || ([] as StudentPerson[])
+      ),
     }
   }
 
@@ -405,6 +410,32 @@ export default class StudentApplicationsSerializer {
 
     return {
       expenses: serializedExpenses,
+    }
+  }
+
+  #parentsSection(studentPersons: StudentPerson[]) {
+    const studentPersonsWithParentRelationship = studentPersons
+      .filter(
+        (studentPerson) =>
+          studentPerson.isActive &&
+          studentPerson.relationship?.description === Relationship.Types.PARENT
+      )
+      // I don't know why .filter(studentPerson => studentPerson.person !== undefined) doesn't work on its own
+      .filter(StudentPerson.hasValidPerson)
+
+    const serializedParents = studentPersonsWithParentRelationship.map((studentPerson) => {
+      const { person, relationshipId } = studentPerson
+      return {
+        firstName: person.firstName,
+        lastName: person.lastName,
+        sin: person.sin,
+        relationship: relationshipId,
+        relationshipId,
+      }
+    })
+
+    return {
+      parents: serializedParents,
     }
   }
 }
