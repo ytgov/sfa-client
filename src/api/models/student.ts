@@ -5,7 +5,7 @@ import Residence from "@/models/residence"
 import StudentConsent from "@/models/student-consent"
 import StudentPerson from "@/models/student-person"
 
-export default class Student {
+interface StudentRecord {
   id: number
   personId: number
   highSchoolId?: number
@@ -55,57 +55,21 @@ export default class Student {
   residences?: Residence[]
   studentConsents?: StudentConsent[]
   studentPersons?: StudentPerson[]
+}
 
-  constructor(params: Omit<Student, 'parents'>) {
-    this.id = params.id
-    this.personId = params.personId
-    this.highSchoolId = params.highSchoolId
-    this.educationLevelId = params.educationLevelId
-    this.indigenousLearnerId = params.indigenousLearnerId
-    this.vendorId = params.vendorId
-    this.yukonId = params.yukonId
-    this.checkedForYukonId = params.checkedForYukonId
-    this.nationalId = params.nationalId
-    this.locatorNumber = params.locatorNumber
-    this.isCrownWard = params.isCrownWard
-    this.highSchoolFinalGrade = params.highSchoolFinalGrade
-    this.highSchoolLeftYear = params.highSchoolLeftYear
-    this.highSchoolLeftMonth = params.highSchoolLeftMonth
-    this.preFundedYear = params.preFundedYear
-    this.preFundingYearsUsed = params.preFundingYearsUsed
-    this.cslLetterDate = params.cslLetterDate
-    this.cslWarnCode = params.cslWarnCode
-    this.preOverAwardAmount = params.preOverAwardAmount
-    this.preYeaAwardsUsedAmount = params.preYeaAwardsUsedAmount
-    this.userName = params.userName
-    this.userPassword = params.userPassword
-    this.isActive = params.isActive
-    this.isFirstLogonFlg = params.isFirstLogonFlg
-    this.lastLogonDate = params.lastLogonDate
-    this.lastPwChangeDate = params.lastPwChangeDate
-    this.yeaExpiryDate = params.yeaExpiryDate
-    this.adjYgFundingWeeks = params.adjYgFundingWeeks
-    this.adjStaUpgradingWeeks = params.adjStaUpgradingWeeks
-    this.adjOutsideTravelCnt = params.adjOutsideTravelCnt
-    this.yukonResidentFromMonth = params.yukonResidentFromMonth
-    this.yukonResidentFromYear = params.yukonResidentFromYear
-    this.canadianResidentFromMonth = params.canadianResidentFromMonth
-    this.canadianResidentFromYear = params.canadianResidentFromYear
-    this.oldYtid = params.oldYtid
-    this.residenceComment = params.residenceComment
-    this.kinFirstName = params.kinFirstName
-    this.kinLastName = params.kinLastName
-    this.kinAddress1 = params.kinAddress1
-    this.kinAddress2 = params.kinAddress2
-    this.kinCityId = params.kinCityId
-    this.kinProvinceId = params.kinProvinceId
-    this.kinCountryId = params.kinCountryId
-    this.kinPostalCode = params.kinPostalCode
-    this.dependents = params.dependents
-    this.person = params.person
-    this.residences = params.residences
-    this.studentConsents = params.studentConsents
-    this.studentPersons = params.studentPersons
+// Stub that lets us safely perform type-checked param assigment in the Student constructor
+class StudentRecord {
+  [key: string]: StudentRecord[keyof StudentRecord]
+}
+
+// Stub that hoists all the properties of a StudentRecord onto the Student class.
+interface Student extends StudentRecord {}
+
+class Student {
+  constructor(params: StudentRecord) {
+    Object.keys(StudentRecord).forEach((key) => {
+      this[key] = params[key]
+    })
   }
 
   get parents(): Person[] | undefined {
@@ -129,3 +93,5 @@ export default class Student {
     return parents
   }
 }
+
+export default Student
