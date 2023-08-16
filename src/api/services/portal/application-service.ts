@@ -6,6 +6,7 @@ import {
   ApplicationFromDraft,
   ConsentFromDraft,
   DependantsFromDraft,
+  ExpensesFromDraft,
   FundingFromDraft,
   IncomeFromDraft,
   OtherFundingFromDraft,
@@ -182,6 +183,14 @@ export class PortalApplicationService {
           for (let income of incomes) {
             income.application_id = newApplication[0].id;
             await db("income").withSchema(schema).insert(income);
+          }
+        }
+
+        let expenses = ExpensesFromDraft(combinedApp);
+        if (expenses && expenses.length > 0) {
+          for (let expense of expenses) {
+            expense.application_id = newApplication[0].id;
+            await db("expense").withSchema(schema).insert(expense);
           }
         }
 
