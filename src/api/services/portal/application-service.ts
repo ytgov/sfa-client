@@ -13,7 +13,7 @@ import {
   PersonFromDraft,
   ResidenceFromDraft,
   StudentFromDraft,
-} from "../../models";
+} from "@/models";
 import moment from "moment";
 
 const db = knex(DB_CONFIG);
@@ -25,10 +25,13 @@ export class PortalApplicationService {
   }
 
   async getDraftsForStudent(student_id: number) {
-    let drafts = await db("application_draft").withSchema(schema).where({ student_id, is_active: true });
+    let drafts = await db("application_draft")
+      .withSchema(schema)
+      .where({ student_id, is_active: true })
+      .orderBy("status")
+      .orderBy("update_date", "desc");
 
     for (let d of drafts) {
-      //d.status = "In Progress";
       d.description = `This application was created on ${moment
         .utc(d.create_date)
         .format("MMMM D, YYYY")} and last saved ${moment.utc(d.update_date).fromNow()}.`;
