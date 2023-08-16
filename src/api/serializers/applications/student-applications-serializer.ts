@@ -8,9 +8,11 @@ import Application from "@/models/application"
 import CsfaAmounts from "@/models/csfa-amount"
 import Dependent from "@/models/dependent"
 import Disability from "@/models/disability"
+import Expense from "@/models/expense"
 import FundingPurpose from "@/models/funding-purpose"
 import FundingRequest from "@/models/funding-request"
 import FundingSource from "@/models/funding-source"
+import Income from "@/models/income"
 import Institution from "@/models/institution"
 import Person from "@/models/person"
 import PersonAddress from "@/models/person-address"
@@ -68,6 +70,8 @@ export default class StudentApplicationsSerializer {
         this.#application.student?.dependents || ([] as Dependent[])
       ),
       csfaAccommodation: this.#csfaAccomodationSection(this.#application),
+      csfaIncome: this.#csfaIncomeSection(this.#application.incomes || ([] as Income[])),
+      csfaExpenses: this.#csfaExpensesSection(this.#application.expenses || ([] as Expense[])),
     }
   }
 
@@ -372,7 +376,35 @@ export default class StudentApplicationsSerializer {
     }
 
     return {
-      accommodations // NOTE: spelling updated from accomodations (one m) used in front-end
+      accommodations, // NOTE: spelling updated from accomodations (one m) used in front-end
+    }
+  }
+
+  #csfaIncomeSection(incomes: Income[]) {
+    const serializedIncomes = incomes.map((income) => ({
+      type: income.incomeTypeId,
+      incomeTypeId: income.incomeTypeId,
+      comment: income.comment,
+      amount: income.amount,
+    }))
+
+    return {
+      hasIncome: !isEmpty(serializedIncomes),
+      incomes: serializedIncomes,
+    }
+  }
+
+  #csfaExpensesSection(expenses: Expense[]) {
+    const serializedExpenses = expenses.map((expense) => ({
+      type: expense.categoryId,
+      expenseCategoryId: expense.categoryId,
+      comment: expense.description,
+      amount: expense.amount,
+      required: expense.expenseCategory?.isRequired,
+    }))
+
+    return {
+      expenses: serializedExpenses,
     }
   }
 }

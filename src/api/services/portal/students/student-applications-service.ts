@@ -1,5 +1,6 @@
 import db from "@/db/db-client"
 
+import StudentApplicationExpensesService from "@/services/portal/students/student-application-expenses-service"
 import StudentApplicationFundingRequestsService from "@/services/portal/students/student-application-funding-requests-service"
 import StudentApplicationStudentsService from "@/services/portal/students/student-application-students-service"
 
@@ -52,6 +53,8 @@ export default class StudentApplicationsService {
     application.fundingRequests = await this.#getApplicationFundingRequests(application.id)
     application.student = await this.#getApplicationStudent(application.studentId, this.#applicationId)
     application.agencyAssistances = await this.#getApplicationAgencyAssistances(application.id)
+    application.incomes = await this.#getApplicationIncomes(application.id)
+    application.expenses = await this.#getApplicationExpenses(application.id)
 
     return application
   }
@@ -68,5 +71,14 @@ export default class StudentApplicationsService {
 
   #getApplicationAgencyAssistances(applicationId: number) {
     return db("agencyAssistance").where({ applicationId })
+  }
+
+  #getApplicationIncomes(applicationId: number) {
+    return db("income").where({ applicationId })
+  }
+
+  #getApplicationExpenses(applicationId: number) {
+    const expenseService = new StudentApplicationExpensesService({ applicationId })
+    return expenseService.getExpenses()
   }
 }
