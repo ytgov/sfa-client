@@ -4904,7 +4904,7 @@ END
 GO
 
 CREATE OR ALTER FUNCTION sfa.get_records_for_cheque_req_dat_file(
-    @issueDateStr DATE,
+    @issue_date_str DATE,
     @serial_no INT
 )
 RETURNS TABLE
@@ -4924,7 +4924,7 @@ AS
                 END, 
                 22) +
             'EX'+ 'RE'+ 'CAD '+ '            '+
-            '0'+CAST(@issueDateStr AS VARCHAR(10))+ '0'+ '000000000'+ '        '+ '        '+
+            '0'+CAST(@issue_date_str AS VARCHAR(10))+ '0'+ '000000000'+ '        '+ '        '+
             '              '+ '0  '+
             SUBSTRING(CONVERT(VARCHAR, ABS(d.disbursed_amount), 128), 1, 15) +
             REPLICATE(' ', 30) + '      '+ '0' + FORMAT(d.due_date, 'yyyyMMdd')+ '000000000'+
@@ -4943,11 +4943,11 @@ AS
     --		+ 'C'  -- change space to C for cheque payment type - Lidwien January 2008, Jira SFA 199
             + ' '  -- change C to space for cheque payment type - for NEW EFT no longer required, 2020-08-25 Lidwien		
             +'000000000'+ '9990206016050                                '+ '      '+
-            REPLICATE(' ', 22) + '000000000'+ 'CTL-YUKON   '+ '0'+ CAST(@issueDateStr AS VARCHAR(10)) +
-            '0'+ CAST(@issueDateStr AS VARCHAR(10))+ '000000000'+ '000000000'+ '  '+ '     '+ '000000000000000'+
+            REPLICATE(' ', 22) + '000000000'+ 'CTL-YUKON   '+ '0'+ CAST(@issue_date_str AS VARCHAR(10)) +
+            '0'+ CAST(@issue_date_str AS VARCHAR(10))+ '000000000'+ '000000000'+ '  '+ '     '+ '000000000000000'+
             '0'+ '     '+ '000000000000000'+ '0'+ '     '+ '000000000000000'+ '0'+
-            '     '+ '000000000000000'+ '0'+ ' '+ '000000000'+ '0'+ CAST(@issueDateStr AS VARCHAR(10))+ '000000000'+
-            '000000000000000'+ ' '+ '000000000000000'+ '0'+ '1'+ 'N'+ '2'+ '0'+ CAST(@issueDateStr AS VARCHAR(10))+
+            '     '+ '000000000000000'+ '0'+ ' '+ '000000000'+ '0'+ CAST(@issue_date_str AS VARCHAR(10))+ '000000000'+
+            '000000000000000'+ ' '+ '000000000000000'+ '0'+ '1'+ 'N'+ '2'+ '0'+ CAST(@issue_date_str AS VARCHAR(10))+
             '     '+ '     '+ '     '+ REPLICATE(' ', 25) + '            '+
             '0'+ ' '+ '    '
         as record2, -- Voucher Header (VOH)
@@ -4996,7 +4996,7 @@ WHERE NOT s.vendor_id IS NULL
     AND d.disbursed_amount > 0
     AND d.disbursement_type_id = 1
     AND NOT d.due_date IS NULL
-    AND d.financial_batch_run_date = @issueDateStr
+    AND d.financial_batch_run_date = @issue_date_str
     AND d.financial_batch_serial_no = @serial_no
     AND (
         CASE WHEN rt.batch_group_id = 5 THEN
@@ -6892,20 +6892,20 @@ AS
 
                     ) AS children_over_12_not_dis
                   , a.stud_pstudy_gross AS pstudy_student_income
-                  , 0 -- income_pck.get_income(2,1,app.history_detail_id,8) AS study_income_gov
-                  , 0-- nvl(income_pck.get_income(2,1,app.history_detail_id,10),0) + nvl(income_pck.get_income(2,1,app.history_detail_id,9),0)   AS study_income_priv
-                  , 0 -- income_pck.get_income(2,1,app.history_detail_id,2)     AS study_income_gov_ei
-                  , 0 -- income_pck.get_income(2,1,app.history_detail_id,3)       AS study_income_cpp
-                  , 0 -- income_pck.get_income(2,1,app.history_detail_id,4)       AS study_income_wc
-                  , 0 -- income_pck.get_income(2,1,app.history_detail_id,5)       AS study_income_gov_soc
-                  , 0 -- income_pck.get_income(2,1,app.history_detail_id,6)       AS study_income_nont_gov
-                  , 0 -- income_pck.get_income(2,1,app.history_detail_id,16)      AS study_income_merit
-                  , 0 -- income_pck.get_income(2,1,app.history_detail_id,12)      AS study_income_priv_merit
-                  , 0 -- income_pck.get_income(2,1,app.history_detail_id,1)       AS study_income_employ
-                  , 0 -- income_pck.get_income(2,1,app.history_detail_id,15)      AS study_income_cs
-                  , 0 -- income_pck.get_income(2,1,app.history_detail_id,17)     AS study_income_alimony
-                  , 0 -- income_pck.get_income(2,1,app.history_detail_id,14)      AS study_income_other
-                  , 0 -- income_pck.get_income(2,1,app.history_detail_id,13)      AS study_income_gov_grant
+                  , sfa.fn_get_income(app.id, 8) AS study_income_gov
+                  , COALESCE(sfa.fn_get_income(app.id, 10), 0) + COALESCE(sfa.fn_get_income(app.id, 9), 0) AS study_income_priv
+                  , sfa.fn_get_income(app.id,2) AS study_income_gov_ei
+                  , sfa.fn_get_income(app.id,3) AS study_income_cpp
+                  , sfa.fn_get_income(app.id,4) AS study_income_wc
+                  , sfa.fn_get_income(app.id,5) AS study_income_gov_soc
+                  , sfa.fn_get_income(app.id,6) AS study_income_nont_gov
+                  , sfa.fn_get_income(app.id,16) AS study_income_merit
+                  , sfa.fn_get_income(app.id,12) AS study_income_priv_merit
+                  , sfa.fn_get_income(app.id,1) AS study_income_employ
+                  , sfa.fn_get_income(app.id,15) AS study_income_cs
+                  , sfa.fn_get_income(app.id,17) AS study_income_alimony
+                  , sfa.fn_get_income(app.id,14) AS study_income_other
+                  , sfa.fn_get_income(app.id,13) AS study_income_gov_grant
                   , (
                         CASE 
                             WHEN app.csl_classification = 1 THEN COALESCE(app.parent1_income,0)
@@ -7101,7 +7101,7 @@ AS
                     ) AS single_ind_stat_reas   
                   , (
                       CASE 
-                        WHEN -1 > 0 --nvl(sfa.get_total_income_by_type(1,app.history_detail_id,5),0) > 0 
+                        WHEN COALESCE(sfa.fn_get_income(app.id, 5), 0) > 0 
                             THEN 'Y'
                             ELSE 'N'
                         END 
@@ -7199,7 +7199,8 @@ AS
                             ELSE NULL
                         END
                     ) AS spouse_date_left_hs
-                  , 0 -- nvl(income_pck.get_total_income(app.history_detail_id,1,1),0)-nvl(income_pck.get_income(1,1,app.history_detail_id,1),0)  AS pstudy_income_other
+                  , COALESCE(sfa.fn_get_total_income(app.id), 0) AS pstudy_income_other
+                  --, 0 -- nvl(income_pck.get_total_income(app.history_detail_id,1,1),0)-nvl(income_pck.get_income(1,1,app.history_detail_id,1),0)  AS pstudy_income_other
                   , 0 -- income_pck.get_income(1,1,app.history_detail_id,1)       AS pstudy_income_employ
                   , (
                         CASE
@@ -7392,9 +7393,9 @@ AS
                 AND fr.id = d.funding_request_id 
           WHERE fr.request_type_id = 4
             AND (
-                    (disburse.financial_batch_run_date = '2020-12-22'
-                    AND disburse.financial_batch_serial_no = 2 )
-                    OR disburse.financial_batch_id IS NULL
+                    disburse.financial_batch_run_date = @p_issue_date AND
+                    disburse.financial_batch_serial_no = @p_serial_num OR
+                    disburse.financial_batch_id IS NULL
                 )
 
             AND disburse.issue_date >= CONVERT(DATE, '20090417', 112); --TO_DATE('20090417','yyyymmdd');
