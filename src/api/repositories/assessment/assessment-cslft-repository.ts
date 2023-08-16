@@ -192,9 +192,8 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
         }
     }
 
-    async getContributionValues(): Promise<void> {
-        const max_weeks = 8/12*52;
-
+    async calcFamilyDetails(): Promise<void> {            
+        
         if (this.assessment.csl_classification === 1) {
             this.assessment.student_family_size = await this.getParentFamilySize(this.application.id) + 1;
             this.assessment.family_income = (this.assessment.parent1_income ?? 0) + (this.assessment.parent2_income ?? 0);
@@ -211,13 +210,19 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
             this.assessment.student_family_size = 1;
             this.assessment.family_income = (this.assessment.student_ln150_income ?? 0);
         }
+        this.assessment.family_size = this.assessment.student_family_size;
+    }
 
-        const family_size = this.assessment.student_family_size > 7 ? 7 : this.assessment.student_family_size;
+    async getContributionValues(): Promise<void> {
+        const max_weeks = 8/12*52;
+
+        await this.calcFamilyDetails();
+        const family_size = (this.assessment.student_family_size ?? 0) > 7 ? 7 : this.assessment.student_family_size;
         const income_threshold = await this.csgThresholdRepo.getIncomeThresholdAmount(this.application.academic_year_id, family_size);
 
         const cslLookupContribTable = await this.cslLookupRepo.getContribPct(this.application.academic_year_id);
 
-        if (this.assessment.family_income <= income_threshold) {
+        if ((this.assessment.family_income ?? 0) <= income_threshold) {
             this.assessment.student_expected_contribution = this.numHelper.round(Math.min(cslLookupContribTable.low_income_student_contrib_amount ?? 0, (((cslLookupContribTable.low_income_student_contrib_amount ?? 0) / (8*12/52)) * (this.assessment.study_weeks ?? 0))));
         }
         else {
@@ -229,7 +234,7 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
         this.assessment.student_previous_contribution = await this.getStudentPreviousContribAmount(this.assessment.id, this.application.academic_year_id, this.application.student_id);
         this.assessment.student_contribution = this.assessment.student_contrib_exempt === "YES" ? 0 : ((this.assessment.student_expected_contribution ?? 0) - (this.assessment.student_previous_contribution));
 
-        if (this.assessment.csl_classification === 3 && this.assessment.family_income > income_threshold) {
+        if (this.assessment.csl_classification === 3 && (this.assessment.family_income ?? 0) > income_threshold) {
             const weekly_spouse_contrib = (cslLookupContribTable.spouse_contrib_percent ?? 0) * (((this.assessment.family_income ?? 0) - income_threshold)/(8*12/52));
             this.assessment.spouse_expected_contribution = this.numHelper.round(weekly_spouse_contrib * Math.min((this.assessment.study_weeks ?? 0), max_weeks));
             this.assessment.spouse_previous_contribution = await this.getSpousePreviousContribAmount(this.assessment.id, this.application.academic_year_id, this.application.student_id);
@@ -697,12 +702,12 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
         this.assessment.discretionary_cost_actual = await this.expenseRepo.getAllowableExpense(2,7,this.application.id) + await this.expenseRepo.getAllowableExpense(2,11,this.application.id);
         this.assessment.day_care_actual = await this.expenseRepo.getActualExpense(2,3,this.application.id); 
         this.assessment.study_bus_flag = this.application.study_bus;
-        this.assessment.prestudy_bus_flag = this.application.prestudy_bus;
-        this.assessment.family_size = await this.getParentFamilySize(this.application.id);
+        this.assessment.prestudy_bus_flag = this.application.prestudy_bus;        
         this.assessment.parent_ps_depend_count = await this.getParentDependentCount(this.application.id, true);
         this.assessment.parent_province_id = await this.provinceRepo.getStudentProvinceIdByApplication(this.application.id, 4);
         this.assessment.total_grant_awarded = await this.disbursementRepo.getTotalGrantAmount(this.application.id);
-
+        
+        await this.calcFamilyDetails();
         await this.setIdGlobals();
 
         const canadianProvinces = [
