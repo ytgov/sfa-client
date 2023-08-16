@@ -9,6 +9,7 @@ import Student from "@/models/student"
 
 import StudentApplicationExpensesService from "@/services/portal/students/student-application-expenses-service"
 import StudentApplicationFundingRequestsService from "@/services/portal/students/student-application-funding-requests-service"
+import StudentApplicationParentDependentsService from "@/services/portal/students/student-application-student-parent-dependents-service"
 import StudentApplicationStudentsService from "@/services/portal/students/student-application-students-service"
 
 export default class StudentApplicationsService {
@@ -65,6 +66,7 @@ export default class StudentApplicationsService {
     application.agencyAssistances = await this.#getApplicationAgencyAssistances(application.id)
     application.incomes = await this.#getApplicationIncomes(application.id)
     application.expenses = await this.#getApplicationExpenses(application.id)
+    application.parentDependents = await this.#getParentDependents(application.id)
 
     await this.#injectParents(application, application.student)
 
@@ -138,5 +140,10 @@ export default class StudentApplicationsService {
         relationship: parentRelationship,
       })
     }
+  }
+
+  #getParentDependents(applicationId: number) {
+    const parentDependentsService = new StudentApplicationParentDependentsService({ applicationId })
+    return parentDependentsService.getParentDependents()
   }
 }

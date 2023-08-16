@@ -14,6 +14,7 @@ import FundingRequest from "@/models/funding-request"
 import FundingSource from "@/models/funding-source"
 import Income from "@/models/income"
 import Institution from "@/models/institution"
+import ParentDependent from "@/models/parent-dependent"
 import Person from "@/models/person"
 import PersonAddress from "@/models/person-address"
 import Relationship from "@/models/relationship"
@@ -77,6 +78,7 @@ export default class StudentApplicationsSerializer {
       parents: this.#parentsSection(
         this.#application?.student?.studentPersons || ([] as StudentPerson[])
       ),
+      parentDependents: this.#parentDependentsSection(this.#application.parentDependents || ([] as ParentDependent[])),
     }
   }
 
@@ -436,6 +438,22 @@ export default class StudentApplicationsSerializer {
 
     return {
       parents: serializedParents,
+    }
+  }
+
+  #parentDependentsSection(parentDependents: ParentDependent[]) {
+    const serializedDependents = parentDependents.map((parentDependent) => ({
+      firstName: parentDependent.firstName,
+      lastName: parentDependent.lastName,
+      dob: parentDependent.birthDate,
+      relationshipId: parentDependent.relationshipId,
+      relationship: parentDependent.relationship?.description,
+      comments: parentDependent.comments
+    }))
+
+    return {
+      hasDependents:!isEmpty(serializedDependents),
+      dependents: serializedDependents,
     }
   }
 }
