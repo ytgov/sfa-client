@@ -16,10 +16,14 @@ portalApplicationRouter.get("/:sub", async (req: Request, res: Response) => {
   let student = await studentService.getBySub(sub);
 
   if (student) {
-    let drafts = await applicationService.getDraftsForStudent(student.id);
+    // replace the section below with this once we show submitted in portal
+    /* let drafts = await applicationService.getDraftsForStudent(student.id);
     let appService = new StudentApplicationsService({ studentId: student.id });
     let apps = await appService.getApplications();
-    return res.json({ data: [...drafts.filter((a) => a.status == "In Progress"), ...apps] });
+    return res.json({ data: [...drafts.filter((a) => a.status == "In Progress"), ...apps] }); */
+
+    let drafts = await applicationService.getDraftsForStudent(student.id);
+    return res.json({ data: drafts });
   }
 
   res.status(404);
@@ -31,7 +35,13 @@ portalApplicationRouter.get("/:sub/application/:applicationId", async (req: Requ
 
   if (student) {
     let appService = new StudentApplicationsService({ studentId: student.id, applicationId: parseInt(applicationId) });
-    let application = await appService.getApplication();
+    let application = await appService
+      .getApplication()
+      .then((resp) => resp)
+      .catch(() => {
+        return res.status(404);
+      });
+
     return res.json({ data: application });
   }
 
