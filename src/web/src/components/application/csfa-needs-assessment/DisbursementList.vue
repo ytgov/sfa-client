@@ -141,6 +141,7 @@ export default {
   props: {
     refreshFrom: String,
     disbursementList: Array,
+    disbursementRemove: String,
     smallTitle: {
       type: Boolean,
       default: false
@@ -175,7 +176,7 @@ export default {
         "Are you sure?",
         "Click 'Confirm' below to permanently remove this disbursement.",
         () => {
-          store.dispatch("removeCslftDisbursement", idx);
+          store.dispatch(this.disbursementRemove, idx);
         },
         () => {}
       );

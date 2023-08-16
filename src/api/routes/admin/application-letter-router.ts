@@ -6,16 +6,19 @@ import ApplicationLetterService from "../../services/admin/application-letter-se
 export const applicationLetterRouter = express.Router()
 
 applicationLetterRouter.get(
-  "/:applicationId/approval/:fundingType([^./]+).?:format?",
+  "/:applicationId/approval/:fundingRequestId/:format?",
   [param("id").isInt().notEmpty()],
   async (req: Request, res: Response) => {
     const applicationId = parseInt(req.params.applicationId)
-    const fundingType = req.params.fundingType
+    const fundingRequestId = parseInt(req.params.fundingRequestId)
     const format = req.params.format || "pdf"
 
+    let officerName = `${req.user.first_name} ${req.user.last_name}`
+    let officerPosition = req.user.position
+
     try {
-      const applicationLetterService = new ApplicationLetterService({ applicationId, fundingType, format })
-      const approvalLetter = await applicationLetterService.generateApprovalLetter()
+      const applicationLetterService = new ApplicationLetterService({ applicationId, fundingRequestId, format })
+      const approvalLetter = await applicationLetterService.generateApprovalLetter(officerName, officerPosition)
       if (format === "pdf") {
         const fileName = await applicationLetterService.buildApprovalLetterFileName()
         res.setHeader("Content-disposition", `attachment; filename="${fileName}"`)
@@ -36,7 +39,9 @@ applicationLetterRouter.get(
           res.status(404).send({
             statusCode: 404,
             status: "Not Found",
-            message: `Could not find application letter with id "${applicationId}" and funding type "${fundingType}".`,
+            message: `Could not find application letter with id "${applicationId}" and funding request "${fundingRequestId}".`,
+            error: error.message,
+            t: error.stack
           })
         } else {
           res.status(422).send({
@@ -57,16 +62,19 @@ applicationLetterRouter.get(
 )
 
 applicationLetterRouter.get(
-  "/:applicationId/rejection/:fundingType([^./]+).?:format?",
+  "/:applicationId/rejection/:fundingRequestId/:format?",
   [param("id").isInt().notEmpty()],
   async (req: Request, res: Response) => {
     const applicationId = parseInt(req.params.applicationId)
-    const fundingType = req.params.fundingType
+    const fundingRequestId = parseInt(req.params.fundingRequestId)
     const format = req.params.format || "pdf"
 
+    let officerName = `${req.user.first_name} ${req.user.last_name}`
+    let officerPosition = req.user.position
+
     try {
-      const applicationLetterService = new ApplicationLetterService({ applicationId, fundingType, format })
-      const rejectionLetter = await applicationLetterService.generateRejectionLetter()
+      const applicationLetterService = new ApplicationLetterService({ applicationId, fundingRequestId, format })
+      const rejectionLetter = await applicationLetterService.generateRejectionLetter(officerName, officerPosition)
       if (format === "pdf") {
         const fileName = await applicationLetterService.buildRejectionLetterFileName()
         res.setHeader("Content-disposition", `attachment; filename="${fileName}"`)
@@ -87,7 +95,7 @@ applicationLetterRouter.get(
           res.status(404).send({
             statusCode: 404,
             status: "Not Found",
-            message: `Could not find application letter with id "${applicationId}" and funding type "${fundingType}".`,
+            message: `Could not find application letter with id "${applicationId}" and funding request "${fundingRequestId}".`,
           })
         } else {
           res.status(422).send({

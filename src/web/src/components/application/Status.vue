@@ -90,6 +90,7 @@
                 color="success" 
                 class="my-0"
                 block
+                @click="printLetterClick(item)"
               >
                   Print Letter
               </v-btn>
@@ -188,7 +189,8 @@ import {
   FUNDING_TYPE_URL,
   FUNDING_STATUS_URL,
   FUNDING_REASON_URL,
-  APPLICATION_URL
+  APPLICATION_URL,
+  APPLICATION_LETTER_URL
 } from "../../urls";
 import { mapGetters } from 'vuex';
 
@@ -331,6 +333,16 @@ export default {
     showError(mgs) {
       this.$emit("showError", mgs);
     },
+    printLetterClick(item) {
+      let approvalLetterUrl = `${APPLICATION_LETTER_URL}/${this.applicationId}/approval/${item.id}`;
+
+      //window.open(approvalLetterUrl)
+
+       axios.get(approvalLetterUrl, {responseType: 'blob'}).then((resp) => {
+         window.open(URL.createObjectURL(resp.data));
+      }); 
+
+    }
   },
 };
 </script>

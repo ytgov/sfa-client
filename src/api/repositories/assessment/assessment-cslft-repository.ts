@@ -2,9 +2,7 @@ import {Knex} from "knex";
 import moment from "moment";
 import {
     ApplicationDTO,
-    assessmentColumns,
     AssessmentDTO,
-    AssessmentTable,
     CslftResultDTO,
     CslftGlobalDTO,    
     DisbursementDTO,
@@ -13,6 +11,7 @@ import {
     PersonAddressDTO,
     StudentDTO
 } from "../../models";
+import { NumbersHelper } from "../../utils/NumbersHelper";
 import { AssessmentBaseRepository } from "./assessment-base-repository";
 import { ApplicationRepository } from "../application";
 import { StudentContributionRepository, StudentLivingAllowanceRepository, StudentRepository} from "../student";
@@ -30,10 +29,11 @@ import { ParentRepository } from "../parent";
 import { DependentRepository } from "../dependent";
 import { InvestmentRepository } from "../investment";
 import { CsgThresholdRepository } from "../csg_threshold";
-import { NumbersHelper } from "../../utils/NumbersHelper";
 import { MsfaaRepository } from "../msfaa";
 import { CslReasonRepository } from '../csl_reason';
 import { CorrespondenceRepository } from '../correspondence';
+import { AboriginalStatusRepository } from "../aboriginal_status";
+import { IncomeRepository } from "../income";
 
 export class AssessmentCslftRepository extends AssessmentBaseRepository {
 
@@ -59,6 +59,8 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
     private msfaaRepo: MsfaaRepository;
     private correspondenceRepo: CorrespondenceRepository;
     private cslReasonRepo: CslReasonRepository;
+    private aboriginalStatusRepo: AboriginalStatusRepository;
+    private incomeRepo: IncomeRepository;
 
     // Globals
     private assessment: Partial<AssessmentDTO> = {};
@@ -101,6 +103,8 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
         this.msfaaRepo = new MsfaaRepository(maindb);
         this.correspondenceRepo = new CorrespondenceRepository(maindb);
         this.cslReasonRepo = new CslReasonRepository(maindb);
+        this.aboriginalStatusRepo = new AboriginalStatusRepository(maindb);
+        this.incomeRepo = new IncomeRepository(maindb);
     }
     
     academicYearValidation = (year: number): boolean => {
@@ -151,6 +155,10 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
     }
 
     async getCalculatedValues(): Promise<void> {
+
+        const pDaysDiff = moment.utc(this.assessment.pstudy_end_date).diff(moment.utc(this.assessment.pstudy_start_date), "day");
+        this.assessment.pstudy_weeks = Math.trunc((pDaysDiff + 1)/7 + .9999);
+        this.assessment.pstudy_months = Math.trunc((pDaysDiff + 1)/30.44 + .9999);
 
         // Get the study expenses.
         this.assessment.uncapped_costs_total = await this.getExpenseAmount(this.application.id, 2);
@@ -219,14 +227,14 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
         }
 
         this.assessment.student_previous_contribution = await this.getStudentPreviousContribAmount(this.assessment.id, this.application.academic_year_id, this.application.student_id);
-        this.assessment.student_contribution = this.assessment.student_contrib_exempt ? 0 : ((this.assessment.student_expected_contribution ?? 0) - (this.assessment.student_previous_contribution));
+        this.assessment.student_contribution = this.assessment.student_contrib_exempt === "YES" ? 0 : ((this.assessment.student_expected_contribution ?? 0) - (this.assessment.student_previous_contribution));
 
         if (this.assessment.csl_classification === 3 && this.assessment.family_income > income_threshold) {
             const weekly_spouse_contrib = (cslLookupContribTable.spouse_contrib_percent ?? 0) * (((this.assessment.family_income ?? 0) - income_threshold)/(8*12/52));
             this.assessment.spouse_expected_contribution = this.numHelper.round(weekly_spouse_contrib * Math.min((this.assessment.study_weeks ?? 0), max_weeks));
             this.assessment.spouse_previous_contribution = await this.getSpousePreviousContribAmount(this.assessment.id, this.application.academic_year_id, this.application.student_id);
 
-            this.assessment.spouse_contribution = this.assessment.spouse_contrib_exempt ? 0 : this.numHelper.round(((this.assessment.spouse_expected_contribution ?? 0) - (this.assessment.spouse_previous_contribution)));
+            this.assessment.spouse_contribution = this.assessment.spouse_contrib_exempt === "YES" ? 0 : this.numHelper.round(((this.assessment.spouse_expected_contribution ?? 0) - (this.assessment.spouse_previous_contribution)));
         }
         else {
             this.assessment.spouse_expected_contribution = 0;
@@ -352,9 +360,9 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
                 }
             }
 
-            this.assessment.student_contribution_review = this.assessment.assessment_type_id === 2;
-            this.assessment.spouse_contribution_review = this.assessment.assessment_type_id === 2;
-            this.assessment.parent_contribution_review = this.assessment.assessment_type_id === 2;
+            this.assessment.student_contribution_review = this.assessment.assessment_type_id === 2 ? "YES" : "NO";
+            this.assessment.spouse_contribution_review = this.assessment.assessment_type_id === 2 ? "YES" : "NO";
+            this.assessment.parent_contribution_review = this.assessment.assessment_type_id === 2 ? "YES" : "NO";
         }
 
         this.resultDto.data = this.assessment;
@@ -519,8 +527,9 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
     async getContribDisplayValues(): Promise<void> {
 
         const student_cppd_count = await this.countIncomeTypeByApplication(3, this.application.id);
+        const aboriginalStatusCount = await this.aboriginalStatusRepo.getAboriginalStatusCount(this.application.aboriginal_status_id);
 
-        if (this.application.is_perm_disabled) {
+        if (this.application.is_perm_disabled || this.application.is_disabled) {
             this.assessment.student_exemption_reason = "Is Disabled";
         }
 
@@ -536,7 +545,7 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
             this.assessment.student_exemption_reason = "Crown Ward";
         }
 
-        if (this.student.indigenous_learner_id && this.student.indigenous_learner_id > 0) {
+        if ((this.student.indigenous_learner_id && this.student.indigenous_learner_id > 0) || aboriginalStatusCount > 0) {
             this.assessment.student_exemption_reason = "Indigenous Learner";
         }
 
@@ -581,11 +590,11 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
 
     getCombinedContribution(): void {
         let combined: number = this.numHelper.getNum(this.assessment.student_contribution ?? 0);
-        if (this.numHelper.getNum(this.assessment.student_contribution_override ?? 0) !== 0 || this.assessment.student_contribution_review) {
+        if (this.numHelper.getNum(this.assessment.student_contribution_override ?? 0) !== 0 || this.assessment.student_contribution_review === "YES") {
             combined = this.numHelper.getNum(this.assessment.student_contribution_override ?? 0);
         }
 
-        if (this.numHelper.getNum(this.assessment.spouse_contribution_override ?? 0) !== 0 || this.assessment.spouse_contribution_review) {
+        if (this.numHelper.getNum(this.assessment.spouse_contribution_override ?? 0) !== 0 || this.assessment.spouse_contribution_review === "YES") {
             combined = combined + this.numHelper.getNum(this.assessment.spouse_contribution_override ?? 0);
         }
         else {
@@ -598,36 +607,37 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
     async getMsfaaInfo(info_type: string): Promise<void> {
         const msfaa_id = this.msfaa.id;
         const count = await this.msfaaRepo.getCountMsfaaFullTimeStudent(this.student.id);
-        let expired = 0;
+        let expired = false;
 
         if (count > 0) {
             const msfaa_app = await this.msfaaRepo.getMsfaaApplicationByStudentId(this.student.id);
 
             if (msfaa_app.msfaa_status === 'Cancelled' || moment(new Date()).diff(msfaa_app.classes_end_date, "year") > 2) {
-                expired = 1;
+                expired = true;
                 if (msfaa_app.msfaa_status !== "Cancelled") {
                     this.msfaa.cancel_date = new Date();
                     this.msfaa.cancel_reason = "> 2 yrs out of school";
                 }
             }
 
-            if (this.application.id !== msfaa_app.application_id && expired === 0) {
+            if (this.application.id !== msfaa_app.application_id && !expired) {
                 this.msfaa.application_id = this.application.id;
             }
-            else if (expired === 1 && info_type === 'Disburse') {
+            else if (expired && info_type === 'Disburse') {
                 this.msfaa.id = undefined;
                 this.msfaa.student_id = this.student.id;
                 this.msfaa.msfaa_status = "Pending";
                 this.msfaa.application_id = this.application.id;
                 this.msfaa.is_full_time = true;
             }
-            else {
-                if (info_type === "Disburse") {
-                    this.msfaa.student_id = this.student.id;
-                    this.msfaa.msfaa_status = "Pending";
-                    this.msfaa.application_id = this.application.id;
-                    this.msfaa.is_full_time = true;
-                }
+        }
+        else {
+            if (info_type === "Disburse") {
+                this.msfaa.id = undefined;
+                this.msfaa.student_id = this.student.id;
+                this.msfaa.msfaa_status = "Pending";
+                this.msfaa.application_id = this.application.id;
+                this.msfaa.is_full_time = true;
             }
         }
     }
@@ -641,8 +651,8 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
 
         this.assessment.assessed_date = moment.utc().toDate();
 
-        this.assessment.student_contrib_exempt = false;
-        this.assessment.spouse_contrib_exempt = false;
+        this.assessment.student_contrib_exempt = "NO";
+        this.assessment.spouse_contrib_exempt = "NO";
 
         this.assessment.dependent_count = await this.getScalarValue<number>("fn_get_dependent_count", [this.application.id ?? 0])
         this.assessment.classes_start_date = this.application.classes_start_date;
@@ -819,25 +829,20 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
             this.assessment.student_ln150_income = this.application.student_ln150_income;
             this.assessment.spouse_ln150_income = this.application.spouse_ln150_income;
 
-            let student_cppd_count = 0;
-            const incomeQuery = (types: Array<number>) => 
-                this.mainDb
-                    .count("id", { as: "count"})
-                    .from("sfa.income")
-                    .whereIn("income_type_id", types);
-            const sccResult = await incomeQuery([3]); 
-            student_cppd_count = sccResult.count ? parseInt(sccResult.count?.toString()) : 0;
+            let student_cppd_count = 0;            
+            
+            const aStatusCount = await this.aboriginalStatusRepo.getAboriginalStatusCount(this.application.aboriginal_status_id);
+            student_cppd_count = await this.incomeRepo.getIncomeByType(this.application.id, [3]);
 
-            if (this.student.indigenous_learner_id === 1 || this.student.is_crown_ward || this.application.is_perm_disabled || this.assessment.dependent_count > 0 || student_cppd_count > 0) {
-                this.assessment.student_contrib_exempt = true;
+            if (aStatusCount > 0 || this.student.indigenous_learner_id === 1 || this.student.is_crown_ward || this.application.is_disabled || this.application.is_perm_disabled || this.assessment.dependent_count > 0 || student_cppd_count > 0) {
+                this.assessment.student_contrib_exempt = "YES";
             }
             
-            let spouse_exempt_count = 0;
-            const secResult = await incomeQuery([2,3,21]);
-            spouse_exempt_count = secResult.count ? parseInt(secResult.count.toString()) : 0;
+            let spouse_exempt_count = this.application.spouse_ln150_income ?? 0;
 
+            // Validation change accordingly to an email from SFA team.
             if (spouse_exempt_count > 0 || this.application.spouse_study_school_from) {
-                this.assessment.spouse_contrib_exempt = true;
+                this.assessment.spouse_contrib_exempt = "YES";
             }
         }
 
@@ -1032,7 +1037,7 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
         else {
             if (isNetAmountAndAssessmentType(3)) {
                 this.disbursement.disbursement_type_id = 4;
-
+               
                 if ((this.assessment.csl_assessed_need ?? 0) > 0 || (this.assessment.total_grant_awarded ?? 0) > 0 && (this.application.academic_year_id ?? 0) > 2012) {
                     await this.getMsfaaInfo("Disburse");
                 }
@@ -1144,9 +1149,12 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
             }
         }
 
-        if (payload.msfaa) {
-            if (payload.msfaa.id) {
+        if (payload.msfaa && Object.keys(payload.msfaa).length > 0) {
+            if (payload.msfaa.id && payload.msfaa.id > 0) {
                 result.msfaa = await this.msfaaRepo.updateMsfaa(payload.msfaa.id, payload.msfaa);
+            }
+            else {
+                result.msfaa = await this.msfaaRepo.insertMsfaa(payload.msfaa);
             }
         }
 

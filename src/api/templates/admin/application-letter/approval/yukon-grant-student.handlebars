@@ -44,18 +44,18 @@
     </span>
     <span class="flex mt-1"></span>
     <span>
-      <strong>Rate per Week:</strong>
-      <span class="ml-8">{{centsToDollarString program.ratePerWeekInCents}}</span>
+      <strong style="display: inline-block; width: 150px">Rate per Week:</strong>
+      <span >{{centsToDollarString program.ratePerWeekInCents}}</span>
     </span>
     <br />
     <span>
-      <strong>Approv. Weeks:</strong>
-      <span class="ml-4">{{program.approvalWeeks}}</span>
+      <strong style="display: inline-block; width: 150px">Approv. Weeks:</strong>
+      <span >{{program.approvalWeeks}}</span>
     </span>
     <br />
     <span>
-      <strong>Travel/Airfare:</strong>
-      <span class="ml-8">{{centsToDollarString program.travelAndAirFairCostInCents}}</span>
+      <strong style="display: inline-block; width: 150px">Travel/Airfare:</strong>
+      <span>{{centsToDollarString program.travelAndAirFairCostInCents}}</span>
     </span>
   </p>
 
@@ -67,7 +67,7 @@
       </tr>
     </thead>
     <tbody>
-      {{#each disembursements}}
+      {{#each disbursements}}
       <tr>
         <td>{{centsToDollarString this.amountInCents}}</td>
         <td>{{momentDateFormat this.releaseDate "MMM YYYY"}}</td>
@@ -111,10 +111,10 @@
     Sincerely,
   </p>
   <p class="mt-10">
-    {{studentFinancialAssistanceOfficer.firstName}} {{studentFinancialAssistanceOfficer.lastName}}
+    {{studentFinancialAssistanceOfficer.name}}
     <br>
-    Student Financial Services Officer
+    {{studentFinancialAssistanceOfficer.position}}
     <br />
-    Student Funding Programs
+    Department of Education, Government of Yukon
   </p>
 </div>

@@ -10,7 +10,8 @@
     "baseUrl": ".", /* Base directory to resolve non-absolute module names. */
     // "rootDirs": [],                        /* List of root folders whose combined content represents the structure of the project at runtime. */
     "typeRoots": [ /* List of folders to include type definitions from. */
-      "./@types"
+      "./@types",
+      "./node_modules/@types",
     ],
     "paths": {
       "@/*": ["./*", "./dist/*"],
@@ -23,5 +24,11 @@
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
     "incremental": true,
-  }
+  },
+  "include": [
+    "index.ts",
+    "config.ts",
+    "./**/*", // normally would be encapsulated by default ["src/**/*", "tests/**/*"]
+  ],
+  "exclude": ["node_modules", "dist"],
 }

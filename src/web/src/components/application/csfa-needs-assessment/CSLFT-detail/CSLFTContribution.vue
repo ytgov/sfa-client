@@ -26,7 +26,12 @@
             <div class="col-xs-12 col-sm-12 col-md-12 nopadding col-lg-12 d-flex">
               <div class="col-xs-12 col-sm-4 col-lg-4 nopadding d-flex flex-wrap mobile-low-margin">
                 <div class="col-xs-12 col-lg-12 nopadding height-fit-content d-flex justify-center">
-                  <v-switch label="Exempt" v-model="cslft.student_contrib_exempt">
+                  <v-switch 
+                    label="Exempt" 
+                    v-model="cslft.student_contrib_exempt"
+                    true-value="YES"
+                    false-value="NO"
+                  >
                   </v-switch>
                 </div>
               </div>
@@ -116,6 +121,8 @@
                     background-color="white"
                     hide-details
                     label="Contribution Override"
+                    type="number"
+                    hide-spin-buttons
                     @keypress="validate.isNumber($event)"
                     v-model="cslft.student_contribution_override"
                   ></v-text-field>
@@ -125,8 +132,13 @@
             <div class="col-xs-12 col-sm-12 col-md-12 nopadding col-lg-12 d-flex">
               <div class="col-xs-12 col-sm-4 col-lg-4 nopadding d-flex flex-wrap mobile-low-margin">
                 <div class="col-xs-12 col-lg-12 nopadding height-fit-content d-flex justify-center">
-                  <v-switch label="Reduce on Re-Assess" v-model="cslft.student_contribution_review">
-                    </v-switch>
+                  <v-switch 
+                    label="Reduce on Re-Assess" 
+                    v-model="cslft.student_contribution_review"
+                    true-value="YES"
+                    false-value="NO"
+                  >
+                  </v-switch>
                 </div>
               </div>
             </div>
@@ -156,7 +168,12 @@
             <div class="col-xs-12 col-sm-12 col-md-12 nopadding col-lg-12 d-flex">
               <div class="col-xs-12 col-sm-4 col-lg-4 nopadding d-flex flex-wrap mobile-low-margin">
                 <div class="col-xs-12 col-lg-12 nopadding height-fit-content d-flex justify-center">
-                  <v-switch label="Exempt" v-model="cslft.spouse_contrib_exempt">
+                  <v-switch 
+                    label="Exempt" 
+                    v-model="cslft.spouse_contrib_exempt"
+                    true-value="YES"
+                    false-value="NO"
+                  >
                   </v-switch>
                 </div>
               </div>
@@ -246,6 +263,8 @@
                     background-color="white"
                     hide-details
                     label="Contribution Override"
+                    type="number"
+                    hide-spin-buttons
                     @keypress="validate.isNumber($event)"
                     v-model="cslft.spouse_contribution_override"
                   ></v-text-field>
@@ -255,7 +274,12 @@
             <div class="col-xs-12 col-sm-12 col-md-12 nopadding col-lg-12 d-flex">
               <div class="col-xs-12 col-sm-4 col-lg-4 nopadding d-flex flex-wrap mobile-low-margin">
                 <div class="col-xs-12 col-lg-12 nopadding height-fit-content d-flex justify-center">
-                  <v-switch label="Reduce on Re-Assess" v-model="cslft.spouse_contribution_review">
+                  <v-switch 
+                    label="Reduce on Re-Assess" 
+                    v-model="cslft.spouse_contribution_review"
+                    true-value="YES"
+                    false-value="NO"
+                  >
                   </v-switch>
                 </div>
               </div>
@@ -275,6 +299,8 @@
                 hide-details
                 label="Gross"
                 @keypress="validate.isNumber($event)"
+                type="number"
+                hide-spin-buttons
                 v-model="cslft.other_income"
               ></v-text-field>
             </div>
@@ -333,7 +359,7 @@
                   hide-details
                   @keypress="validate.isNumber($event)"
                   :disabled="isTotal"
-                  v-model="cslft.combined_contribution"
+                  v-model="cslft_total_assets_combined_contribution"
                 ></v-text-field>
               </div>
             </div>
@@ -361,6 +387,7 @@ export default {
   computed: {
     ...mapGetters([
       "cslft_total_assets",
+      "cslft_total_assets_combined_contribution"
     ]),
     ...mapState({
       cslft: state => state.cslft.cslft

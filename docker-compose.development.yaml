@@ -7,30 +7,65 @@ services:
       dockerfile: development.Dockerfile
     env_file:
       - ./src/api/.env.development
-    environment:
+    environment: &environment-definition
       NODE_ENV: development
+      DB_NAME: SFADB_DEV
       DB_HOST: db
+      DB_USER: sa
+      DB_PASS: &password-definition Testing1122
+      DB_PORT: 1433
       DB_DEFAULT_SCHEMA: sfa
       API_PORT: ${API_PORT:-3000}
       BASE_URL: "http://localhost:${API_PORT:-3000}"
+    tty: true
     ports:
       - "${API_PORT:-3000}:${API_PORT:-3000}"
     volumes:
       - ./src/api:/usr/src/api
     depends_on:
-      - db
+      db:
+        condition: service_healthy
+
+  test:
+    build:
+      context: ./src/api
+      dockerfile: development.Dockerfile
+    command: /bin/true
+    env_file:
+      - ./src/api/.env.development
+    environment:
+      <<: *environment-definition
+      NODE_ENV: test
+      DB_NAME: sfa_client_test
+      DB_DEFAULT_SCHEMA: sfa
+    tty: true
+    volumes:
+      - ./src/api:/usr/src/api
+    depends_on:
+      db:
+        condition: service_healthy
   db:
-    image: mcr.microsoft.com/mssql/server:2019-latest
+    build:
+      context: .
+      dockerfile: ./db/db.Dockerfile
     ports:
       - "1433:1433"
     user: root
-    env_file:
-      - db/sqlserver.env
-      - db/sapassword.env
+    environment:
+      MSSQL_SA_PASSWORD: *password-definition
+      ACCEPT_EULA: "Y"
     volumes:
-      - ./db/data:/var/opt/mssql/data
+      - ./db/bin:/usr/src/db/bin
+      - ./db/initializers:/usr/src/db/initializers
+      - db_data:/var/opt/mssql/data
       - ./db/log:/var/opt/mssql/log
       - ./db/backups:/var/opt/mssql/data/backups
+    healthcheck: # https://github.com/Microsoft/mssql-docker/issues/133
+      test: "/opt/mssql-tools/bin/sqlcmd -U sa -P \"$$MSSQL_SA_PASSWORD\" -Q \"SELECT 1\" || exit 1"
+      interval: 5s
+      timeout: 10s
+      retries: 3
+      start_period: 5s
   s3:
       image: "minio/minio:latest"
       ports:
@@ -50,5 +85,16 @@ services:
       - 8081:8080
       - 8085:8085
 
+  # For easily generating large PlantUML diagrams
+  # Not relevant to production environment.
+  # Accessible at http://localhost:9999
+  plantuml:
+    image: plantuml/plantuml-server:jetty
+    ports:
+      - 9999:8080
+    environment:
+      PLANTUML_LIMIT_SIZE: 8192
+
 volumes:
+  db_data:
   s3storage:
