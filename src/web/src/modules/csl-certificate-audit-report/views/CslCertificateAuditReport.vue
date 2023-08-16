@@ -243,7 +243,7 @@ export default {
   />
 
   <div style="display: flex; margin-bottom: 2px;">
-    <p style="font-size: 3px; padding: 0 8px; margin-bottom: 3px">Report run on: ${new Date().toJSON()}</p>    
+    <p style="font-size: 3px; padding: 0 8px; margin-bottom: 3px">Report run on: ${moment(new Date().toJSON()).format('YYYY-MM-DD HH:mm:ss')}</p>    
   </div>
   <table style="font-size: 3px; margin: 0 8px 10px 8px;"
     <thead>
@@ -279,7 +279,7 @@ export default {
           dataColumns += "</td>"
 
           dataColumns += "<td>"
-          dataColumns += col.ecert_sent_date ? col.ecert_sent_date : "";
+          dataColumns += col.ecert_sent_date ? moment(col.ecert_sent_date).format('YYYY-MM-DD') : "";
           dataColumns += "</td>"
 
           dataColumns += "<td>"
@@ -295,15 +295,15 @@ export default {
           dataColumns += "</td>"      
           
           dataColumns += "<td>"
-          dataColumns += col.issue_date ? col.issue_date : "";
+          dataColumns += col.issue_date ? moment(col.issue_date).format('YYYY-MM-DD') : "";
           dataColumns += "</td>"  
 
           dataColumns += "<td>"
-          dataColumns += col.due_date ? col.due_date : "";
+          dataColumns += col.due_date ? moment(col.due_date).format('YYYY-MM-DD') : "";
           dataColumns += "</td>"  
 
           dataColumns += "<td>"
-          dataColumns += col.disbursed_amount ? col.disbursed_amount : "";
+          dataColumns += col.disbursed_amount ? formatter.format(col.disbursed_amount) : formatter.format(0);
           dataColumns += "</td>"  
 
           // dataColumns += "<td>"
@@ -340,51 +340,42 @@ export default {
 
 
         for(let col of this.pdf2Data) {             
-          dataColumns += "<tr style='text-align: center;'>"
-          dataColumns += "<td>"
-            dataColumns += col.csl_cert_seq_number ? col.csl_cert_seq_number : "";
-          dataColumns += "</td>"
-
-          dataColumns += "<td>"
-          dataColumns += col.msfaa_number ? col.msfaa_number : "";
-          dataColumns += "</td>"
-
-          dataColumns += "<td>"
-          dataColumns += col.ecert_sent_date ? col.ecert_sent_date : "";
-          dataColumns += "</td>"
-
-          dataColumns += "<td>"
-          dataColumns += col.last_name ? col.last_name : "";
-          dataColumns += "</td>"
-
-          dataColumns += "<td>"          
-          dataColumns += col.first_name ? col.first_name : "";
-          dataColumns += "</td>"
-
-          dataColumns += "<td>"
-          dataColumns += col.dis_type ? col.dis_type : "";
-          dataColumns += "</td>"      
-          
-          dataColumns += "<td>"
-          dataColumns += col.issue_date ? col.issue_date : "";
-          dataColumns += "</td>"  
-
-          dataColumns += "<td>"
-          dataColumns += col.due_date ? col.due_date : "";
-          dataColumns += "</td>"  
-
-          dataColumns += "<td>"
-          dataColumns += col.disbursed_amount ? col.disbursed_amount : "";
-          dataColumns += "</td>"  
-
-          // dataColumns += "<td>"
-          // dataColumns += col.disbursed_amount ? col.disbursed_amount : "";
-          // dataColumns += "</td>"  
-
-          dataColumns += "<td>"
-          dataColumns += col.transaction_number ? col.transaction_number : "";
-          dataColumns += "</td>"  
-        dataColumns += "</tr>"                              
+          dataColumns += "<tr style='text-align: center;'>"	
+          dataColumns += "<td>"	
+            dataColumns += col.csl_cert_seq_number ? col.csl_cert_seq_number : "";	
+          dataColumns += "</td>"	
+          dataColumns += "<td>"	
+          dataColumns += col.msfaa_number ? col.msfaa_number : "";	
+          dataColumns += "</td>"	
+          dataColumns += "<td>"	
+          dataColumns += col.ecert_sent_date ? moment(col.ecert_sent_date).format('YYYY-MM-DD') : "";	
+          dataColumns += "</td>"	
+          dataColumns += "<td>"	
+          dataColumns += col.last_name ? col.last_name : "";	
+          dataColumns += "</td>"	
+          dataColumns += "<td>"          	
+          dataColumns += col.first_name ? col.first_name : "";	
+          dataColumns += "</td>"	
+          dataColumns += "<td>"	
+          dataColumns += col.dis_type ? col.dis_type : "";	
+          dataColumns += "</td>"      	
+          	
+          dataColumns += "<td>"	
+          dataColumns += col.issue_date ? moment(col.issue_date).format('YYYY-MM-DD') : "";	
+          dataColumns += "</td>"  	
+          dataColumns += "<td>"	
+          dataColumns += col.due_date ? moment(col.due_date).format('YYYY-MM-DD') : "";	
+          dataColumns += "</td>"  	
+          dataColumns += "<td>"	
+          dataColumns += col.disbursed_amount ? formatter.format(col.disbursed_amount) : formatter.format(0);	
+          dataColumns += "</td>"  	
+          // dataColumns += "<td>"	
+          // dataColumns += col.disbursed_amount ? col.disbursed_amount : "";	
+          // dataColumns += "</td>"  	
+          dataColumns += "<td>"	
+          dataColumns += col.transaction_number ? col.transaction_number : "";	
+          dataColumns += "</td>"  	
+        dataColumns += "</tr>"                               
       }      
       
       dataColumns += "</div>";
