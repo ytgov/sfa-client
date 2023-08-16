@@ -11,8 +11,18 @@ export const chequeReqRouter = express.Router();
 chequeReqRouter.get("/",
     async (req: Request, res: Response) => {
         try {
-            const { issueDate = "" } = req.query;
+            const { issueDate = "", reRunBatch = null } = req.query;
             
+            let start_p = 0;
+
+            if (
+                reRunBatch !== null && 
+                reRunBatch !== "" &&
+                Number(reRunBatch)
+            ) {
+                start_p = Number(reRunBatch);
+            }
+
             if (issueDate?.length !== 10) {
                 return res.status(200).json({ 
                     success: false, 
@@ -22,7 +32,7 @@ chequeReqRouter.get("/",
 
             const chequeRequest = new ChequeReqList(db);
 
-            const records: any = await chequeRequest.validate(issueDate.toString());
+            const records: any = await chequeRequest.validate(issueDate.toString(), start_p);
 
             return res.status(200).json(records);
 

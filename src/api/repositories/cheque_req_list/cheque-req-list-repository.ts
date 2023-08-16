@@ -22,19 +22,19 @@ export class ChequeReqList extends BaseRepository {
 
     //AfterPForm ()
     async validate(
-        issueDate: string
+        issueDate: string,
+        start_p: number
     ): Promise<any> {
         let records: any = []
-        let start_p = '';
         let serial_no_p = null;
 
-        if (true) { //start_p === '0'
+        if (!start_p) { //start_p === '0'
             //EXEC sfa.assign_cheque_req_batch @issue_date_p = @issue_date_p OUTPUT, @serial_no_p = @serial_no_p OUTPUT;      
             serial_no_p = await this.assignChequeReqBatch(issueDate);
 
         } else {
             //:issue_date_p := TO_DATE(SUBSTR(:start_p,1,11),'DD MON RRRR');
-            //:serial_no_p := TO_NUMBER(SUBSTR(:start_p,13));
+            serial_no_p = start_p;
         }
         //:issue_date_str_p := TO_CHAR (:issue_date_p, 'YYYYMMDD'); -- Added for Windows 7 issue with dateCOUNT(d.disbursement_id)
         const disburseCount = await this.mainDb('sfa.disbursement')
