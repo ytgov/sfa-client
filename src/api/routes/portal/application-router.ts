@@ -89,12 +89,10 @@ portalApplicationRouter.get("/:sub/:draftId/required-documents", async (req: Req
         returnDocs.push(doc);
       }
 
-      //console.log("APP", app);
-
       for (let doc of returnDocs) {
         doc.meets_conditions = true;
 
-        if (doc.condition) console.log(doc, doc.condition);
+       // if (doc.condition) console.log(doc, doc.condition);
 
         switch (doc.condition) {
           case "CSL Only":

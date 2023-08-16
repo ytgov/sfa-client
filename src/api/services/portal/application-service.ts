@@ -239,7 +239,7 @@ export class PortalApplicationService {
         "requirement_type.document_location",
         "request_requirement.requirement_type_id",
       ])
-      .min("request_requirement.condition")
+      .min("request_requirement.condition as condition")
       .groupBy([
         "requirement_type.description",
         "requirement_type.document_location",
