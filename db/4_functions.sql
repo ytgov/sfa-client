@@ -4982,8 +4982,8 @@ AS
             + RIGHT(REPLICATE(' ', 45) + COALESCE(rt.financial_coding, ''), 45) +'03    ' + SUBSTRING(CONVERT(VARCHAR, ABS(COALESCE(d.disbursed_amount, 0)), 128), 1, 15) 
             +'            ' + '            ' + '    ' 
             + RIGHT(REPLICATE(' ', 16) + COALESCE(LTRIM(d.tax_year),''), 16)
-            --+ '000000000000000' 
-            --+'     ' + '     ' + '    '+REPLICATE(' ', 573)
+            + '000000000000000' 
+            +'     ' + '     ' + '    '+REPLICATE(' ', 573)
         as record4
 -- Voucher Distribution (VOD)
 FROM sfa.request_type rt
