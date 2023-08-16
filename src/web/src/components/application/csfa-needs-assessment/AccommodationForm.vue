@@ -257,7 +257,6 @@ import { mapGetters } from "vuex";
 import validator from "@/validator";
 export default {
   data: () => ({
-    provinceOptions: ["Yukon", "British Columbia"],
     housingOptions: [
       { id: 1, description: "Living at Parents" },
       { id: 2, description: "Living on Own" },

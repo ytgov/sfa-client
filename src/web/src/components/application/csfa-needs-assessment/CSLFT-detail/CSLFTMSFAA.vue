@@ -22,136 +22,36 @@
                   ></v-text-field>
                 </div>
                 <div class="col-xs-12 col-sm-10 col-md-10 col-lg-10 mobile-low-margin">
-                  <v-menu
-                    :disabled="showAdd"
-                    v-model="date_issued_menu"
-                    :close-on-content-click="false"
-                    transition="scale-transition"
-                    left
-                    nudge-top="26"
-                    offset-y
-                    min-width="auto"
-                  >
-                    <template v-slot:activator="{ on, attrs }">
-                      <v-text-field
-                        :disabled="showAdd"
-                        v-model="cslft_msfaa_date_issued_formatted"
-                        label="Date Issued"
-                        append-icon="mdi-calendar"
-                        hide-details
-                        readonly
-                        outlined
-                        dense
-                        background-color="white"
-                        v-bind="attrs"
-                        v-on="on"
-                      ></v-text-field>
-                    </template>
-                    <v-date-picker
-                      :disabled="showAdd"
-                      v-model="cslft_msfaa.date_issued"
-                      @input="date_issued_menu = false"
-                    ></v-date-picker>
-                  </v-menu>
+                  <DateInput
+                    label="Date Issued"
+                    :menu="date_issued_menu"
+                    :disabled="true"
+                    v-model="cslft_msfaa.rec_create_date"
+                  ></DateInput>
                 </div>
                 <div class="col-xs-12 col-sm-10 col-md-10 col-lg-10">
-                  <v-menu
-                    :disabled="showAdd"
-                    v-model="date_sent_to_nslsc_menu"
-                    :close-on-content-click="false"
-                    transition="scale-transition"
-                    left
-                    nudge-top="26"
-                    offset-y
-                    min-width="auto"
-                  >
-                    <template v-slot:activator="{ on, attrs }">
-                      <v-text-field
-                        :disabled="showAdd"
-                        v-model="cslft_msfaa_date_sent_formatted"
-                        label="Date Sent to NSLSC"
-                        append-icon="mdi-calendar"
-                        hide-details
-                        readonly
-                        outlined
-                        dense
-                        background-color="white"
-                        v-bind="attrs"
-                        v-on="on"
-                      ></v-text-field>
-                    </template>
-                    <v-date-picker
-                      :disabled="showAdd"
-                      v-model="cslft_msfaa.sent_date"
-                      @input="date_sent_to_nslsc_menu = false"
-                    ></v-date-picker>
-                  </v-menu>
+                  <DateInput
+                    label="Date Sent to NSLSC"
+                    :menu="sent_date_to_nslsc_menu"
+                    :disabled="true"
+                    v-model="cslft_msfaa.sent_date"
+                  ></DateInput>
                 </div>
                 <div class="col-xs-12 col-sm-10 col-md-10 col-lg-10">
-                  <v-menu
-                    :disabled="showAdd"
-                    v-model="date_student_signed_menu"
-                    :close-on-content-click="false"
-                    transition="scale-transition"
-                    left
-                    nudge-top="26"
-                    offset-y
-                    min-width="auto"
-                  >
-                    <template v-slot:activator="{ on, attrs }">
-                      <v-text-field
-                        :disabled="showAdd"
-                        v-model="cslft_msfaa_date_signed_formatted"
-                        label="Date Student Signed"
-                        append-icon="mdi-calendar"
-                        hide-details
-                        readonly
-                        outlined
-                        dense
-                        background-color="white"
-                        v-bind="attrs"
-                        v-on="on"
-                      ></v-text-field>
-                    </template>
-                    <v-date-picker
-                      :disabled="showAdd"
-                      v-model="cslft_msfaa.date_signed"
-                      @input="date_student_signed_menu = false"
-                    ></v-date-picker>
-                  </v-menu>
+                  <DateInput
+                    label="Date Student Signed"
+                    :menu="date_student_signed_menu"
+                    :disabled="true"
+                    v-model="cslft_msfaa.signed_date"
+                  ></DateInput>
                 </div>
                 <div class="col-xs-12 col-sm-10 col-md-10 col-lg-10">
-                  <v-menu
-                    :disabled="showAdd"
-                    v-model="date_received_by_nslsc_menu"
-                    :close-on-content-click="false"
-                    transition="scale-transition"
-                    left
-                    nudge-top="26"
-                    offset-y
-                    min-width="auto"
-                  >
-                    <template v-slot:activator="{ on, attrs }">
-                      <v-text-field
-                        :disabled="showAdd"
-                        v-model="cslft_msfaa_date_received_formatted"
-                        label="Date Received by NSLSC"
-                        append-icon="mdi-calendar"
-                        hide-details
-                        readonly
-                        outlined
-                        dense
-                        background-color="white"
-                        v-bind="attrs"
-                        v-on="on"
-                      ></v-text-field>
-                    </template>
-                    <v-date-picker
-                      :disabled="showAdd"
-                      v-model="cslft_msfaa.date_received"
-                      @input="date_received_by_nslsc_menu = false"
-                    ></v-date-picker>
-                  </v-menu>
+                  <DateInput
+                    label="Date Received by NSLSC"
+                    :menu="received_date_by_nslsc_menu"
+                    :disabled="true"
+                    v-model="cslft_msfaa.received_date"
+                  ></DateInput>
                 </div>
                 <div class="col-xs-12 col-sm-10 col-md-10 col-lg-10">
                   <v-text-field
@@ -168,37 +68,12 @@
               <div class="col-xs-12 col-sm-6 col-lg-8 nopadding">
                 <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6 line-jump-height not-displayed-sx"></div>
                 <div class="col-xs-12 col-sm-10 col-md-10 col-lg-6">
-                  <v-menu
-                    :disabled="showAdd"
-                    v-model="date_cancelled_menu"
-                    :close-on-content-click="false"
-                    transition="scale-transition"
-                    left
-                    nudge-top="26"
-                    offset-y
-                    min-width="auto"
-                  >
-                    <template v-slot:activator="{ on, attrs }">
-                      <v-text-field
-                        :disabled="showAdd"
-                        v-model="cslft_msfaa_date_cancelled_formatted"
-                        label="Date Cancelled"
-                        append-icon="mdi-calendar"
-                        hide-details
-                        readonly
-                        outlined
-                        dense
-                        background-color="white"
-                        v-bind="attrs"
-                        v-on="on"
-                      ></v-text-field>
-                    </template>
-                    <v-date-picker
-                      :disabled="showAdd"
-                      v-model="cslft_msfaa.date_cancelled"
-                      @input="date_cancelled_menu = false"
-                    ></v-date-picker>
-                  </v-menu>
+                  <DateInput
+                    label="Date Cancelled"
+                    :menu="cancel_date_menu"
+                    :disabled="true"
+                    v-model="cslft_msfaa.cancel_date"
+                  ></DateInput>
                 </div>
                 <div class="col-xs-12 col-sm-10 col-md-10 col-lg-6">
                   <v-text-field
@@ -219,7 +94,7 @@
                     hide-details
                     label="Home Email"
                     :disabled="showAdd"
-                    v-model="home_email"
+                    v-model="cslft_msfaa.email"
                   ></v-text-field>
                 </div>
                 <div class="col-xs-12 col-sm-10 col-md-10 col-lg-6">
@@ -330,7 +205,6 @@
 import store from "@/store";
 import validator from "@/validator";
 import {mapGetters, mapState} from "vuex";
-import {ref} from "vue";
 import DateInput from "../../../DateInput.vue";
 
 export default {
@@ -338,23 +212,24 @@ export default {
   components: {
     DateInput,
   },  
-  setup() {
-    const showAdd = ref(true);
-        
+  data() {
     return {
-      showAdd,
-    }
+      date_issued_menu: null, 
+      sent_date_to_nslsc_menu: null,
+      date_student_signed_menu:null,
+      received_date_by_nslsc_menu:null,
+      cancel_date_menu:null,
+      email:null,
+      sent_date_menu: null,
+      response_date_menu: null,
+      showAdd: true,
+    };
   },
   computed: {
     ...mapState({
       cslft_msfaa: state => state.cslft.cslft_msfaa
     }),
     ...mapGetters([
-      "cslft_msfaa_date_issued_formatted",
-      "cslft_msfaa_date_received_formatted",
-      "cslft_msfaa_date_sent_formatted",
-      "cslft_msfaa_date_signed_formatted",
-      "cslft_msfaa_date_cancelled_formatted",
       "cslft_get_e_certs",
       "portalStatus",
     ]),
