@@ -34,6 +34,7 @@ import { CslReasonRepository } from '../csl_reason';
 import { CorrespondenceRepository } from '../correspondence';
 import { AboriginalStatusRepository } from "../aboriginal_status";
 import { IncomeRepository } from "../income";
+import { EmploymentStatusRepository } from "../employment_status";
 
 export class AssessmentCslftRepository extends AssessmentBaseRepository {
 
@@ -61,6 +62,7 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
     private cslReasonRepo: CslReasonRepository;
     private aboriginalStatusRepo: AboriginalStatusRepository;
     private incomeRepo: IncomeRepository;
+    private employmentStatusRepo: EmploymentStatusRepository;
 
     // Globals
     private assessment: Partial<AssessmentDTO> = {};
@@ -105,6 +107,7 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
         this.cslReasonRepo = new CslReasonRepository(maindb);
         this.aboriginalStatusRepo = new AboriginalStatusRepository(maindb);
         this.incomeRepo = new IncomeRepository(maindb);
+        this.employmentStatusRepo = new EmploymentStatusRepository(maindb);
     }
     
     academicYearValidation = (year: number): boolean => {
@@ -843,10 +846,10 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
                 this.assessment.student_contrib_exempt = "YES";
             }
             
-            let spouse_exempt_count = this.application.spouse_ln150_income ?? 0;
+            let spouse_exempt_count = await this.employmentStatusRepo.isEmployed(this.application.spouse_study_emp_status_id);
 
             // Validation change accordingly to an email from SFA team.
-            if (spouse_exempt_count > 0 || this.application.spouse_study_school_from) {
+            if (!spouse_exempt_count) {
                 this.assessment.spouse_contrib_exempt = "YES";
             }
         }
@@ -1156,6 +1159,7 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
 
         if (payload.msfaa && Object.keys(payload.msfaa).length > 0) {
             if (payload.msfaa.id && payload.msfaa.id > 0) {
+                payload.msfaa.rec_last_mod_date = new Date();
                 result.msfaa = await this.msfaaRepo.updateMsfaa(payload.msfaa.id, payload.msfaa);
             }
             else {
