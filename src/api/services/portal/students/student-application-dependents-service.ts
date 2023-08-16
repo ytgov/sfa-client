@@ -35,7 +35,11 @@ export default class StudentApplicationDependentsService {
   ]
   */
   async getDependents(): Promise<Dependent[]> {
-    const dependents = await db
+    if (this.#studentId === undefined) {
+      throw new Error('studentId is required')
+    }
+
+    const rows = await db
       .select({
         t1Id: "dependent.id",
         t1StudentId: "dependent.studentId",
@@ -54,25 +58,24 @@ export default class StudentApplicationDependentsService {
       .from("dependent")
       .leftJoin("relationship", "relationship.id", "dependent.relationshipId")
       .where({ studentId: this.#studentId })
-      .then((rows) =>
-        rows.map((row) => ({
-          id: row.t1Id,
-          studentId: row.t1StudentId,
-          relationshipId: row.t1RelationshipId,
-          firstName: row.t1FirstName,
-          lastName: row.t1LastName,
-          comments: row.t1Comments,
-          birthDate: row.t1BirthDate,
-          isInProgress: row.t1IsInProgress,
-          isConversion: row.t1IsConversion,
-          isDisability: row.t1IsDisability,
-          relationship: {
-            id: row.t2Id,
-            description: row.t2Description,
-            isActive: row.t2IsActive,
-          },
-        }))
-      )
+
+    const dependents = rows.map((row) => ({
+      id: row.t1Id,
+      studentId: row.t1StudentId,
+      relationshipId: row.t1RelationshipId,
+      firstName: row.t1FirstName,
+      lastName: row.t1LastName,
+      comments: row.t1Comments,
+      birthDate: row.t1BirthDate,
+      isInProgress: row.t1IsInProgress,
+      isConversion: row.t1IsConversion,
+      isDisability: row.t1IsDisability,
+      relationship: {
+        id: row.t2Id,
+        description: row.t2Description,
+        isActive: row.t2IsActive,
+      },
+    }))
 
     if (this.#applicationId === undefined) {
       throw new Error("Application ID is not set")
