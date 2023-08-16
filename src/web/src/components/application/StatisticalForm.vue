@@ -34,37 +34,39 @@
           </div>
           <div class="col-md-3">
             <v-menu
-                v-model="show_menu"
-                :close-on-content-click="false"
-                transition="scale-transition"
-                left
-                nudge-top="26"
-                offset-y
-                min-width="auto"
-              >
-                <template v-slot:activator="{ on, attrs }">
-                  <v-text-field
-                    label="Birth Date"
-                    append-icon="mdi-calendar"
-                    :value="student.birth_date?.slice(0, 10)"
-                    hide-details
-                    readonly
-                    outlined
-                    dense
-                    background-color="white"
-                    v-bind="attrs"
-                    v-on="on"
-                  ></v-text-field>
-                </template>
-                <v-date-picker
+              v-model="show_menu"
+              :close-on-content-click="false"
+              transition="scale-transition"
+              left
+              nudge-top="26"
+              offset-y
+              min-width="auto"
+            >
+              <template v-slot:activator="{ on, attrs }">
+                <v-text-field
+                  label="Birth Date"
+                  append-icon="mdi-calendar"
+                  :value="student.birth_date?.slice(0, 10)"
+                  hide-details
+                  readonly
+                  outlined
+                  dense
+                  background-color="white"
+                  v-bind="attrs"
+                  v-on="on"
+                ></v-text-field>
+              </template>
+              <v-date-picker
                 :value="student.birth_date?.slice(0, 10)"
-                @input="e => {
-                  student.birth_date = e;
-                  show_menu = false;
-                }"
+                @input="
+                  (e) => {
+                    student.birth_date = e;
+                    show_menu = false;
+                  }
+                "
                 @change="doSaveStudent('birth_date', student.birth_date, 'personInfo', student.id)"
-                ></v-date-picker>
-              </v-menu>
+              ></v-date-picker>
+            </v-menu>
           </div>
         </div>
       </v-card-text>
@@ -85,9 +87,7 @@
               item-text="description"
               item-value="id"
               :items="maritalStatusList"
-              @change="
-                doSaveApp('marital_status_id', application.marital_status_id)
-              "
+              @change="doSaveApp('marital_status_id', application.marital_status_id)"
             ></v-select>
           </div>
           <div class="col-md-3">
@@ -101,44 +101,41 @@
               :items="citizenships"
               item-text="description"
               item-value="id"
-              @change="
-                doSaveApp('citizenship_status', application.citizenship_status)
-              "
+              @change="doSaveApp('citizenship_status', application.citizenship_status)"
             ></v-select>
           </div>
           <div class="col-md-2">
-            <v-switch 
-              class="my-0"
-              label="Disabled"
-              v-model="application.is_disabled"
-              @change="
-                doSaveApp('is_disabled', application.is_disabled)
-              "
-            >
-            </v-switch>
+            <v-select
+              outlined
+              dense
+              background-color="white"
+              label="Disability"
+              hide-details
+              v-model="disability"
+              :items="disabilityOptions"
+              @change="disabilityChanged"
+            ></v-select>
           </div>
           <div class="col-md-2">
-            <v-switch 
+            <v-switch
               class="my-0"
               label="Visible Minority"
               v-model="application.is_minority"
-              @change="
-                doSaveApp('is_minority', application.is_minority)
-              "
+              @change="doSaveApp('is_minority', application.is_minority)"
             >
             </v-switch>
           </div>
           <div class="col-md-2">
-            <v-switch 
+            <v-switch
               class="my-0"
               label="Crown Ward"
-              v-model="student.is_crown_ward" @change="
-                doSaveStudent('is_crown_ward', student.is_crown_ward, 'studentInfo', student.id)"
+              v-model="student.is_crown_ward"
+              @change="doSaveStudent('is_crown_ward', student.is_crown_ward, 'studentInfo', student.id)"
             >
             </v-switch>
           </div>
           <div class="col-md-3">
-            {{application.aborigal_status_id}}
+            {{ application.aborigal_status_id }}
             <v-select
               outlined
               dense
@@ -149,12 +146,7 @@
               item-text="description"
               item-value="id"
               :items="aboriginalStatusList"
-              @change="
-                doSaveApp(
-                  'aboriginal_status_id',
-                  application.aboriginal_status_id
-                )
-              "
+              @change="doSaveApp('aboriginal_status_id', application.aboriginal_status_id)"
             ></v-select>
           </div>
 
@@ -169,9 +161,7 @@
               item-text="description"
               item-value="id"
               :items="firstNations"
-              @change="
-                doSaveApp('first_nation_id', application.first_nation_id)
-              "
+              @change="doSaveApp('first_nation_id', application.first_nation_id)"
             ></v-select>
           </div>
 
@@ -186,7 +176,6 @@
               v-model="application.stat_info_comment"
               @change="doSaveApp('stat_info_comment', application.stat_info_comment)"
             >
-
             </v-textarea>
           </div>
         </div>
@@ -198,22 +187,21 @@
       @change="doSaveApp('has_consent_to_share_data', application.has_consent_to_share_data)"
       label="STEP and Grad CORP data sharing consent"
     >
-
     </v-switch>
   </div>
 </template>
 
 <script>
 import store from "../../store";
-import { mapGetters } from 'vuex';
+import { mapGetters } from "vuex";
 
 export default {
   computed: {
     ...mapGetters(["maritalStatusList", "aboriginalStatusList", "firstNations", "languages", "sexes", "citizenships"]),
-    application: function () {
+    application: function() {
       return store.getters.selectedApplication;
     },
-    student: function () {
+    student: function() {
       return store.getters.selectedStudent;
     },
   },
@@ -222,6 +210,13 @@ export default {
     maritalOptions: [],
     aboriginalStatusOptions: [],
     firstNationOptions: [],
+    disability: "",
+    disabilityOptions: [
+      { text: "No Disability", value: "None" },
+      { text: "Permanent Disability", value: "Permanent" },
+      { text: "Persistent / Prolonged Disability", value: "Persistent" },
+      //{ text: "Other", value: "Other" },
+    ],
   }),
   async created() {
     store.dispatch("setCitizenships");
@@ -231,23 +226,33 @@ export default {
     store.dispatch("setLanguages");
     store.dispatch("setSexes");
     store.dispatch("setFirstNations");
-    //this.updateView(this.application);
+    this.updateView(this.application);
   },
   methods: {
-    /* updateView(application) {
-      this.marital_status = application.MARITAL_STATUS_ID;
-      this.citizenship = application.CITIZENSHIP_STATU;
-      this.aboriginal_status = application.ABORIGINAL_STATUS_ID;
-      this.yukon_first_nation = application.FIRST_NATION_ID;
-      this.disabled = application.DISABLED_FLAG;
-      this.visible_minority = application.MINORITY_FLAG;
+    updateView(application) {
+      if (application.is_disabled && application.is_perm_disabled) this.disability = "Permanent";
+      else if (application.is_disabled && !application.is_perm_disabled) this.disability = "Persistent";
+      else if (application.is_disabled && !application.is_perm_disabled) this.disability = "Permanent";
+      else this.disability = "None";
     },
- */
+
     doSaveStudent(field, value, type, extraId = null, addressType = "") {
       store.dispatch("updateStudent", [field, value, type, extraId, this, addressType]);
     },
     doSaveApp(field, value) {
       store.dispatch("updateApplication", [field, value, this]);
+    },
+    disabilityChanged() {
+      if (this.disability == "Permanent") {
+        this.doSaveApp("is_disabled", true);
+        this.doSaveApp("is_perm_disabled", true);
+      } else if (this.disability == "Persistent") {
+        this.doSaveApp("is_disabled", true);
+        this.doSaveApp("is_perm_disabled", false);
+      } else {
+        this.doSaveApp("is_disabled", false);
+        this.doSaveApp("is_perm_disabled", false);
+      }
     },
   },
 };

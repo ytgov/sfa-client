@@ -1,6 +1,6 @@
 import BaseController from "@/controllers/base-controller"
 
-import ApplicationsSerializer from "@/serializers/applications-serializer"
+import ApplicationsSerializer, { Views } from "@/serializers/applications-serializer"
 import StudentApplicationsService from "@/services/portal/students/student-applications-service"
 
 export default class StudentApplicationsController extends BaseController {
@@ -29,7 +29,7 @@ export default class StudentApplicationsController extends BaseController {
       .getApplication()
       .then((application) => {
         const applicationSerializer = new ApplicationsSerializer(application)
-        const data = applicationSerializer.asDetailedView()
+        const data = applicationSerializer.asDetailedView({ view: Views.STUDENT_APPLICATION })
         this.response.json({ data })
       })
       .catch((error: { message: string }) => {
