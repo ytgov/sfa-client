@@ -84,9 +84,9 @@ export default {
         { icon: 'fa-solid fa-user', title: 'Officer Table', path:'/administration/officers'},
         { icon: 'fa-solid fa-file-import', title: 'CSL MSFAA Receive', path:'/administration/csl-msfaa-receive'},
         { icon: 'fa-solid fa-comments', title: 'CSL Entitlement Feedback', path:'/administration/csl-entitlement-feedback'},
-        { icon: 'fa-solid fa-file-export', title: 'CSL Certificate Export', path:'/administration/csl-certificate-export'},
-       { icon: 'fa-solid fa-money-check', title: 'Cheque Req List', path:'/administration/cheque-req-list'},
         { icon: 'fa-solid fa-file', title: 'CSL Certificate Audit Report', path:'/administration/csl-certificate-audit-report'},
+        { icon: 'fa-solid fa-file-export', title: 'CSL Certificate Export', path:'/administration/csl-certificate-export'},
+        { icon: 'fa-solid fa-money-check', title: 'Cheque Req List', path:'/administration/cheque-req-list'},
       ],
       currentLink: null,
       position: null
