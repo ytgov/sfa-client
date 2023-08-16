@@ -1,16 +1,18 @@
 import knex from "knex";
-import { DB_CONFIG } from "../../config";
+import { DB_CONFIG } from "@/config";
 import {
   AddressesFromDraft,
   Application,
   ApplicationFromDraft,
   ConsentFromDraft,
+  DependantsFromDraft,
   FundingFromDraft,
   IncomeFromDraft,
   OtherFundingFromDraft,
   ParentsFromDraft,
   PersonFromDraft,
   ResidenceFromDraft,
+  StudentFromDraft,
 } from "../../models";
 import moment from "moment";
 
@@ -179,6 +181,23 @@ export class PortalApplicationService {
             await db("income").withSchema(schema).insert(income);
           }
         }
+
+        let depends = DependantsFromDraft(combinedApp);
+        if (depends && depends.length > 0) {
+          for (let depend of depends) {
+            let elig = depend.eligibility;
+            delete depend.eligibility;
+            depend.student_id = student.id;
+            let newDep = await db("dependent").withSchema(schema).insert(depend).returning("*");
+
+            elig.application_id = newApplication[0].id;
+            elig.dependent_id = newDep[0].id;
+            await db("dependent_eligibility").withSchema(schema).insert(elig);
+          }
+        }
+
+        let studentUpdate = StudentFromDraft(combinedApp);
+        await db("student").withSchema(schema).where({ id: student.id }).update(studentUpdate);
 
         await db("application_draft").withSchema(schema).where({ id }).update({
           status: "Submitted",
