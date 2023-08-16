@@ -528,6 +528,9 @@ export function FundingFromDraft(draft: any): any[] {
         case "Nicholas John Harach Scholarship":
           request_type_id = 9;
           break;
+        case "Canada Student Grant for Students with Disabilities":
+          request_type_id = 29;
+          break;
       }
 
       if (request_type_id != -1)
