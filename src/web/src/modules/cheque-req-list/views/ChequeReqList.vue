@@ -60,8 +60,7 @@
               readonly                                
               outlined
               dense
-              background-color="white"
-            v-bind="attrs"             
+              background-color="white" 
             ></v-text-field>
           </div> 
           
@@ -75,15 +74,15 @@
         </div>
       </v-card-text>
     </v-card>
-      
   </div>
 </template>
 
 <script>
 import store from "@/store";  
-import { mapState } from "vuex";
+import { mapActions, mapState } from "vuex";
 import axios from 'axios';
 import { CHEQUE_REQ_LIST } from '../../../urls';
+import { saveAs } from 'file-saver';
 
 export default {
   name: "ChequeReqList",
@@ -99,11 +98,38 @@ export default {
     await store.dispatch("setAppSideBarAdmin", this.$route.path.startsWith("/administration"));      
   },
   methods: {
+    ...mapActions(["cancel", "open", "messageStatus"]),
     async getData() {
       try {
-        const res = await axios.post(CHEQUE_REQ_LIST, { issueDate: this.issueDate });
-        console.log(res);
-        console.log(res.data);
+        const res = await axios.get(CHEQUE_REQ_LIST + "?issueDate=" + this.issueDate);
+
+        if (res?.data?.success) {
+          const records = res?.data?.data.records ?? [];
+          const filename = res?.data?.data.filename ?? 'file.dat';
+          
+          let text = '';
+          let v_switch = null;
+
+          if (records?.length > 0) {
+            for (const recordset of records) {
+
+              if (recordset.record1 !== v_switch || v_switch === null) {
+                text += recordset.record1 + '\n';
+                  v_switch = recordset.record1;
+              }
+
+              text += recordset.record2 + '\n';
+              text += recordset.record3 + '\n';
+              text += recordset.record4 + '\n';
+            }
+          }
+
+          let blob = new Blob([text], {type: "text/plain;charset=utf-8"});    
+          saveAs(blob, filename);
+        } else {
+          this.messageStatus({ message: res?.data?.text , status: "error" });
+        }
+
       } catch (error) {
         console.log(error);
       }
