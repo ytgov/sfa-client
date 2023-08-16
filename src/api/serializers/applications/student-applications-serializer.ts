@@ -481,21 +481,24 @@ export default class StudentApplicationsSerializer {
       }
     }
 
-    const serializedSpouse = {
-      firstName: spouse.firstName,
-      lastName: spouse.lastName,
-      sin: spouse.sin,
-      livingWith: application.studyLivingWSpouse, // is living with spouse during the study period
-      postSecondaryFrom: application.spouseStudySchoolFrom,
-      postSecondaryTo: application.spouseStudySchoolTo,
-      busService: application.isSpouseStudyBus, // is spouse using a bus during the study period
-      distanceFromSchool: application.spouseStudyDistance,
-      employmentInformation: application.isSpouseStudyCsl, // is spouse applying for Canada Student Loan (CSL)
-      employmentStatus,
+    let serializedSpouse = {}
+    if (!isNil(application.spouseId)) {
+      serializedSpouse = {
+        firstName: spouse.firstName,
+        lastName: spouse.lastName,
+        sin: spouse.sin,
+        livingWith: application.studyLivingWSpouse, // is living with spouse during the study period
+        postSecondaryFrom: application.spouseStudySchoolFrom,
+        postSecondaryTo: application.spouseStudySchoolTo,
+        busService: application.isSpouseStudyBus, // is spouse using a bus during the study period
+        distanceFromSchool: application.spouseStudyDistance,
+        employmentInformation: application.isSpouseStudyCsl, // is spouse applying for Canada Student Loan (CSL)
+        employmentStatus,
+      }
     }
 
     return {
-      hasSpouse: !isNil(application.spouseId),
+      hasSpouse: !isEmpty(serializedSpouse),
       spouse: serializedSpouse,
     }
   }
