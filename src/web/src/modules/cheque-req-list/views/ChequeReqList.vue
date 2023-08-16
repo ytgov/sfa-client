@@ -14,7 +14,6 @@
     >
     </v-breadcrumbs>
     <h1>Cheque Req List</h1>
-{{ reRunBatch }}
     <v-card class="default mb-5">        
       <v-card-text>
         <div class="row">
