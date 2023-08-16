@@ -343,8 +343,16 @@ export function ApplicationFromDraft(draft: any): Application {
     //prestudy_end_date: undefined,
   } as Application;
 
-  if (draft.csfa_accomodation && draft.csfa_accomodation.accomodations && draft.csfa_accomodation.length > 0) {
-    app.prestudy_accom_code = draft.csfa_accomodation.accomodations[0].living;
+  if (
+    draft.csfa_accomodation &&
+    draft.csfa_accomodation.accomodations &&
+    draft.csfa_accomodation.accomodations.length > 0
+  ) {
+    let prestudy_accom_code = 3;
+    if (draft.csfa_accomodation.accomodations[0].living == "Living at Parents") prestudy_accom_code = 1;
+    else if (draft.csfa_accomodation.accomodations[0].living == "Living on Own") prestudy_accom_code = 2;
+
+    app.prestudy_accom_code = prestudy_accom_code;
     app.prestudy_own_home = draft.csfa_accomodation.accomodations[0].own_home;
     app.prestudy_board_amount = draft.csfa_accomodation.accomodations[0].rent_to_parents;
     app.prestudy_city_id = draft.csfa_accomodation.accomodations[0].city;
@@ -354,8 +362,16 @@ export function ApplicationFromDraft(draft: any): Application {
     //app.prestudy_employ_status_id: undefined,
   }
 
-  if (draft.csfa_accomodation && draft.csfa_accomodation.accomodations && draft.csfa_accomodation.length > 1) {
-    app.study_accom_code = draft.csfa_accomodation.accomodations[1].living;
+  if (
+    draft.csfa_accomodation &&
+    draft.csfa_accomodation.accomodations &&
+    draft.csfa_accomodation.accomodations.length > 1
+  ) {
+    let study_accom_code = 3;
+    if (draft.csfa_accomodation.accomodations[1].living == "Living at Parents") study_accom_code = 1;
+    else if (draft.csfa_accomodation.accomodations[1].living == "Living on Own") study_accom_code = 2;
+
+    app.study_accom_code = study_accom_code;
     app.study_own_home = draft.csfa_accomodation.accomodations[1].own_home;
     app.study_board_amount = draft.csfa_accomodation.accomodations[1].rent_to_parents;
     app.study_city_id = draft.csfa_accomodation.accomodations[1].city;
@@ -636,11 +652,13 @@ export function ExpensesFromDraft(draft: any): any[] {
   let expenses = new Array<any>();
 
   if (draft.csfa_expenses && draft.csfa_expenses.expenses) {
-    for (let income of draft.csfa_expenses.expenses) {
+    for (let expense of draft.csfa_expenses.expenses) {
       expenses.push({
-        income_type_id: income.type,
-        comment: income.comments,
-        amount: cleanNumber(income.amount),
+        category_id: expense.type,
+        period_id: expense.description.startsWith("Pre-Study") ? 1 : 2,
+        description: expense.comments,
+        comment: expense.comments,
+        amount: cleanNumber(expense.amount),
       });
     }
   }
@@ -650,7 +668,7 @@ export function ExpensesFromDraft(draft: any): any[] {
 
 const SQL_MAXVALUE = 99999999.99;
 
-function cleanNumber(input: any): number {
+export function cleanNumber(input: any): number {
   let isNegative = false;
   input = (input || "").trim();
 
