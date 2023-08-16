@@ -26,6 +26,7 @@ enum Relationships {
   GRANDMOTHER = "Grandmother",
   COUSIN = "Cousin",
   ADOPTED = "Adopted",
+  CHILD = "Child",
 }
 
 export default class Relationship {
