@@ -91,6 +91,7 @@ export const CHANGE_REASON =`${config.apiBaseUrl}/api/v2/admin/change-reason`;
 export const ACCOMMODATION_TYPE =`${config.apiBaseUrl}/api/v2/admin/accommodation-type`;
 export const DISBURSEMENT =`${config.apiBaseUrl}/api/v2/admin/disbursement`;
 export const ASSESSMENT = `${config.apiBaseUrl}/api/v2/admin/assessment`;
+export const CERTIFICATE_AUDIT_REPORT = `${config.apiBaseUrl}/api/v2/admin/csl-certificate-audit-report`;
 export const CHEQUE_REQ_LIST = `${config.apiBaseUrl}/api/v2/admin/cheque-req-list`;
 
 export const APPLICATION_LETTER_URL = `${config.apiBaseUrl}/api/v2/admin/application-letter`;
