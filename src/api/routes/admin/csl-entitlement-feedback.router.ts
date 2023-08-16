@@ -79,14 +79,14 @@ cslEntitlementFeedbackRouter.post("/:FILE_NAME", [param("FILE_NAME").notEmpty()]
 					const truncate = await db.raw("TRUNCATE TABLE sfa.ECERT_IMPORT");
                     vUpdate = "Yes";				
                     if(header.substring(0, 1).toUpperCase() !== "H") {    
-						console.log("BAD FILENAME HEADER H");
+						console.log("BAD FILENAME HEADER H: " + header.substring(0, 1).toUpperCase() );
                         return res.json({flag: 0, data: 'There is no header record on this file'});       
                     } else {        
 						console.log("FILENAME HEADER H OK");            
                         vSeqNum = Number(header.substring(1, 10));
                         if(isNaN(vSeqNum)) {
-							console.log("BAD SEQNUM NOT NUMBER");                        
-                            return res.json({flag: 0, data: 'Invalid sequence number in header record: ' + header.substring(59, 65)})
+							console.log("BAD SEQNUM NOT NUMBER:" + header.substring(1, 10));                        
+                            return res.json({flag: 0, data: 'Invalid sequence number in header record: ' + header.substring(1, 10)})
                         } 
 
 						console.log("SEQNUM NUMBER OK");                        
@@ -99,14 +99,14 @@ cslEntitlementFeedbackRouter.post("/:FILE_NAME", [param("FILE_NAME").notEmpty()]
 							console.log("PROVINCE OK");   
                             vOriginator = header.substring(12, 15).replaceAll(' ', '');                             
                             if(vOriginator !== '222') {
-								console.log("BAD ORIGINATOR");   
+								console.log("BAD ORIGINATOR:" + vOriginator);   
                                 return res.json({flag: 0, data: 'File has not been provided by the service provider (222) but by: '+ vOriginator})
                             } else {
 								console.log("ORIGINATOR OK");   
                                 vCreateDate = moment(header.substring(15, 23), 'YYYYMMDD').format('YYYYMMDD');
                                 if(vCreateDate === 'Invalid date') {
-									console.log("BAD CREATE DATE");   
-                                    return res.json({flag: 0, data: 'Invalid creation date/time in header record: '+ header.substring(47, 59)});
+									console.log("BAD CREATE DATE" + header.substring(15, 23) );   
+                                    return res.json({flag: 0, data: 'Invalid creation date/time in header record: '+ header.substring(15, 23)});
                                 }   
 								console.log("CREATE DATE OK");   
                                 vTitle = header.substring(23, 63).toUpperCase().replaceAll(' ', '');
@@ -148,6 +148,7 @@ cslEntitlementFeedbackRouter.post("/:FILE_NAME", [param("FILE_NAME").notEmpty()]
                         if(currentLine.substring(0, 1) === "D") {
 							console.log("CURRENT LINE D OK");
                             vSin = currentLine.substring(1, 10).replaceAll(' ','');
+							console.log(currentLine.substring(358, 364));
                             vCslAmount =  currentLine.substring(358, 364).replaceAll(' ','');
                             vCertNumber =  currentLine.substring(367, 375).replaceAll(' ','');
                             vStatus =  currentLine.substring(391, 392).replaceAll(' ','');
@@ -176,7 +177,7 @@ cslEntitlementFeedbackRouter.post("/:FILE_NAME", [param("FILE_NAME").notEmpty()]
 								}
 								vErrorMsg = vErrorMsg + ' Certificate Number is missing. ';
 							} else {
-								console.log("CERTNUM OK");
+								console.log("CERTNUM OK: " + vCslAmount);
 								vCslAmountNum = Number(vCslAmount) + 0;								
 								if(isNaN(vCslAmountNum)) {
 									console.log("BAD CSL AMOUNT");
@@ -200,10 +201,7 @@ cslEntitlementFeedbackRouter.post("/:FILE_NAME", [param("FILE_NAME").notEmpty()]
 								.first();
 								
 								if(!vDisbursementId) {
-									return res.json({flag: 2, data: 'No records found with transaction number: ' + vCertNumber + ", CSL Cert Number: " + vSeqNum + ", or disbursed amount: " + vCslAmountNum, date: vEcertSentDate, seq: vSeqNum});
-
-									//CHANGE LATER
-									//vDisbursementId = 64277;									
+									return res.json({flag: 2, data: 'No records found with transaction number: ' + vCertNumber + ", CSL Cert Number: " + vSeqNum + ", or disbursed amount: " + vCslAmountNum, date: vEcertSentDate, seq: vSeqNum});								
 								}
 							}					
 
