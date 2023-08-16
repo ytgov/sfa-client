@@ -47,6 +47,8 @@ export class ChequeReqList extends BaseRepository {
             return { success: false, text: 'There are no new disbursements for this date. This will end the report.' }
         } else {
             records = await this.getInfoFileDAT(issueDate, serial_no_p || 0) ?? [];   //cheque_req_export;
+            
+            this.mainDb.raw('EXEC sfa.save_csl_nars_history ?, ?', [`'${issueDate}'`, serial_no_p])
         }
 
         const filename = this.generateFileName(issueDate, serial_no_p || 0);
