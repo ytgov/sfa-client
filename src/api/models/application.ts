@@ -511,7 +511,7 @@ export function FundingFromDraft(draft: any): any[] {
   if (draft.funding_sources && draft.funding_sources.sources) {
     for (let source of draft.funding_sources.sources) {
       let application_type_id = 1;
-      let csfa_amounts = draft.funding_sources.csfa_amounts;
+      let csfa_amounts = draft.funding_sources.csfa_amounts || "";
       let loan_amount = draft.funding_sources.csfa_loan_amount;
 
       if (source == "Canada Student Financial Assistance (Full-Time)") application_type_id = 2;
@@ -560,6 +560,7 @@ export function FundingFromDraft(draft: any): any[] {
           student_is_in_ft_study: draft.program_details.attendance == "Full Time",
           csl_request_amount: application_type_id == 2 ? cleanNumber(loan_amount) : 0,
           is_csl_full_amount: application_type_id == 2 && csfa_amounts == "Full amount loans and grants",
+          is_csg_only: csfa_amounts == "Grants only",
         });
     }
   }
@@ -657,7 +658,6 @@ export function ExpensesFromDraft(draft: any): any[] {
         category_id: expense.type,
         period_id: expense.description.startsWith("Pre-Study") ? 1 : 2,
         description: expense.comments,
-        comment: expense.comments,
         amount: cleanNumber(expense.amount),
       });
     }
