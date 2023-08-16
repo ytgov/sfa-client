@@ -4,6 +4,7 @@ import Expense from "@/models/expense"
 import FundingRequest from "@/models/funding-request"
 import Income from "@/models/income"
 import Institution from "@/models/institution"
+import ParentDependent from "@/models/parent-dependent"
 import PersonAddress from "@/models/person-address"
 import Program from "@/models/program"
 import Student from "@/models/student"
@@ -166,6 +167,7 @@ export default interface Application_ {
   fundingRequests?: FundingRequest[]
   incomes?: Income[]
   institution?: Institution
+  parentDependents?: ParentDependent[]
   primaryAddress?: PersonAddress
   program?: Program
   student?: Student
