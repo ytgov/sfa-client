@@ -43,7 +43,7 @@ export default class StudentApplicationsService {
     }
 
     if (application.institutionCampusId) {
-      application.institution = await db("institution")
+      application.institutionCampus = await db("institutionCampus")
         .where({ id: application.institutionCampusId })
         .first()
     }
