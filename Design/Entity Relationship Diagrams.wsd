@@ -544,6 +544,12 @@ entity Program {
   is_active: boolean
 }
 
+entity Relationship {
+  id: number
+  description: string
+  is_active: boolean
+}
+
 entity Residence {
   id: number
   student_id: number
@@ -667,7 +673,7 @@ Application::spouse_study_emp_status_id |o--o{ PrestudyEmploymentStatus::id
 ApplicationDraft::application_id |o--o{ Application::id
 Assessment::funding_request_id |o--o{ FundingRequest::id
 CsfaAmount ||--|| FundingSource::CANADA_STUDENT_FINANCIAL_ASSISTANCE_FULL_TIME
-Dependent::relationship_id |o--o{ Dependent::id
+Dependent::relationship_id |o--o{ Relationship::id
 Dependent::student_id |o--o{ Student::id
 DependentEligibility::dependent_id ||--o{ Dependent::id
 Disability::application_id ||--o{ Application::id
