@@ -2,6 +2,8 @@ export const defaultState = () => {
     return {
         funding_request: {},
         uncapped_expenses: [],
+        cslft_current: null,
+        cslft_assessments: [],
         cslft: {
             id: null,
             air_travel_disbursement_period: null,

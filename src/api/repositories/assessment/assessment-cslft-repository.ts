@@ -108,6 +108,7 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
         this.aboriginalStatusRepo = new AboriginalStatusRepository(maindb);
         this.incomeRepo = new IncomeRepository(maindb);
         this.employmentStatusRepo = new EmploymentStatusRepository(maindb);
+        this.global.assessments = [];
     }
     
     academicYearValidation = (year: number): boolean => {
@@ -197,12 +198,13 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
 
     async calcFamilyDetails(): Promise<void> {            
         
+        let parentFamilySize = await this.getParentFamilySize(this.application.id);
         if (this.assessment.csl_classification === 1) {
-            this.assessment.student_family_size = await this.getParentFamilySize(this.application.id) + 1;
+            this.assessment.student_family_size = parentFamilySize + 1;
             this.assessment.family_income = (this.assessment.parent1_income ?? 0) + (this.assessment.parent2_income ?? 0);
         }
         else if (this.assessment.csl_classification === 4) {
-            this.assessment.student_family_size = await this.dependentRepo.getCslDependentCount(this.application.id) + 1;
+            this.assessment.student_family_size = await this.dependentRepo.getCslDependentCount(this.application.id) + 1 + parentFamilySize;
             this.assessment.family_income = (this.assessment.student_ln150_income ?? 0);
         }
         else if (this.assessment.csl_classification === 3) {
@@ -302,10 +304,15 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
                 this.assessment = await this.getAssessmentByFundingRequestId(funding_request_id);
                 this.disbursements = await this.disbursementRepo.getByAssessmentId(this.assessment.id);                
                 this.disbursement = this.disbursements[0] ?? {};
-            }                        
+                this.global.assessments?.push(this.assessment.id ?? 0);
+            }        
+            else {
+                this.global.assessments?.push(0);
+            }                
             this.msfaa = await this.msfaaRepo.getMsfaaByStudentId(this.student.id);
             this.e_certs = await this.disbursementRepo.getECertificateList(this.assessment.id);
         }
+        this.global.assessment = this.assessment.id;
     }
 
     async getAssessInfoCslft(funding_request_id?: number): Promise<Partial<CslftResultDTO>> {
@@ -336,7 +343,7 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
             else {
                 this.global.new_calc = true;
                 this.assessment_id = this.assessment.id;
-            }
+            }            
 
             await this.setIdGlobals();
 

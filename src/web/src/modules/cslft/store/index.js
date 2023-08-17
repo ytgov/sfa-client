@@ -13,6 +13,8 @@ const mutations = {
     },
     getCslftAssessInfo(state, payload) {
         state.cslft = payload.data;
+        state.cslft_assessments = payload.globals.assessments;
+        state.cslft_current = payload.globals.assessment;
         if ((payload.disbursements?.length ?? 0) > 0) {
             state.cslft_disbursement = payload.disbursements;
         }
@@ -255,6 +257,16 @@ const actions = {
     }
 };
 const getters = {
+    cslft_get_current(state) {
+        return state.cslft_current;
+    },
+    cslft_get_assessments(state) {
+        return state.cslft_assessments;
+    },
+    cslft_get_assessments_index(state) {
+        const a = state.cslft_assessments;
+        return a.map((x, i) => ({ id: i + 1, value: x }));
+    },
     cslft_get_assessment(state) {
       return state.cslft;
     },
