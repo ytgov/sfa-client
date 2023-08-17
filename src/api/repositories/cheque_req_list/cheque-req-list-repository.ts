@@ -1,5 +1,4 @@
 import { Knex } from "knex";
-import moment from "moment";
 import { BaseRepository } from "../base-repository";
 
 interface ChequeReqDTO {
@@ -23,32 +22,38 @@ export class ChequeReqList extends BaseRepository {
 
     //AfterPForm ()
     async validate(
-        issueDate: string
+        issueDate: string,
+        start_p: number
     ): Promise<any> {
-
-        let start_p = '';
+        let records: any = []
         let serial_no_p = null;
 
-        if (true) { //start_p === '0'
-            //EXEC sfa.assign_cheque_req_batch @issue_date_p = @issue_date_p OUTPUT, @serial_no_p = @serial_no_p OUTPUT;
+        if (!start_p) { //start_p === '0'
+            //EXEC sfa.assign_cheque_req_batch @issue_date_p = @issue_date_p OUTPUT, @serial_no_p = @serial_no_p OUTPUT;      
             serial_no_p = await this.assignChequeReqBatch(issueDate);
-            console.log(serial_no_p);
 
         } else {
             //:issue_date_p := TO_DATE(SUBSTR(:start_p,1,11),'DD MON RRRR');
-            //:serial_no_p := TO_NUMBER(SUBSTR(:start_p,13));
+            serial_no_p = start_p;
         }
         //:issue_date_str_p := TO_CHAR (:issue_date_p, 'YYYYMMDD'); -- Added for Windows 7 issue with dateCOUNT(d.disbursement_id)
         const disburseCount = await this.mainDb('sfa.disbursement')
             .count('id as count')
             .where('financial_batch_run_date', issueDate)
-            .where('financial_batch_serial_no', serial_no_p);
+            .where('financial_batch_serial_no', serial_no_p)
+            .whereNotNull('issue_date'); //NOTE: Amy has confirmed that as long as the batch report will not pick up disbursements until they have an issue date
 
         if (!disburseCount?.[0].count) {
-            return { text: 'There are no new disbursements for this date. This will end the report.' }
+            return { success: false, text: 'There are no new disbursements for this date. This will end the report.' }
+        } else {
+            records = await this.getInfoFileDAT(issueDate, serial_no_p || 0) ?? [];   //cheque_req_export;
+            
+            this.mainDb.raw('EXEC sfa.save_csl_nars_history ?, ?', [`'${issueDate}'`, serial_no_p])
         }
 
-        return serial_no_p;
+        const filename = this.generateFileName(issueDate, serial_no_p || 0);
+
+        return { success: true, data: { records: [ ...records ], filename } };
     }
 
     //assign_cheque_req_batch ()
@@ -77,7 +82,7 @@ export class ChequeReqList extends BaseRepository {
             num_request_type = null;
             num_bg = null;
             int_count = 0;
-
+            
             //for await (const disburse of disb_list) {
             for (let index = 0; index < disb_list.length; index++) {
                 const disburse = disb_list[index];
@@ -123,7 +128,6 @@ export class ChequeReqList extends BaseRepository {
                     WHERE sq.name = '${fb_seq_name}'
                     AND s.name = 'sfa'
                 `);
-                    console.log("validateSequence", validateSequence);
 
                     const existSequence = validateSequence?.length > 0;
 
@@ -133,7 +137,7 @@ export class ChequeReqList extends BaseRepository {
                             .raw(`SELECT NEXT VALUE FOR sfa.${fb_seq_name} AS num_batch`);
 
                         num_batch = parseInt(getNumBatch[0].num_batch);
-                        console.log("1 NUM_BATCH: ", getNumBatch);
+
                         int_count = 1;
                     } else {
                         const createSequence: any = await this.mainDb.raw(`
@@ -141,15 +145,12 @@ export class ChequeReqList extends BaseRepository {
                         START WITH 1
                         INCREMENT BY 1;
                     `);
-                        console.log("fb_seq_name:", fb_seq_name);
-                        console.log("SEQUENCE CREADA:", createSequence);
 
                         const getNumBatch: any = await this.mainDb
                             .raw(`SELECT NEXT VALUE FOR sfa.${fb_seq_name} AS num_batch`);
 
                         num_batch = parseInt(getNumBatch[0].num_batch);
 
-                        console.log("2 NUM_BATCH: ", getNumBatch);
                         int_count = 1;
                     }
 
@@ -160,24 +161,14 @@ export class ChequeReqList extends BaseRepository {
                     int_count++;
                 }
 
-                //const updateDisburse = await this.mainDb("sfa.disbursement")
-                //    .where({ id: disburse.disbursement_id })
-                //    .update({
-                //        financial_batch_id: num_batch, 
-                //        financial_batch_id_year: batch_year,
-                //        financial_batch_run_date: issueDate, 
-                //        financial_batch_serial_no: fb_serial
-                //    });
-
-                console.log({
-                    id: disburse.disbursement_id,
-                    financial_batch_id: num_batch,
-                    financial_batch_id_year: batch_year,
-                    financial_batch_run_date: issueDate,
-                    financial_batch_serial_no: fb_serial
-                });
-
-
+                const updateDisburse = await this.mainDb("sfa.disbursement")
+                    .where({ id: disburse.disbursement_id })
+                    .update({
+                        financial_batch_id: num_batch, 
+                        financial_batch_id_year: batch_year,
+                        financial_batch_run_date: issueDate, 
+                        financial_batch_serial_no: fb_serial
+                    });
             }
 
             return fb_serial;
@@ -231,5 +222,35 @@ export class ChequeReqList extends BaseRepository {
         }
     }
 
+    async getInfoFileDAT(
+        issueDate: string,
+        serial_no: number
+    ): Promise<any[] | undefined> {
+        try {
+            const records = await this.mainDb.raw(`
+                SELECT * FROM sfa.get_records_for_cheque_req_dat_file('${issueDate}', ${serial_no});
+            `); //recordsForDATFile
 
+            return records;
+        } catch (error) {
+            console.log(error);
+            return undefined
+        }
+    }
+    generateFileName(
+        issueDateStr: string,
+        serialNo: number
+    ): string {
+        const issueDate = new Date(issueDateStr);
+
+        const formattedDate = issueDate.getFullYear().toString().slice(-2) +
+                             ('0' + (issueDate.getMonth() + 1)).slice(-2) +
+                             ('0' + issueDate.getDate()).slice(-2);
+    
+        const formattedSerialNo = ('0' + serialNo).slice(-2);
+    
+        const fileName = 'SFVO_' + formattedDate + '_' + formattedSerialNo + '.dat';
+        
+        return fileName;
+    }
 }

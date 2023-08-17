@@ -64,6 +64,8 @@ import { cslCertificateExportRouter } from "./csl-certificate-export-router";
 import { assessmentCsgftRouter } from "./csgft-assessment-router";
 import { chequeReqRouter } from "./cheque-req-list-router";
 import { cslMsfaaReceiveRouter } from "./csl-msfaa-receive-router";
+import { cslEntitlementFeedbackRouter } from "./csl-entitlement-feedback.router";
+import { cslCertificateAuditReport } from "./csl-certificate-audit-report-router";
 
 
 export const adminRouter = express.Router();
@@ -133,3 +135,5 @@ adminRouter.use("/csl-certificate-export", cslCertificateExportRouter);
 adminRouter.use("/csgft", assessmentCsgftRouter);
 adminRouter.use("/cheque-req-list", chequeReqRouter);
 adminRouter.use("/csl-msfaa-receive", cslMsfaaReceiveRouter)
+adminRouter.use("/csl-entitlement-feedback", cslEntitlementFeedbackRouter)
+adminRouter.use("/csl-certificate-audit-report", cslCertificateAuditReport)
