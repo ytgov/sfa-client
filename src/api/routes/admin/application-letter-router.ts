@@ -47,8 +47,8 @@ applicationLetterRouter.get(
             status: "Not Found",
             message: `Could not find application letter with id "${applicationId}" and funding request "${fundingRequestId}".`,
             error: error.message,
-            t: error.stack,
-          });
+            stackTrace: error.stack?.split("\n").map((line) => line.trim()),
+          })
         } else {
           res.status(422).send({
             statusCode: 422,
