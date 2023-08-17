@@ -13,7 +13,7 @@ import FundingPurpose from "@/models/funding-purpose"
 import FundingRequest from "@/models/funding-request"
 import FundingSource from "@/models/funding-source"
 import Income from "@/models/income"
-import Institution from "@/models/institution"
+import InstitutionCampus from "@/models/institution-campus"
 import ParentDependent from "@/models/parent-dependent"
 import Person from "@/models/person"
 import PersonAddress from "@/models/person-address"
@@ -89,9 +89,8 @@ export default class StudentApplicationsSerializer {
       durationOfProgram: application.programYearTotal, // duplicate of programDuration
       endDateOfClasses: application.classesEndDate,
       institution: this.#institutionAssociation(
-        this.#application.institution || ({} as Institution)
+        this.#application.institutionCampus || ({} as InstitutionCampus)
       ),
-      institutionId: application.institutionCampusId,
       program: application.programId,
       programDuration: application.programYearTotal, // duplicate of durationOfProgram
       programName: application.program?.description,
@@ -102,10 +101,10 @@ export default class StudentApplicationsSerializer {
     }
   }
 
-  #institutionAssociation(institution: Institution) {
+  #institutionAssociation(institutionCampus: InstitutionCampus) {
     return {
-      id: institution.id,
-      name: institution.name,
+      id: institutionCampus.id,
+      name: institutionCampus.name,
     }
   }
 
