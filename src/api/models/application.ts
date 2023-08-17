@@ -297,6 +297,7 @@ export interface Application {
   has_last_travel?: boolean;
   last_travel_year?: number;
   last_travel_month?: number;
+  prestudy_living_w_spouse?: boolean;
 }
 
 export function ApplicationFromDraft(draft: any): Application {
@@ -373,6 +374,7 @@ export function ApplicationFromDraft(draft: any): Application {
     app.prestudy_province_id = draft.csfa_accomodation.accomodations[0].province;
     app.prestudy_bus = draft.csfa_accomodation.accomodations[0].bus_service;
     app.prestudy_distance = draft.csfa_accomodation.accomodations[0].distinct_from_school;
+    app.prestudy_living_w_spouse = draft.csfa_accomodation.accomodations[0].living_with_spouse;
     //app.prestudy_employ_status_id: undefined,
   }
 
@@ -400,7 +402,7 @@ export function ApplicationFromDraft(draft: any): Application {
     app.study_province_id = draft.csfa_accomodation.accomodations[1].province;
     app.study_bus = draft.csfa_accomodation.accomodations[1].bus_service;
     app.study_distance = draft.csfa_accomodation.accomodations[1].distinct_from_school;
-    //app.prestudy_employ_status_id: undefined,
+    app.study_living_w_spouse = draft.csfa_accomodation.accomodations[1].living_with_spouse;
   }
 
   return app;
