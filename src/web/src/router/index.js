@@ -78,6 +78,7 @@ import aboriginalStatusRoutes from "@/modules/aboriginal-status/router";
 import disabilityServiceRoutes from "@/modules/disability-service/router";
 import officerRoutes from "@/modules/officer/router";
 import ChequeReqListModuleRoutes from "@/modules/cheque-req-list/router";
+import CSLRestrictedDataModuleRoutes from "@/modules/csl-restricted-data/router";
 import CslCertificateAuditReport from "@/modules/csl-certificate-audit-report/router";
 Vue.use(VueRouter);
 
@@ -397,6 +398,7 @@ const routes = [
   ...officerRoutes,
   ...ChequeReqListModuleRoutes,
   ...CslCertificateAuditReport,
+  ...CSLRestrictedDataModuleRoutes,
 
   {
     path: "*",
