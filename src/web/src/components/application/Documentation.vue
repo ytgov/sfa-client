@@ -200,7 +200,7 @@
 
             
             <div class="col-md-6">
-                <v-select
+                <v-autocomplete
                   outlined
                   dense
                   background-color="white"
@@ -210,7 +210,7 @@
                   :items="documents2"
                   item-text="description"
                   item-value="id"
-                ></v-select>
+                ></v-autocomplete>
               </div>
               <div class="col-md-6">
                 <v-menu
