@@ -1,7 +1,7 @@
 export default [
   {
     path: "/administration/csl-restricted-data",
-    name: "AdminChequeReq",
+    name: "AdminCSLRestricted",
     component: () => {
       return import("../views/CSLRestrictedData.vue");
     },
