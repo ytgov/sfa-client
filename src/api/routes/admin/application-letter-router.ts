@@ -6,12 +6,12 @@ import ApplicationLetterService from "../../services/admin/application-letter-se
 export const applicationLetterRouter = express.Router();
 
 applicationLetterRouter.get(
-  "/:applicationId/approval/:fundingRequestId/:format?",
+  "/:applicationId/approval/:fundingRequestId",
   [param("id").isInt().notEmpty()],
   async (req: Request, res: Response) => {
     const applicationId = parseInt(req.params.applicationId);
     const fundingRequestId = parseInt(req.params.fundingRequestId);
-    const format = req.params.format || "pdf";
+    const format = req.format || "pdf"
 
     let officerName = `${req.user.first_name} ${req.user.last_name}`;
     let officerPosition = req.user.position as string;
@@ -68,12 +68,12 @@ applicationLetterRouter.get(
 );
 
 applicationLetterRouter.get(
-  "/:applicationId/rejection/:fundingRequestId/:format?",
+  "/:applicationId/rejection/:fundingRequestId",
   [param("id").isInt().notEmpty()],
   async (req: Request, res: Response) => {
     const applicationId = parseInt(req.params.applicationId);
     const fundingRequestId = parseInt(req.params.fundingRequestId);
-    const format = req.params.format || "pdf";
+    const format = req.format || "pdf"
 
     let officerName = `${req.user.first_name} ${req.user.last_name}`;
     let officerPosition = req.user.position;
