@@ -40,7 +40,7 @@
                         this.value = arr.join(' ');
                     " 
                     v-model="dependent.last_name"
-                    @change="updateValue({ last_name: dependent.last_name })"
+                    @change="updateValue({ last_name: dependent.last_name, id: dependent.id })"
                 >
                 </v-text-field>
             </div>
@@ -65,7 +65,7 @@
                         this.value = arr.join(' ');
                     " 
                     v-model="dependent.first_name"
-                    @change="updateValue({ first_name: dependent.first_name })"
+                    @change="updateValue({ first_name: dependent.first_name, id: dependent.id })"
                 >
                 </v-text-field>
             </div>
@@ -90,7 +90,7 @@
                     </template>
                     <v-date-picker
                         v-model="dependent.birth_date"
-                        @change="updateValue({ birth_date: dependent.birth_date })"
+                        @change="updateValue({ birth_date: dependent.birth_date, id: dependent.id })"
                         :disabled="showAdd"
                     >
                     </v-date-picker>
@@ -118,7 +118,7 @@
                     hide-details 
                     label="Relationship"
                     v-model="dependent.relationship_id"
-                    @change="updateValue({ relationship_id: dependent.relationship_id })"
+                    @change="updateValue({ relationship_id: dependent.relationship_id, id: dependent.id })"
                     :items="relationships"
                     item-text="description"
                     item-value="id"
@@ -132,7 +132,7 @@
                     class="my-0"
                     label="Resides with"
                     v-model="dependent.is_residing"
-                    @change="updateValue({ is_residing: dependent.is_residing })"
+                    @change="updateValue({ is_residing: dependent.is_residing, id: dependent.id })"
                 >
                 </v-switch>
             </div>
@@ -142,7 +142,7 @@
                     class="my-0"
                     label="Shared custody"
                     v-model="dependent.is_shared_custody"
-                    @change="updateValue({ is_shared_custody: dependent.is_shared_custody })"
+                    @change="updateValue({ is_shared_custody: dependent.is_shared_custody, id: dependent.id })"
                 >
                 </v-switch>
             </div>
@@ -152,7 +152,7 @@
                     class="my-0"
                     label="In post-secondary"
                     v-model="dependent.is_attend_post_secondary"
-                    @change="updateValue({ is_attend_post_secondary: dependent.is_attend_post_secondary })"
+                    @change="updateValue({ is_attend_post_secondary: dependent.is_attend_post_secondary, id: dependent.id })"
                 >
                 </v-switch>
             </div>
@@ -162,7 +162,7 @@
                     class="my-0"
                     label="Eligible dependent"
                     v-model="dependent.is_eligible"
-                    @change="updateValue({ is_eligible: dependent.is_eligible })"
+                    @change="updateValue({ is_eligible: dependent.is_eligible, id: dependent.id })"
                 >
                 </v-switch>
             </div>
@@ -177,7 +177,7 @@
                     hide-details 
                     label="Comment"
                     v-model="dependent.comments"
-                    @change="updateValue({ comments: dependent.comments })"
+                    @change="updateValue({ comments: dependent.comments, id: dependent.id })"
                 >
                 </v-textarea>
             </div>   
@@ -473,7 +473,10 @@ export default {
         },
         async updateValue(values) {
             try {
-                const resUpdate = await axios.put(`${APPLICATION_URL}/${this.application_id}/parent-dependent`, {
+                let id = values.id;
+                delete values.id;
+
+                const resUpdate = await axios.put(`${APPLICATION_URL}/${this.application_id}/parent-dependent/${id}`, {
                     data: { ...values },
                 });
 
