@@ -1,6 +1,9 @@
 import express from "express";
 
-import pathFormatMiddleware from "@/middleware/path-format-middleware";
+import pathFormatMiddleware from "@/middleware/path-format-middleware"
+import { routedTo } from "@/controllers/helpers"
+
+import FundingRequestsLettersController from "@/controllers/admin/funding-requests/funding-requests-letters-controller"
 
 import { acadecicYearRouter } from "./academic-year-router";
 import { applicationLetterRouter } from "./application-letter-router";
@@ -77,6 +80,11 @@ export const adminRouter = express.Router();
 adminRouter.use("/institution", institutionRouter);
 adminRouter.use("/academic-year", acadecicYearRouter);
 adminRouter.use("/application", applicationRouter);
+adminRouter.use(
+  "funding-requests/:fundingRequestId/letters/:letterSlug",
+  pathFormatMiddleware,
+  routedTo(FundingRequestsLettersController, "getLetter")
+)
 adminRouter.use("/application-letter", pathFormatMiddleware, applicationLetterRouter);
 adminRouter.use("/assessment", assessmentRouter);
 adminRouter.use("/student", studentRouter);

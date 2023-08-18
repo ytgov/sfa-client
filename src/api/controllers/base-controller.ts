@@ -14,6 +14,10 @@ export default class BaseController {
     this.next = next
   }
 
+  protected get format() {
+    return this.request.format
+  }
+
   protected get params() {
     return this.request.params
   }
