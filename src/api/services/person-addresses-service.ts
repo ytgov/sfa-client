@@ -25,7 +25,7 @@ export default class PersonAddressesService {
   // OPINION: if you want this to be faster, switch to Sequelize.
   // It would be more worthwhile than writing these as massive dynamic queries and recreating an ORM.
   async find(id: number): Promise<PersonAddress> {
-    const personAddress = await db("personAddress")
+    const personAddress = await db<PersonAddress>("personAddress")
       .where({ id })
       .first()
       .then((address) => {
@@ -34,7 +34,7 @@ export default class PersonAddressesService {
         throw new Error("Address not found")
       })
 
-    if (this.#includes.includes("city")) {
+    if (this.#includes.includes("city") && personAddress.cityId !== undefined) {
       personAddress.city = await db("city")
         .where({ id: personAddress.cityId })
         .first()
@@ -45,7 +45,7 @@ export default class PersonAddressesService {
         })
     }
 
-    if (this.#includes.includes("province")) {
+    if (this.#includes.includes("province") && personAddress.provinceId !== undefined) {
       personAddress.province = await db("province")
         .where({ id: personAddress.provinceId })
         .first()
@@ -56,7 +56,7 @@ export default class PersonAddressesService {
         })
     }
 
-    if (this.#includes.includes("country")) {
+    if (this.#includes.includes("country") && personAddress.countryId !== undefined) {
       personAddress.country = await db("country")
         .where({ id: personAddress.countryId })
         .first()
