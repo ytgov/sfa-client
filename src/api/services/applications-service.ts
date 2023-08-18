@@ -4,38 +4,47 @@ import Application from "@/models/application"
 
 import PersonAddressesService from "@/services/person-addresses-service"
 
-export default class ApplicationsService {
-  #applicationId: number
+namespace ApplicationsService {
+  export type IncludeTypes = ("student" | "personAddress" | "institutionCampus" | "studyArea")[]
+}
 
-  constructor(applicationId: number) {
-    this.#applicationId = applicationId
+export default class ApplicationsService {
+  #includes: ApplicationsService.IncludeTypes
+
+  constructor({ includes }: { includes?: ApplicationsService.IncludeTypes } = {}) {
+    this.#includes = includes || []
   }
 
-  // includes?: ("student" | "personAddress" | "institutionCampus" | "studyArea")[]
-  async getApplication(
-    {
-      includes,
-    }: {
-      includes: ("student" | "personAddress" | "institutionCampus" | "studyArea")[]
-    } = { includes: [] }
-  ): Promise<Application> {
+  static includes(includes: ApplicationsService.IncludeTypes) {
+    return new ApplicationsService({ includes })
+  }
+
+  static find(id: number) {
+    const service = new ApplicationsService()
+    return service.find(id)
+  }
+
+  // OPINION: if you want this to be faster, switch to Sequelize.
+  // It would be more worthwhile than writing these as massive dynamic queries and recreation and ORM.
+  async find(id: number): Promise<Application> {
     const application = await db<Application>("application")
-      .where({ id: this.#applicationId })
+      .where({ id })
       .first()
       .then((application) => {
-        if (application === undefined) throw new Error("Application not found")
+        if (application) return application
 
-        return application
+        throw new Error("Application not found")
       })
 
-    if (includes.includes("student")) {
+    // TODO: move this to a StudentsService
+    if (this.#includes.includes("student")) {
       application.student = await db("student")
         .where({ id: application.studentId })
         .first()
         .then((student) => {
-          if (student === undefined) throw new Error("Student not found")
+          if (student) return student
 
-          return student
+          throw new Error("Student not found")
         })
 
       if (application?.student?.personId !== undefined) {
@@ -43,24 +52,27 @@ export default class ApplicationsService {
           .where({ id: application.student.personId })
           .first()
           .then((person) => {
-            if (person === undefined) throw new Error("Person not found")
+            if (person) return person
 
-            return person
+            throw new Error("Person not found")
           })
       }
     }
 
-    if (includes.includes("personAddress") && application.primaryAddressId !== undefined) {
+    if (this.#includes.includes("personAddress") && application.primaryAddressId !== undefined) {
       application.primaryAddress = await this.#getPersonAddress(application.primaryAddressId)
     }
 
-    if (includes.includes("institutionCampus") && application.institutionCampusId !== undefined) {
+    if (
+      this.#includes.includes("institutionCampus") &&
+      application.institutionCampusId !== undefined
+    ) {
       application.institutionCampus = await this.#getInstitutionCampus(
         application.institutionCampusId
       )
     }
 
-    if (includes.includes("studyArea") && application.studyAreaId !== undefined) {
+    if (this.#includes.includes("studyArea") && application.studyAreaId !== undefined) {
       application.studyArea = await db("studyArea")
         .where({ id: application.studyAreaId })
         .first()
@@ -75,58 +87,7 @@ export default class ApplicationsService {
   }
 
   #getInstitutionCampus(institutionCampusId: number) {
-    return db("institutionCampus")
-      .leftOuterJoin("institution", "institution.id", "institutionCampus.institutionId")
-      .where({ "institutionCampus.id": institutionCampusId })
-      .select({
-        t1Id: "institutionCampus.id",
-        t1InstitutionId: "institutionCampus.institutionId",
-        t1Name: "institutionCampus.name",
-        t1FederalInstitutionCode: "institutionCampus.federalInstitutionCode",
-        t1IsActive: "institutionCampus.isActive",
-        t1IsPrimary: "institutionCampus.isPrimary",
-        t1CareOf: "institutionCampus.careOf",
-        t1AddressLine1: "institutionCampus.addressLine1",
-        t1AddressLine2: "institutionCampus.addressLine2",
-        t1AddressCityId: "institutionCampus.addressCityId",
-        t1AddressProvinceId: "institutionCampus.addressProvinceId",
-        t1AddressCountryId: "institutionCampus.addressCountryId",
-        t1AddressPostalCode: "institutionCampus.addressPostalCode",
-        t1EmailAddress: "institutionCampus.emailAddress",
-        t2Id: "institution.id",
-        t2Name: "institution.name",
-        t2IsActive: "institution.isActive",
-        t2FederalInstitutionCode: "institution.federalInstitutionCode",
-        t2InstitutionLevelId: "institution.institutionLevelId",
-      })
-      .first()
-      .then((result) => {
-        if (result === undefined) throw new Error("Institution not found")
-
-        return {
-          id: result.t1Id,
-          institutionId: result.t1InstitutionId,
-          name: result.t1Name,
-          federalInstitutionCode: result.t1FederalInstitutionCode,
-          isActive: result.t1IsActive,
-          isPrimary: result.t1IsPrimary,
-          careOf: result.t1CareOf,
-          addressLine1: result.t1AddressLine1,
-          addressLine2: result.t1AddressLine2,
-          addressCityId: result.t1AddressCityId,
-          addressProvinceId: result.t1AddressProvinceId,
-          addressCountryId: result.t1AddressCountryId,
-          addressPostalCode: result.t1AddressPostalCode,
-          emailAddress: result.t1EmailAddress,
-          institution: {
-            id: result.t2Id,
-            name: result.t2Name,
-            isActive: result.t2IsActive,
-            federalInstitutionCode: result.t2FederalInstitutionCode,
-            institutionLevelId: result.t2InstitutionLevelId,
-          },
-        }
-      })
+    return
   }
 
   #getPersonAddress(addressId: number) {

@@ -26,6 +26,7 @@ export default class FundingRequestsService {
   }
 
   // OPINION: if you want this to be faster, switch to Sequelize.
+  // It would be more worthwhile than writing these as massive dynamic queries and recreation and ORM.
   async find(id: number): Promise<FundingRequest> {
     const fundingRequest = await db("fundingRequest")
       .where({ id })
@@ -37,7 +38,12 @@ export default class FundingRequestsService {
       })
 
     if (this.#includes.includes("application")) {
-      fundingRequest.application = await this.#getApplication(fundingRequest.applicationId)
+      fundingRequest.application = await ApplicationsService.includes([
+        "student",
+        "personAddress",
+        "institutionCampus",
+        "studyArea",
+      ]).find(fundingRequest.applicationId)
     }
 
     if (this.#includes.includes("assessment")) {
@@ -75,12 +81,5 @@ export default class FundingRequestsService {
     }
 
     return fundingRequest
-  }
-
-  #getApplication(applicationId: number): Promise<Application> {
-    const applicationsService = new ApplicationsService(applicationId)
-    return applicationsService.getApplication({
-      includes: ["student", "personAddress", "institutionCampus", "studyArea"],
-    })
   }
 }
