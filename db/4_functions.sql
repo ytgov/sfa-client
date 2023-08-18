@@ -7533,4 +7533,24 @@ BEGIN
 END
 GO
 
+-- Get All Assessments by Funding Request 
+CREATE OR ALTER FUNCTION [sfa].[fn_get_assessments_by_funding_request](@funding_request_id INT)
+RETURNS TABLE
+AS
+RETURN
+SELECT
+    id
+FROM sfa.assessment
+WHERE funding_request_id = @funding_request_id;
+GO
 
+-- Get Assessment By Id
+CREATE OR ALTER PROCEDURE [sfa].[sp_get_assessment_by_id](@id INT)
+AS
+BEGIN
+	SELECT 
+		a.*
+	FROM sfa.assessment a 
+	WHERE a.id = @id;
+END;
+GO

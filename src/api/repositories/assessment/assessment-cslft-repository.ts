@@ -301,13 +301,9 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
             this.application = await this.applicationRepo.getApplicationByFundingRequestId(funding_request_id);
             this.student = await this.studentRepo.getStudentById(this.application.student_id);
             if (loadAssessment) {
-                this.assessment = await this.getAssessmentByFundingRequestId(funding_request_id);
+                this.assessment = await this.getMaxAssessmentByFundingRequestId(funding_request_id);
                 this.disbursements = await this.disbursementRepo.getByAssessmentId(this.assessment.id);                
-                this.disbursement = this.disbursements[0] ?? {};
-                this.global.assessments?.push(this.assessment.id ?? 0);
-            }        
-            else {
-                this.global.assessments?.push(0);
+                this.disbursement = this.disbursements[0] ?? {};                
             }                
             this.msfaa = await this.msfaaRepo.getMsfaaByStudentId(this.student.id);
             this.e_certs = await this.disbursementRepo.getECertificateList(this.assessment.id);
@@ -315,13 +311,16 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
         this.global.assessment = this.assessment.id;
     }
 
-    async getAssessInfoCslft(funding_request_id?: number): Promise<Partial<CslftResultDTO>> {
+    async getAssessInfoCslft(funding_request_id?: number, assessment_id: number = 0): Promise<Partial<CslftResultDTO>> {
 
         let assess_id: number | undefined = undefined;        
 
+        const assessments = await this.getAllAssessmentsByFundingRequestId(funding_request_id);
+        this.global.assessments = assessments;
+
         if (funding_request_id) {
-            await this.loadData(funding_request_id);           
-            if (!this.assessment.id) {
+            await this.loadData(funding_request_id, assessment_id === 0);           
+            if ((!this.assessment.id)) {
                 const assess_count = await this.getAssessmentCount(funding_request_id);
             
                 if (assess_count !== undefined && assess_count > 0) {
@@ -344,6 +343,7 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
                 this.global.new_calc = true;
                 this.assessment_id = this.assessment.id;
             }            
+            this.global.assessment = this.assessment.id ?? 0;
 
             await this.setIdGlobals();
 
