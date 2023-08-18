@@ -26,7 +26,7 @@ export default class FundingRequestsService {
   }
 
   // OPINION: if you want this to be faster, switch to Sequelize.
-  // It would be more worthwhile than writing these as massive dynamic queries and recreation and ORM.
+  // It would be more worthwhile than writing these as massive dynamic queries and recreating an ORM.
   async find(id: number): Promise<FundingRequest> {
     const fundingRequest = await db("fundingRequest")
       .where({ id })

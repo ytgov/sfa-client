@@ -1,67 +1,72 @@
 import db from "@/db/db-client"
 
-export default class PersonAddressesService {
-  #addressId: number
+import PersonAddress from "@/models/person-address"
 
-  constructor(addressId: number) {
-    this.#addressId = addressId
+namespace PersonAddressesService {
+  export type IncludeTypes = ("city" | "province" | "country")[]
+}
+
+export default class PersonAddressesService {
+  #includes: PersonAddressesService.IncludeTypes
+
+  constructor({ includes }: { includes?: PersonAddressesService.IncludeTypes } = {}) {
+    this.#includes = includes || []
   }
 
-  getPersonAddress() {
-    return db("personAddress")
-      .leftOuterJoin("city", "city.id", "personAddress.cityId")
-      .leftOuterJoin("province", "province.id", "personAddress.provinceId")
-      .leftOuterJoin("country", "country.id", "personAddress.countryId")
-      .where({ "personAddress.id": this.#addressId })
-      .select({
-        t1Id: "personAddress.id",
-        t1PersonId: "personAddress.personId",
-        t1AddressTypeId: "personAddress.addressTypeId",
-        t1Address1: "personAddress.address1",
-        t1Address2: "personAddress.address2",
-        t1CityId: "personAddress.cityId",
-        t1ProvinceId: "personAddress.provinceId",
-        t1CountryId: "personAddress.countryId",
-        t1PostalCode: "personAddress.postalCode",
-        t1Notes: "personAddress.notes",
-        t1Telephone: "personAddress.telephone",
-        t1Email: "personAddress.email",
-        t1IsActive: "personAddress.isActive",
-        t1AddressType: "personAddress.addressType",
-        t2Description: "city.description",
-        t3Description: "province.description",
-        t4Description: "country.description",
-      })
-      .first()
-      .then((record) => ({
-        id: record.t1Id,
-        personId: record.t1PersonId,
-        addressTypeId: record.t1AddressTypeId,
-        address1: record.t1Address1,
-        address2: record.t1Address2,
-        cityId: record.t1CityId,
-        provinceId: record.t1ProvinceId,
-        countryId: record.t1CountryId,
-        postalCode: record.t1PostalCode,
-        notes: record.t1Notes,
-        telephone: record.t1Telephone,
-        email: record.t1Email,
-        isActive: record.t1IsActive,
-        addressType: record.t1AddressType,
-        city: {
-          description: record.t2Description,
-        },
-        province: {
-          description: record.t3Description,
-        },
-        country: {
-          description: record.t4Description,
-        },
-      }))
-      .then((address) => {
-        if (address === undefined) throw new Error("Address not found")
+  static includes(includes: PersonAddressesService.IncludeTypes) {
+    return new PersonAddressesService({ includes })
+  }
 
-        return address
+  static find(id: number) {
+    const service = new PersonAddressesService()
+    return service.find(id)
+  }
+
+  // OPINION: if you want this to be faster, switch to Sequelize.
+  // It would be more worthwhile than writing these as massive dynamic queries and recreating an ORM.
+  async find(id: number): Promise<PersonAddress> {
+    const personAddress = await db("personAddress")
+      .where({ id })
+      .first()
+      .then((address) => {
+        if (address) return address
+
+        throw new Error("Address not found")
       })
+
+    if (this.#includes.includes("city")) {
+      personAddress.city = await db("city")
+        .where({ id: personAddress.cityId })
+        .first()
+        .then((city) => {
+          if (city) return city
+
+          throw new Error("City not found")
+        })
+    }
+
+    if (this.#includes.includes("province")) {
+      personAddress.province = await db("province")
+        .where({ id: personAddress.provinceId })
+        .first()
+        .then((province) => {
+          if (province) return province
+
+          throw new Error("Province not found")
+        })
+    }
+
+    if (this.#includes.includes("country")) {
+      personAddress.country = await db("country")
+        .where({ id: personAddress.countryId })
+        .first()
+        .then((country) => {
+          if (country) return country
+
+          throw new Error("Country not found")
+        })
+    }
+
+    return personAddress
   }
 }
