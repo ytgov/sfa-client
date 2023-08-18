@@ -6,7 +6,7 @@ import FundingRequest from "@/models/funding-request"
 import ApplicationsService from "@/services/applications-service"
 
 namespace FundingRequestsService {
-  export type IncludeTypes = ("application" | "assessment" | "disbursements")[]
+  export type IncludeTypes = ("application" | "assessment" | "disbursements" | "requestType")[]
 }
 
 export default class FundingRequestsService {
@@ -31,9 +31,9 @@ export default class FundingRequestsService {
       .where({ id })
       .first()
       .then((fundingRequest) => {
-        if (fundingRequest === undefined) throw new Error("Funding request not found")
+        if (fundingRequest) return fundingRequest
 
-        return fundingRequest
+        throw new Error("Funding request not found")
       })
 
     if (this.#includes.includes("application")) {
@@ -45,9 +45,9 @@ export default class FundingRequestsService {
         .where({ fundingRequestId: fundingRequest.id })
         .first()
         .then((assessment) => {
-          if (assessment === undefined) throw new Error("Assessment not found")
+          if (assessment) return assessment
 
-          return assessment
+          throw new Error("Assessment not found")
         })
     }
 
@@ -57,9 +57,20 @@ export default class FundingRequestsService {
           fundingRequestId: fundingRequest.id,
         })
         .then((disbursements) => {
-          if (disbursements === undefined) throw new Error("Disbursements not found")
+          if (disbursements) return disbursements
 
-          return disbursements
+          throw new Error("Disbursements not found")
+        })
+    }
+
+    if (this.#includes.includes("requestType")) {
+      fundingRequest.requestType = await db("requestType")
+        .where({ id: fundingRequest.requestTypeId })
+        .first()
+        .then((requestType) => {
+          if (requestType) return requestType
+
+          throw new Error("Request type not found")
         })
     }
 
