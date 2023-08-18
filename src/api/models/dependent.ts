@@ -13,6 +13,8 @@ export default interface Dependent {
   isInProgress?: boolean
   isConversion?: boolean
   isDisability?: boolean
+
+  // Relations
   relationship?: Relationship
   // NOTE: there isn't a constraint forcing the dependent -> dependent eligibility relationship to be one to one.
   // While this seems like the obvious intent of the system, the data is not one-to-one so I can't treat it that way.

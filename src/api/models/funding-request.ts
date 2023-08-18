@@ -28,6 +28,8 @@ export default interface FundingRequest {
   studentIsMovToAnthCmmToAttdPrgm?: boolean
   studentIsMainteningTwoResidences?: boolean
   studentWNotReceiveFundFromOtrOrg?: boolean
+
+  // Relations
   application?: Application
   assessments?: Assessment[]
   disbursements?: Disbursement[]

@@ -15,5 +15,7 @@ export default interface ParentDependent {
   isEligible: boolean
   isDisabled: boolean
   conversion: boolean
+
+  // Relations
   relationship?: Relationship
 }

@@ -162,6 +162,8 @@ export default interface Application_ {
   isPersistDisabled: boolean;
   persistDisabledStartDate?: Date;
   isChequesToInstitution: boolean;
+
+  // Relations
   agencyAssistances?: AgencyAssistance[];
   attendance?: Attendance;
   expenses?: Expense[];

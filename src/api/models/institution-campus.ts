@@ -15,5 +15,7 @@ export default interface InstitutionCampus {
   addressCountryId?: number
   addressPostalCode?: string
   emailAddress?: string
+
+  // Relations
   institution: Institution
 }

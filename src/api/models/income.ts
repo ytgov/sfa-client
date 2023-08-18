@@ -6,5 +6,7 @@ export default interface Income {
   incomeTypeId?: number
   comment?: string
   amount?: number
+
+  // Relations
   incomeType?: IncomeType[]
 }

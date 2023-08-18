@@ -120,5 +120,7 @@ export default interface Assessment {
   studentContributionOverride?: number
   spouseContributionOverride?: number
   parentProvinceId?: number
+
+  // Relations
   disbursements?: Disbursement[]
 }
