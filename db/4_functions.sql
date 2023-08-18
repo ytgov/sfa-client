@@ -4911,21 +4911,22 @@ RETURNS TABLE
 AS
     RETURN
     SELECT
-    '1' + RIGHT('0' + LTRIM(COALESCE(STR(d.financial_batch_id_year, 2), '')) + '-' + LTRIM(COALESCE(STR(d.financial_batch_id), '')), 12)+
-    SPACE(30) + ' ' + '0000000' + '000000000000000' + '0' + '2021-01-12' + '0' + '03    ' + 'CAD ' +
+   '1' + ( LEFT(LTRIM(ISNULL(CAST(d.financial_batch_id_year AS NVARCHAR(2)), '00')+  '-' + ISNULL(CAST(d.financial_batch_id_year AS NVARCHAR(2)), '00') ) + REPLICATE(' ', 12)  , 12)) +
+    SPACE(30) + ' ' + '0000000' + '000000000000000' + '0' + FORMAT(CAST(@issue_date_str AS DATE), 'yyyyMMdd') + '0' + '03    ' + 'CAD ' +
     '0000000000000' + '0000000000000' + ' ' + '1' + '  ' + '0000000000000' + '0000000000000' + '  ' + '    ' 
     AS record1,
     '2'+ RIGHT(REPLICATE(' ', 12) + s.vendor_id, 12)  + '03    ' + '000000000' +
-            RIGHT(REPLICATE(' ', 12) + CONCAT(RIGHT('00' + COALESCE(CAST(d.financial_batch_id_year AS VARCHAR(2)), ''), 2), '-', COALESCE(d.financial_batch_id, '')), 12) +
+		( LEFT(LTRIM(ISNULL(CAST(d.financial_batch_id_year AS NVARCHAR(2)), '00')+  '-' + ISNULL(CAST(d.financial_batch_id_year AS NVARCHAR(2)), '00') ) + REPLICATE(' ', 12)  , 12))+
             RIGHT(REPLICATE(' ', 22) + 
                 CASE WHEN app.student_number IS NULL THEN 'Yukon Student'
                     ELSE app.student_number
                 END, 
                 22) +
             'EX'+ 'RE'+ 'CAD '+ '            '+
-            '0'+CAST(@issue_date_str AS VARCHAR(10))+ '0'+ '000000000'+ '        '+ '        '+
+            '0'+ FORMAT(CAST(@issue_date_str AS DATE), 'yyyyMMdd')+ '0'+ '000000000'+ '        '+ '        '+
             '              '+ '0  '+
-            SUBSTRING(CONVERT(VARCHAR, ABS(COALESCE(d.disbursed_amount, 0)), 128), 1, 15) +
+
+			RIGHT(REPLICATE('0', 15)+ replace(CONVERT(VARCHAR, ABS(COALESCE(d.disbursed_amount, 0)), 128), '.', ''), 15) +
             REPLICATE(' ', 30) + '      '+ '0' + COALESCE(FORMAT(d.due_date, 'yyyyMMdd'), '') + '000000000'+
             '000000000000000'+ '0'+ '000000000000000'+ '0'+ '000000000000000'+ '0'+
             '000000000000000'+ '0'+ '000000000000000'+ '000000000000000'+ '0'+
@@ -4942,27 +4943,24 @@ AS
     --		+ 'C'  -- change space to C for cheque payment type - Lidwien January 2008, Jira SFA 199
             + ' '  -- change C to space for cheque payment type - for NEW EFT no longer required, 2020-08-25 Lidwien		
             +'000000000'+ '9990206016050                                '+ '      '+
-            REPLICATE(' ', 22) + '000000000'+ 'CTL-YUKON   '+ '0'+ CAST(@issue_date_str AS VARCHAR(10)) +
-            '0'+ CAST(@issue_date_str AS VARCHAR(10))+ '000000000'+ '000000000'+ '  '+ '     '+ '000000000000000'+
+            REPLICATE(' ', 22) + '000000000'+ 'CTL-YUKON   '+ '0'+ FORMAT(CAST(@issue_date_str AS DATE), 'yyyyMMdd') +
+            '0'+ FORMAT(CAST(@issue_date_str AS DATE), 'yyyyMMdd')+ '000000000'+ '000000000'+ '  '+ '     '+ '000000000000000'+
             '0'+ '     '+ '000000000000000'+ '0'+ '     '+ '000000000000000'+ '0'+
-            '     '+ '000000000000000'+ '0'+ ' '+ '000000000'+ '0'+ CAST(@issue_date_str AS VARCHAR(10))+ '000000000'+
-            '000000000000000'+ ' '+ '000000000000000'+ '0'+ '1'+ 'N'+ '2'+ '0'+ CAST(@issue_date_str AS VARCHAR(10))+
+            '     '+ '000000000000000'+ '0'+ ' '+ '000000000'+ '0'+ FORMAT(CAST(@issue_date_str AS DATE), 'yyyyMMdd')+ '000000000'+
+            '000000000000000'+ ' '+ '000000000000000'+ '0'+ '1'+ 'N'+ '2'+ '0'+ FORMAT(CAST(@issue_date_str AS DATE), 'yyyyMMdd')+
             '     '+ '     '+ '     '+ REPLICATE(' ', 25) + '            '+
             '0'+ ' '+ '    '
         as record2, -- Voucher Header (VOH)
     '3'+ REPLICATE(' ', 12 - LEN(s.vendor_id)) + s.vendor_id + '03    '+ '000000000'+
-            '00001' + RIGHT(REPLICATE(' ', 12) + 
-                RIGHT('00' + LTRIM(CONVERT(NVARCHAR, COALESCE(d.financial_batch_id_year, ''))), 2) + '-' + 
-                CONVERT(NVARCHAR, COALESCE(d.financial_batch_id, '')),
-                12) +
+            '00001' +( LEFT(LTRIM(ISNULL(CAST(d.financial_batch_id_year AS NVARCHAR(2)), '00')+  '-' + ISNULL(CAST(d.financial_batch_id_year AS NVARCHAR(2)), '00') ) + REPLICATE(' ', 12)  , 12))+
             RIGHT(REPLICATE(' ', 22) + 
                 CASE WHEN app.student_number IS NULL THEN 'Yukon Student'
                     ELSE app.student_number
                 END, 
                 22)
             + '                              ' +
-            SUBSTRING(CONVERT(VARCHAR(15), ABS(FLOOR(COALESCE(d.disbursed_amount, 0) * 100)), 128), 1, 15)  +
-            SUBSTRING(CONVERT(VARCHAR(15), ABS(FLOOR(COALESCE(d.disbursed_amount, 0) * 100)), 128), 1, 15)  +
+            RIGHT(REPLICATE('0', 15)+ replace(CONVERT(VARCHAR, ABS(COALESCE(d.disbursed_amount, 0)), 128), '.', ''), 15)  +
+            RIGHT(REPLICATE('0', 15)+ replace(CONVERT(VARCHAR, ABS(COALESCE(d.disbursed_amount, 0)), 128), '.', ''), 15)  +
             ' ' + REPLICATE(' ', 20) + '000000000000000' + '    ' + '0' + '000000000000000' + '0' +
             '000000000000000' + '0' + '000000000000000' + '0' + '000000000000000'+ '0' + '000000000000000' +
             '        ' + '      ' + '      ' + '                ' + '                ' + '                ' +
@@ -4973,13 +4971,13 @@ AS
         as record3, --   Voucher Line Record -- (VOL)
     '4'+ REPLICATE(' ', 12 - LEN(s.vendor_id)) + s.vendor_id  + '03    '+ '000000000'
             +'00001' + '00001' 
-            +RIGHT('0' + LTRIM(COALESCE(STR(d.financial_batch_id_year, 2), '')) + '-' + LTRIM(COALESCE(STR(d.financial_batch_id), '')), 12) 
-            +RIGHT(REPLICATE(' ', 22) + 
+            +( LEFT(LTRIM(ISNULL(CAST(d.financial_batch_id_year AS NVARCHAR(2)), '00')+  '-' + ISNULL(CAST(d.financial_batch_id_year AS NVARCHAR(2)), '00') ) + REPLICATE(' ', 12)  , 12))+RIGHT(REPLICATE(' ', 22) + 
                 CASE WHEN app.student_number IS NULL THEN 'Yukon Student'
                     ELSE app.student_number
                 END, 
                 22) 
-            + RIGHT(REPLICATE(' ', 45) + COALESCE(rt.financial_coding, ''), 45) +'03    ' + SUBSTRING(CONVERT(VARCHAR, ABS(COALESCE(d.disbursed_amount, 0)), 128), 1, 15) 
+            + (LEFT(ISNULL('031-200602-0302-2503', '') + REPLICATE(' ', 45)  , 45)) +'03    ' + 
+			RIGHT(REPLICATE('0', 15)+ replace(CONVERT(VARCHAR, ABS(COALESCE(d.disbursed_amount, 0)), 128), '.', ''), 15)
             +'            ' + '            ' + '    ' 
             + RIGHT(REPLICATE(' ', 16) + COALESCE(LTRIM(d.tax_year),''), 16)
             + '000000000000000' 
