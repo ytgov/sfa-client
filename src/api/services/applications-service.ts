@@ -3,6 +3,7 @@ import db from "@/db/db-client"
 import Application from "@/models/application"
 
 import PersonAddressesService from "@/services/person-addresses-service"
+import InstitutionCampusesService from "@/services/institution-campuses-service"
 
 namespace ApplicationsService {
   export type IncludeTypes = ("student" | "personAddress" | "institutionCampus" | "studyArea")[]
@@ -71,9 +72,9 @@ export default class ApplicationsService {
       this.#includes.includes("institutionCampus") &&
       application.institutionCampusId !== undefined
     ) {
-      application.institutionCampus = await this.#getInstitutionCampus(
-        application.institutionCampusId
-      )
+      application.institutionCampus = await InstitutionCampusesService.includes([
+        "institution",
+      ]).find(application.institutionCampusId)
     }
 
     if (this.#includes.includes("studyArea") && application.studyAreaId !== undefined) {
@@ -88,9 +89,5 @@ export default class ApplicationsService {
     }
 
     return application
-  }
-
-  #getInstitutionCampus(institutionCampusId: number) {
-    return
   }
 }
