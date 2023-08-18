@@ -25,7 +25,7 @@ function patchExtensionlessPath(viewPath: string) {
   return viewPath
 }
 
-export function renderViewAsPromise(viewPath: string, options: RenderViewOptions): Promise<string> {
+export function renderViewAsHtml(viewPath: string, options: RenderViewOptions): Promise<string> {
   const patchedViewPath = patchExtensionlessPath(viewPath)
   options = { ...options, API_PORT }
   return new Promise((resolve, reject) => {
@@ -42,7 +42,7 @@ export function renderViewAsPromise(viewPath: string, options: RenderViewOptions
 }
 
 export function renderViewAsPdf(viewPath: string, options: RenderViewOptions, format: PaperFormat = "letter", landscape: boolean = false) {
-  return renderViewAsPromise(viewPath, options).then((htmlToRenderAsPDF) => {
+  return renderViewAsHtml(viewPath, options).then((htmlToRenderAsPDF) => {
     return generatePDF(htmlToRenderAsPDF, format, landscape)
   })
 }

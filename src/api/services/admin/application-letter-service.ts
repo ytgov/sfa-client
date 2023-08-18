@@ -1,5 +1,5 @@
 import { Application } from "models";
-import { renderViewAsPdf, renderViewAsPromise } from "../../utils/express-handlebars-pdf-client";
+import { renderViewAsPdf, renderViewAsHtml } from "../../utils/express-handlebars-pdf-client";
 import db from "@/db/db-client";
 
 export default class ApplicationLetterService {
@@ -51,7 +51,7 @@ export default class ApplicationLetterService {
     }
 
     if (this.#format === "html") {
-      return renderViewAsPromise(
+      return renderViewAsHtml(
         this.#getTemplatePathForRequestType("approval", this.#fundingRequest.requestTypeId),
         this.#data
       );
@@ -73,7 +73,7 @@ export default class ApplicationLetterService {
     }
 
     if (this.#format === "html") {
-      return renderViewAsPromise(
+      return renderViewAsHtml(
         this.#getTemplatePathForRequestType("rejection", this.#fundingRequest.requestTypeId),
         this.#data
       );
