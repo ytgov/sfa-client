@@ -1,12 +1,17 @@
 import db from "@/db/db-client"
 
-import Application from "@/models/application"
 import FundingRequest from "@/models/funding-request"
 
 import ApplicationsService from "@/services/applications-service"
 
 namespace FundingRequestsService {
-  export type IncludeTypes = ("application" | "assessments" | "disbursements" | "requestType")[]
+  export type IncludeTypes = (
+    | "application"
+    | "assessments"
+    | "disbursements"
+    | "requestType"
+    | "status"
+  )[]
 }
 
 export default class FundingRequestsService {
@@ -66,6 +71,17 @@ export default class FundingRequestsService {
           if (requestType) return requestType
 
           throw new Error("Request type not found")
+        })
+    }
+
+    if (this.#includes.includes("status") && fundingRequest.statusId !== undefined) {
+      fundingRequest.status = await db("status")
+        .where({ id: fundingRequest.statusId })
+        .first()
+        .then((status) => {
+          if (status) return status
+
+          throw new Error("Status not found")
         })
     }
 

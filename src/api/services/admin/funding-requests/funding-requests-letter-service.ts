@@ -106,6 +106,7 @@ export default class FundingRequestsLetterService {
       "assessments",
       "disbursements",
       "requestType",
+      "status",
     ]).find(fundingRequestId)
     return this.#_fundingRequest
   }
