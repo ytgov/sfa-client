@@ -41,6 +41,7 @@ export const CITIES=`${config.apiBaseUrl}/api/v2/admin/cities`;
 export const CSL_CODES = `${config.apiBaseUrl}/api/v2/admin/csl-codes`;
 export const CSL_CERTIFICATE_EXPORT = `${config.apiBaseUrl}/api/v2/admin/csl-certificate-export`;
 export const CSL_MSFAA_RECEIVE = `${config.apiBaseUrl}/api/v2/admin/csl-msfaa-receive`;
+export const CSL_ENTITLEMENT_FEEDBACK = `${config.apiBaseUrl}/api/v2/admin/csl-entitlement-feedback`
 export const CSL_LOOKUP = `${config.apiBaseUrl}/api/v2/admin/csl-lookup`;
 export const CSL_REASON = `${config.apiBaseUrl}/api/v2/admin/csl-reason`;
 export const COMMUNICATION_TYPES = `${config.apiBaseUrl}/api/v2/admin/communication-types`;
@@ -90,6 +91,7 @@ export const CHANGE_REASON =`${config.apiBaseUrl}/api/v2/admin/change-reason`;
 export const ACCOMMODATION_TYPE =`${config.apiBaseUrl}/api/v2/admin/accommodation-type`;
 export const DISBURSEMENT =`${config.apiBaseUrl}/api/v2/admin/disbursement`;
 export const ASSESSMENT = `${config.apiBaseUrl}/api/v2/admin/assessment`;
+export const CERTIFICATE_AUDIT_REPORT = `${config.apiBaseUrl}/api/v2/admin/csl-certificate-audit-report`;
 export const CHEQUE_REQ_LIST = `${config.apiBaseUrl}/api/v2/admin/cheque-req-list`;
 
 export const APPLICATION_LETTER_URL = `${config.apiBaseUrl}/api/v2/admin/application-letter`;

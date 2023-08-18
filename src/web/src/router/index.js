@@ -46,6 +46,7 @@ import ApplicationTypeModuleRooutes from "@/modules/application-type/router";
 import InstitutionModuleRoutes from "@/modules/institution/router";
 import CslCertificateExportModuleRoutes from "@/modules/csl-certificate-export/router";
 import CslMsfaaReceiveModuleRoutes from "@/modules/csl-msfaa-receive/router";
+import CslEntitlementFeedbackModuleRoutes from "@/modules/csl-entitlement-feedback/router";
 import ProvinceModuleRoutes from "@/modules/province/router";
 import CountriesModuleRoutes from "@/modules/countries/router";
 import CitiesModuleRoutes from "@/modules/cities/router";
@@ -77,7 +78,7 @@ import aboriginalStatusRoutes from "@/modules/aboriginal-status/router";
 import disabilityServiceRoutes from "@/modules/disability-service/router";
 import officerRoutes from "@/modules/officer/router";
 import ChequeReqListModuleRoutes from "@/modules/cheque-req-list/router";
-
+import CslCertificateAuditReport from "@/modules/csl-certificate-audit-report/router";
 Vue.use(VueRouter);
 
 const routes = [
@@ -363,6 +364,7 @@ const routes = [
   ...InstitutionModuleRoutes,
   ...CslCertificateExportModuleRoutes,
   ...CslMsfaaReceiveModuleRoutes,
+  ...CslEntitlementFeedbackModuleRoutes,
   ...ProvinceModuleRoutes,
   ...CountriesModuleRoutes,
   ...CitiesModuleRoutes,
@@ -394,6 +396,7 @@ const routes = [
   ...disabilityServiceRoutes,
   ...officerRoutes,
   ...ChequeReqListModuleRoutes,
+  ...CslCertificateAuditReport,
 
   {
     path: "*",

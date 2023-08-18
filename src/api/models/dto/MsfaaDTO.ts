@@ -13,6 +13,7 @@ export interface MsfaaDTO {
     is_full_time?: boolean;
     email?: string;
     rec_create_date?: Date;
+    rec_last_mod_date?: Date;
 }
 
 export type MsfaaTable = Omit<MsfaaDTO, "id">;
@@ -30,5 +31,6 @@ export const msfaaColumns: (keyof MsfaaTable)[] = [
     "last_reminder_sent",
     "is_full_time",
     "email",
-    "rec_create_date"
+    "rec_create_date",
+    "rec_last_mod_date"
 ];

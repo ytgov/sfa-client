@@ -2080,6 +2080,22 @@ BEGIN
 END
 GO
 
+CREATE OR ALTER FUNCTION sfa.get_student_exempt_amt
+(
+    @academic_year_p INT
+)
+RETURNS NUMERIC
+AS
+BEGIN
+    DECLARE @v_student_exempt_amt NUMERIC;
+
+    SELECT @v_student_exempt_amt = ISNULL(student_exempt_amount, 0)
+    FROM sfa.csl_lookup
+    WHERE academic_year_id = @academic_year_p;
+
+    RETURN @v_student_exempt_amt;
+END
+GO
 -- Get Actual Expense
 CREATE OR ALTER FUNCTION sfa.fn_get_actual_expense(@period INT, @cat_id INT, @application_id INT)
 RETURNS NUMERIC(9,2)
@@ -3736,7 +3752,7 @@ BEGIN
   DECLARE @institution_code NVARCHAR(100);
   
   SELECT TOP 1 @institution_code = federal_institution_code
-  FROM sfa.institution
+  FROM sfa.institution_campus
   WHERE id = @institution_id_p;
   
   RETURN @institution_code;
@@ -4887,6 +4903,150 @@ BEGIN
 END
 GO
 
+CREATE OR ALTER FUNCTION sfa.get_records_for_cheque_req_dat_file(
+    @issue_date_str DATE,
+    @serial_no INT
+)
+RETURNS TABLE
+AS
+    RETURN
+    SELECT
+   '1' + ( LEFT(LTRIM(ISNULL(CAST(d.financial_batch_id_year AS NVARCHAR(2)), '00')+  '-' + ISNULL(CAST(d.financial_batch_id_year AS NVARCHAR(2)), '00') ) + REPLICATE(' ', 12)  , 12)) +
+    SPACE(30) + ' ' + '0000000' + '000000000000000' + '0' + FORMAT(CAST(@issue_date_str AS DATE), 'yyyyMMdd') + '0' + '03    ' + 'CAD ' +
+    '0000000000000' + '0000000000000' + ' ' + '1' + '  ' + '0000000000000' + '0000000000000' + '  ' + '    ' 
+    AS record1,
+    '2'+ RIGHT(REPLICATE(' ', 12) + s.vendor_id, 12)  + '03    ' + '000000000' +
+		( LEFT(LTRIM(ISNULL(CAST(d.financial_batch_id_year AS NVARCHAR(2)), '00')+  '-' + ISNULL(CAST(d.financial_batch_id_year AS NVARCHAR(2)), '00') ) + REPLICATE(' ', 12)  , 12))+
+            RIGHT(REPLICATE(' ', 22) + 
+                CASE WHEN app.student_number IS NULL THEN 'Yukon Student'
+                    ELSE app.student_number
+                END, 
+                22) +
+            'EX'+ 'RE'+ 'CAD '+ '            '+
+            '0'+ FORMAT(CAST(@issue_date_str AS DATE), 'yyyyMMdd')+ '0'+ '000000000'+ '        '+ '        '+
+            '              '+ '0  '+
+
+			RIGHT(REPLICATE('0', 15)+ replace(CONVERT(VARCHAR, ABS(COALESCE(d.disbursed_amount, 0)), 128), '.', ''), 15) +
+            REPLICATE(' ', 30) + '      '+ '0' + COALESCE(FORMAT(d.due_date, 'yyyyMMdd'), '') + '000000000'+
+            '000000000000000'+ '0'+ '000000000000000'+ '0'+ '000000000000000'+ '0'+
+            '000000000000000'+ '0'+ '000000000000000'+ '000000000000000'+ '0'+
+    --	'0000000000000'+' '+ 'TDCAD   '+ ' '+ '   '+ '                '+
+        '0000000000000'+' '+ '        '+ ' '+ '   '+ '                '+
+            '                '+ '                '
+    --		+ '1' -- change 0 to 1 for sep payment - Lidwien January 2008, Jira SFA 199
+            + '1' -- change 1 to 0 for sep payment - Lidwien 2020-08-25 as per Sharon for SFA EFT		
+            + ' '+ ' '+ 
+            --decode(institution_pck.get_institution_code_fct(history_detail.institution_id),'BUAA','G','S')+ -- Changed else condition from ' ' to 'S' Lidwien February 2009, Jira SFA 258
+    --			'S'+ -- adjusted special handling code to always be S as per Sheila, 2014-01-29 Lidwien SFA-362
+                ' '+ -- adjusted special handling code to always be space as optional, for NEW EFT no longer required, 2020-08-25 Lidwien 
+            '0000000000000'+ '0000000000000'+ '0000000000000'+ '0000000000000'
+    --		+ 'C'  -- change space to C for cheque payment type - Lidwien January 2008, Jira SFA 199
+            + ' '  -- change C to space for cheque payment type - for NEW EFT no longer required, 2020-08-25 Lidwien		
+            +'000000000'+ '9990206016050                                '+ '      '+
+            REPLICATE(' ', 22) + '000000000'+ 'CTL-YUKON   '+ '0'+ FORMAT(CAST(@issue_date_str AS DATE), 'yyyyMMdd') +
+            '0'+ FORMAT(CAST(@issue_date_str AS DATE), 'yyyyMMdd')+ '000000000'+ '000000000'+ '  '+ '     '+ '000000000000000'+
+            '0'+ '     '+ '000000000000000'+ '0'+ '     '+ '000000000000000'+ '0'+
+            '     '+ '000000000000000'+ '0'+ ' '+ '000000000'+ '0'+ FORMAT(CAST(@issue_date_str AS DATE), 'yyyyMMdd')+ '000000000'+
+            '000000000000000'+ ' '+ '000000000000000'+ '0'+ '1'+ 'N'+ '2'+ '0'+ FORMAT(CAST(@issue_date_str AS DATE), 'yyyyMMdd')+
+            '     '+ '     '+ '     '+ REPLICATE(' ', 25) + '            '+
+            '0'+ ' '+ '    '
+        as record2, -- Voucher Header (VOH)
+    '3'+ REPLICATE(' ', 12 - LEN(s.vendor_id)) + s.vendor_id + '03    '+ '000000000'+
+            '00001' +( LEFT(LTRIM(ISNULL(CAST(d.financial_batch_id_year AS NVARCHAR(2)), '00')+  '-' + ISNULL(CAST(d.financial_batch_id_year AS NVARCHAR(2)), '00') ) + REPLICATE(' ', 12)  , 12))+
+            RIGHT(REPLICATE(' ', 22) + 
+                CASE WHEN app.student_number IS NULL THEN 'Yukon Student'
+                    ELSE app.student_number
+                END, 
+                22)
+            + '                              ' +
+            RIGHT(REPLICATE('0', 15)+ replace(CONVERT(VARCHAR, ABS(COALESCE(d.disbursed_amount, 0)), 128), '.', ''), 15)  +
+            RIGHT(REPLICATE('0', 15)+ replace(CONVERT(VARCHAR, ABS(COALESCE(d.disbursed_amount, 0)), 128), '.', ''), 15)  +
+            ' ' + REPLICATE(' ', 20) + '000000000000000' + '    ' + '0' + '000000000000000' + '0' +
+            '000000000000000' + '0' + '000000000000000' + '0' + '000000000000000'+ '0' + '000000000000000' +
+            '        ' + '      ' + '      ' + '                ' + '                ' + '                ' +
+            '              ' + '000' + '00000' + '000000000' + '000000000' + '000000000' + ' ' + '        ' +
+            ' ' + '   ' + ' ' + ' ' + ' '+ '     ' + '000000000000000' + '0' + '     ' + '000000000000000' +
+            '0' + '     ' + '000000000000000' + '0' + '     ' + '000000000000000' + '0' + '               ' +
+            '               ' + ' ' + ' ' + REPLICATE(' ', 22) + ' ' + '000000000000000' + '0' + '    '+REPLICATE(' ',245)
+        as record3, --   Voucher Line Record -- (VOL)
+    '4'+ REPLICATE(' ', 12 - LEN(s.vendor_id)) + s.vendor_id  + '03    '+ '000000000'
+            +'00001' + '00001' 
+            +( LEFT(LTRIM(ISNULL(CAST(d.financial_batch_id_year AS NVARCHAR(2)), '00')+  '-' + ISNULL(CAST(d.financial_batch_id_year AS NVARCHAR(2)), '00') ) + REPLICATE(' ', 12)  , 12))+RIGHT(REPLICATE(' ', 22) + 
+                CASE WHEN app.student_number IS NULL THEN 'Yukon Student'
+                    ELSE app.student_number
+                END, 
+                22) 
+            + (LEFT(ISNULL('031-200602-0302-2503', '') + REPLICATE(' ', 45)  , 45)) +'03    ' + 
+			RIGHT(REPLICATE('0', 15)+ replace(CONVERT(VARCHAR, ABS(COALESCE(d.disbursed_amount, 0)), 128), '.', ''), 15)
+            +'            ' + '            ' + '    ' 
+            + RIGHT(REPLICATE(' ', 16) + COALESCE(LTRIM(d.tax_year),''), 16)
+            + '000000000000000' 
+            +'     ' + '     ' + '    '+REPLICATE(' ', 573)
+        as record4
+-- Voucher Distribution (VOD)
+FROM sfa.request_type rt
+    INNER JOIN sfa.funding_request fr ON rt.id = fr.request_type_id
+    INNER JOIN sfa.disbursement d ON fr.id = d.funding_request_id
+    INNER JOIN sfa.application app ON app.id = fr.application_id
+    INNER JOIN sfa.student s ON s.id = app.student_id
+WHERE NOT s.vendor_id IS NULL
+    AND d.disbursed_amount > 0
+    AND d.disbursement_type_id = 1
+    AND NOT d.due_date IS NULL
+    AND d.financial_batch_run_date = @issue_date_str
+    AND d.financial_batch_serial_no = @serial_no
+    AND (
+        CASE WHEN rt.batch_group_id = 5 THEN
+            CASE 
+                WHEN fr.yea_request_type = 1 THEN 3
+                WHEN fr.yea_request_type = 2 THEN 4
+                ELSE 1
+            END
+            WHEN rt.batch_group_id = 1 THEN sfa.get_batch_group_id_fct(fr.id)
+            ELSE rt.batch_group_id
+        END
+    ) = 3
+-- LOKINGFOR
+-- ORDER BY d.financial_batch_id_year, d.financial_batch_id, s.vendor_id;
+GO
+
+CREATE OR ALTER FUNCTION sfa.fn_get_csl_cert_seq_num
+(
+	@FROM_DATE_P DATE,
+	@TO_DATE_P DATE
+) 
+RETURNS INT AS
+BEGIN 
+	DECLARE @v_cert_count NUMERIC = 0;
+
+	SELECT @v_cert_count = count(d.id)
+		FROM sfa.funding_request AS fr
+		INNER JOIN sfa.disbursement AS d ON fr.id = d.funding_request_id
+		INNER JOIN sfa.request_type AS rt ON fr.request_type_id = rt.id
+		INNER JOIN (
+		  SELECT m.msfaa_status, app.academic_year_id, app.id
+		  FROM sfa.msfaa AS m
+		  INNER JOIN sfa.application AS app ON app.id = m.application_id
+		  WHERE app.id = m.application_id
+		) AS mhd ON fr.application_id = mhd.id
+		WHERE (mhd.msfaa_status = 'Received' OR mhd.academic_year_id <= 2012)
+		AND issue_date >= @FROM_DATE_P			
+		AND issue_date <= @TO_DATE_P		
+		AND d.due_date IS NOT NULL
+		AND d.transaction_number IS NOT NULL
+		AND d.csl_cert_seq_number IS NULL
+		AND disbursement_type_id IN (3, 4, 5, 7, 9)
+		AND fr.request_type_id IN (4, 5, 6, 15, 16, 17, 18, 19, 22, 23, 24, 26, 27, 28, 29, 30, 31, 32, 33, 35, 47)
+		AND d.transaction_number IN (
+		  SELECT d1.transaction_number
+		  FROM sfa.disbursement AS d1
+		  INNER JOIN sfa.funding_request AS fr1 ON d1.funding_request_id = fr1.id
+		  WHERE fr1.request_type_id IN (4, 5))
+		  
+		RETURN @v_cert_count;
+END
+GO
+
 CREATE OR ALTER FUNCTION sfa.fn_check_valid_date
 (
 @in_date_p NVARCHAR(100), 
@@ -5039,4 +5199,2335 @@ FROM sfa.disbursement d
 WHERE fr.application_id = @application_id
 ORDER BY d.due_date DESC;
 GO
+
+CREATE OR ALTER FUNCTION sfa.get_family_size(@application_id INT)
+RETURNS INT AS
+BEGIN
+        DECLARE @parent1_id VARCHAR(30);
+        DECLARE @parent2_id VARCHAR(30);
+        DECLARE @v_count INT = 0;
+
+        SELECT
+            @parent1_id = app.parent1_id,
+            @parent2_id = app.parent2_id
+        FROM sfa.application app
+        WHERE app.id = @application_id;
+
+        SELECT @v_count = COUNT(pd.id)
+        FROM sfa.parent_dependent pd
+        WHERE pd.application_id = @application_id
+        AND pd.is_eligible = 1;
+
+        IF @parent1_id IS NOT NULL
+        BEGIN
+            SET @v_count = @v_count + 1;
+        END
+
+        IF @parent2_id IS NOT NULL
+        BEGIN
+            SET @v_count = @v_count + 1;
+        END
+
+        IF @v_count > 10
+        BEGIN
+            SET @v_count = 10;
+        END
+
+    RETURN @v_count;
+END
+GO
+
+CREATE OR ALTER FUNCTION sfa.get_investment_total
+(
+    @application_id INT,
+    @ownership_id INT,
+    @rrsp_flag INT
+)
+RETURNS NUMERIC
+AS
+BEGIN
+    DECLARE @v_total NUMERIC;
+
+    SELECT @v_total = ISNULL(SUM(market_value), 0)
+    FROM sfa.investment
+    WHERE
+        ownership_id = @ownership_id
+        AND is_rrsp = @rrsp_flag
+        AND application_id = @application_id;
+
+    RETURN @v_total;
+END
+GO
+
+CREATE OR ALTER FUNCTION sfa.fn_get_csl_dep_age_count(@application_id INT, @age_start_p INT, @age_end_p INT, @csl_classification_p INT)
+RETURNS INT
+AS 
+BEGIN
+    /* CC - Changed eligibility check and age check - 2009-04-15 */
+    /* Lidwien - SFA-265 Adjusted count for newborns on reassessment 2010-06-16*/
+      DECLARE @v_dependent_count INT;
+      IF @csl_classification_p = 1 
+      BEGIN
+        SELECT  @v_dependent_count = COUNT(id)
+        FROM sfa.parent_dependent
+        WHERE application_id = @application_id AND age BETWEEN @age_start_p AND @age_end_p
+        AND is_eligible = 1;
+      END
+      ELSE
+      BEGIN
+        SELECT  @v_dependent_count = COUNT(*) 
+        FROM sfa.dependent d
+        INNER JOIN sfa.application app
+          ON d.student_id = app.student_id
+        INNER JOIN sfa.dependent_eligibility de
+          ON d.id = de.dependent_id AND de.application_id = app.id AND de.is_csl_eligible = 1
+        WHERE ((d.birth_date < app.classes_start_date 
+          AND ABS(FLOOR(DATEDIFF(MONTH, CAST( CAST(app.academic_year_id AS VARCHAR(4)) + '-01-01' AS DATE) , d.birth_date)/12)) BETWEEN  @age_start_p AND @age_end_p)
+            OR (d.birth_date > app.classes_start_date and d.birth_date < app.classes_end_date) and @age_start_p = 0)
+          AND app.id = @application_id;
+      END
+
+      RETURN @v_dependent_count;
+END
+GO
+
+
+CREATE OR ALTER FUNCTION sfa.fn_get_csl_dep_age_dis_cnt(@application_id INT, @age_start_p INT, @age_end_p INT, @disabled_p BIT, @csl_classification_p INT)
+RETURNS INT
+AS 
+BEGIN
+      DECLARE @v_dependent_count INT;      
+      IF @csl_classification_p = 1 
+      BEGIN
+        SELECT  @v_dependent_count = COUNT(id)
+        FROM sfa.parent_dependent
+        WHERE application_id = @application_id 
+          AND age BETWEEN @age_start_p AND @age_end_p 
+          AND is_eligible = 1
+          AND is_disabled = @disabled_p;
+      END
+      ELSE
+      BEGIN
+        SELECT  @v_dependent_count = COUNT(*)
+        FROM sfa.dependent d
+        INNER JOIN sfa.application app
+          ON  d.student_id = app.student_id
+        INNER JOIN sfa.dependent_eligibility de
+          ON d.id = de.dependent_id AND de.application_id = app.id
+        WHERE d.birth_date < app.classes_start_date
+          AND de.is_csl_eligible = 1
+          AND d.is_disability = @disabled_p
+          AND ABS(FLOOR(DATEDIFF(MONTH, CAST( CAST(app.academic_year_id AS VARCHAR(4)) + '-01-01' AS DATE) , d.birth_date)/12)) BETWEEN  @age_start_p AND @age_end_p
+          AND app.id = @application_id;
+      END;
+
+  RETURN @v_dependent_count;
+    
+END
+GO
+
+CREATE OR ALTER FUNCTION sfa.get_study_contribution(@assessment_id INT,@academic_year INT, @contrib_by NUMERIC)
+RETURNS NUMERIC AS
+BEGIN
+    DECLARE @v_student_gross NUMERIC;
+    DECLARE @v_student_exempt NUMERIC;
+    DECLARE @v_student_tax_rate NUMERIC;
+    DECLARE @v_student_tax_amount NUMERIC;
+    DECLARE @v_student_after_tax NUMERIC;
+    DECLARE @v_student_net NUMERIC;
+    DECLARE @v_student_contrib NUMERIC;
+    DECLARE @v_study_weeks NUMERIC;
+    DECLARE @v_spouse_gross NUMERIC;
+    DECLARE @v_spouse_tax_rate NUMERIC;
+    DECLARE @v_spouse_study_to DATE;
+    DECLARE @v_spouse_study_from DATE;
+    DECLARE @v_spouse_expected_income NUMERIC;
+    DECLARE @v_spouse_tax_amount NUMERIC;
+    DECLARE @v_spouse_after_tax NUMERIC;
+    DECLARE @v_spouse_exempt NUMERIC;
+    DECLARE @v_spouse_net NUMERIC;
+    DECLARE @v_spouse_study BIT;
+    DECLARE @v_spouse_contrib NUMERIC;
+    DECLARE @v_spouse_study_weeks NUMERIC;
+    DECLARE @v_married_study NUMERIC;
+
+    SELECT @v_student_gross = a.student_gross_income
+        , @v_student_exempt = (sfa.get_student_exempt_amt(@academic_year) *  a.study_weeks)
+        , @v_student_tax_rate = a.student_tax_rate
+        , @v_spouse_gross = a.SPOUSE_GROSS_INCOME
+        , @v_spouse_tax_rate = a.spouse_tax_rate
+        , @v_study_weeks = a.study_weeks
+        , @v_spouse_study_to = app.spouse_study_school_to
+        , @v_spouse_study_from = app.spouse_study_school_from
+        , @v_spouse_expected_income = a.spouse_expected_income
+        , @v_married_study = a.married_study
+    FROM sfa.assessment a
+        , sfa.funding_request fr
+        , sfa.application app
+        , sfa.student s
+    WHERE a.funding_request_id = fr.id
+    AND fr.application_id = app.id
+    AND app.student_id = s.id
+    AND a.id = @assessment_id;
+
+    -- Student
+    -- Calculate tax amount
+    SET @v_student_tax_amount = ROUND(ISNULL(@v_student_gross, 0) * ISNULL(@v_student_tax_rate, 0) / 100, 0);
+
+    -- Calculate after tax
+    SET @v_student_after_tax = ROUND(ISNULL(@v_student_gross, 0) - ISNULL(@v_student_tax_amount, 0), 2);
+
+    -- Apply minimum value of 0
+    SET @v_student_after_tax = CASE
+        WHEN ISNULL(@v_student_after_tax, 0) < 0 THEN 0
+        ELSE @v_student_after_tax
+    END;
+
+    -- Calculate net income
+    SET @v_student_net = ROUND(ISNULL(@v_student_after_tax, 0) - ISNULL(@v_student_exempt, 0), 2);
+
+    SET @v_student_net = CASE
+        WHEN ISNULL(@v_student_net, 0) < 0 THEN 0
+        ELSE @v_student_net
+    END;
+
+    -- Calculate study contribution - changed to be full amount instead of 80% after exemption, lidwien SFA-208
+    SET @v_student_contrib = ROUND(@v_student_net, 2);
+
+    -- Spouse
+    -- Calculate tax amount
+    SET @v_spouse_tax_amount = ROUND(ISNULL(@v_spouse_gross, 0) * ISNULL(@v_spouse_tax_rate, 0) / 100, 2);
+
+
+
+    -- Calculate after tax
+    SET @v_spouse_after_tax = ROUND(ISNULL(@v_spouse_gross, 0) - ISNULL(@v_spouse_tax_amount, 0), 2);
+
+    -- Apply minimum value of 0
+    SET @v_spouse_after_tax = CASE
+        WHEN ISNULL(@v_spouse_after_tax, 0) < 0 THEN 0
+        ELSE @v_spouse_after_tax
+    END;
+
+    -- Calculate spouse exemption
+    IF @v_spouse_study_to IS NULL OR @v_spouse_study_from IS NULL
+        BEGIN
+            SET @v_spouse_exempt = 0;
+            SET @v_spouse_study = 0;
+        END
+    ELSE
+        BEGIN
+            SET @v_spouse_study_weeks = CAST(((DATEDIFF(DAY, @v_spouse_study_to, @v_spouse_study_from)) + 1) / 7 + 0.9999 AS INT);
+
+            IF @v_study_weeks < @v_spouse_study_weeks
+                SET @v_spouse_exempt = (sfa.get_student_exempt_amt(@academic_year) * @v_study_weeks);
+            ELSE
+                SET @v_spouse_exempt = (sfa.get_student_exempt_amt(@academic_year) * @v_spouse_study_weeks);
+
+
+            SET @v_spouse_study = 1;
+        END
+
+    -- Calculate net income
+    SET @v_spouse_net = ROUND(ISNULL(@v_spouse_after_tax, 0) - ISNULL(@v_spouse_exempt, 0), 2);
+
+    -- Apply minimum value of 0
+    SET @v_spouse_net = CASE
+        WHEN ISNULL(@v_spouse_net, 0) < 0 THEN 0
+        ELSE @v_spouse_net
+    END;
+
+
+    -- Calculate study contribution
+    -- change 80 percent to 70 percent as per Ottawa, lidwien SFA-208
+
+    IF @v_spouse_study = 1 -- if spouse is a student then divide contributions by 2
+        BEGIN
+            SET @v_spouse_contrib = ROUND(@v_spouse_net * 0.7, 2);
+            SET @v_student_contrib = ROUND(ISNULL(@v_student_contrib, 0) / 2, 2);
+            SET @v_spouse_contrib = ROUND(ISNULL(@v_spouse_contrib, 0) / 2, 2);
+        END
+    ELSE
+        BEGIN
+            SET @v_spouse_contrib = CASE
+                WHEN ROUND(@v_spouse_net * 0.7, 2) > @v_spouse_expected_income THEN ROUND(@v_spouse_net * 0.7, 2)
+                ELSE @v_spouse_expected_income
+            END;
+        END
+
+    SET @v_spouse_contrib = ISNULL(ROUND(@v_married_study, 2), @v_spouse_contrib);
+
+    IF @contrib_by = 1
+    BEGIN
+        RETURN @v_student_contrib;
+    END
+
+    RETURN @v_spouse_contrib;
+END
+GO
+
+CREATE OR ALTER FUNCTION sfa.get_pstudy_contribution (@assessment_id_p INT)
+RETURNS NUMERIC AS
+BEGIN
+
+        DECLARE @v_ps_months NUMERIC;
+        DECLARE @v_ps_shelter NUMERIC;
+        DECLARE @v_ps_p_trans NUMERIC;
+        DECLARE @v_ps_x_trans NUMERIC;
+        DECLARE @v_ps_dc_actual NUMERIC;
+        DECLARE @v_ps_dc_allow NUMERIC;
+        DECLARE @v_ps_d_food NUMERIC;
+        DECLARE @v_ps_d_trans NUMERIC;
+        DECLARE @v_ps_uncapped NUMERIC;
+        DECLARE @v_ps_married NUMERIC;
+        DECLARE @v_ps_expected NUMERIC;
+        DECLARE @v_ps_gross NUMERIC;
+        DECLARE @v_ps_tax_rate NUMERIC;
+        DECLARE @v_ps_spouse_gross NUMERIC;
+        DECLARE @v_ps_spouse_tax_rate NUMERIC;
+        DECLARE @v_ps_combined_net NUMERIC;
+        DECLARE @v_ps_allowable_total NUMERIC;
+        DECLARE @v_ps_disc_80 NUMERIC;
+        DECLARE @v_ps_contrib NUMERIC;
+
+
+        SELECT 
+        @v_ps_months = CAST(((DATEDIFF(DAY, a.pstudy_start_date, a.pstudy_end_date) - 1) / 30.44 + 0.9999) AS INT),
+	@v_ps_shelter = COALESCE(a.pstudy_shelter_month,0), 
+        @v_ps_p_trans = COALESCE(a.pstudy_p_trans_month,0),
+        @v_ps_x_trans = COALESCE(a.pstudy_x_trans_total,0), 
+        @v_ps_dc_actual = COALESCE(a.pstudy_day_care_actual,0),
+        @v_ps_dc_allow = COALESCE(a.pstudy_day_care_allow,0), 
+        @v_ps_d_food = COALESCE(a.pstudy_depend_food_allow,0),
+        @v_ps_d_trans = COALESCE(a.pstudy_depend_tran_allow,0), 
+        @v_ps_uncapped = COALESCE(a.uncapped_pstudy_total,0),
+        @v_ps_married = a.married_pstudy, 
+        @v_ps_expected = COALESCE(a.pstudy_expected_contrib,0),
+        @v_ps_gross = COALESCE(a.stud_pstudy_gross,0), 
+        @v_ps_tax_rate = COALESCE(a.stud_pstudy_tax_rate,0),
+        @v_ps_spouse_gross = COALESCE(a.spouse_pstudy_gross,0), 
+        @v_ps_spouse_tax_rate = COALESCE(a.spouse_pstudy_tax_rate,0)
+        FROM sfa.assessment a 
+        WHERE a.id = @assessment_id_p;
+
+        -- Calculate the combined net income for the prestudy period
+        SET @v_ps_combined_net = 0;
+
+        IF @v_ps_gross > 0
+        BEGIN
+                SET @v_ps_combined_net = ROUND(@v_ps_gross - ROUND(@v_ps_gross * (@v_ps_tax_rate/100), 0), 0);
+        END
+
+        IF @v_ps_spouse_gross > 0
+        BEGIN
+                SET @v_ps_combined_net = @v_ps_combined_net + ROUND(@v_ps_spouse_gross - (@v_ps_spouse_gross * (@v_ps_spouse_tax_rate/100)), 0);
+        END
+
+                -- Calculate the total allowable costs for the prestudy period
+        SET @v_ps_allowable_total = 0;
+
+        SET @v_ps_allowable_total = ROUND(@v_ps_shelter * @v_ps_months, 0);
+        SET @v_ps_allowable_total = @v_ps_allowable_total + ROUND(@v_ps_p_trans * @v_ps_months, 0);
+        SET @v_ps_allowable_total = @v_ps_allowable_total + ROUND(@v_ps_x_trans, 0);
+        SET @v_ps_allowable_total = @v_ps_allowable_total + ROUND(CASE 
+              WHEN ISNULL(@v_ps_dc_actual, 0) < @v_ps_dc_allow THEN ISNULL(@v_ps_dc_actual, 0) 
+              ELSE @v_ps_dc_allow 
+          END * @v_ps_months, 0);
+        SET @v_ps_allowable_total = @v_ps_allowable_total + ROUND(@v_ps_d_food * @v_ps_months, 0);
+        SET @v_ps_allowable_total = @v_ps_allowable_total + ROUND(@v_ps_d_trans * @v_ps_months, 0);
+
+        -- Calculate 80% of the prestudy discretionary costs
+        SET @v_ps_disc_80 = ROUND(ROUND(CASE 
+                   WHEN (@v_ps_combined_net - @v_ps_uncapped - @v_ps_allowable_total) > 0 
+                   THEN (@v_ps_combined_net - @v_ps_uncapped - @v_ps_allowable_total) 
+                   ELSE 0 
+                 END, 0) * 0.8, 0);
+
+        -- Calculate the actual prestudy contribution
+        SET @v_ps_contrib = ROUND(CASE 
+            WHEN @v_ps_married IS NOT NULL THEN @v_ps_married 
+            ELSE ROUND( 
+                        CASE 
+                                WHEN @v_ps_expected > @v_ps_disc_80 THEN @v_ps_expected 
+                                ELSE @v_ps_disc_80 
+                        END
+                , 0) 
+          END, 0);
+
+	RETURN @v_ps_contrib;
+END
+GO
+
+
+--Private procedure called when saving to csl_nars_history
+CREATE OR ALTER PROCEDURE sfa.sp_update_zero_amounts 
+    @p_issue_date DATE,
+    @p_serial_num INT
+AS
+BEGIN
+    DECLARE @v_financial_batch_id INT;
+    DECLARE @v_seq_name NVARCHAR(255);
+    DECLARE @v_last_bg_id INT;
+    DECLARE @seq_count INT;
+    DECLARE @disbursement_id INT;
+    DECLARE @bg_id INT;
+    DECLARE @f_year INT;
+    DECLARE @create_sequence_sql NVARCHAR(MAX);
+    DECLARE @next_value_sql NVARCHAR(MAX);
+    -- Update zero amount disbursements with a financial batch id 
+    DECLARE cur_disbursements CURSOR FOR
+    SELECT d.id, 
+        CASE
+            WHEN rt.batch_group_id = 5 THEN
+                CASE
+                    WHEN fr.yea_request_type = 1 THEN 3
+                    WHEN fr.yea_request_type = 2 THEN 4
+                    ELSE 1
+                END
+            WHEN rt.batch_group_id = 1 THEN
+                sfa.get_batch_group_id_fct(fr.id)
+            ELSE rt.batch_group_id
+        END AS bg_id,
+        sfa.get_fiscal_year_fct(d.issue_date) f_year
+    FROM sfa.funding_request fr
+    INNER JOIN sfa.disbursement d
+        ON fr.id = d.funding_request_id
+    INNER JOIN sfa.request_type rt
+        ON fr.request_type_id = rt.id
+    INNER JOIN sfa.assessment a 
+        ON fr.id = a.funding_request_id and d.assessment_id = a.id
+    WHERE d.disbursed_amount = 0 
+        AND d.issue_date                >= '20090417'
+        AND d.issue_date                <= @p_issue_date
+        AND d.due_date                  IS NOT NULL
+        AND d.financial_batch_id        IS NULL
+        AND d.financial_batch_serial_no IS NULL
+        AND d.financial_batch_run_date  IS NULL
+        AND fr.request_type_id           = 4
+    ORDER BY bg_id
+
+    OPEN cur_disbursements;
+    FETCH NEXT FROM cur_disbursements INTO @disbursement_id, @bg_id, @f_year;
+    WHILE @@FETCH_STATUS = 0
+    BEGIN
+        IF ISNULL(@v_last_bg_id, -1) <> @bg_id OR @v_financial_batch_id IS NULL
+        BEGIN
+            SET @v_seq_name = 
+                CASE @bg_id
+                    WHEN 1 THEN  CONCAT('FB_' , CAST(@f_year AS NVARCHAR) ,  '_STA_SEQ') 
+                    WHEN 2 THEN CONCAT('FB_' , CAST(@f_year AS NVARCHAR) , '_CSL_SEQ')
+                    WHEN 3 THEN CONCAT('FB_' , CAST(@f_year AS NVARCHAR) , '_ORI_SEQ')
+                    WHEN 4 THEN CONCAT('FB_' , CAST(@f_year AS NVARCHAR) , '_OTHER_SEQ')
+                END;
+
+            -- Validate if the sequence exist 
+            SELECT  @seq_count = COUNT(name)
+            FROM sys.objects
+            WHERE name = @v_seq_name
+            IF @seq_count = 0 
+            BEGIN
+                SET @create_sequence_sql = N'CREATE SEQUENCE sfa.' + @v_seq_name + N' START WITH 1 INCREMENT BY 1;';
+                EXEC sp_executesql @create_sequence_sql;
+            END
+            SET @next_value_sql = N'SELECT @v_financial_batch_id = NEXT VALUE FOR sfa.' + @v_seq_name;
+
+            EXEC sp_executesql @next_value_sql,
+                N'@v_financial_batch_id INT OUTPUT',
+                @v_financial_batch_id OUTPUT;
+        END;
+
+        UPDATE sfa.disbursement
+        SET 
+            financial_batch_run_date = @p_issue_date,
+            financial_batch_serial_no = @p_serial_num,
+            financial_batch_id = @v_financial_batch_id
+        WHERE id = @disbursement_id;
+
+        SET @v_last_bg_id = @bg_id;
+        FETCH NEXT FROM cur_disbursements INTO @disbursement_id, @bg_id, @f_year;
+    END;
+    CLOSE cur_disbursements;
+    DEALLOCATE cur_disbursements;
+END
+GO
+
+CREATE OR ALTER FUNCTION sfa.get_standard_living_amt
+(
+    @academic_year_p VARCHAR(50),
+    @province_id_p INT,
+    @family_size_p INT
+)
+RETURNS INT
+AS
+BEGIN
+    DECLARE @v_standard_living_amt INT;
+    
+    SELECT @v_standard_living_amt = standard_living_amount
+    FROM sfa.standard_of_living
+    WHERE academic_year_id = @academic_year_p
+    AND province_id = @province_id_p
+    AND family_size = @family_size_p;
+    
+    IF @v_standard_living_amt IS NULL
+    BEGIN
+        SET @v_standard_living_amt = 0;
+    END
+    
+    RETURN @v_standard_living_amt;
+    
+    RETURN 0; -- Return 0 in case of exceptions (NO_DATA_FOUND)
+END
+GO
+
+CREATE OR ALTER FUNCTION sfa.get_parent_contribution_fct
+(
+    @academic_year_p INT,
+    @discretionary_income_p FLOAT
+)
+RETURNS NUMERIC
+AS
+BEGIN
+    DECLARE @v_cont FLOAT;
+
+    SELECT TOP 1
+        @v_cont = ROUND(( add_amount + ((@discretionary_income_p - subtract_amount) * (percentage / 100)) / divide_by), 0)
+    FROM sfa.parent_contribution_formula
+    WHERE academic_year_id = @academic_year_p
+    AND @discretionary_income_p BETWEEN income_from_amount AND income_to_amount;
+
+    RETURN ISNULL(@v_cont, 0);
+END
+GO
+
+CREATE OR ALTER FUNCTION sfa.get_parent_contribution
+(
+    @assessment_id_p INT,
+    @academic_year_p INT, 
+    @student_id_p INT
+)
+RETURNS NUMERIC AS
+BEGIN
+    DECLARE @v_parent_contribution NUMERIC;
+    DECLARE @v_net_income NUMERIC;
+    DECLARE @v_discretionary_income NUMERIC;
+    DECLARE @v_family_size NUMERIC;
+    DECLARE @v_msol NUMERIC;
+    DECLARE @v_study_weeks NUMERIC;
+    DECLARE @v_ps_depend_count NUMERIC;
+    DECLARE @parent_mailing_province_id INT;
+
+    SELECT
+        @parent_mailing_province_id = pa.province_id
+    FROM sfa.student s
+        INNER JOIN sfa.person p ON p.id = s.person_id
+        INNER JOIN sfa.person_address pa ON pa.person_id = p.id
+    WHERE s.id = @student_id_p
+    AND pa.address_type_id = 4;
+
+    SELECT
+        @v_net_income = COALESCE(a.parent1_income, 0) 
+           + COALESCE(a.parent2_income, 0)
+           - COALESCE(a.parent1_tax_paid, 0)
+           - COALESCE(a.parent2_tax_paid, 0),
+        @v_family_size = COALESCE(a.family_size, 0),
+        @v_study_weeks = COALESCE(a.study_weeks, 0),
+        @v_ps_depend_count = COALESCE(a.parent_ps_depend_count, 0)
+    FROM sfa.assessment a
+    WHERE a.id = @assessment_id_p;
+
+    SET @v_msol = COALESCE(sfa.get_standard_living_amt(@academic_year_p, @parent_mailing_province_id, @v_family_size), 0);
+
+    SET @v_discretionary_income = @v_net_income - @v_msol;
+
+    SELECT @v_parent_contribution = sfa.get_parent_contribution_fct(@academic_year_p, @v_discretionary_income);
+
+    IF @v_parent_contribution IS NULL
+    BEGIN
+        SET @v_parent_contribution = 0;
+    END
+
+    DECLARE @max_depend_count NUMERIC;
+
+    SELECT @max_depend_count = MAX(val) from (values(@v_ps_depend_count),(1)) GREATEST_VALUE(val);
+
+    RETURN ROUND(ROUND(@v_parent_contribution, 0) * @v_study_weeks / (@max_depend_count), 0);
+END
+GO
+
+CREATE OR ALTER FUNCTION sfa.get_max_weekly_allowable
+(
+    @academic_year_p INT
+)
+RETURNS NUMERIC
+AS
+BEGIN
+    DECLARE @v_max_weekly_allowable NUMERIC;
+
+    SELECT @v_max_weekly_allowable = allowable_weekly_amount
+    FROM sfa.csl_lookup
+    WHERE academic_year_id = @academic_year_p;
+
+    IF @v_max_weekly_allowable IS NULL
+    BEGIN
+        SET @v_max_weekly_allowable = 0;
+    END
+
+    RETURN COALESCE(@v_max_weekly_allowable, 0);
+END
+GO
+
+CREATE OR ALTER FUNCTION sfa.get_assessed_cost
+(
+    @assessment_id_p NUMERIC
+)
+RETURNS NUMERIC
+AS
+BEGIN
+    DECLARE @v_tuition NUMERIC;
+    DECLARE @v_books NUMERIC;
+    DECLARE @v_months NUMERIC;
+    DECLARE @v_shelter NUMERIC;
+    DECLARE @v_p_trans NUMERIC;
+    DECLARE @v_x_trans NUMERIC;
+    DECLARE @v_relocation NUMERIC;
+    DECLARE @v_r_trans NUMERIC;
+    DECLARE @v_d_food NUMERIC;
+    DECLARE @v_d_trans NUMERIC;
+    DECLARE @v_day_care NUMERIC;
+    DECLARE @v_discretionary NUMERIC;
+    DECLARE @v_uncapped NUMERIC;
+    DECLARE @v_total NUMERIC;
+
+    SELECT 
+        @v_tuition = ISNULL(a.tuition_estimate, 0),
+        @v_books = ISNULL(a.books_supplies_cost, 0),
+        @v_shelter = ROUND(ISNULL(a.shelter_month, 0) * ISNULL(a.study_months, 0), 0),
+        @v_p_trans = ROUND(ISNULL(a.p_trans_month, 0) * ISNULL(a.study_months, 0), 0),
+        @v_x_trans = ISNULL(a.x_trans_total, 0),
+        @v_relocation = ISNULL(a.relocation_total, 0),
+        @v_r_trans = ROUND(ISNULL(a.r_trans_16wk, 0) * 
+        (
+            CASE
+                WHEN a.study_weeks >= 1 AND a.study_weeks < 24 THEN 1
+                WHEN a.study_weeks >= 24 THEN 2
+                ELSE 0
+            END
+        ), 0),
+        @v_d_food = ROUND(ISNULL(a.depend_food_allowable, 0) * ISNULL(a.study_months, 0), 0),
+        @v_d_trans = ROUND(ISNULL(a.depend_tran_allowable, 0) * ISNULL(a.study_months, 0), 0),
+        @v_discretionary = ROUND(
+                CASE
+                    WHEN ISNULL(a.discretionary_cost_actual, 0) <= ISNULL(a.discretionary_cost, 0) THEN ISNULL(a.discretionary_cost_actual, 0)
+                    ELSE ISNULL(a.discretionary_cost, 0)
+                END
+            , 0),
+
+        @v_uncapped = ISNULL(a.UNCAPPED_COSTS_TOTAL, 0)
+    FROM sfa.assessment a
+    WHERE a.id = @assessment_id_p;
+
+    SET @v_total = ROUND(@v_tuition + @v_books + @v_shelter + @v_p_trans +
+                         @v_x_trans + @v_relocation + @v_r_trans +
+                         @v_d_food + @v_d_trans + @v_day_care +
+                         @v_discretionary + @v_uncapped, 0);
+
+    RETURN ISNULL(@v_total, 0);
+END
+GO
+
+CREATE OR ALTER FUNCTION sfa.get_csl_overaward_fct (@student_id_p INT, @funding_request_id_p INT)
+RETURNS INT
+AS
+BEGIN
+    DECLARE @request_v INT;
+    DECLARE @overaward_v INT;
+    DECLARE @assess_v INT;
+
+    DECLARE @cur_award CURSOR;
+    DECLARE @over_award INT;
+
+    SET @cur_award = CURSOR FOR
+    SELECT a.over_award
+    FROM sfa.assessment a
+    INNER JOIN sfa.funding_request fr ON a.funding_request_id = fr.id
+    INNER JOIN sfa.application app ON fr.application_id = app.id
+    WHERE a.assessment_type_id = 3
+    AND a.funding_request_id < @funding_request_id_p
+    AND app.student_id = @student_id_p
+    ORDER BY a.id DESC;
+
+    OPEN @cur_award;
+
+    FETCH NEXT FROM @cur_award INTO @over_award;
+
+    IF @@FETCH_STATUS = 0 BEGIN
+        SET @request_v = (
+                SELECT COUNT(fr.id)
+                FROM sfa.funding_request fr
+                INNER JOIN sfa.application app ON fr.application_id = app.id
+                WHERE fr.id <= @funding_request_id_p
+                AND app.student_id = @student_id_p
+                AND fr.request_type_id = 4
+            );
+
+        IF @request_v = 1 BEGIN
+            SET @overaward_v = ISNULL((SELECT s.pre_over_award_amount FROM sfa.student s WHERE s.id = @student_id_p), 0);
+        END
+        ELSE IF @request_v > 1 BEGIN
+            WHILE @@FETCH_STATUS = 0 BEGIN
+                SET @overaward_v = @over_award;
+                FETCH NEXT FROM @cur_award INTO @over_award;
+            END;
+        END;
+
+        IF @overaward_v IS NULL BEGIN
+            SET @overaward_v = 0;
+        END;
+    END;
+
+    CLOSE @cur_award;
+    DEALLOCATE @cur_award;
+
+    RETURN @overaward_v;
+END
+GO
+
+CREATE OR ALTER FUNCTION sfa.get_grant_amount (@application_id INT, @request_type_id INT)
+RETURNS INT
+AS
+BEGIN  
+    DECLARE @v_total NUMERIC;
+
+    SELECT 
+    @v_total = SUM(disbursed_amount)
+    FROM sfa.disbursement d, sfa.funding_request fr
+    WHERE  d.funding_request_id = fr.id
+    AND fr.request_type_id = @request_type_id
+    AND fr.application_id = @application_id;
+
+    RETURN @v_total;
+END
+GO
+
+CREATE OR ALTER FUNCTION sfa.get_grant_date(@application_id INT)
+RETURNS DATE
+AS
+BEGIN
+    DECLARE @v_date DATE;
+
+    SELECT @v_date = MAX(d.issue_date)
+    FROM sfa.disbursement d
+    INNER JOIN sfa.funding_request f ON d.funding_request_id = f.id
+    WHERE f.request_type_id IN (15, 20, 17, 18)
+    AND f.application_id = @application_id;
+
+    RETURN @v_date;
+END
+GO
+
+CREATE OR ALTER FUNCTION sfa.get_issue_date(@application_id INT, @request_type_id INT)
+RETURNS DATE
+AS
+BEGIN
+    DECLARE @v_date DATE;
+
+    SELECT @v_date = MAX(d.issue_date)
+    FROM sfa.disbursement d
+    INNER JOIN sfa.funding_request f ON d.funding_request_id = f.id
+    WHERE f.request_type_id = @request_type_id
+    AND f.application_id = @application_id;
+
+    RETURN @v_date;
+END
+GO
+
+CREATE OR ALTER FUNCTION sfa.get_prov_grant_schol_amount(
+    @student_id_p INT,
+    @academic_year_p INT,
+    @institution_id_p INT
+)
+RETURNS NUMERIC
+AS
+BEGIN
+    DECLARE @v_total NUMERIC;
+
+    SELECT @v_total = COALESCE(SUM(d.disbursed_amount), 0)
+    FROM sfa.disbursement d
+    INNER JOIN sfa.funding_request f ON d.funding_request_id = f.id
+    INNER JOIN sfa.application app ON f.application_id = app.id
+    WHERE f.request_type_id IN (1, 2, 3)
+    AND app.student_id = @student_id_p
+    AND app.academic_year_id = @academic_year_p
+    AND app.institution_campus_id = @institution_id_p;
+
+    RETURN @v_total;
+END
+GO
+
+CREATE OR ALTER FUNCTION sfa.get_prov_grant_amount(@application_id INT)
+RETURNS NUMERIC
+AS
+BEGIN
+    DECLARE @v_total NUMERIC;
+
+    SELECT @v_total = COALESCE(SUM(d.disbursed_amount), 0)
+    FROM sfa.disbursement d
+    INNER JOIN sfa.funding_request f ON d.funding_request_id = f.id
+    WHERE f.request_type_id IN (1, 2)
+    AND f.application_id = @application_id;
+
+    RETURN @v_total;
+END
+GO
+
+CREATE OR ALTER FUNCTION sfa.get_prov_grant_date(@application_id INT)
+RETURNS DATE
+AS
+BEGIN
+    DECLARE @v_date DATE;
+
+    SELECT @v_date = MAX(d.issue_date)
+    FROM sfa.disbursement d
+    INNER JOIN sfa.funding_request f ON d.funding_request_id = f.id
+    WHERE f.request_type_id IN (1, 2)
+    AND f.application_id = @application_id;
+
+    RETURN @v_date;
+END
+GO
+
+CREATE OR ALTER FUNCTION sfa.get_assessment_cnt(
+    @funding_request_id_p INT,
+    @assessment_id_p INT
+)
+RETURNS INT
+AS
+BEGIN
+    DECLARE @v_count INT;
+
+    SELECT @v_count = COUNT(a.id)
+    FROM sfa.assessment a
+    WHERE a.id <= @assessment_id_p
+    AND a.funding_request_id = @funding_request_id_p;
+
+    RETURN @v_count;
+END
+GO
+
+CREATE OR ALTER FUNCTION sfa.fn_date_from_yr_mo(@year_p INT, @month_p INT) 
+RETURNS DATE
+AS
+BEGIN
+
+        DECLARE @v_date  DATE;
+        DECLARE @v_month_char    NVARCHAR(2);
+        DECLARE @v_day_char      NVARCHAR(2);
+        
+        IF @year_p IS NULL OR @month_p IS NULL
+                RETURN NULL;
+        ELSE IF @month_p < 1 OR @month_p > 12
+                RETURN NULL;
+        ELSE IF @year_p < 1900 OR @year_p > 2199
+                RETURN NULL;
+        ELSE
+        BEGIN
+                /* Determine the last day for the month (don't worry about leap years,
+                                and return a date for the last day of the year/month
+                */
+                IF @month_p = 2
+                BEGIN
+                        SET @v_day_char = '28';
+                END
+                ELSE IF @month_p IN (4, 6, 9, 11)
+                BEGIN
+                        SET @v_day_char = '30';
+                END
+                ELSE
+                BEGIN
+                        SET @v_day_char = '31';
+                END
+
+
+                IF @month_p < 10 
+                BEGIN
+                        SET @v_month_char = '0' +  + CAST(@month_p AS NVARCHAR(2));
+                END
+                ELSE
+                BEGIN
+                        SET @v_month_char = + CAST(@month_p AS NVARCHAR(2));
+                END;
+                
+                SET @v_date = CAST(CAST(@year_p AS CHAR(4)) + @v_month_char + @v_day_char AS DATE);
+
+                RETURN @v_date;
+                
+        END
+RETURN NULL;
+END
+GO
+
+CREATE OR ALTER FUNCTION sfa.fn_get_rrsp_yearly_deduction(@academic_year_p INT)
+RETURNS DECIMAL(10,2)
+AS
+BEGIN
+    DECLARE @v_rrsp_yearly_deduction  DECIMAL(10,2);
+
+        SELECT @v_rrsp_yearly_deduction = ISNULL(rrsp_deduction_yearly_amount, 0)
+        FROM sfa.csl_lookup
+        WHERE academic_year_id = @academic_year_p;
+
+        IF @v_rrsp_yearly_deduction IS NULL 
+        BEGIN
+                SET @v_rrsp_yearly_deduction = 0;
+
+        END
+
+        RETURN  ISNULL(@v_rrsp_yearly_deduction, 0);
+END
+GO
+
+
+CREATE OR ALTER FUNCTION sfa.fn_get_assessed_resources(@assessment_id_p INT, @academic_year_p INT)
+RETURNS DECIMAL(10, 2)
+AS
+BEGIN
+
+        DECLARE @v_ps_months DECIMAL(10, 2);
+        DECLARE @v_ps_shelter DECIMAL(10, 2);
+        DECLARE @v_ps_p_trans DECIMAL(10, 2);
+        DECLARE @v_ps_x_trans DECIMAL(10, 2);
+        DECLARE @v_ps_dc_actual DECIMAL(10, 2);
+        DECLARE @v_ps_dc_allow DECIMAL(10, 2);
+        DECLARE @v_ps_d_food DECIMAL(10, 2);
+        DECLARE @v_ps_d_trans DECIMAL(10, 2);
+        DECLARE @v_ps_uncapped DECIMAL(10, 2);
+        DECLARE @v_ps_married DECIMAL(10, 2);
+        DECLARE @v_ps_expected DECIMAL(10, 2);
+        DECLARE @v_ps_gross DECIMAL(10, 2);
+        DECLARE @v_ps_tax_rate DECIMAL(10, 2);
+        DECLARE @v_ps_spouse_gross DECIMAL(10, 2);
+        DECLARE @v_ps_spouse_tax_rate DECIMAL(10, 2);
+        DECLARE @v_gross DECIMAL(10, 2);
+        DECLARE @v_tax_rate DECIMAL(10, 2);
+        DECLARE @v_spouse_gross DECIMAL(10, 2);
+        DECLARE @v_spouse_tax_rate DECIMAL(10, 2);
+        DECLARE @v_expected DECIMAL(10, 2);
+        DECLARE @v_married DECIMAL(10, 2);
+        DECLARE @v_investments DECIMAL(10, 2);
+        DECLARE @v_vehicle DECIMAL(10, 2);
+        DECLARE @v_rrsp_gross DECIMAL(10, 2);
+        DECLARE @v_rrsp_spouse DECIMAL(10, 2);
+        DECLARE @v_other DECIMAL(10, 2);
+        DECLARE @v_asset_tax_rate DECIMAL(10, 2);
+        DECLARE @v_married_assets DECIMAL(10, 2);
+        DECLARE @v_ps_combined_net DECIMAL(10, 2);
+        DECLARE @v_ps_allowable_total DECIMAL(10, 2);
+        DECLARE @v_ps_disc_80 DECIMAL(10, 2);
+        DECLARE @v_ps_contrib DECIMAL(10, 2);
+        DECLARE @v_combined_net DECIMAL(10, 2);
+        DECLARE @v_contrib DECIMAL(10, 2);
+        DECLARE @v_assets DECIMAL(10, 2);
+        DECLARE @v_total DECIMAL(10, 2);
+        DECLARE @v_ps_start_date DATE;
+        DECLARE @v_exempt_amt DECIMAL(10, 2);
+        DECLARE @v_spouse_exempt_amt DECIMAL(10, 2);
+        DECLARE @v_weeks DECIMAL(10, 2);
+        DECLARE @v_year DECIMAL(10, 2);
+        DECLARE @v_deduct DECIMAL(10, 2);
+        DECLARE @v_hs_left_year DECIMAL(10, 2);
+        DECLARE @v_hs_left_month DECIMAL(10, 2);
+        DECLARE @v_spouse_hs_end_year DECIMAL(10, 2);
+        DECLARE @v_spouse_hs_end_month DECIMAL(10, 2);
+        DECLARE @v_spouse_study_school_from DATE;
+        DECLARE @v_spouse_study_school_to DATE;
+        DECLARE @v_parental_contribution DECIMAL(10, 2);
+        DECLARE @v_student_contribution DECIMAL(10, 2);
+        DECLARE @v_spouse_contribution DECIMAL(10, 2);
+        DECLARE @v_vehicle_deduction_amount DECIMAL(10, 2);
+
+        DECLARE @v_date_hs_left DATE;
+        DECLARE @v_date_spouse_hs DATE;
+
+        SELECT  @v_ps_months =CAST(((DATEDIFF(DAY, a.pstudy_start_date, a.pstudy_end_date) - 1) / 30.44 + 0.9999) AS INT)
+                , @v_ps_shelter = ISNULL(a.pstudy_shelter_month,0)
+                , @v_ps_p_trans = ISNULL(a.pstudy_p_trans_month,0)
+                , @v_ps_x_trans = ISNULL(a.pstudy_x_trans_total,0)
+                , @v_ps_dc_actual = ISNULL(a.pstudy_day_care_actual,0)
+                , @v_ps_dc_allow = ISNULL(a.pstudy_day_care_allow,0)
+                , @v_ps_d_food = ISNULL(a.pstudy_depend_food_allow,0)
+                , @v_ps_d_trans = ISNULL(a.pstudy_depend_tran_allow,0)
+                , @v_ps_uncapped = ISNULL(a.UNCAPPED_pstudy_TOTAL,0)
+                , @v_ps_married = a.married_pstudy
+                , @v_ps_expected = ISNULL(a.pstudy_expected_contrib,0)
+                , @v_ps_gross = ISNULL(a.stud_pstudy_gross,0)
+                , @v_ps_tax_rate = ISNULL(a.stud_pstudy_tax_rate,0)
+                , @v_ps_spouse_gross = ISNULL(a.spouse_pstudy_gross,0)
+                , @v_ps_spouse_tax_rate = ISNULL(a.spouse_pstudy_tax_rate,0)
+                , @v_gross = ISNULL(a.student_gross_income,0)
+                , @v_tax_rate = ISNULL(a.student_tax_rate,0)
+                , @v_spouse_gross = ISNULL(a.spouse_gross_income,0)
+                , @v_spouse_tax_rate = ISNULL(a.spouse_tax_rate,0)
+                , @v_expected = ISNULL(a.spouse_expected_income,0)
+                , @v_married = married_study
+                , @v_investments =  0--ISNULL(a.financial_investments,0)
+                , @v_vehicle = 0 --ISNULL(a.vehicles_gross,0),
+                , @v_rrsp_gross = 0 --ISNULL(a.rrsp_student_gross,0)
+                , @v_rrsp_spouse = 0 --ISNULL(a.rrsp_spouse_gross,0)
+                , @v_other = 0 --ISNULL(a.other_income,0)
+                , @v_asset_tax_rate = ISNULL(a.asset_tax_rate,0)
+                , @v_married_assets = a.married_assets
+                , @v_ps_start_date = a.PSTUDY_START_DATE
+                , @v_weeks = a.STUDY_WEEKS
+                , @v_hs_left_year = s.HIGH_SCHOOL_LEFT_YEAR
+                , @v_hs_left_month = s.HIGH_SCHOOL_LEFT_MONTH
+                , @v_spouse_hs_end_year =app.SPOUSE_HS_END_YEAR
+                , @v_spouse_hs_end_month =app.SPOUSE_HS_END_MONTH
+                , @v_spouse_study_school_from =app.SPOUSE_STUDY_SCHOOL_FROM
+                , @v_spouse_study_school_to =app.SPOUSE_STUDY_SCHOOL_TO
+                , @v_parental_contribution = CASE 
+                                                WHEN app.csl_classification = 1 THEN
+                                                        CASE WHEN a.parent_contribution_override IS NULL THEN
+                                                                sfa.get_parent_contribution(a.id, app.academic_year_id, s.id)
+                                                        ELSE
+                                                                a.parent_contribution_override
+                                                        END
+                                                ELSE
+                                                        0
+                                        END
+                , @v_student_contribution  = a.student_contribution
+                , @v_spouse_contribution  = a.spouse_contribution
+        FROM sfa.assessment a
+        INNER JOIN sfa.funding_request fr
+                ON  a.funding_request_id = fr.id
+        INNER JOIN sfa.application app
+                ON fr.application_id = app.id
+        INNER JOIN sfa.student s
+                ON app.student_id = s.id
+        WHERE a.id = @assessment_id_p;
+
+        IF @academic_year_p < 2017 
+        BEGIN
+                -- Calculate the combined net income for the prestudy period
+                SET @v_ps_combined_net = 0;
+
+                IF @v_ps_gross > 0 
+                BEGIN
+                        SET @v_ps_combined_net = ROUND(@v_ps_gross - ROUND( (@v_ps_gross * @v_ps_spouse_tax_rate/100), 2), 2 );
+                END;
+
+                IF @v_ps_spouse_gross > 0 
+                BEGIN
+                        SET @v_ps_combined_net = @v_ps_combined_net + ROUND(@v_ps_spouse_gross - (@v_ps_spouse_gross * (@v_ps_spouse_tax_rate/100)), 2);
+                END;
+
+                -- Calculate the total allowable costs for the prestudy period
+                DECLARE @min_dc DECIMAL(18, 2);
+
+                SET @v_ps_allowable_total = 0;
+
+                SET @v_ps_allowable_total = ROUND(@v_ps_shelter * @v_ps_months , 2);
+
+                SET @v_ps_allowable_total = @v_ps_allowable_total + ROUND(@v_ps_p_trans * @v_ps_months, 2);
+
+                SET @v_ps_allowable_total = @v_ps_allowable_total + ROUND(@v_ps_x_trans, 2);
+
+                IF @v_ps_dc_actual < @v_ps_dc_allow
+                    SET @min_dc = @v_ps_dc_actual;
+                ELSE
+                    SET @min_dc = @v_ps_dc_allow;
+
+                SET @v_ps_allowable_total = @v_ps_allowable_total + ROUND(@min_dc * @v_ps_months, 2);
+
+                SET @v_ps_allowable_total = @v_ps_allowable_total + ROUND(@v_ps_d_food * @v_ps_months, 2);
+
+                SET @v_ps_allowable_total = @v_ps_allowable_total + ROUND(@v_ps_d_trans * @v_ps_months, 2);
+
+                -- Calculate 80% of the prestudy discretionary costs
+                --SET @v_ps_disc_80 = ROUND(ROUND(GREATEST((@v_ps_combined_net - @v_ps_uncapped - @v_ps_allowable_total),0), 2), 2)*.8;
+
+                -- Calculate the actual prestudy contribution
+                --SET @v_ps_contrib = ISNULL(ROUND(@v_ps_married, 2),ROUND(GREATEST(@v_ps_expected, @v_ps_disc_80), 2));
+
+                -- Calculate the combined net income for the study period
+                SET @v_combined_net = 0;
+
+                -- Calculate the exempt amount
+                SELECT @v_exempt_amt = ISNULL(sfa.get_student_exempt_amt(@academic_year_p),0);
+
+                IF @academic_year_p > 2003 
+                BEGIN
+                        SET @v_exempt_amt = @v_exempt_amt * @v_weeks;
+                END;
+
+                -- Calculate the spouse exempt amount
+                SET @v_spouse_exempt_amt = 0;
+
+                IF @v_spouse_study_school_to IS NOT NULL AND  @v_spouse_study_school_from IS NOT NULL 
+                BEGIN
+                        SELECT @v_spouse_exempt_amt =  sfa.get_student_exempt_amt(@academic_year_p);
+
+                        --IF @academic_year_p > 2003 
+                        --BEGIN
+                        --       SET @v_spouse_exempt_amt = @v_exempt_amt *  LEAST(@v_weeks, CAST((DATEDIFF(DAY,@v_spouse_study_school_from, @v_spouse_study_school_to ) + 1) / 7 + 0.9999 AS INT));
+                        --END;
+                END;
+
+                --IF @v_gross > 0 
+                --BEGIN
+                        --SET @v_combined_net = GREATEST(ROUND(@v_gross - ROUND((@v_gross * (@v_tax_rate/100)), 2), 2)- @v_exempt_amt,0);
+                --END;
+
+                --IF @v_spouse_gross > 0 
+                --BEGIN                                -- added 70% spouse net to calculation here, Lidwien SFA-208
+                        --SET @v_combined_net = @v_combined_net + GREATEST((ROUND(@v_spouse_gross - (@v_spouse_gross * (@v_spouse_tax_rate/100)), 2)- @v_spouse_exempt_amt) *.7,0);
+                --END;
+
+                -- Calculate the actual study contribution - removed 80% v_combined net calculation here, Lidwien SFA-208
+                --SET @v_contrib = ISNULL(ROUND(@v_married, 2),ROUND(GREATEST(@v_expected, @v_combined_net), 2));
+
+                -- Calculate total assets
+                SET @v_assets = 0;
+
+                IF @v_vehicle > 0 
+                BEGIN
+                        SELECT @v_vehicle_deduction_amount =  sfa.fn_get_vehicle_deduction_amount(@academic_year_p);
+                        --SET @v_assets = ROUND(GREATEST(@v_vehicle -  @v_vehicle_deduction_amount ,0), 2);
+                END;
+
+                IF @v_investments > 0 
+                BEGIN
+                        SET @v_assets = @v_assets + @v_investments;
+
+                END;
+                IF @v_other > 0 
+                BEGIN
+                        SET @v_assets = @v_assets + ROUND(@v_other - (@v_other * (@v_asset_tax_rate/100)), 2);
+
+                END
+
+                IF @v_rrsp_gross > 0 
+                BEGIN
+                        SELECT  @v_date_hs_left = sfa.fn_date_from_yr_mo(@v_HS_Left_Year, @v_HS_Left_Month);
+                        SET @v_year = ISNULL(ROUND(  DATEDIFF(DAY,@v_date_hs_left, @v_ps_Start_Date)/ 365.25 + 0.4999, 2),0);
+                        SELECT @v_deduct = sfa.fn_get_rrsp_yearly_deduction(@academic_year_p);
+                        --SET @v_assets = @v_assets + (GREATEST(@v_rrsp_gross - (@v_year * @v_deduct),0)) ;
+                END
+
+                IF @v_rrsp_spouse > 0 
+                BEGIN
+                        SELECT  @v_date_spouse_hs = sfa.fn_date_from_yr_mo(@v_Spouse_HS_End_Year, @v_Spouse_HS_End_Month);
+                        SET @v_year = ISNULL(ROUND( DATEDIFF(DAY,@v_date_spouse_hs, @v_ps_Start_Date )/ 365.25 + 0.4999, 2),0);
+                        SELECT @v_deduct = sfa.fn_get_rrsp_yearly_deduction(@academic_year_p);
+                        --SET @v_assets = @v_assets + (GREATEST(@v_rrsp_spouse - (@v_year * @v_deduct),0));
+                END
+
+                SET @v_assets = ISNULL(ROUND(@v_married_assets, 2),ROUND(@v_assets, 2));
+
+                SET @v_total = @v_assets + @v_contrib + @v_ps_contrib + @v_parental_contribution;
+        END
+        ELSE
+        BEGIN
+                SET @v_total = @v_student_contribution + @v_spouse_contribution;
+        END
+
+        RETURN ISNULL(@v_total,0);
+
+END
+GO
+
+CREATE OR ALTER FUNCTION sfa.fn_parent_mailing_postal_code(
+    @student_id INT
+)
+RETURNS VARCHAR
+AS
+BEGIN
+    
+    DECLARE @postal_code VARCHAR(50);
+
+    SELECT @postal_code = pa.postal_code
+    FROM sfa.student s
+    INNER JOIN sfa.person p ON s.person_id = p.id
+    INNER JOIN sfa.person_address pa ON pa.person_id = p.id
+    WHERE s.id = @student_id
+    AND pa.address_type_id = 4;
+
+    RETURN @postal_code;
+END
+GO
+
+CREATE OR ALTER FUNCTION sfa.fn_parent_mailing_country_id(
+    @student_id INT
+)
+RETURNS INT
+AS
+BEGIN
+    
+    DECLARE @country_id INT;
+
+    SELECT @country_id = pa.country_id
+    FROM sfa.student s
+    INNER JOIN sfa.person p ON s.person_id = p.id
+    INNER JOIN sfa.person_address pa ON pa.person_id = p.id
+    WHERE s.id = @student_id
+    AND pa.address_type_id = 4;
+
+    RETURN @country_id;
+END
+GO
+
+CREATE OR ALTER FUNCTION sfa.fn_get_r_trans_multiplier(@study_weeks_p INT)
+RETURNS INT
+AS 
+BEGIN
+  IF @study_weeks_p >= 1 AND @study_weeks_p < 24 
+  BEGIN
+    RETURN 1;
+  END
+  ELSE IF @study_weeks_p >= 24 
+  BEGIN
+    RETURN 2;
+  END
+
+  RETURN 0;
+
+END
+GO
+
+CREATE OR ALTER FUNCTION sfa.fn_get_total_income(@application_id INT)
+RETURNS DECIMAL(10,2) 
+AS 
+BEGIN
+
+  	DECLARE @v_total DECIMAL(10,2);
+
+    SELECT  @v_total = SUM(amount)
+    FROM sfa.income
+    WHERE application_id = @application_id;
+
+    RETURN @v_total;
+END
+GO
+
+/* Added for NAR report -- SFA-213 February 24, 2009 by J Mckellar */
+CREATE OR ALTER FUNCTION sfa.fn_get_income( @application_id INT, @income_type_id_p INT)
+RETURNS DECIMAL(10,2) 
+AS 
+BEGIN
+  DECLARE @v_income DECIMAL(10,2) ;
+
+    
+    select @v_income = FLOOR(ISNULL(sum(amount),0))
+    FROM sfa.income
+    WHERE application_id = @application_id
+    and income_type_id = @income_type_id_p;
+    
+    return @v_income;
+END
+GO
+
+
+CREATE OR ALTER FUNCTION sfa.fn_get_asset_student_contribution(@academic_year_p INT, @assessment_id_p INT, @ownership_id_p INT, @yrs_since_hs_p INT, @application_id INT)
+RETURNS DECIMAL(10,2) 
+AS 
+BEGIN
+  	DECLARE @v_asset_contribution DECIMAL(10,2) ;
+	DECLARE @v_financial_asset DECIMAL(10,2) ;
+	DECLARE @v_student_rrsp_asset DECIMAL(10,2) ;
+	DECLARE @v_vehicle_asset DECIMAL(10,2) ;
+	DECLARE @v_spouse_rrsp_asset DECIMAL(10,2) ;
+  	DECLARE @v_vehicle_deduction DECIMAL(10,2) ;
+  	DECLARE @v_rrsp_year_deduction DECIMAL(10,2) ;
+  	DECLARE @v_rrsp_asset DECIMAL(10,2) ;
+
+	SELECT @v_financial_asset = ISNULL(SUM(market_value),0)
+	FROM sfa.INVESTMENT 
+	WHERE ownership_id = @ownership_id_p
+      	AND is_rrsp = 0
+		AND application_id = @application_id;
+
+    SET @v_student_rrsp_asset = 0;
+    SET @v_spouse_rrsp_asset= 0;
+    SET @v_vehicle_asset = 0;
+    	-- NOT LONGER USED 
+		-- SELECT @v_student_rrsp_asset = ISNULL(rrsp_student_gross,0), @v_spouse_rrsp_asset= ISNULL(rrsp_spouse_gross,0), @v_vehicle_asset = ISNULL(vehicles_gross,0) 
+		-- FROM sfa.assessment 
+	  	-- WHERE assessment_id = @assessment_id_p;
+
+	SELECT @v_vehicle_deduction = ISNULL(vehicle_deduction_amount,0), 
+      		@v_rrsp_year_deduction =  ISNULL(rrsp_deduction_yearly_amount,0)
+	FROM sfa.csl_lookup
+	WHERE academic_year_id = @academic_year_p;	  
+		
+	IF @ownership_id_p = 1  -- student 
+    BEGIN
+      	SET @v_rrsp_asset = (@v_student_rrsp_asset - (@v_rrsp_year_deduction * @yrs_since_hs_p));
+      	IF @v_rrsp_asset < 0  
+      	BEGIN
+        	SET @v_rrsp_asset = 0;
+      	END
+      	IF @v_vehicle_deduction > @v_vehicle_asset  
+      	BEGIN
+        	SET @v_vehicle_asset = 0;
+      	END
+      	ELSE
+      	BEGIN
+        	SET @v_vehicle_asset = (@v_vehicle_asset - @v_vehicle_deduction);
+      	END
+		SET @v_asset_contribution = @v_financial_asset +  @v_rrsp_asset + @v_vehicle_asset;
+    END
+	ELSE IF @ownership_id_p = 2  -- spouse  
+    BEGIN
+      SET @v_rrsp_asset = (@v_spouse_rrsp_asset - (@v_rrsp_year_deduction * @yrs_since_hs_p));
+      IF @v_rrsp_asset < 0  
+      BEGIN
+        SET @v_rrsp_asset = 0;
+      END;
+      SET @v_asset_contribution = @v_financial_asset + @v_rrsp_asset;
+    END
+	ELSE
+    BEGIN
+		SET @v_asset_contribution = @v_financial_asset;
+	END
+
+	RETURN @v_asset_contribution;
+END
+GO
+
+CREATE OR ALTER FUNCTION sfa.get_nar_other_study_cost (
+    @application_id INT,
+    @discretionary_cost_actual_p FLOAT,
+    @discretionary_cost_max_p NUMERIC(10, 2)
+)
+RETURNS NUMERIC
+AS
+BEGIN
+    DECLARE @v_discretionary_amount NUMERIC;
+    DECLARE @v_other_costs NUMERIC;
+
+    IF ISNULL(@discretionary_cost_actual_p, 0) > ISNULL(@discretionary_cost_max_p, 0)
+        SET @v_discretionary_amount = ISNULL(@discretionary_cost_max_p, 0);
+    ELSE
+        SET @v_discretionary_amount = ISNULL(@discretionary_cost_actual_p, 0);
+
+    SELECT @v_other_costs = ISNULL(SUM(amount), 0)
+    FROM sfa.expense 
+    WHERE category_id <> 3 -- 3 is Day Care Costs - Monthly
+    AND category_id NOT IN (11, 14) -- 11 (Discretionary Costs expense) and 14 (Computer Hardware/Software/Supplies expense) reported separately
+    AND period_id = 2 
+    AND application_id = @application_id;
+
+    RETURN (@v_discretionary_amount + ISNULL(@v_other_costs, 0));
+END
+GO
+
+CREATE OR ALTER FUNCTION sfa.get_family_ps_count(@application_id INT)
+RETURNS INT
+AS
+BEGIN
+    DECLARE @v_count INT;
+
+    SELECT @v_count = COUNT(id)
+    FROM sfa.parent_dependent
+    WHERE application_id = @application_id
+    AND is_eligible = 1
+    AND is_attend_post_secondary = 1;
+
+    IF @v_count > 10
+        SET @v_count = 10;
+
+    RETURN @v_count;
+END
+GO
+
+CREATE OR ALTER PROCEDURE sfa.save_csl_nars_history @p_issue_date DATE, @p_serial_num NUMERIC 
+AS
+    BEGIN
+
+    -- Insert into CSL NARS HISTORY
+    -- Select uses 20090417 as criteria because that is the implementation date.
+    -- Otherwise ALL zero amount records entered before 20090417 would be selected
+        INSERT INTO sfa.csl_nars_history
+            (application_id
+            ,student_id
+            ,assessment_id
+            ,academic_year
+            ,sin
+            ,loan_year
+            ,postal_prefix
+            ,birth_date
+            ,gender
+            ,marital_status
+            ,institution_code
+            ,field_of_study
+            ,year_study
+            ,study_weeks
+            ,study_start_date
+            ,study_end_date
+            ,loan_type
+            ,course_percentage
+            ,credit_check_flg
+            ,credit_check_status
+            ,disabled_flg
+            ,disabled_type
+            ,minority_flg
+            ,aboriginal_status_flg
+            ,aboriginal_category
+            ,assessment_date
+            ,csl_classification
+            ,family_size
+            ,post_secondary_children
+            ,spouse_student_flg
+            ,spouse_csl_flg
+            ,spouse_sin
+            ,children_to_11
+            ,children_over_12_dis
+            ,children_over_12_not_dis
+            ,pstudy_student_income
+            ,study_income_gov
+            ,study_income_priv
+            ,study_income_gov_ei
+            ,study_income_cpp
+            ,study_income_wc
+            ,study_income_gov_soc
+            ,study_income_nont_gov
+            ,study_income_merit
+            ,study_income_priv_merit
+            ,study_income_employ
+            ,study_income_cs
+            ,study_income_alimony
+            ,study_income_other
+            ,study_income_gov_grant
+            ,parent1_income
+            ,parent2_income
+            ,student_rrsp
+            ,student_vehicle
+            ,student_asset
+            ,spouse_rrsp
+            ,spouse_vehicle
+            ,spouse_asset
+            ,student_years_since_hs
+            ,spouse_years_since_hs
+            ,student_study_contribution
+            ,student_pstudy_contribution
+            ,spouse_study_contribution
+            ,parental_contribution
+            ,assessed_resources
+            ,tuition_estimate
+            ,request_need
+            ,csl_before_overaward
+            ,psl_before_overaward
+            ,csl_recovered_overaward
+            ,psl_recovered_overaward
+            ,csl_auth_ft
+            ,csl_auth_pt
+            ,csl_auth_loan_amnt
+            ,csl_auth_loan_date
+            ,psl_auth_loan_amnt
+            ,psl_auth_loan_date
+            ,assessment_review_flg
+            ,csg_doctoral_amount
+            ,csg_disability_amount
+            ,cag_perm_disability_amnt
+            ,csg_dependent_amount
+            ,csg_date
+            ,cms_amount
+            ,cms_date
+            ,prov_grant_unmet_amnt
+            ,prov_grant_amnt
+            ,prov_grant_date
+            ,version_num
+            ,app_status
+            ,reassess_indicator
+            ,cat_code
+            ,single_ind_stat_reas
+            ,social_assist_flg
+            ,parent1_sin
+            ,parent1_postal_code
+            ,parent2_sin
+            ,parent2_postal_code
+            ,postal_suffix
+            ,pstudy_weeks
+            ,pstudy_home_away
+            ,study_home_away
+            ,program_type
+            ,academic_year_study
+            ,year_in_program
+            ,program_duration
+            ,early_withdrawal_ind
+            ,date_left_hs
+            ,spouse_date_left_hs
+            ,pstudy_income_other
+            ,pstudy_income_employ
+            ,spouse_income_annual
+            ,spouse_pstudy_income
+            ,spouse_study_income
+            ,parent1_income_taxable
+            ,parent1_income_taxpaid
+            ,parent2_income_taxable
+            ,parent2_income_taxpaid
+            ,joint_asset_flg
+            ,student_resp
+            ,parental_asset
+            ,joint_contrib_flg
+            ,spouse_pstudy_contrib
+            ,student_asset_contrib
+            ,spouse_asset_contrib
+            ,parental_asset_contrib
+            ,other_resources
+            ,pstudy_cost_living
+            ,pstudy_cost_loan
+            ,pstudy_pt_cost_tuitn
+            ,study_cost_living
+            ,study_cost_computers
+            ,study_cost_books
+            ,study_cost_childcare_allw
+            ,study_cost_childcare_actl
+            ,study_cost_return_trans
+            ,study_cost_other_trans
+            ,study_cost_relocation
+            ,study_cost_other
+            ,study_cost_total
+            ,aboriginal_cat
+            ,stud_gross_annual_income
+            ,spouse_gross_annual_income
+            ,csg_li
+            ,csg_mi
+            ,csg_pd
+            ,csg_ftdep
+            ,csg_pdse
+            ,transition_grant_amt
+            ,tgrant_yrs_remaining
+            ,pstudy_dep_cost_living
+            ,pstudy_x_trans_total
+            ,study_directed_income
+            ,financial_investments
+            ,married_adjustment)
+        
+        SELECT DISTINCT
+                    app.id
+                  , s.id
+                  , a.id
+                  , app.academic_year_id
+                  , p.sin AS sin
+                  , CAST(app.academic_year_id AS VARCHAR(8)) AS loan_year
+                  , ( 
+                        SELECT TOP 1
+                        SUBSTRING(pa.postal_code,  1, 3)
+                        FROM sfa.person_address pa
+                        WHERE pa.person_id = p.id
+                        AND (
+                                (pa.address_type_id = 1 AND pa.postal_code IS NOT NULL) OR
+                                (pa.address_type_id = 2 AND pa.postal_code IS NOT NULL)
+                            )
+                    ) AS postal_prefix
+                  , p.birth_date
+                  , (
+                        CASE 
+                            WHEN p.sex_id = 2 THEN 'F'
+                            ELSE 'M'
+                        END
+                    
+                    ) AS gender
+                  , (
+                        CASE 
+                            WHEN app.marital_status_id = 1 THEN 'S'
+                            WHEN app.marital_status_id = 2 THEN 'S'
+                            WHEN app.marital_status_id = 4 THEN 'M'
+                            ELSE 'O'
+                        END
+                    ) AS marital_status
+                  , SUBSTRING(sfa.fn_get_institution_code_fct(app.institution_campus_id),1,4) AS institution_code
+                  , SUBSTRING(CONVERT(VARCHAR, sfa.fn_get_field_program_code_fct(sfa.fn_get_study_field_id_fct(app.study_area_id),app.program_id)),1,2) AS field_of_study
+                  , SUBSTRING(CONVERT(VARCHAR(4), app.program_year) + CONVERT(VARCHAR(4), app.program_year_total),1,2) AS year_study
+                  , a.study_weeks
+                  , a.classes_start_date AS study_start_date
+                  , a.classes_end_date AS study_end_date
+                  , (
+                        CASE
+                            WHEN fr.request_type_id = 4 THEN 'FT'
+                            ELSE 'PT'
+                        END
+                    )  AS loan_type
+  --                , DECODE(fr.request_type_id,4,'60',app.percent_of_full_time)   AS course_percentage
+  -- GPR VJSFA-263
+                  , (
+                        CASE 
+                            WHEN app.is_perm_disabled = 1 THEN '40'
+                            WHEN fr.request_type_id = 4 THEN '60'
+                            ELSE CONVERT(VARCHAR, app.percent_of_full_time)
+                        END
+                    ) as course_percentage
+                  , 
+                    (
+                        CASE 
+                            WHEN app.credit_chk_fax_sent_date IS NULL THEN 'N'
+                            ELSE 'Y'
+                        END
+                  
+                    ) AS credit_check_flg
+                  , (
+                        CASE
+                            WHEN app.credit_chk_fax_sent_date IS NULL THEN NULL
+                            ELSE 
+                                CASE
+                                    WHEN app.credit_chk_passed = 1 THEN 'G'
+                                    WHEN app.credit_chk_app_comp = 1 THEN 'R'
+                                ELSE 'B'
+                            END
+                        END
+                    ) AS credit_check_status
+                  , (
+                        CASE
+                            WHEN app.is_perm_disabled = 1 THEN 'Y' -- hd.perm_disabled_flag
+                            ELSE 'N'
+                        END
+                    ) AS disabled_flg
+                  , (
+                        CASE
+                            WHEN app.is_perm_disabled = 1 
+                            THEN dis.csl_code
+                            ELSE NULL
+                        END
+                      
+                    ) AS disabled_type
+                  , (
+                        CASE
+                            WHEN app.is_minority = 1 THEN 'Y'
+                            ELSE 'N'
+                        END
+                    ) AS minority_flg
+                  , (
+                        CASE
+                            WHEN app.aboriginal_status_id = 2 THEN 'Y'
+                            WHEN app.aboriginal_status_id = 3 THEN 'Y'
+                            ELSE 'N'
+                        END
+                    ) AS aboriginal_status_flg
+                  , (
+                        CASE
+                            WHEN app.aboriginal_status_id = 2 THEN 'N'
+                            WHEN app.aboriginal_status_id = 3 THEN 'S'
+                            ELSE NULL
+                        END
+                    ) AS aboriginal_category
+                  , a.assessed_date AS assessment_date
+                  , (
+                        CASE
+                            WHEN app.csl_classification = 2 THEN '1'
+                            WHEN app.csl_classification = 2 THEN '4'
+                            WHEN app.csl_classification = 3 THEN '2'
+                            WHEN app.csl_classification = 4 THEN '3'
+                            ELSE '5'
+                        END
+                    ) AS csl_classification
+                  , (
+                        CASE
+                            WHEN app.csl_classification = 1 THEN 
+                                COALESCE(sfa.get_family_size(app.id), 1)
+                            WHEN app.csl_classification = 4 THEN
+                                COALESCE(sfa.fn_get_csl_dependent_count(app.id),0) + 1
+                            WHEN app.csl_classification = 3 THEN
+                                COALESCE(sfa.fn_get_csl_dependent_count(app.id),0) + 2
+                            ELSE NULL
+                        END
+                    )AS family_size
+                  , (
+                        CASE
+                            WHEN app.csl_classification = 2 THEN NULL
+                            WHEN app.csl_classification = 5 THEN NULL
+                            ELSE COALESCE(sfa.get_family_ps_count(app.id), 1)
+                        END
+                    ) AS post_secondary_children
+                  , (        
+                        CASE
+                            WHEN app.csl_classification = 3 THEN 
+                                CASE
+                                    WHEN app.spouse_study_school_from IS NULL THEN 'N'
+                                    ELSE 'Y'
+                                END
+                            ELSE NULL
+                        END
+                    ) AS spouse_student_flg
+                  , (
+                        CASE
+                            WHEN app.csl_classification = 3 THEN 
+                                CASE
+                                    WHEN app.is_spouse_study_csl = 1 THEN 'Y'
+                                    ELSE 'N'
+                                END
+                            ELSE NULL
+                        END
+                    ) AS spouse_csl_flg
+                  , (
+                        CASE
+                            WHEN app.csl_classification = 3 THEN SUBSTRING((SELECT p.sin FROM sfa.person p WHERE p.id = app.spouse_id), 1, 9)
+                            ELSE NULL
+                        END
+                    ) AS spouse_sin
+                  , (
+                        CASE
+                            WHEN app.csl_classification = 2 THEN NULL
+                            WHEN app.csl_classification = 5 THEN NULL
+                            ELSE sfa.fn_get_csl_dep_age_count(app.id, 0, 11, app.csl_classification)
+                        END
+                    )   AS children_to_11
+                  , (
+                        CASE
+                            WHEN app.csl_classification = 2 THEN NULL
+                            WHEN app.csl_classification = 5 THEN NULL
+                            ELSE sfa.fn_get_csl_dep_age_dis_cnt(app.id, 12, 99, 1, app.csl_classification)
+                        END
+                  
+                    ) AS children_over_12_dis
+                  , (
+                        CASE app.csl_classification
+                            WHEN 2 THEN NULL
+                            WHEN 5 THEN NULL
+                            ELSE sfa.fn_get_csl_dep_age_dis_cnt(app.id, 12, 99, 0, app.csl_classification)
+                        END
+
+
+                    ) AS children_over_12_not_dis
+                  , a.stud_pstudy_gross AS pstudy_student_income
+                  , sfa.fn_get_income(app.id, 8) AS study_income_gov
+                  , COALESCE(sfa.fn_get_income(app.id, 10), 0) + COALESCE(sfa.fn_get_income(app.id, 9), 0) AS study_income_priv
+                  , sfa.fn_get_income(app.id,2) AS study_income_gov_ei
+                  , sfa.fn_get_income(app.id,3) AS study_income_cpp
+                  , sfa.fn_get_income(app.id,4) AS study_income_wc
+                  , sfa.fn_get_income(app.id,5) AS study_income_gov_soc
+                  , sfa.fn_get_income(app.id,6) AS study_income_nont_gov
+                  , sfa.fn_get_income(app.id,16) AS study_income_merit
+                  , sfa.fn_get_income(app.id,12) AS study_income_priv_merit
+                  , sfa.fn_get_income(app.id,1) AS study_income_employ
+                  , sfa.fn_get_income(app.id,15) AS study_income_cs
+                  , sfa.fn_get_income(app.id,17) AS study_income_alimony
+                  , sfa.fn_get_income(app.id,14) AS study_income_other
+                  , sfa.fn_get_income(app.id,13) AS study_income_gov_grant
+                  , (
+                        CASE 
+                            WHEN app.csl_classification = 1 THEN COALESCE(app.parent1_income,0)
+                            ELSE NULL
+                        END
+                    ) AS parent1_income
+                  , (
+                        CASE 
+                            WHEN app.csl_classification = 1 THEN
+                                CASE 
+                                    WHEN ISNULL((SELECT p.first_name FROM sfa.person p WHERE p.id = app.parent2_id), '') = '' THEN NULL
+                                    ELSE ISNULL(app.parent2_income, 0)
+                                END
+                            ELSE NULL
+                        END
+                    ) AS parent2_income
+                  , NULL AS student_rrsp --CAST(a.rrsp_student_gross AS INT)  --TRUNC(a.rrsp_student_gross)
+                  , -- (
+                    --     CASE 
+                    --         WHEN app.csl_classification = 3 THEN CAST(a.vehicles_gross / 2 AS INT)
+                    --         ELSE a.vehicles_gross
+                    --     END
+                    -- ) 
+                    NULL AS student_vehicle
+                  , COALESCE(sfa.get_investment_total(app.id, 1, 0), 0) AS student_asset
+                  , --(
+                    --    CASE 
+                    --        WHEN app.csl_classification = 3 THEN CAST(a.rrsp_spouse_gross AS INT)
+                    --        ELSE NULL
+                    --    END
+                    --) 
+                    NULL AS spouse_rrsp
+                  , --(
+                    --    CASE 
+                    --        WHEN app.csl_classification = 3 THEN CAST(a.vehicles_gross / 2 AS INT)
+                    --        ELSE NULL
+                    --    END
+                    --) 
+                    NULL AS spouse_vehicle
+                  , (
+                        CASE 
+                            WHEN app.csl_classification = 3 THEN COALESCE(sfa.get_investment_total(app.id, 2, 0), 0)
+                            ELSE NULL
+                        END
+                    ) AS spouse_asset
+                  , CONVERT(INT, app.academic_year_id) - s.high_school_left_year AS student_years_since_hs
+                  , (
+                        CASE 
+                            WHEN app.csl_classification = 3 THEN ISNULL(CAST(app.academic_year_id AS INT) - app.spouse_hs_end_year, 0)
+                            ELSE NULL
+                        END
+                    ) AS spouse_years_since_hs
+                  , sfa.get_study_contribution(a.id,app.academic_year_id,1) AS student_study_contribution
+                  , sfa.get_pstudy_contribution(a.id) as student_pstudy_contribution
+                  , (
+                        CASE 
+                            WHEN app.csl_classification = 3 THEN sfa.get_study_contribution(a.id, app.academic_year_id, 2)
+                            ELSE NULL 
+                        END
+
+                    ) AS spouse_study_contribution
+                  , (
+                        CASE 
+                            WHEN app.csl_classification = 1 THEN 
+                                CASE 
+                                    WHEN a.parent_contribution_override IS NULL THEN 
+                                        sfa.get_parent_contribution(a.id, app.academic_year_id, s.id)
+                                    ELSE 
+                                        a.parent_contribution_override
+                                END
+                            ELSE NULL 
+                        END
+                    ) AS parental_contribution
+                  , sfa.fn_get_assessed_resources(a.id,app.academic_year_id ) AS assessed_resources -- s.id
+                  , ISNULL(CONVERT(INT, a.tuition_estimate), 0) AS tuition_estimate
+                  , (
+                        CASE 
+                            WHEN fr.is_csl_full_amount = 1 THEN 
+                            sfa.get_max_weekly_allowable(app.academic_year_id) * study_weeks
+                            ELSE a.csl_request_amount
+                        END
+
+                    ) AS request_need                  
+                  , 
+                    (
+                        CASE 
+                            WHEN (ROUND((sfa.get_assessed_cost(a.id) - sfa.fn_get_assessed_resources(a.id, app.academic_year_id)) * 0.6, 2) > ROUND(sfa.get_max_weekly_allowable(app.academic_year_id) * COALESCE(a.study_weeks, 0), 2))
+                                THEN ROUND(sfa.get_max_weekly_allowable(app.academic_year_id) * a.study_weeks, 0)
+                            ELSE 
+                                CASE 
+                                    WHEN sfa.get_assessed_cost(a.id) < sfa.fn_get_assessed_resources(a.id, app.academic_year_id)
+                                        THEN 0 
+                                    ELSE ROUND((sfa.get_assessed_cost(a.id) - sfa.fn_get_assessed_resources(a.id, app.academic_year_id)) * 0.6, 1)
+                                END
+                        END
+                    ) AS csl_before_overaward
+                  , NULL AS psl_before_overaward
+                  , sfa.get_csl_overaward_fct(app.student_id, a.funding_request_id) AS csl_recovered_overaward
+                  , NULL AS psl_recovered_overaward
+                  , (
+                        CASE       
+                            WHEN COALESCE(d.disbursed, 0) > 0 THEN 'Y'      
+                            ELSE 'N'  
+                        END
+                    )  AS csl_auth_ft
+                  , 'N' AS csl_auth_pt
+                  , (
+                        CASE      
+                            WHEN COALESCE(d.disbursed, 0) <= 0 THEN 0     
+                            ELSE d.disbursed  
+                        END
+                    ) AS csl_auth_loan_amnt
+                  , (
+                        CASE       
+                            WHEN COALESCE(d.disbursed, 0) > 0 THEN d.issue_date     
+                            ELSE NULL  
+                        END
+                    ) AS csl_auth_loan_date
+                  , NULL  AS psl_auth_loan_amnt
+                  , NULL  AS psl_auth_loan_date
+                  , (
+                        CASE
+                            WHEN a.assessment_type_id = 2 THEN 'Y'
+                            ELSE 'N'
+                        END
+                      
+                    ) AS assessment_review_flg
+                  , 
+                  
+                  (--s.sex,2,(disbursement_pck.get_grant_amount(app.history_detail_id,16)),0
+
+                    CASE 
+                        WHEN p.sex_id = 2 THEN sfa.get_grant_amount(app.id, 16)
+                        ELSE 0
+                    END
+                  
+                  ) AS csg_doctoral_amount
+                  , sfa.get_grant_amount(app.id, 15) AS csg_disability_amount
+                  , sfa.get_grant_amount(app.id, 22) AS cag_perm_disability_amnt
+                  , sfa.get_grant_amount(app.id, 17) AS csg_dependent_amount
+                  , (
+                        CASE 
+                            WHEN 0 >= ISNULL(
+                                    CASE 
+                                        WHEN p.sex_id = 2 THEN sfa.get_grant_amount(app.id, 16)
+                                        ELSE 0
+                                    END, 0) 
+                                    + ISNULL(sfa.get_grant_amount(app.id, 15), 0) + ISNULL(sfa.get_grant_amount(app.id, 17), 0)
+                            THEN NULL
+                            ELSE sfa.get_grant_date(app.id) 
+                        END 
+
+                    ) AS csg_date
+                  , sfa.get_grant_amount(app.id,19) AS cms_amount
+                  , sfa.get_issue_date(app.id,19)AS cms_date
+                  , NULL as prov_grant_unmet_amnt
+                  , sfa.get_prov_grant_schol_amount(app.student_id, app.academic_year_id, app.institution_campus_id) AS prov_grant_amnt
+                  ,(
+                        CASE       
+                            WHEN COALESCE(sfa.get_prov_grant_amount(app.id),0) <= 0   
+                            THEN NULL      
+                            ELSE sfa.get_prov_grant_date(app.id)  
+                        END
+                    ) AS prov_grant_date
+                  , sfa.get_assessment_cnt(fr.id, a.id) as version_num
+                  , (
+                        CASE
+                            WHEN fr.status_id = 7 THEN 'A'
+                            WHEN fr.status_id = 4 THEN 'R'
+                            ELSE 'P'
+                        END
+                    ) AS app_status
+                  , (
+                        CASE
+                            WHEN a.assessment_type_id = 1 THEN '0'
+                            ELSE '4'
+                        END
+                    ) AS reassess_indicator
+                  , (
+                        CASE
+                            WHEN app.csl_classification = 3 THEN '1'
+                            WHEN app.csl_classification = 4 THEN '2'
+                            WHEN app.csl_classification = 1 THEN '4'
+                            ELSE '3'
+                        END
+                    ) AS cat_code   
+                  , (
+                        CASE
+                            WHEN app.csl_classification = 2 THEN '1'
+                            WHEN app.csl_classification = 5 THEN '2'
+                            ELSE NULL
+                        END
+                    ) AS single_ind_stat_reas   
+                  , (
+                      CASE 
+                        WHEN COALESCE(sfa.fn_get_income(app.id, 5), 0) > 0 
+                            THEN 'Y'
+                            ELSE 'N'
+                        END 
+                    ) AS social_assist_flg
+                  , (
+                        CASE
+                            WHEN app.csl_classification = 1 THEN ISNULL((SELECT p.sin FROM sfa.person p WHERE p.id = app.parent1_id), 0)
+                            ELSE NULL
+                        END
+                    ) AS parent1_sin
+                  , (
+                        CASE
+                            WHEN app.csl_classification = 1 AND LEN(COALESCE(sfa.fn_parent_mailing_postal_code(s.id), '')) = 6
+                                THEN sfa.fn_parent_mailing_postal_code(s.id)
+                            WHEN app.csl_classification = 1 AND LEN(COALESCE(sfa.fn_parent_mailing_postal_code(s.id), '')) = 7
+                                THEN SUBSTRING(COALESCE(sfa.fn_parent_mailing_postal_code(s.id), ''), 1, 3) + SUBSTRING(COALESCE(sfa.fn_parent_mailing_postal_code(s.id), ''), 5, 3)
+                            WHEN sfa.fn_parent_mailing_country_id(s.id) <> 1 AND app.csl_classification = 1
+                                THEN 'XXXXXX'
+                            ELSE NULL
+                        END
+                    ) AS parent1_postal_code
+                  , (
+                        CASE
+                            WHEN app.csl_classification = 1 THEN ISNULL((SELECT p.sin FROM sfa.person p WHERE p.id = app.parent2_id), 0)
+                            ELSE NULL
+                        END                
+                    ) AS parent2_sin
+                  ,(
+                        CASE
+                            WHEN app.csl_classification = 1 AND LEN(COALESCE(sfa.fn_parent_mailing_postal_code(s.id), '')) = 6 AND ISNULL((SELECT p.first_name FROM sfa.person p WHERE p.id = app.parent2_id), '') <> ''
+                                THEN sfa.fn_parent_mailing_postal_code(s.id)
+                            WHEN app.csl_classification = 1 AND LEN(COALESCE(sfa.fn_parent_mailing_postal_code(s.id), '')) = 7 AND ISNULL((SELECT p.first_name FROM sfa.person p WHERE p.id = app.parent2_id), '') <> ''
+                                THEN SUBSTRING(sfa.fn_parent_mailing_postal_code(s.id), 1, 3) + SUBSTRING(sfa.fn_parent_mailing_postal_code(s.id), 5, 3)
+                            WHEN sfa.fn_parent_mailing_country_id(s.id) <> 1 AND app.csl_classification = 1 AND ISNULL((SELECT p.first_name FROM sfa.person p WHERE p.id = app.parent2_id), '') <> ''
+                                THEN 'XXXXXX'
+                            ELSE NULL
+                        END
+                    ) AS parent2_postal_code
+                  , (
+                        CASE
+                            WHEN (
+                                    SELECT pa.postal_code 
+                                    FROM sfa.person_address pa 
+                                    WHERE pa.id =s.person_id
+                                    AND pa.address_type_id = 1
+                                ) IS NULL THEN 
+                                    SUBSTRING((
+                                        SELECT pa.postal_code 
+                                        FROM sfa.person_address pa 
+                                        WHERE pa.id =s.person_id
+                                        AND pa.address_type_id = 2
+                                    ), 5,3)
+                            ELSE
+                                SUBSTRING((
+                                    SELECT pa.postal_code 
+                                    FROM sfa.person_address pa 
+                                    WHERE pa.id =s.person_id
+                                    AND pa.address_type_id = 1
+                                ), 5,3)
+                        END
+
+                    ) AS postal_suffix
+                  , CAST(DATEDIFF(DAY, a.pstudy_start_date, a.pstudy_end_date) / 7.0 + 0.9999 AS INT) AS pstudy_weeks
+                  , (
+                        CASE
+                            WHEN a.prestudy_accom_code = 2 THEN 'A'
+                            ELSE 'H'
+                        END
+                  ) AS pstudy_home_away
+                  , (
+                        CASE
+                            WHEN a.study_accom_code = 2 THEN 'A'
+                            ELSE 'H'
+                        END  
+                    ) AS study_home_away
+                  , (
+                        CASE
+                            WHEN app.program_id = 2 THEN 1
+                            WHEN app.program_id = 3 THEN 2
+                            WHEN app.program_id = 4 THEN 3
+                            WHEN app.program_id = 5 THEN 4
+                            WHEN app.program_id = 6 THEN 5
+                            WHEN app.program_id = 7 THEN 6
+                            ELSE NULL
+                        END
+                    ) AS program_type
+                  , app.program_year  as academic_year_study
+                  , NULL as year_in_program
+                  , app.program_year_total as program_duration
+                  , NULL as early_withdrawal_ind
+                  , sfa.fn_date_from_yr_mo(s.high_school_left_year, s.high_school_left_month) as date_left_hs
+                  , (
+                        CASE
+                            WHEN app.csl_classification = 3 THEN sfa.fn_date_from_yr_mo(app.spouse_hs_end_year, app.spouse_hs_end_month)
+                            ELSE NULL
+                        END
+                    ) AS spouse_date_left_hs
+                  , COALESCE(sfa.fn_get_total_income(app.id), 0) AS pstudy_income_other
+                  --, 0 -- nvl(income_pck.get_total_income(app.history_detail_id,1,1),0)-nvl(income_pck.get_income(1,1,app.history_detail_id,1),0)  AS pstudy_income_other
+                  , 0 -- income_pck.get_income(1,1,app.history_detail_id,1)       AS pstudy_income_employ
+                  , (
+                        CASE
+                            WHEN app.csl_classification = 3 THEN app.spouse_ln150_income
+                            ELSE NULL
+                        END
+                    ) AS spouse_income_annual
+                  , (
+                        CASE
+                            WHEN app.csl_classification = 3 THEN a.spouse_pstudy_gross
+                            ELSE NULL
+                        END
+                    ) AS spouse_pstudy_income
+                  , (
+                        CASE
+                            WHEN app.csl_classification = 3 THEN a.spouse_gross_income
+                            ELSE NULL
+                        END
+                    ) AS spouse_study_income
+                  , (
+                        CASE
+                            WHEN app.csl_classification = 1 THEN COALESCE(app.parent1_net_income, 0)
+                            ELSE NULL
+                        END
+                  ) AS parent1_income_taxable
+                  , (
+                        CASE
+                            WHEN app.csl_classification = 1 THEN COALESCE(app.parent1_tax_paid, 0)
+                            ELSE NULL
+                        END
+                  ) AS parent1_income_taxpaid
+                  , (
+                        CASE
+                            WHEN app.csl_classification = 1 AND ISNULL((SELECT first_name FROM sfa.person WHERE id = app.parent2_id), '') = '' THEN NULL
+                            WHEN app.csl_classification = 1 THEN ISNULL(app.parent2_net_income, 0)
+                            ELSE NULL
+                        END
+
+                    ) AS parent2_income_taxable
+                  , (
+                        CASE
+                            WHEN app.csl_classification = 1 AND ISNULL((SELECT first_name FROM sfa.person WHERE id = app.parent2_id), '') = '' THEN NULL
+                            WHEN app.csl_classification = 1 THEN ISNULL(app.parent2_tax_paid, 0)
+                            ELSE NULL
+                        END
+                    )     AS parent2_income_taxpaid
+                  , (
+                        CASE
+                            WHEN app.csl_classification = 3 THEN 'N'
+                            ELSE NULL
+                        END
+                    ) AS joint_asset_flg
+                  , 0 -- nvl(income_pck.get_income(3,1,app.history_detail_id, 11),0) AS student_resp
+                  , NULL as parental_asset
+                  , (
+                        CASE
+                            WHEN app.csl_classification = 3 THEN 1
+                            ELSE NULL
+                        END
+                    ) as joint_contrib_flg
+                  , NULL AS spouse_pstudy_contrib
+                  , ISNULL(
+                        sfa.fn_get_asset_student_contribution(
+                            app.academic_year_id,
+                            a.id,
+                            1,
+                            (s.high_school_left_year - app.academic_year_id),
+                            app.id
+                        ),
+                        0
+                    ) AS student_asset_contrib
+                  , (
+                        CASE
+                            WHEN app.csl_classification = 3 THEN ISNULL(
+                                    sfa.fn_get_asset_student_contribution(
+                                        app.academic_year_id,
+                                        a.id,
+                                        1,
+                                        (s.high_school_left_year - app.academic_year_id),
+                                        app.id
+                                    ),
+                                    0
+                                )
+                            ELSE NULL
+                        END
+                  ) AS spouse_asset_contrib
+                  , (
+                        CASE
+                            WHEN app.csl_classification = 1 THEN 0
+                            ELSE NULL
+                        END
+                    ) AS parental_asset_contrib
+                  , 0 as other_resources
+                  , (
+                        (a.pstudy_depend_food_allow + a.pstudy_depend_tran_allow + a.pstudy_p_trans_month + a.pstudy_shelter_month) *
+                        CAST(DATEDIFF(DAY, a.pstudy_start_date, a.pstudy_end_date) / 30.44 + 0.9999 AS INT)
+                    ) AS pstudy_cost_living
+                  , (
+                        ISNULL(sfa.fn_get_actual_expense(1, 6, app.id), 0) +
+                        ISNULL(sfa.fn_get_actual_expense(1, 7, app.id), 0)
+                    ) AS pstudy_cost_loan  -- prestudy period, 6 is Federal Student Loan Payments expense and 7 is Provincial Student Loan Payments expense 
+                  , ISNULL(sfa.fn_get_actual_expense(1, 13, app.id), 0) AS pstudy_pt_cost_tuitn -- 13 is Pre-Study Full-time Tuition/Books/Supplies 
+                  , (
+                        (a.depend_food_allowable + a.depend_tran_allowable + a.p_trans_month + a.shelter_month) *
+                        ISNULL(a.study_months, 0)
+                    ) AS study_cost_living
+                  , ISNULL(sfa.fn_get_actual_expense(2, 14, app.id), 0) AS study_computer_cost -- study period, 14 is Computer Hardware/Software/Supplies expense
+                  , FLOOR(ISNULL(a.books_supplies_cost, 0)) AS study_cost_books
+                  , (
+                        CASE
+                            WHEN sfa.fn_get_dependent_count_sta_fct(app.id) > 0
+                                THEN FLOOR(ISNULL(a.day_care_allowable, 0) * a.study_months)
+                            ELSE 0
+                        END
+                    ) AS study_cost_childcare_allw
+                  , FLOOR(ISNULL(a.day_care_actual, 0) * a.study_months) AS study_cost_childcare_actl
+                  , ROUND(ISNULL(a.r_trans_16wk, 0) * sfa.fn_get_r_trans_multiplier(a.study_weeks), 0) AS study_cost_return_trans
+                  , (COALESCE(a.relocation_total, 0) + COALESCE(a.x_trans_total, 0)) AS study_cost_other_trans
+                  , a.relocation_total AS study_cost_relocation
+                  , ISNULL(sfa.get_nar_other_study_cost(app.id, a.discretionary_cost_actual, cl.discretionary_costs_max_amount), 0) AS study_cost_other -- lookup discrtionary cost max in csl lookup
+                  , sfa.get_assessed_cost(a.id) AS study_cost_total
+                  , (
+                        CASE
+                            WHEN app.aboriginal_status_id = 2 THEN 2
+                            WHEN app.aboriginal_status_id = 3 THEN 1
+                            WHEN app.aboriginal_status_id = 1 THEN 0
+                            ELSE NULL
+                        END
+                    ) AS aboriginal_cat
+                  , app.student_ln150_income AS stud_gross_annual_income
+                  , (
+                        CASE
+                            WHEN app.csl_classification = 3 THEN app.spouse_ln150_income
+                            ELSE NULL
+                        END
+                    ) AS spouse_gross_annual_income
+                  , sfa.get_grant_amount(app.id,27) AS csg_li
+                  , sfa.get_grant_amount(app.id,28) AS csg_mi
+                  , sfa.get_grant_amount(app.id,29) AS csg_pd
+                  , sfa.get_grant_amount(app.id,32) AS csg_ftdep
+                  , sfa.get_grant_amount(app.id,30) AS csg_pdse
+                  , sfa.get_grant_amount(app.id,26) AS transition_grant_amt
+                  , app.rem_transition_grant_years AS tgrant_yrs_remaining
+                  , (a.pstudy_depend_food_allow + a.pstudy_depend_tran_allow )AS pstudy_dep_cost_living
+                  , a.pstudy_x_trans_total
+                  , 0 * COALESCE(a.asset_tax_rate,0) AS study_directed_income -- COALESCE(a.other_income, 0) not found
+                  , 0 AS financial_investments -- COALESCE(a.financial_investments, 0) not found
+                  , COALESCE(a.married_assets, 0)
+
+           FROM
+            sfa.person p
+            INNER JOIN sfa.student s
+                ON p.id = s.person_id
+            INNER JOIN sfa.application app
+                ON  s.id = app.student_id
+            INNER JOIN sfa.funding_request fr
+                ON  app.id = fr.application_id
+            INNER JOIN sfa.assessment a
+                ON  fr.id = a.funding_request_id
+            INNER JOIN sfa.csl_lookup cl
+                ON cl.academic_year_id = app.academic_year_id
+            LEFT OUTER JOIN (
+                            SELECT
+                               d1.application_id,
+                               d1.disability_type_id,
+                               dt.csl_code
+                            FROM
+                                sfa.disability d1, sfa.disability_type dt
+                            WHERE d1.disability_type_id = dt.id
+                            AND d1.id = (
+                                            SELECT MAX(d2.id) 
+                                            FROM sfa.disability d2 
+                                            WHERE d2.application_id = d1.application_id
+                                        )
+                            ) dis
+                ON  app.id = dis.application_id
+            LEFT OUTER JOIN sfa.disbursement disburse
+                ON  a.id = disburse.assessment_id
+                AND fr.id = disburse.funding_request_id
+            LEFT OUTER JOIN (
+                    SELECT 
+                        SUM(COALESCE(paid_amount, 0)) AS disbursed, 
+                        max(issue_date) AS issue_date, 
+                        funding_request_id, 
+                        assessment_id 
+                    FROM sfa.disbursement 
+                    GROUP BY assessment_id, funding_request_id
+                    ) d
+                ON  a.id = d.assessment_id
+                AND fr.id = d.funding_request_id 
+          WHERE fr.request_type_id = 4
+            AND (
+                    disburse.financial_batch_run_date = @p_issue_date AND
+                    disburse.financial_batch_serial_no = @p_serial_num OR
+                    disburse.financial_batch_id IS NULL
+                )
+
+            AND disburse.issue_date >= CONVERT(DATE, '20090417', 112); --TO_DATE('20090417','yyyymmdd');
+
+        EXEC sfa.sp_update_zero_amounts @p_issue_date, @p_serial_num;
+END
+GO
+
+CREATE OR ALTER PROCEDURE sfa.sp_check_error_status
+    @error_code_p VARCHAR(255),
+    @disbursement_id_p INT,
+    @is_resend_p INT OUTPUT,
+    @error_id_p INT OUTPUT
+AS
+BEGIN
+    DECLARE @is_resend_flg VARCHAR(255), @error_id INT;
+
+    SELECT @is_resend_flg = is_resend, @error_id = id
+    FROM sfa.entitlement_error_codes
+    WHERE code = @error_code_p;
+
+    INSERT INTO sfa.ENTITLEMENT_ERROR
+    (
+        disbursement_id,
+        entitlement_error_code_id,
+        is_resend
+    )
+    VALUES
+    (
+        @disbursement_id_p,
+        @error_id,
+        @is_resend_flg
+    );
+
+    SET @is_resend_p = @is_resend_flg;
+    SET @error_id_p = @error_id;
+END
+GO
+
+CREATE OR ALTER PROCEDURE sfa.sp_update_disbursement_by_id
+AS
+BEGIN
+    DECLARE @sequence_number INT,
+            @sin VARCHAR(50),
+            @ecert_sent_date DATE,
+            @response_date DATE,
+            @certificate_number VARCHAR(50),
+            @disbursement_id INT,
+            @ecert_status VARCHAR(50);
+
+    DECLARE cur_ecert_import CURSOR FOR
+    SELECT 
+        ei.sequence_number,
+        ei.sin,
+        ei.ecert_sent_date,
+        ei.response_date,
+        ei.certificate_number,
+        ei.disbursement_id,
+        CASE 
+            WHEN ei.is_resend_flg = 'Yes' THEN 'Rejected'
+            ELSE 'Warning'
+        END AS ecert_status
+    FROM sfa.ecert_import ei
+    WHERE error_message IS NOT NULL;
+
+    OPEN cur_ecert_import;
+    FETCH NEXT FROM cur_ecert_import INTO 
+        @sequence_number, @sin, @ecert_sent_date, @response_date,
+        @certificate_number, @disbursement_id, @ecert_status;
+
+    WHILE @@FETCH_STATUS = 0
+    BEGIN
+        UPDATE sfa.disbursement
+        SET ecert_status = @ecert_status, ecert_response_date = CONVERT(DATE, GETDATE())
+        WHERE id = @disbursement_id;
+
+        FETCH NEXT FROM cur_ecert_import INTO 
+            @sequence_number, @sin, @ecert_sent_date, @response_date,
+            @certificate_number, @disbursement_id, @ecert_status;
+    END;
+
+    CLOSE cur_ecert_import;
+    DEALLOCATE cur_ecert_import;
+END
+GO
+
+CREATE OR ALTER PROCEDURE sfa.sp_update_disbursement_by_seq
+	@v_create_date DATE,
+	@v_seq_num INT,
+	@v_ecert_sent_date DATE
+AS 
+BEGIN 
+	UPDATE sfa.disbursement 
+		SET ecert_response_date = @v_create_date, ecert_status = 'Accepted'
+	WHERE csl_cert_seq_number = @v_seq_num
+		AND disbursement_type_id in (4,3)
+		AND ecert_sent_date = @v_ecert_sent_date
+		AND ecert_status IS NULL;			 	
+END
+GO
+
+CREATE OR ALTER PROCEDURE sfa.sp_insert_ecert_import		
+	@v_seq_num NVARCHAR(20), 
+	@v_ecert_sent_date DATE, 
+	@v_sin NVARCHAR(9), 
+	@v_cert_number NVARCHAR(20), 
+	@v_create_date DATE, 
+	@v_is_resend NVARCHAR(3), 
+	@v_error_msg NVARCHAR(4000), 
+	@v_disbursement_id INT
+AS
+BEGIN
+	INSERT INTO sfa.ecert_import 
+	(
+		sequence_number
+		, ecert_sent_date
+		, sin
+		, certificate_number
+		, response_date
+		, is_resend_flg
+		, error_message
+		, disbursement_id
+	)
+	values 
+	( 
+		@v_seq_num, 
+		@v_ecert_sent_date, 
+		@v_sin, 
+		@v_cert_number, 
+		@v_create_date, 
+		@v_is_resend, 
+		@v_error_msg, 
+		@v_disbursement_id
+	);		
+END
+GO
+
 
