@@ -30,7 +30,7 @@
           </div> 
           
           <div class="col-md-2">
-            <v-btn :disabled="!files" class="my-0" color="primary" @click="getData">
+            <v-btn :disabled="!files" class="my-0" color="primary" @click="loadFile">
               Update
             </v-btn>
           </div>
@@ -45,7 +45,7 @@
 import store from "@/store";  
 import { mapActions, mapState } from "vuex";
 import axios from 'axios';
-
+import { CSL_RESTRICTED_DATA } from "@/urls";
 export default {
   name: "ChequeReqList",
   data: () => ({
@@ -65,6 +65,24 @@ export default {
   },
   methods: {
     ...mapActions(["cancel", "open", "messageStatus"]),
+    async loadFile() {
+      try {
+
+        const formData = new FormData();
+        const headers = { 'Content-Type': 'multipart/form-data' }
+
+        formData.append("file", this.files)
+
+        const res = await axios.post(CSL_RESTRICTED_DATA + "/upload-file", formData, { headers });
+        
+        
+        if (res?.data?.success) {
+          
+        }
+      } catch (error) {
+        console.log(error);
+      }
+    }
   }
 };
 </script>
