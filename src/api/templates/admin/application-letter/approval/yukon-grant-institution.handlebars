@@ -94,7 +94,11 @@
     {{studentFinancialAssistanceOfficer.firstName}}
     {{studentFinancialAssistanceOfficer.lastName}}
     <br />
-    Student Financial Services Officer
+    {{#if studentFinancialAssistanceOfficer.position}}
+      {{studentFinancialAssistanceOfficer.position}}
+    {{else}}
+      Student Financial Services Officer
+    {{/if}}
     <br />
     Student Funding Programs
   </p>
