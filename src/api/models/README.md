@@ -2,7 +2,7 @@
 
 Basic constraints:
 
-1. Models should reflect database level data.
+1. Models should reflect database level data. This includes _optional fields_ that, under most data hygiene standards, would normally be required fields instead of optional ones. They should not be updated, for the sake of the sanity of all future developers, until the database is updated.
 2. Models should use camelCase instead of whatever the database is using, because we are in JS land, and camelCase is the standard.
 3. Model files should have one default export that matches the name of the database table in PascalCase.
 4. Model relations should match the name of the database table when singular (in camelCase) and be the plural of the table name when they are an array.
