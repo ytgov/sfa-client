@@ -1,5 +1,6 @@
 import Application from "@/models/application"
 import Assessment from "@/models/assessment"
+import Disbursement from "@/models/disbursement"
 import RequestType from "@/models/request-type"
 
 export default interface FundingRequest {
@@ -29,5 +30,6 @@ export default interface FundingRequest {
   studentWNotReceiveFundFromOtrOrg?: boolean
   application?: Application
   assessments?: Assessment[]
+  disbursements?: Disbursement[]
   requestType?: RequestType
 }

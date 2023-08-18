@@ -103,7 +103,7 @@ export default class FundingRequestsLetterService {
 
     this.#_fundingRequest = await FundingRequestsService.includes([
       "application",
-      "assessment",
+      "assessments",
       "disbursements",
       "requestType",
     ]).find(fundingRequestId)

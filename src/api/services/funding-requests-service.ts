@@ -6,7 +6,7 @@ import FundingRequest from "@/models/funding-request"
 import ApplicationsService from "@/services/applications-service"
 
 namespace FundingRequestsService {
-  export type IncludeTypes = ("application" | "assessment" | "disbursements" | "requestType")[]
+  export type IncludeTypes = ("application" | "assessments" | "disbursements" | "requestType")[]
 }
 
 export default class FundingRequestsService {
@@ -28,7 +28,7 @@ export default class FundingRequestsService {
   // OPINION: if you want this to be faster, switch to Sequelize.
   // It would be more worthwhile than writing these as massive dynamic queries and recreating an ORM.
   async find(id: number): Promise<FundingRequest> {
-    const fundingRequest = await db("fundingRequest")
+    const fundingRequest = await db<FundingRequest>("fundingRequest")
       .where({ id })
       .first()
       .then((fundingRequest) => {
@@ -46,30 +46,19 @@ export default class FundingRequestsService {
       ]).find(fundingRequest.applicationId)
     }
 
-    if (this.#includes.includes("assessment")) {
-      fundingRequest.assessment = await db("assessment")
-        .where({ fundingRequestId: fundingRequest.id })
-        .first()
-        .then((assessment) => {
-          if (assessment) return assessment
-
-          throw new Error("Assessment not found")
-        })
+    if (this.#includes.includes("assessments")) {
+      fundingRequest.assessments = await db("assessment").where({
+        fundingRequestId: fundingRequest.id,
+      })
     }
 
     if (this.#includes.includes("disbursements")) {
-      fundingRequest.disbursements = await db("disbursement")
-        .where({
-          fundingRequestId: fundingRequest.id,
-        })
-        .then((disbursements) => {
-          if (disbursements) return disbursements
-
-          throw new Error("Disbursements not found")
-        })
+      fundingRequest.disbursements = await db("disbursement").where({
+        fundingRequestId: fundingRequest.id,
+      })
     }
 
-    if (this.#includes.includes("requestType")) {
+    if (this.#includes.includes("requestType") && fundingRequest.requestTypeId !== undefined) {
       fundingRequest.requestType = await db("requestType")
         .where({ id: fundingRequest.requestTypeId })
         .first()
