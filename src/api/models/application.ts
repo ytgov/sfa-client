@@ -680,7 +680,7 @@ export function ExpensesFromDraft(draft: any): any[] {
     for (let expense of draft.csfa_expenses.expenses) {
       expenses.push({
         category_id: expense.type,
-        period_id: expense.description.startsWith("Pre-Study") ? 1 : 2,
+        period_id: (expense.description || "").startsWith("Pre-Study") ? 1 : 2,
         description: expense.comments,
         amount: cleanNumber(expense.amount),
       });
