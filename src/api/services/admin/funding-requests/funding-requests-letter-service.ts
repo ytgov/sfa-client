@@ -101,10 +101,11 @@ export default class FundingRequestsLetterService {
   async #getFundingRequest(fundingRequestId: number) {
     if (this.#_fundingRequest) return this.#_fundingRequest
 
-    const fundingRequestsService = new FundingRequestsService(fundingRequestId)
-    this.#_fundingRequest = await fundingRequestsService.getFundingRequest({
-      includes: ["application", "assessment", "disbursements"],
-    })
+    this.#_fundingRequest = await FundingRequestsService.includes([
+      "application",
+      "assessment",
+      "disbursements",
+    ]).find(fundingRequestId)
     return this.#_fundingRequest
   }
 
