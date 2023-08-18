@@ -32,14 +32,14 @@
       <strong>Program: {{program.name}}</strong>
       <span>
         <strong>Start Date:</strong>
-        <span class="ml-4">{{momentDateFormat program.startDate "MMM Do YYYY"}}</span>
+        <span class="ml-4">{{momentDateFormat program.startDate "MMM Do, YYYY"}}</span>
       </span>
     </span>
     <span class="flex justify-between">
       <strong>Institution: {{program.institutionName}}</strong>
       <span>
         <strong>End Date:</strong>
-        <span class="ml-4">{{momentDateFormat program.endDate "MMM Do YYYY"}}</span>
+        <span class="ml-4">{{momentDateFormat program.endDate "MMM Do, YYYY"}}</span>
       </span>
     </span>
     <span class="flex mt-1"></span>
@@ -70,7 +70,7 @@
       {{#each disbursements}}
       <tr>
         <td>{{centsToDollarString this.amountInCents}}</td>
-        <td>{{momentDateFormat this.releaseDate "MMM YYYY"}}</td>
+        <td>{{momentDateFormatDefault this.releaseDate "MMM YYYY" "Upon confirmation"}}</td>
       </tr>
       {{/each}}
     </tbody>
