@@ -132,13 +132,13 @@ export default class FundingRequestsLetterService {
 
     if (
       requestType === RequestType.Types.YUKON_GRANT &&
-      Status.Types.AWARDED.includes(status) &&
+      Status.Types.AWARDED === status &&
       letterSlug === YukonGrantLetterSlugs.STUDENT
     ) {
       return TemplatePaths.YUKON_GRANT_STUDENT_APPROVAL
     } else if (
       requestType === RequestType.Types.YUKON_GRANT &&
-      Status.Types.AWARDED.includes(status) &&
+      Status.Types.AWARDED === status &&
       letterSlug === YukonGrantLetterSlugs.INSTITUTION
     ) {
       return TemplatePaths.YUKON_GRANT_INSTITUTION_APPROVAL
