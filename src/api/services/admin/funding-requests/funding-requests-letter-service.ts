@@ -6,12 +6,16 @@ import Status from "@/models/status"
 import User from "@/models/user"
 
 import FundingRequestsService from "@/services/funding-requests-service"
+import YukonGrantStudentTemplateSerializer from "@/serializers/funding-requests/letters/yukon-grant-student-template-serializer"
 
+// TODO: refactor this out to a model or utility function
 enum TemplatePaths {
   YUKON_GRANT_STUDENT_APPROVAL = "./templates/admin/application-letter/approval/yukon-grant-student",
   YUKON_GRANT_INSTITUTION_APPROVAL = "./templates/admin/application-letter/approval/yukon-grant-institution",
 }
 
+// TODO: refactor this out to a model or utility function
+// that restricts the slugs based on request type and status, or something ...
 enum YukonGrantLetterSlugs {
   STUDENT = "student",
   INSTITUTION = "institution",
@@ -46,13 +50,17 @@ export default class FundingRequestsLetterService {
       status: fundingRequest.status?.description,
       letterSlug: this.#letterSlug,
     })
-    const data = this.#serializeForTemplate(fundingRequest)
+    const data = this.#serializeForTemplate({
+      templatePath,
+      fundingRequest,
+      signingOfficer: this.#signingOfficer,
+    })
     const fileContent = await renderViewAsPdf(templatePath, data)
 
     const fileName = this.#buildFileName({
       fundingRequest,
       templatePath,
-      format: "pdf"
+      format: "pdf",
     })
 
     return {
@@ -69,39 +77,37 @@ export default class FundingRequestsLetterService {
       status: fundingRequest.status?.description,
       letterSlug: this.#letterSlug,
     })
-    const data = this.#serializeForTemplate(fundingRequest)
+    const data = this.#serializeForTemplate({
+      templatePath,
+      fundingRequest,
+      signingOfficer: this.#signingOfficer,
+    })
 
     return renderViewAsHtml(templatePath, data)
   }
 
   // Private Methods
-  #serializeForTemplate(fudningRequest: FundingRequest) {
-    return {
-      // currentDate: new Date(),
-      // recipient: {
-      //   firstName: person.firstName,
-      //   initials: person.initials,
-      //   lastName: person.lastName,
-      //   address: address.address1,
-      //   city: address.cityName,
-      //   province: address.provinceName,
-      //   country: address.countryName,
-      //   postalCode: address.postalCode,
-      // },
-      // program: {
-      //   name: program.description,
-      //   startDate: assessment.classesStartDate,
-      //   endDate: assessment.classesEndDate,
-      //   institutionName,
-      //   ratePerWeekInCents: assessment.weeklyAmount * 100,
-      //   approvalWeeks: assessment.weeksAllowed,
-      //   travelAndAirFairCostInCents: (assessment.airfareAmount + assessment.travelAllowance) * 100,
-      // },
-      // disbursements,
-      // studentFinancialAssistanceOfficer: {
-      //   name: officerName,
-      //   position: officerPosition,
-      // },
+  #serializeForTemplate({
+    templatePath,
+    fundingRequest,
+    signingOfficer,
+  }: {
+    templatePath: string
+    fundingRequest: FundingRequest
+    signingOfficer: User
+  }) {
+    if (templatePath === TemplatePaths.YUKON_GRANT_INSTITUTION_APPROVAL) {
+      return {
+        fundingRequest,
+        signingOfficer,
+      }
+    } else if (templatePath === TemplatePaths.YUKON_GRANT_STUDENT_APPROVAL) {
+      return YukonGrantStudentTemplateSerializer.prepare({
+        fundingRequest,
+        signingOfficer,
+      })
+    } else {
+      throw new Error(`Unknown serialization requirement for template path: ${templatePath}`)
     }
   }
 
@@ -150,14 +156,15 @@ export default class FundingRequestsLetterService {
     format,
   }: {
     templatePath: string
-    fundingRequest: FundingRequest,
+    fundingRequest: FundingRequest
     format: string
   }): string {
     const person = fundingRequest.application?.student?.person
     if (person === undefined) throw new Error("Could not find person")
 
     const { firstName, lastName } = person
-    if (firstName === undefined || lastName === undefined) throw new Error("Could not find person's name info")
+    if (firstName === undefined || lastName === undefined)
+      throw new Error("Could not find person's name info")
 
     // See https://xkcd.com/1179/ -> https://en.wikipedia.org/wiki/ISO_8601 for date format
     const formattedDate = new Date().toISOString().slice(0, 10) // YYYYY-MM-DD

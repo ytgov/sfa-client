@@ -111,9 +111,14 @@
     Sincerely,
   </p>
   <p class="mt-10">
-    {{studentFinancialAssistanceOfficer.name}}
-    <br>
-    {{studentFinancialAssistanceOfficer.position}}
+    {{studentFinancialAssistanceOfficer.firstName}}
+    {{studentFinancialAssistanceOfficer.lastName}}
+    <br />
+    {{#if studentFinancialAssistanceOfficer.position}}
+      {{studentFinancialAssistanceOfficer.position}}
+    {{else}}
+      Student Financial Services Officer
+    {{/if}}
     <br />
     Department of Education, Government of Yukon
   </p>
