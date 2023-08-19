@@ -25,12 +25,12 @@
                     hide-details
                     :disabled="true"
                     prefix="/"
-                    v-model="totalAssessement"                    
+                    v-model="cslft_get_assessments_count"                    
                   ></v-text-field>
             </div>
             <div class="col-xs-4 col-sm-4">
               <v-btn 
-                :disabled="cslft_get_current === 0"
+                :disabled="isNaN(cslft_get_current)"
                 dense
                 color="green" 
                 class="my-0"
@@ -163,6 +163,7 @@ export default {
     ...mapGetters([
       "cslft_get_assessments", 
       "cslft_get_assessments_index",
+      "cslft_get_assessments_count",
       "cslft_get_current",
     ]),
     application: function () {
@@ -179,12 +180,6 @@ export default {
     student: function (val) {
       if (val) this.updateView(val);
     },
-    cslft_get_assessments: {
-      immediate: true,
-      handler(newVal) {
-        this.totalAssessement = newVal.length;
-      }
-    }
   },
   methods: {
     showSuccess(mgs) {

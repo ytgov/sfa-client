@@ -265,7 +265,11 @@ const getters = {
     },
     cslft_get_assessments_index(state) {
         const a = state.cslft_assessments;
-        return a.map((x, i) => ({ id: i + 1, value: x }));
+        return Object.entries(a).map((x, i) => ({ id: i + 1, value: x[0]}));
+    },
+    cslft_get_assessments_count(state) {
+        const a = state.cslft_assessments;
+        return Object.entries(a).length;
     },
     cslft_get_assessment(state) {
       return state.cslft;

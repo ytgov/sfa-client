@@ -108,7 +108,6 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
         this.aboriginalStatusRepo = new AboriginalStatusRepository(maindb);
         this.incomeRepo = new IncomeRepository(maindb);
         this.employmentStatusRepo = new EmploymentStatusRepository(maindb);
-        this.global.assessments = [];
     }
     
     academicYearValidation = (year: number): boolean => {
@@ -308,18 +307,29 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
             this.msfaa = await this.msfaaRepo.getMsfaaByStudentId(this.student.id);
             this.e_certs = await this.disbursementRepo.getECertificateList(this.assessment.id);
         }
-        this.global.assessment = this.assessment.id;
     }
 
-    async getAssessInfoCslft(funding_request_id?: number, assessment_id: number = 0): Promise<Partial<CslftResultDTO>> {
+    async getAssessInfoCslft(funding_request_id?: number, requestCreate: boolean = false): Promise<Partial<CslftResultDTO>> {
 
         let assess_id: number | undefined = undefined;        
+        let isNew: boolean = false;
 
         const assessments = await this.getAllAssessmentsByFundingRequestId(funding_request_id);
-        this.global.assessments = assessments;
+        
+        for (const id of assessments) {
+            const assessment = await this.getAssessmentById(id);            
+            if (assessment.id) {
+                if (!this.global.assessments) {
+                    this.global.assessments = { [assessment.id.toString()]: assessment };
+                }
+                else {
+                    this.global.assessments[assessment.id.toString()] = assessment;
+                }
+            }
+        }
 
         if (funding_request_id) {
-            await this.loadData(funding_request_id, assessment_id === 0);           
+            await this.loadData(funding_request_id, (assessments.length > 0 && !requestCreate));           
             if ((!this.assessment.id)) {
                 const assess_count = await this.getAssessmentCount(funding_request_id);
             
@@ -333,6 +343,7 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
                 else {
                     this.assessment.funding_request_id = funding_request_id;
                     await this.getNewInfo();
+                    isNew = true;
                 }
 
                 if ((this.assessment.csl_assessed_need ?? 0) > 0 || this.assessment.total_grant_awarded && (this.application.academic_year_id ?? 0) > 2012) {
@@ -343,7 +354,7 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
                 this.global.new_calc = true;
                 this.assessment_id = this.assessment.id;
             }            
-            this.global.assessment = this.assessment.id ?? 0;
+            this.global.assessment = this.assessment.id?.toString();
 
             await this.setIdGlobals();
 
@@ -379,6 +390,17 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
             this.assessment.spouse_contribution_review = this.assessment.assessment_type_id === 2 ? "YES" : "NO";
             this.assessment.parent_contribution_review = this.assessment.assessment_type_id === 2 ? "YES" : "NO";
         }
+
+        if (isNew) {
+            const uuid = crypto.randomUUID();
+            if (!this.global.assessments) {
+                this.global.assessments = { [uuid]: this.assessment };
+            }
+            else {
+                this.global.assessments[uuid] = this.assessment;
+            }
+            this.global.assessment = uuid;
+        } 
 
         this.resultDto.data = this.assessment;
         this.resultDto.globals = this.global;
