@@ -1,5 +1,3 @@
-import db from "@/db/db-client"
-
 import { renderViewAsPdf, renderViewAsHtml } from "@/utils/express-handlebars-pdf-client"
 
 import FundingRequest from "@/models/funding-request"
@@ -8,6 +6,11 @@ import Status from "@/models/status"
 import User from "@/models/user"
 
 import FundingRequestsService from "@/services/funding-requests-service"
+
+enum TemplatePaths {
+  YUKON_GRANT_STUDENT_APPROVAL = "./templates/admin/application-letter/approval/yukon-grant-student",
+  YUKON_GRANT_INSTITUTION_APPROVAL = "./templates/admin/application-letter/approval/yukon-grant-institution",
+}
 
 enum YukonGrantLetterSlugs {
   STUDENT = "student",
@@ -35,7 +38,7 @@ export default class FundingRequestsLetterService {
     this.#signingOfficer = signingOfficer
   }
 
-  async generateLetterAsPdf(): Promise<Buffer | string> {
+  async generateLetterAsPdf(): Promise<{ fileContent: Buffer; fileName: string }> {
     const fundingRequest = await this.#getFundingRequest(this.#fundingRequestId)
 
     const templatePath = this.#getTemplatePathForRequest({
@@ -44,8 +47,18 @@ export default class FundingRequestsLetterService {
       letterSlug: this.#letterSlug,
     })
     const data = this.#serializeForTemplate(fundingRequest)
+    const fileContent = await renderViewAsPdf(templatePath, data)
 
-    return renderViewAsPdf(templatePath, data)
+    const fileName = this.#buildFileName({
+      fundingRequest,
+      templatePath,
+      format: "pdf"
+    })
+
+    return {
+      fileContent,
+      fileName,
+    }
   }
 
   async generateLetterAsHtml(): Promise<Buffer | string> {
@@ -59,28 +72,6 @@ export default class FundingRequestsLetterService {
     const data = this.#serializeForTemplate(fundingRequest)
 
     return renderViewAsHtml(templatePath, data)
-  }
-
-  ////
-  // See https://xkcd.com/1179/ -> https://en.wikipedia.org/wiki/ISO_8601 for date format
-  async buildLetterFileName(): Promise<string> {
-    const fundingRequest = await this.#getFundingRequest(this.#fundingRequestId)
-    const application = fundingRequest.application
-
-    const studentLastName = application?.student?.person?.lastName
-    if (studentLastName === undefined) {
-      throw new Error("No student last name")
-    }
-
-    const formattedData = new Date().toISOString().slice(0, 10) // YYYYY-MM-DD
-
-    if (type === "rejection") {
-      return `Rejection Letter, ${studentLastName}, ${formattedData}.${this.#format}`
-    } else if (type === "approval") {
-      return `Approval Letter, ${studentLastName}, ${formattedData}.${this.#format}`
-    } else {
-      throw new Error(`Invalid type: ${type}`)
-    }
   }
 
   // Private Methods
@@ -138,17 +129,45 @@ export default class FundingRequestsLetterService {
       Status.Types.AWARDED.includes(status) &&
       letterSlug === YukonGrantLetterSlugs.STUDENT
     ) {
-      return `./templates/admin/application-letter/approval/yukon-grant-student`
+      return TemplatePaths.YUKON_GRANT_STUDENT_APPROVAL
     } else if (
       requestType === RequestType.Types.YUKON_GRANT &&
       Status.Types.AWARDED.includes(status) &&
       letterSlug === YukonGrantLetterSlugs.INSTITUTION
     ) {
-      return `./templates/admin/application-letter/approval/yukon-grant-institution`
+      return TemplatePaths.YUKON_GRANT_INSTITUTION_APPROVAL
     } else {
       throw new Error(
         `Could not determine template path with given request type: '${requestType}', status: '${status}', and letter slug: '${letterSlug}'`
       )
+    }
+  }
+
+  // TODO: convert this to a hash map or something fancy like that.
+  #buildFileName({
+    templatePath,
+    fundingRequest,
+    format,
+  }: {
+    templatePath: string
+    fundingRequest: FundingRequest,
+    format: string
+  }): string {
+    const person = fundingRequest.application?.student?.person
+    if (person === undefined) throw new Error("Could not find person")
+
+    const { firstName, lastName } = person
+    if (firstName === undefined || lastName === undefined) throw new Error("Could not find person's name info")
+
+    // See https://xkcd.com/1179/ -> https://en.wikipedia.org/wiki/ISO_8601 for date format
+    const formattedDate = new Date().toISOString().slice(0, 10) // YYYYY-MM-DD
+    if (
+      templatePath === TemplatePaths.YUKON_GRANT_INSTITUTION_APPROVAL ||
+      templatePath === TemplatePaths.YUKON_GRANT_STUDENT_APPROVAL
+    ) {
+      return `YG Approval Letter, ${lastName} ${firstName}, ${formattedDate}.${format}`
+    } else {
+      throw new Error(`Could not determine file name with given template path: '${templatePath}'`)
     }
   }
 

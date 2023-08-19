@@ -26,12 +26,10 @@ export default class FundingRequestsLettersController extends BaseController {
     if (this.format === "pdf") {
       return letterService
         .generateLetterAsPdf()
-        .then(async (approvalLetter) => {
-          const fileName = await letterService.buildLetterFileName()
-
+        .then(async ({ fileContent, fileName }) => {
           this.response.setHeader("Content-disposition", `attachment; filename="${fileName}"`)
           this.response.setHeader("Content-type", "application/pdf")
-          this.response.send(approvalLetter)
+          this.response.send(fileContent)
         })
         .catch((error) => {
           if (error instanceof Error) {
