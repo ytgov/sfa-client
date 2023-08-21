@@ -1,11 +1,8 @@
 <template>
   <div class="home cslft-assessment">
-    <div class="col-xs-12 nopadding-lr col-sm-12 col-lg-12">
-      <div class="col-lg-12 nopadding default bg-color-blue v-card v-sheet">
-        <div class="col-lg-12 nopadding d-flex flex-wrap low-margin">
-          <v-card-title class="col-xs-12 col-md-4 col-lg-4">Assessment - CSLFT</v-card-title>
-          <div class="col-xs-12 col-md-4 col-lg-4 nopadding d-flex">
-            <div class="col-xs-4 col-sm-4 d-flex">
+    <div class="col-lg-12 col-xs-12 col-md-12 nopadding record-section">
+      <div class="col-xs-12 col-md-12 col-lg-12 nopadding d-flex">
+            <div class="col-xs-4 col-sm-4 d-flex nopadding">
               <v-select
                     :disabled="showAdd"
                     outlined
@@ -28,7 +25,10 @@
                     v-model="cslft_get_assessments_count"                    
                   ></v-text-field>
             </div>
-            <div class="col-xs-4 col-sm-4">
+            <div class="spacer col-xs-4 col-sm-4">
+            
+            </div>
+            <div class="col-xs-4 col-sm-4 nopadding">
               <v-btn 
                 :disabled="isNaN(cslft_get_current)"
                 dense
@@ -42,7 +42,12 @@
               CREATE ASSESSMENT
               </v-btn>
             </div>
-          </div>          
+          </div>  
+    </div>
+    <div class="col-xs-12 nopadding-lr col-sm-12 col-lg-12">
+      <div class="col-lg-12 nopadding default bg-color-blue v-card v-sheet">
+        <div class="col-lg-12 nopadding d-flex flex-wrap low-margin">
+          <v-card-title class="col-xs-12 col-md-8 col-lg-8">Assessment - CSLFT</v-card-title>        
           <div class="col-xs-12 col-md-4 col-lg-4 nopadding d-flex">
             <div class="col-xs-4 col-sm-4">
               <v-btn 
