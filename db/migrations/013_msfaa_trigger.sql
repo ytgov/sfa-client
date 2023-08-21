@@ -1,6 +1,6 @@
 -- Add Triggers
 CREATE OR ALTER TRIGGER sfa.msfaa_rec_last_modified_date
-ON sfa.msfaa FOR INSERT, UPDATE
+ON sfa.msfaa FOR UPDATE
 AS
  
 SET NOCOUNT ON;

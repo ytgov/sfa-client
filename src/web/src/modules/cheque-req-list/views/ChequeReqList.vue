@@ -14,7 +14,6 @@
     >
     </v-breadcrumbs>
     <h1>Cheque Req List</h1>
-
     <v-card class="default mb-5">        
       <v-card-text>
         <div class="row">
@@ -56,10 +55,11 @@
           <div class="col-md-5">
             <v-text-field                      
               label="Re-run Batch from"
-              hide-details
-              readonly                                
+              type="number"
+              hide-details                         
               outlined
               dense
+              v-model="reRunBatch"
               background-color="white" 
             ></v-text-field>
           </div> 
@@ -88,6 +88,7 @@ export default {
   name: "ChequeReqList",
   data: () => ({
     issueDate: "",
+    reRunBatch: null,
     issue_date_calendar: false,
   }),
   components: {},
@@ -101,7 +102,7 @@ export default {
     ...mapActions(["cancel", "open", "messageStatus"]),
     async getData() {
       try {
-        const res = await axios.get(CHEQUE_REQ_LIST + "?issueDate=" + this.issueDate);
+        const res = await axios.get(CHEQUE_REQ_LIST + "?issueDate=" + this.issueDate + "&reRunBatch=" + this.reRunBatch);
 
         if (res?.data?.success) {
           const records = res?.data?.data.records ?? [];
