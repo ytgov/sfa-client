@@ -27,6 +27,13 @@ const mutations = {
             state.cslft_e_certs = payload.e_certs;
         }
     },
+    getAssessmentFromMemory(state, assessment_id) {
+        const assessment = state.cslft_assessments[assessment_id];
+        if (assessment) {
+            state.cslft = assessment;
+            state.cslft_current = assessment_id;
+        }
+    },
     loadModelsDisburse(state, disburseModel) {
         state.cslft = disburseModel.data;
         state.funding_request = disburseModel.funding_request;
@@ -104,6 +111,16 @@ const actions = {
             state.commit("cslftResetState", state);
             state.commit("getCslftAssessInfo", res.data);
         }
+    },
+    async createCslftAssessment(state, funding_request_id) {
+        const res = await axios.get(`${CSLFT}/funding_request/${funding_request_id}/assessment/create`);
+        if (res?.data?.success) {
+            state.commit("cslftResetState", state);
+            state.commit("getCslftAssessInfo", res.data);
+        }
+    },
+    async switchAssessment(state, assessment_id) {
+        state.commit("getAssessmentFromMemory", assessment_id);
     },
     async cslftLoadUncappedExpenses(state, application_id) {
         const period_id = 2;

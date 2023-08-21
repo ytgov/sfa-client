@@ -38,6 +38,33 @@ async (req: Request, res: Response) => {
     }
 });
 
+assessmentCslftRouter.get("/funding_request/:id/assessment/create",
+[param("id").isInt().notEmpty()], ReturnValidationErrors, 
+async (req: Request, res: Response) => {
+
+    const assessmentCslftRepo = new AssessmentCslftRepository(db);
+    const { id = undefined } = req.params;
+    let results: Partial<CslftResultDTO> = {};
+    
+    try {
+
+        if (id) {
+            results = await assessmentCslftRepo.getAssessInfoCslft(parseInt(id), true);
+        }
+
+        if (Object.keys(results.data ?? {}).length > 0) {
+            results.success = true;
+            return res.status(200).json(results);
+        } else {
+            return res.status(404).send();
+        }
+
+    } catch (error: any) {
+        console.log(error);
+        return res.status(404).send();
+    }
+});
+
 assessmentCslftRouter.post("/",
     [body("payload").notEmpty()], ReturnValidationErrors,
     async (req: Request, res: Response) => {

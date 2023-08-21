@@ -13,7 +13,7 @@
                     :items="cslft_get_assessments_index"
                     item-text="id"
                     item-value="value"
-                    v-model="cslft_get_current"
+                    v-model="current"
                 ></v-select>
                 <v-text-field
                     outlined
@@ -35,6 +35,7 @@
                 color="green" 
                 class="my-0"
                 block
+                @click="createAssessment"
               >
               <v-icon left>
                 mdi-plus
@@ -44,6 +45,7 @@
             </div>
           </div>  
     </div>
+    {{ current }}
     <div class="col-xs-12 nopadding-lr col-sm-12 col-lg-12">
       <div class="col-lg-12 nopadding default bg-color-blue v-card v-sheet">
         <div class="col-lg-12 nopadding d-flex flex-wrap low-margin">
@@ -179,12 +181,26 @@ export default {
     tab: 0,
     applicationId: -1,
     showAdd: false,   
-    totalAssessement: 0, 
+    totalAssessement: 0,
+    current: 0,
   }),
   watch: {
     student: function (val) {
       if (val) this.updateView(val);
     },
+    cslft_get_current: {
+      immediate: true,
+      deep: true,
+      handler(newVal) {
+        this.current = newVal;
+      }
+    },
+    current: {
+      handler(newVal) {
+        console.log(newVal);
+        store.dispatch("switchAssessment", newVal);
+      }
+    }
   },
   methods: {
     showSuccess(mgs) {
@@ -197,7 +213,7 @@ export default {
       store.dispatch("saveCslftAssessment", this);
     },
     createAssessment() {
-      store.dispatch("getCslftAssessInfo");
+      store.dispatch("createCslftAssessment", this.$props.fundingRequestId);
     },
   },
   async created() {

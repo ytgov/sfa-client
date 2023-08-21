@@ -1,5 +1,6 @@
 import {Knex} from "knex";
 import moment from "moment";
+import crypto from "node:crypto";
 import {
     ApplicationDTO,
     AssessmentDTO,
@@ -339,6 +340,8 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
                     this.assessment.assessment_type_id = 2;
         
                     await this.getPreviousAssessment(this.assess_id);
+                    isNew = true;
+                    this.assessment.id = undefined;
                 }
                 else {
                     this.assessment.funding_request_id = funding_request_id;
@@ -353,8 +356,8 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
             else {
                 this.global.new_calc = true;
                 this.assessment_id = this.assessment.id;
+                this.global.assessment = this.assessment.id.toString();
             }            
-            this.global.assessment = this.assessment.id?.toString();
 
             await this.setIdGlobals();
 
