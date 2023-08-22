@@ -29,6 +29,7 @@ interface FundingRequestLetterInterface {
   service: FundingRequestsLettersBaseServiceConstructor
 }
 
+// TODO: consider moving this to a funding-request-letter-service.ts
 export const FUNDING_REQUEST_LETTERS: {
   // TODO: consider switching something like the following signature
   // [K in RequestTypes]: {

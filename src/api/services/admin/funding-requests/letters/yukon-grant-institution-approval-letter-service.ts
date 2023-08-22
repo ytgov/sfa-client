@@ -1,8 +1,10 @@
+import { TemplatePaths } from "@/models/funding-request-letter"
+
 import FundingRequestsLettersBaseService from "@/services/admin/funding-requests/letters/funding-requests-letters-base-service"
 
 export default class YukonGrantInstitutionApprovalLetterService extends FundingRequestsLettersBaseService {
   getTemplatePath(): string {
-    return "./templates/admin/application-letter/approval/yukon-grant-institution"
+    return TemplatePaths.YUKON_GRANT_INSTITUTION_APPROVAL
   }
 
   serializeForTemplate() {
