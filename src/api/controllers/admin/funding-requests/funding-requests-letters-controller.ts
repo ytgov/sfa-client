@@ -8,6 +8,7 @@ import FundingRequestsService from "@/services/funding-requests-service"
 export default class FundingRequestsLettersController extends BaseController {
   async listLetters() {
     const fundingRequestId = parseInt(this.request.params.fundingRequestId)
+
     return FundingRequestsService.includes([
       "requestType",
       // "status", // TODO: should I restrict the list by status of funding request?

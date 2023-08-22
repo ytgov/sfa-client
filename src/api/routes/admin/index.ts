@@ -4,6 +4,7 @@ import pathFormatMiddleware from "@/middleware/path-format-middleware"
 import { routedTo } from "@/controllers/helpers"
 
 import FundingRequestsLettersController from "@/controllers/admin/funding-requests/funding-requests-letters-controller"
+import FundingRequestLettersController from "@/controllers/admin/funding-request-letters-controller"
 
 import { acadecicYearRouter } from "./academic-year-router";
 import { applicationLetterRouter } from "./application-letter-router";
@@ -88,6 +89,10 @@ adminRouter.use(
 adminRouter.use(
   "/funding-requests/:fundingRequestId/letters",
   routedTo(FundingRequestsLettersController, "listLetters")
+)
+adminRouter.use(
+  "/funding-request-letters",
+  routedTo(FundingRequestLettersController, "listLetters")
 )
 adminRouter.use("/application-letter", pathFormatMiddleware, applicationLetterRouter);
 adminRouter.use("/assessment", assessmentRouter);
