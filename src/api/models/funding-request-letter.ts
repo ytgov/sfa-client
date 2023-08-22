@@ -43,7 +43,7 @@ export const FUNDING_REQUEST_TO_STATUS_TO_SLUG_TO_LETTER_MAPPING: {
         slug: LetterSlugs.STUDENT,
         description: "Yukon Grant Student",
         type: LetterTypes.APPROVAL,
-        template: TemplatePaths.YUKON_GRANT_INSTITUTION_APPROVAL,
+        template: TemplatePaths.YUKON_GRANT_STUDENT_APPROVAL,
       },
       [LetterSlugs.INSTITUTION]: {
         slug: LetterSlugs.INSTITUTION,
