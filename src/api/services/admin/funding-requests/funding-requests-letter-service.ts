@@ -1,25 +1,11 @@
 import { renderViewAsPdf, renderViewAsHtml } from "@/utils/express-handlebars-pdf-client"
 
+import FundingRequestLetterRecord, { TemplatePaths } from "@/models/funding-request-letter"
 import FundingRequest from "@/models/funding-request"
-import RequestType from "@/models/request-type"
-import Status from "@/models/status"
 import User from "@/models/user"
 
 import FundingRequestsService from "@/services/funding-requests-service"
 import YukonGrantStudentTemplateSerializer from "@/serializers/funding-requests/letters/yukon-grant-student-template-serializer"
-
-// TODO: refactor this out to a model or utility function
-enum TemplatePaths {
-  YUKON_GRANT_STUDENT_APPROVAL = "./templates/admin/application-letter/approval/yukon-grant-student",
-  YUKON_GRANT_INSTITUTION_APPROVAL = "./templates/admin/application-letter/approval/yukon-grant-institution",
-}
-
-// TODO: refactor this out to a model or utility function
-// that restricts the slugs based on request type and status, or something ...
-enum YukonGrantLetterSlugs {
-  STUDENT = "student",
-  INSTITUTION = "institution",
-}
 
 export default class FundingRequestsLetterService {
   #fundingRequestId: number
@@ -130,23 +116,11 @@ export default class FundingRequestsLetterService {
       )
     }
 
-    if (
-      requestType === RequestType.Types.YUKON_GRANT &&
-      Status.Types.AWARDED === status &&
-      letterSlug === YukonGrantLetterSlugs.STUDENT
-    ) {
-      return TemplatePaths.YUKON_GRANT_STUDENT_APPROVAL
-    } else if (
-      requestType === RequestType.Types.YUKON_GRANT &&
-      Status.Types.AWARDED === status &&
-      letterSlug === YukonGrantLetterSlugs.INSTITUTION
-    ) {
-      return TemplatePaths.YUKON_GRANT_INSTITUTION_APPROVAL
-    } else {
-      throw new Error(
-        `Could not determine template path with given request type: '${requestType}', status: '${status}', and letter slug: '${letterSlug}'`
-      )
-    }
+    return FundingRequestLetterRecord.getTemplatePath({
+      requestType,
+      status,
+      letterSlug,
+    })
   }
 
   // TODO: convert this to a hash map or something fancy like that.

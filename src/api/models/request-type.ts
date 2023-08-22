@@ -1,4 +1,4 @@
-enum RequestTypes {
+export enum RequestTypes {
   STUDENT_TRAINING_ALLOWANCE = "Student Training Allowance",
   YUKON_GRANT = "Yukon Grant",
   YUKON_EXCELLENCE_AWARDS = "Yukon Excellence Awards",

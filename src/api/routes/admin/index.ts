@@ -81,7 +81,12 @@ adminRouter.use("/institution", institutionRouter);
 adminRouter.use("/academic-year", acadecicYearRouter);
 adminRouter.use("/application", applicationRouter);
 adminRouter.use(
-  "funding-requests/:fundingRequestId/letters/:letterSlug",
+  "/funding-requests/:fundingRequestId/letters",
+  pathFormatMiddleware,
+  routedTo(FundingRequestsLettersController, "listLetters")
+)
+adminRouter.use(
+  "/funding-requests/:fundingRequestId/letters/:letterSlug",
   pathFormatMiddleware,
   routedTo(FundingRequestsLettersController, "getLetter")
 )
