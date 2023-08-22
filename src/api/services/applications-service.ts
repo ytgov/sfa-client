@@ -48,7 +48,7 @@ export default class ApplicationsService {
           throw new Error("Student not found")
         })
 
-      if (application?.student?.personId !== undefined) {
+      if (application?.student?.personId) {
         application.student.person = await db("person")
           .where({ id: application.student.personId })
           .first()
@@ -60,7 +60,7 @@ export default class ApplicationsService {
       }
     }
 
-    if (this.#includes.includes("personAddress") && application.primaryAddressId !== undefined) {
+    if (this.#includes.includes("personAddress") && application.primaryAddressId) {
       application.primaryAddress = await PersonAddressesService.includes([
         "city",
         "province",
@@ -68,16 +68,13 @@ export default class ApplicationsService {
       ]).find(application.primaryAddressId)
     }
 
-    if (
-      this.#includes.includes("institutionCampus") &&
-      application.institutionCampusId !== undefined
-    ) {
+    if (this.#includes.includes("institutionCampus") && application.institutionCampusId) {
       application.institutionCampus = await InstitutionCampusesService.includes([
         "institution",
       ]).find(application.institutionCampusId)
     }
 
-    if (this.#includes.includes("studyArea") && application.studyAreaId !== undefined) {
+    if (this.#includes.includes("studyArea") && application.studyAreaId) {
       application.studyArea = await db("studyArea")
         .where({ id: application.studyAreaId })
         .first()

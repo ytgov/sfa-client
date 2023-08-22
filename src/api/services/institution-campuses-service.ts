@@ -34,7 +34,7 @@ export default class InstitutionCampusesService {
         throw new Error("Institution not found")
       })
 
-    if (this.#includes.includes("institution") && institutionCampus.institutionId !== undefined) {
+    if (this.#includes.includes("institution") && institutionCampus.institutionId) {
       institutionCampus.institution = await db("institution")
         .where({ id: institutionCampus.institutionId })
         .first()

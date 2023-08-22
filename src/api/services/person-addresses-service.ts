@@ -34,7 +34,7 @@ export default class PersonAddressesService {
         throw new Error("Person address not found")
       })
 
-    if (this.#includes.includes("city") && personAddress.cityId !== undefined) {
+    if (this.#includes.includes("city") && personAddress.cityId) {
       personAddress.city = await db("city")
         .where({ id: personAddress.cityId })
         .first()
@@ -45,7 +45,7 @@ export default class PersonAddressesService {
         })
     }
 
-    if (this.#includes.includes("province") && personAddress.provinceId !== undefined) {
+    if (this.#includes.includes("province") && personAddress.provinceId) {
       personAddress.province = await db("province")
         .where({ id: personAddress.provinceId })
         .first()
@@ -56,7 +56,7 @@ export default class PersonAddressesService {
         })
     }
 
-    if (this.#includes.includes("country") && personAddress.countryId !== undefined) {
+    if (this.#includes.includes("country") && personAddress.countryId) {
       personAddress.country = await db("country")
         .where({ id: personAddress.countryId })
         .first()

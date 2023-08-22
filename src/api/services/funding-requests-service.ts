@@ -63,7 +63,7 @@ export default class FundingRequestsService {
       })
     }
 
-    if (this.#includes.includes("requestType") && fundingRequest.requestTypeId !== undefined) {
+    if (this.#includes.includes("requestType") && fundingRequest.requestTypeId) {
       fundingRequest.requestType = await db("requestType")
         .where({ id: fundingRequest.requestTypeId })
         .first()
@@ -74,7 +74,7 @@ export default class FundingRequestsService {
         })
     }
 
-    if (this.#includes.includes("status") && fundingRequest.statusId !== undefined) {
+    if (this.#includes.includes("status") && fundingRequest.statusId) {
       fundingRequest.status = await db("status")
         .where({ id: fundingRequest.statusId })
         .first()
