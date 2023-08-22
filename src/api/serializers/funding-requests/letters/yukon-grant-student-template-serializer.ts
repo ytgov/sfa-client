@@ -68,7 +68,7 @@ export default class YukonGrantStudentTemplateSerializer {
       throw new Error(
         "Could not prepare template data as assessments is missing from funding request."
       )
-    if (assessments.length > 1)
+    if (assessments.length > 1) // TODO: consider returning only the last assessment?
       throw new Error("Could not prepare template data as multiple assessments are not supported.")
 
     const assessment = assessments[0]
