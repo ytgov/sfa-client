@@ -94,7 +94,7 @@ export const ASSESSMENT = `${config.apiBaseUrl}/api/v2/admin/assessment`;
 export const CERTIFICATE_AUDIT_REPORT = `${config.apiBaseUrl}/api/v2/admin/csl-certificate-audit-report`;
 export const CHEQUE_REQ_LIST = `${config.apiBaseUrl}/api/v2/admin/cheque-req-list`;
 
-export const APPLICATION_LETTER_URL = `${config.apiBaseUrl}/api/v2/admin/application-letter`;
+export const FUNDING_REQUESTS_URL = `${config.apiBaseUrl}/api/v2/admin/funding-requests`;
 
 // Modules
 export const CSLFT = `${ASSESSMENT}/cslft`;

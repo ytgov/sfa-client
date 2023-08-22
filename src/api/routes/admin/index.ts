@@ -7,7 +7,6 @@ import FundingRequestsLettersController from "@/controllers/admin/funding-reques
 import FundingRequestLettersController from "@/controllers/admin/funding-request-letters-controller"
 
 import { acadecicYearRouter } from "./academic-year-router";
-import { applicationLetterRouter } from "./application-letter-router";
 import { applicationRouter } from "./application-router";
 import { assessmentRouter } from "./assessment-router";
 import { institutionRouter } from "./institution-router";
@@ -94,7 +93,6 @@ adminRouter.use(
   "/funding-request-letters",
   routedTo(FundingRequestLettersController, "listLetters")
 )
-adminRouter.use("/application-letter", pathFormatMiddleware, applicationLetterRouter);
 adminRouter.use("/assessment", assessmentRouter);
 adminRouter.use("/student", studentRouter);
 adminRouter.use("/province", provinceRouter);
