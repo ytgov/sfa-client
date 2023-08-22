@@ -31,7 +31,7 @@ export default class PersonAddressesService {
       .then((address) => {
         if (address) return address
 
-        throw new Error("Address not found")
+        throw new Error("Person address not found")
       })
 
     if (this.#includes.includes("city") && personAddress.cityId !== undefined) {
