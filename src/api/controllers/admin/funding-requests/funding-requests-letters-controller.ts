@@ -2,7 +2,7 @@ import FundingRequestLetter from "@/models/funding-request-letter"
 
 import BaseController from "@/controllers/base-controller"
 
-import FundingRequestsLetterService from "@/services/admin/funding-requests/funding-requests-letter-service"
+import FundingRequestsLetterBuilderService from "@/services/admin/funding-requests/funding-requests-letter-builder-service"
 import FundingRequestsService from "@/services/funding-requests-service"
 
 export default class FundingRequestsLettersController extends BaseController {
@@ -66,7 +66,7 @@ export default class FundingRequestsLettersController extends BaseController {
     const fundingRequestId = parseInt(this.request.params.fundingRequestId)
     const letterSlug = this.request.params.letterSlug
 
-    const letterService = new FundingRequestsLetterService({
+    const letterService = new FundingRequestsLetterBuilderService({
       fundingRequestId,
       letterSlug,
       signingOfficer: this.currentUser,

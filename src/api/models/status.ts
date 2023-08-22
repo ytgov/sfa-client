@@ -1,4 +1,4 @@
-enum Statues {
+export enum Statuses {
   CHECK = "Check",
   PENDING = "Pending",
   WAIT = "Wait",
@@ -37,7 +37,11 @@ class Status {
   }
 
   // not in database
-  static readonly Types = Statues
+  static readonly Types = Statuses
+
+  static isValidStatus(status: any): status is Statuses {
+    return Object.values(Statuses).includes(status)
+  }
 }
 
 export default Status

@@ -85,6 +85,10 @@ class RequestType {
 
   // not in database
   static readonly Types = RequestTypes
+
+  static isValidRequestType(requestType: any): requestType is RequestTypes {
+    return Object.values(RequestTypes).includes(requestType)
+  }
 }
 
 export default RequestType
