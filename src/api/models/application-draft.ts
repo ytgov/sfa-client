@@ -8,4 +8,5 @@ export default interface ApplicationDraft {
   applicationJson: string
   submitDate?: Date
   status?: string
+  applicationId?: number
 }

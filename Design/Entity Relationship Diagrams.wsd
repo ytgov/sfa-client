@@ -1,8 +1,29 @@
 @startuml
+'Uses https://plantuml.com/ie-diagram
+
+entity AccommodationType {
+  id: number
+  description: string
+  is_active: boolean
+}
+
 entity AddressType {
   id: number
   description: string
   is_active: boolean
+}
+
+entity AgencyAssistance {
+  id: number
+  agency_id: number
+  application_id: number
+  amount: number
+  is_tuition: boolean
+  is_living_expenses: boolean
+  is_books: boolean
+  is_transportation: boolean
+  other_purpose?: string
+  agency_comment?: string
 }
 
 entity Application {
@@ -157,6 +178,19 @@ entity Application {
   is_cheques_to_institution: boolean
 }
 
+entity ApplicationDraft {
+  id: number
+  student_id: number
+  academic_year_id: number
+  create_date: Date
+  update_date: Date
+  is_active?: boolean
+  application_json: string
+  submit_date?: Date
+  status?: string
+  application_id?: number
+}
+
 entity Assessment {
   id: number
   allowed_books?: number
@@ -285,10 +319,48 @@ entity Attendance {
   is_active: boolean
 }
 
+entity Citizenship {
+  id: number
+  description: string
+  is_active: boolean
+}
+
 enum CsfaAmount {
   FULL_AMOUNT_LOANS_AND_GRANTS: Full amount loans and grants
   GRANTS_AND_LOANS_UP_TO: Grants and loans up to
   GRANTS_ONLY: Grants only
+}
+
+entity Dependent {
+  id: number
+  student_id?: number
+  relationship_id?: number
+  first_name?: string
+  last_name?: string
+  comments?: string
+  birth_date?: Date
+  is_in_progress?: boolean
+  is_conversion?: boolean
+  is_disability?: boolean
+  /'
+  NOTE: there isn't a constraint forcing the dependent -> dependent eligibility relationship to be one to one.
+  While this seems like the obvious intent of the system, the data is not one-to-one so I can't treat it that way.
+  In the future, we will probably want to enforce the one-to-one constraint.
+  '/
+}
+
+entity DependentEligibility {
+  id: number
+  application_id: number
+  dependent_id: number
+  is_sta_eligible: boolean
+  is_post_secondary: boolean
+  resides_with_student: boolean
+  is_shares_custody: boolean
+  shares_custody_details?: string
+  is_csl_eligible: boolean
+  is_csg_eligible: boolean
+  is_in_progress: boolean
 }
 
 entity Disability {
@@ -322,6 +394,23 @@ entity Disbursement {
   ecert_portal_status_id?: number
 }
 
+entity Expense {
+  id: number
+  application_id: number
+  category_id?: number
+  period_id: number
+  description?: string
+  amount: number
+}
+
+entity ExpenseCategory {
+  id: number
+  report_expense_category_id?: number
+  description: string
+  is_active: boolean
+  notes?: string
+  is_required: boolean
+}
 
 entity Institution {
   id: number
@@ -358,14 +447,54 @@ entity FundingRequest {
   student_w_not_receive_fund_from_otr_org?: boolean
 }
 
+enum FundingPurpose {
+  TUITION: Tuition
+  BOOKS: Books
+  LIVING_EXPENSES: Living Expenses
+  TRANSPORTATION: Transportation
+  OTHER: Other
+}
+
 enum FundingSource {
   CANADA_STUDENT_FINANCIAL_ASSISTANCE_FULL_TIME: Canada Student Financial Assistance (Full-Time)
+}
+
+entity Income {
+  id: number
+  application_id: number
+  income_type_id?: number
+  comment?: string
+  amount?: number
+}
+
+entity IncomeType {
+  id: number
+  description: string
+  assess_as_asset: boolean
+  is_active: boolean
 }
 
 entity Language {
   id: number
   description: string
   is_active: boolean
+}
+
+entity ParentDependent {
+  id: number
+  application_id: number
+  relationship_id?: number
+  first_name?: string
+  last_name?: string
+  birth_date?: Date
+  age?: number
+  is_residing: boolean
+  is_shared_custody: boolean
+  is_attend_post_secondary: boolean
+  comments?: string
+  is_eligible: boolean
+  is_disabled: boolean
+  conversion: boolean
 }
 
 entity Person {
@@ -402,10 +531,22 @@ entity PersonAddress {
   is_active: boolean
 }
 
+entity PrestudyEmploymentStatus {
+  id: number
+  description: string
+  is_active: boolean
+}
+
 entity Program {
   id: number
   description: string
   education_level_id: number
+  is_active: boolean
+}
+
+entity Relationship {
+  id: number
+  description: string
   is_active: boolean
 }
 
@@ -511,23 +652,50 @@ entity StudentConsent {
   consent_csl: boolean
 }
 
+entity StudentPerson {
+  id: number
+  student_id: number
+  'I think it would make more sense to have personId as a required field, but matching the database for now
+  person_id?: number
+  relationship_id: number
+  is_active: boolean
+}
+
+
+AgencyAssistance::application_id ||--o{ Application::id
 Application::attendance_id |o--o{ Attendance::id
-Application::id }o--|{ FundingRequest::application_id
 Application::institution_campus_id |o--o{ Institution::id
 Application::primary_address_id |o--|| PersonAddress::id
 Application::program_id |o--o{ Program::id
+Application::student_id ||--o{ Student::id
+Application::spouse_id |o--o{ Person::id
+Application::spouse_study_emp_status_id |o--o{ PrestudyEmploymentStatus::id
+ApplicationDraft::application_id |o--o{ Application::id
 Assessment::funding_request_id |o--o{ FundingRequest::id
 CsfaAmount ||--|| FundingSource::CANADA_STUDENT_FINANCIAL_ASSISTANCE_FULL_TIME
+Dependent::relationship_id |o--o{ Relationship::id
+Dependent::student_id |o--o{ Student::id
+DependentEligibility::dependent_id ||--o{ Dependent::id
 Disability::application_id ||--o{ Application::id
 Disbursement::assessment_id |o--o{ Assessment::id
+Expense::aplication_id ||--o{ Application::id
+Expense::category_id |o--o{ ExpenseCategory:id
+FundingRequest::application_id ||--o{  Application::id
 FundingRequest::request_type_id |o--o{ RequestType::id
-Person::id }o--|| PersonAddress::person_id
+Income::application_id ||--o{ Application::id
+Income::income_type_id |o--o{ IncomeType::id
+ParentDependent::application_id ||--o{ Application::id
+ParentDependent::relationship_id |o--o{ Relationship::id
+Person::citizenship_code |o--o{ Citizenship::id
 Person::language_id |o--o{ Language::id
 Person::sex_id |o--o{ Sex::id
 PersonAddress::address_type_id ||--o{ AddressType::id
-Residence::student_id ||--o{ Student::id
+PersonAddress::person_id ||--o{ Person::id
 RequestType::description ||--|| FundingSource
-Student::id }o--|| Application::student_id
+Residence::student_id ||--o{ Student::id
 Student::person_id ||--o| Person::id
 StudentConsent::student_id ||--o{ Student::id
+StudentPerson::person_id |o--o{ Person::id
+StudentPerson::relationship_id ||--o{ Relationship::id
+StudentPerson::student_id ||--o{ Student::id
 @enduml
