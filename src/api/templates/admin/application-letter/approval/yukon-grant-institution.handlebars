@@ -6,7 +6,11 @@
   <p class="address">
     Financial Aid Office
     <br />
-    {{institution.address}}
+    {{institution.addressLine1}}
+    {{#if institution.addressLine2}}
+      <br />
+      {{institution.addressLine2}}
+    {{/if}}
     <br />
     {{institution.city}},
     {{institution.province}}
@@ -35,15 +39,7 @@
 
     <span>
       <span class="inline-block w-[150px]">Study Period:</span>
-      <span>{{momentDateFormat studyPeriod.endDate "MMM Do, YYYY"}}
-        to
-        {{momentDateFormat studyPeriod.endDate "MMM Do,
-        YYYY"}}</span>
-    </span>
-
-    <span>
-      <span class="inline-block w-[150px]">Amount:</span>
-      <span>{{momentDateFormat studyPeriod.endDate "MMM Do, YYYY"}}
+      <span>{{momentDateFormat studyPeriod.startDate "MMM Do, YYYY"}}
         to
         {{momentDateFormat studyPeriod.endDate "MMM Do,
         YYYY"}}</span>
