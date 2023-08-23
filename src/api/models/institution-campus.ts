@@ -1,4 +1,7 @@
+import City from "@/models/city"
+import Country from "@/models/country"
 import Institution from "@/models/institution"
+import Province from "@/models/province"
 
 export default interface InstitutionCampus {
   id: number
@@ -18,4 +21,7 @@ export default interface InstitutionCampus {
 
   // Relations
   institution: Institution
+  addressCity: City
+  addressProvince: Province
+  addressCountry: Country
 }
