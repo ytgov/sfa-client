@@ -1,10 +1,11 @@
-import { isNil, last, sortBy } from "lodash"
+import { isArray, isNil, last, sortBy } from "lodash"
 
 import Application from "@/models/application"
 import FundingRequest from "@/models/funding-request"
 import Person from "@/models/person"
 import PersonAddress from "@/models/person-address"
 import User from "@/models/user"
+import AddressType from "@/models/address-type"
 
 export default class YukonGrantStudentApprovalTemplateSerializer {
   #fundingRequest: FundingRequest
@@ -146,12 +147,36 @@ export default class YukonGrantStudentApprovalTemplateSerializer {
   }
 
   #preparePrimaryAddress(application: Application, person: Person): PersonAddress {
-    const primaryAddress = application?.primaryAddress
-    if (primaryAddress === undefined)
-      throw new Error(
-        "Could not prepare template data as primary address is missing from application."
+    let primaryAddress = application?.primaryAddress
+
+    if (primaryAddress === undefined) {
+      const personAddresses = person.personAddresses
+      if (
+        personAddresses === undefined ||
+        (isArray(personAddresses) && personAddresses.length === 0)
+      ) {
+        throw new Error(
+          "Could not prepare template data as person has no addresses and application primaryAddress is missing."
+        )
+      }
+
+      const firstChoice = personAddresses?.find(
+        (address) => address.addressTypeId === AddressType.Types.MAILING
       )
-    // TODO: fall back to student.person.personAddress
+      const secondChoice = personAddresses?.find(
+        (address) => address.addressTypeId === AddressType.Types.HOME
+      )
+      const thirdChoice = personAddresses?.find(
+        (address) => address.addressTypeId === AddressType.Types.SCHOOL
+      )
+      const fourthChoice = personAddresses?.find(
+        (address) => address.addressTypeId === AddressType.Types.PARENT
+      )
+      const fifthChoice = personAddresses[0]
+
+      primaryAddress = firstChoice || secondChoice || thirdChoice || fourthChoice || fifthChoice
+    }
+
     return primaryAddress
   }
 
