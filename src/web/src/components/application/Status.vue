@@ -182,7 +182,7 @@ import {
   FUNDING_STATUS_URL,
   FUNDING_REASON_URL,
   APPLICATION_URL,
-  APPLICATION_LETTER_URL,
+  FUNDING_REQUESTS_URL,
 } from "../../urls";
 import { mapGetters } from "vuex";
 
@@ -323,8 +323,11 @@ export default {
     showError(mgs) {
       this.$emit("showError", mgs);
     },
-    printLetterClick(item) {
-      let approvalLetterUrl = `${APPLICATION_LETTER_URL}/${this.applicationId}/approval/${item.id}`;
+    printLetterClick(fundingRequest) {
+      const fundingRequestId = fundingRequest.id
+      // See /api/v2/admin/funding-requests/:fundingRequestId/letters for status -> slug options
+      const letterSlug = 'student'
+      let approvalLetterUrl = `${FUNDING_REQUESTS_URL}/${fundingRequestId}/letters/${letterSlug}`
 
       window.open(approvalLetterUrl);
 

@@ -1,0 +1,87 @@
+import FundingRequestsService from "@/services/funding-requests-service"
+
+import FundingRequest from "@/models/funding-request"
+import FundingRequestLetter from "@/models/funding-request-letter"
+import User from "@/models/user"
+import RequestType from "@/models/request-type"
+import Status from "@/models/status"
+
+export default class FundingRequestsLetterBuilderService {
+  #fundingRequestId: number
+  #letterSlug: string
+  #signingOfficer: User
+
+  constructor({
+    fundingRequestId,
+    letterSlug,
+    signingOfficer,
+  }: {
+    fundingRequestId: number
+    letterSlug: string
+    signingOfficer: User
+  }) {
+    this.#fundingRequestId = fundingRequestId
+    this.#letterSlug = letterSlug
+    this.#signingOfficer = signingOfficer
+  }
+
+  async generateLetterAsPdf(): Promise<{ fileContent: Buffer; fileName: string }> {
+    const letterService = await this.#buildLetterService()
+
+    const fileContent = await letterService.renderAsPdf()
+    const fileName = letterService.buildFileName({ format: "pdf" })
+
+    return {
+      fileContent,
+      fileName,
+    }
+  }
+
+  async generateLetterAsHtml(): Promise<Buffer | string> {
+    const letterService = await this.#buildLetterService()
+
+    return letterService.renderAsHtml()
+  }
+
+  async generateLetterAsJson() {
+    const letterService = await this.#buildLetterService()
+
+    return letterService.renderAsJson()
+  }
+
+  async #buildLetterService() {
+    if (!FundingRequestLetter.isValidLetterSlug(this.#letterSlug))
+      throw new Error(`Invalid letter slug: ${this.#letterSlug}`)
+
+    const fundingRequest = await this.#getFundingRequest(this.#fundingRequestId)
+    const requestType = fundingRequest.requestType?.description
+    if (!RequestType.isValidRequestType(requestType))
+    throw new Error(`Invalid request type: ${requestType}`)
+
+  const status = fundingRequest.status?.description
+    if (!Status.isValidStatus(status)) throw new Error(`Invalid status: ${status}`)
+
+    const LetterServiceClass = FundingRequestLetter.getLetterService({
+      requestType,
+      status,
+      letterSlug: this.#letterSlug,
+    })
+    return new LetterServiceClass({
+      fundingRequest,
+      letterSlug: this.#letterSlug,
+      requestType,
+      signingOfficer: this.#signingOfficer,
+      status,
+    })
+  }
+
+  async #getFundingRequest(fundingRequestId: number): Promise<FundingRequest> {
+    return FundingRequestsService.includes([
+      "application",
+      "assessments",
+      "disbursements",
+      "requestType",
+      "status",
+    ]).find(fundingRequestId)
+  }
+}

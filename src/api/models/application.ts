@@ -8,6 +8,7 @@ import ParentDependent from "@/models/parent-dependent";
 import PersonAddress from "@/models/person-address";
 import Program from "@/models/program";
 import Student from "@/models/student";
+import StudyArea from "@/models/study-area";
 
 // Application with standard JS naming conventions
 // trailing underscore to avoid conflicting with legacy Application format
@@ -161,6 +162,8 @@ export default interface Application_ {
   isPersistDisabled: boolean;
   persistDisabledStartDate?: Date;
   isChequesToInstitution: boolean;
+
+  // Relations
   agencyAssistances?: AgencyAssistance[];
   attendance?: Attendance;
   expenses?: Expense[];
@@ -171,6 +174,7 @@ export default interface Application_ {
   primaryAddress?: PersonAddress;
   program?: Program;
   student?: Student;
+  studyArea?: StudyArea;
 }
 
 export interface Application {
