@@ -44,9 +44,9 @@ export default class FundingRequestsService {
 
     if (this.#includes.includes("application")) {
       fundingRequest.application = await ApplicationsService.includes([
-        "student",
-        "personAddress",
         "institutionCampus",
+        "primaryAddress",
+        "student",
         "studyArea",
       ]).find(fundingRequest.applicationId)
     }

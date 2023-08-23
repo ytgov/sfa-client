@@ -2,11 +2,12 @@ import db from "@/db/db-client"
 
 import Application from "@/models/application"
 
-import PersonAddressesService from "@/services/person-addresses-service"
 import InstitutionCampusesService from "@/services/institution-campuses-service"
+import PersonAddressesService from "@/services/person-addresses-service"
+import StudentsService from "@/services/students-service"
 
 namespace ApplicationsService {
-  export type IncludeTypes = ("student" | "personAddress" | "institutionCampus" | "studyArea")[]
+  export type IncludeTypes = ("institutionCampus" | "primaryAddress" | "student" | "studyArea")[]
 }
 
 export default class ApplicationsService {
@@ -37,30 +38,11 @@ export default class ApplicationsService {
         throw new Error("Application not found")
       })
 
-    // TODO: move this to a StudentsService
     if (this.#includes.includes("student")) {
-      application.student = await db("student")
-        .where({ id: application.studentId })
-        .first()
-        .then((student) => {
-          if (student) return student
-
-          throw new Error("Student not found")
-        })
-
-      if (application?.student?.personId) {
-        application.student.person = await db("person")
-          .where({ id: application.student.personId })
-          .first()
-          .then((person) => {
-            if (person) return person
-
-            throw new Error("Person not found")
-          })
-      }
+      application.student = await StudentsService.includes(["person"]).find(application.studentId)
     }
 
-    if (this.#includes.includes("personAddress") && application.primaryAddressId) {
+    if (this.#includes.includes("primaryAddress") && application.primaryAddressId) {
       application.primaryAddress = await PersonAddressesService.includes([
         "city",
         "province",
