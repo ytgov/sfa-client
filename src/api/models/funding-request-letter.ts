@@ -4,6 +4,7 @@ import Status from "@/models/status"
 import { FundingRequestsLettersBaseServiceConstructor } from "@/services/admin/funding-requests/letters/funding-requests-letters-base-service"
 import YukonGrantInstitutionApprovalLetterService from "@/services/admin/funding-requests/letters/yukon-grant-institution-approval-letter-service"
 import YukonGrantStudentApprovalLetterService from "@/services/admin/funding-requests/letters/yukon-grant-student-approval-letter-service"
+import YukonGrantStudentRejectionLetterService from "@/services/admin/funding-requests/letters/yukon-grant-student-rejection-letter-service"
 
 export enum TemplatePaths {
   YUKON_GRANT_INSTITUTION_APPROVAL = "./templates/admin/application-letter/approval/yukon-grant-institution",
@@ -67,7 +68,7 @@ export const FUNDING_REQUEST_LETTERS: {
         description: "Yukon Grant Rejection",
         type: LetterTypes.REJECTION,
         template: TemplatePaths.YUKON_GRANT_STUDENT_REJECTION,
-        service: YukonGrantStudentApprovalLetterService,
+        service: YukonGrantStudentRejectionLetterService,
       }
     }
   },
