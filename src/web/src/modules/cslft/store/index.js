@@ -14,7 +14,8 @@ const mutations = {
     getCslftAssessInfo(state, payload) {
         state.cslft = payload.data;
         state.cslft_assessments = payload.globals.assessments;
-        state.cslft_current = payload.globals.assessment;
+        state.cslft_current = payload.globals.assessment; 
+        state.cslft_global_disbursements = payload.globals.disbursements;
         if ((payload.disbursements?.length ?? 0) > 0) {
             state.cslft_disbursement = payload.disbursements;
         }
@@ -29,9 +30,14 @@ const mutations = {
     },
     getAssessmentFromMemory(state, assessment_id) {
         const assessment = state.cslft_assessments[assessment_id];
+        const disbursements = state.cslft_global_disbursements[assessment_id];
         if (assessment) {
             state.cslft = assessment;
             state.cslft_current = assessment_id;
+        }
+
+        if (disbursements) {
+            state.cslft_disbursement = disbursements;
         }
     },
     loadModelsDisburse(state, disburseModel) {
@@ -120,6 +126,7 @@ const actions = {
         }
     },
     async switchAssessment(state, assessment_id) {
+        state.commit("cslftResetState", state);
         state.commit("getAssessmentFromMemory", assessment_id);
     },
     async cslftLoadUncappedExpenses(state, application_id) {
