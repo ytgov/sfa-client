@@ -51,6 +51,34 @@ export default class FundingRequestsLettersBaseService {
     return renderViewAsHtml(templatePath, data)
   }
 
+  renderAsJson() {
+    const templatePath = this.getTemplatePath()
+
+    let data: { error?: string; stackTrace?: string[] } = {}
+    try {
+      data = this.serializeForTemplate()
+    } catch (error) {
+      if (error instanceof Error) {
+        data.error = error.message
+        data.stackTrace = error.stack?.split("\n").map((line) => line.trim())
+      } else {
+        throw error
+      }
+    }
+
+    return {
+      templatePath,
+      serializerData: data,
+      rawData: {
+        fundingRequest: this.fundingRequest,
+        letterSlug: this.letterSlug,
+        requestType: this.requestType,
+        signingOfficer: this.signingOfficer,
+        status: this.status,
+      },
+    }
+  }
+
   getTemplatePath(): string {
     throw new Error("Method not implemented.")
   }

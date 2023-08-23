@@ -43,6 +43,12 @@ export default class FundingRequestsLetterBuilderService {
     return letterService.renderAsHtml()
   }
 
+  async generateLetterAsJson() {
+    const letterService = await this.#buildLetterService()
+
+    return letterService.renderAsJson()
+  }
+
   async #buildLetterService() {
     if (!FundingRequestLetter.isValidLetterSlug(this.#letterSlug))
       throw new Error(`Invalid letter slug: ${this.#letterSlug}`)
