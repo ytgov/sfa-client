@@ -7530,4 +7530,37 @@ BEGIN
 END
 GO
 
+CREATE OR ALTER PROCEDURE sfa.sp_update_csl_fields 
+AS
+BEGIN
+	 UPDATE app
+    SET csl_restriction_warn_id = NULL,
+        csl_restriction_reason_id = NULL
+    FROM sfa.application app
+    INNER JOIN (
+        SELECT a.student_id, MAX(a.id) AS max_id
+        FROM sfa.application a
+        GROUP BY a.student_id
+    ) max_app ON app.id = max_app.max_id
+    INNER JOIN sfa.student s ON s.id = app.student_id
+	INNER JOIN sfa.person p ON p.id = s.person_id
+    WHERE p.sin IS NULL;
 
+
+    UPDATE app
+    SET csl_restriction_warn_id = cc_warning.id,
+        csl_restriction_reason_id = cc_reason.id
+    FROM sfa.application app
+    INNER JOIN (
+        SELECT a.student_id, MAX(a.id) AS max_id
+        FROM sfa.application a
+        GROUP BY a.student_id
+    ) max_app ON app.id = max_app.max_id
+    INNER JOIN sfa.student s ON s.id = app.student_id
+    INNER JOIN sfa.person p ON p.id = s.person_id
+    INNER JOIN sfa.csl_restricted cr ON p.sin = cr.sin 
+	LEFT JOIN sfa.csl_code cc_warning ON cc_warning.warning_code = cr.restriction_warn_id AND cc_warning.warning_code IS NOT NULL 
+	LEFT JOIN sfa.csl_code cc_reason ON cc_reason.reason_code = cr.restriction_reason_id AND cc_reason.reason_code IS NOT NULL ;
+
+   END
+GO
