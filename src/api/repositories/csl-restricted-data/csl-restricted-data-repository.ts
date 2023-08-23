@@ -2,7 +2,7 @@ import { Knex } from "knex";
 import { BaseRepository } from "../base-repository";
 import { UploadedFile } from "express-fileupload";
 import * as fs from "fs";
-
+import moment from "moment";
 interface CSLRestrictedDTO {
     id: string,
     amount_disbursed: string,
@@ -28,9 +28,7 @@ export class CSLRestrictedData extends BaseRepository {
     ): Promise<any> {
 
         const dataFile = file.data;
-
         const fiteredData: CSLRestrictedDTO[] = this.filterRecords(file.data);
-
         const csvData = this.convertToCSV(fiteredData);
 
         fs.writeFile('bulk_insert.csv', csvData, (err) => {
@@ -40,11 +38,9 @@ export class CSLRestrictedData extends BaseRepository {
             }
             console.log('El archivo ha sido creado exitosamente.');
         });
-
-        // const truncateTable = await this.mainDb('sfa.csl_restricted').truncate();
-        //console.log(fiteredData);
-
-        //const resUpdate = await this.insertRecords(fiteredData);
+        console.log('[CSL-Restricted]The process is started at: ' + moment().toString());
+        const truncateTable = await this.mainDb('sfa.csl_restricted').truncate();
+        const resUpdate = await this.insertRecords(fiteredData);
 
 
         return { success: true, data: {} };
@@ -55,43 +51,15 @@ export class CSLRestrictedData extends BaseRepository {
     ): Promise<boolean> {
 
         try {
-
-
-            //const identityOff = await this.mainDb.raw('SET IDENTITY_INSERT sfa.csl_restricted ON;');
-
-            //console.log("ENTRANDO", identityOff);
-            for await (const record of records) {
-
-                await this.mainDb('sfa.csl_restricted').insert([
-                    {
-                        //id: record.id,
-                        last_name: '+' + record.last_name,
-                        first_name: '+' + record.first_name,
-                        birth_date: record.birth_date,
-                        over_award: record.over_award,
-                        restriction_warn_id: record.restriction_warn_id,
-                        restriction_reason_id: record.restriction_reason_id,
-                        amount_disbursed: record.amount_disbursed,
-                        weeks_accumulated: record.weeks_accumulated
-                    }
-                ]);
-                // ${record.id},
-                await this.mainDb.raw(`
-                    EXEC sfa.insert_csl_restricted_data
-                   
-                    ${record.last_name.indexOf("'") > 0 ? '"' + record.last_name + '"' : "'" + record.last_name + "'"},
-                    ${record.first_name.indexOf("'") > 0 ? '"' + record.first_name + '"' : "'" + record.first_name + "'"},
-                    '${record.birth_date}',
-                    '${record.over_award ?? ''}',
-                    '${record.restriction_warn_id ?? ''}',
-                    '${record.restriction_reason_id ?? ''}',
-                    '${record.amount_disbursed ?? ''}',
-                    '${record.weeks_accumulated ?? ''}';
-                `);
-            }
-
-            //await this.mainDb.raw('SET IDENTITY_INSERT sfa.csl_restricted OFF');
-
+            const chunkSize = 50;
+            this.mainDb.batchInsert('sfa.csl_restricted', records, chunkSize)
+                .returning('id')
+                .then(function(ids) {
+                    console.log('[CSL-Restricted]The process is over: ' + moment().toString());
+                })
+                .catch(function(error) {
+                    console.log(error);
+                });
             return true;
         } catch (error) {
             console.log(error);
