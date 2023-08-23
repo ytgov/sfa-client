@@ -53,6 +53,9 @@ export default class ApplicationsService {
     if (this.#includes.includes("institutionCampus") && application.institutionCampusId) {
       application.institutionCampus = await InstitutionCampusesService.includes([
         "institution",
+        "addressCity",
+        "addressProvince",
+        "addressCountry",
       ]).find(application.institutionCampusId)
     }
 

@@ -1,9 +1,15 @@
 import db from "@/db/db-client"
 
 import InstitutionCampus from "@/models/institution-campus"
+import { isNil } from "lodash"
 
 namespace InstitutionCampusesService {
-  export type IncludeTypes = "institution"[]
+  export type IncludeTypes = (
+    | "institution"
+    | "addressCity"
+    | "addressProvince"
+    | "addressCountry"
+  )[]
 }
 
 export default class InstitutionCampusesService {
@@ -43,6 +49,37 @@ export default class InstitutionCampusesService {
 
           throw new Error("Institution not found")
         })
+    }
+
+    if (this.#includes.includes("addressCity") && institutionCampus.addressCityId) {
+      const addressCity = await db("city")
+        .where({
+          id: institutionCampus.addressCityId,
+        })
+        .first()
+      if (isNil(addressCity)) throw new Error("Address city not found")
+
+      institutionCampus.addressCity = addressCity
+    }
+
+    if (this.#includes.includes("addressProvince") && institutionCampus.addressProvinceId) {
+      const addressProvince = await db("province")
+        .where({
+          id: institutionCampus.addressProvinceId,
+        })
+        .first()
+      if (isNil(addressProvince)) throw new Error("Address province not found")
+
+      institutionCampus.addressProvince = addressProvince
+    }
+
+    if (this.#includes.includes("addressCountry") && institutionCampus.addressCountryId) {
+      const addressCountry = await db("country")
+        .where({ id: institutionCampus.addressCountryId })
+        .first()
+      if (isNil(addressCountry)) throw new Error("Address country not found")
+
+      institutionCampus.addressCountry = addressCountry
     }
 
     return institutionCampus
