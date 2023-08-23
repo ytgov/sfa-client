@@ -32,7 +32,12 @@
   </p>
 
   <p>
-    {{rejectionId}}
+    {{!
+      TODO: investigate possibility of multiple rejection reasons
+      Acording to the database a funding request can only have a single status reason
+      but the wording of this letter suggests that multiple reasons are possible.
+     }}
+    {{rejectionReason}}
   </p>
 
   <p>

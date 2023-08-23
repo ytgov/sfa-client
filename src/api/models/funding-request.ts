@@ -3,6 +3,7 @@ import Assessment from "@/models/assessment"
 import Disbursement from "@/models/disbursement"
 import RequestType from "@/models/request-type"
 import Status from "@/models/status"
+import StatusReason from "@/models/status-reason"
 
 export default interface FundingRequest {
   id: number
@@ -36,4 +37,5 @@ export default interface FundingRequest {
   disbursements?: Disbursement[]
   requestType?: RequestType
   status?: Status
+  statusReason?: StatusReason
 }

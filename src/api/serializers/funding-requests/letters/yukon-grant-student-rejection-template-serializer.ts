@@ -73,6 +73,11 @@ export default class YukonGrantStudentRejectionTemplateSerializer {
     if (country === undefined)
       throw new Error("Could not prepare template data as country is missing from primary address.")
 
+    const statusReason = this.#fundingRequest.statusReason
+    if (isNil(statusReason))
+      throw new Error(
+        "Could not prepare template data as statusReason is missing from funding request."
+      )
 
     return {
       currentDate: new Date(),
@@ -87,7 +92,7 @@ export default class YukonGrantStudentRejectionTemplateSerializer {
         country: country.description,
         postalCode: primaryAddress.postalCode,
       },
-      rejectionId: "TODO",
+      rejectionReason: statusReason.description,
       studentFinancialAssistanceOfficer: this.#signingOfficer,
     }
   }

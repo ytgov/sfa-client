@@ -82,6 +82,7 @@ export default class FundingRequestsLetterBuilderService {
       "disbursements",
       "requestType",
       "status",
+      "statusReason",
     ]).find(fundingRequestId)
   }
 }
