@@ -156,7 +156,7 @@ export default class YukonGrantStudentApprovalTemplateSerializer {
         (isArray(personAddresses) && personAddresses.length === 0)
       ) {
         throw new Error(
-          "Could not prepare template data as person has no addresses and application primaryAddress is missing."
+          "Could not prepare template data as application primaryAddress is missing and person has no addresses."
         )
       }
 
