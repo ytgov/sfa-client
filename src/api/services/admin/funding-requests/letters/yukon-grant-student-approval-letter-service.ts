@@ -1,6 +1,6 @@
 import { TemplatePaths } from "@/models/funding-request-letter"
 
-import YukonGrantStudentTemplateSerializer from "@/serializers/funding-requests/letters/yukon-grant-student-template-serializer"
+import YukonGrantStudentApprovalTemplateSerializer from "@/serializers/funding-requests/letters/yukon-grant-student-approval-template-serializer"
 
 import FundingRequestsLettersBaseService from "@/services/admin/funding-requests/letters/funding-requests-letters-base-service"
 
@@ -10,7 +10,7 @@ export default class YukonGrantStudentApprovalLetterService extends FundingReque
   }
 
   serializeForTemplate() {
-    return YukonGrantStudentTemplateSerializer.prepare({
+    return YukonGrantStudentApprovalTemplateSerializer.prepare({
       fundingRequest: this.fundingRequest,
       signingOfficer: this.signingOfficer,
     })

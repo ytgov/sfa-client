@@ -2,7 +2,7 @@ import Application from "@/models/application"
 import FundingRequest from "@/models/funding-request"
 import User from "@/models/user"
 
-export default class YukonGrantStudentTemplateSerializer {
+export default class YukonGrantStudentApprovalTemplateSerializer {
   #fundingRequest: FundingRequest
   #signingOfficer: User
 
@@ -24,7 +24,7 @@ export default class YukonGrantStudentTemplateSerializer {
     fundingRequest: FundingRequest
     signingOfficer: User
   }) {
-    const serializer = new YukonGrantStudentTemplateSerializer({ fundingRequest, signingOfficer })
+    const serializer = new YukonGrantStudentApprovalTemplateSerializer({ fundingRequest, signingOfficer })
     return serializer.prepare()
   }
 
@@ -44,6 +44,7 @@ export default class YukonGrantStudentTemplateSerializer {
       throw new Error(
         "Could not prepare template data as primary address is missing from application."
       )
+    // TODO: fall back to student.person.personAddress
 
     const city = primaryAddress.city
     if (city === undefined)
