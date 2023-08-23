@@ -97,6 +97,8 @@ export default class YukonGrantStudentRejectionTemplateSerializer {
     }
   }
 
+  // CONSIDER: Generalizing this function, as it used in several serializers.
+  // It might even work as model method?
   #preparePrimaryAddress(application: Application, person: Person): PersonAddress {
     let primaryAddress = application?.primaryAddress
 
