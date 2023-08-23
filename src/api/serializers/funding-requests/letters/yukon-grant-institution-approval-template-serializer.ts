@@ -1,4 +1,4 @@
-import { isNil } from "lodash"
+import { isNil, last, sortBy } from "lodash"
 
 import FundingRequest from "@/models/funding-request"
 import User from "@/models/user"
@@ -94,14 +94,30 @@ export default class YukonGrantInstitutionApprovalTemplateSerializer {
         "Could not prepare template data as assessments is missing from funding request."
       )
     if (assessments.length > 1)
-      // TODO: consider returning only the last assessment?
-      throw new Error("Could not prepare template data as multiple assessments are not supported.")
+      console.warn(
+        "More than one assessment detected for funding request. This system state has not been investigated."
+      )
 
-    const assessment = assessments[0]
+    const assessment = last(sortBy(assessments, ["assessedDate"]))
     if (assessment === undefined)
       throw new Error(
         "Could not prepare template data as assessment is missing from funding request."
       )
+    if (isNil(assessment.classesStartDate))
+      throw new Error(
+        "Could not prepare template data as classesStartDate is missing from assessment."
+      )
+    if (isNil(assessment.classesEndDate))
+      throw new Error(
+        "Could not prepare template data as classesEndDate is missing from assessment."
+      )
+
+    if (isNil(this.#signingOfficer.firstName))
+      throw new Error(
+        "Could not prepare template data as firstName is missing from signingOfficer."
+      )
+    if (isNil(this.#signingOfficer.lastName))
+      throw new Error("Could not prepare template data as lastName is missing from signingOfficer.")
 
     const disbursements = this.#prepareDisbursements(this.#fundingRequest)
 
@@ -127,7 +143,11 @@ export default class YukonGrantInstitutionApprovalTemplateSerializer {
         endDate: assessment.classesEndDate,
       },
       disbursements,
-      studentFinancialAssistanceOfficer: this.#signingOfficer,
+      studentFinancialAssistanceOfficer: {
+        firstName: this.#signingOfficer.firstName,
+        lastName: this.#signingOfficer.lastName,
+        position: this.#signingOfficer.position,
+      },
     }
   }
 
@@ -145,9 +165,6 @@ export default class YukonGrantInstitutionApprovalTemplateSerializer {
         throw new Error(
           "Could not prepare template data as disbursement disbursed amount is missing."
         )
-
-      if (disbursement.issueDate === undefined)
-        throw new Error("Could not prepare template data as disbursement issue date is missing.")
 
       return {
         amountInCents: disbursement.disbursedAmount * 100,
