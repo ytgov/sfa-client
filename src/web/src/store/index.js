@@ -62,6 +62,7 @@ import incomeType from "@/modules/document-status/store";
 import expenseCategory from "@/modules/expense-category/store";
 import equipmentCategory from "@/modules/equipment-category/store";
 import changeReason from "@/modules/change-reason/store";
+import chequeReqList from "@/modules/cheque-req-list/store";
 import assessment from "./assessment";
 import disbursement from "./disbursement";
 import adminCrud from "./adminCrud";
@@ -529,6 +530,7 @@ export default new Vuex.Store({
     officers,
     cslReason,
     cslCertificateExport,
-    cslMsfaaReceive
+    cslMsfaaReceive,
+    chequeReqList,
   }
 });
