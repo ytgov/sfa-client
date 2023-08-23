@@ -1,4 +1,7 @@
 import express from "express";
+
+import pathFormatMiddleware from "@/middleware/path-format-middleware";
+
 import { acadecicYearRouter } from "./academic-year-router";
 import { applicationLetterRouter } from "./application-letter-router";
 import { applicationRouter } from "./application-router";
@@ -74,7 +77,7 @@ export const adminRouter = express.Router();
 adminRouter.use("/institution", institutionRouter);
 adminRouter.use("/academic-year", acadecicYearRouter);
 adminRouter.use("/application", applicationRouter);
-adminRouter.use("/application-letter", applicationLetterRouter);
+adminRouter.use("/application-letter", pathFormatMiddleware, applicationLetterRouter);
 adminRouter.use("/assessment", assessmentRouter);
 adminRouter.use("/student", studentRouter);
 adminRouter.use("/province", provinceRouter);

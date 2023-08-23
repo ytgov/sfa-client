@@ -1,0 +1,105 @@
+<div>
+  <div class="header">
+    <p class="date">{{momentDateFormat currentDate "DD MMM YYYY"}}</p>
+  </div>
+
+  <p class="address">
+    Financial Aid Office
+    <br />
+    {{institution.address}}
+    <br />
+    {{institution.city}},
+    {{institution.province}}
+    <br />
+    {{institution.country}},
+    {{institution.postalCode}}
+  </p>
+
+  <p class="saluation">
+    Attention Financial Aid:
+  </p>
+
+  <p>The Government of Yukon's Student Financial Assistance (SFA) office has approved Yukon Grant
+    funding for the following student:</p>
+
+  <p>
+    <span>
+      <span class="inline-block w-[150px]">Name:</span>
+      <span>{{student.lastName}}, {{student.firstName}}</span>
+    </span>
+
+    <span>
+      <span class="inline-block w-[150px]">Student ID:</span>
+      <span>{{student.identificationCode}}</span>
+    </span>
+
+    <span>
+      <span class="inline-block w-[150px]">Study Period:</span>
+      <span>{{momentDateFormat studyPeriod.endDate "MMM Do, YYYY"}}
+        to
+        {{momentDateFormat studyPeriod.endDate "MMM Do,
+        YYYY"}}</span>
+    </span>
+
+    <span>
+      <span class="inline-block w-[150px]">Amount:</span>
+      <span>{{momentDateFormat studyPeriod.endDate "MMM Do, YYYY"}}
+        to
+        {{momentDateFormat studyPeriod.endDate "MMM Do,
+        YYYY"}}</span>
+    </span>
+  </p>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Amount<span class="ml-4"></span></th>
+        <th>Issue Date</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{#each disbursements}}
+        <tr>
+          <td>{{centsToDollarString this.amountInCents}}</td>
+          <td>{{momentDateFormatDefault this.releaseDate "MMM YYYY" "Upon confirmation"}}</td>
+        </tr>
+      {{/each}}
+    </tbody>
+  </table>
+
+  <p>
+    The Yukon Grant is intended to assist the above-named student with full-time post-secondary
+    education costs. If any of this information is incorrect, or if this student withdraws or drops
+    to part-time status, please notify our office immediately.
+  </p>
+
+  <p>
+    The Yukon Grant is paid directly to the student, and the first payment has been issued. The
+    student is required to submit a Program Information Form (PIF) confirming full-time status prior
+    to the release of any subsequent disbursements. Our office will accept PIFs as early as one
+    month before the issue date(s) outlined above.
+  </p>
+
+  <p>
+    If you have any questions, please feel free to contact Yukon SFA at
+    <a href="tel:867-667-5929">867-667-5929</a>
+    or by email at
+    <a href="mailto:sfa@yukon.ca">sfa@yukon.ca</a>.
+  </p>
+
+  <p>
+    Sincerely,
+  </p>
+  <p class="mt-10">
+    {{studentFinancialAssistanceOfficer.firstName}}
+    {{studentFinancialAssistanceOfficer.lastName}}
+    <br />
+    {{#if studentFinancialAssistanceOfficer.position}}
+      {{studentFinancialAssistanceOfficer.position}}
+    {{else}}
+      Student Financial Services Officer
+    {{/if}}
+    <br />
+    Student Funding Programs
+  </p>
+</div>
