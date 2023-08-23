@@ -34,21 +34,15 @@ export default class InstitutionCampusesService {
     const institutionCampus = await db<InstitutionCampus>("institutionCampus")
       .where({ id })
       .first()
-      .then((institutionCampus) => {
-        if (institutionCampus) return institutionCampus
-
-        throw new Error("Institution not found")
-      })
+    if (isNil(institutionCampus)) throw new Error("Institution not found")
 
     if (this.#includes.includes("institution") && institutionCampus.institutionId) {
-      institutionCampus.institution = await db("institution")
+      const institution = await db("institution")
         .where({ id: institutionCampus.institutionId })
         .first()
-        .then((institution) => {
-          if (institution) return institution
+      if (isNil(institution)) throw new Error("Institution not found")
 
-          throw new Error("Institution not found")
-        })
+      institutionCampus.institution = institution
     }
 
     if (this.#includes.includes("addressCity") && institutionCampus.addressCityId) {
