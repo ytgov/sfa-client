@@ -78,8 +78,10 @@ import aboriginalStatusRoutes from "@/modules/aboriginal-status/router";
 import disabilityServiceRoutes from "@/modules/disability-service/router";
 import officerRoutes from "@/modules/officer/router";
 import ChequeReqListModuleRoutes from "@/modules/cheque-req-list/router";
+import CslCertificateAuditReportRoutes from "@/modules/csl-certificate-audit-report/router";
+import CslMsfaaSendRoutes from "@/modules/csl-msfaa-send/router";
 import CSLRestrictedDataModuleRoutes from "@/modules/csl-restricted-data/router";
-import CslCertificateAuditReport from "@/modules/csl-certificate-audit-report/router";
+
 Vue.use(VueRouter);
 
 const routes = [
@@ -397,7 +399,8 @@ const routes = [
   ...disabilityServiceRoutes,
   ...officerRoutes,
   ...ChequeReqListModuleRoutes,
-  ...CslCertificateAuditReport,
+  ...CslCertificateAuditReportRoutes,
+  ...CslMsfaaSendRoutes,
   ...CSLRestrictedDataModuleRoutes,
 
   {

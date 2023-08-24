@@ -6,10 +6,10 @@ import { DB_CONFIG } from "../../config";
 
 const db = knex(DB_CONFIG);
 
-export const cslCertificateAuditReport = express.Router();
+export const cslCertificateAuditReportRouter = express.Router();
 
 
-cslCertificateAuditReport.get("/:FROM_DATE/:TO_DATE/:ACADEMIC_YEAR", 
+cslCertificateAuditReportRouter.get("/:FROM_DATE/:TO_DATE/:ACADEMIC_YEAR", 
     [   
         param("ACADEMIC_YEAR").isInt().notEmpty(),      
         param("FROM_DATE").notEmpty(), 
