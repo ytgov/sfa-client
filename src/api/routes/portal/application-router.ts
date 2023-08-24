@@ -3,6 +3,7 @@ import { PortalApplicationService, PortalStudentService } from "../../services/p
 import { DocumentService } from "../../services/shared";
 import { FundingFromDraft } from "../../models";
 import { clone, isArray, sortBy, uniq } from "lodash";
+import StudentApplicationsService from "@/services/portal/students/student-applications-service";
 
 export const portalApplicationRouter = express.Router();
 
@@ -15,8 +16,33 @@ portalApplicationRouter.get("/:sub", async (req: Request, res: Response) => {
   let student = await studentService.getBySub(sub);
 
   if (student) {
-    let applications = await applicationService.getDraftsForStudent(student.id);
-    res.json({ data: applications });
+    // replace the section below with this once we show submitted in portal
+    /* let drafts = await applicationService.getDraftsForStudent(student.id);
+    let appService = new StudentApplicationsService({ studentId: student.id });
+    let apps = await appService.getApplications();
+    return res.json({ data: [...drafts.filter((a) => a.status == "In Progress"), ...apps] }); */
+
+    let drafts = await applicationService.getDraftsForStudent(student.id);
+    return res.json({ data: drafts });
+  }
+
+  res.status(404);
+});
+
+portalApplicationRouter.get("/:sub/application/:applicationId", async (req: Request, res: Response) => {
+  const { sub, applicationId } = req.params;
+  let student = await studentService.getBySub(sub);
+
+  if (student) {
+    let appService = new StudentApplicationsService({ studentId: student.id, applicationId: parseInt(applicationId) });
+    let application = await appService
+      .getApplication()
+      .then((resp) => resp)
+      .catch(() => {
+        return res.status(404);
+      });
+
+    return res.json({ data: application });
   }
 
   res.status(404);
@@ -63,12 +89,10 @@ portalApplicationRouter.get("/:sub/:draftId/required-documents", async (req: Req
         returnDocs.push(doc);
       }
 
-      //console.log("APP", app);
-
       for (let doc of returnDocs) {
         doc.meets_conditions = true;
 
-        if (doc.condition) console.log(doc, doc.condition);
+       // if (doc.condition) console.log(doc, doc.condition);
 
         switch (doc.condition) {
           case "CSL Only":

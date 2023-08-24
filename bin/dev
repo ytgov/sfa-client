@@ -75,6 +75,10 @@ class DevHelper
     run(*%w[api npm], *args, **kwargs)
   end
 
+  def console(*args, **kwargs)
+    run(*%w[api npm run console], *args, **kwargs)
+  end
+
   def sqlcmd(*args, **kwargs) # rubocop:disable Metrics/MethodLength
     db_host = ENV.fetch('DB_HOST', 'localhost')
     db_user = ENV.fetch('DB_USER', 'sa')

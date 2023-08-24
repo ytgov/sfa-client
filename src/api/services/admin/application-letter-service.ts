@@ -7,48 +7,76 @@ export default class ApplicationLetterService {
   #fundingRequestId: number;
   #applicationData: any;
   #format: string;
+  #officerName: string;
+  #officerPosition: string;
+
+  #data = undefined as any | undefined;
+  #fundingRequest = {} as any;
 
   constructor({
     applicationId,
     fundingRequestId,
     format,
+    officerName,
+    officerPosition,
   }: {
     applicationId: number;
     fundingRequestId: number;
     format: string;
+    officerName: string;
+    officerPosition: string;
   }) {
     this.#applicationId = applicationId;
     this.#fundingRequestId = fundingRequestId;
     this.#format = format;
+    this.#officerName = officerName;
+    this.#officerPosition = officerPosition;
   }
 
-  async generateApprovalLetter(name: string, position: string): Promise<Buffer | string> {
-    const data = await this.#getApplicationData(name, position);
-    const fundingRequest = await this.#getFundingRequest();
-    data.title = "Application Approval Letter";
+  async load() {
+    this.#data = await this.#getApplicationData(this.#officerName, this.#officerPosition);
+    this.#fundingRequest = await this.#getFundingRequest();
+  }
+
+  async generateApprovalLetter(): Promise<Buffer | string> {
+    if (!this.#data) await this.load();
+
+    this.#data.title = "Application Approval Letter";
 
     if (this.#format === "pdf") {
-      return renderViewAsPdf(this.#getTemplatePathForRequestType("approval", fundingRequest.requestTypeId), data);
+      return renderViewAsPdf(
+        this.#getTemplatePathForRequestType("approval", this.#fundingRequest.requestTypeId),
+        this.#data
+      );
     }
 
     if (this.#format === "html") {
-      return renderViewAsPromise(this.#getTemplatePathForRequestType("approval", fundingRequest.requestTypeId), data);
+      return renderViewAsPromise(
+        this.#getTemplatePathForRequestType("approval", this.#fundingRequest.requestTypeId),
+        this.#data
+      );
     }
 
     return Promise.reject(new Error(`Invalid format: ${this.#format}`));
   }
 
-  async generateRejectionLetter(name: string, position: string): Promise<Buffer | string> {
-    const data = await this.#getApplicationData(name, position);
-    const fundingRequest = await this.#getFundingRequest();
-    data.title = "Application Rejection Letter";
+  async generateRejectionLetter(): Promise<Buffer | string> {
+    if (!this.#data) await this.load();
+
+    this.#data.title = "Application Rejection Letter";
 
     if (this.#format === "pdf") {
-      return renderViewAsPdf(this.#getTemplatePathForRequestType("rejection", fundingRequest.requestTypeId), data);
+      return renderViewAsPdf(
+        this.#getTemplatePathForRequestType("rejection", this.#fundingRequest.requestTypeId),
+        this.#data
+      );
     }
 
     if (this.#format === "html") {
-      return renderViewAsPromise(this.#getTemplatePathForRequestType("rejection", fundingRequest.requestTypeId), data);
+      return renderViewAsPromise(
+        this.#getTemplatePathForRequestType("rejection", this.#fundingRequest.requestTypeId),
+        this.#data
+      );
     }
 
     return Promise.reject(new Error(`Invalid format: ${this.#format}`));
@@ -57,19 +85,34 @@ export default class ApplicationLetterService {
   ////
   // See https://xkcd.com/1179/ -> https://en.wikipedia.org/wiki/ISO_8601 for date format
   async buildApprovalLetterFileName() {
-    const data = await this.#getApplicationData("", "");
+    if (!this.#data) await this.load();
 
     const studentLastName = this.#applicationData.student.person.lastName;
-    if (!studentLastName) {
-      Promise.reject(new Error("No student last name"));
+    const studentFirstName = this.#applicationData.student.person.firstName;
+
+    if (!studentLastName || !studentFirstName) {
+      Promise.reject(new Error("No student name"));
     }
 
-    const formattedData = new Date().toISOString().slice(0, 10); // YYYYY-MM-DD
-    return `Approval Letter, ${studentLastName}, ${formattedData}.${this.#format}`;
+    switch (this.#fundingRequest.requestTypeId) {
+      case 2:
+        return `YG_Approval_Letter_${studentLastName}_${studentFirstName}.${this.#format}`;
+      default:
+        return `Approval_Letter_${studentLastName}_${studentFirstName}.${this.#format}`;
+    }
+
+    /* YG_Approval_Letter_Last_First
+    YG_Institution_Letter_Last_First
+    CSLFT_Approval_Letter_Last_First
+    CSLFT_Reassessment_Letter_Last_First
+    CSLFT_Assessment_Summary_Last_First
+    CSLPT_Approval_Letter_Last_First
+    CSLPT_Reassessment_Letter_Last_First
+    CSLPT_Assessment_Summary_Last_First */
   }
 
   async buildRejectionLetterFileName() {
-    await this.#getApplicationData("", "");
+    if (!this.#data) await this.load();
 
     const studentLastName = this.#applicationData.student.person.lastName;
     if (!studentLastName) {
@@ -152,7 +195,7 @@ export default class ApplicationLetterService {
     let disbursements = new Array<any>();
     if (disbursementList) {
       disbursements = disbursementList.map((d: any) => {
-        return { amountInCents: d.paidAmount * 100, releaseDate: d.issueDate };
+        return { amountInCents: d.disbursedAmount * 100, releaseDate: d.issueDate };
       });
     }
     // return this.#applicationData
