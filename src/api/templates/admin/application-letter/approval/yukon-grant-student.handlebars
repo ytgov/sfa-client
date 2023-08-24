@@ -46,21 +46,24 @@
         <span class="ml-4">{{momentDateFormat program.endDate "MMM Do, YYYY"}}</span>
       </span>
     </span>
-    <span class="flex mt-1"></span>
-    <span>
-      <strong style="inline-block w-[150px]">Rate per Week:</strong>
-      <span>{{centsToDollarString program.ratePerWeekInCents}}</span>
-    </span>
-    <br />
-    <span>
-      <strong style="inline-block w-[150px]">Approv. Weeks:</strong>
-      <span>{{program.approvalWeeks}}</span>
-    </span>
-    <br />
-    <span>
-      <strong style="inline-block w-[150px]">Travel/Airfare:</strong>
-      <span>{{centsToDollarString program.travelAndAirFairCostInCents}}</span>
-    </span>
+
+    {{#each assessment}}
+      <span class="flex mt-1"></span>
+      <span>
+        <strong style="inline-block w-[150px]">Rate per Week:</strong>
+        <span>{{centsToDollarString this.ratePerWeekInCents}}</span>
+      </span>
+      <br />
+      <span>
+        <strong style="inline-block w-[150px]">Approv. Weeks:</strong>
+        <span>{{this.approvalWeeks}}</span>
+      </span>
+      <br />
+      <span>
+        <strong style="inline-block w-[150px]">Travel/Airfare:</strong>
+        <span>{{centsToDollarString this.travelAndAirFairCostInCents}}</span>
+      </span>
+    {{/each}}
   </p>
 
   {{#if disbursements}}

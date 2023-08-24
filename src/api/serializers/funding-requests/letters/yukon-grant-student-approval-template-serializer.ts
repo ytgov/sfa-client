@@ -116,7 +116,9 @@ export default class YukonGrantStudentApprovalTemplateSerializer {
   }
 
   #prepareAssessments(fundingRequest: FundingRequest) {
-    const assessments = this.#fundingRequest.assessments || []
+    const assessments = this.#fundingRequest.assessments
+    if (isNil(assessments) || isEmpty(assessments)) return []
+
     const sortedAssessments = sortBy(assessments, ["assessedDate"])
 
     const serializedAssessments = sortedAssessments.map((assessment) => {
