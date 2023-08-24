@@ -46,8 +46,7 @@ cslMsfaaSendRouter.get("/:EXPORT_DATE/:SEQ_NUM/:FLAG",
             let msfaa_view_select;               			           
 			v_send_date = moment(new Date).format('YYYYMMDD');
 		    v_send_time = moment(new Date).format('HH:ss');            
-            
-			//v_filename = 'g:\AdvEd\SFA\sta_approvals\MSFAA\Data\PPYT.EDU.MSFA.SENT.' + v_send_date + nextVal[0].nextVal;
+            			
 			v_filename = 'PPYT.EDU.MSFA.SENT.' + v_send_date + nextVal[0].nextVal;
 
             v_out_record = '100' + 'YT  ' + 'MSFAA SENT'.padEnd(40, ' ') + v_send_date + v_send_time +  nextVal[0].nextVal.padStart(6, '0') + ' '.padEnd(535, ' ');
@@ -138,17 +137,15 @@ cslMsfaaSendRouter.get("/:EXPORT_DATE/:SEQ_NUM/:FLAG",
                         v_total_sin = v_total_sin + (col.sin ? col.sin : '');
                 						
                         let sp_msfaa_send = await db.raw(`EXEC sfa.sp_update_msfa_send ${nextVal[0].nextVal}, ${col.agreement_number ? col.agreement_number : -1};`);  						             
-                    }
-					//* SEND EMAIL					
+                    }								
 					const exec_insert_communication_log_from_msfaa = await db.raw(`EXEC sfa.sp_insert_communication_log_from_msfaa ${SEQ_NUM}`);
                 }
 			} else {	
                 msfaa_view_select = await db("sfa.vw_msfaa_send")
                 .select(db.raw("'200' as record_type"), "agreement_num_init", "agreement_number", "sin", db.raw("'P' as status_code"), "institution_code", "date_of_birth", "date_produced", "last_name", "first_name", "initials", "gender", "marital_status", "home_address1", "home_address2", "home_city", "home_province", "home_province_id", "home_postal_code", "home_country", "home_phone", "home_email", "mailing_address1", "mailing_address2", "mailing_city", "mailing_province", "mailing_province_id", "mailing_postal_code", "mailing_country", "school_phone", "school_email", "sent_date", "sent_seq_number", "part_full_time")
                 .where("sent_date", "=", moment(EXPORT_DATE).format('YYYY-MM-DD'))
-                .andWhere("sent_seq_number", "=", SEQ_NUM)
-                //*CHANGE LATER FOR Pending
-                .andWhere("msfaa_status", "=", "Received")
+                .andWhere("sent_seq_number", "=", SEQ_NUM)                
+                .andWhere("msfaa_status", "=", "Pending")
                             
 				for(let col of msfaa_view_select) {							
 					v_home_phone =  col.home_phone ? col.home_phone.replace(/-/g, '').replace(/\(/g, '').replace(/\)/g, '').substring(0, 20) : '';

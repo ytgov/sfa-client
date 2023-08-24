@@ -62,8 +62,7 @@
               @change="checkFilled()"          
             ></v-text-field>
           </div>      
-        <div class="col-md-1">
-          <!-- <v-btn :disabled="disabled.flag" @click="importFile()" class="my-0" color="primary"><v-icon>mdi-plus</v-icon>Import</v-btn>                    -->
+        <div class="col-md-1">          
           <v-btn @click="importFile(0)" class="my-0" color="primary"><v-icon>mdi-plus</v-icon>Create</v-btn>                             
         </div>
         <div class="col-md-1">
