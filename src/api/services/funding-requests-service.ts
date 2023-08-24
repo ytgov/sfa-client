@@ -1,3 +1,5 @@
+import { isNil } from "lodash"
+
 import db from "@/db/db-client"
 
 import FundingRequest from "@/models/funding-request"
@@ -11,6 +13,7 @@ namespace FundingRequestsService {
     | "disbursements"
     | "requestType"
     | "status"
+    | "statusReason"
   )[]
 }
 
@@ -83,6 +86,15 @@ export default class FundingRequestsService {
 
           throw new Error("Status not found")
         })
+    }
+
+    if (this.#includes.includes("statusReason") && fundingRequest.statusReasonId) {
+      const statusReason = await db("statusReason")
+        .where({ id: fundingRequest.statusReasonId })
+        .first()
+      if (isNil(statusReason)) throw new Error("Status reason not found")
+
+      fundingRequest.statusReason = statusReason
     }
 
     return fundingRequest
