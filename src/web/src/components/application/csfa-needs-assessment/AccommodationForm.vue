@@ -37,7 +37,7 @@
               @change="
                 doSaveApp(
                   'prestudy_board_amount',
-                  application.prestudy_board_amount
+                  vueCurrencyInputParse(application.prestudy_board_amount),
                 )
               "
             ></v-text-field>
