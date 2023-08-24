@@ -1,17 +1,20 @@
 import knex from "knex";
-import { DB_CONFIG } from "../../config";
+import { DB_CONFIG } from "@/config";
 import {
   AddressesFromDraft,
   Application,
   ApplicationFromDraft,
   ConsentFromDraft,
+  DependantsFromDraft,
+  ExpensesFromDraft,
   FundingFromDraft,
   IncomeFromDraft,
   OtherFundingFromDraft,
   ParentsFromDraft,
   PersonFromDraft,
   ResidenceFromDraft,
-} from "../../models";
+  StudentFromDraft,
+} from "@/models";
 import moment from "moment";
 
 const db = knex(DB_CONFIG);
@@ -23,10 +26,13 @@ export class PortalApplicationService {
   }
 
   async getDraftsForStudent(student_id: number) {
-    let drafts = await db("application_draft").withSchema(schema).where({ student_id, is_active: true });
+    let drafts = await db("application_draft")
+      .withSchema(schema)
+      .where({ student_id, is_active: true })
+      .orderBy("status")
+      .orderBy("update_date", "desc");
 
     for (let d of drafts) {
-      //d.status = "In Progress";
       d.description = `This application was created on ${moment
         .utc(d.create_date)
         .format("MMMM D, YYYY")} and last saved ${moment.utc(d.update_date).fromNow()}.`;
@@ -180,6 +186,31 @@ export class PortalApplicationService {
           }
         }
 
+        let expenses = ExpensesFromDraft(combinedApp);
+        if (expenses && expenses.length > 0) {
+          for (let expense of expenses) {
+            expense.application_id = newApplication[0].id;
+            await db("expense").withSchema(schema).insert(expense);
+          }
+        }
+
+        let depends = DependantsFromDraft(combinedApp);
+        if (depends && depends.length > 0) {
+          for (let depend of depends) {
+            let elig = depend.eligibility;
+            delete depend.eligibility;
+            depend.student_id = student.id;
+            let newDep = await db("dependent").withSchema(schema).insert(depend).returning("*");
+
+            elig.application_id = newApplication[0].id;
+            elig.dependent_id = newDep[0].id;
+            await db("dependent_eligibility").withSchema(schema).insert(elig);
+          }
+        }
+
+        let studentUpdate = StudentFromDraft(combinedApp);
+        await db("student").withSchema(schema).where({ id: student.id }).update(studentUpdate);
+
         await db("application_draft").withSchema(schema).where({ id }).update({
           status: "Submitted",
           application_id: newApplication[0].id,
@@ -208,7 +239,7 @@ export class PortalApplicationService {
         "requirement_type.document_location",
         "request_requirement.requirement_type_id",
       ])
-      .min("request_requirement.condition")
+      .min("request_requirement.condition as condition")
       .groupBy([
         "requirement_type.description",
         "requirement_type.document_location",
