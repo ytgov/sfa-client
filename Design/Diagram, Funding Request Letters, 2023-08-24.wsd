@@ -18,7 +18,7 @@ else (no)
       embed the image
       of letter YYY
     end note
-  else (no)
+  else (has many assessments)
     :Generate letter ZZZ;
     note right
       Here, you can
@@ -43,7 +43,7 @@ else (no)
       embed the image
       of letter BBB
     end note
-  else (no)
+  else (has many disbursements)
     :Generate letter CCC;
     note right
       Here, you can
