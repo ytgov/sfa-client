@@ -1,0 +1,57 @@
+@startuml
+start
+
+:Receive funding request;
+
+if (Has 0 assessments?) then (yes)
+  :Generate letter XXX;
+  note right
+    Here, you can
+    embed the image
+    of letter XXX
+  end note
+else (no)
+  if (Has 1 assessment?) then (yes)
+    :Generate letter YYY;
+    note right
+      Here, you can
+      embed the image
+      of letter YYY
+    end note
+  else (no)
+    :Generate letter ZZZ;
+    note right
+      Here, you can
+      embed the image
+      of letter ZZZ
+    end note
+  endif
+endif
+
+if (Has 0 disbursements?) then (yes)
+  :Generate letter AAA;
+  note right
+    Here, you can
+    embed the image
+    of letter AAA
+  end note
+else (no)
+  if (Has 1 disbursement?) then (yes)
+    :Generate letter BBB;
+    note right
+      Here, you can
+      embed the image
+      of letter BBB
+    end note
+  else (no)
+    :Generate letter CCC;
+    note right
+      Here, you can
+      embed the image
+      of letter CCC
+    end note
+  endif
+endif
+
+stop
+@enduml
