@@ -7533,4 +7533,66 @@ BEGIN
 END
 GO
 
+CREATE OR ALTER PROCEDURE sfa.sp_update_msfa_send(@next_sequence INT, @agreement_number INT)
+AS 
+BEGIN 
+	UPDATE sfa.msfaa SET sent_seq_number = @next_sequence
+    WHERE id = @agreement_number;	
+END
+GO
 
+CREATE OR ALTER PROCEDURE sfa.sp_update_system_parameter_send(@date DATE, @next_sequence INT)
+AS 
+BEGIN 
+	UPDATE sfa.system_parameter SET last_msfaa_sent_date = @date, last_msfaa_sent_seq_num = @next_sequence;    
+END
+GO
+
+CREATE OR ALTER PROCEDURE sfa.sp_update_date_msfa_send(@next_sequence INT, @v_send_date DATE, @agreement_number INT)
+AS 
+BEGIN 
+	UPDATE sfa.msfaa 
+		SET sent_date = @v_send_date, sent_seq_number = @next_sequence
+    WHERE id = @agreement_number;	
+END
+GO
+
+CREATE OR ALTER PROCEDURE sfa.sp_insert_communication_log_from_msfaa
+(
+	@msfaa_seq_p INT
+)
+AS
+BEGIN
+    DECLARE @to_email NVARCHAR(MAX);
+    DECLARE @student_name NVARCHAR(MAX);
+    DECLARE @msfaa_id INT;
+    DECLARE @msfaa_sent_date DATE;
+
+    DECLARE msfaa_cursor CURSOR FOR
+    SELECT DISTINCT 
+        CASE WHEN p.email IS NULL THEN a.school_email ELSE p.email END AS to_email,
+        p.first_name + ' ' + p.last_name AS student_name,
+        m.id AS msfaa_id,
+        m.sent_date AS msfaa_sent_date
+    FROM sfa.msfaa m
+    INNER JOIN sfa.student s ON m.student_id = s.id
+    INNER JOIN sfa.person p ON s.person_id = p.id
+    INNER JOIN sfa.application a ON m.student_id = a.student_id
+    WHERE m.sent_seq_number = @msfaa_seq_p;
+
+    OPEN msfaa_cursor;
+
+    FETCH NEXT FROM msfaa_cursor INTO @to_email, @student_name, @msfaa_id, @msfaa_sent_date;
+
+    WHILE @@FETCH_STATUS = 0
+    BEGIN
+        INSERT INTO sfa.communication_log (sent_from_email, sent_to_email, sent_to_cc, subject, msfaa_id, is_emailed) 
+        VALUES ('sfa@gov.yk.ca', @to_email, 'sfa@gov.yk.ca', 'Student Financial Assistance: MSFAA Notification', @msfaa_id, 0);
+
+        FETCH NEXT FROM msfaa_cursor INTO @to_email, @student_name, @msfaa_id, @msfaa_sent_date;
+    END;
+
+    CLOSE msfaa_cursor;
+    DEALLOCATE msfaa_cursor;
+END
+GO
