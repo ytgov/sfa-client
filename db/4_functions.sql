@@ -1739,21 +1739,21 @@ BEGIN
                                 assessment_id,
                                 funding_request_id,
                                 disbursed_amount,
-                                due_date,
+                                NULL,
                                 tax_year,
-                                issue_date,
+                                GETDATE(),
                                 disbursed_amount, -- assigns disbursement_amount to paid_amount
-                                change_reason_id,
-                                financial_batch_id,
-                                financial_batch_id_year,
-                                financial_batch_run_date,
-                                financial_batch_serial_no,
-                                transaction_number,
-                                csl_cert_seq_number,
-                                ecert_sent_date,
-                                ecert_response_date,
-                                ecert_status,
-                                ecert_portal_status_id
+                                NULL,
+                                NULL,
+                                NULL,
+                                NULL,
+                                NULL,
+                                NULL,
+                                NULL,
+                                NULL,
+                                NULL,
+                                NULL,
+                                NULL
                             FROM sfa.disbursement
                             WHERE id = (@disbursement_id);
 
