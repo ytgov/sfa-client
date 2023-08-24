@@ -6,28 +6,27 @@ start
 :Receive funding request;
 
 if (Has 0 assessments?) then (yes)
-  :Generate letter XXX;
+  :Assessments section is blank;
+elseif (Has 1 assessment?) then (yes)
+  :Assessments section has 1 section;
   note right
-    Here, you can
-    embed the image
-    of letter XXX
+    e.g.
+    Rate per Week: $144.00
+    Approv. Weeks: 32
+    Travel/Airfare: $0.00
   end note
-else (no)
-  if (Has 1 assessment?) then (yes)
-    :Generate letter YYY;
-    note right
-      Here, you can
-      embed the image
-      of letter YYY
-    end note
-  else (has many assessments)
-    :Generate letter ZZZ;
-    note right
-      Here, you can
-      embed the image
-      of letter ZZZ
-    end note
-  endif
+else (has many assessments)
+  :Assessments section has many sub-sections;
+  note right
+    e.g.
+    Rate per Week: $144.00
+    Approv. Weeks: 32
+    Travel/Airfare: $0.00
+
+    Rate per Week: $144.00
+    Approv. Weeks: 32
+    Travel/Airfare: $0.00
+  end note
 endif
 
 if (Has 0 disbursements?) then (yes)
