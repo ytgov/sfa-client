@@ -33,8 +33,8 @@ chequeReqRouter.get("/",
             const chequeRequest = new ChequeReqList(db);
 
             const records: any = await chequeRequest.validate(issueDate.toString(), start_p);
-
-            return res.status(200).json(records);
+            
+            return res.status(200).json({ ...records });
 
         } catch (error) {
             console.log(error);

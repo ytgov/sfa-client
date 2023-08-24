@@ -62,7 +62,7 @@
 
   .modal-export {
     width: 400px;
-    height: 200px;
+    height: auto;
     position: fixed;
     transform: translateY(-50%);
     top: 50%;

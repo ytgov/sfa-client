@@ -849,7 +849,7 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
             let spouse_exempt_count = await this.employmentStatusRepo.isEmployed(this.application.spouse_study_emp_status_id);
 
             // Validation change accordingly to an email from SFA team.
-            if (!spouse_exempt_count) {
+            if (spouse_exempt_count) {
                 this.assessment.spouse_contrib_exempt = "YES";
             }
         }
