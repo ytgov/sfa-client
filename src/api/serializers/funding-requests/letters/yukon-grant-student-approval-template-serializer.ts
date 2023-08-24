@@ -1,4 +1,4 @@
-import { isArray, isNil, last, sortBy } from "lodash"
+import { isArray, isEmpty, isNil, sortBy } from "lodash"
 
 import Application from "@/models/application"
 import FundingRequest from "@/models/funding-request"
@@ -200,12 +200,7 @@ export default class YukonGrantStudentApprovalTemplateSerializer {
 
   #prepareDisbursements(fundingRequest: FundingRequest) {
     const disbursements = fundingRequest.disbursements
-    if (disbursements === undefined)
-      throw new Error(
-        "Could not prepare template data as disbursements are missing from funding request."
-      )
-    if (disbursements.length === 0)
-      throw new Error("Could not prepare template data as no disbursements are present.")
+    if (isNil(disbursements) || isEmpty(disbursements)) return []
 
     return disbursements.map((disbursement) => {
       if (disbursement.disbursedAmount === undefined)

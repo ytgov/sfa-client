@@ -63,22 +63,24 @@
     </span>
   </p>
 
-  <table class="">
-    <thead>
-      <tr>
-        <th>Disbursements<span class="ml-4"></span></th>
-        <th>Issue Date - Based on confirmed enrollment before each semester</th>
-      </tr>
-    </thead>
-    <tbody>
-      {{#each disbursements}}
+  {{#if disbursements}}
+    <table class="">
+      <thead>
         <tr>
-          <td>{{centsToDollarString this.amountInCents}}</td>
-          <td>{{momentDateFormatDefault this.releaseDate "MMM YYYY" "Upon confirmation"}}</td>
+          <th>Disbursements<span class="ml-4"></span></th>
+          <th>Issue Date - Based on confirmed enrollment before each semester</th>
         </tr>
-      {{/each}}
-    </tbody>
-  </table>
+      </thead>
+      <tbody>
+        {{#each disbursements}}
+          <tr>
+            <td>{{centsToDollarString this.amountInCents}}</td>
+            <td>{{momentDateFormatDefault this.releaseDate "MMM YYYY" "Upon confirmation"}}</td>
+          </tr>
+        {{/each}}
+      </tbody>
+    </table>
+  {{/if}}
 
   <p>
     If any of the above information is incorrect or you withdraw from full-time studies or drop to
