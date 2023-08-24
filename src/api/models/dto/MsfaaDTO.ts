@@ -16,7 +16,7 @@ export interface MsfaaDTO {
     rec_last_mod_date?: Date;
 }
 
-export type MsfaaTable = Omit<MsfaaDTO, "id">;
+export type MsfaaTable = Omit<MsfaaDTO, "id" | "email">;
 
 export const msfaaColumns: (keyof MsfaaTable)[] = [
     "application_id",
@@ -30,7 +30,6 @@ export const msfaaColumns: (keyof MsfaaTable)[] = [
     "sent_seq_number",
     "last_reminder_sent",
     "is_full_time",
-    "email",
     "rec_create_date",
     "rec_last_mod_date"
 ];
