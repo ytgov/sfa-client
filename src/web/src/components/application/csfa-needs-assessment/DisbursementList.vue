@@ -79,7 +79,7 @@
           <DateInput
             label="Issue Date"
             :menu="issue_date_menu"
-            :disabled="true"
+            :disabled="blockDisbursement"
             v-model="disbursement.issue_date"
           ></DateInput>
         </div>
