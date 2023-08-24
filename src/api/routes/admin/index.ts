@@ -67,6 +67,7 @@ import { cslMsfaaReceiveRouter } from "./csl-msfaa-receive-router";
 import { cslEntitlementFeedbackRouter } from "./csl-entitlement-feedback.router";
 import { cslCertificateAuditReportRouter } from "./csl-certificate-audit-report-router";
 import { cslMsfaaSendRouter } from "./csl-msfaa-send-router";
+import { cslRestrictedData } from "./csl-restricted-data-router";
 
 
 export const adminRouter = express.Router();
@@ -139,3 +140,4 @@ adminRouter.use("/csl-msfaa-receive", cslMsfaaReceiveRouter)
 adminRouter.use("/csl-entitlement-feedback", cslEntitlementFeedbackRouter)
 adminRouter.use("/csl-certificate-audit-report", cslCertificateAuditReportRouter)
 adminRouter.use("/csl-msfaa-send", cslMsfaaSendRouter)
+adminRouter.use("/csl-restricted-data", cslRestrictedData)

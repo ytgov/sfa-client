@@ -22,40 +22,157 @@ export class ChequeReqList extends BaseRepository {
 
     //AfterPForm ()
     async validate(
-        issueDate: string
+        issueDate: string,
+        start_p: number
     ): Promise<any> {
-        let records: any = []
-        let start_p = '';
-        let serial_no_p = null;
+        try {
+            let records: any = []
+            let pdfData: any = []
+            let batchTotal: any = 0;
+            let serial_no_p = null;
 
-        if (true) { //start_p === '0'
-            //EXEC sfa.assign_cheque_req_batch @issue_date_p = @issue_date_p OUTPUT, @serial_no_p = @serial_no_p OUTPUT;      
-            serial_no_p = await this.assignChequeReqBatch(issueDate);
+            if (!start_p) { //start_p === '0'
+                //EXEC sfa.assign_cheque_req_batch @issue_date_p = @issue_date_p OUTPUT, @serial_no_p = @serial_no_p OUTPUT;      
+                serial_no_p = await this.assignChequeReqBatch(issueDate);
 
-        } else {
-            //:issue_date_p := TO_DATE(SUBSTR(:start_p,1,11),'DD MON RRRR');
-            //:serial_no_p := TO_NUMBER(SUBSTR(:start_p,13));
+            } else {
+                //:issue_date_p := TO_DATE(SUBSTR(:start_p,1,11),'DD MON RRRR');
+                serial_no_p = start_p;
+            }
+            //:issue_date_str_p := TO_CHAR (:issue_date_p, 'YYYYMMDD'); -- Added for Windows 7 issue with dateCOUNT(d.disbursement_id)
+            const disburseCount = await this.mainDb('sfa.disbursement')
+                .count('id as count')
+                .where('financial_batch_run_date', issueDate)
+                .where('financial_batch_serial_no', serial_no_p)
+                .whereNotNull('issue_date'); //NOTE: Amy has confirmed that as long as the batch report will not pick up disbursements until they have an issue date
+
+            if (!disburseCount?.[0].count) {
+                return { success: false, text: 'There are no new disbursements for this date. This will end the report.' }
+            } else {
+                records = await this.getInfoFileDAT(issueDate, serial_no_p || 0) ?? [];   //cheque_req_export;
+                pdfData = await this.getPDFData(issueDate, serial_no_p || 0);
+                batchTotal = await this.getBatchTotal(issueDate, serial_no_p || 0);
+
+                this.mainDb.raw('EXEC sfa.save_csl_nars_history ?, ?', [`'${issueDate}'`, serial_no_p])
+            }
+
+            const filename = this.generateFileName(issueDate, serial_no_p || 0);
+
+            return {
+                success: true, data: {
+                    records: [...records],
+                    filename,
+                    pdfData: [...pdfData],
+                    batchTotal
+                }
+            };
+        } catch (error) {
+            return {
+                success: false,
+                text: "Error in validaet method"
+            };
         }
-        //:issue_date_str_p := TO_CHAR (:issue_date_p, 'YYYYMMDD'); -- Added for Windows 7 issue with dateCOUNT(d.disbursement_id)
-        const disburseCount = await this.mainDb('sfa.disbursement')
-            .count('id as count')
-            .where('financial_batch_run_date', issueDate)
-            .where('financial_batch_serial_no', serial_no_p)
-            .whereNotNull('issue_date'); //NOTE: Amy has confirmed that as long as the batch report will not pick up disbursements until they have an issue date
-
-        if (!disburseCount?.[0].count) {
-            return { success: false, text: 'There are no new disbursements for this date. This will end the report.' }
-        } else {
-            records = await this.getInfoFileDAT(issueDate, serial_no_p || 0) ?? [];   //cheque_req_export;
-            
-            this.mainDb.raw('EXEC sfa.save_csl_nars_history ?, ?', [`'${issueDate}'`, serial_no_p])
-        }
-
-        const filename = this.generateFileName(issueDate, serial_no_p || 0);
-
-        return { success: true, data: { records: [ ...records ], filename } };
     }
 
+    async getPDFData(
+        issueDate: string,
+        serialNo: number
+    ): Promise<any> {
+        try {
+            const pdfData = await this.mainDb
+                .select(
+                    's.id AS student_id',
+                    'rt.description AS request_type',
+                    'd.financial_batch_id_year',
+                    'd.financial_batch_id',
+                    this.mainDb.raw(`
+                CASE
+                    WHEN rt.batch_group_id = 5 THEN
+                        CASE
+                            WHEN fr.yea_request_type = 1 THEN 3
+                            WHEN fr.yea_request_type = 2 THEN 4
+                            ELSE 1
+                        END
+                    WHEN rt.batch_group_id = 1 THEN
+                        sfa.get_batch_group_id_fct(fr.id)
+                    ELSE rt.batch_group_id
+                END AS bg_id
+            `),
+                    this.mainDb.raw(`
+                REPLACE(
+                    ISNULL(
+                        CAST(rt.batch_group_id AS VARCHAR(10)),
+                        ISNULL(
+                            CAST(CASE WHEN fr.yea_request_type = 1 THEN 3
+                                    WHEN fr.yea_request_type = 2 THEN 4
+                                    ELSE 1
+                                END AS VARCHAR(10)),
+                            CAST(sfa.get_batch_group_id_fct(fr.id) AS VARCHAR(10))
+                        )
+                    ) + RIGHT('0000' + 
+                    CAST(d.financial_batch_id_year AS VARCHAR(4)), 4) + '-' + 
+                    CAST(d.financial_batch_id AS VARCHAR(10)),
+                    ' ',
+                    ''
+                ) AS batch_id
+            `),
+                    'fr.request_type_id',
+                    'rt.financial_coding',
+                    this.mainDb.raw(`COALESCE(p.first_name , '') + ' ' + COALESCE(p.last_name, '') AS name`),
+                    's.vendor_id',
+                    this.mainDb.raw("FORMAT(disbursed_amount, 'C') AS disbursed_amount"),
+                    this.mainDb.raw(`CASE WHEN app.student_number IS NULL THEN 'Yukon Student' ELSE app.student_number END AS invoice_id`),
+                    this.mainDb.raw("UPPER(FORMAT(d.due_date, 'yyyy MMM dd')) AS due_date"),
+                    'app.id',
+                    this.mainDb.raw("'S' as SPEC_HAND"),
+                    'd.tax_year',
+                    this.mainDb.raw("UPPER(FORMAT(d.financial_batch_run_date, 'yyyy MMM dd')) AS invoice_date")
+                )
+                .from('sfa.funding_request AS fr')
+                .join('sfa.request_type AS rt', 'rt.id', '=', 'fr.request_type_id')
+                .join('sfa.disbursement AS d', 'fr.id', '=', 'd.funding_request_id')
+                .join('sfa.application AS app', 'fr.application_id', '=', 'app.id')
+                .join('sfa.student AS s', 'app.student_id', '=', 's.id')
+                .join('SFA.person AS p', 's.person_id', '=', 'p.id')
+                .where('d.financial_batch_run_date', '=', issueDate)
+                .where('d.financial_batch_serial_no', '=', serialNo)
+                .whereNotNull('d.due_date')
+                .orderBy('s.vendor_id')
+                .orderBy('p.last_name')
+                .orderBy('d.financial_batch_id_year')
+                .orderBy('d.financial_batch_id')
+                .orderBy('p.first_name');
+
+            return pdfData || [];
+        } catch (error) {
+            console.log(error);
+            return undefined
+        }
+    }
+    async getBatchTotal(
+        issueDate: string,
+        serialNo: number
+    ): Promise<any> {
+        try {
+            const batchTotal = await this.mainDb
+                .select(this.mainDb.raw(`FORMAT(SUM(d.disbursed_amount), 'C') as total`))
+                .from('sfa.funding_request AS fr')
+                .join('sfa.request_type AS rt', 'rt.id', '=', 'fr.request_type_id')
+                .join('sfa.disbursement AS d', 'fr.id', '=', 'd.funding_request_id')
+                .join('sfa.application AS app', 'fr.application_id', '=', 'app.id')
+                .join('sfa.student AS s', 'app.student_id', '=', 's.id')
+                .join('SFA.person AS p', 's.person_id', '=', 'p.id')
+                .where('d.financial_batch_run_date', '=', issueDate)
+                .where('d.financial_batch_serial_no', '=', serialNo)
+                .whereNotNull('d.due_date')
+                .first();
+
+            return batchTotal?.total || null;
+        } catch (error) {
+            console.log(error);
+            return undefined
+        }
+    }
     //assign_cheque_req_batch ()
     async assignChequeReqBatch(
         issueDate: string
@@ -82,7 +199,7 @@ export class ChequeReqList extends BaseRepository {
             num_request_type = null;
             num_bg = null;
             int_count = 0;
-            
+
             //for await (const disburse of disb_list) {
             for (let index = 0; index < disb_list.length; index++) {
                 const disburse = disb_list[index];
@@ -164,9 +281,9 @@ export class ChequeReqList extends BaseRepository {
                 const updateDisburse = await this.mainDb("sfa.disbursement")
                     .where({ id: disburse.disbursement_id })
                     .update({
-                        financial_batch_id: num_batch, 
+                        financial_batch_id: num_batch,
                         financial_batch_id_year: batch_year,
-                        financial_batch_run_date: issueDate, 
+                        financial_batch_run_date: issueDate,
                         financial_batch_serial_no: fb_serial
                     });
             }
@@ -244,13 +361,13 @@ export class ChequeReqList extends BaseRepository {
         const issueDate = new Date(issueDateStr);
 
         const formattedDate = issueDate.getFullYear().toString().slice(-2) +
-                             ('0' + (issueDate.getMonth() + 1)).slice(-2) +
-                             ('0' + issueDate.getDate()).slice(-2);
-    
+            ('0' + (issueDate.getMonth() + 1)).slice(-2) +
+            ('0' + issueDate.getDate()).slice(-2);
+
         const formattedSerialNo = ('0' + serialNo).slice(-2);
-    
-        const fileName = 'SFVO_' + formattedDate + '_' + formattedSerialNo + '.dat';
-        
+
+        const fileName = 'SFVO_' + formattedDate + '_' + formattedSerialNo;
+
         return fileName;
     }
 }

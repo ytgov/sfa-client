@@ -80,6 +80,7 @@ import officerRoutes from "@/modules/officer/router";
 import ChequeReqListModuleRoutes from "@/modules/cheque-req-list/router";
 import CslCertificateAuditReportRoutes from "@/modules/csl-certificate-audit-report/router";
 import CslMsfaaSendRoutes from "@/modules/csl-msfaa-send/router";
+import CSLRestrictedDataModuleRoutes from "@/modules/csl-restricted-data/router";
 
 Vue.use(VueRouter);
 
@@ -400,6 +401,7 @@ const routes = [
   ...ChequeReqListModuleRoutes,
   ...CslCertificateAuditReportRoutes,
   ...CslMsfaaSendRoutes,
+  ...CSLRestrictedDataModuleRoutes,
 
   {
     path: "*",
