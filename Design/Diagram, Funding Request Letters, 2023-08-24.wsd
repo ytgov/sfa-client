@@ -30,28 +30,20 @@ else (has many assessments)
 endif
 
 if (Has 0 disbursements?) then (yes)
-  :Generate letter AAA;
+  :Disbursements section is blank;
+elseif (Has 1 disbursement?) then (yes)
+  :Disbursements section has 1 row;
   note right
-    Here, you can
-    embed the image
-    of letter AAA
+  e.g
+  $2304.00 	Dec 2020
   end note
-else (no)
-  if (Has 1 disbursement?) then (yes)
-    :Generate letter BBB;
-    note right
-      Here, you can
-      embed the image
-      of letter BBB
-    end note
-  else (has many disbursements)
-    :Generate letter CCC;
-    note right
-      Here, you can
-      embed the image
-      of letter CCC
-    end note
-  endif
+else (has many disbursements)
+  :Disbursements section has many rows;
+  note right
+    e.g.
+    $2304.00 	Dec 2020
+    $2304.00 	Upon confirmation
+  end note
 endif
 
 stop
