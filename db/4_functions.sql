@@ -7530,6 +7530,21 @@ BEGIN
 END
 GO
 
+
+CREATE OR ALTER FUNCTION sfa.get_fb_prefix_fct (@bg_id_p INT)
+RETURNS NVARCHAR(5)
+AS
+BEGIN
+    DECLARE @v_bg NVARCHAR(5);
+
+    SELECT @v_bg = TRIM(COALESCE(prefix, ''))
+    FROM sfa.batch_group
+    WHERE id = @bg_id_p;
+
+    RETURN @v_bg;
+END
+GO
+
 CREATE OR ALTER PROCEDURE sfa.sp_update_csl_fields 
 AS
 BEGIN
@@ -7564,3 +7579,4 @@ BEGIN
 
    END
 GO
+
