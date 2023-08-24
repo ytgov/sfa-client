@@ -330,7 +330,6 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
     async initAssessments(funding_request_id?: number, requestCreate: boolean = false): Promise<Partial<DataDTO<CslftResultDTO>>> {
 
         let result: Partial<CslftResultDTO> = {};
-        let isNew: boolean = false;
         let uuid: string;   
 
         const assessments = await this.getAllAssessmentsByFundingRequestId(funding_request_id);
@@ -347,9 +346,13 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
             }
         }
 
-        if (isNew) {
+        if (assessments.length === 0 || requestCreate) {
             uuid = crypto.randomUUID();
-        } 
+            result = await this.getAssessInfoCslft(funding_request_id);
+            this.setResults(result, uuid);
+            this.cslftResults.result = result;
+            this.cslftResults.current = uuid;
+        }
 
         return this.cslftResults;
     }
@@ -357,11 +360,12 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
     async getAssessInfoCslft(funding_request_id?: number, assessment?: Partial<AssessmentDTO>): Promise<Partial<CslftResultDTO>> {
 
         let assess_id: number | undefined = undefined;        
-        let isNew: boolean = false;
         
         if (funding_request_id) {
             
-            if ()
+            if (assessment) {
+                this.assessment = assessment;
+            }
             
             if ((!this.assessment.id)) {
                 const assess_count = await this.getAssessmentCount(funding_request_id);
@@ -371,13 +375,11 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
                     
                     await this.getPreviousAssessment(this.assess_id);
                     this.assessment.assessment_type_id = 2;
-                    isNew = true;
                     this.assessment.id = undefined;
                 }
                 else {
                     this.assessment.funding_request_id = funding_request_id;
                     await this.getNewInfo();
-                    isNew = true;
                 }
 
                 if ((this.assessment.csl_assessed_need ?? 0) > 0 || this.assessment.total_grant_awarded && (this.application.academic_year_id ?? 0) > 2012) {
@@ -987,7 +989,7 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
 
         this.assessment = assessment;
         this.disbursements = disbursements;
-        await this.loadData(funding_request_id, false);
+        await this.loadData(funding_request_id);
 
         await this.getNewInfo(true);
 
@@ -1075,7 +1077,7 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
         disbursements = disbursements.filter((x) => x.transaction_number !== null);
         this.assessment = assessment;
         this.disbursements = disbursements;
-        await this.loadData(funding_request_id, false);
+        await this.loadData(funding_request_id);
 
         if (!this.disbursement.delete_flag) {
             this.disbursement.delete_flag = false;
