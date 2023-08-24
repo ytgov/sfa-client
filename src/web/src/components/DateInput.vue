@@ -14,7 +14,6 @@
             :disabled="disabled"
             v-model="date_formatted"
             :label="label"
-            append-icon="mdi-calendar"
             hide-details
             readonly
             outlined
@@ -22,6 +21,7 @@
             background-color="white"
             v-bind="attrs"
             v-on="on"
+            clearable
         ></v-text-field>
         </template>
         <v-date-picker
