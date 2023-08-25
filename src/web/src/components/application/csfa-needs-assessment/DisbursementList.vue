@@ -71,6 +71,7 @@
           <DateInput
             label="Due Date"
             :menu="due_date_menu"
+            :disabled="blockDisbursement"
             v-model="disbursement.due_date"
           ></DateInput>
         </div>
@@ -78,6 +79,7 @@
           <DateInput
             label="Issue Date"
             :menu="issue_date_menu"
+            :disabled="blockDisbursement"
             v-model="disbursement.issue_date"
           ></DateInput>
         </div>

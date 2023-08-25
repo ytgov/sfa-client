@@ -897,12 +897,12 @@ applicationRouter.delete("/:id/status",
     }
 );
 
-applicationRouter.put("/:application_id/parent-dependent",
+applicationRouter.put("/:application_id/parent-dependent/:id",
     [param("application_id").isInt().notEmpty()],
     ReturnValidationErrors,
     async (req: Request, res: Response) => {
         try {
-            const { application_id } = req.params;
+            const { application_id, id } = req.params;
             const { data } = req.body;
 
             if (!Object.values(data).length || Object.values(data).some(v => v === null || v === undefined)) {
@@ -914,7 +914,7 @@ applicationRouter.put("/:application_id/parent-dependent",
             if (application) {
 
                 const resUpdate = await db("sfa.parent_dependent")
-                    .where({ application_id })
+                    .where({ application_id, id })
                     .update({ ...data });
                 
                 return resUpdate > 0 ?

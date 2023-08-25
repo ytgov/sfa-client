@@ -79,35 +79,39 @@ END
 
 GO
 -- This function is used to get the previous pre-legislation YG/STA weeks prior to current HD non upgrading                
+
 CREATE OR ALTER FUNCTION sfa.fn_get_prev_pre_leg_weeks(@student_id_p INT, @application_id_p INT)
 RETURNS NUMERIC
 AS 
 BEGIN
-    DECLARE  @v_num_weeks NUMERIC = 0;
+    DECLARE @v_num_weeks NUMERIC = 0;
+	DECLARE @v_program_academic INT = 0;
 
-        SELECT @v_num_weeks = CEILING(SUM(CASE WHEN fr.request_type_id = 1  THEN a.weeks_allowed ELSE  a.years_funded_equivalent*34 END))
-        FROM sfa.application app
-        INNER JOIN sfa.funding_request fr ON app.id = fr.application_id
-            , (SELECT funding_request_id
-                    , assessment_id
-                    , sum(disbursed_amount) disbursed_amount
-                FROM sfa.disbursement
-            GROUP BY funding_request_id, assessment_id) d
-        INNER JOIN sfa.assessment a ON d.assessment_id = a.id
-        WHERE  fr.id = d.funding_request_id 
-        AND app.id < @application_id_p 
-        AND app.program_id <> (SELECT id FROM sfa.program WHERE description = 'Upgrading-Academic')
-        AND app.student_id = @student_id_p
-        AND app.academic_year_id <=2015
-        AND d.disbursed_amount > 0 -- positive disbursement
-        AND fr.request_type_id in (1,2) -- request type STA
-        group by app.student_id;
+	SELECT @v_program_academic  = id 
+	FROM sfa.program 
+	WHERE description = 'Upgrading-Academic'
 
-        RETURN CEILING(@v_num_weeks);              
+    SELECT @v_num_weeks = CEILING(SUM(CASE WHEN fr.request_type_id = 1  THEN a.weeks_allowed ELSE  a.years_funded_equivalent*34 END))
+    FROM sfa.application app
+    INNER JOIN sfa.funding_request fr 
+		ON app.id = fr.application_id
+	INNER JOIN sfa.assessment a 
+		ON a.funding_request_id = fr.id
+	INNER JOIN sfa.vm_disbursement_sum d
+		ON  d.funding_request_id =  fr.id
+    WHERE  app.student_id = @student_id_p
+    AND app.id < @application_id_p 
+    AND app.program_id not in (@v_program_academic)
+    AND app.academic_year_id <= 2015
+    AND d.disbursed_amount > 0 -- positive disbursement
+    AND fr.request_type_id in (1,2) -- request type STA
+    group by app.student_id;
+
+    RETURN CEILING(@v_num_weeks);              
 
 END
-
 GO
+
 
 /* This function is used to get the current system total years funded
     for the particular student not counting the given history detail
@@ -1739,21 +1743,21 @@ BEGIN
                                 assessment_id,
                                 funding_request_id,
                                 disbursed_amount,
-                                due_date,
+                                NULL,
                                 tax_year,
-                                issue_date,
+                                GETDATE(),
                                 disbursed_amount, -- assigns disbursement_amount to paid_amount
-                                change_reason_id,
-                                financial_batch_id,
-                                financial_batch_id_year,
-                                financial_batch_run_date,
-                                financial_batch_serial_no,
-                                transaction_number,
-                                csl_cert_seq_number,
-                                ecert_sent_date,
-                                ecert_response_date,
-                                ecert_status,
-                                ecert_portal_status_id
+                                NULL,
+                                NULL,
+                                NULL,
+                                NULL,
+                                NULL,
+                                NULL,
+                                NULL,
+                                NULL,
+                                NULL,
+                                NULL,
+                                NULL
                             FROM sfa.disbursement
                             WHERE id = (@disbursement_id);
 
@@ -4916,31 +4920,29 @@ AS
     '0000000000000' + '0000000000000' + ' ' + '1' + '  ' + '0000000000000' + '0000000000000' + '  ' + '    ' 
     AS record1,
     '2'+ RIGHT(REPLICATE(' ', 12) + s.vendor_id, 12)  + '03    ' + '000000000' +
-		( LEFT(LTRIM(ISNULL(CAST(d.financial_batch_id_year AS NVARCHAR(2)), '00')+  '-' + ISNULL(CAST(d.financial_batch_id AS NVARCHAR(2)), '00') ) + REPLICATE(' ', 12)  , 12))+
-            RIGHT(REPLICATE(' ', 22) + 
-                CASE WHEN app.student_number IS NULL THEN 'Yukon Student'
+		( LEFT(LTRIM(ISNULL(CAST(d.financial_batch_id_year AS NVARCHAR(2)), '00')+  '-' + ISNULL(CAST(d.financial_batch_id AS NVARCHAR(2)), '00') ) + REPLICATE(' ', 12)  , 12))+ 
+        LEFT(CASE WHEN app.student_number IS NULL THEN 'Yukon Student'
                     ELSE app.student_number
-                END, 
-                22) +
+                END + REPLICATE(' ', 22) ,
+            22) +
             'EX'+ 'RE'+ 'CAD '+ '            '+
             '0'+ FORMAT(CAST(@issue_date_str AS DATE), 'yyyyMMdd')+ '0'+ '000000000'+ '        '+ '        '+
             '              '+ '0  '+
-
 			RIGHT(REPLICATE('0', 15)+ replace(CONVERT(VARCHAR, ABS(COALESCE(d.disbursed_amount, 0)), 128), '.', ''), 15) +
             REPLICATE(' ', 30) + '      '+ '0' + COALESCE(FORMAT(d.due_date, 'yyyyMMdd'), '') + '000000000'+
             '000000000000000'+ '0'+ '000000000000000'+ '0'+ '000000000000000'+ '0'+
             '000000000000000'+ '0'+ '000000000000000'+ '000000000000000'+ '0'+
-    --	'0000000000000'+' '+ 'TDCAD   '+ ' '+ '   '+ '                '+
+    -- '0000000000000'+' '+ 'TDCAD   '+ ' '+ '   '+ '                '+
         '0000000000000'+' '+ '        '+ ' '+ '   '+ '                '+
             '                '+ '                '
-    --		+ '1' -- change 0 to 1 for sep payment - Lidwien January 2008, Jira SFA 199
+    --         + '1' -- change 0 to 1 for sep payment - Lidwien January 2008, Jira SFA 199
             + '1' -- change 1 to 0 for sep payment - Lidwien 2020-08-25 as per Sharon for SFA EFT		
             + ' '+ ' '+ 
             --decode(institution_pck.get_institution_code_fct(history_detail.institution_id),'BUAA','G','S')+ -- Changed else condition from ' ' to 'S' Lidwien February 2009, Jira SFA 258
-    --			'S'+ -- adjusted special handling code to always be S as per Sheila, 2014-01-29 Lidwien SFA-362
+    --                 'S'+ -- adjusted special handling code to always be S as per Sheila, 2014-01-29 Lidwien SFA-362
                 ' '+ -- adjusted special handling code to always be space as optional, for NEW EFT no longer required, 2020-08-25 Lidwien 
             '0000000000000'+ '0000000000000'+ '0000000000000'+ '0000000000000'
-    --		+ 'C'  -- change space to C for cheque payment type - Lidwien January 2008, Jira SFA 199
+    --         + 'C'  -- change space to C for cheque payment type - Lidwien January 2008, Jira SFA 199
             + ' '  -- change C to space for cheque payment type - for NEW EFT no longer required, 2020-08-25 Lidwien		
             +'000000000'+ '9990206016050                                '+ '      '+
             REPLICATE(' ', 22) + '000000000'+ 'CTL-YUKON   '+ '0'+ FORMAT(CAST(@issue_date_str AS DATE), 'yyyyMMdd') +
@@ -4953,10 +4955,10 @@ AS
         as record2, -- Voucher Header (VOH)
     '3'+ REPLICATE(' ', 12 - LEN(s.vendor_id)) + s.vendor_id + '03    '+ '000000000'+
             '00001' +( LEFT(LTRIM(ISNULL(CAST(d.financial_batch_id_year AS NVARCHAR(2)), '00')+  '-' + ISNULL(CAST(d.financial_batch_id AS NVARCHAR(2)), '00') ) + REPLICATE(' ', 12)  , 12))+
-            RIGHT(REPLICATE(' ', 22) + 
+            LEFT( 
                 CASE WHEN app.student_number IS NULL THEN 'Yukon Student'
                     ELSE app.student_number
-                END, 
+                END + REPLICATE(' ', 22) , 
                 22)
             + '                              ' +
             RIGHT(REPLICATE('0', 15)+ replace(CONVERT(VARCHAR, ABS(COALESCE(d.disbursed_amount, 0)), 128), '.', ''), 15)  +
@@ -4971,15 +4973,17 @@ AS
         as record3, --   Voucher Line Record -- (VOL)
     '4'+ REPLICATE(' ', 12 - LEN(s.vendor_id)) + s.vendor_id  + '03    '+ '000000000'
             +'00001' + '00001' 
-            +( LEFT(LTRIM(ISNULL(CAST(d.financial_batch_id_year AS NVARCHAR(2)), '00')+  '-' + ISNULL(CAST(d.financial_batch_id AS NVARCHAR(2)), '00') ) + REPLICATE(' ', 12)  , 12))+RIGHT(REPLICATE(' ', 22) + 
+            +( LEFT(LTRIM(ISNULL(CAST(d.financial_batch_id_year AS NVARCHAR(2)), '00')+  '-' + ISNULL(CAST(d.financial_batch_id AS NVARCHAR(2)), '00') ) + REPLICATE(' ', 12)  , 12))+LEFT( 
                 CASE WHEN app.student_number IS NULL THEN 'Yukon Student'
                     ELSE app.student_number
-                END, 
-                22) 
-            + (LEFT(ISNULL('031-200602-0302-2503', '') + REPLICATE(' ', 45)  , 45)) +'03    ' + 
+                END + REPLICATE(' ', 22) ,
+                22)
+            + (LEFT(ISNULL(rt.financial_coding, '') + REPLICATE(' ', 45)  , 45)) +'03    ' +
 			RIGHT(REPLICATE('0', 15)+ replace(CONVERT(VARCHAR, ABS(COALESCE(d.disbursed_amount, 0)), 128), '.', ''), 15)
             +'            ' + '            ' + '    ' 
-            + RIGHT(REPLICATE(' ', 16) + COALESCE(LTRIM(d.tax_year),''), 16)
+            +  CASE WHEN d.tax_year IS NULL THEN ''
+                    ELSE (LEFT(LTRIM(d.tax_year) + REPLICATE(' ', 16)  , 16))
+                END
             + '000000000000000' 
             +'     ' + '     ' + '    '+REPLICATE(' ', 573)
         as record4
@@ -7531,6 +7535,13 @@ END
 GO
 
 -- Get All Assessments by Funding Request 
+CREATE OR ALTER PROCEDURE sfa.sp_update_msfa_send(@next_sequence INT, @agreement_number INT)
+AS 
+BEGIN 
+	UPDATE sfa.msfaa SET sent_seq_number = @next_sequence
+    WHERE id = @agreement_number;	
+END
+GO
 CREATE OR ALTER FUNCTION [sfa].[fn_get_assessments_by_funding_request](@funding_request_id INT)
 RETURNS TABLE
 AS
@@ -7542,6 +7553,12 @@ WHERE funding_request_id = @funding_request_id;
 GO
 
 -- Get Assessment By Id
+CREATE OR ALTER PROCEDURE sfa.sp_update_system_parameter_send(@date DATE, @next_sequence INT)
+AS 
+BEGIN 
+	UPDATE sfa.system_parameter SET last_msfaa_sent_date = @date, last_msfaa_sent_seq_num = @next_sequence;    
+END
+GO
 CREATE OR ALTER PROCEDURE [sfa].[sp_get_assessment_by_id](@id INT)
 AS
 BEGIN
@@ -7551,3 +7568,103 @@ BEGIN
 	WHERE a.id = @id;
 END;
 GO
+
+CREATE OR ALTER PROCEDURE sfa.sp_update_date_msfa_send(@next_sequence INT, @v_send_date DATE, @agreement_number INT)
+AS 
+BEGIN 
+	UPDATE sfa.msfaa 
+		SET sent_date = @v_send_date, sent_seq_number = @next_sequence
+    WHERE id = @agreement_number;	
+END
+GO
+
+CREATE OR ALTER PROCEDURE sfa.sp_insert_communication_log_from_msfaa
+(
+	@msfaa_seq_p INT
+)
+AS
+BEGIN
+    DECLARE @to_email NVARCHAR(MAX);
+    DECLARE @student_name NVARCHAR(MAX);
+    DECLARE @msfaa_id INT;
+    DECLARE @msfaa_sent_date DATE;
+
+    DECLARE msfaa_cursor CURSOR FOR
+    SELECT DISTINCT 
+        CASE WHEN p.email IS NULL THEN a.school_email ELSE p.email END AS to_email,
+        p.first_name + ' ' + p.last_name AS student_name,
+        m.id AS msfaa_id,
+        m.sent_date AS msfaa_sent_date
+    FROM sfa.msfaa m
+    INNER JOIN sfa.student s ON m.student_id = s.id
+    INNER JOIN sfa.person p ON s.person_id = p.id
+    INNER JOIN sfa.application a ON m.student_id = a.student_id
+    WHERE m.sent_seq_number = @msfaa_seq_p;
+
+    OPEN msfaa_cursor;
+
+    FETCH NEXT FROM msfaa_cursor INTO @to_email, @student_name, @msfaa_id, @msfaa_sent_date;
+
+    WHILE @@FETCH_STATUS = 0
+    BEGIN
+        INSERT INTO sfa.communication_log (sent_from_email, sent_to_email, sent_to_cc, subject, msfaa_id, is_emailed) 
+        VALUES ('sfa@gov.yk.ca', @to_email, 'sfa@gov.yk.ca', 'Student Financial Assistance: MSFAA Notification', @msfaa_id, 0);
+
+        FETCH NEXT FROM msfaa_cursor INTO @to_email, @student_name, @msfaa_id, @msfaa_sent_date;
+    END;
+
+    CLOSE msfaa_cursor;
+    DEALLOCATE msfaa_cursor;
+END
+GO
+
+CREATE OR ALTER FUNCTION sfa.get_fb_prefix_fct (@bg_id_p INT)
+RETURNS NVARCHAR(5)
+AS
+BEGIN
+    DECLARE @v_bg NVARCHAR(5);
+
+    SELECT @v_bg = TRIM(COALESCE(prefix, ''))
+    FROM sfa.batch_group
+    WHERE id = @bg_id_p;
+
+    RETURN @v_bg;
+END
+GO
+
+CREATE OR ALTER PROCEDURE sfa.sp_update_csl_fields 
+AS
+BEGIN
+	 UPDATE app
+    SET csl_restriction_warn_id = NULL,
+        csl_restriction_reason_id = NULL
+    FROM sfa.application app
+    INNER JOIN (
+        SELECT a.student_id, MAX(a.id) AS max_id
+        FROM sfa.application a
+        GROUP BY a.student_id
+    ) max_app ON app.id = max_app.max_id
+    INNER JOIN sfa.student s ON s.id = app.student_id
+	INNER JOIN sfa.person p ON p.id = s.person_id
+    WHERE p.sin IS NULL;
+
+
+    UPDATE app
+    SET csl_restriction_warn_id = cc_warning.id,
+        csl_restriction_reason_id = cc_reason.id
+    FROM sfa.application app
+    INNER JOIN (
+        SELECT a.student_id, MAX(a.id) AS max_id
+        FROM sfa.application a
+        GROUP BY a.student_id
+    ) max_app ON app.id = max_app.max_id
+    INNER JOIN sfa.student s ON s.id = app.student_id
+    INNER JOIN sfa.person p ON p.id = s.person_id
+    INNER JOIN sfa.csl_restricted cr ON p.sin = cr.sin 
+	LEFT JOIN sfa.csl_code cc_warning ON cc_warning.warning_code = cr.restriction_warn_id AND cc_warning.warning_code IS NOT NULL 
+	LEFT JOIN sfa.csl_code cc_reason ON cc_reason.reason_code = cr.restriction_reason_id AND cc_reason.reason_code IS NOT NULL ;
+
+   END
+GO
+
+

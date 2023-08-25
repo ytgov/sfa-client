@@ -458,6 +458,24 @@ export default {
 
             return request || {};
         },
+        GrantPartTimeDependents: function () {
+            const request = this.application
+                ?.funding_requests
+                ?.find(fr => fr.request_type_id === 32);
+
+            this.checkCSFAPartTimeRequest = !!request;
+
+            return request || {};
+        },
+        GrantPartTimeDisabilities: function () {
+            const request = this.application
+                ?.funding_requests
+                ?.find(fr => fr.request_type_id === 34);
+
+            this.checkCSFAPartTimeRequest = !!request;
+
+            return request || {};
+        },
     },
     data: () => ({
         itemOptions: [{text: 'Yes', value: true}, {text: 'No', value: false}],
@@ -516,7 +534,20 @@ export default {
                     "Are you sure?",
                     "Click 'Confirm' below to permanently remove this funding record.",
                 () => {
-                    this.deleteRecord(this.CSFAPartTimeRequest.id);
+                    if(this.CSFAPartTimeRequest?.id){
+                        this.deleteRecord(this.CSFAPartTimeRequest.id);
+
+                    }
+                    if(this.GrantPartTimeRequest?.id){
+                        this.deleteRecord(this.GrantPartTimeRequest.id);
+                    }
+                    if(this.GrantPartTimeDependents?.id){
+                        this.deleteRecord(this.GrantPartTimeDependents.id);
+                    }
+                    if(this.GrantPartTimeDisabilities?.id){
+                        this.deleteRecord(this.GrantPartTimeDisabilities.id);
+                    }
+                   
                 },
                 () => {
                     this.checkCSFAPartTimeRequest = !this.checkCSFAPartTimeRequest;
@@ -653,84 +684,41 @@ export default {
             } else {
                 if (!this.CSFAPartTimeRequest?.id) {
                     this.addFundingRequest(5);
+                    this.addFundingRequest(31);
+                    this.addFundingRequest(33);
+                    this.addFundingRequest(34);
+
+
                 }
             }
         },
         toggleForBoth(event, requestType = "") {
-            if (!event && (this.GrantPartTimeRequest?.id)) {
-                this.removeBothRecord(requestType);
-            } else {
-                if (event && (!this.GrantPartTimeRequest?.id)) {
-                    this.addFundingRequest(31);
-                    if (requestType === "is_csl_full_amount") {
+            if (event && (!this.GrantPartTimeRequest?.id)) {
+                if (requestType === "is_csl_full_amount") {
+                this.updateFundingRequest({
+                        is_csl_full_amount: this.CSFAPartTimeRequest.is_csl_full_amount
+                    }, this.CSFAPartTimeRequest.id);
+                }
+                if (requestType === "is_csg_only") {
                     this.updateFundingRequest({
-                            is_csl_full_amount: this.CSFAPartTimeRequest.is_csl_full_amount
-                        }, this.CSFAPartTimeRequest.id);
-                    }
-                    if (requestType === "is_csg_only") {
-                        this.updateFundingRequest({
-                            is_csg_only: this.CSFAPartTimeRequest.is_csg_only
-                        }, this.CSFAPartTimeRequest.id);
-                    }
-                }else if (
-                    event && (!!this.GrantPartTimeRequest?.id)
-                    || !event && (!this.GrantTopUpFullTimeRequest?.id)
-                ) {
-                    if (requestType === "is_csl_full_amount") {
-                        this.updateFundingRequest({
-                            is_csl_full_amount: this.CSFAPartTimeRequest.is_csl_full_amount
-                        }, this.CSFAPartTimeRequest.id);
-                    }
-                    if (requestType === "is_csg_only") {
-                        this.updateFundingRequest({
-                            is_csg_only: this.CSFAPartTimeRequest.is_csg_only
-                        }, this.CSFAPartTimeRequest.id);
-                    }
+                        is_csg_only: this.CSFAPartTimeRequest.is_csg_only
+                    }, this.CSFAPartTimeRequest.id);
+                }
+            }else if (
+                event && (!!this.GrantPartTimeRequest?.id)
+                || !event && (!this.GrantTopUpFullTimeRequest?.id)
+            ) {
+                if (requestType === "is_csl_full_amount") {
+                    this.updateFundingRequest({
+                        is_csl_full_amount: this.CSFAPartTimeRequest.is_csl_full_amount
+                    }, this.CSFAPartTimeRequest.id);
+                }
+                if (requestType === "is_csg_only") {
+                    this.updateFundingRequest({
+                        is_csg_only: this.CSFAPartTimeRequest.is_csg_only
+                    }, this.CSFAPartTimeRequest.id);
                 }
             }
-            
-        },
-        async deleteBothRecord(id) {
-            try {
-                const resDelete = await axios.delete(
-                APPLICATION_URL+`/${id}/status`,
-                );
-
-                const message = resDelete.data.messages[0];
-
-                if (message.variant === "success") {
-                    this.$emit("showSuccess", message.text);
-                } else {
-                    this.$emit("showError", message.text);
-                }
-            } catch (error) {
-                this.$emit("showError", "Error to delete");
-            } finally {
-                store.dispatch("loadApplication", this.application.id);
-            }
-        },
-        removeBothRecord(requestType) {
-            this.$refs.confirm.show(
-                    "Are you sure?",
-                    "Click 'Confirm' below to permanently remove this funding record.",
-                () => {
-                    this.deleteBothRecord(this.GrantPartTimeRequest?.id);
-                    if (requestType === "is_csl_full_amount") {
-                        this.updateFundingRequest({
-                            is_csl_full_amount: this.CSFAPartTimeRequest.is_csl_full_amount
-                        }, this.CSFAPartTimeRequest.id);
-                    }
-                    if (requestType === "is_csg_only") {
-                        this.updateFundingRequest({
-                            is_csg_only: this.CSFAPartTimeRequest.is_csg_only
-                        }, this.CSFAPartTimeRequest.id);
-                    }
-                    
-                },
-                () => {
-                }
-            );
-            
         },
     },
 };
