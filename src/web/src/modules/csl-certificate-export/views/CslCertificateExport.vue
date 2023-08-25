@@ -44,7 +44,8 @@
                   </template>
                   <v-date-picker    
                     v-model="from.date"    
-                    @input="from.menu = false"                                               
+                    @input="from.menu = false"   
+                    @change = "checkFilled()"                                            
                   ></v-date-picker>
               </v-menu>
             </div>    
@@ -75,7 +76,8 @@
                   </template>
                   <v-date-picker   
                     v-model="to.date"    
-                    @input="to.menu = false"                                              
+                    @input="to.menu = false"       
+                    @change = "checkFilled()"
                   ></v-date-picker>
               </v-menu>
             </div> 
@@ -86,7 +88,7 @@
             </div>
 
             <div class="col-md-1">
-              <v-btn :disabled=disabled.flag @click="generatePDF(1)" class="my-0" color="primary"><v-icon style="margin-right: 2px;">mdi-eye</v-icon>Preview</v-btn>       
+              <v-btn :disabled=disabled.flag @click="generateReport(1)" class="my-0" color="primary"><v-icon style="margin-right: 2px;">mdi-eye</v-icon>Preview</v-btn>       
             </div>                    
           </div>
           </v-card-text>
@@ -130,7 +132,7 @@ export default {
     batch: null,
     modalText: null,
     modalTitle: null,
-    disabled: {flag: false},
+    disabled: {flag: true},
     isLoading: {flag: false},    
   }),
   components: {
@@ -143,7 +145,13 @@ export default {
   async mounted() {
     await store.dispatch("setAppSideBarAdmin", this.$route.path.startsWith("/administration"));          
   },
-  methods: {              
+  methods: {    
+    async checkFilled() {
+      if(this.from.date && this.to.date) {        
+        this.disabled = {flag: false}
+      }      
+    },
+
     async generateReport(isPreview) {           
       
       if(this.from.date === "" || this.from.date === null || this.to.date === "" || this.to.date === null) {
@@ -157,9 +165,9 @@ export default {
         let newLoading = {flag:true}     
         this.isLoading = newFlag; 
         let resInsert;
-        if(isPreview) {
+        if(isPreview) {          
           resInsert = await axios.put(CSL_CERTIFICATE_EXPORT + `/${this.from.date}/${this.to.date}/1`);          
-        } else {
+        } else {          
           resInsert = await axios.put(CSL_CERTIFICATE_EXPORT + `/${this.from.date}/${this.to.date}/0`);          
         }
       
@@ -167,7 +175,7 @@ export default {
           let newFlag = {flag:false}     
           this.disabled = newFlag;                 
           let newLoading = {flag:false}     
-        this.isLoading = newFlag; 
+          this.isLoading = newFlag; 
           this.$emit("showError", resInsert.data.data);          
         } else {
           let resInsert2;
@@ -176,9 +184,9 @@ export default {
           } else {
             resInsert2 = await axios.get(CSL_CERTIFICATE_EXPORT + `/${this.from.date}/${this.to.date}/${resInsert.data.data}/0`);
           }
-              
+                        
 
-          if(resInsert2) {
+          if(resInsert2.data.success) {
             this.tableData = resInsert2.data.data1;
             this.batch =  resInsert2.data.batch;
             this.generatePDF(isPreview);          
@@ -186,10 +194,10 @@ export default {
             let FileSaver = require('file-saver');                                                            
             const regex = /PPYT\.EDU\.CERTS\.D\d+\.001/;
             
-            const match = resInsert2.data.data2[0][''] ? resInsert2.data.data2[0][''].match(regex) : '';
-            const resultado = match ? match[0] : null;
+            const match = resInsert2.data.data2[0]['fileText'] ? resInsert2.data.data2[0]['fileText'].match(regex) : '';            
+            const resultado = match ? match[0] : '';
 
-            let blob = new Blob([resInsert2.data.data2[0][''].replace(/PPYT\.EDU\.CERTS\.D\d+\.001/, '')], {type: "text/plain;charset=utf-8"});    
+            let blob = new Blob([resInsert2.data.data2[0]['fileText'].replace(/PPYT\.EDU\.CERTS\.D\d+\.001/, '')], {type: "text/plain;charset=utf-8"});    
             FileSaver.saveAs(blob, `${isPreview === 1 ? 'PREVIEW_' : ''}${resultado}.txt`);   
             let newFlag = {flag:false}     
             this.disabled = newFlag;                 
@@ -197,12 +205,12 @@ export default {
             let newLoading = {flag:false}     
             this.isLoading = newFlag; 
           } else {
-            this.$emit("showError", "Something went wrong!");
-            let newFlag = {flag:true}     
+            this.$emit("showError", resInsert2.data.message);
+            let newFlag = {flag:false}     
             this.disabled = newFlag;  
             
-            let newLoading = {flag:true}     
-            this.isLoading = newFlag; 
+            let newLoading = {flag:false}     
+            this.isLoading = newLoading;                         
           }
         }
       }  
