@@ -1,10 +1,10 @@
 import express from "express";
 
-import pathFormatMiddleware from "@/middleware/path-format-middleware"
-import { routedTo } from "@/controllers/helpers"
+import pathFormatMiddleware from "@/middleware/path-format-middleware";
+import { routedTo } from "@/controllers/helpers";
 
-import FundingRequestsLettersController from "@/controllers/admin/funding-requests/funding-requests-letters-controller"
-import FundingRequestLettersController from "@/controllers/admin/funding-request-letters-controller"
+import FundingRequestsLettersController from "@/controllers/admin/funding-requests/funding-requests-letters-controller";
+import FundingRequestLettersController from "@/controllers/admin/funding-request-letters-controller";
 
 import { acadecicYearRouter } from "./academic-year-router";
 import { applicationRouter } from "./application-router";
@@ -65,7 +65,7 @@ import { changeReasonRouter } from "./change-reason-router";
 import { disbursementRouter } from "./disbursement";
 import { usersRouter } from "./users-router";
 import { cslLookupRouter } from "./csl-lookup-router";
-import {cslReasonRouter} from "./csl-reason-router";
+import { cslReasonRouter } from "./csl-reason-router";
 import { cslCertificateExportRouter } from "./csl-certificate-export-router";
 import { assessmentCsgftRouter } from "./csgft-assessment-router";
 import { chequeReqRouter } from "./cheque-req-list-router";
@@ -74,7 +74,7 @@ import { cslEntitlementFeedbackRouter } from "./csl-entitlement-feedback.router"
 import { cslCertificateAuditReportRouter } from "./csl-certificate-audit-report-router";
 import { cslMsfaaSendRouter } from "./csl-msfaa-send-router";
 import { cslRestrictedData } from "./csl-restricted-data-router";
-
+import ReportingController from "@/controllers/admin/reporting-controller";
 
 export const adminRouter = express.Router();
 //adminRouter.use("/", RequireServerAuth, RequireAdmin)
@@ -82,19 +82,16 @@ export const adminRouter = express.Router();
 adminRouter.use("/institution", institutionRouter);
 adminRouter.use("/academic-year", acadecicYearRouter);
 adminRouter.use("/application", applicationRouter);
-adminRouter.use("/funding-requests", pathFormatMiddleware)
+adminRouter.use("/funding-requests", pathFormatMiddleware);
 adminRouter.use(
   "/funding-requests/:fundingRequestId/letters/:letterSlug",
   routedTo(FundingRequestsLettersController, "getLetter")
-  )
+);
 adminRouter.use(
   "/funding-requests/:fundingRequestId/letters",
   routedTo(FundingRequestsLettersController, "listLetters")
-)
-adminRouter.use(
-  "/funding-request-letters",
-  routedTo(FundingRequestLettersController, "listLetters")
-)
+);
+adminRouter.use("/funding-request-letters", routedTo(FundingRequestLettersController, "listLetters"));
 adminRouter.use("/assessment", assessmentRouter);
 adminRouter.use("/student", studentRouter);
 adminRouter.use("/province", provinceRouter);
@@ -154,8 +151,11 @@ adminRouter.use("/users", usersRouter);
 adminRouter.use("/csl-certificate-export", cslCertificateExportRouter);
 adminRouter.use("/csgft", assessmentCsgftRouter);
 adminRouter.use("/cheque-req-list", chequeReqRouter);
-adminRouter.use("/csl-msfaa-receive", cslMsfaaReceiveRouter)
-adminRouter.use("/csl-entitlement-feedback", cslEntitlementFeedbackRouter)
-adminRouter.use("/csl-certificate-audit-report", cslCertificateAuditReportRouter)
-adminRouter.use("/csl-msfaa-send", cslMsfaaSendRouter)
-adminRouter.use("/csl-restricted-data", cslRestrictedData)
+adminRouter.use("/csl-msfaa-receive", cslMsfaaReceiveRouter);
+adminRouter.use("/csl-entitlement-feedback", cslEntitlementFeedbackRouter);
+adminRouter.use("/csl-certificate-audit-report", cslCertificateAuditReportRouter);
+adminRouter.use("/csl-msfaa-send", cslMsfaaSendRouter);
+adminRouter.use("/csl-restricted-data", cslRestrictedData);
+
+adminRouter.use("/reporting", pathFormatMiddleware);
+adminRouter.use("/reporting/fundingStatus/:years", routedTo(ReportingController, "runFundingStatusReport"));

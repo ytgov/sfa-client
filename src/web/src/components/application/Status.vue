@@ -1,6 +1,6 @@
 <template>
   <div class="home">
-    <div class="col-md-12 d-flex">
+    <div class="d-flex">
       <v-btn
         v-if="!showFundings"
         @click="showFundingStatus"
@@ -15,69 +15,17 @@
 
       <h1>Funding Status</h1>
     </div>
-    <div class="col-md-12" v-if="!assessmentComponent && showFundings">
-      <v-card class="default mb-5" v-for="(item, index) in application.funding_requests" :key="index">
-        <v-card-text>
-          <div class="row">
-            <div
-              class="col-md-4"
-              :title="
-                fundingTypeOptions?.find((ft) => ft.REQUEST_TYPE_ID === item?.request_type_id)?.DESCRIPTION ||
-                  'Funding Status'
-              "
-            >
-              <v-select
-                disabled
-                outlined
-                dense
-                background-color="white"
-                hide-details
-                label="Funding type"
-                v-model="item.request_type_id"
-                :items="fundingTypeOptions"
-                item-text="DESCRIPTION"
-                item-value="REQUEST_TYPE_ID"
-              ></v-select>
-            </div>
-            <div class="col-md-2">
-              <v-menu
-                :disabled="showAdd"
-                v-model="item.received_date_menu"
-                :close-on-content-click="false"
-                transition="scale-transition"
-                left
-                nudge-top="26"
-                offset-y
-                min-width="auto"
-              >
-                <template v-slot:activator="{ on, attrs }">
-                  <v-text-field
-                    :disabled="showAdd"
-                    v-model="item.received_date"
-                    label="Date app received"
-                    append-icon="mdi-calendar"
-                    hide-details
-                    readonly
-                    outlined
-                    dense
-                    background-color="white"
-                    v-bind="attrs"
-                    v-on="on"
-                  ></v-text-field>
-                </template>
-                <v-date-picker
-                  :disabled="showAdd"
-                  v-model="item.received_date"
-                  @change="updateFundingRequest({ received_date: item.received_date }, item.id)"
-                  @input="item.received_date_menu = false"
-                ></v-date-picker>
-              </v-menu>
-            </div>
-            <div class="col-md-3">
+
+    <div class="row">
+      <div class="col-md-12" v-if="!assessmentComponent && showFundings">
+        <v-card class="default mb-5" v-for="(item, index) in application.funding_requests" :key="index">
+          <v-card-title class="d-block mb-2">
+            <div class="float-right text-right">
               <v-btn
                 :disabled="!(item?.status_id === 6 || item?.status_id === 7 || item?.status_id === 40)"
                 dense
-                color="blue"
+                small
+                color="info"
                 class="my-0"
                 @click="showAssessment(item?.request_type_id || null, item?.id || null)"
                 block
@@ -85,80 +33,118 @@
                 Assessment
               </v-btn>
             </div>
-            <div class="col-md-3">
-              <v-btn :disabled="showAdd" dense color="success" class="my-0" block @click="printLetterClick(item)">
-                Print Letter
-              </v-btn>
-            </div>
-          </div>
-          <div class="row">
-            <div class="col-md-4">
-              <v-select
-                :disabled="showAdd"
-                outlined
-                dense
-                background-color="white"
-                hide-details
-                label="Funding status"
-                @change="updateFundingRequest({ status_id: item.status_id }, item.id)"
-                v-model="item.status_id"
-                :items="statusOptions"
-                item-text="DESCRIPTION"
-                item-value="STATUS_ID"
-              ></v-select>
-            </div>
-            <div class="col-md-2">
-              <v-menu
-                :disabled="showAdd"
-                v-model="item.status_date_menu"
-                :close-on-content-click="false"
-                transition="scale-transition"
-                left
-                nudge-top="26"
-                offset-y
-                min-width="auto"
-              >
-                <template v-slot:activator="{ on, attrs }">
-                  <v-text-field
-                    :disabled="showAdd"
-                    v-model="item.status_date"
-                    label="Status date"
-                    append-icon="mdi-calendar"
-                    hide-details
-                    readonly
-                    outlined
-                    dense
-                    background-color="white"
-                    v-bind="attrs"
-                    v-on="on"
-                  ></v-text-field>
-                </template>
-                <v-date-picker
+
+            <div>{{ fundingTypeOptions?.find((ft) => ft.REQUEST_TYPE_ID === item?.request_type_id)?.DESCRIPTION }}</div>
+          </v-card-title>
+          <v-card-text>
+            <div class="row">
+              <div class="col-md-3">
+                <v-menu
                   :disabled="showAdd"
-                  @change="updateFundingRequest({ status_date: item.status_date }, item.id)"
-                  v-model="item.status_date"
-                  @input="item.status_date_menu = false"
-                ></v-date-picker>
-              </v-menu>
+                  v-model="item.received_date_menu"
+                  :close-on-content-click="false"
+                  transition="scale-transition"
+                  left
+                  nudge-top="26"
+                  offset-y
+                  min-width="auto"
+                >
+                  <template v-slot:activator="{ on, attrs }">
+                    <v-text-field
+                      :disabled="showAdd"
+                      v-model="item.received_date"
+                      label="Date app received"
+                      append-icon="mdi-calendar"
+                      hide-details
+                      readonly
+                      outlined
+                      dense
+                      background-color="white"
+                      v-bind="attrs"
+                      v-on="on"
+                    ></v-text-field>
+                  </template>
+                  <v-date-picker
+                    :disabled="showAdd"
+                    v-model="item.received_date"
+                    @change="updateFundingRequest({ received_date: item.received_date }, item.id)"
+                    @input="item.received_date_menu = false"
+                  ></v-date-picker>
+                </v-menu>
+              </div>
+              <div class="col-md-6">
+                <v-select
+                  :disabled="showAdd"
+                  outlined
+                  dense
+                  background-color="white"
+                  hide-details
+                  label="Funding status"
+                  @change="updateFundingRequest({ status_id: item.status_id }, item.id)"
+                  v-model="item.status_id"
+                  :items="statusOptions"
+                  item-text="DESCRIPTION"
+                  item-value="STATUS_ID"
+                ></v-select>
+              </div>
+              <div class="col-md-3">
+                <v-menu
+                  :disabled="showAdd"
+                  v-model="item.status_date_menu"
+                  :close-on-content-click="false"
+                  transition="scale-transition"
+                  left
+                  nudge-top="26"
+                  offset-y
+                  min-width="auto"
+                >
+                  <template v-slot:activator="{ on, attrs }">
+                    <v-text-field
+                      :disabled="showAdd"
+                      v-model="item.status_date"
+                      label="Status date"
+                      append-icon="mdi-calendar"
+                      hide-details
+                      readonly
+                      outlined
+                      dense
+                      background-color="white"
+                      v-bind="attrs"
+                      v-on="on"
+                    ></v-text-field>
+                  </template>
+                  <v-date-picker
+                    :disabled="showAdd"
+                    @change="updateFundingRequest({ status_date: item.status_date }, item.id)"
+                    v-model="item.status_date"
+                    @input="item.status_date_menu = false"
+                  ></v-date-picker>
+                </v-menu>
+              </div>
+
+              <div class="col-md-9">
+                <v-autocomplete
+                  :disabled="showAdd"
+                  outlined
+                  dense
+                  background-color="white"
+                  hide-details
+                  label="Reason"
+                  @change="updateFundingRequest({ status_reason_id: item.status_reason_id }, item.id)"
+                  v-model="item.status_reason_id"
+                  :items="reasonOptions"
+                  item-text="DESCRIPTION"
+                  item-value="STATUS_REASON_ID"
+                ></v-autocomplete>
+              </div>
+
+              <div class="col-md-3">
+                <status-documents :item="item" :type="fundingTypeOptions?.find((ft) => ft.REQUEST_TYPE_ID === item?.request_type_id)?.DESCRIPTION"></status-documents>
+              </div>
             </div>
-            <div class="col-md-6">
-              <v-autocomplete
-                :disabled="showAdd"
-                outlined
-                dense
-                background-color="white"
-                hide-details
-                label="Reason"
-                @change="updateFundingRequest({ status_reason_id: item.status_reason_id }, item.id)"
-                v-model="item.status_reason_id"
-                :items="reasonOptions"
-                item-text="DESCRIPTION"
-                item-value="STATUS_REASON_ID"
-              ></v-autocomplete>
-            </div>
-          </div>
-        </v-card-text>
-      </v-card>
+          </v-card-text>
+        </v-card>
+      </div>
     </div>
     <component
       v-if="assessmentComponent && !showFundings && assessmentTypeId"
@@ -176,19 +162,19 @@ import store from "../../store";
 import axios from "axios";
 //Grants and Scholarships
 import { assessmentType } from "@/components/application/assessmentType.js";
+import StatusDocuments from "./StatusDocuments.vue";
+import { mapGetters } from "vuex";
 import {
   REQUIREMENT_TYPE_URL,
   FUNDING_TYPE_URL,
   FUNDING_STATUS_URL,
   FUNDING_REASON_URL,
   APPLICATION_URL,
-  FUNDING_REQUESTS_URL,
 } from "../../urls";
-import { mapGetters } from "vuex";
 
 export default {
   name: "application-status",
-  components: {},
+  components: { StatusDocuments },
   computed: {
     ...mapGetters(["assessments"]),
     application: function() {
@@ -322,18 +308,6 @@ export default {
     },
     showError(mgs) {
       this.$emit("showError", mgs);
-    },
-    printLetterClick(fundingRequest) {
-      const fundingRequestId = fundingRequest.id
-      // See /api/v2/admin/funding-requests/:fundingRequestId/letters for status -> slug options
-      const letterSlug = 'student'
-      let approvalLetterUrl = `${FUNDING_REQUESTS_URL}/${fundingRequestId}/letters/${letterSlug}`
-
-      window.open(approvalLetterUrl);
-
-      /* axios.get(approvalLetterUrl, { responseType: "blob" }).then((resp) => {
-        window.open(URL.createObjectURL(resp.data));
-      }); */
     },
   },
 };
