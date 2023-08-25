@@ -28,17 +28,17 @@
 
   <p>
     <span>
-      <span class="inline-block w-[150px]">Name:</span>
+      <span class="inline-block w-[120px]">Name:</span>
       <span>{{student.lastName}}, {{student.firstName}}</span>
     </span>
-
+  <br/>
     <span>
-      <span class="inline-block w-[150px]">Student ID:</span>
+      <span class="inline-block w-[120px]">Student ID:</span>
       <span>{{student.identificationCode}}</span>
     </span>
-
+  <br/>
     <span>
-      <span class="inline-block w-[150px]">Study Period:</span>
+      <span class="inline-block w-[120px]">Study Period:</span>
       <span>{{momentDateFormat studyPeriod.startDate "MMM Do, YYYY"}}
         to
         {{momentDateFormat studyPeriod.endDate "MMM Do,
@@ -49,7 +49,7 @@
   <table>
     <thead>
       <tr>
-        <th>Amount<span class="ml-4"></span></th>
+        <th style="width:116px; text-align: left">Amount<span class="ml-4"></span></th>
         <th>Issue Date</th>
       </tr>
     </thead>
