@@ -23,12 +23,14 @@ export class ChequeReqList extends BaseRepository {
     //AfterPForm ()
     async validate(
         issueDate: string,
-        start_p: number
+        start_p: number,
     ): Promise<any> {
         try {
             let records: any = []
             let pdfData: any = []
             let batchTotal: any = 0;
+            let pdfDataSigned: any = []
+            let batchTotalSigned: any = 0;
             let serial_no_p = null;
 
             if (!start_p) { //start_p === '0'
@@ -50,8 +52,10 @@ export class ChequeReqList extends BaseRepository {
                 return { success: false, text: 'There are no new disbursements for this date. This will end the report.' }
             } else {
                 records = await this.getInfoFileDAT(issueDate, serial_no_p || 0) ?? [];   //cheque_req_export;
-                pdfData = await this.getPDFData(issueDate, serial_no_p || 0);
-                batchTotal = await this.getBatchTotal(issueDate, serial_no_p || 0);
+                pdfData = await this.getPDFData(issueDate, serial_no_p || 0, false);
+                batchTotal = await this.getBatchTotal(issueDate, serial_no_p || 0, false);
+                pdfDataSigned = await this.getPDFData(issueDate, serial_no_p || 0, true);
+                batchTotalSigned = await this.getBatchTotal(issueDate, serial_no_p || 0, true);
 
                 this.mainDb.raw('EXEC sfa.save_csl_nars_history ?, ?', [`'${issueDate}'`, serial_no_p])
             }
@@ -63,7 +67,9 @@ export class ChequeReqList extends BaseRepository {
                     records: [...records],
                     filename,
                     pdfData: [...pdfData],
-                    batchTotal
+                    batchTotal,
+                    pdfDataSigned: [...pdfDataSigned],
+                    batchTotalSigned,
                 }
             };
         } catch (error) {
@@ -76,46 +82,48 @@ export class ChequeReqList extends BaseRepository {
 
     async getPDFData(
         issueDate: string,
-        serialNo: number
+        serialNo: number,
+        isSigned: boolean
     ): Promise<any> {
         try {
             const pdfData = await this.mainDb
                 .select(
                     's.id AS student_id',
-                    'rt.description AS request_type',
+                    'app.id AS application_id',
+                    'rt.description AS funding_type',
                     'd.financial_batch_id_year',
                     'd.financial_batch_id',
                     this.mainDb.raw(`
-                CASE
-                    WHEN rt.batch_group_id = 5 THEN
                         CASE
-                            WHEN fr.yea_request_type = 1 THEN 3
-                            WHEN fr.yea_request_type = 2 THEN 4
-                            ELSE 1
-                        END
-                    WHEN rt.batch_group_id = 1 THEN
-                        sfa.get_batch_group_id_fct(fr.id)
-                    ELSE rt.batch_group_id
-                END AS bg_id
-            `),
-                    this.mainDb.raw(`
-                REPLACE(
-                    ISNULL(
-                        CAST(rt.batch_group_id AS VARCHAR(10)),
-                        ISNULL(
-                            CAST(CASE WHEN fr.yea_request_type = 1 THEN 3
+                            WHEN rt.batch_group_id = 5 THEN
+                                CASE
+                                    WHEN fr.yea_request_type = 1 THEN 3
                                     WHEN fr.yea_request_type = 2 THEN 4
                                     ELSE 1
-                                END AS VARCHAR(10)),
-                            CAST(sfa.get_batch_group_id_fct(fr.id) AS VARCHAR(10))
-                        )
-                    ) + RIGHT('0000' + 
-                    CAST(d.financial_batch_id_year AS VARCHAR(4)), 4) + '-' + 
-                    CAST(d.financial_batch_id AS VARCHAR(10)),
-                    ' ',
-                    ''
-                ) AS batch_id
-            `),
+                                END
+                            WHEN rt.batch_group_id = 1 THEN
+                                sfa.get_batch_group_id_fct(fr.id)
+                            ELSE rt.batch_group_id
+                        END AS bg_id
+                    `),
+                    this.mainDb.raw(`
+                        REPLACE(
+                            ISNULL(
+                                CAST(rt.batch_group_id AS VARCHAR(10)),
+                                ISNULL(
+                                    CAST(CASE WHEN fr.yea_request_type = 1 THEN 3
+                                            WHEN fr.yea_request_type = 2 THEN 4
+                                            ELSE 1
+                                        END AS VARCHAR(10)),
+                                    CAST(sfa.get_batch_group_id_fct(fr.id) AS VARCHAR(10))
+                                )
+                            ) + RIGHT('0000' + 
+                            CAST(d.financial_batch_id_year AS VARCHAR(4)), 4) + '-' + 
+                            CAST(d.financial_batch_id AS VARCHAR(10)),
+                            ' ',
+                            ''
+                        ) AS batch_id
+                    `),
                     'fr.request_type_id',
                     'rt.financial_coding',
                     this.mainDb.raw(`COALESCE(p.first_name , '') + ' ' + COALESCE(p.last_name, '') AS name`),
@@ -137,6 +145,23 @@ export class ChequeReqList extends BaseRepository {
                 .where('d.financial_batch_run_date', '=', issueDate)
                 .where('d.financial_batch_serial_no', '=', serialNo)
                 .whereNotNull('d.due_date')
+                .andWhere(
+                        isSigned  
+                        ? this.mainDb.raw(`
+                            (
+                                CASE WHEN rt.batch_group_id = 5 THEN
+                                    CASE 
+                                        WHEN fr.yea_request_type = 1 THEN 3
+                                        WHEN fr.yea_request_type = 2 THEN 4
+                                        ELSE 1
+                                    END
+                                    WHEN rt.batch_group_id = 1 THEN sfa.get_batch_group_id_fct(fr.id)
+                                    ELSE rt.batch_group_id
+                                END
+                            ) = 3`
+                        )
+                        : this.mainDb.raw("1 = 1")
+                    )
                 .orderBy('s.vendor_id')
                 .orderBy('p.last_name')
                 .orderBy('d.financial_batch_id_year')
@@ -151,7 +176,8 @@ export class ChequeReqList extends BaseRepository {
     }
     async getBatchTotal(
         issueDate: string,
-        serialNo: number
+        serialNo: number,
+        isSigned: boolean
     ): Promise<any> {
         try {
             const batchTotal = await this.mainDb
@@ -165,6 +191,23 @@ export class ChequeReqList extends BaseRepository {
                 .where('d.financial_batch_run_date', '=', issueDate)
                 .where('d.financial_batch_serial_no', '=', serialNo)
                 .whereNotNull('d.due_date')
+                .andWhere(
+                    isSigned  
+                    ? this.mainDb.raw(`
+                        (
+                            CASE WHEN rt.batch_group_id = 5 THEN
+                                CASE 
+                                    WHEN fr.yea_request_type = 1 THEN 3
+                                    WHEN fr.yea_request_type = 2 THEN 4
+                                    ELSE 1
+                                END
+                                WHEN rt.batch_group_id = 1 THEN sfa.get_batch_group_id_fct(fr.id)
+                                ELSE rt.batch_group_id
+                            END
+                        ) = 3`
+                    )
+                    : this.mainDb.raw("1 = 1")
+                )
                 .first();
 
             return batchTotal?.total || null;
