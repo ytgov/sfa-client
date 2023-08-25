@@ -76,8 +76,8 @@ export default class YukonGrantInstitutionApprovalTemplateSerializer {
     const student = application.student
     if (student === undefined)
       throw new Error("Could not prepare template data as student is missing from application.")
-    if (isNil(student.yukonId))
-      throw new Error("Could not prepare template data as yukonId is missing from student.")
+    //if (isNil(application.studentNumber))
+    //  throw new Error("Could not prepare template data as studentNumber is missing from student.")
 
     const person = student.person
     if (person === undefined)
@@ -134,9 +134,7 @@ export default class YukonGrantInstitutionApprovalTemplateSerializer {
       student: {
         firstName: person.firstName,
         lastName: person.lastName,
-        // TODO: verify this is the correct field
-        // might be application.studentNumber
-        identificationCode: student.yukonId,
+        identificationCode: application.studentNumber,
       },
       studyPeriod: {
         startDate: assessment.classesStartDate,
