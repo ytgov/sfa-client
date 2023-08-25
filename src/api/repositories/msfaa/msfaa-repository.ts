@@ -29,13 +29,15 @@ export class MsfaaRepository extends BaseRepository implements IMainTable {
 
     async updateMsfaa(id: number, msfaa: MsfaaDTO): Promise<MsfaaDTO> {
         const filtered = this.getMsfaaTable(msfaa);
+        delete filtered?.email;
         const result = await this.mainDb(this.mainTable)
                                 .update(filtered)
                                 .where({
                                     id: id
-                                })
-                                .returning("*");
-        return result[0];
+                                });
+
+        let msfaa_data = this.getMsfaaById(id);
+        return msfaa_data;
     }
 
     async insertMsfaa(msfaa: MsfaaDTO): Promise<MsfaaDTO> {
