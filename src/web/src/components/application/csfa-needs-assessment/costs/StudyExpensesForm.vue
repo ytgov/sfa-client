@@ -26,8 +26,13 @@
               hide-details
               label="Books & supplies"
               v-model="application.books_supplies_cost"
-              @change="doSaveApp('books_supplies_cost', application.books_supplies_cost)"
               v-currency="{ currency: 'USD', locale: 'en' }"
+              @change="
+                doSaveApp(
+                  'books_supplies_cost',
+                  vueCurrencyInputParse(application.books_supplies_cost)
+                )
+              "
             ></v-text-field>
           </div>
           <div class="col-md-6">
@@ -157,6 +162,7 @@
 </template>
 
 <script>
+import { parse as vueCurrencyInputParse } from "vue-currency-input"
 import { mapGetters } from "vuex";
 import store from "@/store";
 import { APPLICATION_URL } from "@/urls";
