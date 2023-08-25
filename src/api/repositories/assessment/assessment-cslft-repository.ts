@@ -309,12 +309,11 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
         }
     }
 
-    async loadAssessmentData(funding_request_id?: number) {
-        if (funding_request_id) {
-            this.assessment = await this.getMaxAssessmentByFundingRequestId(funding_request_id);
-            this.disbursements = await this.disbursementRepo.getByAssessmentId(this.assessment.id);                
+    async loadRelatedData(assessment_id?: number) {
+        if (assessment_id) {
+            this.disbursements = await this.disbursementRepo.getByAssessmentId(assessment_id);                
             this.disbursement = this.disbursements[0] ?? {};                
-            this.e_certs = await this.disbursementRepo.getECertificateList(this.assessment.id);
+            this.e_certs = await this.disbursementRepo.getECertificateList(assessment_id);
         }
     }
 
@@ -340,15 +339,16 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
             const assessment = await this.getAssessmentById(id);            
             if (assessment.id) {
                 result = await this.getAssessInfoCslft(funding_request_id, assessment);
-                this.setResults(result, assessment.id.toString());
+                uuid = assessment.id.toString();
+                this.setResults(result, uuid);
                 this.cslftResults.result = result;
-                this.cslftResults.current = assessment.id.toString();
+                this.cslftResults.current = uuid;
             }
         }
 
         if (assessments.length === 0 || requestCreate) {
             uuid = crypto.randomUUID();
-            result = await this.getAssessInfoCslft(funding_request_id);
+            result = await this.getAssessInfoCslft(funding_request_id);            
             this.setResults(result, uuid);
             this.cslftResults.result = result;
             this.cslftResults.current = uuid;
@@ -359,17 +359,18 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
 
     async getAssessInfoCslft(funding_request_id?: number, assessment?: Partial<AssessmentDTO>): Promise<Partial<CslftResultDTO>> {
 
-        let assess_id: number | undefined = undefined;        
+        let assess_id: number | undefined = undefined;       
+        this.resultDto = {}; 
+        this.assessment = {};
+        this.disbursements = [];
+        if (assessment) {
+            this.assessment = assessment;
+        }
         
-        if (funding_request_id) {
-            
-            if (assessment) {
-                this.assessment = assessment;
-            }
-            
+        if (funding_request_id) {                        
             if ((!this.assessment.id)) {
                 const assess_count = await this.getAssessmentCount(funding_request_id);
-            
+
                 if (assess_count !== undefined && assess_count > 0) {
                     this.assess_id = await this.getAssessmentInfoPrc(funding_request_id);
                     
@@ -389,7 +390,7 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
             else {
                 this.global.new_calc = true;
                 this.assessment_id = this.assessment.id;
-                this.global.assessment = this.assessment.id.toString();
+                await this.loadRelatedData(this.assessment_id);
             }            
 
             await this.setIdGlobals();
@@ -426,7 +427,7 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
             this.assessment.spouse_contribution_review = this.assessment.assessment_type_id === 2 ? "YES" : "NO";
             this.assessment.parent_contribution_review = this.assessment.assessment_type_id === 2 ? "YES" : "NO";
         }
-        
+
         this.resultDto.data = this.assessment;
         this.resultDto.globals = this.global;
         this.resultDto.disbursements = this.disbursements;

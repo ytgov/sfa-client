@@ -45,7 +45,6 @@
             </div>
           </div>  
     </div>
-    {{ current }}
     <div class="col-xs-12 nopadding-lr col-sm-12 col-lg-12">
       <div class="col-lg-12 nopadding default bg-color-blue v-card v-sheet">
         <div class="col-lg-12 nopadding d-flex flex-wrap low-margin">
@@ -70,6 +69,7 @@
                 color="orange" 
                 class="my-0"
                 block
+                @click="close"
               >
               CANCEL
               </v-btn>
@@ -81,6 +81,7 @@
                 color="red" 
                 class="my-0"
                 block
+                @click="close"
               >
               EXIT
               </v-btn>
@@ -189,16 +190,16 @@ export default {
       if (val) this.updateView(val);
     },
     cslft_get_current: {
-      immediate: true,
       deep: true,
       handler(newVal) {
         this.current = newVal;
       }
     },
     current: {
-      handler(newVal) {
-        console.log(newVal);
-        store.dispatch("switchAssessment", newVal);
+      handler(newVal, oldVal) {
+        if (oldVal !== 0) {
+          store.dispatch("switchAssessment", newVal);
+        }
       }
     }
   },
@@ -209,12 +210,15 @@ export default {
     showError(mgs) {
       this.$emit("showError", mgs);
     },
+    close() {
+      this.$emit("close");
+    },
     saveAssessment() {
       store.dispatch("saveCslftAssessment", this);
     },
     createAssessment() {
       store.dispatch("createCslftAssessment", this.$props.fundingRequestId);
-    },
+    }
   },
   async created() {
     const frId = this.$props.fundingRequestId;    
