@@ -34,10 +34,9 @@ export class MsfaaRepository extends BaseRepository implements IMainTable {
                                 .update(filtered)
                                 .where({
                                     id: id
-                                });
-
-        let msfaa_data = this.getMsfaaById(id);
-        return msfaa_data;
+                                })
+                                .returning("*");
+        return result[0];
     }
 
     async insertMsfaa(msfaa: MsfaaDTO): Promise<MsfaaDTO> {
