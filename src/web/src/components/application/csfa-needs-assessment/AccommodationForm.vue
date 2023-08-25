@@ -18,7 +18,7 @@
                   doSaveApp(
                     'prestudy_accom_code',
                     application.prestudy_accom_code
-                  );                  
+                  );
                 }
               "
               item-text="description"
@@ -37,13 +37,13 @@
               @change="
                 doSaveApp(
                   'prestudy_board_amount',
-                  application.prestudy_board_amount
+                  vueCurrencyInputParse(application.prestudy_board_amount),
                 )
               "
             ></v-text-field>
           </div>
           <div class="col-md-4 pt-0">
-            <v-switch          
+            <v-switch
               outlined
               dense
               hide-details
@@ -163,7 +163,7 @@
               v-model="application.study_board_amount"
               v-currency="{ currency: 'USD', locale: 'en' }"
               @change="
-                doSaveApp('study_board_amount', application.study_board_amount)
+                doSaveApp('study_board_amount', vueCurrencyInputParse(application.study_board_amount))
               "
             ></v-text-field>
           </div>
@@ -252,9 +252,12 @@
 </template>
 
 <script>
+import { parse as vueCurrencyInputParse } from "vue-currency-input"
+
 import store from "@/store";
 import { mapGetters } from "vuex";
 import validator from "@/validator";
+
 export default {
   data: () => ({
     housingOptions: [
@@ -284,7 +287,7 @@ export default {
       living_with_spouse: false,
       bus_available: false,
       distance_from_school: 0,
-    },    
+    },
     validate: {},
   }),
   computed: {
@@ -305,6 +308,7 @@ export default {
     logSelectedOption() {
       console.log(`Selected option: ${this.prestudy.housing}`);
     },
+    vueCurrencyInputParse,
   },
 };
 </script>
