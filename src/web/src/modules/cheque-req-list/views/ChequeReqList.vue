@@ -93,9 +93,6 @@
 <script>
 import store from "@/store";  
 import { mapActions, mapState, mapGetters } from "vuex";
-import axios from 'axios';
-import { CHEQUE_REQ_LIST } from '../../../urls';
-import { saveAs } from 'file-saver';
 
 export default {
   name: "ChequeReqList",
