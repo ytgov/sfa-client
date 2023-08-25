@@ -79,39 +79,35 @@ END
 
 GO
 -- This function is used to get the previous pre-legislation YG/STA weeks prior to current HD non upgrading                
-
 CREATE OR ALTER FUNCTION sfa.fn_get_prev_pre_leg_weeks(@student_id_p INT, @application_id_p INT)
 RETURNS NUMERIC
 AS 
 BEGIN
-    DECLARE @v_num_weeks NUMERIC = 0;
-	DECLARE @v_program_academic INT = 0;
+    DECLARE  @v_num_weeks NUMERIC = 0;
 
-	SELECT @v_program_academic  = id 
-	FROM sfa.program 
-	WHERE description = 'Upgrading-Academic'
+        SELECT @v_num_weeks = CEILING(SUM(CASE WHEN fr.request_type_id = 1  THEN a.weeks_allowed ELSE  a.years_funded_equivalent*34 END))
+        FROM sfa.application app
+        INNER JOIN sfa.funding_request fr ON app.id = fr.application_id
+            , (SELECT funding_request_id
+                    , assessment_id
+                    , sum(disbursed_amount) disbursed_amount
+                FROM sfa.disbursement
+            GROUP BY funding_request_id, assessment_id) d
+        INNER JOIN sfa.assessment a ON d.assessment_id = a.id
+        WHERE  fr.id = d.funding_request_id 
+        AND app.id < @application_id_p 
+        AND app.program_id <> (SELECT id FROM sfa.program WHERE description = 'Upgrading-Academic')
+        AND app.student_id = @student_id_p
+        AND app.academic_year_id <=2015
+        AND d.disbursed_amount > 0 -- positive disbursement
+        AND fr.request_type_id in (1,2) -- request type STA
+        group by app.student_id;
 
-    SELECT @v_num_weeks = CEILING(SUM(CASE WHEN fr.request_type_id = 1  THEN a.weeks_allowed ELSE  a.years_funded_equivalent*34 END))
-    FROM sfa.application app
-    INNER JOIN sfa.funding_request fr 
-		ON app.id = fr.application_id
-	INNER JOIN sfa.assessment a 
-		ON a.funding_request_id = fr.id
-	INNER JOIN sfa.vm_disbursement_sum d
-		ON  d.funding_request_id =  fr.id
-    WHERE  app.student_id = @student_id_p
-    AND app.id < @application_id_p 
-    AND app.program_id not in (@v_program_academic)
-    AND app.academic_year_id <= 2015
-    AND d.disbursed_amount > 0 -- positive disbursement
-    AND fr.request_type_id in (1,2) -- request type STA
-    group by app.student_id;
-
-    RETURN CEILING(@v_num_weeks);              
+        RETURN CEILING(@v_num_weeks);              
 
 END
-GO
 
+GO
 
 /* This function is used to get the current system total years funded
     for the particular student not counting the given history detail
