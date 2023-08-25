@@ -1,4 +1,7 @@
 import AddressType from "@/models/address-type"
+import City from "@/models/city"
+import Country from "@/models/country"
+import Province from "@/models/province"
 
 export default interface PersonAddress {
   id: number
@@ -14,5 +17,10 @@ export default interface PersonAddress {
   telephone?: string
   email?: string
   isActive: boolean
+
+  // Relations
   addressType?: AddressType
+  city?: City
+  province?: Province
+  country?: Country
 }

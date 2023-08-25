@@ -7,5 +7,7 @@ export default interface Expense {
   periodId: number
   description?: string
   amount: number
+
+  // Relations
   expenseCategory?: ExpenseCategory
 }

@@ -1,5 +1,9 @@
+import Application from "@/models/application"
 import Assessment from "@/models/assessment"
+import Disbursement from "@/models/disbursement"
 import RequestType from "@/models/request-type"
+import Status from "@/models/status"
+import StatusReason from "@/models/status-reason"
 
 export default interface FundingRequest {
   id: number
@@ -26,6 +30,12 @@ export default interface FundingRequest {
   studentIsMovToAnthCmmToAttdPrgm?: boolean
   studentIsMainteningTwoResidences?: boolean
   studentWNotReceiveFundFromOtrOrg?: boolean
+
+  // Relations
+  application?: Application
   assessments?: Assessment[]
+  disbursements?: Disbursement[]
   requestType?: RequestType
+  status?: Status
+  statusReason?: StatusReason
 }

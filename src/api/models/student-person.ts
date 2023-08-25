@@ -8,6 +8,8 @@ export default class StudentPerson {
   personId?: number
   relationshipId: number
   isActive: boolean
+
+  // Relations
   person?: Person
   relationship?: Relationship
 
