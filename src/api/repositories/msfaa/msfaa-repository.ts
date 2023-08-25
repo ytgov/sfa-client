@@ -29,7 +29,6 @@ export class MsfaaRepository extends BaseRepository implements IMainTable {
 
     async updateMsfaa(id: number, msfaa: MsfaaDTO): Promise<MsfaaDTO> {
         const filtered = this.getMsfaaTable(msfaa);
-        delete filtered?.email;
         const result = await this.mainDb(this.mainTable)
                                 .update(filtered)
                                 .where({
