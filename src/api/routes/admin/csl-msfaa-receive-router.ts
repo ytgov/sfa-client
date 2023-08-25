@@ -36,7 +36,7 @@ cslMsfaaReceiveRouter.post("/:FILE_NAME",
             let vOriginator = header.substring(3, 7).replaceAll(' ', '');            
             let vTitle = header.substring(7, 47).replaceAll(' ', '')
             let vCreateDateTime = header.substring(47, 59);
-            let vSeqNum = header.substring(59, 66);          
+            let vSeqNum = header.substring(59, 65);          
                                                          
             if(!fileName) {
                 return res.json({flag: 0, data: 'You need to enter a filename'});                    
@@ -49,7 +49,6 @@ cslMsfaaReceiveRouter.post("/:FILE_NAME",
                     return res.json({flag: 0, data: 'Please try again with the complete file path and name'});
                 }
                 else {
-
                     const deleteMsfaaImport = await db.raw("DELETE FROM sfa.MSFAA_IMPORT");                    
                                         
                     if(headerRecordType !== '100') {
@@ -63,11 +62,11 @@ cslMsfaaReceiveRouter.post("/:FILE_NAME",
                             } else {                                
                                 if(moment(vCreateDateTime, 'YYYYMMDDHHmm').format('YYYY - MMM - DD HH:mm') === 'Invalid date') {
                                     return res.json({flag: 0, data: 'Invalid creation date/time in header record: ' + vCreateDateTime});         
-                                }
+                                } 
 
                                 if(isNaN(vSeqNum)) {
                                     return res.json({flag: 0, data: 'Invalid sequence number in header record: ' + vSeqNum});         
-                                }                              
+                                }                    
                             }
                         }
                     }
@@ -148,7 +147,7 @@ cslMsfaaReceiveRouter.post("/:FILE_NAME",
                             vTotalSin = vTotalSin + vNumSin;	
                             
                         } else if(headerRecordType === '999') {  
-                            if(isNaN(parseInt(currentLine.substring(43, 52).replaceAll(' ', '')) + 0)) {
+                            if(isNaN(parseInt(currentLine.substring(43, 52).replaceAll(' ', '')))) {
                                 return res.json({flag: 0, data: 'Trailer count is non numeric' + currentLine.substring(43, 52).replaceAll(' ', '')});   
                             }  
 
@@ -164,7 +163,7 @@ cslMsfaaReceiveRouter.post("/:FILE_NAME",
                                 return res.json({flag: 0, data: 'Trailer SIN hash total does not equal total of detail records: Trailer - ' + parseInt(currentLine.substring(52, 67).replaceAll(' ', '')) + ' Record SIN - ' + vTotalSin + '. SIN non-numeric count was: ' + vNonNumericSin});   
                             }                            
                         }                      
-                    }                                       
+                    }                                                  
                     return res.json({flag: 1, data: 'CSL MSFAA response read complete. ' + vCount + ' records processed.', date: moment(vCreateDateTime.substring(0, 8), 'YYYYMMDD').format('YYYY-MMM-DD'), seq: vSeqNum });                    
                 }
             }                                                 
@@ -177,6 +176,7 @@ cslMsfaaReceiveRouter.post("/:FILE_NAME",
 
 cslMsfaaReceiveRouter.put("/", [], 
     async (req: Request, res: Response) => {
+         
         try {                       
             let vStatusDesc;
             let vCount = 0;            
@@ -231,6 +231,7 @@ cslMsfaaReceiveRouter.put("/", [],
             console.log(error);
             return res.status(404).send();
         }        
+       
     }
 ); 
 
