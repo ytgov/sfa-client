@@ -7,6 +7,7 @@ import Institution from "@/models/institution";
 import ParentDependent from "@/models/parent-dependent";
 import PersonAddress from "@/models/person-address";
 import Program from "@/models/program";
+import HighSchool from "@/models/high-school";
 import Student from "@/models/student";
 
 // Application with standard JS naming conventions
@@ -623,7 +624,12 @@ export function StudentFromDraft(draft: any): any {
   let studentUpdate = {} as any;
 
   if (educations) {
-    studentUpdate.high_school_id = educations[0].school;
+    if (educations[0].school === -1) {
+      studentUpdate.high_school_id = HighSchool.SpecialTypes.NOT_LISTED
+    } else {
+      studentUpdate.high_school_id = educations[0].school;
+    }
+
     studentUpdate.high_school_left_year = educations[0].left_high_school.split("/")[0];
     studentUpdate.high_school_left_month = educations[0].left_high_school.split("/")[1];
     studentUpdate.is_crown_ward = draft.statistical.crown_ward;
