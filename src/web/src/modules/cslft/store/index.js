@@ -11,10 +11,32 @@ const mutations = {
     cslftResetState(state) {
         Object.assign(state, defaultState());
     },
-    getCslftAssessInfo(state, payload) {
+    getCslftAssessInfo(state, results) {
+        state.cslft_assessments = results.results;
+        state.cslft_current = results.current; 
+        
+        const payload = results.result;
         state.cslft = payload.data;
         if ((payload.disbursements?.length ?? 0) > 0) {
             state.cslft_disbursement = payload.disbursements;
+        }
+        state.funding_request = payload.funding_request;        
+        if (payload.msfaa)
+        {
+            state.cslft_msfaa = payload.msfaa;
+        }
+        if ((payload.e_certs?.length ?? 0) > 0) {
+            state.cslft_e_certs = payload.e_certs;
+        }
+    },
+    getAssessmentFromMemory(state, assessment_id) {        
+        const payload = state.cslft_assessments[assessment_id];
+        state.cslft = payload.data;
+        if ((payload.disbursements?.length ?? 0) > 0) {
+            state.cslft_disbursement = payload.disbursements;
+        }
+        else {
+            state.cslft_disbursement = [];
         }
         state.funding_request = payload.funding_request;        
         if (payload.msfaa)
@@ -97,11 +119,21 @@ const actions = {
         }
     },
     async getCslftAssessInfo(state, funding_request_id) {
-        const res = await axios.get(`${CSLFT_ASSESS_INFO}/${funding_request_id}`);
-        if (res?.data?.success) {
+        const res = await axios.get(`${CSLFT_ASSESS_INFO}/${funding_request_id}`);        
+        if (res?.data?.result?.success) {
             state.commit("cslftResetState", state);
             state.commit("getCslftAssessInfo", res.data);
         }
+    },
+    async createCslftAssessment(state, funding_request_id) {
+        const res = await axios.get(`${CSLFT}/funding_request/${funding_request_id}/assessment/create`);
+        if (res?.data?.result?.success) {
+            state.commit("cslftResetState", state);
+            state.commit("getCslftAssessInfo", res.data);
+        }
+    },
+    async switchAssessment(state, assessment_id) {
+        state.commit("getAssessmentFromMemory", assessment_id);
     },
     async cslftLoadUncappedExpenses(state, application_id) {
         const period_id = 2;
@@ -119,8 +151,7 @@ const actions = {
         };
         const res = await axios.post(`${CSLFT}/${assessment.funding_request_id}/recalc`, body);
         if (res?.data?.success) {
-            commit("cslftResetState", state);
-            commit("getCslftAssessInfo", res.data);
+            commit("loadModelsDisburse", res.data);
         }
     },
     async getCslftDisburse({ commit, getters }) {
@@ -255,6 +286,20 @@ const actions = {
     }
 };
 const getters = {
+    cslft_get_current(state) {
+        return state.cslft_current;
+    },
+    cslft_get_assessments(state) {
+        return state.cslft_assessments;
+    },
+    cslft_get_assessments_index(state) {
+        const a = state.cslft_assessments;
+        return Object.entries(a).map((x, i) => ({ id: i + 1, value: x[0]}));
+    },
+    cslft_get_assessments_count(state) {
+        const a = state.cslft_assessments;
+        return Object.entries(a).length;
+    },
     cslft_get_assessment(state) {
       return state.cslft;
     },
@@ -429,7 +474,6 @@ const getters = {
         return null;
     },
     cslft_msfaa_signed_date_formatted(state) {
-        console.log(state.cslft_msfaa);
         if(state.cslft_msfaa.signed_date){
             return dateHelper.getDateFromUTC(state.cslft_msfaa.signed_date);
         }

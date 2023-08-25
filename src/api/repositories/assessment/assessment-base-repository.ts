@@ -44,6 +44,19 @@ export class AssessmentBaseRepository extends BaseRepository implements IMainTab
         return result;
     }
 
+    async getAllAssessmentsByFundingRequestId(funding_request_id?: number): Promise<Array<number>> {
+        let assessments: Array<number> = [];
+
+        if (funding_request_id) {
+            const result = await this.mainDb.raw(`SELECT id FROM sfa.fn_get_assessments_by_funding_request(${funding_request_id}) ORDER BY id ASC`);
+            if (Array.isArray(result)) {
+                result.forEach((x) => assessments.push(x.id));
+            }
+        }
+
+        return assessments;
+    }
+
     async getAssessmentByFundingRequestId(funding_request_id: number | undefined): Promise<AssessmentDTO> {
         let assessment: Partial<AssessmentDTO> = {};
 
@@ -62,6 +75,19 @@ export class AssessmentBaseRepository extends BaseRepository implements IMainTab
 
         if (funding_request_id) {
             const result = await this.mainDb.raw(`EXEC sfa.sp_get_max_assessment_by_funding_request @funding_request_id = ${funding_request_id}`);
+            if (Array.isArray(result) && result.length > 0) {
+                assessment = this.singleResult(result);
+            }
+        }
+
+        return assessment;
+    }
+
+    async getAssessmentById(assessment_id: number | undefined): Promise<AssessmentDTO> {
+        let assessment: Partial<AssessmentDTO> = {};
+
+        if (assessment_id) {
+            const result = await this.mainDb.raw(`EXEC sfa.sp_get_assessment_by_id @id = ${assessment_id}`);
             if (Array.isArray(result) && result.length > 0) {
                 assessment = this.singleResult(result);
             }
