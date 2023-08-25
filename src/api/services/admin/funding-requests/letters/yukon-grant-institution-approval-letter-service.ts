@@ -26,6 +26,6 @@ export default class YukonGrantInstitutionApprovalLetterService extends FundingR
 
     // See https://xkcd.com/1179/ -> https://en.wikipedia.org/wiki/ISO_8601 for date format
     const formattedDate = new Date().toISOString().slice(0, 10) // YYYYY-MM-DD
-    return `YG Approval Letter, ${lastName} ${firstName}, ${formattedDate}.${format}`
+    return `YG_Institution_Letter_${lastName}_${firstName}.${format}`
   }
 }
