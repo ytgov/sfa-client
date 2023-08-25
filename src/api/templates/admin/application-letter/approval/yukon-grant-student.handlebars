@@ -49,6 +49,13 @@
 
     {{#each assessments}}
       <span class="flex mt-1"></span>
+      {{#if (hasManyElements @root.assessments)}}
+        {{#if @first}}
+        <span class="flex">Current Assessment</span>
+        {{else}}
+        <span class="flex">Previous Assessment: {{momentDateFormat this.assessedDate "MMM Do, YYYY"}}</span>
+        {{/if}}
+      {{/if}}
       <span>
         <strong style="inline-block w-[150px]">Rate per Week:</strong>
         <span>{{centsToDollarString this.ratePerWeekInCents}}</span>

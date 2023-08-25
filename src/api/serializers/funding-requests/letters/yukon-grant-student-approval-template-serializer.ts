@@ -115,13 +115,26 @@ export default class YukonGrantStudentApprovalTemplateSerializer {
     }
   }
 
-  #prepareAssessments(fundingRequest: FundingRequest) {
+  #prepareAssessments(
+    fundingRequest: FundingRequest
+  ): {
+    assessedDate: Date
+    startDate: Date
+    endDate: Date
+    approvalWeeks: number
+    ratePerWeekInCents: number
+    travelAndAirFairCostInCents: number
+  }[] {
     const assessments = this.#fundingRequest.assessments
     if (isNil(assessments) || isEmpty(assessments)) return []
 
-    const sortedAssessments = sortBy(assessments, ["assessedDate"])
+    const sortedAssessments = sortBy(assessments, ["assessedDate"]).reverse()
 
     const serializedAssessments = sortedAssessments.map((assessment) => {
+      if (isNil(assessment.assessedDate))
+        throw new Error(
+          "Could not prepare template data as assessedDate is missing from assessment."
+        )
       if (isNil(assessment.classesStartDate))
         throw new Error(
           "Could not prepare template data as classesStartDate is missing from assessement."
@@ -153,6 +166,7 @@ export default class YukonGrantStudentApprovalTemplateSerializer {
         (assessment.airfareAmount + assessment.travelAllowance) * 100
 
       return {
+        assessedDate: assessment.assessedDate,
         startDate: assessment.classesStartDate,
         endDate: assessment.classesEndDate,
         approvalWeeks: assessment.weeksAllowed,
