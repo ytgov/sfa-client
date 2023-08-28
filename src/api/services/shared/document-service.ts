@@ -200,7 +200,7 @@ export class DocumentService {
       dependent_id,
     } as FileReference;
 
-    await this.uploadFile(fRef);
+    return this.uploadFile(fRef);
   }
 
   async updateDocument(object_key: string, input: any) {

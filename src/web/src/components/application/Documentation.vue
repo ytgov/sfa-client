@@ -23,7 +23,7 @@
                 ></v-select>
               </div>
 
-              <div class="col-md-6">
+              <div class="col-md-3">
                 <v-menu
                   v-model="item.completed_date_menu"
                   :close-on-content-click="false"
@@ -104,7 +104,7 @@
                   @change="updateStatus({ status: item.status }, item.requirement_type_id, item)"
                 ></v-autocomplete>
               </div>
-              <div class="col-md-3">
+              <div class="col-md-9">
                 <v-text-field
                   outlined
                   dense
@@ -117,41 +117,66 @@
                   required
                 ></v-text-field>
               </div>
-              <div class="col-md-1" v-if="item.file_name && item.upload_date">
-                <h4 style="font-size: 16px; font-weight: 700;">{{ item.file_name }}</h4>
-              </div>
 
-              <div class="col-md-1" v-if="item.file_name && item.upload_date && item.mime_type === 'application/pdf'">
-                <v-btn class="mt-0" color="success" @click="showPDF(item.requirement_type_id)">
-                  Preview
-                </v-btn>
-              </div>
-
-              <div class="col-md-1" v-if="item.file_name && item.upload_date">
-                <v-btn class="mt-0" color="success" :href="downloadPdf(item.requirement_type_id)">
-                  Download
-                </v-btn>
-              </div>
-
-              <div class="col-md-6">
+              <div class="col-md-6 d-flex">
                 <v-file-input
                   ref="fileInput"
-                  multiple
-                  truncate-length="15"
                   outlined
                   dense
                   background-color="white"
                   hide-details
-                  label="Upload document"
+                  label="Select file"
+                  prepend-icon=""
+                  prepend-inner-icon="mdi-paperclip"
                   v-model="documents[i]"
                   @change="uploadDoc(item, i)"
                 ></v-file-input>
-              </div>
-              <div class="col-md-1">
-                <v-btn class="mt-0" color="primary" @click="postDoc(item, i)">
-                  Upload file
+                <v-btn class="my-0 ml-3" color="primary" @click="postDoc(item, i)">
+                  Upload
                 </v-btn>
               </div>
+              <div class="col-md-6">
+                <v-menu offset-y v-if="item.file_name && item.upload_date">
+                  <template v-slot:activator="{ on, attrs }">
+                    <v-btn
+                      color="secondary"
+                      dark
+                      v-bind="attrs"
+                      v-on="on"
+                      block
+                      class="my-0"
+                      style="justify-content: left; max-width: 100%; overflow: hidden;"
+                    >
+                      <v-icon>mdi-chevron-down</v-icon>
+                      {{ item.file_name }}
+                    </v-btn>
+                  </template>
+                  <v-list dense>
+                    <v-list-item
+                      v-if="
+                        ['application/pdf', 'image/png', 'image/jpg', 'image/jpeg', 'image/tiff'].includes(
+                          item.mime_type
+                        )
+                      "
+                      @click="showPreview(item.requirement_type_id, item.mime_type)"
+                    >
+                      <v-list-item-icon><v-icon>mdi-eye</v-icon></v-list-item-icon>
+                      <v-list-item-title>Preview</v-list-item-title>
+                    </v-list-item>
+
+                    <v-list-item :href="downloadPdf(item.requirement_type_id)">
+                      <v-list-item-icon><v-icon>mdi-download</v-icon></v-list-item-icon>
+                      <v-list-item-title>Download</v-list-item-title>
+                    </v-list-item>
+
+                    <v-list-item @click="deleteFile(item)">
+                      <v-list-item-icon><v-icon>mdi-delete</v-icon></v-list-item-icon>
+                      <v-list-item-title>Delete</v-list-item-title>
+                    </v-list-item>
+                  </v-list>
+                </v-menu>
+              </div>
+
               <div class="col-md-12">
                 <v-divider horizontal v-if="i < application.finalDocumentation5.length - 1"></v-divider>
               </div>
@@ -311,7 +336,6 @@ export default {
   name: "Home",
   data: () => ({
     applicationId: -1,
-    documentationOptions: ["YG Application", "Official Transcript - Original document (must be mailed)"],
     file: null,
     statusDisabled: true,
     uploadedDoc: [],
@@ -464,21 +488,36 @@ export default {
         });
       });
     },
-    async showPDF(refId) {
+    async showPreview(refId, mimeType) {
       try {
-        let buf = await fetch(
-          APPLICATION_URL + `/${this.application.id}/student/${this.student.id}/files/${refId}`
-        ).then((r) => r.arrayBuffer());
-        const blob = new Blob([buf], { type: "application/pdf" });
-        const blobURL = URL.createObjectURL(blob) || "";
-        this.$refs.showPdf.showModal(blobURL);
+        axios
+          .get(`${APPLICATION_URL}/${this.application.id}/student/${this.student.id}/files/${refId}`, {
+            responseType: "arraybuffer",
+          })
+          .then((resp) => {
+            const blob = new Blob([resp.data], { type: mimeType });
+            const blobURL = URL.createObjectURL(blob) || "";
+            this.$refs.showPdf.showModal(blobURL);
+          });
       } catch (error) {
         console.log(error);
       }
     },
     downloadPdf(refId) {
-      return APPLICATION_URL + `/${this.application.id}/student/${this.student.id}/files/${refId}`;
+      return `${APPLICATION_URL}/${this.application.id}/student/${this.student.id}/files/${refId}`;
     },
+    deleteFile(item) {
+      this.$refs.confirm.show(
+        "Delete file",
+        `Are you sure you would like to delete ${item.file_name}?`,
+        async () => {
+          await axios.delete(APPLICATION_URL + `/${this.application.id}/files/${item.object_key}`);
+          await store.dispatch("loadApplication", this.applicationId);
+        },
+        () => {}
+      );
+    },
+
     async updateReqMet(itemToUpdate, refId) {
       try {
         const resInsert = await axios.put(APPLICATION_URL + `/${this.application.id}/files/${refId}`, {
@@ -546,7 +585,7 @@ export default {
     },
     async postDoc(item, i) {
       if (this.documents[i]) {
-        let doc = this.documents[i][0];
+        let doc = this.documents[i];
         const formData = new FormData();
 
         formData.append("files", doc);
@@ -561,10 +600,11 @@ export default {
 
         try {
           let resInsert = await axios.post(
-            APPLICATION_URL + `/${this.application.id}/student/${this.student.id}/files`,
+            `${APPLICATION_URL}/${this.application.id}/student/${this.student.id}/files`,
             formData,
             { headers: { "Content-Type": "multipart/form-data" } }
           );
+
           let message = resInsert?.data?.messages[0];
           if (message?.variant === "success") {
             this.$emit("showSuccess", message.text);
