@@ -1,16 +1,16 @@
 import { TemplatePaths } from "@/models/funding-request-letter"
 
-import STARejectionTemplateSerializer from "@/serializers/funding-requests/letters/sta-rejection-template-serializer"
+import StudentTrainingAllowanceRejectionTemplateSerializer from "@/serializers/funding-requests/letters/student-training-allowance-rejection-template-serializer"
 
 import FundingRequestsLettersBaseService from "@/services/admin/funding-requests/letters/funding-requests-letters-base-service"
 
-export default class STARejectionLetterService extends FundingRequestsLettersBaseService {
+export default class StudentTrainingAllowanceRejectionLetterService extends FundingRequestsLettersBaseService {
   getTemplatePath(): string {
-    return TemplatePaths.STA_REJECTION
+    return TemplatePaths.STUDENT_TRAINING_ALLOWANCE_REJECTION
   }
 
   serializeForTemplate() {
-    return STARejectionTemplateSerializer.prepare({
+    return StudentTrainingAllowanceRejectionTemplateSerializer.prepare({
       fundingRequest: this.fundingRequest,
       signingOfficer: this.signingOfficer,
     })

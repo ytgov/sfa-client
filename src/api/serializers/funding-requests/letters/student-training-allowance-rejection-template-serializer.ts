@@ -7,7 +7,7 @@ import PersonAddress from "@/models/person-address"
 import User from "@/models/user"
 import AddressType from "@/models/address-type"
 
-export default class STARejectionTemplateSerializer {
+export default class StudentTrainingAllowanceRejectionTemplateSerializer {
   #fundingRequest: FundingRequest
   #signingOfficer: User
 
@@ -29,7 +29,7 @@ export default class STARejectionTemplateSerializer {
     fundingRequest: FundingRequest
     signingOfficer: User
   }) {
-    const serializer = new STARejectionTemplateSerializer({
+    const serializer = new StudentTrainingAllowanceRejectionTemplateSerializer({
       fundingRequest,
       signingOfficer,
     })
