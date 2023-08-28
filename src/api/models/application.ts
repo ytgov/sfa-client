@@ -168,19 +168,19 @@ export default interface Application_ {
   isChequesToInstitution: boolean;
 
   // Relations
-  agencyAssistances?: AgencyAssistance[];
-  attendance?: Attendance;
-  expenses?: Expense[];
-  fundingRequests?: FundingRequest[];
-  incomes?: Income[];
-  institutionCampus: InstitutionCampus;
-  parentDependents?: ParentDependent[];
-  primaryAddress?: PersonAddress;
-  program?: Program;
-  spouse?: Person;
-  spouseStudyEmpolymentStatus?: PrestudyEmploymentStatus;
-  student?: Student;
-  studyArea?: StudyArea;
+  agencyAssistances?: AgencyAssistance[]
+  attendance?: Attendance
+  expenses?: Expense[]
+  fundingRequests?: FundingRequest[]
+  incomes?: Income[]
+  institutionCampus?: InstitutionCampus
+  parentDependents?: ParentDependent[]
+  primaryAddress?: PersonAddress
+  program?: Program
+  spouse?: Person
+  spouseStudyEmpolymentStatus?: PrestudyEmploymentStatus
+  student?: Student
+  studyArea?: StudyArea
 }
 
 export interface Application {

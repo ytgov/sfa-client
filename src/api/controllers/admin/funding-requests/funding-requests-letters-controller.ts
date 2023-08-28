@@ -42,6 +42,7 @@ export default class FundingRequestsLettersController extends BaseController {
               statusCode: 422,
               status: "Unprocessable Entity",
               message: error.message,
+              stackTrace: error.stack?.split("\n").map((line) => line.trim()),
             })
           }
         } else {
@@ -98,6 +99,7 @@ export default class FundingRequestsLettersController extends BaseController {
                 statusCode: 422,
                 status: "Unprocessable Entity",
                 message: error.message,
+                stackTrace: error.stack?.split("\n").map((line) => line.trim()),
               })
             }
           } else {
@@ -134,6 +136,7 @@ export default class FundingRequestsLettersController extends BaseController {
                 statusCode: 422,
                 status: "Unprocessable Entity",
                 message: error.message,
+                stackTrace: error.stack?.split("\n").map((line) => line.trim()),
               })
             }
           } else {
@@ -169,6 +172,7 @@ export default class FundingRequestsLettersController extends BaseController {
                 statusCode: 422,
                 status: "Unprocessable Entity",
                 message: error.message,
+                stackTrace: error.stack?.split("\n").map((line) => line.trim()),
               })
             }
           } else {
