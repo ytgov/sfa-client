@@ -16,6 +16,7 @@ export default class FundingRequestsLettersBaseService {
   protected requestType: RequestTypes
   protected signingOfficer: User
   protected status: Statuses
+  protected director: User
 
   constructor({
     fundingRequest,
@@ -23,18 +24,21 @@ export default class FundingRequestsLettersBaseService {
     requestType,
     signingOfficer,
     status,
+    director,
   }: {
     fundingRequest: FundingRequest
     letterSlug: LetterSlugs
     requestType: RequestTypes
     signingOfficer: User
     status: Statuses
+    director: User
   }) {
     this.fundingRequest = fundingRequest
     this.letterSlug = letterSlug
     this.requestType = requestType
     this.signingOfficer = signingOfficer
     this.status = status
+    this.director = director
   }
 
   renderAsPdf() {

@@ -13,6 +13,7 @@ export default class YukonGrantStudentRejectionLetterService extends FundingRequ
     return YukonGrantStudentRejectionTemplateSerializer.prepare({
       fundingRequest: this.fundingRequest,
       signingOfficer: this.signingOfficer,
+      director: this.director,
     })
   }
 

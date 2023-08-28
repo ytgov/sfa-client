@@ -50,12 +50,19 @@
   </p>
 
   <p>
-    If you have any questions regarding the above decision or need information on the appeal
-    process, please contact Kirsti de Vries, Director of Training Programs at
-    <a href="mailto:kirsti.devries@yukon.ca">kirsti.devries@yukon.ca</a>
-    or by telephone at
-    <a href="tel:867-667-5129">867-667-5129</a>. If you would like additional information about
-    Student Financial Assistance legislation and eligibility requirements, please visit
+    {{#with directorOfTrainingPrograms}}
+      If you have any questions regarding the above decision or need information on the appeal
+      process, please contact
+      {{firstName}}
+      {{lastName}},
+      {{position}}
+      at
+      <a href="mailto:{{email}}">{{email}}</a>
+      or by telephone at
+      <a href="tel:{{phone}}">{{phone}}</a>.
+    {{/with}}
+    If you would like additional information about Student Financial Assistance legislation and
+    eligibility requirements, please visit
     {{!
         TODO: Check if this link is out of date
         I get redirected to https://yukon.ca/en/education-and-schools-student-financial-support when visiting it
