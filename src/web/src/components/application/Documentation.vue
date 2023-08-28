@@ -2,13 +2,13 @@
   <div class="home">
     <h1>Documentation Required and Received</h1>
 
-    <v-card class="default mb-5">
+    <v-card class="default mb-5" v-for="(item, i) of this.application.finalDocumentation5" :key="i">
       <v-card-text>
+        <h3>{{ item.description }}</h3>
         <div class="row">
           <div class="col-md-12">
-            <h3>Documentation</h3>
-            <div v-for="(item, i) of this.application.finalDocumentation5" :key="i" class="row">
-              <div class="col-md-6">
+            <div class="row">
+              <!--  <div class="col-md-6">
                 <v-select
                   outlined
                   dense
@@ -22,8 +22,8 @@
                   item-value="description"
                 ></v-select>
               </div>
-
-              <div class="col-md-3">
+ -->
+              <div class="col-md-4">
                 <v-menu
                   v-model="item.completed_date_menu"
                   :close-on-content-click="false"
@@ -36,6 +36,7 @@
                   <template v-slot:activator="{ on, attrs }">
                     <v-text-field
                       :value="item.completed_date ? item.completed_date.toString().slice(0, 10) : item.completed_date"
+                      :disabled="!item.object_key"
                       label="Completed date"
                       append-icon="mdi-calendar"
                       hide-details
@@ -60,7 +61,7 @@
                 </v-menu>
               </div>
 
-              <div class="col-md-3">
+              <div class="col-md-4">
                 <v-menu
                   v-model="item.upload_date_menu"
                   :close-on-content-click="false"
@@ -89,7 +90,7 @@
                 </v-menu>
               </div>
 
-              <div class="col-md-3">
+              <div class="col-md-4">
                 <v-autocomplete
                   outlined
                   dense
@@ -104,20 +105,6 @@
                   @change="updateStatus({ status: item.status }, item.requirement_type_id, item)"
                 ></v-autocomplete>
               </div>
-              <div class="col-md-9">
-                <v-text-field
-                  outlined
-                  dense
-                  background-color="white"
-                  hide-details
-                  :disabled="!item.object_key"
-                  label="Comment"
-                  v-model="item.comment"
-                  @change="updateComment({ comment: item.comment }, item.requirement_type_id, item)"
-                  required
-                ></v-text-field>
-              </div>
-
               <div class="col-md-6 d-flex">
                 <v-file-input
                   ref="fileInput"
@@ -131,7 +118,7 @@
                   v-model="documents[i]"
                   @change="uploadDoc(item, i)"
                 ></v-file-input>
-                <v-btn class="my-0 ml-3" color="primary" @click="postDoc(item, i)">
+                <v-btn class="my-0 ml-3" color="primary" @click="postDoc(item, i)" :disabled="!documents[i]">
                   Upload
                 </v-btn>
               </div>
@@ -176,9 +163,18 @@
                   </v-list>
                 </v-menu>
               </div>
-
               <div class="col-md-12">
-                <v-divider horizontal v-if="i < application.finalDocumentation5.length - 1"></v-divider>
+                <v-text-field
+                  outlined
+                  dense
+                  background-color="white"
+                  hide-details
+                  :disabled="!item.object_key"
+                  label="Comment"
+                  v-model="item.comment"
+                  @change="updateComment({ comment: item.comment }, item.requirement_type_id, item)"
+                  required
+                ></v-text-field>
               </div>
             </div>
           </div>
