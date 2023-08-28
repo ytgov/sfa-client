@@ -43,7 +43,6 @@ import store from "@/store";
 import ParentDetails from "./parent-details/Main.vue";
 import SpouseForm from "./spouse-details/SpouseForm.vue";
 import StudentDependents from "./dependents-details/StudentDependents";
-import ParentInfoForm from "../ParentInfoForm.vue";
 import ProgramInformationForm from "../ProgramInformationForm.vue";
 import StatisticalForm from "../StatisticalForm.vue";
 import AcademicYear from '../AcademicYear.vue';
@@ -57,7 +56,6 @@ export default {
     ParentDetails,
     SpouseForm,
     StudentDependents,
-    ParentInfoForm,
     ResidenceHistoryForm,
     EducationForm,
   },
