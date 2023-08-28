@@ -95,7 +95,7 @@
                     background-color="white"
                     :disabled="!checkCSFAFullTimeRequest"
                     hide-details 
-                    label="Student gross income (Ln 15000)"
+                    label="Student gross income (Ln 150)"
                     :value="'$'+(application.student_ln150_income?? 0)"
                     @keypress="validate.isNumber($event)"
                     @input="e => {

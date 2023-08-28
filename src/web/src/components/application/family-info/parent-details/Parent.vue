@@ -134,7 +134,7 @@
                     dense 
                     background-color="white" 
                     hide-details 
-                    label="Income Ln 15000"
+                    label="Income (line 150)"
                     v-currency="{ currency: 'USD', locale: 'en' }"
                     v-model="incomes.income"
                     @change="doSaveApp(
@@ -153,7 +153,7 @@
                     dense 
                     background-color="white" 
                     hide-details 
-                    label="Income Ln 23600"
+                    label="Income (line 236)"
                     v-currency="{ currency: 'USD', locale: 'en' }"
                     v-model="incomes.net_income"
                     @change="doSaveApp(
@@ -172,7 +172,7 @@
                     dense 
                     background-color="white" 
                     hide-details 
-                    label="Income Ln 43500"
+                    label="Income (line 435)"
                     v-currency="{ currency: 'USD', locale: 'en' }"
                     v-model="incomes.tax_paid"
                     @change="doSaveApp(
