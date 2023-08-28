@@ -13,6 +13,7 @@ export default class StudentTrainingAllowanceRejectionLetterService extends Fund
     return StudentTrainingAllowanceRejectionTemplateSerializer.prepare({
       fundingRequest: this.fundingRequest,
       signingOfficer: this.signingOfficer,
+      director: this.director,
     })
   }
 

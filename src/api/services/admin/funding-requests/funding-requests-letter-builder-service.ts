@@ -56,10 +56,12 @@ export default class FundingRequestsLetterBuilderService {
     const fundingRequest = await this.#getFundingRequest(this.#fundingRequestId)
     const requestType = fundingRequest.requestType?.description
     if (!RequestType.isValidRequestType(requestType))
-    throw new Error(`Invalid request type: ${requestType}`)
+      throw new Error(`Invalid request type: ${requestType}`)
 
-  const status = fundingRequest.status?.description
+    const status = fundingRequest.status?.description
     if (!Status.isValidStatus(status)) throw new Error(`Invalid status: ${status}`)
+
+    const director = await this.#getDirector()
 
     const LetterServiceClass = FundingRequestLetter.getLetterService({
       requestType,
@@ -72,6 +74,7 @@ export default class FundingRequestsLetterBuilderService {
       requestType,
       signingOfficer: this.#signingOfficer,
       status,
+      director,
     })
   }
 
@@ -84,5 +87,16 @@ export default class FundingRequestsLetterBuilderService {
       "status",
       "statusReason",
     ]).find(fundingRequestId)
+  }
+
+  // TODO: This should pull from the database once the director exists there
+  async #getDirector(): Promise<User> {
+    return {
+      firstName: "Kirsti",
+      lastName: "de Vries",
+      email: "kirsti.devries@yukon.ca",
+      phone: "867-667-5129",
+      position: "Director of Training Programs"
+    } as User
   }
 }
