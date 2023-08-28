@@ -6,7 +6,7 @@ import YukonGrantInstitutionApprovalLetterService from "@/services/admin/funding
 import YukonGrantStudentApprovalLetterService from "@/services/admin/funding-requests/letters/yukon-grant-student-approval-letter-service";
 import YukonGrantStudentRejectionLetterService from "@/services/admin/funding-requests/letters/yukon-grant-student-rejection-letter-service";
 import STAApprovalLetterService from "@/services/admin/funding-requests/letters/sta-approval-letter-service";
-import STARejectionLetterService from "@/services/admin/funding-requests/letters/sta-rejection-letter-service";
+import StudentTrainingAllowanceRejectionLetterService from "@/services/admin/funding-requests/letters/student-training-allowance-rejection-letter-service";
 
 export enum TemplatePaths {
   YUKON_GRANT_INSTITUTION_APPROVAL = "./templates/admin/application-letter/approval/yukon-grant-institution",
@@ -14,7 +14,7 @@ export enum TemplatePaths {
   YUKON_GRANT_STUDENT_REJECTION = "./templates/admin/application-letter/rejection/yukon-grant-student",
   STA_YUKON_UNIVERSITY_APPROVAL = "./templates/admin/application-letter/approval/sta-yukon-university",
   STA_OTHER_INSTITUTION_APPROVAL = "./templates/admin/application-letter/approval/sfa-other-institution",
-  STA_REJECTION = "./templates/admin/application-letter/rejection/sta",
+  STUDENT_TRAINING_ALLOWANCE_REJECTION = "./templates/admin/application-letter/rejection/student-training-allowance",
 }
 
 export enum LetterTypes {
@@ -102,8 +102,8 @@ export const FUNDING_REQUEST_LETTERS: {
         slug: LetterSlugs.STUDENT,
         description: "STA Rejection",
         type: LetterTypes.REJECTION,
-        template: TemplatePaths.STA_REJECTION,
-        service: STARejectionLetterService,
+        template: TemplatePaths.STUDENT_TRAINING_ALLOWANCE_REJECTION,
+        service: StudentTrainingAllowanceRejectionLetterService,
       },
     },
   },
