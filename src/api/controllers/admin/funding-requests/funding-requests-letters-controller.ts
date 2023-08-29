@@ -191,7 +191,7 @@ export default class FundingRequestsLettersController extends BaseController {
 
     const letterCreationService = new CreateService({
       fundingRequestId,
-      signingOfficer: this.currentUser,
+      currentUser: this.currentUser,
     })
 
     return letterCreationService
