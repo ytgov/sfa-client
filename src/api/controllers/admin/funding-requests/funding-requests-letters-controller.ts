@@ -3,6 +3,7 @@ import BaseController from "@/controllers/base-controller"
 import FundingRequestLettersService from "@/services/funding-request-letters-service"
 import FundingRequestsLetterBuilderService from "@/services/admin/funding-requests/funding-requests-letter-builder-service"
 import FundingRequestsService from "@/services/funding-requests-service"
+import CreateService from "@/services/admin/funding-requests/letters/create-service"
 
 export default class FundingRequestsLettersController extends BaseController {
   async listLetters() {
@@ -153,6 +154,55 @@ export default class FundingRequestsLettersController extends BaseController {
       .generateLetterAsJson()
       .then((approvalLetter) => {
         this.response.send(approvalLetter)
+      })
+      .catch((error) => {
+        if (error instanceof Error) {
+          if (
+            error.message.includes("not found") ||
+            error.message.includes("no such file or directory")
+          ) {
+            this.response.status(404).send({
+              statusCode: 404,
+              status: "Not Found",
+              message: `Could not find funding request with id: "${fundingRequestId}".`,
+              error: error.message,
+              stackTrace: error.stack?.split("\n").map((line) => line.trim()),
+            })
+          } else {
+            this.response.status(422).send({
+              statusCode: 422,
+              status: "Unprocessable Entity",
+              message: error.message,
+              stackTrace: error.stack?.split("\n").map((line) => line.trim()),
+            })
+          }
+        } else {
+          this.response.status(500).send({
+            statusCode: 500,
+            status: "Internal Server Error",
+            message: JSON.stringify(error),
+          })
+        }
+      })
+  }
+
+  async createLetters() {
+    const fundingRequestId = parseInt(this.request.params.fundingRequestId)
+
+    const letterCreationService = new CreateService({
+      fundingRequestId,
+      signingOfficer: this.currentUser,
+    })
+
+    return letterCreationService
+      .preform()
+      .then((letterNames) => {
+        const letterNamesString = letterNames.join(", ")
+        return this.response.status(201).send({
+          statusCode: 201,
+          status: "Created",
+          message: `Created the following letters: ${letterNamesString}`,
+        })
       })
       .catch((error) => {
         if (error instanceof Error) {

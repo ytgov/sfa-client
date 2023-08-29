@@ -91,6 +91,10 @@ adminRouter.get(
   "/funding-requests/:fundingRequestId/letters",
   routedTo(FundingRequestsLettersController, "listLetters")
 );
+adminRouter.post(
+  "/funding-requests/:fundingRequestId/letters",
+  routedTo(FundingRequestsLettersController, "createLetters")
+);
 adminRouter.get("/funding-request-letters", routedTo(FundingRequestLettersController, "listLetters"));
 adminRouter.use("/assessment", assessmentRouter);
 adminRouter.use("/student", studentRouter);

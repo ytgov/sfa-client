@@ -11,10 +11,10 @@ export type FundingRequestsLettersBaseServiceConstructor = new (
 
 export default class FundingRequestsLettersBaseService {
   protected fundingRequest: FundingRequest
-  protected letterSlug: string
-  protected requestType: RequestTypes
+  protected letterSlug?: string
+  protected requestType?: RequestTypes
   protected signingOfficer: User
-  protected status: Statuses
+  protected status?: Statuses
   protected director: User
 
   constructor({
@@ -25,12 +25,12 @@ export default class FundingRequestsLettersBaseService {
     status,
     director,
   }: {
-    fundingRequest: FundingRequest
-    letterSlug: string
-    requestType: RequestTypes
-    signingOfficer: User
-    status: Statuses
     director: User
+    fundingRequest: FundingRequest
+    letterSlug?: string
+    requestType?: RequestTypes
+    signingOfficer: User
+    status?: Statuses
   }) {
     this.fundingRequest = fundingRequest
     this.letterSlug = letterSlug
