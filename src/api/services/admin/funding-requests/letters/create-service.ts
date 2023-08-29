@@ -7,8 +7,10 @@ import User from "@/models/user"
 import FundingRequestsService from "@/services/funding-requests-service"
 
 import StudentTrainingAllowanceAlkanAirApprovalLetterService from "@/services/admin/funding-requests/letters/student-training-allowance-alkan-air-approval-letter-service"
+import StudentTrainingAllowanceRejectionLetterService from "@/services/admin/funding-requests/letters/student-training-allowance-rejection-letter-service"
 import StudentTrainingAllowanceYukonUniversityApprovalLetterService from "@/services/admin/funding-requests/letters/student-training-allowance-yukon-university-approval-letter-service"
 import YukonGrantInstitutionApprovalLetterService from "@/services/admin/funding-requests/letters/yukon-grant-institution-approval-letter-service"
+import YukonGrantStudentApprovalLetterService from "@/services/admin/funding-requests/letters/yukon-grant-student-approval-letter-service"
 import YukonGrantStudentRejectionLetterService from "@/services/admin/funding-requests/letters/yukon-grant-student-rejection-letter-service"
 
 export default class CreateService {
@@ -64,6 +66,15 @@ export default class CreateService {
           `Could not generate Student Training Allowance letter for institution name: ${institutionName}`
         )
       }
+    } else if (
+      requestType === RequestType.Types.STUDENT_TRAINING_ALLOWANCE &&
+      requestStatus === Status.Types.REJECTED
+    ) {
+      return this.#generateStudentTrainingAllowanceRejectionLetter({
+        fundingRequest,
+        director,
+        signingOfficer,
+      })
     } else {
       throw new Error(
         `Could not generate letter for this funding request with request type: ${requestType} and status: ${requestStatus}`
@@ -92,7 +103,7 @@ export default class CreateService {
     const yukonGrantInstitutionLetter = await yukonGrantInstitutionLetterService.renderAsPdf()
     // TODO: save somewhere
 
-    const yukonGrantStudentLetterService = new YukonGrantInstitutionApprovalLetterService({
+    const yukonGrantStudentLetterService = new YukonGrantStudentApprovalLetterService({
       director,
       fundingRequest,
       signingOfficer,
@@ -174,6 +185,28 @@ export default class CreateService {
     const letterName = letterService.buildFileName({ format: "pdf" })
 
     return [letterName]
+  }
+
+  // generate student-training-allowance-rejection
+  async #generateStudentTrainingAllowanceRejectionLetter({
+    director,
+    fundingRequest,
+    signingOfficer,
+  }: {
+    director: User
+    fundingRequest: FundingRequest
+    signingOfficer: User
+  }): Promise<string[]> {
+    const rejectionLetterService = new StudentTrainingAllowanceRejectionLetterService({
+      director,
+      fundingRequest,
+      signingOfficer,
+    })
+    const rejectionLetter = await rejectionLetterService.renderAsPdf()
+    // TODO: save somewhere
+    const rejectionLetterName = rejectionLetterService.buildFileName({ format: "pdf" })
+
+    return [rejectionLetterName]
   }
 
   #getFundingRequest(fundingRequestId: number): Promise<FundingRequest> {
