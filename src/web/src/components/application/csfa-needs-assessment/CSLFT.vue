@@ -1,9 +1,54 @@
 <template>
   <div class="home cslft-assessment">
+    <div class="col-lg-12 col-xs-12 col-md-12 nopadding record-section">
+      <div class="col-xs-12 col-md-12 col-lg-12 nopadding d-flex">
+            <div class="col-xs-4 col-sm-4 d-flex nopadding">
+              <v-select
+                    :disabled="showAdd"
+                    outlined
+                    dense
+                    background-color="white"
+                    label="Assessment"
+                    hide-details
+                    :items="cslft_get_assessments_index"
+                    item-text="id"
+                    item-value="value"
+                    v-model="current"
+                ></v-select>
+                <v-text-field
+                    outlined
+                    dense
+                    background-color="white"
+                    hide-details
+                    :disabled="true"
+                    prefix="/"
+                    v-model="cslft_get_assessments_count"                    
+                  ></v-text-field>
+            </div>
+            <div class="spacer col-xs-4 col-sm-4">
+            
+            </div>
+            <div class="col-xs-4 col-sm-4 nopadding">
+              <v-btn 
+                :disabled="isNaN(cslft_get_current)"
+                dense
+                color="green" 
+                class="my-0"
+                block
+                @click="createAssessment"
+              >
+              <v-icon left>
+                mdi-plus
+              </v-icon>
+              CREATE ASSESSMENT
+              </v-btn>
+            </div>
+          </div>  
+    </div>
     <div class="col-xs-12 nopadding-lr col-sm-12 col-lg-12">
       <div class="col-lg-12 nopadding default bg-color-blue v-card v-sheet">
         <div class="col-lg-12 nopadding d-flex flex-wrap low-margin">
-          <v-card-title class="col-xs-12 col-md-8 col-lg-8">Assessment - CSLFT</v-card-title>
+          <v-card-title class="col-xs-12 col-md-8 col-lg-8">Assessment - CSLFT</v-card-title>        
           <div class="col-xs-12 col-md-4 col-lg-4 nopadding d-flex">
             <div class="col-xs-4 col-sm-4">
               <v-btn 
@@ -24,6 +69,7 @@
                 color="orange" 
                 class="my-0"
                 block
+                @click="close"
               >
               CANCEL
               </v-btn>
@@ -35,6 +81,7 @@
                 color="red" 
                 class="my-0"
                 block
+                @click="close"
               >
               EXIT
               </v-btn>
@@ -121,6 +168,12 @@ export default {
   name: "cslft-assessment",
   props: ["request_type_id", "fundingRequestId"],
   computed: {
+    ...mapGetters([
+      "cslft_get_assessments", 
+      "cslft_get_assessments_index",
+      "cslft_get_assessments_count",
+      "cslft_get_current",
+    ]),
     application: function () {
       return store.getters.selectedApplication;
     },
@@ -128,12 +181,27 @@ export default {
   data: () => ({
     tab: 0,
     applicationId: -1,
-    showAdd: false
+    showAdd: false,   
+    totalAssessement: 0,
+    current: 0,
   }),
   watch: {
     student: function (val) {
       if (val) this.updateView(val);
     },
+    cslft_get_current: {
+      deep: true,
+      handler(newVal) {
+        this.current = newVal;
+      }
+    },
+    current: {
+      handler(newVal, oldVal) {
+        if (oldVal !== 0) {
+          store.dispatch("switchAssessment", newVal);
+        }
+      }
+    }
   },
   methods: {
     showSuccess(mgs) {
@@ -142,8 +210,14 @@ export default {
     showError(mgs) {
       this.$emit("showError", mgs);
     },
+    close() {
+      this.$emit("close");
+    },
     saveAssessment() {
       store.dispatch("saveCslftAssessment", this);
+    },
+    createAssessment() {
+      store.dispatch("createCslftAssessment", this.$props.fundingRequestId);
     }
   },
   async created() {
