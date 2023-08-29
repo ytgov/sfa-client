@@ -5,15 +5,15 @@ import { FundingRequestsLettersBaseServiceConstructor } from "@/services/admin/f
 import YukonGrantInstitutionApprovalLetterService from "@/services/admin/funding-requests/letters/yukon-grant-institution-approval-letter-service";
 import YukonGrantStudentApprovalLetterService from "@/services/admin/funding-requests/letters/yukon-grant-student-approval-letter-service";
 import YukonGrantStudentRejectionLetterService from "@/services/admin/funding-requests/letters/yukon-grant-student-rejection-letter-service";
-import STAApprovalLetterService from "@/services/admin/funding-requests/letters/sta-approval-letter-service";
+import StudentTrainingAllowanceApprovalLetterService from "@/services/admin/funding-requests/letters/student-training-allowance-approval-letter-service";
 import StudentTrainingAllowanceRejectionLetterService from "@/services/admin/funding-requests/letters/student-training-allowance-rejection-letter-service";
 
 export enum TemplatePaths {
   YUKON_GRANT_INSTITUTION_APPROVAL = "./templates/admin/application-letter/approval/yukon-grant-institution",
   YUKON_GRANT_STUDENT_APPROVAL = "./templates/admin/application-letter/approval/yukon-grant-student",
   YUKON_GRANT_STUDENT_REJECTION = "./templates/admin/application-letter/rejection/yukon-grant-student",
-  STA_YUKON_UNIVERSITY_APPROVAL = "./templates/admin/application-letter/approval/sta-yukon-university",
-  STA_OTHER_INSTITUTION_APPROVAL = "./templates/admin/application-letter/approval/sfa-other-institution",
+  STUDENT_TRAINING_ALLOWANCE_YUKON_UNIVERSITY_APPROVAL = "./templates/admin/application-letter/approval/student-training-allowance-yukon-university",
+  STUDENT_TRAINING_ALLOWANCE_OTHER_INSTITUTION_APPROVAL = "./templates/admin/application-letter/approval/student-training-allowance-other-institution",
   STUDENT_TRAINING_ALLOWANCE_REJECTION = "./templates/admin/application-letter/rejection/student-training-allowance",
 }
 
@@ -25,8 +25,7 @@ export enum LetterTypes {
 export enum LetterSlugs {
   INSTITUTION = "institution",
   STUDENT = "student",
-  STA_YUKON = "sta-yukon",
-  STA_OTHER = "sta-other",
+  OTHER = "other",
 }
 
 // Not a database model.
@@ -82,25 +81,25 @@ export const FUNDING_REQUEST_LETTERS: {
 
   [RequestType.Types.STUDENT_TRAINING_ALLOWANCE]: {
     [Status.Types.AWARDED]: {
-      [LetterSlugs.STA_YUKON]: {
-        slug: LetterSlugs.STA_YUKON,
-        description: "STA Yukon University",
+      [LetterSlugs.STUDENT]: {
+        slug: LetterSlugs.STUDENT,
+        description: "Student Training Allowance - Yukon University",
         type: LetterTypes.APPROVAL,
-        template: TemplatePaths.STA_YUKON_UNIVERSITY_APPROVAL,
-        service: STAApprovalLetterService,
+        template: TemplatePaths.STUDENT_TRAINING_ALLOWANCE_YUKON_UNIVERSITY_APPROVAL,
+        service: StudentTrainingAllowanceApprovalLetterService,
       },
-      [LetterSlugs.STA_OTHER]: {
-        slug: LetterSlugs.STA_OTHER,
-        description: "STA Other Institution",
+      [LetterSlugs.OTHER]: {
+        slug: LetterSlugs.OTHER,
+        description: "Student Training Allowance - Other Institution",
         type: LetterTypes.APPROVAL,
-        template: TemplatePaths.STA_OTHER_INSTITUTION_APPROVAL,
-        service: STAApprovalLetterService,
+        template: TemplatePaths.STUDENT_TRAINING_ALLOWANCE_OTHER_INSTITUTION_APPROVAL,
+        service: StudentTrainingAllowanceApprovalLetterService,
       },
     },
     [Status.Types.REJECTED]: {
       [LetterSlugs.STUDENT]: {
         slug: LetterSlugs.STUDENT,
-        description: "STA Rejection",
+        description: "Student Training Allowance Rejection",
         type: LetterTypes.REJECTION,
         template: TemplatePaths.STUDENT_TRAINING_ALLOWANCE_REJECTION,
         service: StudentTrainingAllowanceRejectionLetterService,

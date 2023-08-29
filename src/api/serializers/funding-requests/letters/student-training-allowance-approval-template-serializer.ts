@@ -7,7 +7,7 @@ import PersonAddress from "@/models/person-address"
 import User from "@/models/user"
 import AddressType from "@/models/address-type"
 
-export default class STAApprovalTemplateSerializer {
+export default class StudentTrainingAllowanceApprovalTemplateSerializer {
   #fundingRequest: FundingRequest
   #signingOfficer: User
 
@@ -29,7 +29,7 @@ export default class STAApprovalTemplateSerializer {
     fundingRequest: FundingRequest
     signingOfficer: User
   }) {
-    const serializer = new STAApprovalTemplateSerializer({
+    const serializer = new StudentTrainingAllowanceApprovalTemplateSerializer({
       fundingRequest,
       signingOfficer,
     })

@@ -1,17 +1,17 @@
 import { TemplatePaths } from "@/models/funding-request-letter"
 
-import STAApprovalTemplateSerializer from "@/serializers/funding-requests/letters/sta-approval-template-serializer"
+import StudentTrainingAllowanceApprovalTemplateSerializer from "@/serializers/funding-requests/letters/student-training-allowance-approval-template-serializer"
 
 import FundingRequestsLettersBaseService from "@/services/admin/funding-requests/letters/funding-requests-letters-base-service"
 
-export default class STAApprovalLetterService extends FundingRequestsLettersBaseService {
+export default class StudentTrainingAllowanceApprovalLetterService extends FundingRequestsLettersBaseService {
   getTemplatePath(): string {
     //TODO: this needs to check which institution Yukon University or not (Alkan)
-    return TemplatePaths.STA_YUKON_UNIVERSITY_APPROVAL
+    return TemplatePaths.STUDENT_TRAINING_ALLOWANCE_YUKON_UNIVERSITY_APPROVAL
   }
 
   serializeForTemplate() {
-    return STAApprovalTemplateSerializer.prepare({
+    return StudentTrainingAllowanceApprovalTemplateSerializer.prepare({
       fundingRequest: this.fundingRequest,
       signingOfficer: this.signingOfficer,
     })
