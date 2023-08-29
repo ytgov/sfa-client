@@ -15,9 +15,6 @@ export const unsignedTemplete = (pdfData, sharedData, batchTotal, pdfName) => {
     doc.text(`CODING: ${sharedData.financial_coding}`, 355, 85, { align: 'left' });
     doc.text(`ACTION: No`, 600, 85, { align: 'left' });
 
-    autoTable(doc, { html: '#my-tableUnsigned' });
-    autoTable(doc, { html: '#cheque-req-list' });
-
     const list = [];
     // Or use javascript directly:
     for (const data of pdfData) {
@@ -47,7 +44,7 @@ export const unsignedTemplete = (pdfData, sharedData, batchTotal, pdfName) => {
             "S/H",
             "Ref4",
         ]],
-        body: [...list, ["BATCH TOTAL", "", "", batchTotal, "", "", "", "", "1"]],
+        body: [...list, ["BATCH TOTAL", "", "", batchTotal, "", "", "", "", pdfData.length]],
         theme: 'plain',
     })
 
@@ -70,9 +67,6 @@ export const signedTemplete = (pdfData, sharedData, batchTotal, pdfName) => {
     doc.text(`CODING: ${sharedData.financial_coding}`, 355, 85, { align: 'left' });
     doc.text(`ACTION: No`, 600, 85, { align: 'left' });
 
-    autoTable(doc, { html: '#my-tableSigned' });
-    autoTable(doc, { html: '#cheque-req-list' });
-
     const list = [];
     // Or use javascript directly:
     for (const data of pdfData) {
@@ -102,7 +96,7 @@ export const signedTemplete = (pdfData, sharedData, batchTotal, pdfName) => {
             "S/H",
             "Ref4",
         ]],
-        body: [...list, ["BATCH TOTAL", "", "", batchTotal, "", "", "", "", "1"]],
+        body: [...list, ["BATCH TOTAL", "", "", batchTotal, "", "", "", "", pdfData.length]],
         theme: 'plain',
     })
 

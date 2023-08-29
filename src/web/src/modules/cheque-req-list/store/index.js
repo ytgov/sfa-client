@@ -53,7 +53,7 @@ const actions = {
         commit("SET_CHEQUE_REQ_FILE_NAME", '');
         commit("SET_CHEQUE_REQ_RECORDS_DAT", []);
         commit("SET_CHEQUE_REQ_RECORDS_PDF_UNSIGNED", []);
-        commit("SET_CHEQUE_REQ_RECORDS_PDF_ SIGNED", []);
+        commit("SET_CHEQUE_REQ_RECORDS_PDF_SIGNED", []);
         commit("SET_CHEQUE_REQ_BATCH_TOTAL_UNSIGNED", '');
         commit("SET_CHEQUE_REQ_BATCH_TOTAL_SIGNED", '');
         commit("SET_CHEQUE_REQ_SHOW_OVERLAY", false);
@@ -129,7 +129,7 @@ const actions = {
             }
 
             let blob = new Blob([text], { type: "text/plain;charset=utf-8" });
-            
+
             await dispatch("generateCSLReqListPDF");
 
             saveAs(blob, filename + ".dat");
@@ -143,24 +143,40 @@ const actions = {
         try {
             const pdfDataSigned = getters.chequeReqRecordsForPDFSigned || [];
             const pdfDataUnsigned = getters.chequeReqRecordsForPDFUnsigned || [];
+            const vendorList = {};
 
             for (const data of pdfDataSigned) {
-                const res = await axios.get(STUDENT_URL + `/${data.student_id}/vendor`);
                 let vendorAddress = '';
-                if (res?.data?.success) {
+                if (vendorList[data.student_id]) {
+                    const vendorData = vendorList[data.student_id];
 
-                    if (res.data.data.data.length) {
-                        const vendorData = res.data.data.data[0];
+                    const addresses = [
+                        vendorData.VendAddrL1?.trim(),
+                        vendorData.VendAddrL2?.trim(),
+                        vendorData.VendAddrCity?.trim(),
+                        vendorData.VendAddrPost?.trim(),
+                        vendorData.VendAddrProv?.trim(),
+                    ];
 
-                        const addresses = [
-                            vendorData.VendAddrL1?.trim(),
-                            vendorData.VendAddrL2?.trim(),
-                            vendorData.VendAddrCity?.trim(),
-                            vendorData.VendAddrPost?.trim(),
-                            vendorData.VendAddrProv?.trim(),
-                        ];
+                    vendorAddress = addresses?.filter(d => Boolean(d)).join(", ");
+                } else {
+                    const res = await axios.get(STUDENT_URL + `/${data.student_id}/vendor`);
+                    if (res?.data?.success) {
 
-                        vendorAddress = addresses?.filter(d => Boolean(d)).join(", ");
+                        if (res.data.data.data.length) {
+                            const vendorData = res.data.data.data[0];
+                            vendorList[data.student_id] = res.data.data.data[0];
+
+                            const addresses = [
+                                vendorData.VendAddrL1?.trim(),
+                                vendorData.VendAddrL2?.trim(),
+                                vendorData.VendAddrCity?.trim(),
+                                vendorData.VendAddrPost?.trim(),
+                                vendorData.VendAddrProv?.trim(),
+                            ];
+
+                            vendorAddress = addresses?.filter(d => Boolean(d)).join(", ");
+                        }
                     }
                 }
 
@@ -168,22 +184,37 @@ const actions = {
             }
 
             for (const data of pdfDataUnsigned) {
-                const res = await axios.get(STUDENT_URL + `/${data.student_id}/vendor`);
                 let vendorAddress = '';
-                if (res?.data?.success) {
+                if (vendorList[data.student_id]) {
+                    const vendorData = vendorList[data.student_id];
 
-                    if (res.data.data.data.length) {
-                        const vendorData = res.data.data.data[0];
+                    const addresses = [
+                        vendorData.VendAddrL1?.trim(),
+                        vendorData.VendAddrL2?.trim(),
+                        vendorData.VendAddrCity?.trim(),
+                        vendorData.VendAddrPost?.trim(),
+                        vendorData.VendAddrProv?.trim(),
+                    ];
 
-                        const addresses = [
-                            vendorData.VendAddrL1?.trim(),
-                            vendorData.VendAddrL2?.trim(),
-                            vendorData.VendAddrCity?.trim(),
-                            vendorData.VendAddrPost?.trim(),
-                            vendorData.VendAddrProv?.trim(),
-                        ];
+                    vendorAddress = addresses?.filter(d => Boolean(d)).join(", ");
+                } else {
+                    const res = await axios.get(STUDENT_URL + `/${data.student_id}/vendor`);
+                    if (res?.data?.success) {
 
-                        vendorAddress = addresses?.filter(d => Boolean(d)).join(", ");
+                        if (res.data.data.data.length) {
+                            const vendorData = res.data.data.data[0];
+                            vendorList[data.student_id] = res.data.data.data[0];
+
+                            const addresses = [
+                                vendorData.VendAddrL1?.trim(),
+                                vendorData.VendAddrL2?.trim(),
+                                vendorData.VendAddrCity?.trim(),
+                                vendorData.VendAddrPost?.trim(),
+                                vendorData.VendAddrProv?.trim(),
+                            ];
+
+                            vendorAddress = addresses?.filter(d => Boolean(d)).join(", ");
+                        }
                     }
                 }
 
