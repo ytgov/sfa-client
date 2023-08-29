@@ -267,6 +267,25 @@ const streamToBuffer = (stream: Readable) =>
     stream.once("error", reject);
   });
 
+export function bufferToUploadedFileStub(
+  buffer: Buffer,
+  fileName: string,
+  mimeType: string
+): UploadedFile {
+  return {
+    name: fileName,
+    data: buffer,
+    mimetype: mimeType,
+    size: buffer.length,
+    // all these are not relevant for this stub
+    encoding: "not-relevant",
+    tempFilePath: "not-relevant",
+    truncated: false,
+    md5: "not-relevant",
+    async mv(path: string): Promise<void> {},
+  }
+}
+
 export interface UploadMetadata {
   email: string;
   student_id: number;
@@ -288,4 +307,9 @@ export enum DocumentStatus {
   APPROVED = 2,
   REJECTED = 3,
   REPLACED = 4,
+}
+
+export enum DocumentSource {
+  ADMIN = "Admin",
+  PORTAL = "Portal",
 }

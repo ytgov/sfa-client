@@ -5,6 +5,7 @@ import Status, { Statuses } from "@/models/status"
 import User from "@/models/user"
 
 import FundingRequestsService from "@/services/funding-requests-service"
+import UploaderService from "@/services/admin/funding-requests/letters/uploader-service"
 
 import StudentTrainingAllowanceAlkanAirApprovalLetterService from "@/services/admin/funding-requests/letters/student-training-allowance-alkan-air-approval-letter-service"
 import StudentTrainingAllowanceRejectionLetterService from "@/services/admin/funding-requests/letters/student-training-allowance-rejection-letter-service"
@@ -34,15 +35,27 @@ export default class CreateService {
     const requestStatus = this.#getRequestStatus(fundingRequest)
     const requestType = this.#getRequestType(fundingRequest)
     const signingOfficer = this.#signingOfficer
+    const currentUser = this.#signingOfficer
     const director = await this.#getDirector()
+    const uploader = new UploaderService({ fundingRequest, currentUser })
 
     if (requestType === RequestType.Types.YUKON_GRANT && requestStatus === Status.Types.AWARDED) {
-      return this.#generateYukonGrantLetters({ fundingRequest, director, signingOfficer })
+      return this.#generateYukonGrantLetters({
+        director,
+        uploader,
+        fundingRequest,
+        signingOfficer,
+      })
     } else if (
       requestType === RequestType.Types.YUKON_GRANT &&
       requestStatus === Status.Types.REJECTED
     ) {
-      return this.#generateYukonGrantRejectionLetter({ fundingRequest, director, signingOfficer })
+      return this.#generateYukonGrantRejectionLetter({
+        director,
+        uploader,
+        fundingRequest,
+        signingOfficer,
+      })
     } else if (
       requestType === RequestType.Types.STUDENT_TRAINING_ALLOWANCE &&
       requestStatus === Status.Types.AWARDED
@@ -51,14 +64,16 @@ export default class CreateService {
       const institutionName = this.#getInstitutionName(fundingRequest)
       if (institutionName === Institution.Names.YUKON_UNIVERSITY) {
         return this.#generateStudentTrainingAllowanceYukonUniversityApprovalLetter({
-          fundingRequest,
           director,
+          uploader,
+          fundingRequest,
           signingOfficer,
         })
       } else if (institutionName === Institution.Names.ALKAN_AIR_FLIGHT_TRAINING) {
         return this.#generateStudentTrainingAllowanceAlkanAirApprovalLetter({
-          fundingRequest,
           director,
+          uploader,
+          fundingRequest,
           signingOfficer,
         })
       } else {
@@ -71,8 +86,9 @@ export default class CreateService {
       requestStatus === Status.Types.REJECTED
     ) {
       return this.#generateStudentTrainingAllowanceRejectionLetter({
-        fundingRequest,
         director,
+        uploader,
+        fundingRequest,
         signingOfficer,
       })
     } else {
@@ -89,10 +105,12 @@ export default class CreateService {
     director,
     fundingRequest,
     signingOfficer,
+    uploader,
   }: {
     director: User
     fundingRequest: FundingRequest
     signingOfficer: User
+    uploader: UploaderService
   }): Promise<string[]> {
     const letterNames = []
     const yukonGrantInstitutionLetterService = new YukonGrantInstitutionApprovalLetterService({
@@ -101,7 +119,10 @@ export default class CreateService {
       signingOfficer,
     })
     const yukonGrantInstitutionLetter = await yukonGrantInstitutionLetterService.renderAsPdf()
-    // TODO: save somewhere
+    const yukonGrantInstitutionLetterName = yukonGrantInstitutionLetterService.buildFileName({
+      format: "pdf",
+    })
+    await uploader.upload(yukonGrantInstitutionLetter, yukonGrantInstitutionLetterName)
 
     const yukonGrantStudentLetterService = new YukonGrantStudentApprovalLetterService({
       director,
@@ -109,24 +130,23 @@ export default class CreateService {
       signingOfficer,
     })
     const yukonGrantStudentLetter = await yukonGrantStudentLetterService.renderAsPdf()
-    // TODO: save somewhere
-
-    const yukonGrantInstitutionLetterName = yukonGrantInstitutionLetterService.buildFileName({
-      format: "pdf",
-    })
     const yukonGrantStudentLetterName = yukonGrantStudentLetterService.buildFileName({
       format: "pdf",
     })
+    await uploader.upload(yukonGrantStudentLetter, yukonGrantStudentLetterName)
+
     return [yukonGrantInstitutionLetterName, yukonGrantStudentLetterName]
   }
 
   // generate yukon-grant-student-rejection
   async #generateYukonGrantRejectionLetter({
     director,
+    uploader,
     fundingRequest,
     signingOfficer,
   }: {
     director: User
+    uploader: UploaderService
     fundingRequest: FundingRequest
     signingOfficer: User
   }): Promise<string[]> {
@@ -137,19 +157,21 @@ export default class CreateService {
     })
 
     const rejectionLetter = await rejectionLetterService.renderAsPdf()
-    // TODO: save somewhere
-
     const rejectionLetterName = rejectionLetterService.buildFileName({ format: "pdf" })
+    await uploader.upload(rejectionLetter, rejectionLetterName)
+
     return [rejectionLetterName]
   }
 
   // generate student-training-allowance-yukon-university-approval
   async #generateStudentTrainingAllowanceYukonUniversityApprovalLetter({
     director,
+    uploader,
     fundingRequest,
     signingOfficer,
   }: {
     director: User
+    uploader: UploaderService
     fundingRequest: FundingRequest
     signingOfficer: User
   }): Promise<string[]> {
@@ -159,8 +181,8 @@ export default class CreateService {
       signingOfficer,
     })
     const letter = await letterService.renderAsPdf()
-    // TODO: save somewhere
     const letterName = letterService.buildFileName({ format: "pdf" })
+    await uploader.upload(letter, letterName)
 
     return [letterName]
   }
@@ -168,10 +190,12 @@ export default class CreateService {
   // generate student-training-allowance-alkan-air-approval
   async #generateStudentTrainingAllowanceAlkanAirApprovalLetter({
     director,
+    uploader,
     fundingRequest,
     signingOfficer,
   }: {
     director: User
+    uploader: UploaderService
     fundingRequest: FundingRequest
     signingOfficer: User
   }): Promise<string[]> {
@@ -181,8 +205,8 @@ export default class CreateService {
       signingOfficer,
     })
     const letter = await letterService.renderAsPdf()
-    // TODO: save somewhere
     const letterName = letterService.buildFileName({ format: "pdf" })
+    await uploader.upload(letter, letterName)
 
     return [letterName]
   }
@@ -190,10 +214,12 @@ export default class CreateService {
   // generate student-training-allowance-rejection
   async #generateStudentTrainingAllowanceRejectionLetter({
     director,
+    uploader,
     fundingRequest,
     signingOfficer,
   }: {
     director: User
+    uploader: UploaderService
     fundingRequest: FundingRequest
     signingOfficer: User
   }): Promise<string[]> {
@@ -203,8 +229,8 @@ export default class CreateService {
       signingOfficer,
     })
     const rejectionLetter = await rejectionLetterService.renderAsPdf()
-    // TODO: save somewhere
     const rejectionLetterName = rejectionLetterService.buildFileName({ format: "pdf" })
+    await uploader.upload(rejectionLetter, rejectionLetterName)
 
     return [rejectionLetterName]
   }
