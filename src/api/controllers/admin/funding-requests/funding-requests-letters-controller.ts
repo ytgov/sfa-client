@@ -1,4 +1,3 @@
-
 import BaseController from "@/controllers/base-controller"
 
 import FundingRequestLettersService from "@/services/funding-request-letters-service"
@@ -22,9 +21,10 @@ export default class FundingRequestsLettersController extends BaseController {
           throw new Error("Funding request, request type has no description")
 
         const requestType = fundingRequest.requestType.description
-        const fundingRequestLetterMetadata = FundingRequestLettersService.findByRequestType(requestType)
+        const fundingRequestLetterMetadata = FundingRequestLettersService.where({ requestType })
         this.response.send(fundingRequestLetterMetadata)
-      }).catch((error) => {
+      })
+      .catch((error) => {
         if (error instanceof Error) {
           if (
             error.message.includes("not found") ||
@@ -150,38 +150,38 @@ export default class FundingRequestsLettersController extends BaseController {
     }
 
     return letterService
-        .generateLetterAsJson()
-        .then((approvalLetter) => {
-          this.response.send(approvalLetter)
-        })
-        .catch((error) => {
-          if (error instanceof Error) {
-            if (
-              error.message.includes("not found") ||
-              error.message.includes("no such file or directory")
-            ) {
-              this.response.status(404).send({
-                statusCode: 404,
-                status: "Not Found",
-                message: `Could not find funding request with id: "${fundingRequestId}".`,
-                error: error.message,
-                stackTrace: error.stack?.split("\n").map((line) => line.trim()),
-              })
-            } else {
-              this.response.status(422).send({
-                statusCode: 422,
-                status: "Unprocessable Entity",
-                message: error.message,
-                stackTrace: error.stack?.split("\n").map((line) => line.trim()),
-              })
-            }
+      .generateLetterAsJson()
+      .then((approvalLetter) => {
+        this.response.send(approvalLetter)
+      })
+      .catch((error) => {
+        if (error instanceof Error) {
+          if (
+            error.message.includes("not found") ||
+            error.message.includes("no such file or directory")
+          ) {
+            this.response.status(404).send({
+              statusCode: 404,
+              status: "Not Found",
+              message: `Could not find funding request with id: "${fundingRequestId}".`,
+              error: error.message,
+              stackTrace: error.stack?.split("\n").map((line) => line.trim()),
+            })
           } else {
-            this.response.status(500).send({
-              statusCode: 500,
-              status: "Internal Server Error",
-              message: JSON.stringify(error),
+            this.response.status(422).send({
+              statusCode: 422,
+              status: "Unprocessable Entity",
+              message: error.message,
+              stackTrace: error.stack?.split("\n").map((line) => line.trim()),
             })
           }
-        })
+        } else {
+          this.response.status(500).send({
+            statusCode: 500,
+            status: "Internal Server Error",
+            message: JSON.stringify(error),
+          })
+        }
+      })
   }
 }

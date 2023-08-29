@@ -33,8 +33,8 @@ export default class FundingRequestLettersService {
     return letter.service
   }
 
-  static findByRequestType(requestType: string) {
-    return FUNDING_REQUEST_LETTERS.find((letter) => letter.requestType === requestType)
+  static where({ requestType }: { requestType: string }): FundingRequestLetter[] {
+    return FUNDING_REQUEST_LETTERS.filter((letter) => letter.requestType === requestType)
   }
 
   static all() {
