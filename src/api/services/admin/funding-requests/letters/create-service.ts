@@ -6,6 +6,8 @@ import User from "@/models/user"
 
 import FundingRequestsService from "@/services/funding-requests-service"
 
+import StudentTrainingAllowanceAlkanAirApprovalLetterService from "@/services/admin/funding-requests/letters/student-training-allowance-alkan-air-approval-letter-service"
+import StudentTrainingAllowanceYukonUniversityApprovalLetterService from "@/services/admin/funding-requests/letters/student-training-allowance-yukon-university-approval-letter-service"
 import YukonGrantInstitutionApprovalLetterService from "@/services/admin/funding-requests/letters/yukon-grant-institution-approval-letter-service"
 import YukonGrantStudentRejectionLetterService from "@/services/admin/funding-requests/letters/yukon-grant-student-rejection-letter-service"
 
@@ -24,6 +26,7 @@ export default class CreateService {
     this.#signingOfficer = signingOfficer
   }
 
+  // Contains complex business logic for generating appropriate letters
   async preform(): Promise<string[]> {
     const fundingRequest = await this.#getFundingRequest(this.#fundingRequestId)
     const requestStatus = this.#getRequestStatus(fundingRequest)
@@ -42,14 +45,20 @@ export default class CreateService {
       requestType === RequestType.Types.STUDENT_TRAINING_ALLOWANCE &&
       requestStatus === Status.Types.AWARDED
     ) {
+      // FUTURE: this could become a separate service
       const institutionName = this.#getInstitutionName(fundingRequest)
-
       if (institutionName === Institution.Names.YUKON_UNIVERSITY) {
-        // generate student-training-allowance-yukon-university-approval
-        return []
+        return this.#generateStudentTrainingAllowanceYukonUniversityApprovalLetter({
+          fundingRequest,
+          director,
+          signingOfficer,
+        })
       } else if (institutionName === Institution.Names.ALKAN_AIR_FLIGHT_TRAINING) {
-        // generate student-training-allowance-alkan-air-flight-training-approval
-        return []
+        return this.#generateStudentTrainingAllowanceAlkanAirApprovalLetter({
+          fundingRequest,
+          director,
+          signingOfficer,
+        })
       } else {
         throw new Error(
           `Could not generate Student Training Allowance letter for institution name: ${institutionName}`
@@ -81,7 +90,7 @@ export default class CreateService {
       signingOfficer,
     })
     const yukonGrantInstitutionLetter = await yukonGrantInstitutionLetterService.renderAsPdf()
-    // save somewhere ...
+    // TODO: save somewhere
 
     const yukonGrantStudentLetterService = new YukonGrantInstitutionApprovalLetterService({
       director,
@@ -89,7 +98,7 @@ export default class CreateService {
       signingOfficer,
     })
     const yukonGrantStudentLetter = await yukonGrantStudentLetterService.renderAsPdf()
-    // save somewhere...
+    // TODO: save somewhere
 
     const yukonGrantInstitutionLetterName = yukonGrantInstitutionLetterService.buildFileName({
       format: "pdf",
@@ -117,10 +126,54 @@ export default class CreateService {
     })
 
     const rejectionLetter = await rejectionLetterService.renderAsPdf()
-    // save somewhere...
+    // TODO: save somewhere
 
     const rejectionLetterName = rejectionLetterService.buildFileName({ format: "pdf" })
     return [rejectionLetterName]
+  }
+
+  // generate student-training-allowance-yukon-university-approval
+  async #generateStudentTrainingAllowanceYukonUniversityApprovalLetter({
+    director,
+    fundingRequest,
+    signingOfficer,
+  }: {
+    director: User
+    fundingRequest: FundingRequest
+    signingOfficer: User
+  }): Promise<string[]> {
+    const letterService = new StudentTrainingAllowanceYukonUniversityApprovalLetterService({
+      fundingRequest,
+      director,
+      signingOfficer,
+    })
+    const letter = await letterService.renderAsPdf()
+    // TODO: save somewhere
+    const letterName = letterService.buildFileName({ format: "pdf" })
+
+    return [letterName]
+  }
+
+  // generate student-training-allowance-alkan-air-approval
+  async #generateStudentTrainingAllowanceAlkanAirApprovalLetter({
+    director,
+    fundingRequest,
+    signingOfficer,
+  }: {
+    director: User
+    fundingRequest: FundingRequest
+    signingOfficer: User
+  }): Promise<string[]> {
+    const letterService = new StudentTrainingAllowanceAlkanAirApprovalLetterService({
+      fundingRequest,
+      director,
+      signingOfficer,
+    })
+    const letter = await letterService.renderAsPdf()
+    // TODO: save somewhere
+    const letterName = letterService.buildFileName({ format: "pdf" })
+
+    return [letterName]
   }
 
   #getFundingRequest(fundingRequestId: number): Promise<FundingRequest> {
