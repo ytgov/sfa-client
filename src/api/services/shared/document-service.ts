@@ -77,6 +77,11 @@ export class DocumentService {
   }
 
   //return the Document metadata
+  async getDocumentsForFundingRequest(funding_request_id: number): Promise<FileReferenceBase[]> {
+    return await db<FileReferenceBase>("sfa.file_reference").where({ funding_request_id });
+  }
+
+  //return the Document metadata
   async getDocumentsForDraft(application_draft_id: number): Promise<FileReferenceBase[]> {
     return await db<FileReferenceBase>("sfa.file_reference")
       .innerJoin("sfa.document_status", "file_reference.status", "document_status.id")
@@ -159,45 +164,36 @@ export class DocumentService {
       disability_requirement_id,
       person_id,
       dependent_id,
+      visible_in_portal: true,
     } as FileReference;
 
     await this.uploadFile(fRef);
   }
 
-  async uploadApplicationDocument(
-    email: string,
-    student_id: string | number,
-    application_id: string | number,
-    file: UploadedFile,
-    requirement_type_id: number,
-    disability_requirement_id: string | number,
-    person_id: string | number,
-    dependent_id: string | number,
-    comment: string = "",
-    source: string = "Portal",
-    status: number = 1
-  ) {
+  async uploadApplicationDocument(t: UploadMetadata) {
     let fRef = {
       object_key: nanoid(),
       object_key_pdf: nanoid(),
       bucket: AWS_S3_BUCKET,
       upload_date: new Date(),
-      upload_user: email,
-      upload_source: source,
-      file_name: file.name,
-      file_contents: file.data,
-      student_id: parseInt(student_id.toString()),
-      application_id: parseInt(application_id.toString()),
+      upload_user: t.email,
+      upload_source: t.source,
+      file_name: t.file.name,
+      file_contents: t.file.data,
+      student_id: t.student_id,
+      application_id: t.application_id,
       application_draft_id: undefined,
-      requirement_type_id,
-      mime_type: file.mimetype,
-      file_size: file.size,
-      comment: comment,
-      status: status,
+      requirement_type_id: t.requirement_type_id,
+      mime_type: t.file.mimetype,
+      file_size: t.file.size,
+      comment: t.comment,
+      status: t.status,
       status_date: new Date(),
-      disability_requirement_id,
-      person_id,
-      dependent_id,
+      disability_requirement_id: t.disability_requirement_id,
+      person_id: t.person_id,
+      dependent_id: t.dependent_id,
+      funding_request_id: t.funding_request_id,
+      visible_in_portal: t.visible_in_portal,
     } as FileReference;
 
     return this.uploadFile(fRef);
@@ -254,11 +250,13 @@ function forInsert(input: FileReference | FileReferenceBase) {
     upload_date: input.upload_date,
     upload_source: input.upload_source,
     requirement_type_id: input.requirement_type_id,
+    funding_request_id: input.funding_request_id,
+    visible_in_portal: input.visible_in_portal,
   };
 }
 
 function forUpdate(input: FileReference | FileReferenceBase) {
-  return { status: input.status, status_date: input.status_date };
+  return { status: input.status, status_date: input.status_date, visible_in_portal: input.visible_in_portal };
 }
 
 const streamToBuffer = (stream: Readable) =>
@@ -268,3 +266,26 @@ const streamToBuffer = (stream: Readable) =>
     stream.once("end", () => resolve(Buffer.concat(chunks)));
     stream.once("error", reject);
   });
+
+export interface UploadMetadata {
+  email: string;
+  student_id: number;
+  application_id: number;
+  file: UploadedFile;
+  source: string;
+  status: DocumentStatus;
+  requirement_type_id?: number;
+  disability_requirement_id?: number;
+  person_id?: number;
+  dependent_id?: number;
+  comment?: string;
+  funding_request_id?: number;
+  visible_in_portal?: boolean;
+}
+
+export enum DocumentStatus {
+  PENDING = 1,
+  APPROVED = 2,
+  REJECTED = 3,
+  REPLACED = 4,
+}

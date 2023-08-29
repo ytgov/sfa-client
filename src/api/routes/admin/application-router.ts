@@ -2,11 +2,11 @@ import express, { Request, Response } from "express";
 import { body, param } from "express-validator";
 import moment from "moment";
 import knex from "knex";
-import { DocumentService } from "../../services/shared";
+import { DocumentService, DocumentStatus } from "../../services/shared";
 import { ReturnValidationErrors } from "../../middleware";
 import { DB_CONFIG } from "../../config";
 import { Buffer } from "buffer";
-import { functionsIn, indexOf, orderBy, parseInt, min, update, get } from "lodash";
+import { functionsIn, indexOf, orderBy, parseInt, min, update, get, isArray } from "lodash";
 import { AssessmentYukonGrant, AssessmentYEA } from "../../repositories/assessment";
 
 const db = knex(DB_CONFIG);
@@ -671,28 +671,24 @@ applicationRouter.post("/:application_id/student/:student_id/files", async (req:
   const { student_id, application_id } = req.params;
   const { requirement_type_id, disability_requirement_id, person_id, dependent_id, comment, status } = req.body;
 
-  let finalEmail = req.user.email;
-  let source = "Admin";
-  let finalComment = undefined;
-
-  if (comment) finalComment = comment;
-
   if (req.files) {
     let files = Array.isArray(req.files.files) ? req.files.files : [req.files.files];
 
     for (let file of files) {
       await documentService.uploadApplicationDocument(
-        finalEmail,
-        student_id,
-        application_id,
-        file,
-        requirement_type_id,
-        disability_requirement_id,
-        person_id,
-        dependent_id,
-        finalComment,
-        source,
-        status
+        {
+          email: req.user.email, 
+          student_id: parseInt(student_id.toString()), 
+          application_id: parseInt(application_id.toString()), 
+          file,
+          requirement_type_id, 
+          disability_requirement_id, 
+          person_id, 
+          dependent_id, 
+          comment,
+          source: "Admin", 
+          status,
+        }
       );
     }
     return res.json({ messages: [{ variant: "success", text: "Saved" }] });
@@ -1924,6 +1920,88 @@ applicationRouter.delete(
     }
   }
 );
+
+applicationRouter.get(
+  "/:applicationId/funding-request/:fundingRequestId/letters",
+  [param("applicationId").isInt().notEmpty(), param("fundingRequestId").isInt().notEmpty()],
+  ReturnValidationErrors,
+  async (req: Request, res: Response) => {
+    const{applicationId, fundingRequestId} = req.params;
+    let letters = await documentService.getDocumentsForFundingRequest(parseInt(fundingRequestId));
+    res.json({data: letters});
+  });
+  
+applicationRouter.get(
+  "/:applicationId/funding-request/:fundingRequestId/letters/:object_key",
+  [param("applicationId").isInt().notEmpty(), param("fundingRequestId").isInt().notEmpty()],
+  ReturnValidationErrors,
+  async (req: Request, res: Response) => {
+    const{ fundingRequestId, object_key} = req.params;
+    let letters = await documentService.getDocumentsForFundingRequest(parseInt(fundingRequestId));
+    let letter = letters.filter(l => l.object_key == object_key);
+
+    if (letter.length > 0) {
+      let fileReference = await documentService.getDocumentWithFile(object_key);
+
+      if (fileReference) {        
+        res.set("Content-disposition", "attachment; filename=" + fileReference.file_name);
+        res.set("Content-type", fileReference.mime_type);
+        return res.send(fileReference.file_contents);
+      }
+    }
+
+    res.status(404).send
+  });
+
+applicationRouter.delete(
+    "/:applicationId/funding-request/:fundingRequestId/letters/:object_key",
+    [param("applicationId").isInt().notEmpty(), param("fundingRequestId").isInt().notEmpty()],
+    ReturnValidationErrors,
+    async (req: Request, res: Response) => {
+      const{ fundingRequestId, object_key} = req.params;
+      let letters = await documentService.getDocumentsForFundingRequest(parseInt(fundingRequestId));
+      let letter = letters.filter(l => l.object_key == object_key);
+  
+      if (letter.length > 0) {
+         await documentService.removeDocument(object_key);
+        return res.status(200).send();
+      }
+  
+      res.status(404).send
+  });
+
+
+applicationRouter.post(
+  "/:applicationId/funding-request/:fundingRequestId/letter-upload",
+  [param("applicationId").isInt().notEmpty(), param("fundingRequestId").isInt().notEmpty()],
+  ReturnValidationErrors,
+  async (req: Request, res: Response) => {
+    const{ applicationId, fundingRequestId } = req.params;
+
+    let application = await db("sfa.application").where({id: applicationId}).first();
+
+    if (application && req.files) {
+        let file = isArray(req.files.file) ? req.files.file[0] : req.files.file;
+
+        if (file) {
+          await documentService.uploadApplicationDocument(    
+          {
+            email: req.user.email, 
+            student_id: parseInt(application.student_id.toString()), 
+            application_id: parseInt(applicationId.toString()), 
+            file,
+            source: "Admin", 
+            status: DocumentStatus.APPROVED,
+            funding_request_id: parseInt(fundingRequestId.toString()),
+            visible_in_portal: false
+          });
+
+          return res.status(201).send();
+        }
+    }
+
+    res.status(404).send();
+  });
 
 applicationRouter.get(
   "/:application_id/:funding_request_id/assessments",
