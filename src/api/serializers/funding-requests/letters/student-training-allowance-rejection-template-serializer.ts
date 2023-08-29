@@ -7,31 +7,38 @@ import PersonAddress from "@/models/person-address"
 import User from "@/models/user"
 import AddressType from "@/models/address-type"
 
-export default class STARejectionTemplateSerializer {
+export default class StudentTrainingAllowanceRejectionTemplateSerializer {
   #fundingRequest: FundingRequest
   #signingOfficer: User
+  #director: User
 
   constructor({
     fundingRequest,
     signingOfficer,
+    director,
   }: {
     fundingRequest: FundingRequest
     signingOfficer: User
+    director: User
   }) {
     this.#fundingRequest = fundingRequest
     this.#signingOfficer = signingOfficer
+    this.#director = director
   }
 
   static prepare({
     fundingRequest,
     signingOfficer,
+    director,
   }: {
     fundingRequest: FundingRequest
     signingOfficer: User
+    director: User
   }) {
-    const serializer = new STARejectionTemplateSerializer({
+    const serializer = new StudentTrainingAllowanceRejectionTemplateSerializer({
       fundingRequest,
       signingOfficer,
+      director,
     })
     return serializer.prepare()
   }
@@ -94,6 +101,7 @@ export default class STARejectionTemplateSerializer {
       },
       rejectionReason: statusReason.description,
       studentFinancialAssistanceOfficer: this.#signingOfficer,
+      directorOfTrainingPrograms: this.#director,
     }
   }
 

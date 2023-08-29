@@ -1,4 +1,4 @@
-import { isArray, isNil } from "lodash"
+import { isArray, isNil, last, sortBy } from "lodash"
 
 import Application from "@/models/application"
 import FundingRequest from "@/models/funding-request"
@@ -7,38 +7,31 @@ import PersonAddress from "@/models/person-address"
 import User from "@/models/user"
 import AddressType from "@/models/address-type"
 
-export default class YukonGrantStudentRejectionTemplateSerializer {
+export default class StudentTrainingAllowanceAlkanAirApprovalTemplateSerializer {
   #fundingRequest: FundingRequest
   #signingOfficer: User
-  #director: User
 
   constructor({
     fundingRequest,
     signingOfficer,
-    director,
   }: {
     fundingRequest: FundingRequest
     signingOfficer: User
-    director: User
   }) {
     this.#fundingRequest = fundingRequest
     this.#signingOfficer = signingOfficer
-    this.#director = director
   }
 
   static prepare({
     fundingRequest,
     signingOfficer,
-    director,
   }: {
     fundingRequest: FundingRequest
     signingOfficer: User
-    director: User
   }) {
-    const serializer = new YukonGrantStudentRejectionTemplateSerializer({
+    const serializer = new StudentTrainingAllowanceAlkanAirApprovalTemplateSerializer({
       fundingRequest,
       signingOfficer,
-      director,
     })
     return serializer.prepare()
   }
@@ -80,11 +73,53 @@ export default class YukonGrantStudentRejectionTemplateSerializer {
     if (country === undefined)
       throw new Error("Could not prepare template data as country is missing from primary address.")
 
-    const statusReason = this.#fundingRequest.statusReason
-    if (isNil(statusReason))
+    const studyArea = application.studyArea
+    if (studyArea === undefined)
+      throw new Error("Could not prepare template data as study area is missing from application.")
+
+    const assessments = this.#fundingRequest.assessments
+    if (assessments === undefined)
       throw new Error(
-        "Could not prepare template data as statusReason is missing from funding request."
+        "Could not prepare template data as assessments is missing from funding request."
       )
+    if (assessments.length > 1)
+      console.warn(
+        "More than one assessment detected for funding request. This system state has not been investigated."
+      )
+
+    const assessment = last(sortBy(assessments, ["assessedDate"]))
+    if (assessment === undefined)
+      throw new Error(
+        "Could not prepare template data as assessment is missing from funding request."
+      )
+    if (isNil(assessment.classesStartDate))
+      throw new Error(
+        "Could not prepare template data as classesStartDate is missing from studyArea."
+      )
+    if (isNil(assessment.classesEndDate))
+      throw new Error(
+        "Could not prepare template data as classesEndDate is missing from studyArea."
+      )
+
+    const institutionName = this.#prepareInstitutionName(application)
+
+    if (isNil(assessment.weeklyAmount))
+      throw new Error("Could not prepare template data as assessement weekly amount is missing.")
+    const ratePerWeekInCents = assessment.weeklyAmount * 100
+
+    if (isNil(assessment.weeksAllowed))
+      throw new Error("Could not prepare template data as weeksAllowed is missing from assessment.")
+
+    if (isNil(assessment.travelAllowance))
+      throw new Error("Could not prepare template data as assessement travel allowance is missing.")
+
+    const travelAllowanceInCents = assessment.travelAllowance * 100
+
+    if (isNil(assessment.secondResidenceRate))
+      throw new Error(
+        "Could not prepare template data as assessement second residence rate is missing."
+      )
+    const secondResidenceAllowanceInCents = assessment.secondResidenceRate * 100
 
     return {
       currentDate: new Date(),
@@ -99,9 +134,16 @@ export default class YukonGrantStudentRejectionTemplateSerializer {
         country: country.description,
         postalCode: primaryAddress.postalCode,
       },
-      rejectionReason: statusReason.description,
+      program: {
+        name: studyArea.description,
+        startDate: assessment.classesStartDate,
+        endDate: assessment.classesEndDate,
+        institutionName,
+        ratePerWeekInCents,
+        travelAllowanceInCents,
+        secondResidenceAllowanceInCents,
+      },
       studentFinancialAssistanceOfficer: this.#signingOfficer,
-      directorOfTrainingPrograms: this.#director,
     }
   }
 
@@ -139,5 +181,23 @@ export default class YukonGrantStudentRejectionTemplateSerializer {
     }
 
     return primaryAddress
+  }
+
+  #prepareInstitutionName(application: Application) {
+    const institutionCampus = application.institutionCampus
+    if (institutionCampus === undefined)
+      throw new Error(
+        "Could not prepare template data as institution campus is missing from application."
+      )
+
+    const institution = institutionCampus.institution
+    if (institution === undefined)
+      throw new Error(
+        "Could not prepare template data as institution is missing from institution campus."
+      )
+
+    return (
+      institution.name + (institutionCampus.name == "Primary" ? "" : ` - ${institutionCampus.name}`)
+    )
   }
 }
