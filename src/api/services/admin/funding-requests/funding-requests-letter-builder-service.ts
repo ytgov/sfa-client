@@ -1,10 +1,10 @@
+import FundingRequestLettersService from "@/services/funding-request-letters-service"
 import FundingRequestsService from "@/services/funding-requests-service"
 
 import FundingRequest from "@/models/funding-request"
-import FundingRequestLetter from "@/models/funding-request-letter"
-import User from "@/models/user"
 import RequestType from "@/models/request-type"
 import Status from "@/models/status"
+import User from "@/models/user"
 
 export default class FundingRequestsLetterBuilderService {
   #fundingRequestId: number
@@ -50,7 +50,7 @@ export default class FundingRequestsLetterBuilderService {
   }
 
   async #buildLetterService() {
-    if (!FundingRequestLetter.isValidLetterSlug(this.#letterSlug))
+    if (!FundingRequestLettersService.isValidSlug(this.#letterSlug))
       throw new Error(`Invalid letter slug: ${this.#letterSlug}`)
 
     const fundingRequest = await this.#getFundingRequest(this.#fundingRequestId)
@@ -63,7 +63,7 @@ export default class FundingRequestsLetterBuilderService {
 
     const director = await this.#getDirector()
 
-    const LetterServiceClass = FundingRequestLetter.getLetterService({
+    const LetterServiceClass = FundingRequestLettersService.getServiceClass({
       requestType,
       status,
       letterSlug: this.#letterSlug,

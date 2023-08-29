@@ -23,7 +23,7 @@ export enum LetterTypes {
 }
 
 // Not a database model.
-interface FundingRequestLetterInterface {
+export default interface FundingRequestLetter {
   description: string
   requestStatus: Statuses
   requestType: RequestTypes
@@ -33,7 +33,7 @@ interface FundingRequestLetterInterface {
   type: LetterTypes
 }
 
-export const FUNDING_REQUEST_LETTERS: FundingRequestLetterInterface[] = [
+export const FUNDING_REQUEST_LETTERS: FundingRequestLetter[] = [
   {
     description: "Yukon Grant Institution",
     requestStatus: Status.Types.AWARDED,
@@ -89,58 +89,3 @@ export const FUNDING_REQUEST_LETTERS: FundingRequestLetterInterface[] = [
     type: LetterTypes.REJECTION,
   },
 ]
-
-interface FundingRequestLetter extends FundingRequestLetterInterface {}
-
-interface FilterOptions {
-  requestType: string
-  status: string
-  letterSlug: string
-}
-
-// TODO: make this a service
-class FundingRequestLetter {
-  static getLetterService({
-    requestType,
-    status,
-    letterSlug,
-  }: FilterOptions): FundingRequestsLettersBaseServiceConstructor {
-    const letter = FundingRequestLetter.findBy({ requestType, status, letterSlug })
-    return letter.service
-  }
-
-  static getTemplatePath({ requestType, status, letterSlug }: FilterOptions): string {
-    const letter = FundingRequestLetter.findBy({ requestType, status, letterSlug })
-    return letter.template
-  }
-
-  static findBy({ requestType, status, letterSlug }: FilterOptions): FundingRequestLetterInterface {
-    const letter = FUNDING_REQUEST_LETTERS.find(
-      (letter) =>
-        letter.requestType === requestType &&
-        letter.requestStatus === status &&
-        letter.slug === letterSlug
-    )
-
-    if (letter === undefined)
-      throw new Error(
-        `No letter mapping found for request type ${requestType} and status ${status} and letter slug ${letterSlug}`
-      )
-
-    return letter
-  }
-
-  static findByRequestType(requestType: string) {
-    return FUNDING_REQUEST_LETTERS.find((letter) => letter.requestType === requestType)
-  }
-
-  static findAll() {
-    return FUNDING_REQUEST_LETTERS
-  }
-
-  static isValidLetterSlug(slug: string) {
-    return FUNDING_REQUEST_LETTERS.some((letter) => letter.slug === slug)
-  }
-}
-
-export default FundingRequestLetter

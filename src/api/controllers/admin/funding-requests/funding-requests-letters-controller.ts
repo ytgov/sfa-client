@@ -1,7 +1,7 @@
-import FundingRequestLetter from "@/models/funding-request-letter"
 
 import BaseController from "@/controllers/base-controller"
 
+import FundingRequestLettersService from "@/services/funding-request-letters-service"
 import FundingRequestsLetterBuilderService from "@/services/admin/funding-requests/funding-requests-letter-builder-service"
 import FundingRequestsService from "@/services/funding-requests-service"
 
@@ -22,7 +22,7 @@ export default class FundingRequestsLettersController extends BaseController {
           throw new Error("Funding request, request type has no description")
 
         const requestType = fundingRequest.requestType.description
-        const fundingRequestLetterMetadata = FundingRequestLetter.findByRequestType(requestType)
+        const fundingRequestLetterMetadata = FundingRequestLettersService.findByRequestType(requestType)
         this.response.send(fundingRequestLetterMetadata)
       }).catch((error) => {
         if (error instanceof Error) {
