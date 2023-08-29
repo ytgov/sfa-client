@@ -7,6 +7,7 @@ import User from "@/models/user"
 import FundingRequestsService from "@/services/funding-requests-service"
 
 import YukonGrantInstitutionApprovalLetterService from "@/services/admin/funding-requests/letters/yukon-grant-institution-approval-letter-service"
+import YukonGrantStudentRejectionLetterService from "@/services/admin/funding-requests/letters/yukon-grant-student-rejection-letter-service"
 
 export default class CreateService {
   #fundingRequestId: number
@@ -28,16 +29,15 @@ export default class CreateService {
     const requestStatus = this.#getRequestStatus(fundingRequest)
     const requestType = this.#getRequestType(fundingRequest)
     const signingOfficer = this.#signingOfficer
+    const director = await this.#getDirector()
 
     if (requestType === RequestType.Types.YUKON_GRANT && requestStatus === Status.Types.AWARDED) {
-      const director = await this.#getDirector()
       return this.#generateYukonGrantLetters({ fundingRequest, director, signingOfficer })
     } else if (
       requestType === RequestType.Types.YUKON_GRANT &&
       requestStatus === Status.Types.REJECTED
     ) {
-      // generate yukon-grant-student-rejection
-      return []
+      return this.#generateYukonGrantRejectionLetter({ fundingRequest, director, signingOfficer })
     } else if (
       requestType === RequestType.Types.STUDENT_TRAINING_ALLOWANCE &&
       requestStatus === Status.Types.AWARDED
@@ -80,10 +80,8 @@ export default class CreateService {
       director,
       signingOfficer,
     })
-
     const yukonGrantInstitutionLetter = await yukonGrantInstitutionLetterService.renderAsPdf()
     // save somewhere ...
-    letterNames.push(yukonGrantInstitutionLetterService.buildFileName({ format: "pdf" }))
 
     const yukonGrantStudentLetterService = new YukonGrantInstitutionApprovalLetterService({
       director,
@@ -92,9 +90,37 @@ export default class CreateService {
     })
     const yukonGrantStudentLetter = await yukonGrantStudentLetterService.renderAsPdf()
     // save somewhere...
-    letterNames.push(yukonGrantStudentLetterService.buildFileName({ format: "pdf" }))
 
-    return letterNames
+    const yukonGrantInstitutionLetterName = yukonGrantInstitutionLetterService.buildFileName({
+      format: "pdf",
+    })
+    const yukonGrantStudentLetterName = yukonGrantStudentLetterService.buildFileName({
+      format: "pdf",
+    })
+    return [yukonGrantInstitutionLetterName, yukonGrantStudentLetterName]
+  }
+
+  // generate yukon-grant-student-rejection
+  async #generateYukonGrantRejectionLetter({
+    director,
+    fundingRequest,
+    signingOfficer,
+  }: {
+    director: User
+    fundingRequest: FundingRequest
+    signingOfficer: User
+  }): Promise<string[]> {
+    const rejectionLetterService = new YukonGrantStudentRejectionLetterService({
+      director,
+      fundingRequest,
+      signingOfficer,
+    })
+
+    const rejectionLetter = await rejectionLetterService.renderAsPdf()
+    // save somewhere...
+
+    const rejectionLetterName = rejectionLetterService.buildFileName({ format: "pdf" })
+    return [rejectionLetterName]
   }
 
   #getFundingRequest(fundingRequestId: number): Promise<FundingRequest> {
