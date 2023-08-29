@@ -7,7 +7,7 @@ import PersonAddress from "@/models/person-address"
 import User from "@/models/user"
 import AddressType from "@/models/address-type"
 
-export default class StudentTrainingAllowanceApprovalTemplateSerializer {
+export default class StudentTrainingAllowanceYukonUniversityApprovalTemplateSerializer {
   #fundingRequest: FundingRequest
   #signingOfficer: User
 
@@ -29,7 +29,7 @@ export default class StudentTrainingAllowanceApprovalTemplateSerializer {
     fundingRequest: FundingRequest
     signingOfficer: User
   }) {
-    const serializer = new StudentTrainingAllowanceApprovalTemplateSerializer({
+    const serializer = new StudentTrainingAllowanceYukonUniversityApprovalTemplateSerializer({
       fundingRequest,
       signingOfficer,
     })
@@ -110,14 +110,16 @@ export default class StudentTrainingAllowanceApprovalTemplateSerializer {
     if (isNil(assessment.weeksAllowed))
       throw new Error("Could not prepare template data as weeksAllowed is missing from assessment.")
 
-    if (isNil(assessment.airfareAmount))
-      throw new Error("Could not prepare template data as assessement airfaire amount is missing.")
     if (isNil(assessment.travelAllowance))
       throw new Error("Could not prepare template data as assessement travel allowance is missing.")
-    const travelAndAirFairCostInCents =
-      (assessment.airfareAmount + assessment.travelAllowance) * 100
 
-    const disbursements = this.#prepareDisbursements(this.#fundingRequest)
+    const travelAllowanceInCents = assessment.travelAllowance * 100
+
+    if (isNil(assessment.secondResidenceRate))
+      throw new Error(
+        "Could not prepare template data as assessement second residence rate is missing."
+      )
+    const secondResidenceAllowanceInCents = assessment.secondResidenceRate * 100
 
     return {
       currentDate: new Date(),
@@ -138,10 +140,9 @@ export default class StudentTrainingAllowanceApprovalTemplateSerializer {
         endDate: assessment.classesEndDate,
         institutionName,
         ratePerWeekInCents,
-        approvalWeeks: assessment.weeksAllowed,
-        travelAndAirFairCostInCents,
+        travelAllowanceInCents,
+        secondResidenceAllowanceInCents,
       },
-      disbursements,
       studentFinancialAssistanceOfficer: this.#signingOfficer,
     }
   }
@@ -180,28 +181,6 @@ export default class StudentTrainingAllowanceApprovalTemplateSerializer {
     }
 
     return primaryAddress
-  }
-
-  #prepareDisbursements(fundingRequest: FundingRequest) {
-    const disbursements = fundingRequest.disbursements
-    if (disbursements === undefined)
-      throw new Error(
-        "Could not prepare template data as disbursements are missing from funding request."
-      )
-    if (disbursements.length === 0)
-      throw new Error("Could not prepare template data as no disbursements are present.")
-
-    return disbursements.map((disbursement) => {
-      if (disbursement.disbursedAmount === undefined)
-        throw new Error(
-          "Could not prepare template data as disbursement disbursed amount is missing."
-        )
-
-      return {
-        amountInCents: disbursement.disbursedAmount * 100,
-        releaseDate: disbursement.issueDate,
-      }
-    })
   }
 
   #prepareInstitutionName(application: Application) {

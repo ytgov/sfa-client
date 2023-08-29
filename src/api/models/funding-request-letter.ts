@@ -2,18 +2,19 @@ import RequestType, { RequestTypes } from "@/models/request-type"
 import Status, { Statuses } from "@/models/status"
 
 import { FundingRequestsLettersBaseServiceConstructor } from "@/services/admin/funding-requests/letters/funding-requests-letters-base-service"
+import StudentTrainingAllowanceAlkanAirApprovalLetterService from "@/services/admin/funding-requests/letters/student-training-allowance-alkan-air-approval-letter-service"
+import StudentTrainingAllowanceRejectionLetterService from "@/services/admin/funding-requests/letters/student-training-allowance-rejection-letter-service"
+import StudentTrainingAllowanceYukonUniversityApprovalLetterService from "@/services/admin/funding-requests/letters/student-training-allowance-yukon-university-approval-letter-service"
 import YukonGrantInstitutionApprovalLetterService from "@/services/admin/funding-requests/letters/yukon-grant-institution-approval-letter-service"
 import YukonGrantStudentApprovalLetterService from "@/services/admin/funding-requests/letters/yukon-grant-student-approval-letter-service"
 import YukonGrantStudentRejectionLetterService from "@/services/admin/funding-requests/letters/yukon-grant-student-rejection-letter-service"
-import StudentTrainingAllowanceApprovalLetterService from "@/services/admin/funding-requests/letters/student-training-allowance-approval-letter-service"
-import StudentTrainingAllowanceRejectionLetterService from "@/services/admin/funding-requests/letters/student-training-allowance-rejection-letter-service"
 
 export enum TemplatePaths {
   YUKON_GRANT_INSTITUTION_APPROVAL = "./templates/admin/application-letter/approval/yukon-grant-institution",
   YUKON_GRANT_STUDENT_APPROVAL = "./templates/admin/application-letter/approval/yukon-grant-student",
   YUKON_GRANT_STUDENT_REJECTION = "./templates/admin/application-letter/rejection/yukon-grant-student",
   STUDENT_TRAINING_ALLOWANCE_YUKON_UNIVERSITY_APPROVAL = "./templates/admin/application-letter/approval/student-training-allowance-yukon-university",
-  STUDENT_TRAINING_ALLOWANCE_OTHER_INSTITUTION_APPROVAL = "./templates/admin/application-letter/approval/student-training-allowance-other-institution",
+  STUDENT_TRAINING_ALLOWANCE_ALKAN_AIR_APPROVAL = "./templates/admin/application-letter/approval/student-training-alkan-air-institution",
   STUDENT_TRAINING_ALLOWANCE_REJECTION = "./templates/admin/application-letter/rejection/student-training-allowance",
 }
 
@@ -65,18 +66,18 @@ export const FUNDING_REQUEST_LETTERS: FundingRequestLetter[] = [
     description: "Student Training Allowance - Yukon University",
     requestStatus: Status.Types.AWARDED,
     requestType: RequestType.Types.STUDENT_TRAINING_ALLOWANCE,
-    service: StudentTrainingAllowanceApprovalLetterService,
+    service: StudentTrainingAllowanceYukonUniversityApprovalLetterService,
     slug: "student-training-allowance-yukon-university-approval",
     template: TemplatePaths.STUDENT_TRAINING_ALLOWANCE_YUKON_UNIVERSITY_APPROVAL,
     type: LetterTypes.APPROVAL,
   },
   {
-    description: "Student Training Allowance - Other Institution",
+    description: "Student Training Allowance - Alkan Air",
     requestStatus: Status.Types.AWARDED,
     requestType: RequestType.Types.STUDENT_TRAINING_ALLOWANCE,
-    service: StudentTrainingAllowanceApprovalLetterService,
-    slug: "student-training-allowance-other-university-approval",
-    template: TemplatePaths.STUDENT_TRAINING_ALLOWANCE_OTHER_INSTITUTION_APPROVAL,
+    service: StudentTrainingAllowanceAlkanAirApprovalLetterService,
+    slug: "student-training-allowance-alkan-air-approval",
+    template: TemplatePaths.STUDENT_TRAINING_ALLOWANCE_ALKAN_AIR_APPROVAL,
     type: LetterTypes.APPROVAL,
   },
   {
