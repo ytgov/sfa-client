@@ -83,15 +83,15 @@ adminRouter.use("/institution", institutionRouter);
 adminRouter.use("/academic-year", acadecicYearRouter);
 adminRouter.use("/application", applicationRouter);
 adminRouter.use("/funding-requests", pathFormatMiddleware);
-adminRouter.use(
+adminRouter.get(
   "/funding-requests/:fundingRequestId/letters/:letterSlug",
   routedTo(FundingRequestsLettersController, "getLetter")
 );
-adminRouter.use(
+adminRouter.get(
   "/funding-requests/:fundingRequestId/letters",
   routedTo(FundingRequestsLettersController, "listLetters")
 );
-adminRouter.use("/funding-request-letters", routedTo(FundingRequestLettersController, "listLetters"));
+adminRouter.get("/funding-request-letters", routedTo(FundingRequestLettersController, "listLetters"));
 adminRouter.use("/assessment", assessmentRouter);
 adminRouter.use("/student", studentRouter);
 adminRouter.use("/province", provinceRouter);
