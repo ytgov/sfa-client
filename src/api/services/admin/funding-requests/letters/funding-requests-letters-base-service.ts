@@ -1,6 +1,5 @@
 import { renderViewAsPdf, renderViewAsHtml } from "@/utils/express-handlebars-pdf-client"
 
-import { LetterSlugs } from "@/models/funding-request-letter"
 import { RequestTypes } from "@/models/request-type"
 import { Statuses } from "@/models/status"
 import FundingRequest from "@/models/funding-request"
@@ -12,7 +11,7 @@ export type FundingRequestsLettersBaseServiceConstructor = new (
 
 export default class FundingRequestsLettersBaseService {
   protected fundingRequest: FundingRequest
-  protected letterSlug: LetterSlugs
+  protected letterSlug: string
   protected requestType: RequestTypes
   protected signingOfficer: User
   protected status: Statuses
@@ -27,7 +26,7 @@ export default class FundingRequestsLettersBaseService {
     director,
   }: {
     fundingRequest: FundingRequest
-    letterSlug: LetterSlugs
+    letterSlug: string
     requestType: RequestTypes
     signingOfficer: User
     status: Statuses
