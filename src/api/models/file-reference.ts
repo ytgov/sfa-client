@@ -34,3 +34,5 @@ export enum FileStatus {
   ACCEPTED = "Accepted",
   REJECTED = "Rejected",
 }
+
+export default FileReference
