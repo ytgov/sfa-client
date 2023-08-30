@@ -16,6 +16,18 @@ cslMsfaaReceiveRouter.post("/:FILE_NAME",
         const { FILE_NAME } = req.params;
         const file:any = req.files;                 
 
+        function checkValidDate(in_date_p:string, date_name_p:string) {
+            let v_check_date = "";            
+            if(in_date_p.replace(/\s/g, '') === '' || in_date_p === '00000000') {
+                return 'EMPTY';
+            } else {                
+                v_check_date = moment(in_date_p, 'YYYYMMDD').format('YYYYMMDD')
+                if(v_check_date === "Invalid date") {
+                    return 'Invalid ' + date_name_p + ' date: ' + in_date_p + '. ';
+                }
+                return null;
+            }
+        } 
         try {        
 
             let vInRecord;
@@ -30,14 +42,15 @@ cslMsfaaReceiveRouter.post("/:FILE_NAME",
 
             let textContent = file.file.data.toString('utf8');
             let linesContent = textContent.split("\n");            
-            const fileName = FILE_NAME.trim();        
+            const fileName = FILE_NAME.trim().toUpperCase();        
             let header = linesContent[0];
             let headerRecordType = header.substring(0, 3);            
             let vOriginator = header.substring(3, 7).replaceAll(' ', '');            
             let vTitle = header.substring(7, 47).replaceAll(' ', '')
             let vCreateDateTime = header.substring(47, 59);
-            let vSeqNum = header.substring(59, 65);          
-                                                         
+            let vSeqNum = header.substring(59, 65);                      
+            
+            
             if(!fileName) {
                 return res.json({flag: 0, data: 'You need to enter a filename'});                    
             } else {
@@ -108,27 +121,26 @@ cslMsfaaReceiveRouter.post("/:FILE_NAME",
                             if(vNewIssueProv === '' && vStatus === 'C') {
                                 vErrorMsg = vErrorMsg + 'New issuing provice missing for Cancelled MSFAA. ';
                             }  
-                            
-                            vValidDateMsg = await db.raw(`select sfa.fn_check_valid_date( '${vBorrowSigned}', 'Borrower Signed') AS result_date`);
-                                                        
+                                        
+                            vValidDateMsg = checkValidDate(vBorrowSigned, 'Borrower Signed');
 
-                            if(vValidDateMsg[0].result_date !== null && vValidDateMsg[0].result_date !== "EMPTY") {
-                                vErrorMsg = vErrorMsg + vValidDateMsg[0].result_date;
-                            } else if(vValidDateMsg[0].result_date === "EMPTY" && vStatus === "R") {
+                            if(vValidDateMsg !== null && vValidDateMsg !== "EMPTY") {
+                                vErrorMsg = vErrorMsg + vValidDateMsg;
+                            } else if(vValidDateMsg === "EMPTY" && vStatus === "R") {
                                 vErrorMsg = vErrorMsg + 'Borrower signed date missing for Received MSFAA. ';
                             }
-                         
-                            vValidDateMsg = await db.raw(`select sfa.fn_check_valid_date('${vSpReceived}', 'Service Provider Received') AS result_date`);  
-                            if(vValidDateMsg[0].result_date !== null && vValidDateMsg[0].result_date !== "EMPTY") {
-                                vErrorMsg = vErrorMsg + vValidDateMsg[0].result_date;
-                            } else if(vValidDateMsg[0].result_date === "EMPTY" && vStatus === "R") {
+                                                     
+                            vValidDateMsg = checkValidDate(vSpReceived, 'Service Provider Received');
+                            if(vValidDateMsg !== null && vValidDateMsg !== "EMPTY") {
+                                vErrorMsg = vErrorMsg + vValidDateMsg;
+                            } else if(vValidDateMsg === "EMPTY" && vStatus === "R") {
                                 vErrorMsg = vErrorMsg + 'Service provider received date missing for Received MSFAA. ';
                             }                          
-
-                            vValidDateMsg = await db.raw(`select sfa.fn_check_valid_date('${vCancelled}', 'Cancelled') AS result_date`); 
-                            if(vValidDateMsg[0].result_date !== null && vValidDateMsg[0].result_date !== "EMPTY") {
-                                vErrorMsg = vErrorMsg + vValidDateMsg[0].result_date;
-                            } else if(vValidDateMsg[0].result_date === "EMPTY" && vStatus === "C") {
+                            
+                            vValidDateMsg = checkValidDate(vCancelled, 'Cancelled');
+                            if(vValidDateMsg !== null && vValidDateMsg !== "EMPTY") {
+                                vErrorMsg = vErrorMsg + vValidDateMsg;
+                            } else if(vValidDateMsg === "EMPTY" && vStatus === "C") {
                                 vErrorMsg = vErrorMsg + 'Cancel date missing for Cancelled MSFAA. ';
                             }    
 
@@ -166,7 +178,7 @@ cslMsfaaReceiveRouter.post("/:FILE_NAME",
                     }                                                  
                     return res.json({flag: 1, data: 'CSL MSFAA response read complete. ' + vCount + ' records processed.', date: moment(vCreateDateTime.substring(0, 8), 'YYYYMMDD').format('YYYY-MMM-DD'), seq: vSeqNum });                    
                 }
-            }                                                 
+            }                                                       
         } catch (error: any) {
             console.log(error);
             return res.status(404).send();
@@ -179,11 +191,16 @@ cslMsfaaReceiveRouter.put("/", [],
          
         try {                       
             let vStatusDesc;
-            let vCount = 0;            
+            let vCount = 0;         
+ 
             const results = await db.select("mi.agreement_number","mi.sin", "mi.status_code", "mi.borrower_signed_date", "mi.sp_received_date", "mi.new_issue_prov", "mi.cancel_date")
             .from("sfa.msfaa_import AS mi")                    
-            .innerJoin("sfa.msfaa AS m", "m.id", "=", "mi.agreement_number")
-            .whereNull("error_message");                         
+            .innerJoin("sfa.msfaa AS m", function() {
+                this.on("m.id", "=", db.raw("CAST(mi.agreement_number AS int)"))
+            })
+            .whereNull("error_message")
+            .andWhere("m.id", "=", db.raw("CAST(mi.agreement_number AS int)"));                
+
             for(let res of results) {
                 switch(res.status_code){
                     case  "R":
@@ -249,24 +266,16 @@ async (req: Request, res: Response) => {
           'mi.new_issue_prov',
           'mi.cancel_date',
           db.raw(
-            `CASE
-              WHEN (
-                SELECT TOP 1 p.FIRST_NAME + ' ' + p.LAST_NAME 
-                FROM sfa.STUDENT s 
-                INNER JOIN sfa.PERSON p ON s.person_id = p.id 
-                WHERE p.SIN = MI.SIN
-              ) IS NULL THEN ' No Student Match'
-              ELSE ''
-            END +
-            CASE
-              WHEN (
-                SELECT TOP 1 id 
-                FROM sfa.msfaa 
-                WHERE id = CONVERT(INT, mi.agreement_number)
-              ) IS NULL THEN ' No MSFAA Match'
-              ELSE ''
-            END as error_message`
-          ),
+            `ISNULL(MI.error_message + 
+                CASE 
+                    WHEN EXISTS (SELECT 1 FROM sfa.person p2  WHERE SIN = MI.SIN) THEN ''
+                    ELSE ' No Student Match'
+                END +
+                CASE 
+                    WHEN EXISTS (SELECT 1 FROM sfa.person p2 WHERE id = CONVERT(INT, MI.agreement_number)) THEN ''
+                    ELSE ' No MSFAA Match'
+                END, '') as error_message`
+          ),          
           db.raw(
             `(SELECT TOP 1 p.FIRST_NAME + ' ' + p.LAST_NAME 
               FROM sfa.STUDENT s 
