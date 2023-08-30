@@ -15,7 +15,7 @@ export enum TemplatePaths {
   YUKON_GRANT_STUDENT_APPROVAL = "./templates/admin/application-letter/approval/yukon-grant-student",
   YUKON_GRANT_STUDENT_REJECTION = "./templates/admin/application-letter/rejection/yukon-grant-student",
   STUDENT_TRAINING_ALLOWANCE_YUKON_UNIVERSITY_APPROVAL = "./templates/admin/application-letter/approval/student-training-allowance-yukon-university",
-  STUDENT_TRAINING_ALLOWANCE_ALKAN_AIR_APPROVAL = "./templates/admin/application-letter/approval/student-training-alkan-air-institution",
+  STUDENT_TRAINING_ALLOWANCE_ALKAN_AIR_APPROVAL = "./templates/admin/application-letter/approval/student-training-allowance-alkan-air",
   STUDENT_TRAINING_ALLOWANCE_REJECTION = "./templates/admin/application-letter/rejection/student-training-allowance",
 }
 
