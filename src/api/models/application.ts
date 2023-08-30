@@ -168,19 +168,19 @@ export default interface Application_ {
   isChequesToInstitution: boolean;
 
   // Relations
-  agencyAssistances?: AgencyAssistance[]
-  attendance?: Attendance
-  expenses?: Expense[]
-  fundingRequests?: FundingRequest[]
-  incomes?: Income[]
-  institutionCampus?: InstitutionCampus
-  parentDependents?: ParentDependent[]
-  primaryAddress?: PersonAddress
-  program?: Program
-  spouse?: Person
-  spouseStudyEmpolymentStatus?: PrestudyEmploymentStatus
-  student?: Student
-  studyArea?: StudyArea
+  agencyAssistances?: AgencyAssistance[];
+  attendance?: Attendance;
+  expenses?: Expense[];
+  fundingRequests?: FundingRequest[];
+  incomes?: Income[];
+  institutionCampus?: InstitutionCampus;
+  parentDependents?: ParentDependent[];
+  primaryAddress?: PersonAddress;
+  program?: Program;
+  spouse?: Person;
+  spouseStudyEmpolymentStatus?: PrestudyEmploymentStatus;
+  student?: Student;
+  studyArea?: StudyArea;
 }
 
 export interface Application {
@@ -547,6 +547,7 @@ export function FundingFromDraft(draft: any): any[] {
       let application_type_id = 1;
       let csfa_amounts = draft.funding_sources.csfa_amounts || "";
       let loan_amount = draft.funding_sources.csfa_loan_amount;
+      let yea_request_amount = draft.funding_sources.yea_amount;
 
       if (source == "Canada Student Financial Assistance (Full-Time)") application_type_id = 2;
       else if (source == "Canada Student Financial Assistance (Part-Time)") application_type_id = 3;
@@ -595,6 +596,7 @@ export function FundingFromDraft(draft: any): any[] {
           csl_request_amount: application_type_id == 2 ? cleanNumber(loan_amount) : 0,
           is_csl_full_amount: application_type_id == 2 && csfa_amounts == "Full amount loans and grants",
           is_csg_only: csfa_amounts == "Grants only",
+          yea_request_amount,
         });
     }
   }
@@ -639,8 +641,8 @@ export function StudentFromDraft(draft: any): any {
       studentUpdate.high_school_id = educations[0].school;
     }
 
-    studentUpdate.high_school_left_year = educations[0].left_high_school.split("/")[0];
-    studentUpdate.high_school_left_month = educations[0].left_high_school.split("/")[1];
+    studentUpdate.high_school_left_year = parseInt(educations[0].left_high_school.split("/")[0]);
+    studentUpdate.high_school_left_month = parseInt(educations[0].left_high_school.split("/")[1]);
     studentUpdate.is_crown_ward = draft.statistical.crown_ward;
 
     if (!isInteger(studentUpdate.high_school_id)) {
@@ -649,12 +651,20 @@ export function StudentFromDraft(draft: any): any {
     }
 
     if (!isInteger(studentUpdate.high_school_left_year)) {
-      console.log("Data format error: studentUpdate.high_school_left_year", educations[0].left_high_school);
+      console.log(
+        "Data format error: studentUpdate.high_school_left_year",
+        studentUpdate.high_school_left_year,
+        educations[0].left_high_school
+      );
       delete studentUpdate.high_school_left_year;
     }
 
     if (!isInteger(studentUpdate.high_school_left_month)) {
-      console.log("Data format error: studentUpdate.high_school_left_month", educations[0].left_high_school);
+      console.log(
+        "Data format error: studentUpdate.high_school_left_month",
+        studentUpdate.high_school_left_month,
+        educations[0].left_high_school
+      );
       delete studentUpdate.high_school_left_month;
     }
   }
