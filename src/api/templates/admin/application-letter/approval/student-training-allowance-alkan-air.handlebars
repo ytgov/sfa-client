@@ -1,0 +1,109 @@
+<div>
+  <div class="header">
+    <p class="date">{{momentDateFormat currentDate "DD MMM YYYY"}}</p>
+  </div>
+
+  <p class="address">
+    {{recipient.firstName}}
+    {{recipient.initials}}
+    {{recipient.lastName}}
+    <br />
+    {{recipient.address1}}
+    {{#if recipient.address2}}
+      <br />
+      {{recipient.address2}}
+    {{/if}}
+    <br />
+    {{recipient.city}},
+    {{recipient.province}}
+    <br />
+    {{recipient.country}},
+    {{recipient.postalCode}}
+  </p>
+
+  <p class="saluation">
+    Dear
+    {{recipient.firstName}}:
+  </p>
+
+  <p>
+    I am pleased to inform you that your Student Training Allowance (STA) application has been
+    approved as follows:
+  </p>
+
+  <p>
+    <span class="flex justify-between">
+      <strong>Program: {{program.name}}</strong>
+      <span>
+        <strong>Start Date:</strong>
+        <span class="ml-4">{{momentDateFormat program.startDate "MMM Do, YYYY"}}</span>
+      </span>
+    </span>
+    <span class="flex justify-between">
+      <strong>Institution: {{program.institutionName}}</strong>
+      <span>
+        <strong>End Date:</strong>
+        <span class="ml-4">{{momentDateFormat program.endDate "MMM Do, YYYY"}}</span>
+      </span>
+    </span>
+    <span class="flex mt-1"></span>
+    <span>
+      <strong style="inline-block w-[150px]">Rate per Week:</strong>
+      <span>{{centsToDollarString program.ratePerWeekInCents}}</span>
+    </span>
+    <br />
+    <span>
+      <strong style="inline-block w-[150px]">Travel Allowance:</strong>
+      <span>{{centsToDollarString program.travelAllowanceInCents}}</span>
+    </span>
+    <br />
+    <span>
+      <strong style="inline-block w-[150px]">2<sup>nd</sup> Residence Allowance:</strong>
+      <span>{{centsToDollarString program.secondResidenceAllowanceInCents}}</span>
+    </span>
+  </p>
+
+  <p>
+    This funding covers the study period indicated above, up to a maximum of 40 weeks per academic
+    year. If your application was received more than 14 days after the start of your classes, your
+    start date above will reflect the date that your completed application was received.
+  </p>
+
+  <div>
+    <strong>Your responsibilities:</strong>
+
+    <ul>
+      <li>Ensure the information above regarding your funding is accurate.</li>
+      <li>Before your program begins, provide banking information for direct deposit to Yukon
+        Student Financial Assistance (SFA) by submitting a Direct Deposit Authorization Form
+        including your direct deposit information to
+        <a href="mailto:sfa@yukon.ca">sfa@yukon.ca</a>. You can download the Authorization Form at
+        <a
+          href="http://yukon.ca/en/direct-deposit-authorziation-form"
+        >http://yukon.ca/en/direct-deposit-authorziation-form</a>.</li>
+      <li>If you stop attending classes, drop to part-time, or withdraw from classes, inform our
+        office or Alkan Air to avoid having to pay back any STA.</li>
+      <li>If you are or will be receiving financial assistance from any other source, check with our
+        office to avoid having to pay back any STA.</li>
+      <li>Yukon SFA will send you an email with the process required for confirming your regular
+        attendance at {{program.institutionName}}.
+      </li>
+    </ul>
+  </div>
+
+  <p>
+    Sincerely,
+  </p>
+  <p class="mt-10">
+    {{studentFinancialAssistanceOfficer.firstName}}
+    {{studentFinancialAssistanceOfficer.lastName}}
+    <br />
+    {{#if studentFinancialAssistanceOfficer.position}}
+      {{studentFinancialAssistanceOfficer.position}}
+    {{else}}
+      Student Financial Services Officer
+    {{/if}}
+    <br />
+    Department of Education, Government of Yukon
+  </p>
+</div>

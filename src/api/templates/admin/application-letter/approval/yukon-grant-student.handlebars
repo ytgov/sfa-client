@@ -46,39 +46,51 @@
         <span class="ml-4">{{momentDateFormat program.endDate "MMM Do, YYYY"}}</span>
       </span>
     </span>
-    <span class="flex mt-1"></span>
-    <span>
-      <strong style="inline-block w-[150px]">Rate per Week:</strong>
-      <span>{{centsToDollarString program.ratePerWeekInCents}}</span>
-    </span>
-    <br />
-    <span>
-      <strong style="inline-block w-[150px]">Approv. Weeks:</strong>
-      <span>{{program.approvalWeeks}}</span>
-    </span>
-    <br />
-    <span>
-      <strong style="inline-block w-[150px]">Travel/Airfare:</strong>
-      <span>{{centsToDollarString program.travelAndAirFairCostInCents}}</span>
-    </span>
+
+    {{#each assessments}}
+      <span class="flex mt-1"></span>
+      {{#if (hasManyElements @root.assessments)}}
+        {{#if @first}}
+        <span class="flex">Current Assessment</span>
+        {{else}}
+        <span class="flex">Previous Assessment: {{momentDateFormat this.assessedDate "MMM Do, YYYY"}}</span>
+        {{/if}}
+      {{/if}}
+      <span>
+        <strong style="inline-block w-[150px]">Rate per Week:</strong>
+        <span>{{centsToDollarString this.ratePerWeekInCents}}</span>
+      </span>
+      <br />
+      <span>
+        <strong style="inline-block w-[150px]">Approv. Weeks:</strong>
+        <span>{{this.approvalWeeks}}</span>
+      </span>
+      <br />
+      <span>
+        <strong style="inline-block w-[150px]">Travel/Airfare:</strong>
+        <span>{{centsToDollarString this.travelAndAirFairCostInCents}}</span>
+      </span>
+    {{/each}}
   </p>
 
-  <table class="">
-    <thead>
-      <tr>
-        <th>Disbursements<span class="ml-4"></span></th>
-        <th>Issue Date - Based on confirmed enrollment before each semester</th>
-      </tr>
-    </thead>
-    <tbody>
-      {{#each disbursements}}
+  {{#if disbursements}}
+    <table class="">
+      <thead>
         <tr>
-          <td>{{centsToDollarString this.amountInCents}}</td>
-          <td>{{momentDateFormatDefault this.releaseDate "MMM YYYY" "Upon confirmation"}}</td>
+          <th>Disbursements<span class="ml-4"></span></th>
+          <th>Issue Date - Based on confirmed enrollment before each semester</th>
         </tr>
-      {{/each}}
-    </tbody>
-  </table>
+      </thead>
+      <tbody>
+        {{#each disbursements}}
+          <tr>
+            <td>{{centsToDollarString this.amountInCents}}</td>
+            <td>{{momentDateFormatDefault this.releaseDate "MMM YYYY" "Upon confirmation"}}</td>
+          </tr>
+        {{/each}}
+      </tbody>
+    </table>
+  {{/if}}
 
   <p>
     If any of the above information is incorrect or you withdraw from full-time studies or drop to

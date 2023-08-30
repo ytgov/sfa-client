@@ -1,16 +1,16 @@
 import { TemplatePaths } from "@/models/funding-request-letter"
 
-import YukonGrantStudentRejectionTemplateSerializer from "@/serializers/funding-requests/letters/yukon-grant-student-rejection-template-serializer"
+import StudentTrainingAllowanceRejectionTemplateSerializer from "@/serializers/funding-requests/letters/student-training-allowance-rejection-template-serializer"
 
 import FundingRequestsLettersBaseService from "@/services/admin/funding-requests/letters/funding-requests-letters-base-service"
 
-export default class YukonGrantStudentRejectionLetterService extends FundingRequestsLettersBaseService {
+export default class StudentTrainingAllowanceRejectionLetterService extends FundingRequestsLettersBaseService {
   getTemplatePath(): string {
-    return TemplatePaths.YUKON_GRANT_STUDENT_REJECTION
+    return TemplatePaths.STUDENT_TRAINING_ALLOWANCE_REJECTION
   }
 
   serializeForTemplate() {
-    return YukonGrantStudentRejectionTemplateSerializer.prepare({
+    return StudentTrainingAllowanceRejectionTemplateSerializer.prepare({
       fundingRequest: this.fundingRequest,
       signingOfficer: this.signingOfficer,
       director: this.director,
@@ -27,6 +27,6 @@ export default class YukonGrantStudentRejectionLetterService extends FundingRequ
 
     // See https://xkcd.com/1179/ -> https://en.wikipedia.org/wiki/ISO_8601 for date format
     const formattedDate = new Date().toISOString().slice(0, 10) // YYYYY-MM-DD
-    return `YG_Rejection_Letter_${lastName}_${firstName}.${format}`
+    return `STA_Rejection_Letter_${lastName}_${firstName}.${format}`
   }
 }

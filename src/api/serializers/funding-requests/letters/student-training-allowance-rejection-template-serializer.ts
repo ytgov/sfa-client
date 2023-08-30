@@ -7,7 +7,7 @@ import PersonAddress from "@/models/person-address"
 import User from "@/models/user"
 import AddressType from "@/models/address-type"
 
-export default class YukonGrantStudentRejectionTemplateSerializer {
+export default class StudentTrainingAllowanceRejectionTemplateSerializer {
   #fundingRequest: FundingRequest
   #signingOfficer: User
   #director: User
@@ -35,7 +35,7 @@ export default class YukonGrantStudentRejectionTemplateSerializer {
     signingOfficer: User
     director: User
   }) {
-    const serializer = new YukonGrantStudentRejectionTemplateSerializer({
+    const serializer = new StudentTrainingAllowanceRejectionTemplateSerializer({
       fundingRequest,
       signingOfficer,
       director,

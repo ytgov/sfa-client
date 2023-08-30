@@ -18,6 +18,8 @@ export interface FileReferenceBase {
   person_id?: number;
   dependent_id?: number;
   disability_requirement_id?: number;
+  funding_request_id?: number;
+  visible_in_portal: boolean;
 
   status_description?: string;
 }
@@ -32,3 +34,5 @@ export enum FileStatus {
   ACCEPTED = "Accepted",
   REJECTED = "Rejected",
 }
+
+export default FileReference

@@ -2,11 +2,13 @@
   <v-menu
     v-model="menu"
     :close-on-content-click="false"
-    :nudge-width="200"
     offset-y
     dense
     max-width="500px"
-    min-width="400px"
+    min-width="500px"
+    transition="slide-y-transition"
+    bottom
+    right
   >
     <template v-slot:activator="{ on, attrs }" class="text-left">
       <v-btn class="my-0" color="primary" v-bind="attrs" v-on="on" block>
@@ -16,7 +18,49 @@
     </template>
 
     <v-card>
-      <v-list dense>
+      <v-toolbar dense color="#bbb" flat>
+        {{ type }}
+        <v-row justify="space-between" class="">
+          <v-btn-toggle group color="primary">
+            <!-- <v-btn title="Download">
+              <v-icon>mdi-download</v-icon>
+            </v-btn>
+
+            <v-btn title="Preview">
+              <v-icon>mdi-eye</v-icon>
+            </v-btn>
+
+            <v-btn title="Delete">
+              <v-icon>mdi-delete</v-icon>
+            </v-btn> -->
+          </v-btn-toggle>
+
+          <v-spacer />
+          <v-btn-toggle group color="primary">
+            <v-btn title="Upload" @click="showUpload = !showUpload">
+              Upload
+            </v-btn>
+            <v-btn @click="printLetterClick(item, 'student')">
+              Generate
+            </v-btn>
+          </v-btn-toggle>
+        </v-row>
+      </v-toolbar>
+
+      <div class="d-flex pa-2" v-if="showUpload">
+        <v-file-input
+          v-model="selectedFile"
+          dense
+          outlined
+          background-color="white"
+          hide-details
+          label="Choose file"
+          prepend-icon=""
+        ></v-file-input>
+        <v-btn icon fab color="primary" small class="ml-3" @click="uploadClick"><v-icon>mdi-upload</v-icon></v-btn>
+      </div>
+
+      <!--       <v-list dense>
         <v-list-item>
           <v-list-item-content class="pb-0">
             <v-list-item-title>
@@ -29,8 +73,8 @@
                   class="mb-3 mr-1 ml-4"
                   @click="printLetterClick(item, 'student')"
                 >
-                  Generate Student Letter
-                </v-btn><br>
+                  Generate Student Letter </v-btn
+                ><br />
                 <v-btn
                   :disabled="canPrintLetter"
                   dense
@@ -38,12 +82,13 @@
                   color="success"
                   class="mb-0 mr-1 ml-4"
                   @click="printLetterClick(item, 'institution')"
+                  v-if="isYukonGrant"
                 >
                   Generate Institution Letter
                 </v-btn>
-              </div>
 
-              {{ type }}
+                
+              </div>
             </v-list-item-title>
 
             <v-list-item-subtitle> </v-list-item-subtitle>
@@ -51,15 +96,23 @@
             <v-spacer></v-spacer>
           </v-list-item-content>
         </v-list-item>
-      </v-list>
+      </v-list> -->
 
       <v-divider></v-divider>
 
-      <v-list two-line dense>
+      <v-list lines dense class="py-0">
+        <v-list-item v-if="letters.length == 0">
+          <v-list-item-content>
+            <v-list-item-title>No saved letters</v-list-item-title>
+          </v-list-item-content>
+        </v-list-item>
+
         <div v-for="(letter, idx) of letters">
           <v-list-item two-line>
             <v-list-item-content>
-              <v-list-item-title class="mb-0 pb-0">{{ letter.title }}</v-list-item-title>
+              <v-list-item-title class="mb-0 pb-0"
+                >{{ letter.file_name }} - ({{ formatDate(letter.upload_date) }})</v-list-item-title
+              >
               <v-list-item-subtitle class="mt-0 pt-0 d-flex">
                 <a @click="previewLetterClick(letter)" class="mr-5">
                   <v-icon small color="primary">mdi-eye</v-icon> Preview</a
@@ -80,7 +133,7 @@
               </v-list-item-subtitle>
             </v-list-item-content>
           </v-list-item>
-          <v-divider></v-divider>
+          <v-divider v-if="idx < letters.length - 1"></v-divider>
         </div>
       </v-list>
     </v-card>
@@ -89,7 +142,8 @@
 
 <script>
 import axios from "axios";
-import { APPLICATION_LETTER_URL, APPLICATION_URL, FUNDING_REQUESTS_URL } from "../../urls";
+import moment from "moment";
+import { APPLICATION_URL, FUNDING_REQUESTS_URL } from "../../urls";
 
 export default {
   props: ["item", "type"],
@@ -98,6 +152,8 @@ export default {
     fundingTypeOptions: [],
     letters: [],
     assessments: [],
+    showUpload: false,
+    selectedFile: null,
   }),
   watch: {
     async menu(n) {
@@ -114,6 +170,9 @@ export default {
       const printableStatuses = [6, 7, 4]; // Awarded, Rejected, Qualified
       return !printableStatuses.includes(this.item.status_id);
     },
+    isYukonGrant() {
+      return this.item.request_type_id == 2;
+    },
   },
   methods: {
     async loadAssessments() {
@@ -126,26 +185,58 @@ export default {
         .catch();
     },
     async loadLetters() {
-      /* axios
-        .get(`${APPLICATION_LETTER_URL}/${this.item.application_id}/list/${this.item.id}`)
+      axios
+        .get(`${APPLICATION_URL}/${this.item.application_id}/funding-request/${this.item.id}/letters`)
         .then((resp) => {
-          console.log("LETTERS", resp);
-          this.letters = resp.data;
+          console.log("LETTERS", resp.data.data);
+          this.letters = resp.data.data;
         })
-        .catch(); */
-      /*  this.letters = [
+        .catch();
+      /* this.letters = [
         { title: "Student Letter (Generated 2023-08-25)", canPublish: true },
         { title: "Institution Letter", canPublish: false },
       ]; */
     },
+    formatDate(input) {
+      if (input) return moment.utc(input).format("YYYY-MM-DD");
+      return "";
+    },
 
-    previewLetterClick(item) {},
-    downloadLetterClick(item) {},
-    publishLetterClick(item) {},
-    emailLetterClick(item) {},
-    deleteLetterClick(item) {
-      console.log("DELETE LETTER", item);
-      this.menu = false;
+    async uploadClick() {
+      if (this.selectedFile) {
+        let body = new FormData();
+        body.append("file", this.selectedFile);
+
+        axios
+          .post(`${APPLICATION_URL}/${this.item.application_id}/funding-request/${this.item.id}/letter-upload`, body, {
+            headers: { "Content-Type": "multipart/form-data" },
+          })
+          .then((resp) => {
+            this.loadLetters();
+            this.selectedFile = null;
+          });
+      }
+    },
+
+    previewLetterClick(letter) {},
+    downloadLetterClick(letter) {
+      let documentUrl = `${APPLICATION_URL}/${this.item.application_id}/funding-request/${this.item.id}/letters/${letter.object_key}`;
+      window.open(documentUrl);
+    },
+    publishLetterClick(letter) {},
+    emailLetterClick(letter) {},
+    deleteLetterClick(letter) {
+      console.log("DELETE LETTER", letter);
+
+      axios
+        .delete(
+          `${APPLICATION_URL}/${this.item.application_id}/funding-request/${this.item.id}/letters/${letter.object_key}`
+        )
+        .then((resp) => {
+          this.loadLetters();
+        });
+
+      //this.menu = false;
     },
 
     printLetterClick(item, letterSlug) {
@@ -153,10 +244,18 @@ export default {
       // See /api/v2/admin/funding-requests/:fundingRequestId/letters for status -> slug options
 
       let approvalLetterUrl = `${FUNDING_REQUESTS_URL}/${fundingRequestId}/letters/${letterSlug}.pdf`;
+      approvalLetterUrl = `${FUNDING_REQUESTS_URL}/${fundingRequestId}/letters`;
 
-      //let approvalLetterUrl = `${APPLICATION_LETTER_URL}/${this.item.application_id}/approval/${item.id}`;
+      //http://localhost:3000/api/v2/admin/funding-requests/265/letters
 
-      window.open(approvalLetterUrl);
+      axios.post(approvalLetterUrl).then(async (resp) => {
+        // window.open(URL.createObjectURL(resp.data));
+
+        await this.loadLetters();
+
+        //let approvalLetterUrl = `${APPLICATION_LETTER_URL}/${this.item.application_id}/approval/${item.id}`;
+      });
+      //window.open(approvalLetterUrl);
 
       /* axios.get(approvalLetterUrl, { responseType: "blob" }).then((resp) => {
         window.open(URL.createObjectURL(resp.data));

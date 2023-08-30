@@ -1,4 +1,4 @@
-import { isArray, isEmpty, isNil, sortBy } from "lodash"
+import { isArray, isNil, last, sortBy } from "lodash"
 
 import Application from "@/models/application"
 import FundingRequest from "@/models/funding-request"
@@ -7,7 +7,7 @@ import PersonAddress from "@/models/person-address"
 import User from "@/models/user"
 import AddressType from "@/models/address-type"
 
-export default class YukonGrantStudentApprovalTemplateSerializer {
+export default class StudentTrainingAllowanceAlkanAirApprovalTemplateSerializer {
   #fundingRequest: FundingRequest
   #signingOfficer: User
 
@@ -29,7 +29,7 @@ export default class YukonGrantStudentApprovalTemplateSerializer {
     fundingRequest: FundingRequest
     signingOfficer: User
   }) {
-    const serializer = new YukonGrantStudentApprovalTemplateSerializer({
+    const serializer = new StudentTrainingAllowanceAlkanAirApprovalTemplateSerializer({
       fundingRequest,
       signingOfficer,
     })
@@ -77,18 +77,49 @@ export default class YukonGrantStudentApprovalTemplateSerializer {
     if (studyArea === undefined)
       throw new Error("Could not prepare template data as study area is missing from application.")
 
-    if (isNil(application.classesStartDate))
+    const assessments = this.#fundingRequest.assessments
+    if (assessments === undefined)
       throw new Error(
-        "Could not prepare template data as classesStartDate is missing from application."
+        "Could not prepare template data as assessments is missing from funding request."
       )
-    if (isNil(application.classesEndDate))
-      throw new Error(
-        "Could not prepare template data as classesEndDate is missing from application."
+    if (assessments.length > 1)
+      console.warn(
+        "More than one assessment detected for funding request. This system state has not been investigated."
       )
 
-    const serializedAssessments = this.#prepareAssessments(this.#fundingRequest)
+    const assessment = last(sortBy(assessments, ["assessedDate"]))
+    if (assessment === undefined)
+      throw new Error(
+        "Could not prepare template data as assessment is missing from funding request."
+      )
+    if (isNil(assessment.classesStartDate))
+      throw new Error(
+        "Could not prepare template data as classesStartDate is missing from studyArea."
+      )
+    if (isNil(assessment.classesEndDate))
+      throw new Error(
+        "Could not prepare template data as classesEndDate is missing from studyArea."
+      )
+
     const institutionName = this.#prepareInstitutionName(application)
-    const serializedDisbursements = this.#prepareDisbursements(this.#fundingRequest)
+
+    if (isNil(assessment.weeklyAmount))
+      throw new Error("Could not prepare template data as assessement weekly amount is missing.")
+    const ratePerWeekInCents = assessment.weeklyAmount * 100
+
+    if (isNil(assessment.weeksAllowed))
+      throw new Error("Could not prepare template data as weeksAllowed is missing from assessment.")
+
+    if (isNil(assessment.travelAllowance))
+      throw new Error("Could not prepare template data as assessement travel allowance is missing.")
+
+    const travelAllowanceInCents = assessment.travelAllowance * 100
+
+    if (isNil(assessment.secondResidenceRate))
+      throw new Error(
+        "Could not prepare template data as assessement second residence rate is missing."
+      )
+    const secondResidenceAllowanceInCents = assessment.secondResidenceRate * 100
 
     return {
       currentDate: new Date(),
@@ -105,77 +136,15 @@ export default class YukonGrantStudentApprovalTemplateSerializer {
       },
       program: {
         name: studyArea.description,
-        startDate: application.classesStartDate,
-        endDate: application.classesEndDate,
-        institutionName,
-      },
-      assessments: serializedAssessments,
-      disbursements: serializedDisbursements,
-      studentFinancialAssistanceOfficer: this.#signingOfficer,
-    }
-  }
-
-  #prepareAssessments(
-    fundingRequest: FundingRequest
-  ): {
-    assessedDate: Date
-    startDate: Date
-    endDate: Date
-    approvalWeeks: number
-    ratePerWeekInCents: number
-    travelAndAirFairCostInCents: number
-  }[] {
-    const assessments = this.#fundingRequest.assessments
-    if (isNil(assessments) || isEmpty(assessments)) return []
-
-    const sortedAssessments = sortBy(assessments, ["assessedDate"]).reverse()
-
-    const serializedAssessments = sortedAssessments.map((assessment) => {
-      if (isNil(assessment.assessedDate))
-        throw new Error(
-          "Could not prepare template data as assessedDate is missing from assessment."
-        )
-      if (isNil(assessment.classesStartDate))
-        throw new Error(
-          "Could not prepare template data as classesStartDate is missing from assessement."
-        )
-      if (isNil(assessment.classesEndDate))
-        throw new Error(
-          "Could not prepare template data as classesEndDate is missing from assessement."
-        )
-      if (isNil(assessment.weeksAllowed))
-        throw new Error(
-          "Could not prepare template data as weeksAllowed is missing from assessment."
-        )
-
-      if (isNil(assessment.weeklyAmount))
-        throw new Error(
-          "Could not prepare template data as assessement weekly amount is missing from assessment."
-        )
-      const ratePerWeekInCents = assessment.weeklyAmount * 100
-
-      if (isNil(assessment.airfareAmount))
-        throw new Error(
-          "Could not prepare template data as assessement airfaire amount is missing."
-        )
-      if (isNil(assessment.travelAllowance))
-        throw new Error(
-          "Could not prepare template data as assessement travel allowance is missing."
-        )
-      const travelAndAirFairCostInCents =
-        (assessment.airfareAmount + assessment.travelAllowance) * 100
-
-      return {
-        assessedDate: assessment.assessedDate,
         startDate: assessment.classesStartDate,
         endDate: assessment.classesEndDate,
-        approvalWeeks: assessment.weeksAllowed,
+        institutionName,
         ratePerWeekInCents,
-        travelAndAirFairCostInCents,
-      }
-    })
-
-    return serializedAssessments
+        travelAllowanceInCents,
+        secondResidenceAllowanceInCents,
+      },
+      studentFinancialAssistanceOfficer: this.#signingOfficer,
+    }
   }
 
   // CONSIDER: Generalizing this function, as it used in several serializers.
@@ -212,23 +181,6 @@ export default class YukonGrantStudentApprovalTemplateSerializer {
     }
 
     return primaryAddress
-  }
-
-  #prepareDisbursements(fundingRequest: FundingRequest) {
-    const disbursements = fundingRequest.disbursements
-    if (isNil(disbursements) || isEmpty(disbursements)) return []
-
-    return disbursements.map((disbursement) => {
-      if (disbursement.disbursedAmount === undefined)
-        throw new Error(
-          "Could not prepare template data as disbursement disbursed amount is missing."
-        )
-
-      return {
-        amountInCents: disbursement.disbursedAmount * 100,
-        releaseDate: disbursement.issueDate,
-      }
-    })
   }
 
   #prepareInstitutionName(application: Application) {

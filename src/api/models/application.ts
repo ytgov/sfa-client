@@ -1,185 +1,186 @@
-import AgencyAssistance from "@/models/agency-assistance"
-import Attendance from "@/models/attendance"
-import Expense from "@/models/expense"
-import FundingRequest from "@/models/funding-request"
-import HighSchool from "@/models/high-school"
-import Income from "@/models/income"
-import InstitutionCampus from "@/models/institution-campus"
-import ParentDependent from "@/models/parent-dependent"
-import Person from "@/models/person"
-import PersonAddress from "@/models/person-address"
-import PrestudyEmploymentStatus from "@/models/prestudy-employment-status"
-import Program from "@/models/program"
-import Student from "@/models/student"
-import StudyArea from "@/models/study-area"
+import AgencyAssistance from "@/models/agency-assistance";
+import Attendance from "@/models/attendance";
+import Expense from "@/models/expense";
+import FundingRequest from "@/models/funding-request";
+import HighSchool from "@/models/high-school";
+import Income from "@/models/income";
+import InstitutionCampus from "@/models/institution-campus";
+import ParentDependent from "@/models/parent-dependent";
+import Person from "@/models/person";
+import PersonAddress from "@/models/person-address";
+import PrestudyEmploymentStatus from "@/models/prestudy-employment-status";
+import Program from "@/models/program";
+import Student from "@/models/student";
+import StudyArea from "@/models/study-area";
+import { isInteger } from "lodash";
 
 // Application with standard JS naming conventions
 // trailing underscore to avoid conflicting with legacy Application format
 export default interface Application_ {
-  id: number
-  studentId: number
-  academicYearId: number
-  institutionCampusId?: number
-  studyAreaId?: number
-  programId?: number
-  aboriginalStatusId?: number
-  maritalStatusId?: number
-  categoryId?: number
-  firstNationId?: number
-  spouseId?: number
-  parent1Id?: number
-  parent2Id?: number
-  primaryAddressId?: number
-  parent1RelationshipId?: number
-  parent2RelationshipId?: number
-  parent1Income?: number
-  parent1NetIncome?: number
-  parent1TaxPaid?: number
-  parent2Income?: number
-  parent2NetIncome?: number
-  parent2TaxPaid?: number
-  schoolEmail?: string
-  schoolTelephone?: string
-  spouseHsEndYear?: number
-  spouseHsEndMonth?: number
-  spousePrestudyEmpStatusId?: number
-  spousePstudySchoolFrom?: Date
-  spousePstudySchoolTo?: Date
-  spousePstudyIncomeComment?: string
-  spouseStudyEmpStatusId?: number
-  spouseStudySchoolFrom?: Date
-  spouseStudySchoolTo?: Date
-  isSpouseStudyCsl: boolean
-  isSpouseStudyBus: boolean
-  spouseStudyDistance?: number
-  spouseStudyIncomeComment?: string
-  classesStartDate?: Date
-  classesEndDate?: Date
-  isCorrespondence: boolean
-  isCoopPaid: boolean
-  citizenshipStatus?: number
-  isDisabled: boolean
-  isMinority: boolean
-  studentNumber?: string
-  programYearTotal?: number
-  programYear?: number
-  isTwoResidence: boolean
-  isMoving: boolean
-  cslClassification?: number
-  cslPreviousProvinceId?: number
-  programDivisionExplanation?: string
-  prestudyAccomCode?: number
-  prestudyOwnHome: boolean
-  prestudyBoardAmount?: number
-  prestudyCityId?: number
-  prestudyProvinceId?: number
-  prestudyBus: boolean
-  prestudyDistance?: number
-  prestudyEmployStatusId?: number
-  prestudyEmployedFromDate?: Date
-  prestudyEmployedToDate?: Date
-  prestudyEmployerName?: string
-  prestudyEmployerCityId?: number
-  prestudyEmployerProvinceId?: number
-  studyAccomCode?: number
-  studyOwnHome: boolean
-  studyBoardAmount?: number
-  studyCityId?: number
-  studyProvinceId?: number
-  studyBus: boolean
-  studyDistance?: number
-  statInfoComment?: string
-  booksSuppliesCost?: number
-  outstandingCslptAmount?: number
-  previousCsgPtAmount?: number
-  percentOfFullTime?: number
-  isPartOfFt: boolean
-  studyWeeksCount?: number
-  classHoursPerWeek?: number
-  parentResidenceComment?: string
-  studyLivingWSpouse: boolean
-  prestudyLivingWSpouse: boolean
-  tuitionEstimateAmount?: number
-  programDivision?: number
-  isPreviousCslft: boolean
-  isPreviousCslpt: boolean
-  coopStartYear?: number
-  coopStartMonth?: number
-  coopEndYear?: number
-  coopEndMonth?: number
-  excludeFromCount: boolean
-  isPermDisabled: boolean
-  disabledEquipment?: string
-  previousCsgDisabilityAmount?: number
-  previousCsgFemDocAmount?: number
-  creditChkReqdDate?: Date
-  creditChkFaxSentDate?: Date
-  creditChkPassedDate?: Date
-  creditChkPassed: boolean
-  creditChkAppealDate?: Date
-  creditChkAppCompDate?: Date
-  creditChkAppComp: boolean
-  creditChkCompDate?: Date
-  cslClearanceDate?: Date
-  prestudyCslClassification?: number
-  yeaTotReceiptAmount?: number
-  academicPercent?: number
-  cslRestrictionComment?: string
-  inProgressPage?: number
-  onlineStartDate?: Date
-  onlineSubmitDate?: Date
-  remTransitionGrantYears?: number
-  studentLn150Income?: number
-  spouseLn150Income?: number
-  taxes1FiledYear?: number
-  taxes2FiledYear?: number
-  taxes1FiledProvinceId?: number
-  taxes2FiledProvinceId?: number
-  taxes1NotFiled: boolean
-  taxes2NotFiled: boolean
-  taxes1Verified: boolean
-  taxes2Verified: boolean
-  appliedOtherFunding: boolean
-  cslRestrictionWarnId?: number
-  cslRestrictionReasonId?: number
-  coursesPerWeek?: number
-  prestudyStartDate?: Date
-  prestudyEndDate?: Date
-  validDriverLicense?: boolean
-  validDriverLicenseComment?: string
-  validYhcip?: boolean
-  validYhcipComment?: string
-  attendanceId?: number
-  hasConsentToShareData: boolean
-  permanentDisability: boolean
-  persOrProlongDisability: boolean
-  disabilityStartDate?: Date
-  requiresCreditCheck: boolean
-  lastCheckedOn?: Date
-  seen: boolean
-  updatedAt?: Date
-  lastJurisdictionId?: number
-  otherJurisdiction?: string
-  spouseLastJurisdictionId?: number
-  spouseOtherJurisdiction?: string
-  isPersistDisabled: boolean
-  persistDisabledStartDate?: Date
-  isChequesToInstitution: boolean
+  id: number;
+  studentId: number;
+  academicYearId: number;
+  institutionCampusId?: number;
+  studyAreaId?: number;
+  programId?: number;
+  aboriginalStatusId?: number;
+  maritalStatusId?: number;
+  categoryId?: number;
+  firstNationId?: number;
+  spouseId?: number;
+  parent1Id?: number;
+  parent2Id?: number;
+  primaryAddressId?: number;
+  parent1RelationshipId?: number;
+  parent2RelationshipId?: number;
+  parent1Income?: number;
+  parent1NetIncome?: number;
+  parent1TaxPaid?: number;
+  parent2Income?: number;
+  parent2NetIncome?: number;
+  parent2TaxPaid?: number;
+  schoolEmail?: string;
+  schoolTelephone?: string;
+  spouseHsEndYear?: number;
+  spouseHsEndMonth?: number;
+  spousePrestudyEmpStatusId?: number;
+  spousePstudySchoolFrom?: Date;
+  spousePstudySchoolTo?: Date;
+  spousePstudyIncomeComment?: string;
+  spouseStudyEmpStatusId?: number;
+  spouseStudySchoolFrom?: Date;
+  spouseStudySchoolTo?: Date;
+  isSpouseStudyCsl: boolean;
+  isSpouseStudyBus: boolean;
+  spouseStudyDistance?: number;
+  spouseStudyIncomeComment?: string;
+  classesStartDate?: Date;
+  classesEndDate?: Date;
+  isCorrespondence: boolean;
+  isCoopPaid: boolean;
+  citizenshipStatus?: number;
+  isDisabled: boolean;
+  isMinority: boolean;
+  studentNumber?: string;
+  programYearTotal?: number;
+  programYear?: number;
+  isTwoResidence: boolean;
+  isMoving: boolean;
+  cslClassification?: number;
+  cslPreviousProvinceId?: number;
+  programDivisionExplanation?: string;
+  prestudyAccomCode?: number;
+  prestudyOwnHome: boolean;
+  prestudyBoardAmount?: number;
+  prestudyCityId?: number;
+  prestudyProvinceId?: number;
+  prestudyBus: boolean;
+  prestudyDistance?: number;
+  prestudyEmployStatusId?: number;
+  prestudyEmployedFromDate?: Date;
+  prestudyEmployedToDate?: Date;
+  prestudyEmployerName?: string;
+  prestudyEmployerCityId?: number;
+  prestudyEmployerProvinceId?: number;
+  studyAccomCode?: number;
+  studyOwnHome: boolean;
+  studyBoardAmount?: number;
+  studyCityId?: number;
+  studyProvinceId?: number;
+  studyBus: boolean;
+  studyDistance?: number;
+  statInfoComment?: string;
+  booksSuppliesCost?: number;
+  outstandingCslptAmount?: number;
+  previousCsgPtAmount?: number;
+  percentOfFullTime?: number;
+  isPartOfFt: boolean;
+  studyWeeksCount?: number;
+  classHoursPerWeek?: number;
+  parentResidenceComment?: string;
+  studyLivingWSpouse: boolean;
+  prestudyLivingWSpouse: boolean;
+  tuitionEstimateAmount?: number;
+  programDivision?: number;
+  isPreviousCslft: boolean;
+  isPreviousCslpt: boolean;
+  coopStartYear?: number;
+  coopStartMonth?: number;
+  coopEndYear?: number;
+  coopEndMonth?: number;
+  excludeFromCount: boolean;
+  isPermDisabled: boolean;
+  disabledEquipment?: string;
+  previousCsgDisabilityAmount?: number;
+  previousCsgFemDocAmount?: number;
+  creditChkReqdDate?: Date;
+  creditChkFaxSentDate?: Date;
+  creditChkPassedDate?: Date;
+  creditChkPassed: boolean;
+  creditChkAppealDate?: Date;
+  creditChkAppCompDate?: Date;
+  creditChkAppComp: boolean;
+  creditChkCompDate?: Date;
+  cslClearanceDate?: Date;
+  prestudyCslClassification?: number;
+  yeaTotReceiptAmount?: number;
+  academicPercent?: number;
+  cslRestrictionComment?: string;
+  inProgressPage?: number;
+  onlineStartDate?: Date;
+  onlineSubmitDate?: Date;
+  remTransitionGrantYears?: number;
+  studentLn150Income?: number;
+  spouseLn150Income?: number;
+  taxes1FiledYear?: number;
+  taxes2FiledYear?: number;
+  taxes1FiledProvinceId?: number;
+  taxes2FiledProvinceId?: number;
+  taxes1NotFiled: boolean;
+  taxes2NotFiled: boolean;
+  taxes1Verified: boolean;
+  taxes2Verified: boolean;
+  appliedOtherFunding: boolean;
+  cslRestrictionWarnId?: number;
+  cslRestrictionReasonId?: number;
+  coursesPerWeek?: number;
+  prestudyStartDate?: Date;
+  prestudyEndDate?: Date;
+  validDriverLicense?: boolean;
+  validDriverLicenseComment?: string;
+  validYhcip?: boolean;
+  validYhcipComment?: string;
+  attendanceId?: number;
+  hasConsentToShareData: boolean;
+  permanentDisability: boolean;
+  persOrProlongDisability: boolean;
+  disabilityStartDate?: Date;
+  requiresCreditCheck: boolean;
+  lastCheckedOn?: Date;
+  seen: boolean;
+  updatedAt?: Date;
+  lastJurisdictionId?: number;
+  otherJurisdiction?: string;
+  spouseLastJurisdictionId?: number;
+  spouseOtherJurisdiction?: string;
+  isPersistDisabled: boolean;
+  persistDisabledStartDate?: Date;
+  isChequesToInstitution: boolean;
 
   // Relations
-  agencyAssistances?: AgencyAssistance[]
-  attendance?: Attendance
-  expenses?: Expense[]
-  fundingRequests?: FundingRequest[]
-  incomes?: Income[]
-  institutionCampus: InstitutionCampus
-  parentDependents?: ParentDependent[]
-  primaryAddress?: PersonAddress
-  program?: Program
-  spouse?: Person
-  spouseStudyEmpolymentStatus?: PrestudyEmploymentStatus
-  student?: Student
-  studyArea?: StudyArea
+  agencyAssistances?: AgencyAssistance[];
+  attendance?: Attendance;
+  expenses?: Expense[];
+  fundingRequests?: FundingRequest[];
+  incomes?: Income[];
+  institutionCampus?: InstitutionCampus;
+  parentDependents?: ParentDependent[];
+  primaryAddress?: PersonAddress;
+  program?: Program;
+  spouse?: Person;
+  spouseStudyEmpolymentStatus?: PrestudyEmploymentStatus;
+  student?: Student;
+  studyArea?: StudyArea;
 }
 
 export interface Application {
@@ -546,6 +547,7 @@ export function FundingFromDraft(draft: any): any[] {
       let application_type_id = 1;
       let csfa_amounts = draft.funding_sources.csfa_amounts || "";
       let loan_amount = draft.funding_sources.csfa_loan_amount;
+      let yea_request_amount = draft.funding_sources.yea_amount;
 
       if (source == "Canada Student Financial Assistance (Full-Time)") application_type_id = 2;
       else if (source == "Canada Student Financial Assistance (Part-Time)") application_type_id = 3;
@@ -594,6 +596,7 @@ export function FundingFromDraft(draft: any): any[] {
           csl_request_amount: application_type_id == 2 ? cleanNumber(loan_amount) : 0,
           is_csl_full_amount: application_type_id == 2 && csfa_amounts == "Full amount loans and grants",
           is_csg_only: csfa_amounts == "Grants only",
+          yea_request_amount,
         });
     }
   }
@@ -633,14 +636,37 @@ export function StudentFromDraft(draft: any): any {
 
   if (educations) {
     if (educations[0].school === -1) {
-      studentUpdate.high_school_id = HighSchool.SpecialTypes.NOT_LISTED
+      studentUpdate.high_school_id = HighSchool.SpecialTypes.NOT_LISTED;
     } else {
       studentUpdate.high_school_id = educations[0].school;
     }
 
-    studentUpdate.high_school_left_year = educations[0].left_high_school.split("/")[0];
-    studentUpdate.high_school_left_month = educations[0].left_high_school.split("/")[1];
+    studentUpdate.high_school_left_year = parseInt(educations[0].left_high_school.split("/")[0]);
+    studentUpdate.high_school_left_month = parseInt(educations[0].left_high_school.split("/")[1]);
     studentUpdate.is_crown_ward = draft.statistical.crown_ward;
+
+    if (!isInteger(studentUpdate.high_school_id)) {
+      console.log("Data format error: studentUpdate.high_school_id", educations[0].school);
+      delete studentUpdate.high_school_id;
+    }
+
+    if (!isInteger(studentUpdate.high_school_left_year)) {
+      console.log(
+        "Data format error: studentUpdate.high_school_left_year",
+        studentUpdate.high_school_left_year,
+        educations[0].left_high_school
+      );
+      delete studentUpdate.high_school_left_year;
+    }
+
+    if (!isInteger(studentUpdate.high_school_left_month)) {
+      console.log(
+        "Data format error: studentUpdate.high_school_left_month",
+        studentUpdate.high_school_left_month,
+        educations[0].left_high_school
+      );
+      delete studentUpdate.high_school_left_month;
+    }
   }
 
   return studentUpdate;
