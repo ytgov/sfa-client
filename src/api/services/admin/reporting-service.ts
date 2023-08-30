@@ -5,28 +5,29 @@ import moment from "moment";
 export default class ReportingService {
   static async runFundingStatusReport({ years }: FundingStatusReportParams): Promise<any[]> {
     let results = await db.raw(
-      `SELECT sfa.person.first_name 'First Name', 
-      sfa.person.last_name 'Last Name', 
-      sfa.marital_status.description 'Student Category', 
+      `SELECT person.first_name 'First Name', 
+      person.last_name 'Last Name', 
+      person.email 'Email', 
+      marital_status.description 'Student Category', 
       request_type.description 'Grant Type',
-      sfa.status.description 'Application Status', 
-      sfa.institution.name 'Institution Name', 
-      sfa.application.academic_year_id 'Application Year',
+      status.description 'Application Status', 
+      institution.name 'Institution Name', 
+      application.academic_year_id 'Application Year',
       status_date 'Status Change Date', 
       funding_request.received_date 'Received Date'
     FROM sfa.funding_request
-      INNER JOIN sfa.status ON sfa.funding_request.status_id = sfa.status.id
-      INNER JOIN sfa.request_type ON sfa.request_type.id = sfa.funding_request.request_type_id
-      INNER JOIN sfa.application ON sfa.funding_request.application_id = sfa.application.id
-      INNER JOIN sfa.student ON sfa.application.student_id = sfa.student.id
-      INNER JOIN sfa.person ON sfa.student.person_id = sfa.person.id
-      INNER JOIN sfa.institution_campus ON sfa.application.institution_campus_id = sfa.institution_campus.id
-      INNER JOIN sfa .institution ON sfa.institution_campus.institution_id = sfa.institution.id
-      INNER JOIN sfa.marital_status ON sfa.application.marital_status_id = sfa.marital_status.id
-    WHERE sfa.application.academic_year_id IN (` +
+      INNER JOIN sfa.status ON funding_request.status_id = status.id
+      INNER JOIN sfa.request_type ON request_type.id = funding_request.request_type_id
+      INNER JOIN sfa.application ON funding_request.application_id = application.id
+      INNER JOIN sfa.student ON application.student_id = student.id
+      INNER JOIN sfa.person ON student.person_id = person.id
+      INNER JOIN sfa.institution_campus ON application.institution_campus_id = institution_campus.id
+      INNER JOIN sfa .institution ON institution_campus.institution_id = institution.id
+      INNER JOIN sfa.marital_status ON application.marital_status_id = marital_status.id
+    WHERE application.academic_year_id IN (` +
         years.join(",") +
         `)
-    ORDER BY sfa.person.last_name, sfa.person.first_name, sfa.status.description, sfa.request_type.description, sfa.application.academic_year_id
+    ORDER BY person.last_name, person.first_name, status.description, request_type.description, application.academic_year_id
     `
     );
 
