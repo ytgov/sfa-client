@@ -931,6 +931,8 @@ applicationRouter.delete(
         return res.status(404).send({ messages: [{ variant: "error", text: "The record does not exits" }] });
       }
 
+      await db("sfa.disbursement").where({ funding_request_id: id }).del();
+      await db("sfa.assessment").where({ funding_request_id: id }).del();
       const deleteRecord: any = await db("sfa.funding_request").where({ id: id }).del();
 
       return deleteRecord > 0
