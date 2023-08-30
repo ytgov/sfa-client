@@ -1,3 +1,5 @@
+import { uniq } from "lodash"
+
 import RequestType, { RequestTypes } from "@/models/request-type"
 import Status, { Statuses } from "@/models/status"
 
@@ -8,7 +10,6 @@ import StudentTrainingAllowanceYukonUniversityApprovalLetterService from "@/serv
 import YukonGrantInstitutionApprovalLetterService from "@/services/admin/funding-requests/letters/yukon-grant-institution-approval-letter-service"
 import YukonGrantStudentApprovalLetterService from "@/services/admin/funding-requests/letters/yukon-grant-student-approval-letter-service"
 import YukonGrantStudentRejectionLetterService from "@/services/admin/funding-requests/letters/yukon-grant-student-rejection-letter-service"
-import { uniq } from "lodash"
 
 export enum TemplatePaths {
   YUKON_GRANT_INSTITUTION_APPROVAL = "./templates/admin/application-letter/approval/yukon-grant-institution",
