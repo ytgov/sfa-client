@@ -244,10 +244,18 @@ export default {
       // See /api/v2/admin/funding-requests/:fundingRequestId/letters for status -> slug options
 
       let approvalLetterUrl = `${FUNDING_REQUESTS_URL}/${fundingRequestId}/letters/${letterSlug}.pdf`;
+      approvalLetterUrl = `${FUNDING_REQUESTS_URL}/${fundingRequestId}/letters`;
 
-      //let approvalLetterUrl = `${APPLICATION_LETTER_URL}/${this.item.application_id}/approval/${item.id}`;
+      //http://localhost:3000/api/v2/admin/funding-requests/265/letters
 
-      window.open(approvalLetterUrl);
+      axios.post(approvalLetterUrl).then(async (resp) => {
+        // window.open(URL.createObjectURL(resp.data));
+
+        await this.loadLetters();
+
+        //let approvalLetterUrl = `${APPLICATION_LETTER_URL}/${this.item.application_id}/approval/${item.id}`;
+      });
+      //window.open(approvalLetterUrl);
 
       /* axios.get(approvalLetterUrl, { responseType: "blob" }).then((resp) => {
         window.open(URL.createObjectURL(resp.data));

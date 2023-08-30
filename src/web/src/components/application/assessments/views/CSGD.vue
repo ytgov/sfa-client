@@ -6,36 +6,18 @@
           <v-card-title class="col-xs-12 col-lg-8">Assessment - CSGD</v-card-title>
           <div class="col-xs-12 col-lg-4 nopadding d-flex">
             <div class="col-xs-4 col-sm-4">
-              <v-btn 
-                :disabled="showAdd"
-                dense
-                color="green" 
-                class="my-0"
-                block
-              >
-              SAVE
+              <v-btn :disabled="showAdd" dense color="green" class="my-0" block>
+                SAVE
               </v-btn>
             </div>
             <div class="col-xs-4 col-sm-4">
-              <v-btn 
-                :disabled="showAdd"
-                dense
-                color="orange" 
-                class="my-0"
-                block
-              >
-              CANCEL
+              <v-btn :disabled="showAdd" dense color="orange" class="my-0" block>
+                CANCEL
               </v-btn>
             </div>
             <div class="col-xs-4 col-sm-4">
-              <v-btn 
-                :disabled="showAdd"
-                dense
-                color="red" 
-                class="my-0"
-                block
-              >
-              EXIT
+              <v-btn :disabled="showAdd" dense color="red" class="my-0" block>
+                EXIT
               </v-btn>
             </div>
           </div>
@@ -60,7 +42,7 @@
                         <v-text-field
                           :disabled="showAdd"
                           v-model="assesst_date"
-                          label="Assesssed Date"
+                          label="Assessed Date"
                           append-icon="mdi-calendar"
                           hide-details
                           readonly
@@ -116,68 +98,68 @@
                 <div class="col-xs-12 col-lg-4 nopadding">
                   <div class="col-xs-12 col-lg-12">
                     <v-menu
-                        :disabled="showAdd"
-                        v-model="classes_start_date_menu"
-                        :close-on-content-click="false"
-                        transition="scale-transition"
-                        left
-                        nudge-top="26"
-                        offset-y
-                        min-width="auto"
-                      >
-                        <template v-slot:activator="{ on, attrs }">
-                          <v-text-field
-                            :disabled="showAdd"
-                            v-model="classes_start_date"
-                            label="Classes Start Date"
-                            append-icon="mdi-calendar"
-                            hide-details
-                            readonly
-                            outlined
-                            dense
-                            background-color="white"
-                            v-bind="attrs"
-                            v-on="on"
-                          ></v-text-field>
-                        </template>
-                        <v-date-picker
+                      :disabled="showAdd"
+                      v-model="classes_start_date_menu"
+                      :close-on-content-click="false"
+                      transition="scale-transition"
+                      left
+                      nudge-top="26"
+                      offset-y
+                      min-width="auto"
+                    >
+                      <template v-slot:activator="{ on, attrs }">
+                        <v-text-field
                           :disabled="showAdd"
-                          v-model="classes_start_date"
-                          @input="classes_start_date_menu = false"
-                        ></v-date-picker>
+                          v-model="application.classes_start_date"
+                          label="Classes Start Date"
+                          append-icon="mdi-calendar"
+                          hide-details
+                          readonly
+                          outlined
+                          dense
+                          background-color="white"
+                          v-bind="attrs"
+                          v-on="on"
+                        ></v-text-field>
+                      </template>
+                      <v-date-picker
+                        :disabled="showAdd"
+                        v-model="application.classes_start_date"
+                        @input="classes_start_date_menu = false"
+                      ></v-date-picker>
                     </v-menu>
                   </div>
                   <div class="col-xs-12 col-lg-12">
                     <v-menu
-                        :disabled="showAdd"
-                        v-model="classes_end_date_menu"
-                        :close-on-content-click="false"
-                        transition="scale-transition"
-                        left
-                        nudge-top="26"
-                        offset-y
-                        min-width="auto"
-                      >
-                        <template v-slot:activator="{ on, attrs }">
-                          <v-text-field
-                            :disabled="showAdd"
-                            v-model="classes_start_date"
-                            label="Classes End Date"
-                            append-icon="mdi-calendar"
-                            hide-details
-                            readonly
-                            outlined
-                            dense
-                            background-color="white"
-                            v-bind="attrs"
-                            v-on="on"
-                          ></v-text-field>
-                        </template>
-                        <v-date-picker
+                      :disabled="showAdd"
+                      v-model="classes_end_date_menu"
+                      :close-on-content-click="false"
+                      transition="scale-transition"
+                      left
+                      nudge-top="26"
+                      offset-y
+                      min-width="auto"
+                    >
+                      <template v-slot:activator="{ on, attrs }">
+                        <v-text-field
                           :disabled="showAdd"
-                          v-model="classes_end_date"
-                          @input="classes_end_date_menu = false"
-                        ></v-date-picker>
+                          v-model="application.classes_start_date"
+                          label="Classes End Date"
+                          append-icon="mdi-calendar"
+                          hide-details
+                          readonly
+                          outlined
+                          dense
+                          background-color="white"
+                          v-bind="attrs"
+                          v-on="on"
+                        ></v-text-field>
+                      </template>
+                      <v-date-picker
+                        :disabled="showAdd"
+                        v-model="application.classes_end_date"
+                        @input="classes_end_date_menu = false"
+                      ></v-date-picker>
                     </v-menu>
                   </div>
                 </div>
@@ -188,7 +170,7 @@
                       dense
                       background-color="white"
                       hide-details
-                      label="Study Week"
+                      label="Study Weeks"
                       @keypress="validate.isNumber($event)"
                       v-model="study_week"
                     ></v-text-field>
@@ -288,7 +270,7 @@
               <div class="col-xs-12 col-sm-4 col-lg-4 nopadding d-flex flex-wrap not-displayed-sx"></div>
               <div class="col-xs-12 col-sm-8 col-lg-8 nopadding d-flex flex-wrap">
                 <div class="col-lg-12 d-flex align-center justify-center line-jump-height">
-                  <H3 class="nomargin nopadding">Last 2 CDGD Awards</H3>
+                  <H3 class="nomargin nopadding">Last 2 CSGD Awards</H3>
                 </div>
               </div>
             </div>
@@ -296,156 +278,155 @@
               <div class="col-xs-12 col-lg-4 nopadding d-flex flex-wrap">
                 <div class="col-xs-12 col-lg-12">
                   <v-text-field
-                      outlined
-                      dense
-                      background-color="white"
-                      hide-details
-                      label="Student Income"
-                      @keypress="validate.isNumber($event)"
-                      v-model="student_income"
-                    ></v-text-field>
+                    outlined
+                    dense
+                    background-color="white"
+                    hide-details
+                    label="Student Income"
+                    @keypress="validate.isNumber($event)"
+                    v-model="student_income"
+                  ></v-text-field>
                 </div>
                 <div class="col-xs-12 col-lg-12">
                   <v-text-field
-                      outlined
-                      dense
-                      background-color="white"
-                      hide-details
-                      label="Spouse Income"
-                      @keypress="validate.isNumber($event)"
-                      v-model="spouse_income"
-                    ></v-text-field>
+                    outlined
+                    dense
+                    background-color="white"
+                    hide-details
+                    label="Spouse Income"
+                    @keypress="validate.isNumber($event)"
+                    v-model="spouse_income"
+                  ></v-text-field>
                 </div>
                 <div class="col-xs-12 col-lg-12">
                   <v-text-field
-                      outlined
-                      dense
-                      background-color="white"
-                      hide-details
-                      label="Parent 1 Income"
-                      @keypress="validate.isNumber($event)"
-                      v-model="parent_1_income"
-                    ></v-text-field>
+                    outlined
+                    dense
+                    background-color="white"
+                    hide-details
+                    label="Parent 1 Income"
+                    @keypress="validate.isNumber($event)"
+                    v-model="parent_1_income"
+                  ></v-text-field>
                 </div>
                 <div class="col-xs-12 col-lg-12">
                   <v-text-field
-                      outlined
-                      dense
-                      background-color="white"
-                      hide-details
-                      label="Parent 2 Income"
-                      @keypress="validate.isNumber($event)"
-                      v-model="parent_2_income"
-                    ></v-text-field>
+                    outlined
+                    dense
+                    background-color="white"
+                    hide-details
+                    label="Parent 2 Income"
+                    @keypress="validate.isNumber($event)"
+                    v-model="parent_2_income"
+                  ></v-text-field>
                 </div>
                 <div class="col-xs-12 col-lg-12">
                   <div class="nopadding padding-top border-top"></div>
                   <v-text-field
-                      outlined
-                      dense
-                      class="padding-top"
-                      background-color="white"
-                      hide-details
-                      label="Family Income"
-                      @keypress="validate.isNumber($event)"
-                      v-model="family_income"
-                    ></v-text-field>
+                    outlined
+                    dense
+                    class="padding-top"
+                    background-color="white"
+                    hide-details
+                    label="Family Income"
+                    @keypress="validate.isNumber($event)"
+                    v-model="family_income"
+                  ></v-text-field>
                 </div>
               </div>
               <div class="col-xs-12 col-lg-4 nopadding">
                 <div class="col-xs-12 col-lg-12">
                   <v-menu
-                      :disabled="showAdd"
-                      v-model="issued_date_menu"
-                      :close-on-content-click="false"
-                      transition="scale-transition"
-                      left
-                      nudge-top="26"
-                      offset-y
-                      min-width="auto"
-                    >
-                      <template v-slot:activator="{ on, attrs }">
-                        <v-text-field
-                          :disabled="showAdd"
-                          v-model="issued_date"
-                          label="Issued Date"
-                          append-icon="mdi-calendar"
-                          hide-details
-                          readonly
-                          outlined
-                          dense
-                          background-color="white"
-                          v-bind="attrs"
-                          v-on="on"
-                        ></v-text-field>
-                      </template>
-                      <v-date-picker
+                    :disabled="showAdd"
+                    v-model="issued_date_menu"
+                    :close-on-content-click="false"
+                    transition="scale-transition"
+                    left
+                    nudge-top="26"
+                    offset-y
+                    min-width="auto"
+                  >
+                    <template v-slot:activator="{ on, attrs }">
+                      <v-text-field
                         :disabled="showAdd"
                         v-model="issued_date"
-                        @input="issued_date_menu = false"
-                      ></v-date-picker>
-                    </v-menu>
+                        label="Issued Date"
+                        append-icon="mdi-calendar"
+                        hide-details
+                        readonly
+                        outlined
+                        dense
+                        background-color="white"
+                        v-bind="attrs"
+                        v-on="on"
+                      ></v-text-field>
+                    </template>
+                    <v-date-picker
+                      :disabled="showAdd"
+                      v-model="issued_date"
+                      @input="issued_date_menu = false"
+                    ></v-date-picker>
+                  </v-menu>
                 </div>
                 <div class="col-xs-12 col-lg-12">
                   <v-menu
-                      :disabled="showAdd"
-                      v-model="issued_date_menu"
-                      :close-on-content-click="false"
-                      transition="scale-transition"
-                      left
-                      nudge-top="26"
-                      offset-y
-                      min-width="auto"
-                    >
-                      <template v-slot:activator="{ on, attrs }">
-                        <v-text-field
-                          :disabled="showAdd"
-                          v-model="issued_date"
-                          label="Issued Date"
-                          append-icon="mdi-calendar"
-                          hide-details
-                          readonly
-                          outlined
-                          dense
-                          background-color="white"
-                          v-bind="attrs"
-                          v-on="on"
-                        ></v-text-field>
-                      </template>
-                      <v-date-picker
+                    :disabled="showAdd"
+                    v-model="issued_date_menu"
+                    :close-on-content-click="false"
+                    transition="scale-transition"
+                    left
+                    nudge-top="26"
+                    offset-y
+                    min-width="auto"
+                  >
+                    <template v-slot:activator="{ on, attrs }">
+                      <v-text-field
                         :disabled="showAdd"
                         v-model="issued_date"
-                        @input="issued_date_menu = false"
-                      ></v-date-picker>
-                    </v-menu>
+                        label="Issued Date"
+                        append-icon="mdi-calendar"
+                        hide-details
+                        readonly
+                        outlined
+                        dense
+                        background-color="white"
+                        v-bind="attrs"
+                        v-on="on"
+                      ></v-text-field>
+                    </template>
+                    <v-date-picker
+                      :disabled="showAdd"
+                      v-model="issued_date"
+                      @input="issued_date_menu = false"
+                    ></v-date-picker>
+                  </v-menu>
                 </div>
               </div>
               <div class="col-xs-12 col-lg-4 nopadding">
                 <div class="col-xs-12 col-lg-12">
                   <v-text-field
-                      outlined
-                      dense
-                      background-color="white"
-                      hide-details
-                      label="Amount"
-                      @keypress="validate.isNumber($event)"
-                      v-model="amount"
-                    ></v-text-field>
+                    outlined
+                    dense
+                    background-color="white"
+                    hide-details
+                    label="Amount"
+                    @keypress="validate.isNumber($event)"
+                    v-model="amount"
+                  ></v-text-field>
                 </div>
                 <div class="col-xs-12 col-lg-12">
                   <v-text-field
-                      outlined
-                      dense
-                      background-color="white"
-                      hide-details
-                      label="Amount"
-                      @keypress="validate.isNumber($event)"
-                      v-model="amount"
-                    ></v-text-field>
+                    outlined
+                    dense
+                    background-color="white"
+                    hide-details
+                    label="Amount"
+                    @keypress="validate.isNumber($event)"
+                    v-model="amount"
+                  ></v-text-field>
                 </div>
               </div>
             </div>
-            
           </div>
           <div class="col-xs-12 col-lg-5 nopadding right-block-container">
             <div class="not-displayed-lg"></div>
@@ -453,25 +434,19 @@
               <div class="col-sm-6 col-lg-7 nopadding d-flex flex-wrap">
                 <div class="col-xs-12 col-lg-12">
                   <v-text-field
-                      outlined
-                      dense
-                      background-color="white"
-                      hide-details
-                      label="Assessed Need"
-                      @keypress="validate.isNumber($event)"
-                      v-model="assessed_need"
+                    outlined
+                    dense
+                    background-color="white"
+                    hide-details
+                    label="Assessed Need"
+                    @keypress="validate.isNumber($event)"
+                    v-model="assessed_need"
                   ></v-text-field>
                 </div>
               </div>
               <div class="col-xs-12 col-sm-4 col-lg-5">
-                <v-btn 
-                  :disabled="showAdd"
-                  dense
-                  color="blue" 
-                  class="my-0"
-                  block
-                >
-                RE-CALC
+                <v-btn :disabled="showAdd" dense color="blue" class="my-0" block>
+                  RE-CALC
                 </v-btn>
               </div>
             </div>
@@ -524,14 +499,8 @@
               </div>
               <div class="col-sm-4 col-lg-5 d-flex nopadding line-jump-height align-center low-margin">
                 <div class="col-xs-12 col-lg-12 height-fit-content mobile-noppading-top">
-                  <v-btn 
-                    :disabled="showAdd"
-                    dense
-                    color="blue" 
-                    class="my-0"
-                    block
-                  >
-                  DISBURSE
+                  <v-btn :disabled="showAdd" dense color="blue" class="my-0" block>
+                    DISBURSE
                   </v-btn>
                 </div>
               </div>
@@ -644,228 +613,72 @@
         </div>
       </v-card>
     </div>
+
+TET{{ test }}
   </div>
-      
-
-        
-
-
-
-
-
-
-
-
-
-
-
-
-        
-
-
 </template>
 <script>
-import store from "../../../store";
 import validator from "@/validator";
+import { mapState } from "vuex";
 export default {
   name: "Home",
+  data: () => ({
+    showAdd: false,
+
+    assessed_date: null,
+    assessed_date_menu: false,
+
+    effective_rate_date: null,
+    effective_rate_date_menu: false,
+
+    classes_start_date: null,
+    classes_start_date_menu: false,
+
+    classes_end_date: null,
+    classes_end_date_menu: false,
+
+    issued_date: null,
+    issued_date_menu: false,
+
+    allowed_weeks: null,
+    disabled: null,
+    study_months: null,
+    travel_allowance: null,
+    no_of_dependents: null,
+    student_category: null,
+    student_income: null,
+    spouse_income: null,
+
+    study_week: null,
+    assesst_date: null,
+    family_size: null,
+    disbursement_type: null,
+    issue_date: null,
+    due_date: null,
+    disbursed_amt: null,
+    reference_number: null,
+    previous_disbursement: null,
+    no_of_disbursements: null,
+    assessed_amount: null,
+    assessed_need: null,
+    amount: null,
+    family_income: null,
+    parent_1_income: null,
+    parent_2_income: null,
+  }),
   computed: {
-    application: function () {
-      return store.getters.selectedApplication;
-    },
+    ...mapState({ application: "selectedApplication" }),
+    ...mapState("csgDisabilityStore", ["test"])
   },
   async created() {
-    this.validate = validator;
+    /* this.validate = validator;
     this.applicationId = this.$route.params.id;
     let storeApp = store.getters.selectedApplication;
     if (this.applicationId != storeApp.HISTORY_DETAIL_ID) {
       await store.dispatch("loadApplication", this.applicationId);
     }
-    store.dispatch("setAppSidebar", true);
-  }
+
+    store.dispatch("setAppSidebar", true); */
+  },
 };
 </script>
-<style>
-  .nopadding {
-    padding: 0 !important;
-  }
-  .nopadding-lr {
-    padding-left: 0 !important;
-    padding-right: 0 !important;
-  }
-  .noppading-bottom {
-    padding-bottom: 0 !important;
-  }
-  .noppading-top {
-    padding-top: 0 !important;
-  }
-  .nopadding-left {
-    padding-left: 0 !important;
-  }
-  .noppading-right {
-    padding-right: 0 !important;
-  }
-  .padding-top{
-    padding-top: 17px !important;
-  }
-  .equalize-heights {
-    height: 40px;
-  }
-  .border-top {
-    border-top: 3px solid #ccc;
-  }
-  .nomargin {
-    margin: 0 !important;
-  }
-  .border-container{
-    border-radius: 4px;
-    border: 1px solid #ccc;
-  }
-  .w-auto{
-    min-width: unset !important;
-    width: 100%;
-  }
-  .bg-color-blue{
-    background-color: #E2F1FD !important;
-  }
-  .low-margin{
-    margin-bottom: 20px !important;
-  }
-  .low-marginx2{
-    margin-bottom: 40px !important;
-  }
-  .txtarea-width{
-    width: 97.6% !important;
-  }
-  .line-jump-height{
-    height: 64px;
-  }
-  .v-btn:not(.v-btn--round).v-size--default{
-    padding: 0 8px !important;
-  }
-  .csgd-assessment .right-block-container > div{
-    border-left: 0px;
-  }
-  .csgd-assessment .right-block-container{
-    border-left: 1px solid #ccc;
-    margin-bottom: 20px;
-  }
-  .not-displayed-lg{
-    display: none;
-  }
-  .v-card__title{
-    font-weight: bold !important;
-    font-size: 1.65rem !important;
-  }
-  .height-fit-content{
-    height: fit-content !important;
-  }
-  .justify-end{
-    justify-content: flex-end !important;
-  }
-  .justify-start{
-    justify-content: flex-start !important;
-  }
-  .justify-center{
-    justify-content: center !important;
-  }
-  .csgd-assessment .right-block-container img{
-    max-height: 80px !important;
-    padding-right: 10px;
-  }
-  .csgd-assessment .right-block-container{
-    margin-top: 64px;
-  }
-  @media (max-width: 1263px) {
-    .csgd-assessment .right-block-container{
-      margin-top: 0px;
-    }
-    .csgd-assessment .right-block-container{
-      border-left: 0px;
-    }
-    .v-card__title{
-      font-size: 1.25rem !important;
-    }
-    .not-displayed-lg{
-      display: block;
-      height: 0px;
-      margin: 20px 15px;
-    }
-    .csgd-assessment .right-block-container .not-displayed-lg{
-      border-top: 1px solid #ccc;
-    }
-    .not-displayed-sx-md,
-    .d-flex.not-displayed-sx-md{
-      display: none;
-    }
-    .not-displayed-sx-md,
-    .d-flex.not-displayed-sx-md{
-      height: 0px !important;
-      padding: 0px !important;
-
-    }
-  }
-  @media (max-width: 599px){
-    .mobile-custom-border{
-      padding: 10px !important;
-      margin: 10px;
-      border: 2px solid #ccc;
-      border-radius: 5px;;
-    }
-    .mobile-custom-border-2{
-      padding: 10px !important;
-      margin: 10px;
-      border: 2px solid #ccc;
-      border-radius: 5px;;
-    }
-    .mobile-custom-border::after{
-      content: '';
-      position: relative;
-      left: 43%;
-      top: 16px;
-      width: 0;
-      height: 0;
-      border-left: 20px solid transparent;
-      border-right: 20px solid transparent;
-      border-top: 15px solid #ccc;
-      clear: both;
-    }
-    .nopadding-left{
-      padding-left: 14px !important;
-    }
-    .mobile-noppading-top{
-      padding-top: 0px !important;
-    }
-    .mobile-noppading-bottom{
-      padding-bottom: 0px !important;
-    }
-    .not-displayed-sx,
-    .d-flex.not-displayed-sx{
-      display: none;
-    }
-    .not-displayed-sx,
-    .d-flex.not-displayed-sx{
-      height: 0px !important;
-      padding: 0px !important;
-      width: 0px !important;
-    }
-    .mobile-column-flex{
-      flex-direction: column;
-    }
-    .mobile-low-margin{
-      margin-bottom: 20px !important;
-    }
-    .mobile-top-margin{
-      margin-top: 20px !important;
-    }
-    .clss-st-date-re-order{
-      order: 2;
-    }
-    .clss-en-date-re-order{
-      order: 3;
-    }
-    .help-txt-re-order{
-      order: 1;
-    }
-  }
-</style>

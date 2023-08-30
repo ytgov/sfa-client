@@ -73,6 +73,9 @@ import cslft from "@/modules/cslft/store";
 import csgft from "@/modules/csgft/store";
 import sta from "@/modules/sta/store";
 
+// Assessment Stores
+import csgDisabilityStore from "../components/application/assessments/store/csg-disability";
+
 // Config
 import axios from "axios";
 import { APPLICATION_URL, STUDENT_URL } from "../urls";
@@ -532,5 +535,7 @@ export default new Vuex.Store({
     cslCertificateExport,
     cslMsfaaReceive,
     chequeReqList,
+
+    csgDisabilityStore
   }
 });

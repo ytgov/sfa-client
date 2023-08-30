@@ -33,7 +33,7 @@ import CSGPTDEP from "../components/application/csfa-needs-assessment/CSGPTDEP.v
 import CSGPT from "../components/application/csfa-needs-assessment/CSGPT.vue";
 import CSGDSE from "../components/application/csfa-needs-assessment/CSGDSE.vue";
 import CSGTP from "../components/application/csfa-needs-assessment/CSGTP.vue";
-import CSGD from "../components/application/csfa-needs-assessment/CSGD.vue";
+import CSGD from "../components/application/assessments/views/CSGD.vue";
 import CSGFTDEP from "../components/application/csfa-needs-assessment/CSGFTDEP.vue";
 import CSGFT from "../components/application/csfa-needs-assessment/CSGFT.vue";
 import CanadianArmyScholarship from "../components/application/csfa-needs-assessment/CanadianArmyScholarship.vue";
