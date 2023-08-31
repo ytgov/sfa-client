@@ -99,6 +99,8 @@ export class DocumentService {
       const response = await this.s3Helper.download(`${AWS_S3_PATH}/${docRef.object_key}`);
 
       if (response.Body) {
+        docRef.file_name = docRef.file_name.replace(/,/g, ""); // this was causing problems with downloads
+
         docRef.file_contents = response.Body; // = await streamToBuffer(response.Body as Readable);
         return docRef;
       }
