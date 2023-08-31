@@ -397,7 +397,8 @@ export class ChequeReqList extends BaseRepository {
     ): Promise<any[] | undefined> {
         try {
             const records = await this.mainDb.raw(`
-                SELECT * FROM sfa.get_records_for_cheque_req_dat_file('${issueDate}', ${serial_no});
+                SELECT * FROM sfa.get_records_for_cheque_req_dat_file('${issueDate}', ${serial_no}) AS t1
+                ORDER BY t1.financial_batch_id_year, t1.financial_batch_id, t1.vendor_id;
             `); //recordsForDATFile
 
             return records;
