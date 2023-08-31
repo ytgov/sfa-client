@@ -918,7 +918,7 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
 
         this.assessment.asset_tax_rate = 0;
 
-        if ((this.assessment.calculated_award ?? 0) === 0) {
+        if ((this.assessment.calculated_award ?? 0) === 0 || isRecalc) {
             await this.getCalculatedAward();
         }
 
