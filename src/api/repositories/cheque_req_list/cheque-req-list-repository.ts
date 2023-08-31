@@ -1,5 +1,6 @@
 import { Knex } from "knex";
 import { BaseRepository } from "../base-repository";
+import _ from "lodash";
 
 interface ChequeReqDTO {
     request_type_id: number,
@@ -67,9 +68,9 @@ export class ChequeReqList extends BaseRepository {
                     records: [...records],
                     filename,
                     pdfData: [...pdfData],
-                    batchTotal,
+                    batchTotal: [ ...batchTotal ],
                     pdfDataSigned: [...pdfDataSigned],
-                    batchTotalSigned,
+                    batchTotalSigned: [ ...batchTotal ]
                 }
             };
         } catch (error) {
@@ -168,7 +169,13 @@ export class ChequeReqList extends BaseRepository {
                 .orderBy('d.financial_batch_id')
                 .orderBy('p.first_name');
 
-            return pdfData || [];
+            if (pdfData.length) {
+                const groupByBatchId = _.groupBy(pdfData, 'financial_batch_id')
+
+                return Object.values(groupByBatchId);
+            } else {
+                return [];
+            }
         } catch (error) {
             console.log(error);
             return undefined
@@ -181,7 +188,9 @@ export class ChequeReqList extends BaseRepository {
     ): Promise<any> {
         try {
             const batchTotal = await this.mainDb
-                .select(this.mainDb.raw(`FORMAT(SUM(d.disbursed_amount), 'C') as total`))
+                .select(
+                    'd.financial_batch_id',
+                    this.mainDb.raw(`FORMAT(SUM(d.disbursed_amount), 'C') as total`))
                 .from('sfa.funding_request AS fr')
                 .join('sfa.request_type AS rt', 'rt.id', '=', 'fr.request_type_id')
                 .join('sfa.disbursement AS d', 'fr.id', '=', 'd.funding_request_id')
@@ -208,9 +217,9 @@ export class ChequeReqList extends BaseRepository {
                     )
                     : this.mainDb.raw("1 = 1")
                 )
-                .first();
+                .groupBy('d.financial_batch_id')
 
-            return batchTotal?.total || null;
+            return batchTotal || [];
         } catch (error) {
             console.log(error);
             return undefined
