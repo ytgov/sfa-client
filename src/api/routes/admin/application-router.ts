@@ -573,6 +573,18 @@ applicationRouter.post("/:application_id/status",
                 }
 
                 if (checkIsActive?.is_active) {
+                    
+                    if (newRecord.request_type_id === 1) {
+
+                        const isSTACandidate = await db("sfa.institution_campus")
+                            .where({ id: application.institution_campus_id })
+                            .whereIn('institution_id', [30,811])
+                            .first();
+
+                        if (!isSTACandidate?.id) {
+                            return res.json({ messages: [{ variant: "error", text: "Only available for Yukon University or Alkan Air" }] });
+                        }
+                    }
 
                     const resInsert = await db("sfa.funding_request")
                     .insert({ ...newRecord, is_csg_only: false, application_id , status_id : 2});
