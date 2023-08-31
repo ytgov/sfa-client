@@ -49,7 +49,7 @@ export class PortalStudentService {
 
     let person = await db("person").withSchema(schema).insert(student).returning("*");
 
-    console.log("* PERSON CREATED", person);
+    console.log("* PERSON CREATED");
 
     if (person && person[0].id) {
       let studentCr = {
@@ -60,7 +60,7 @@ export class PortalStudentService {
       } as Student_Create;
 
       let newStudent = await db("student").withSchema(schema).insert(studentCr).returning("*");
-      console.log("* STUDENT CREATED", newStudent);
+      console.log("* STUDENT CREATED");
 
       if (newStudent && newStudent[0].id) {
         await db("student_auth").withSchema(schema).insert({ student_id: newStudent[0].id, sub });

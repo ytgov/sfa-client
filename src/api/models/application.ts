@@ -12,7 +12,7 @@ import PrestudyEmploymentStatus from "@/models/prestudy-employment-status";
 import Program from "@/models/program";
 import Student from "@/models/student";
 import StudyArea from "@/models/study-area";
-import { isInteger } from "lodash";
+import { isInteger, isNaN, isNumber } from "lodash";
 
 // Application with standard JS naming conventions
 // trailing underscore to avoid conflicting with legacy Application format
@@ -353,8 +353,8 @@ export function ApplicationFromDraft(draft: any): Application {
     csl_classification: studentCategoryToCSLClassification(draft.personal_details.category),
     prestudy_csl_classification: studentCategoryToCSLClassification(draft.personal_details.category),
     has_last_travel: draft.residency.has_traveled,
-    last_travel_year: draft.residency.last_return_date ? draft.residency.last_return_date.split("/")[0] : null,
-    last_travel_month: draft.residency.last_return_date ? draft.residency.last_return_date.split("/")[1] : null,
+    last_travel_year: draft.residency.last_return_date ? ensureInteger(draft.residency.last_return_date.split("/")[0]) : null,
+    last_travel_month: draft.residency.last_return_date ? ensureInteger(draft.residency.last_return_date.split("/")[1]) : null,
 
     //prestudy_start_date: undefined,
     //prestudy_end_date: undefined,
@@ -383,7 +383,7 @@ export function ApplicationFromDraft(draft: any): Application {
     app.prestudy_city_id = draft.csfa_accomodation.accomodations[0].city;
     app.prestudy_province_id = draft.csfa_accomodation.accomodations[0].province;
     app.prestudy_bus = draft.csfa_accomodation.accomodations[0].bus_service;
-    app.prestudy_distance = draft.csfa_accomodation.accomodations[0].distinct_from_school;
+    app.prestudy_distance = ensureInteger(draft.csfa_accomodation.accomodations[0].distinct_from_school);
     app.prestudy_living_w_spouse = draft.csfa_accomodation.accomodations[0].living_with_spouse;
     //app.prestudy_employ_status_id: undefined,
   }
@@ -411,7 +411,7 @@ export function ApplicationFromDraft(draft: any): Application {
     app.study_city_id = draft.csfa_accomodation.accomodations[1].city;
     app.study_province_id = draft.csfa_accomodation.accomodations[1].province;
     app.study_bus = draft.csfa_accomodation.accomodations[1].bus_service;
-    app.study_distance = draft.csfa_accomodation.accomodations[1].distinct_from_school;
+    app.study_distance = ensureInteger(draft.csfa_accomodation.accomodations[1].distinct_from_school);
     app.study_living_w_spouse = draft.csfa_accomodation.accomodations[1].living_with_spouse;
   }
 
@@ -776,4 +776,14 @@ export function studentCategoryToCSLClassification(category: number): number {
     default:
       return 1;
   }
+}
+
+function ensureInteger(input: any): number | undefined {
+  if (input) {
+    if (isInteger(input)) return input;
+    if (isNumber(input)) return Math.round(input);
+    if (!isNaN(parseInt(input))) return ensureInteger(parseInt(input));
+  }
+
+  return undefined;
 }
