@@ -47,7 +47,7 @@ export const unsignedTemplete = (pdfData, batchTotal, pdfName) => {
                 "S/H",
                 "Ref4",
             ]],
-            body: [...list, ["BATCH TOTAL", "", "", total, "", "", "", "", pdfData.length]],
+            body: [...list, ["BATCH TOTAL", "", "", total, "", "", "", "", pdfList.length]],
             theme: 'plain',
         })
 
@@ -110,7 +110,7 @@ export const signedTemplete = (pdfData, batchTotal, pdfName) => {
                 "S/H",
                 "Ref4",
             ]],
-            body: [...list, ["BATCH TOTAL", "", "", total, "", "", "", "", pdfData.length]],
+            body: [...list, ["BATCH TOTAL", "", "", total, "", "", "", "", pdfList.length]],
             theme: 'plain',
         })
 
