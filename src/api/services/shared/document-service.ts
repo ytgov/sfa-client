@@ -13,6 +13,7 @@ import {
 } from "../../config";
 import { FileReference, FileReferenceBase, FileStatus } from "../../models";
 import { S3Worker } from "../../utils/document-storage";
+import { clone } from "lodash";
 
 const db = knex(DB_CONFIG);
 
@@ -209,12 +210,12 @@ export class DocumentService {
 
   // writes a document to storage and the database
   async uploadFile(input: FileReference): Promise<FileReference> {
-    await db("sfa.file_reference").insert(forInsert(input));
-
-    await this.s3Helper.upload(`${AWS_S3_PATH}/${input.object_key}`, input.file_contents);
-
-    // this feature is awaiting some sort of universal PDF conversion
-    /* if (input.object_key_pdf) {
+    await db("sfa.file_reference")
+      .insert(forInsert(input))
+      .then(async () => {
+        await this.s3Helper.upload(`${AWS_S3_PATH}/${input.object_key}`, input.file_contents);
+        // this feature is awaiting some sort of universal PDF conversion
+        /* if (input.object_key_pdf) {
       let pdf = await convertToPDF(input);
       console.log("THING", pdf);
 
@@ -227,6 +228,13 @@ export class DocumentService {
 
       await this.client.send(upload2Command);
     } */
+      })
+      .catch((e) => {
+        let i = clone(input) as any;
+        delete i.file_contents;
+        console.log("ERROR: writing to file_reference", i);
+        console.log("--", e);
+      });
 
     return input;
   }
@@ -267,11 +275,7 @@ const streamToBuffer = (stream: Readable) =>
     stream.once("error", reject);
   });
 
-export function bufferToUploadedFileStub(
-  buffer: Buffer,
-  fileName: string,
-  mimeType: string
-): UploadedFile {
+export function bufferToUploadedFileStub(buffer: Buffer, fileName: string, mimeType: string): UploadedFile {
   return {
     name: fileName,
     data: buffer,
@@ -283,7 +287,7 @@ export function bufferToUploadedFileStub(
     truncated: false,
     md5: "not-relevant",
     async mv(path: string): Promise<void> {},
-  }
+  };
 }
 
 export interface UploadMetadata {
