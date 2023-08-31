@@ -53,7 +53,7 @@ const actions = {
         commit("SET_CHEQUE_REQ_FILE_NAME", '');
         commit("SET_CHEQUE_REQ_RECORDS_DAT", []);
         commit("SET_CHEQUE_REQ_RECORDS_PDF_UNSIGNED", []);
-        commit("SET_CHEQUE_REQ_RECORDS_PDF_ SIGNED", []);
+        commit("SET_CHEQUE_REQ_RECORDS_PDF_SIGNED", []);
         commit("SET_CHEQUE_REQ_BATCH_TOTAL_UNSIGNED", '');
         commit("SET_CHEQUE_REQ_BATCH_TOTAL_SIGNED", '');
         commit("SET_CHEQUE_REQ_SHOW_OVERLAY", false);
@@ -93,8 +93,8 @@ const actions = {
                 commit("SET_CHEQUE_REQ_RECORDS_PDF_UNSIGNED", [...recordsPdfUnsigned]);
                 commit("SET_CHEQUE_REQ_RECORDS_PDF_SIGNED", [...recordsPdfSigned]);
                 commit("SET_CHEQUE_REQ_RECORDS_DAT", [...recordsDat]);
-                commit("SET_CHEQUE_REQ_BATCH_TOTAL_UNSIGNED", batchTotalUnsigned);
-                commit("SET_CHEQUE_REQ_BATCH_TOTAL_SIGNED", batchTotalSigned);
+                commit("SET_CHEQUE_REQ_BATCH_TOTAL_UNSIGNED", [ ...batchTotalUnsigned ]);
+                commit("SET_CHEQUE_REQ_BATCH_TOTAL_SIGNED", [ ...batchTotalSigned ]);
 
                 await dispatch("generateCSLReqListDAT");
 
@@ -129,7 +129,7 @@ const actions = {
             }
 
             let blob = new Blob([text], { type: "text/plain;charset=utf-8" });
-            
+
             await dispatch("generateCSLReqListPDF");
 
             saveAs(blob, filename + ".dat");
@@ -143,14 +143,13 @@ const actions = {
         try {
             const pdfDataSigned = getters.chequeReqRecordsForPDFSigned || [];
             const pdfDataUnsigned = getters.chequeReqRecordsForPDFUnsigned || [];
+            const vendorList = {};
 
-            for (const data of pdfDataSigned) {
-                const res = await axios.get(STUDENT_URL + `/${data.student_id}/vendor`);
-                let vendorAddress = '';
-                if (res?.data?.success) {
-
-                    if (res.data.data.data.length) {
-                        const vendorData = res.data.data.data[0];
+            for (const dataArray of pdfDataSigned) {
+                for (const data of dataArray) {
+                    let vendorAddress = '';
+                    if (vendorList[data.student_id]) {
+                        const vendorData = vendorList[data.student_id];
 
                         const addresses = [
                             vendorData.VendAddrL1?.trim(),
@@ -161,19 +160,36 @@ const actions = {
                         ];
 
                         vendorAddress = addresses?.filter(d => Boolean(d)).join(", ");
-                    }
-                }
+                    } else {
+                        const res = await axios.get(STUDENT_URL + `/${data.student_id}/vendor`);
+                        if (res?.data?.success) {
 
-                data.vendor_address = vendorAddress;
+                            if (res.data.data.data.length) {
+                                const vendorData = res.data.data.data[0];
+                                vendorList[data.student_id] = res.data.data.data[0];
+
+                                const addresses = [
+                                    vendorData.VendAddrL1?.trim(),
+                                    vendorData.VendAddrL2?.trim(),
+                                    vendorData.VendAddrCity?.trim(),
+                                    vendorData.VendAddrPost?.trim(),
+                                    vendorData.VendAddrProv?.trim(),
+                                ];
+
+                                vendorAddress = addresses?.filter(d => Boolean(d)).join(", ");
+                            }
+                        }
+                    }
+
+                    data.vendor_address = vendorAddress;
+                }
             }
 
-            for (const data of pdfDataUnsigned) {
-                const res = await axios.get(STUDENT_URL + `/${data.student_id}/vendor`);
-                let vendorAddress = '';
-                if (res?.data?.success) {
-
-                    if (res.data.data.data.length) {
-                        const vendorData = res.data.data.data[0];
+            for (const dataArray of pdfDataUnsigned) {
+                for (const data of dataArray) {
+                    let vendorAddress = '';
+                    if (vendorList[data.student_id]) {
+                        const vendorData = vendorList[data.student_id];
 
                         const addresses = [
                             vendorData.VendAddrL1?.trim(),
@@ -184,10 +200,29 @@ const actions = {
                         ];
 
                         vendorAddress = addresses?.filter(d => Boolean(d)).join(", ");
-                    }
-                }
+                    } else {
+                        const res = await axios.get(STUDENT_URL + `/${data.student_id}/vendor`);
+                        if (res?.data?.success) {
 
-                data.vendor_address = vendorAddress;
+                            if (res.data.data.data.length) {
+                                const vendorData = res.data.data.data[0];
+                                vendorList[data.student_id] = res.data.data.data[0];
+
+                                const addresses = [
+                                    vendorData.VendAddrL1?.trim(),
+                                    vendorData.VendAddrL2?.trim(),
+                                    vendorData.VendAddrCity?.trim(),
+                                    vendorData.VendAddrPost?.trim(),
+                                    vendorData.VendAddrProv?.trim(),
+                                ];
+
+                                vendorAddress = addresses?.filter(d => Boolean(d)).join(", ");
+                            }
+                        }
+                    }
+
+                    data.vendor_address = vendorAddress;
+                }
             }
 
         } catch (error) {
@@ -205,8 +240,8 @@ const actions = {
 
             await dispatch("getVendorAddress");
 
-            unsignedTemplete(pdfDataUnsigned, sharedData, batchTotalUnsigned, pdfName);
-            signedTemplete(pdfDataSigned, sharedData, batchTotalSigned, pdfName);
+            unsignedTemplete(pdfDataUnsigned, batchTotalUnsigned, pdfName);
+            signedTemplete(pdfDataSigned, batchTotalSigned, pdfName);
 
         } catch (error) {
             console.log(error);
