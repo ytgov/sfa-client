@@ -250,7 +250,7 @@ assessmentSTARouter.delete("/disbursements/:id", [param("id").isInt().notEmpty()
         const { id } = req.params;
 
         try {
-            const verify = await db("sfa.disbursement")
+            const verify:any = await db("sfa.disbursement")
                 .where({ id });
 
             if (!verify.length) return res.json({ success: false, message: `Disbursement not founded`, });
@@ -259,11 +259,15 @@ assessmentSTARouter.delete("/disbursements/:id", [param("id").isInt().notEmpty()
                 .where({ id })
                 .del();
 
-            return resDelete ?
-                res.json({ success: true, message: `Deleted!`, })
-                :
-                res.json({ success: false, message: `Some failed`, });
-
+            if (resDelete) {
+                const updateStatusFundingRequest = await db("sfa.funding_request")
+                    .where({ id: verify[0].funding_request_id })
+                    .update({ status_id: 7 });
+                
+                return res.json({ success: true, message: `Deleted!`, });
+            } else {
+                return res.json({ success: false, message: `Some failed`, });
+            }
         } catch (err) {
             console.log(err);
             return res.status(400).send(err);

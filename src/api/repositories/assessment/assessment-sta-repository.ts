@@ -347,6 +347,12 @@ export class AssessmentSTA extends AssessmentBaseRepository {
                 }
             }
 
+            if (disbursementList?.length) {
+                const updateStatusFundingRequest = await this.mainDb("sfa.funding_request")
+                    .where({ id: assessment.funding_request_id })
+                    .update({ status_id: 7 });
+            }
+
             return assessInfo;
         } catch (error) {
             return undefined;
@@ -369,6 +375,12 @@ export class AssessmentSTA extends AssessmentBaseRepository {
                     disburse.funding_request_id = assessment.funding_request_id;
                     await this.insertDisbursements(disburse);
                 }
+            }
+
+            if (disbursementList?.length) {
+                const updateStatusFundingRequest = await this.mainDb("sfa.funding_request")
+                    .where({ id: assessment.funding_request_id })
+                    .update({ status_id: 7 });
             }
 
             return assessInfo;
