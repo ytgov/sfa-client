@@ -1,34 +1,22 @@
 <template>
-  <div class="home csgd-assessment">
+
+<div class="">
     <div class="col-md-12">
-      <v-card class="default mb-5 bg-color-blue">
-        <div class="col-lg-12 nopadding d-flex flex-wrap low-margin">
-          <v-card-title class="col-xs-12 col-lg-8">Assessment - CSGD</v-card-title>
-          <div class="col-xs-12 col-lg-4 nopadding d-flex">
-            <div class="col-xs-4 col-sm-4">
-              <v-btn :disabled="showAdd" dense color="green" class="my-0" block>
-                SAVE
-              </v-btn>
-            </div>
-            <div class="col-xs-4 col-sm-4">
-              <v-btn :disabled="showAdd" dense color="orange" class="my-0" block>
-                CANCEL
-              </v-btn>
-            </div>
-            <div class="col-xs-4 col-sm-4">
-              <v-btn :disabled="showAdd" dense color="red" class="my-0" block>
-                EXIT
-              </v-btn>
-            </div>
-          </div>
-        </div>
-        <v-card-text class="nopadding d-flex flex-wrap">
-          <div class="col-xs-12 col-sm-12 col-lg-12 nopadding d-flex flex-wrap low-margin">
-            <div class="col-xs-12 col-lg-7 nopadding">
-              <div class="col-xs-12 col-lg-12 nopadding d-flex mobile-column-flex low-margin">
-                <div class="col-xs-12 col-lg-4 nopadding d-flex flex-wrap">
-                  <div class="col-xs-12 col-lg-12">
-                    <v-menu
+      <v-card class="default mb-1 bg-color-blue">
+        <v-card-title
+          >Assessment - CSGD
+          <v-spacer></v-spacer>
+          <v-btn dense color="primary" class="my-0" @click="saveClick">
+            Save
+          </v-btn>
+        </v-card-title>
+        <v-divider class="my-1"></v-divider>
+
+        <v-card-text v-if="assessment">
+
+          <v-row>
+            <v-col>
+ <v-menu
                       :disabled="showAdd"
                       v-model="assessed_date_menu"
                       :close-on-content-click="false"
@@ -59,6 +47,22 @@
                         @input="assessed_date_menu = false"
                       ></v-date-picker>
                     </v-menu>
+
+            </v-col>
+
+            <v-col></v-col>
+            <v-col></v-col>
+            <v-col></v-col>
+          
+          </v-row>
+
+
+          <div class="col-xs-12 col-sm-12 col-lg-12 nopadding d-flex flex-wrap low-margin">
+            <div class="col-xs-12 col-lg-7 nopadding">
+              <div class="col-xs-12 col-lg-12 nopadding d-flex mobile-column-flex low-margin">
+                <div class="col-xs-12 col-lg-4 nopadding d-flex flex-wrap">
+                  <div class="col-xs-12 col-lg-12">
+                   
                   </div>
                   <div class="col-xs-12 col-lg-12">
                     <v-menu
@@ -613,13 +617,13 @@
         </div>
       </v-card>
     </div>
-
-TET{{ test }}
+{{ assessment }}
   </div>
 </template>
 <script>
 import validator from "@/validator";
-import { mapState } from "vuex";
+import { mapActions, mapGetters, mapState } from "vuex";
+import { isNumber, isInteger, isNaN } from "lodash";
 export default {
   name: "Home",
   data: () => ({
@@ -668,17 +672,35 @@ export default {
   }),
   computed: {
     ...mapState({ application: "selectedApplication" }),
-    ...mapState("csgDisabilityStore", ["test"])
+    ...mapState("csgDisabilityStore", ["assessment"]),
   },
   async created() {
-    /* this.validate = validator;
     this.applicationId = this.$route.params.id;
     let storeApp = store.getters.selectedApplication;
+
     if (this.applicationId != storeApp.HISTORY_DETAIL_ID) {
       await store.dispatch("loadApplication", this.applicationId);
     }
 
-    store.dispatch("setAppSidebar", true); */
+    await this.initialize(storeApp);
+    await this.setCslClassifications();
+    await this.setDisbursementTypes();
+    await this.setChangeReasons();
+  },
+  methods: {
+    ...mapActions("csgDisabilityStore", ["initialize", "makeDisbursements", "save"]),
+    ...mapActions(["setCslClassifications", "setDisbursementTypes", "setChangeReasons"]),
+
+    
+    ensureInteger(input) {
+      if (input) {
+        if (isInteger(input)) return input;
+        if (isNumber(input)) return Math.round(input);
+    if (!isNaN(parseInt(input))) return this.ensureInteger(parseInt(input));
+      }
+
+      return undefined;
+    },
   },
 };
 </script>

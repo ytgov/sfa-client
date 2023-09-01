@@ -105,4 +105,6 @@ export const CSLFT_ASSESS_INFO = `${CSLFT}/assess-info`;
 export const CSGFT = `${ASSESSMENT}/csgft`;
 export const CSGFT_NEW_INSTANCE = `${CSGFT}/new-instance`;
 
+export const CSG_THRESHOLD_URL = `${config.apiBaseUrl}/api/v2/admin/csg-threshold`;
+
 export const USERS_URL = `${config.apiBaseUrl}/api/v2/admin/users`;
