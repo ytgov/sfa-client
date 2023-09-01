@@ -5,7 +5,7 @@
         <v-card-title
           >Assessment - CSGFTDEP
           <v-spacer></v-spacer>
-          <v-btn dense color="primary" class="my-0" @click="saveClick">
+          <v-btn dense color="primary" class="my-0" @click="saveClick" :disabled="!assessment.id">
             Recalculate
           </v-btn>
         </v-card-title>
@@ -229,7 +229,7 @@
                   append-icon="mdi-pencil"
                 ></v-text-field>
                 <v-btn
-                  :disabled="netAmountRaw <= 0 || !assessment.id"
+                  :disabled="netAmountRaw <= 0"
                   dense
                   color="success"
                   class="my-0 ml-3"

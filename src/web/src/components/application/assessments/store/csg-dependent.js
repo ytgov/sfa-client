@@ -241,7 +241,7 @@ const actions = {
     });
   },
 
-  makeDisbursements({ getters, commit, state, dispatch }, numberOfDisbursements) {
+  async makeDisbursements({ getters, commit, state, dispatch }, numberOfDisbursements) {
     let parts = getters.netAmountRaw / numberOfDisbursements;
     let disbursedValues = [];
 
@@ -266,7 +266,7 @@ const actions = {
       issue_date: moment().format("YYYY-MM-DD"),
     });
 
-    commit("SET_DISBURSEMENTS", [...state.disbursements, ...disbursedValues]);
+    await commit("SET_DISBURSEMENTS", [...state.disbursements, ...disbursedValues]);
     dispatch("save");
   },
 
@@ -284,8 +284,9 @@ const actions = {
   },
 
   async save({ state, dispatch }) {
+    state.assessment.disbursements = state.disbursements;
+
     if (state.assessment.id) {
-      state.assessment.disbursements = state.disbursements;
       axios
         .put(
           `${CSG_THRESHOLD_URL}/csgftdep/${state.fundingRequest.application_id}/funding-request/${state.fundingRequest.id}/assessment/${state.assessment.id}`,
