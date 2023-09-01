@@ -4982,7 +4982,10 @@ AS
                 END
             + '000000000000000' 
             +'     ' + '     ' + '    '+REPLICATE(' ', 573)
-        as record4
+        as record4,
+        d.financial_batch_id_year, 
+        d.financial_batch_id, 
+        s.vendor_id
 -- Voucher Distribution (VOD)
 FROM sfa.request_type rt
     INNER JOIN sfa.funding_request fr ON rt.id = fr.request_type_id
