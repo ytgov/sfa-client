@@ -15,7 +15,7 @@ export class CsgThresholdRepository extends BaseRepository implements IMainTable
         let result = 0;
 
         if (academic_year_id && family_size) {
-            result = await this.getScalarValue<number>("fn_get_income_threshold_amount", [academic_year_id, family_size]);
+            result = await this.getScalarValue<number>("fn_get_income_threshold_amount", [family_size, academic_year_id]);
         }
 
         return result;
