@@ -3,7 +3,7 @@
     <div class="col-md-12">
       <v-card class="default mb-1 bg-color-blue">
         <v-card-title
-          >Assessment - CSGD
+          >Assessment - CSGFTDEP
           <v-spacer></v-spacer>
           <v-btn dense color="primary" class="my-0" @click="saveClick" :disabled="!assessment.id">
             Recalculate
@@ -38,36 +38,143 @@
                 </template>
                 <v-date-picker v-model="assessment.assessed_date" @input="assessed_date_menu = false"></v-date-picker>
               </v-menu>
-            </v-col>
-
-            <v-col>
               <v-text-field
-                label="Disability status"
-                append-icon="mdi-lock"
+                v-model="assessment.classes_start_date"
+                label="Classes start date"
                 readonly
-                :value="
-                  application.permanent_disability
-                    ? 'Permanent disability'
-                    : application.pers_or_prolong_disability
-                    ? 'Persistent/prolonged disability'
-                    : ''
-                "
                 outlined
                 dense
                 background-color="#ddd"
-              ></v-text-field>
-
-              <v-text-field
-                label="Disability start date"
                 append-icon="mdi-lock"
+              ></v-text-field>
+              <v-text-field
+                v-model="assessment.classes_end_date"
+                label="Classes end date"
+                hide-details
                 readonly
-                :value="application.disability_start_date?.slice(0, 10)"
                 outlined
                 dense
                 background-color="#ddd"
+                append-icon="mdi-lock"
+              ></v-text-field>
+            </v-col>
+
+            <v-col>
+              <div style="height: 66px"></div>
+              <v-text-field
+                outlined
+                dense
+                background-color="#ddd"
+                label="Study weeks"
+                readonly
+                v-model="assessment.study_weeks"
+                append-icon="mdi-calculator"
+              ></v-text-field>
+              <v-text-field
+                outlined
+                dense
+                background-color="#ddd"
+                hide-details
+                readonly
+                label="Study months"
+                v-model="assessment.study_months"
+                append-icon="mdi-calculator"
               ></v-text-field>
             </v-col>
             <v-col>
+              <v-text-field
+                outlined
+                dense
+                background-color="#ddd"
+                label="Family size"
+                readonly
+                v-model="assessment.family_size"
+                append-icon="mdi-lock"
+              ></v-text-field>
+              <v-text-field
+                outlined
+                dense
+                background-color="#ddd"
+                label="Dependents"
+                readonly
+                v-model="assessment.dependent_count"
+                append-icon="mdi-lock"
+              ></v-text-field>
+              <v-text-field
+                outlined
+                dense
+                background-color="#ddd"
+                hide-details
+                label="Student category"
+                readonly
+                v-model="classification"
+                append-icon="mdi-lock"
+              ></v-text-field>
+            </v-col>
+          </v-row>
+          <v-divider class="my-5" />
+
+          <v-row>
+            <v-col>
+              <v-text-field
+                outlined
+                dense
+                background-color="#ddd"
+                label="Student income"
+                readonly
+                :value="formatMoney(assessment.student_ln150_income)"
+                append-icon="mdi-lock"
+              ></v-text-field>
+              <v-text-field
+                outlined
+                dense
+                background-color="#ddd"
+                label="Spouse income"
+                readonly
+                :value="formatMoney(assessment.spouse_ln150_income)"
+                append-icon="mdi-lock"
+              ></v-text-field>
+              <v-text-field
+                outlined
+                dense
+                background-color="#ddd"
+                hide-details
+                label="Family income"
+                readonly
+                v-model="familyIncome"
+                append-icon="mdi-calculator"
+              ></v-text-field>
+            </v-col>
+            <v-col>
+              <v-text-field
+                outlined
+                dense
+                background-color="#ddd"
+                label="Monthly phase out rate"
+                readonly
+                v-model="phaseOutRate"
+                append-icon="mdi-lock"
+              ></v-text-field>
+              <v-text-field
+                outlined
+                dense
+                background-color="#ddd"
+                readonly
+                label="Monthly rate"
+                v-model="monthlyRate"
+                append-icon="mdi-lock"
+              ></v-text-field>
+            </v-col>
+            <v-col>
+              <v-text-field
+                outlined
+                dense
+                background-color="#ddd"
+                label="Assessed need"
+                readonly
+                v-model="assessedNeed"
+                append-icon="mdi-lock"
+              ></v-text-field>
               <v-text-field
                 outlined
                 dense
@@ -91,7 +198,7 @@
           </v-row>
           <v-divider class="my-5" />
           <v-row>
-            <v-col> </v-col>
+            <v-col></v-col>
             <v-col>
               <v-text-field
                 outlined
@@ -113,12 +220,21 @@
                   dense
                   background-color="white"
                   label="No. of disbursements"
-                  readonly
+                  type="number"
+                  min="0"
+                  max="100"
+                  step="1"
                   hide-details
                   v-model="numberOfDisbursements"
-                  append-icon="mdi-lock"
+                  append-icon="mdi-pencil"
                 ></v-text-field>
-                <v-btn :disabled="netAmountRaw <= 0" dense color="success" class="my-0 ml-3" @click="disburseClick">
+                <v-btn
+                  :disabled="netAmountRaw <= 0"
+                  dense
+                  color="success"
+                  class="my-0 ml-3"
+                  @click="disburseClick"
+                >
                   Disburse
                 </v-btn>
               </div>
@@ -348,7 +464,7 @@ export default {
   name: "Home",
   data: () => ({
     assessed_date_menu: false,
-    numberOfDisbursements: 1,
+    numberOfDisbursements: 2,
     menus1: {},
     menus2: {},
   }),
@@ -367,10 +483,19 @@ export default {
   },
   computed: {
     ...mapState({ application: "selectedApplication" }),
-    ...mapState("csgDisabilityStore", ["csgThresholds", "cslft", "assessment", "disbursements"]),
+    ...mapState("csgDependentStore", ["csgThresholds", "cslft", "assessment", "disbursements"]),
     ...mapGetters(["cslClassifications", "disbursementTypes", "changeReasons"]),
 
-    ...mapGetters("csgDisabilityStore", ["previousDisbursements", "assessedAmount", "netAmount", "netAmountRaw"]),
+    ...mapGetters("csgDependentStore", [
+      "familyIncome",
+      "phaseOutRate",
+      "assessedNeed",
+      "assessedAmount",
+      "monthlyRate",
+      "previousDisbursements",
+      "netAmount",
+      "netAmountRaw",
+    ]),
     classification(state) {
       if (this.application && this.cslClassifications) {
         let val = this.cslClassifications.filter((c) => c.id == this.application.csl_classification)[0];
@@ -380,7 +505,7 @@ export default {
     },
   },
   methods: {
-    ...mapActions("csgDisabilityStore", [
+    ...mapActions("csgDependentStore", [
       "initialize",
       "makeDisbursements",
       "recalculate",

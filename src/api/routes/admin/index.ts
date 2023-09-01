@@ -75,6 +75,7 @@ import { cslCertificateAuditReportRouter } from "./csl-certificate-audit-report-
 import { cslMsfaaSendRouter } from "./csl-msfaa-send-router";
 import { cslRestrictedData } from "./csl-restricted-data-router";
 import ReportingController from "@/controllers/admin/reporting-controller";
+import { csgThresholdRouter } from "./csg-threshold-router";
 
 export const adminRouter = express.Router();
 //adminRouter.use("/", RequireServerAuth, RequireAdmin)
@@ -163,3 +164,5 @@ adminRouter.use("/csl-restricted-data", cslRestrictedData);
 
 adminRouter.use("/reporting", pathFormatMiddleware);
 adminRouter.use("/reporting/fundingStatus/:years", routedTo(ReportingController, "runFundingStatusReport"));
+
+adminRouter.use("/csg-threshold", csgThresholdRouter);
