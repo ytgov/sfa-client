@@ -32,7 +32,7 @@ import CSLPT from "../components/application/csfa-needs-assessment/CSLPT.vue";
 import CSGPTDEP from "../components/application/csfa-needs-assessment/CSGPTDEP.vue";
 import CSGPT from "../components/application/csfa-needs-assessment/CSGPT.vue";
 import CSGDSE from "../components/application/csfa-needs-assessment/CSGDSE.vue";
-import CSGTP from "../components/application/csfa-needs-assessment/CSGTP.vue";
+import CSGTP from "../components/application/assessments/views/CSGTP.vue";
 import CSGD from "../components/application/assessments/views/CSGD.vue";
 import CSGFTDEP from "../components/application/assessments/views/CSGFTDEP.vue";
 import CSGFT from "../components/application/csfa-needs-assessment/CSGFT.vue";
