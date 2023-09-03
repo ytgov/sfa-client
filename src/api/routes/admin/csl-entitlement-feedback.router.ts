@@ -14,10 +14,24 @@ cslEntitlementFeedbackRouter.post("/:FILE_NAME", [param("FILE_NAME").notEmpty()]
     async (req: Request, res: Response) => {      
         const { FILE_NAME } = req.params;
         const file:any = req.files;     
+
+		async function getErrorDesc(id:Number) {
+			let result;
+			try {
+				result  = await db("sfa.entitlement_error_codes").select(db.raw("description as description")).where("id", "=", 77).first();					
+			} catch (error: any) {				
+				return "-1";
+			}			
+			if(result.description) {
+				return result.description;
+			} else {
+				return "0"
+			}
+		}
         try {                       
-            const filename = file.file.name.toUpperCase().trim();				
-            if(filename) {
-				console.log("FILENAME NOT EMPTY OK");
+            const filename = file.file.name.toUpperCase().trim();		
+
+            if(filename) {				
 				let textContent = file.file.data.toString('utf8');
 				let linesContent = textContent.split("\n");   
 				let resDisbursement;
@@ -63,58 +77,41 @@ cslEntitlementFeedbackRouter.post("/:FILE_NAME", [param("FILE_NAME").notEmpty()]
 				let vTotal;
 				let is_resend_p;
 				let error_id_p;
+				let error_desc;
 
 				//report variables
 				let vParmListId;    
 
 				let responseRead;
-
-                if(filename.substring(0, 1).match(/[A-Z]/) && filename.length > 5) {
-					console.log("FILENAME FIRST LETTER AND LENGHT OK");																		
-
-					// for(let line of linesContent) {
-                    //     console.log("*", line)
-                    // }			
-										
+				
+                if(filename.substring(0, 1).match(/[A-Z]/) && filename.length > 5) {																		
 					const truncate = await db.raw("TRUNCATE TABLE sfa.ECERT_IMPORT");
                     vUpdate = "Yes";				
-                    if(header.substring(0, 1).toUpperCase() !== "H") {    
-						console.log("BAD FILENAME HEADER H: " + header.substring(0, 1).toUpperCase() );
+                    if(header.substring(0, 1).toUpperCase() !== "H") {    						
                         return res.json({flag: 0, data: 'There is no header record on this file'});       
-                    } else {        
-						console.log("FILENAME HEADER H OK");            
+                    } else {        						   
                         vSeqNum = Number(header.substring(1, 10));
-                        if(isNaN(vSeqNum)) {
-							console.log("BAD SEQNUM NOT NUMBER:" + header.substring(1, 10));                        
+                        if(isNaN(vSeqNum)) {							                    
                             return res.json({flag: 0, data: 'Invalid sequence number in header record: ' + header.substring(1, 10)})
                         } 
-
-						console.log("SEQNUM NUMBER OK");                        
+						
                         vProvince = header.substring(10, 12).replaceAll(' ', '');
                         //ORIGINALLY THIS IF CHECKS V_ORIGINATOR
-                        if(vProvince !== "YT") {
-							console.log("BAD PROVINCE");   
+                        if(vProvince !== "YT") {							
                             return res.json({flag: 0, data: 'File is not intended for Yukon by for: '+ vProvince})
-                        } else {
-							console.log("PROVINCE OK");   
+                        } else {							
                             vOriginator = header.substring(12, 15).replaceAll(' ', '');                             
-                            if(vOriginator !== '222') {
-								console.log("BAD ORIGINATOR:" + vOriginator);   
+                            if(vOriginator !== '222') {								
                                 return res.json({flag: 0, data: 'File has not been provided by the service provider (222) but by: '+ vOriginator})
-                            } else {
-								console.log("ORIGINATOR OK");   
+                            } else {								
                                 vCreateDate = moment(header.substring(15, 23), 'YYYYMMDD').format('YYYYMMDD');
-                                if(vCreateDate === 'Invalid date') {
-									console.log("BAD CREATE DATE" + header.substring(15, 23) );   
+                                if(vCreateDate === 'Invalid date') {									
                                     return res.json({flag: 0, data: 'Invalid creation date/time in header record: '+ header.substring(15, 23)});
-                                }   
-								console.log("CREATE DATE OK");   
+                                }   								
                                 vTitle = header.substring(23, 63).toUpperCase().replaceAll(' ', '');
-                                if(vTitle !== "ENTITLEMENTFEEDBACK") {
-									console.log("BAD TITLE");   
+                                if(vTitle !== "ENTITLEMENTFEEDBACK") {									
                                     return res.json({flag: 0, data: 'File is not a ECERT Received file:' + header.substring(7, 47)});
-                                }                        
-								console.log("TITLE OK");   
+                                }                        								
                             }
                         }
                     }
@@ -134,21 +131,18 @@ cslEntitlementFeedbackRouter.post("/:FILE_NAME", [param("FILE_NAME").notEmpty()]
 						.andWhereNot(db.raw("ecert_sent_date IS NULL"))					
 						.andWhere("issue_date", ">", "2013-01-01")
 						.groupBy("ecert_sent_date");
-
-						console.log(selectCountAndDateDisbursement);
+						
 						vEcertSentDate = selectCountAndDateDisbursement[0].date; 
 						vCount = selectCountAndDateDisbursement[0].count;
 					} 
 
-                    for(let i = 1; i < linesContent.length - 1; i++) {
+                    for(let i = 1; i < linesContent.length; i++) {						
                         vErrorMsg = "";
                         vIsResend = 'No';
 
                         let currentLine = linesContent[i];
-                        if(currentLine.substring(0, 1) === "D") {
-							console.log("CURRENT LINE D OK");
-                            vSin = currentLine.substring(1, 10).replaceAll(' ','');
-							console.log(currentLine.substring(358, 364));
+                        if(currentLine.substring(0, 1) === "D") {							
+                            vSin = currentLine.substring(1, 10).replaceAll(' ','');							
                             vCslAmount =  currentLine.substring(358, 364).replaceAll(' ','');
                             vCertNumber =  currentLine.substring(367, 375).replaceAll(' ','');
                             vStatus =  currentLine.substring(391, 392).replaceAll(' ','');
@@ -156,136 +150,131 @@ cslEntitlementFeedbackRouter.post("/:FILE_NAME", [param("FILE_NAME").notEmpty()]
                             vErrorCode2 =  currentLine.substring(622, 632).replaceAll(' ','');
                             vErrorCode3 =  currentLine.substring(632, 642).replaceAll(' ','');
                             vErrorCode4 =  currentLine.substring(642, 652).replaceAll(' ','');
-                            vErrorCode5 =  currentLine.substring(652, 662).replaceAll(' ','');	
+                            vErrorCode5 =  currentLine.substring(652, 662).replaceAll(' ','');								
 							
 							vNumSin = Number(vSin);
-							if(isNaN(vNumSin)) {
-								console.log("BAD NUMSIN");
+							if(isNaN(vNumSin)) {								
 								if(vErrorMsg.length > 1) {
 									vErrorMsg = vErrorMsg + ', ';									
 								}
 								vErrorMsg = vErrorMsg + 'SIN is not numeric. ';
 								vNumSin = 0;
 								vNonNumericSin = vNonNumericSin + 1;
-							}														
-							console.log("NUMSIN OK");
+							}																					
 
-							if(vCertNumber === '') {
-								console.log("BAD CERTNUM");
+							if(vCertNumber === '') {								
 								if(vErrorMsg.length > 1) {
 									vErrorMsg = vErrorMsg + ', ';
 								}
 								vErrorMsg = vErrorMsg + ' Certificate Number is missing. ';
-							} else {
-								console.log("CERTNUM OK: " + vCslAmount);
+							} else {								
 								vCslAmountNum = Number(vCslAmount) + 0;								
-								if(isNaN(vCslAmountNum)) {
-									console.log("BAD CSL AMOUNT");
+								if(isNaN(vCslAmountNum)) {									
 									if(vErrorMsg.length > 1) {
 										vErrorMsg = vErrorMsg + ', ';									
 									}
 									vErrorMsg = vErrorMsg + 'CSL Amount is non numeric';
-								} else {
-									console.log("CSL AMOUNT OK");									
-									if(vStatus === "N") {
-										console.log("VSTATUS N");
+								} else {																
+									if(vStatus === "N") {										
 										vCslAmountNum = vCslAmountNum * -1;
 									}
-								}
+								}								
 								
 								vDisbursementId = await db("sfa.disbursement").select("id")
-								.whereIn("disbursement_type_id", [4, 3])		
+								.whereIn("disbursement_type_id", [3, 4])		
 								.andWhere("transaction_number", "=", vCertNumber)
 								.andWhere("csl_cert_seq_number", "=", vSeqNum)
 								.andWhere("disbursed_amount", "=", vCslAmountNum)		
 								.first();
 								
-								if(!vDisbursementId) {
+																
+								if(!vDisbursementId || !vDisbursementId.id) {									
 									return res.json({flag: 2, data: 'No records found with transaction number: ' + vCertNumber + ", CSL Cert Number: " + vSeqNum + ", or disbursed amount: " + vCslAmountNum, date: vEcertSentDate, seq: vSeqNum});								
 								}
 							}					
 
-							if(vSin === "") {
-								console.log("BAD SIN");
+							if(vSin === "") {								
 								if(vErrorMsg.length > 1) {
 									vErrorMsg = vErrorMsg + ', ';									
 								}
 								vErrorMsg = vErrorMsg + ' SIN is missing. ';
-							}
-							console.log("SIN OK");
+							}							
 
-							if(vStatus === "") {
-								console.log("BAD STATUS ");
+							if(vStatus === "") {								
 								if(vErrorMsg.length > 1) {
 									vErrorMsg = vErrorMsg + ', ';									
 								}
 								vErrorMsg = vErrorMsg + ' Status code is missing. ';
-							}
-							console.log("STATUS OK");
-							
-
-							if(vErrorCode1 === "") {
-								console.log("BAD ERRORCODE 1");
+							}							
+														
+							if(vErrorCode1 === "") {								
 								if(vErrorMsg.length > 1) {
 									vErrorMsg = vErrorMsg + ', ';									
 								}
 								vErrorMsg = vErrorMsg + ' First error code is missing. ';
-							} else {
-								console.log("ERRORCODE 1 OK", vErrorCode1.replaceAll("\r", ''), vDisbursementId);
+							} else {								
 								let result;
 								try {
 									result  = await db.raw(
 										'DECLARE @is_resend_p VARCHAR(255), @error_id_p INT; ' +
-										`EXEC sfa.sp_check_error_status '${vErrorCode1.replaceAll("\r", '')}', ${vDisbursementId}, @is_resend_p OUTPUT, @error_id_p OUTPUT; ` +
+										`EXEC sfa.sp_check_error_status '${vErrorCode1.replaceAll("\r", '')}', ${vDisbursementId.id}, @is_resend_p OUTPUT, @error_id_p OUTPUT; ` +
 										'SELECT @is_resend_p as is_resend_p, @error_id_p as error_id_p;'									
 										);	
-								} catch (error: any) {									
+										
+								} catch (error: any) {
+									console.log(error);
 									return res.json({flag: 0, data: 'Something went wrong, please contact the administrator. '});
 								}
 									
+								
 								is_resend_p = result[0].is_resend_p;
-								error_id_p = result[0].error_id_p;																
-								vErrorMsg = vErrorMsg + ' ' + `${vErrorDesc ? vErrorDesc : ""}`;
-							}	
-							console.log("ERROR CODE 1 FINISH")
+								error_id_p = result[0].error_id_p;		
 
-							if(vErrorCode2.length > 1) {	
-								console.log("ERRORCODE 2 IN", vErrorCode2.replaceAll("\r", ''), vDisbursementId);															
+								if(error_id_p !== -1) {
+									vErrorDesc = await getErrorDesc(error_id_p);								
+									vErrorMsg = vErrorMsg + ' ' + `${vErrorDesc !== "-1" ? vErrorDesc : ""}`;
+								}
+							}	
+																					
+							if(vErrorCode2.length > 1) {									
 								let result;
 								try {
 								result = await db.raw(
 									'DECLARE @is_resend_p VARCHAR(255), @error_id_p INT; ' +
-									`EXEC sfa.sp_check_error_status '${vErrorCode2.replaceAll("\r", '')}', ${vDisbursementId}, @is_resend_p OUTPUT, @error_id_p OUTPUT; ` +
+									`EXEC sfa.sp_check_error_status '${vErrorCode2.replaceAll("\r", '')}', ${vDisbursementId.id}, @is_resend_p OUTPUT, @error_id_p OUTPUT; ` +
 									'SELECT @is_resend_p as is_resend_p, @error_id_p as error_id_p;'
 								  );									
-								} catch (error: any) {									
+								} catch (error: any) {	
+									console.log(error);								
 									return res.json({flag: 0, data: 'Something went wrong, please contact the administrator. '});
 								} 
 								is_resend_p = result[0].is_resend_p;
-								error_id_p = result[0].error_id_p;				
+								error_id_p = result[0].error_id_p;																			
 
 								if(vErrorMsg.length > 1) {
 									vErrorMsg = vErrorMsg + ', ';									
 								}
-								vErrorMsg = vErrorMsg + ' ' + `${error_id_p ? error_id_p : ""}`;
+
+								if(error_id_p !== -1) {
+									vErrorDesc = await getErrorDesc(error_id_p);								
+									vErrorMsg = vErrorMsg + ' ' + `${vErrorDesc !== "-1" ? vErrorDesc : ""}`;						
+								}
 
 								if(is_resend_p === 1) {
 									vIsResend = is_resend_p;
 								}								
-							} 	
-
-							console.log("ERROR CODE 2 FINISH")
-
-							if(vErrorCode3.length > 1) {
-								console.log("ERRORCODE 3 IN", vErrorCode3.replaceAll("\r", ''), vDisbursementId);		
+							} 								
+							
+							if(vErrorCode3.length > 1) {								
 								let result;
 								try {													
 								result = await db.raw(
 									'DECLARE @is_resend_p VARCHAR(255), @error_id_p INT; ' +
-									`EXEC sfa.sp_check_error_status '${vErrorCode3.replaceAll("\r", '')}', ${vDisbursementId}, @is_resend_p OUTPUT, @error_id_p OUTPUT; ` +
+									`EXEC sfa.sp_check_error_status '${vErrorCode3.replaceAll("\r", '')}', ${vDisbursementId.id}, @is_resend_p OUTPUT, @error_id_p OUTPUT; ` +
 									'SELECT @is_resend_p as is_resend_p, @error_id_p as error_id_p;'									
 								  );
 								} catch (error: any) {									
+									console.log(error);
 									return res.json({flag: 0, data: 'Something went wrong, please contact the administrator. '});
 								} 
 
@@ -295,25 +284,27 @@ cslEntitlementFeedbackRouter.post("/:FILE_NAME", [param("FILE_NAME").notEmpty()]
 								if(vErrorMsg.length > 1) {
 									vErrorMsg = vErrorMsg + ', ';
 								}
-								vErrorMsg = vErrorMsg + ' ' + `${error_id_p ? error_id_p : ""}`;
+
+								if(error_id_p !== -1) {
+									vErrorDesc = await getErrorDesc(error_id_p);								
+									vErrorMsg = vErrorMsg + ' ' + `${vErrorDesc !== "-1" ? vErrorDesc : ""}`;
+								}
 
 								if(is_resend_p === 1) {
 									vIsResend = is_resend_p;
 								}	
-							}
-
-							console.log("ERROR CODE 3 FINISH")
-
-							if(vErrorCode4.length > 1) {
-								console.log("ERRORCODE 4 IN", vErrorCode4.replaceAll("\r", ''), vDisbursementId);
+							}							
+							
+							if(vErrorCode4.length > 1) {								
 								let result;
 								try {
 								result = await db.raw(
 									'DECLARE @is_resend_p VARCHAR(255), @error_id_p INT; ' +
-									`EXEC sfa.sp_check_error_status '${vErrorCode4.replaceAll("\r", '')}', ${vDisbursementId}, @is_resend_p OUTPUT, @error_id_p OUTPUT; ` +
+									`EXEC sfa.sp_check_error_status '${vErrorCode4.replaceAll("\r", '')}', ${vDisbursementId.id}, @is_resend_p OUTPUT, @error_id_p OUTPUT; ` +
 									'SELECT @is_resend_p as is_resend_p, @error_id_p as error_id_p;'									
 								  );
-								} catch (error: any) {									
+								} catch (error: any) {		
+									console.log(error);							
 									return res.json({flag: 0, data: 'Something went wrong, please contact the administrator. '});
 								} 
 
@@ -323,25 +314,27 @@ cslEntitlementFeedbackRouter.post("/:FILE_NAME", [param("FILE_NAME").notEmpty()]
 								if(vErrorMsg.length > 1) {
 									vErrorMsg = vErrorMsg + ', ';
 								}
-								vErrorMsg = vErrorMsg + ' ' + `${error_id_p ? error_id_p : ""}`;
+
+								if(error_id_p !== -1) {
+									vErrorDesc = await getErrorDesc(error_id_p);								
+									vErrorMsg = vErrorMsg + ' ' + `${vErrorDesc !== "-1" ? vErrorDesc : ""}`;
+								}
 
 								if(is_resend_p === 1) {
 									vIsResend = is_resend_p;
 								}	
-							}
-
-							console.log("ERROR CODE 4 FINISH")
-
-							if(vErrorCode5.length > 1) {
-								console.log("ERRORCODE 5 IN", vErrorCode5.replaceAll("\r", ''), vDisbursementId);								
+							}							
+							
+							if(vErrorCode5.length > 1) {								
 								let result;
 								try {
 								result = await db.raw(
 									'DECLARE @is_resend_p VARCHAR(255), @error_id_p INT; ' +
-									`EXEC sfa.sp_check_error_status '${vErrorCode5.replaceAll("\r", '')}', ${vDisbursementId}, @is_resend_p OUTPUT, @error_id_p OUTPUT; ` +
+									`EXEC sfa.sp_check_error_status '${vErrorCode5.replaceAll("\r", '')}', ${vDisbursementId.id}, @is_resend_p OUTPUT, @error_id_p OUTPUT; ` +
 									'SELECT @is_resend_p as is_resend_p, @error_id_p as error_id_p;'									
 								  );
-								} catch (error: any) {									
+								} catch (error: any) {		
+									console.log(error);							
 									return res.json({flag: 0, data: 'Something went wrong, please contact the administrator. '});
 								} 
 
@@ -351,129 +344,100 @@ cslEntitlementFeedbackRouter.post("/:FILE_NAME", [param("FILE_NAME").notEmpty()]
 								if(vErrorMsg.length > 1) {
 									vErrorMsg = vErrorMsg + ', ';
 								}
-								vErrorMsg = vErrorMsg + ' ' + `${error_id_p ? error_id_p : ""}`;
+
+								if(error_id_p !== -1) {
+									vErrorDesc = await getErrorDesc(error_id_p);								
+									vErrorMsg = vErrorMsg + ' ' + `${vErrorDesc !== "-1" ? vErrorDesc : ""}`;
+								}
 
 								if(is_resend_p === 1) {
 									vIsResend = is_resend_p;
 								}	
-							}
-
-							console.log("ERROR CODE 5 FINISH")
-
+							}							
+							
 							try {
 								const insertEcertImport = await db.raw(`
 								EXEC sfa.sp_insert_ecert_import 
 								${vSeqNum ? `'${vSeqNum}'` : null},
-								${vEcertSentDate ? `'${vEcertSentDate}'` : null},
+								${vEcertSentDate ? `'${moment(vEcertSentDate).format('YYYY-MM-DD')}'` : null},
 								${vSin ? `'${vSin}'` : null},
 								${vCertNumber ? `'${vCertNumber}'` : null},
 								${vCreateDate ? `'${vCreateDate}'` : null},
 								${vIsResend ? `'${vIsResend}'` : null},
 								${vErrorMsg ? `'${vErrorMsg}'` : null},
-								${vDisbursementId.id ? vDisbursementId : null};
+								${vDisbursementId.id ? vDisbursementId.id : null};
 								`);		
 							} catch (error:any) {
-								return res.json({flag: 0, data: 'Something went wrong, please contact the administrator. '});
-							}
-									
-
+								console.log(error);
+								return res.json({flag: 0, data: 'Something went wrong, please contact the administrator. 0'});
+							}														
 							vTotalSin = vTotalSin + vNumSin;
-							vRejectedCount = vRejectedCount + 1;						
-                        } else if(currentLine.substring(0, 1).toUpperCase() === "T") {
-							console.log("CURRENT LINE T OK");
+							vRejectedCount = vRejectedCount + 1;											
+                        } else if(currentLine.substring(0, 1).toUpperCase() === "T") {							
 							vAcceptedTot = Number(currentLine.substring(1, 10).replaceAll(' ', ''));
 
-							if(isNaN(vAcceptedTot)) {
-								console.log("BAD ACCEPTED TOT")
+							if(isNaN(vAcceptedTot)) {								
 								return res.json({flag: 0, data: 'Trailer accepted count is non numeric' + currentLine.substring(1, 10).replaceAll(' ', '')});
-							}
-							console.log("ACCEPTED TOT OK")
+							}							
 							vRejectedTot = Number(currentLine.substring(10, 19).replaceAll(' ', ''));	
 
-							if(isNaN(vRejectedTot)) {
-								console.log("BAD REJECT TOT")
+							if(isNaN(vRejectedTot)) {								
 								return res.json({flag: 0, data: 'Trailer rejected count is non numeric: '+ currentLine.substring(10, 19).replaceAll(' ', '')});
-							}
-							console.log("REJECT TOT OK")
-							if(vRejectedTot !== vRejectedCount)  {
-								console.log("BAD REJECTED TOT AND COUNT")
+							}							
+							if(vRejectedTot !== vRejectedCount)  {								
 								return res.json({flag: 0, data: 'Trailer rejected count does not equal total rejected records: Trailer - ' + Number(currentLine.substring(43, 52).replaceAll(' ', '') + ' Rejected Count - '+ vRejectedCount)});
-							}	
-							console.log("REJECTED TOT AND COUNT OK")
+							}								
 							vPaperTot = Number(currentLine.substring(19, 28).replace(' ', ''));
-							if(isNaN(vPaperTot)) {
-								console.log("BAD PAPER TOT")
+							if(isNaN(vPaperTot)) {								
 								return res.json({flag: 0, data: 'Trailer paper enrollment count is non numeric: ' + currentLine.substring(19, 28).replace(' ', '')});
-							}
-							console.log("PAPER TOT OK")
+							}							
 							vTotal = vAcceptedTot + vRejectedTot + vPaperTot;
 
-							if(vTotal !== vCount && vCount !== vRejectedTot) {
-								console.log("BAD TOT AND CONT AND COUNT AND REJECTED")
+							if(vTotal !== vCount && vCount !== vRejectedTot) {								
 								return res.json({flag: 0, data: 'Trailer accepted/rejected/paper enrollment count does not equal total records sent: Trailer - ' + vTotal + ' Record sent - '+ vCount});
-							}
+							}							
 
-							console.log("TOT AND CONT AND COUNT AND REJECTED OK")
-
-							if(isNaN(Number(currentLine.substring(52, 67).replaceAll(' ', '')))) {
-								console.log("BAD TRAILER SIN")
+							if(isNaN(Number(currentLine.substring(52, 67).replaceAll(' ', '')))) {								
 								return res.json({flag: 0, data: 'Trailer SIN hash is non numeric : ' + currentLine.substring(52, 67).replaceAll(' ', '')});
-							}
-							console.log("TRAILER SIN OK")
+							}							
 
-							if(Number(currentLine.substring(52, 67).replaceAll(' ', '')) !== vTotalSin) {
-								console.log("BAD TRAILER SIN NOT EQUAL TOTAL SIN")
+							if(Number(currentLine.substring(52, 67).replaceAll(' ', '')) !== vTotalSin) {								
 								return res.json({flag: 0, data: 'Trailer SIN hash total does not equal total of detail records: Trailer - ' + Number(currentLine.substring(52, 67).replaceAll(' ', '')) + ' Record SIN - ' + vTotalSin + '. SIN non-numeric count was: ' + vNonNumericSin});
-							}
-							console.log("TRAILER SIN EQUAL TOTAL SIN OK")
-						} else {
-							console.log("CURRENT LINE NOT D OR T NULL");
+							}							
+						} else {							
 							null;
 						}
-                    }	
-					console.log("OUT FOR");
+                    }						
 					responseRead = ({flag: 1, data: 'CSL ECERT response read complete. ' + vAcceptedTot + ' accepted records processed, '+ vRejectedTot + ' rejected records processed and ' + vPaperTot + ' paper enrollment records processed.', date: vEcertSentDate, seq: vSeqNum});				
 
-                } else {
-					console.log("BAD FILENAME FIRST LETTER AND LENGHT");
+                } else {					
                     return res.json({flag: 0, data: 'Please try again with the complete filename'});   
                 }
-
-				console.log("HERE")
-				//responseRead
+								
 				if(!vEcertSentDate) {
 					vEcertSentDate = null;
 				}				
-
+				
 				try {
-					const execSPDisbursementById = await db.raw("EXEC sfa.sp_update_disbursement_by_id");
-					console.log("SP 1 EXECUTED", execSPDisbursementById)
+					const execSPDisbursementById = await db.raw("EXEC sfa.sp_update_disbursement_by_id");					
 				} catch (error: any) {
 					return res.json({flag: 0, data: 'Something went wrong, please contact the administrator. '});
 				}
 				try {
-					const execSPDisbursementBySeq = await db.raw(`EXEC sfa.sp_update_disbursement_by_seq ${vCreateDate ? `'${moment(vCreateDate, 'YYYYMMDD').format("YYYY-MM-DD")}'` : null}, ${vSeqNum}, ${vEcertSentDate ? `'${moment(vEcertSentDate, 'YYYYMMDD').format("YYYY-MM-DD")}'` : null}`);
-					console.log("SP 2 EXECUTED", execSPDisbursementBySeq)
+					const execSPDisbursementBySeq = await db.raw(`EXEC sfa.sp_update_disbursement_by_seq ${vCreateDate ? `'${moment(vCreateDate, 'YYYYMMDD').format("YYYY-MM-DD")}'` : null}, ${vSeqNum}, ${vEcertSentDate ? `'${moment(vEcertSentDate, 'YYYYMMDD').format("YYYY-MM-DD")}'` : null}`);					
 				} catch(error: any) {
 					return res.json({flag: 0, data: 'Something went wrong, please contact the administrator. '});
 				}
 												
-				const count = await db.raw("SELECT COUNT(*)	AS count FROM SFA.msfaa_import;")
-				console.log(count)
-				
+				const count = await db.raw("SELECT COUNT(*)	AS count FROM SFA.msfaa_import;")				
 				if(count === null || count === 0) {
-					//'There are no MSFAA Received records found.';
-					console.log("BAD COUNT")
-				} else {
-					console.log("OK")
+					return res.json({flag: 0, data: 'There are no MSFAA Received records found.'});					
+				} else {					
 					responseRead.data = responseRead.data + ' CSL ECERT response update complete. ' + vCount + ' records processed.'					
 					
 					const queryPDF = await db("sfa.ecert_import AS ei")
 					.select("ei.sequence_number", "ei.sin", "ei.ecert_sent_date", "ei.response_date", "ei.certificate_number", db.raw("CASE WHEN ei.is_resend_flg = 'Yes' THEN 'Rejected' ELSE 'Warning' END AS ecert_status"), db.raw("ei.error_message + ISNULL((SELECT CONCAT(FIRST_NAME, ' ', LAST_NAME) FROM sfa.person WHERE SIN = ei.SIN), ' No Student Match') + ISNULL((SELECT DISTINCT transaction_number FROM sfa.disbursement WHERE transaction_number = ei.certificate_number AND ecert_sent_date = ei.ecert_sent_date), ' No CSL Certificate Match') AS error_message"), db.raw(`ISNULL((SELECT CONCAT(FIRST_NAME, ' ', LAST_NAME) FROM sfa.person WHERE SIN = ei.SIN), '') AS student_name`))
-					.orderBy('ei.sin');
-					console.log("*****", queryPDF);
-
-					//responseRead.tableData = queryPDF;
+					.orderBy('ei.sin');									
 
 					let finalResponse = {...responseRead, tableData: queryPDF};
 
@@ -481,8 +445,7 @@ cslEntitlementFeedbackRouter.post("/:FILE_NAME", [param("FILE_NAME").notEmpty()]
 				}
 				
 
-            } else {
-				console.log("BAD FILENAME EMPTY");
+            } else {				
                 return res.json({flag: 0, data: 'You need to enter a filename'});               
             }			
         } catch (error: any) {

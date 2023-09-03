@@ -7408,27 +7408,34 @@ CREATE OR ALTER PROCEDURE sfa.sp_check_error_status
     @error_id_p INT OUTPUT
 AS
 BEGIN
-    DECLARE @is_resend_flg VARCHAR(255), @error_id INT;
+	DECLARE @is_resend_flg VARCHAR(255), @error_id INT;
 
     SELECT @is_resend_flg = is_resend, @error_id = id
     FROM sfa.entitlement_error_codes
     WHERE code = @error_code_p;
 
-    INSERT INTO sfa.ENTITLEMENT_ERROR
-    (
-        disbursement_id,
-        entitlement_error_code_id,
-        is_resend
-    )
-    VALUES
-    (
-        @disbursement_id_p,
-        @error_id,
-        @is_resend_flg
-    );
-
-    SET @is_resend_p = @is_resend_flg;
-    SET @error_id_p = @error_id;
+	if @is_resend_flg IS NOT NULL AND @error_id IS NOT NULL
+		BEGIN 
+			INSERT INTO sfa.ENTITLEMENT_ERROR
+			(
+			    disbursement_id,
+			    entitlement_error_code_id,
+			    is_resend
+			)
+			VALUES
+			(
+			    @disbursement_id_p,
+			    @error_id,
+			    @is_resend_flg
+			);
+			SET @is_resend_p = @is_resend_flg;
+	    	SET @error_id_p = @error_id;
+		END	 
+	ELSE
+		BEGIN
+			SET @is_resend_p = 0;
+    		SET @error_id_p = -1;
+		END		    
 END
 GO
 
@@ -7642,5 +7649,3 @@ BEGIN
 
    END
 GO
-
-
