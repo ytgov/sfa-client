@@ -145,10 +145,10 @@ assessmentSTARouter.post("/",
                 ...notNullValues
             };
 
-            const newRow = await assessmentRepo.newAssessment(newApp, disbursementList);
+            const result = await assessmentRepo.newAssessment(newApp, disbursementList);
 
-            if (newRow && newRow.length === 1) {
-                return res.json({ data: { id: newRow[0].id }, messages: [{ text: "Assessment created", variant: "success" }] });
+            if (result) {
+                return res.json({ messages: [ result ] });
             }
 
             return res.status(404).send();
@@ -172,10 +172,10 @@ assessmentSTARouter.put("/:id",
         };
 
         try {
-            const updateRow = await assessmentRepo.saveAssessment(id, newApp, disbursementList ?? []);
+            const result = await assessmentRepo.saveAssessment(id, newApp, disbursementList ?? []);
 
-            if (updateRow && updateRow.length === 1) {
-                return res.json({ data: { id: updateRow[0].id }, messages: [{ text: "Assessment updated", variant: "success" }] });
+            if (result) {
+                return res.json({ messages: [ result ] });
             }
 
             return res.status(404).send();
