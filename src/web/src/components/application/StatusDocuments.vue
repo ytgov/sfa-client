@@ -21,20 +21,6 @@
       <v-toolbar dense color="#bbb" flat>
         {{ type }}
         <v-row justify="space-between" class="">
-          <v-btn-toggle group color="primary">
-            <!-- <v-btn title="Download">
-              <v-icon>mdi-download</v-icon>
-            </v-btn>
-
-            <v-btn title="Preview">
-              <v-icon>mdi-eye</v-icon>
-            </v-btn>
-
-            <v-btn title="Delete">
-              <v-icon>mdi-delete</v-icon>
-            </v-btn> -->
-          </v-btn-toggle>
-
           <v-spacer />
           <v-btn-toggle group color="primary">
             <v-btn title="Upload" @click="showUpload = !showUpload">
@@ -59,44 +45,6 @@
         ></v-file-input>
         <v-btn icon fab color="primary" small class="ml-3" @click="uploadClick"><v-icon>mdi-upload</v-icon></v-btn>
       </div>
-
-      <!--       <v-list dense>
-        <v-list-item>
-          <v-list-item-content class="pb-0">
-            <v-list-item-title>
-              <div class="float-right text-right">
-                <v-btn
-                  :disabled="canPrintLetter"
-                  dense
-                  small
-                  color="success"
-                  class="mb-3 mr-1 ml-4"
-                  @click="printLetterClick(item, 'student')"
-                >
-                  Generate Student Letter </v-btn
-                ><br />
-                <v-btn
-                  :disabled="canPrintLetter"
-                  dense
-                  small
-                  color="success"
-                  class="mb-0 mr-1 ml-4"
-                  @click="printLetterClick(item, 'institution')"
-                  v-if="isYukonGrant"
-                >
-                  Generate Institution Letter
-                </v-btn>
-
-                
-              </div>
-            </v-list-item-title>
-
-            <v-list-item-subtitle> </v-list-item-subtitle>
-
-            <v-spacer></v-spacer>
-          </v-list-item-content>
-        </v-list-item>
-      </v-list> -->
 
       <v-divider></v-divider>
 
@@ -162,9 +110,6 @@ export default {
       }
     },
   },
-  mounted() {
-    //console.log(this.item);
-  },
   computed: {
     canPrintLetter() {
       const printableStatuses = [6, 7, 4]; // Awarded, Rejected, Qualified
@@ -179,7 +124,6 @@ export default {
       axios
         .get(`${APPLICATION_URL}/${this.item.application_id}/${this.item.id}/assessments`)
         .then((resp) => {
-          //console.log("ASSESS", resp);
           this.assessments = resp.data;
         })
         .catch();
@@ -188,14 +132,9 @@ export default {
       axios
         .get(`${APPLICATION_URL}/${this.item.application_id}/funding-request/${this.item.id}/letters`)
         .then((resp) => {
-          console.log("LETTERS", resp.data.data);
           this.letters = resp.data.data;
         })
         .catch();
-      /* this.letters = [
-        { title: "Student Letter (Generated 2023-08-25)", canPublish: true },
-        { title: "Institution Letter", canPublish: false },
-      ]; */
     },
     formatDate(input) {
       if (input) return moment.utc(input).format("YYYY-MM-DD");
@@ -226,8 +165,6 @@ export default {
     publishLetterClick(letter) {},
     emailLetterClick(letter) {},
     deleteLetterClick(letter) {
-      console.log("DELETE LETTER", letter);
-
       axios
         .delete(
           `${APPLICATION_URL}/${this.item.application_id}/funding-request/${this.item.id}/letters/${letter.object_key}`
@@ -235,31 +172,22 @@ export default {
         .then((resp) => {
           this.loadLetters();
         });
-
-      //this.menu = false;
     },
 
     printLetterClick(item, letterSlug) {
       const fundingRequestId = item.id;
-      // See /api/v2/admin/funding-requests/:fundingRequestId/letters for status -> slug options
-
       let approvalLetterUrl = `${FUNDING_REQUESTS_URL}/${fundingRequestId}/letters/${letterSlug}.pdf`;
       approvalLetterUrl = `${FUNDING_REQUESTS_URL}/${fundingRequestId}/letters`;
 
-      //http://localhost:3000/api/v2/admin/funding-requests/265/letters
-
-      axios.post(approvalLetterUrl).then(async (resp) => {
-        // window.open(URL.createObjectURL(resp.data));
-
-        await this.loadLetters();
-
-        //let approvalLetterUrl = `${APPLICATION_LETTER_URL}/${this.item.application_id}/approval/${item.id}`;
-      });
-      //window.open(approvalLetterUrl);
-
-      /* axios.get(approvalLetterUrl, { responseType: "blob" }).then((resp) => {
-        window.open(URL.createObjectURL(resp.data));
-      }); */
+      axios
+        .post(approvalLetterUrl)
+        .then(async (resp) => {
+          // window.open(URL.createObjectURL(resp.data));
+          await this.loadLetters();
+        })
+        .catch((err) => {
+          this.$emit("showError", err.response.data.message);
+        });
     },
   },
 };

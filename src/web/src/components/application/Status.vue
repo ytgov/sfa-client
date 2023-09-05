@@ -139,7 +139,7 @@
               </div>
 
               <div class="col-md-3">
-                <status-documents :item="item" :type="fundingTypeOptions?.find((ft) => ft.REQUEST_TYPE_ID === item?.request_type_id)?.DESCRIPTION"></status-documents>
+                <status-documents :item="item" :type="fundingTypeOptions?.find((ft) => ft.REQUEST_TYPE_ID === item?.request_type_id)?.DESCRIPTION"  v-on:showError="showError"></status-documents>
               </div>
             </div>
           </v-card-text>
