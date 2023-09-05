@@ -24,6 +24,7 @@
                 color="orange" 
                 class="my-0"
                 block
+                @click="close"
               >
               CANCEL
               </v-btn>
@@ -35,6 +36,7 @@
                 color="red" 
                 class="my-0"
                 block
+                @click="close"
               >
               EXIT
               </v-btn>
@@ -428,6 +430,9 @@ export default {
     },
     showError(mgs) {
       this.$emit("showError", mgs);
+    },
+    close() {
+      this.$emit("close");
     },
     saveAssessment() {
       store.dispatch("saveCsgftAssessment", this);

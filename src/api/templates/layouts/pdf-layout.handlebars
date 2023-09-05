@@ -1,97 +1,108 @@
 <html>
 
 <head>
-    <title>{{title}}</title>
-    <meta charset="utf-8" />
-    <meta http-equiv="Content-type" content="text/html; charset=UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <style type="text/css">
-        @page {
-            /* magic tag that affects Puppeteer page formatting. See preferCSSPageSize  */
-            margin: 5mm 10mm 5mm;
-        }
+  <title>{{title}}</title>
+  <meta charset="utf-8" />
+  <meta http-equiv="Content-type" content="text/html; charset=UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style type="text/css">
+    @page {
+      /* magic tag that affects Puppeteer page formatting. See preferCSSPageSize  */
+      margin: 5mm 10mm 5mm;
+    }
 
-        /* Example CSS Styling */
-        body {
-            font-family: Calibri;
-            font-size: 11pt;
-            line-height: 1.2;
-            margin: 30px;
-            color: #000;
-        }
+    /* Example CSS Styling */
+    body {
+      font-family: Calibri;
+      font-size: 11pt;
+      line-height: 1.2;
+      margin: 30px;
+      color: #000;
+    }
 
-        .header {}
+    .header {}
 
-        .date {
-            margin-top: 0.139in;
-        }
+    .date {
+      margin-top: 0.139in;
+    }
 
-        .address {
-            margin-top: 0.139in;
-            line-height: 1;
-        }
+    .address {
+      margin-top: 0.139in;
+      line-height: 1;
+    }
 
-        .salutation {
-            margin-top: 0.139in;
-        }
+    .salutation {
+      margin-top: 0.139in;
+    }
 
-        .body {
-            margin-top: 0.139in;
-        }
+    .body {
+      margin-top: 0.139in;
+    }
 
-        .closing {
-            margin-top: 40px;
-        }
+    .closing {
+      margin-top: 40px;
+    }
 
-        .signature {
-            margin-top: 40px;
-        }
+    .signature {
+      margin-top: 40px;
+    }
 
-        .footer {
-            margin-top: 40px;
-            font-size: 10pt;
-            text-align: center;
-        }
+    .footer {
+      margin-top: 40px;
+      font-size: 10pt;
+      text-align: center;
+    }
 
-        /*
-            General helpers in Tailswinds CSS style
-            e.g. https://tailwindcss.com/docs/display#flex
-        */
-        .flex {
-            display: flex;
-        }
+    /*
+      General helpers in Tailswinds CSS style
+      e.g. https://tailwindcss.com/docs/display#flex
+    */
+    .inline-block {
+      display: inline-block;
+    }
 
-        .justify-between {
-            justify-content: space-between;
-        }
+    .flex {
+      display: flex;
+    }
 
-        .mt-1 {
-            margin-top: 0.25rem;
-            /* 4px */
-        }
+    .justify-between {
+      justify-content: space-between;
+    }
 
-        .mt-10 {
-            margin-top: 2.5rem;
-            /* 40px */
-        }
+    .mt-1 {
+      margin-top: 0.25rem;
+      /* 4px */
+    }
 
-        .ml-4 {
-            margin-left: 1rem;
-            /* 16px */
-        }
+    .mt-10 {
+      margin-top: 2.5rem;
+      /* 40px */
+    }
 
-        .ml-8 {
-            margin-left: 2rem;
-            /* 32px */
-        }
-    </style>
+    .ml-4 {
+      margin-left: 1rem;
+      /* 16px */
+    }
+
+    .ml-8 {
+      margin-left: 2rem;
+      /* 32px */
+    }
+
+    .w-\[150px\] {
+      width: 150px;
+    }
+    .w-\[120px\] {
+      width: 120px;
+    }
+  </style>
 </head>
 
 <body>
-    <img src="http://localhost:{{API_PORT}}/yukon-logo.png" style="height: 80px; width: 160px; margin-left: -10px" />
-    <div>
-        {{{body}}}
-    </div>
+  <img src="http://localhost:{{API_PORT}}/yukon-logo.png" style="height: 80px; width: 160px; margin-left: -10px" />
+  <div>
+    {{{body}}}
+  </div>
 </body>
 
 </html>

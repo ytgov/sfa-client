@@ -13,10 +13,11 @@ import FundingPurpose from "@/models/funding-purpose"
 import FundingRequest from "@/models/funding-request"
 import FundingSource from "@/models/funding-source"
 import Income from "@/models/income"
-import Institution from "@/models/institution"
+import InstitutionCampus from "@/models/institution-campus"
 import ParentDependent from "@/models/parent-dependent"
 import Person from "@/models/person"
 import PersonAddress from "@/models/person-address"
+import PrestudyEmploymentStatus from "@/models/prestudy-employment-status"
 import Relationship from "@/models/relationship"
 import Residence from "@/models/residence"
 import Student from "@/models/student"
@@ -78,7 +79,14 @@ export default class StudentApplicationsSerializer {
       parents: this.#parentsSection(
         this.#application?.student?.studentPersons || ([] as StudentPerson[])
       ),
-      parentDependents: this.#parentDependentsSection(this.#application.parentDependents || ([] as ParentDependent[])),
+      parentDependents: this.#parentDependentsSection(
+        this.#application.parentDependents || ([] as ParentDependent[])
+      ),
+      spouse: this.#spouseSection(
+        this.#application,
+        this.#application.spouse || ({} as Person),
+        this.#application.spouseStudyEmpolymentStatus
+      ),
     }
   }
 
@@ -89,9 +97,8 @@ export default class StudentApplicationsSerializer {
       durationOfProgram: application.programYearTotal, // duplicate of programDuration
       endDateOfClasses: application.classesEndDate,
       institution: this.#institutionAssociation(
-        this.#application.institution || ({} as Institution)
+        this.#application.institutionCampus || ({} as InstitutionCampus)
       ),
-      institutionId: application.institutionCampusId,
       program: application.programId,
       programDuration: application.programYearTotal, // duplicate of durationOfProgram
       programName: application.program?.description,
@@ -102,10 +109,10 @@ export default class StudentApplicationsSerializer {
     }
   }
 
-  #institutionAssociation(institution: Institution) {
+  #institutionAssociation(institutionCampus: InstitutionCampus) {
     return {
-      id: institution.id,
-      name: institution.name,
+      id: institutionCampus.id,
+      name: institutionCampus.name,
     }
   }
 
@@ -448,12 +455,51 @@ export default class StudentApplicationsSerializer {
       dob: parentDependent.birthDate,
       relationshipId: parentDependent.relationshipId,
       relationship: parentDependent.relationship?.description,
-      comments: parentDependent.comments
+      comments: parentDependent.comments,
     }))
 
     return {
-      hasDependents:!isEmpty(serializedDependents),
+      hasDependents: !isEmpty(serializedDependents),
       dependents: serializedDependents,
+    }
+  }
+
+  // At this time, we only care about the spouse during the study period.
+  #spouseSection(
+    application: Application,
+    spouse: Person,
+    spouseEmploymentStatus: PrestudyEmploymentStatus | undefined
+  ) {
+    let employmentStatus
+    if (!isNil(spouseEmploymentStatus)) {
+      if (spouseEmploymentStatus.isEmployed()) {
+        employmentStatus = PrestudyEmploymentStatus.StatusesUI.EMPLOYED
+      } else if (spouseEmploymentStatus.isUnemployed()) {
+        employmentStatus = PrestudyEmploymentStatus.StatusesUI.NOT_EMPLOYED
+      } else {
+        employmentStatus = PrestudyEmploymentStatus.StatusesUI.UNKNOWN
+      }
+    }
+
+    let serializedSpouse = {}
+    if (!isNil(application.spouseId)) {
+      serializedSpouse = {
+        firstName: spouse.firstName,
+        lastName: spouse.lastName,
+        sin: spouse.sin,
+        livingWith: application.studyLivingWSpouse, // is living with spouse during the study period
+        postSecondaryFrom: application.spouseStudySchoolFrom,
+        postSecondaryTo: application.spouseStudySchoolTo,
+        busService: application.isSpouseStudyBus, // is spouse using a bus during the study period
+        distanceFromSchool: application.spouseStudyDistance,
+        employmentInformation: application.isSpouseStudyCsl, // is spouse applying for Canada Student Loan (CSL)
+        employmentStatus,
+      }
+    }
+
+    return {
+      hasSpouse: !isEmpty(serializedSpouse),
+      spouse: serializedSpouse,
     }
   }
 }

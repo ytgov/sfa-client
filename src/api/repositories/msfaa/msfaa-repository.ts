@@ -40,7 +40,6 @@ export class MsfaaRepository extends BaseRepository implements IMainTable {
 
     async insertMsfaa(msfaa: MsfaaDTO): Promise<MsfaaDTO> {
         const filtered = this.getMsfaaTable(msfaa);
-        delete filtered?.email;
         const result = await this.mainDb(this.mainTable).insert(filtered).returning("*");        
         return result[0];
     }

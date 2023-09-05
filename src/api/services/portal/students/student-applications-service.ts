@@ -4,6 +4,7 @@ import db from "@/db/db-client"
 import { NON_EXISTANT_ID } from "@/utils/constants"
 
 import Application from "@/models/application"
+import PrestudyEmploymentStatus from "@/models/prestudy-employment-status"
 import Relationship from "@/models/relationship"
 import Student from "@/models/student"
 
@@ -42,35 +43,54 @@ export default class StudentApplicationsService {
       )
     }
 
-    if (application.institutionCampusId) {
-      application.institution = await db("institution")
-        .where({ id: application.institutionCampusId })
-        .first()
-    }
-
-    if (application.programId) {
-      application.program = await db("program").where({ id: application.programId }).first()
-    }
-
     if (application.attendanceId) {
       application.attendance = await db("attendance")
         .where({ id: application.attendanceId })
         .first()
     }
 
+    if (application.institutionCampusId) {
+      application.institutionCampus = await db("institutionCampus")
+        .where({ id: application.institutionCampusId })
+        .first()
+    }
+
+    if (application.spouseStudyEmpStatusId) {
+      application.spouseStudyEmpolymentStatus = await this.#getPrestudyEmploymentStatus(
+        application.spouseStudyEmpStatusId
+      )
+    }
+
+    if (application.programId) {
+      application.program = await db("program").where({ id: application.programId }).first()
+    }
+
+    if (application.spouseId) {
+      application.spouse = await db("person").where({ id: application.spouseId }).first()
+    }
+
+    application.agencyAssistances = await this.#getApplicationAgencyAssistances(application.id)
+    application.expenses = await this.#getApplicationExpenses(application.id)
     application.fundingRequests = await this.#getApplicationFundingRequests(application.id)
+    application.incomes = await this.#getApplicationIncomes(application.id)
+    application.parentDependents = await this.#getParentDependents(application.id)
     application.student = await this.#getApplicationStudent(
       application.studentId,
       this.#applicationId
     )
-    application.agencyAssistances = await this.#getApplicationAgencyAssistances(application.id)
-    application.incomes = await this.#getApplicationIncomes(application.id)
-    application.expenses = await this.#getApplicationExpenses(application.id)
-    application.parentDependents = await this.#getParentDependents(application.id)
 
     await this.#injectParents(application, application.student)
 
     return application
+  }
+
+  #getApplicationAgencyAssistances(applicationId: number) {
+    return db("agencyAssistance").where({ applicationId })
+  }
+
+  #getApplicationExpenses(applicationId: number) {
+    const expenseService = new StudentApplicationExpensesService({ applicationId })
+    return expenseService.getExpenses()
   }
 
   #getApplicationFundingRequests(applicationId: number) {
@@ -78,22 +98,29 @@ export default class StudentApplicationsService {
     return fundingRequestService.getFundingRequests()
   }
 
+  #getApplicationIncomes(applicationId: number) {
+    return db("income").where({ applicationId })
+  }
+
   #getApplicationStudent(studentId: number, applicationId: number) {
     const studentService = new StudentApplicationStudentsService({ studentId, applicationId })
     return studentService.getStudent()
   }
 
-  #getApplicationAgencyAssistances(applicationId: number) {
-    return db("agencyAssistance").where({ applicationId })
+  #getParentDependents(applicationId: number) {
+    const parentDependentsService = new StudentApplicationParentDependentsService({ applicationId })
+    return parentDependentsService.getParentDependents()
   }
 
-  #getApplicationIncomes(applicationId: number) {
-    return db("income").where({ applicationId })
-  }
-
-  #getApplicationExpenses(applicationId: number) {
-    const expenseService = new StudentApplicationExpensesService({ applicationId })
-    return expenseService.getExpenses()
+  async #getPrestudyEmploymentStatus(prestudyEmploymentStatusId: number) {
+    const row = await db("prestudyEmploymentStatus")
+      .where({ id: prestudyEmploymentStatusId, isActive: true })
+      .first()
+    return new PrestudyEmploymentStatus({
+      id: row.id,
+      description: row.description,
+      isActive: row.isActive,
+    })
   }
 
   async #injectParents(application: Application, student: Student) {
@@ -140,10 +167,5 @@ export default class StudentApplicationsService {
         relationship: parentRelationship,
       })
     }
-  }
-
-  #getParentDependents(applicationId: number) {
-    const parentDependentsService = new StudentApplicationParentDependentsService({ applicationId })
-    return parentDependentsService.getParentDependents()
   }
 }

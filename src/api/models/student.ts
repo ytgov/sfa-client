@@ -50,6 +50,8 @@ interface StudentRecord {
   kinProvinceId?: number
   kinCountryId?: number
   kinPostalCode?: string
+
+  // Relations
   dependents?: Dependent[]
   person?: Person
   residences?: Residence[]

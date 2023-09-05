@@ -5,7 +5,7 @@ import { body, param } from "express-validator";
 import { ReturnValidationErrors } from "../../middleware";
 import { DB_CONFIG } from "../../config";
 import { AssessmentCslftRepository, DisbursementRepository } from "../../repositories";
-import { AssessmentDTO, CslftResultDTO, DisbursementDTO, UncappedExpensesDTO } from "../../models";
+import { AssessmentDTO, CslftResultDTO, DataDTO, DisbursementDTO, UncappedExpensesDTO } from "../../models";
 
 const db = knex(DB_CONFIG)
 export const assessmentCslftRouter = express.Router();
@@ -17,16 +17,47 @@ async (req: Request, res: Response) => {
 
     const assessmentCslftRepo = new AssessmentCslftRepository(db);
     const { id = undefined } = req.params;
-    let results: Partial<CslftResultDTO> = {};
+    let results: Partial<DataDTO<CslftResultDTO>> = {};
     
     try {
 
         if (id) {
-            results = await assessmentCslftRepo.getAssessInfoCslft(parseInt(id));
+            results = await assessmentCslftRepo.initAssessments(parseInt(id));
         }
 
-        if (Object.keys(results.data ?? {}).length > 0) {
-            results.success = true;
+        if (Object.keys(results.result ?? {}).length > 0) {
+            if (results.result) {
+                results.result.success = true;
+            }
+            return res.status(200).json(results);
+        } else {
+            return res.status(404).send();
+        }
+
+    } catch (error: any) {
+        console.log(error);
+        return res.status(404).send();
+    }
+});
+
+assessmentCslftRouter.get("/funding_request/:id/assessment/create",
+[param("id").isInt().notEmpty()], ReturnValidationErrors, 
+async (req: Request, res: Response) => {
+
+    const assessmentCslftRepo = new AssessmentCslftRepository(db);
+    const { id = undefined } = req.params;
+    let results: Partial<DataDTO<CslftResultDTO>> = {};
+    
+    try {
+
+        if (id) {
+            results = await assessmentCslftRepo.initAssessments(parseInt(id), true);
+        }
+
+        if (Object.keys(results.result ?? {}).length > 0) {
+            if (results.result) {
+                results.result.success = true;
+            }
             return res.status(200).json(results);
         } else {
             return res.status(404).send();

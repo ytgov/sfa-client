@@ -19,6 +19,8 @@ export default interface Person {
   birthDate?: Date
   telephone?: string
   email?: string
+
+  // Relations
   personAddresses?: PersonAddress[]
   citizenship?: Citizenship // foreign key on citizenshipCode
   language?: Language
