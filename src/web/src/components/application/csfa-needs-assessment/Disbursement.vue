@@ -89,6 +89,7 @@
                             :value="item.issue_date?.slice(0, 10)"
                             @input="e => {
                               item.issue_date = e;
+                              item.tax_year = e.slice(0, 4);
                               item.issue_date_menu = false;
                             }"
                             @change=" e => {
@@ -234,6 +235,7 @@
                           :value="item.issue_date?.slice(0, 10)"
                           @input="e => {
                             item.issue_date = e;
+                            item.tax_year = e.slice(0, 4);
                             item.issue_date_menu = false;
                           }"
                            @change=" e => {

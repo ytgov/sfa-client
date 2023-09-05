@@ -145,10 +145,10 @@ assessmentSTARouter.post("/",
                 ...notNullValues
             };
 
-            const newRow = await assessmentRepo.newAssessment(newApp, disbursementList);
+            const result = await assessmentRepo.newAssessment(newApp, disbursementList);
 
-            if (newRow && newRow.length === 1) {
-                return res.json({ data: { id: newRow[0].id }, messages: [{ text: "Assessment created", variant: "success" }] });
+            if (result) {
+                return res.json({ messages: [ result ] });
             }
 
             return res.status(404).send();
@@ -172,10 +172,10 @@ assessmentSTARouter.put("/:id",
         };
 
         try {
-            const updateRow = await assessmentRepo.saveAssessment(id, newApp, disbursementList ?? []);
+            const result = await assessmentRepo.saveAssessment(id, newApp, disbursementList ?? []);
 
-            if (updateRow && updateRow.length === 1) {
-                return res.json({ data: { id: updateRow[0].id }, messages: [{ text: "Assessment updated", variant: "success" }] });
+            if (result) {
+                return res.json({ messages: [ result ] });
             }
 
             return res.status(404).send();
@@ -250,7 +250,7 @@ assessmentSTARouter.delete("/disbursements/:id", [param("id").isInt().notEmpty()
         const { id } = req.params;
 
         try {
-            const verify = await db("sfa.disbursement")
+            const verify:any = await db("sfa.disbursement")
                 .where({ id });
 
             if (!verify.length) return res.json({ success: false, message: `Disbursement not founded`, });
@@ -259,11 +259,15 @@ assessmentSTARouter.delete("/disbursements/:id", [param("id").isInt().notEmpty()
                 .where({ id })
                 .del();
 
-            return resDelete ?
-                res.json({ success: true, message: `Deleted!`, })
-                :
-                res.json({ success: false, message: `Some failed`, });
-
+            if (resDelete) {
+                const updateStatusFundingRequest = await db("sfa.funding_request")
+                    .where({ id: verify[0].funding_request_id })
+                    .update({ status_id: 7 });
+                
+                return res.json({ success: true, message: `Deleted!`, });
+            } else {
+                return res.json({ success: false, message: `Some failed`, });
+            }
         } catch (err) {
             console.log(err);
             return res.status(400).send(err);

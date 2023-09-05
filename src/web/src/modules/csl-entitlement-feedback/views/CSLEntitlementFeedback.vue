@@ -177,7 +177,7 @@ export default {
   />
 
   <div style="display: flex; margin-bottom: 2px;">
-    <p style="font-size: 3px; padding: 0 8px; margin-bottom: 3px">ECert File Received Date: ${this.date ? this.date : ""}</p>
+    <p style="font-size: 3px; padding: 0 8px; margin-bottom: 3px">ECert File Received Date: ${this.date ? moment(this.date).format('YYYY-MM-DD') : ""}</p>
     <p style="font-size: 3px; padding: 0 8px;">ECert Seq:  ${Number(this.seq) ? Number(this.seq) : ""}</p>
   </div>
   <table style="font-size: 3px; margin: 0 8px;"
@@ -236,7 +236,7 @@ export default {
 
       console.log("----", this.date);
       let finalHTML = htmlTop + dataColumns + htmlBottom;
-      let fileName = `${this.date ? moment(this.date, 'YYYY-MMM-DD').format('YYYY-MM-DD') : ""} MSFAA_RECEIVED_RPT`;
+      let fileName = `${this.date ? moment(this.date).format('YYYY-MM-DD') : ""} MSFAA_RECEIVED_RPT`;
 
       doc.html(finalHTML, {
         callback: function (doc) {      
