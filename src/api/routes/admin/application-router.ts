@@ -616,6 +616,19 @@ applicationRouter.post(
         }
 
         if (checkIsActive?.is_active) {
+          if (newRecord.request_type_id === 1) {
+            const isSTACandidate = await db("sfa.institution_campus")
+              .where({ id: application.institution_campus_id })
+              .whereIn("institution_id", [30, 811])
+              .first();
+
+            if (!isSTACandidate?.id) {
+              return res.json({
+                messages: [{ variant: "error", text: "Only available for Yukon University or Alkan Air" }],
+              });
+            }
+          }
+
           const resInsert = await db("sfa.funding_request").insert({
             ...newRecord,
             is_csg_only: false,
@@ -669,27 +682,25 @@ applicationRouter.get("/:application_id/student/:student_id/files/:file_type", a
 
 applicationRouter.post("/:application_id/student/:student_id/files", async (req: Request, res: Response) => {
   const { student_id, application_id } = req.params;
-  const { requirement_type_id, disability_requirement_id, person_id, dependent_id, comment, status } = req.body;
+  const { requirement_type_id, disability_requirement_id, person_id, dependent_id, comment, email, status } = req.body;
 
   if (req.files) {
     let files = Array.isArray(req.files.files) ? req.files.files : [req.files.files];
 
     for (let file of files) {
-      await documentService.uploadApplicationDocument(
-        {
-          email: req.user.email, 
-          student_id: parseInt(student_id.toString()), 
-          application_id: parseInt(application_id.toString()), 
-          file,
-          requirement_type_id, 
-          disability_requirement_id, 
-          person_id, 
-          dependent_id, 
-          comment,
-          source: "Admin", 
-          status,
-        }
-      );
+      await documentService.uploadApplicationDocument({
+        email: req.user.email,
+        student_id: parseInt(student_id.toString()),
+        application_id: parseInt(application_id.toString()),
+        file,
+        requirement_type_id,
+        disability_requirement_id,
+        person_id,
+        dependent_id,
+        comment,
+        source: "Admin",
+        status,
+      });
     }
     return res.json({ messages: [{ variant: "success", text: "Saved" }] });
   }
@@ -880,17 +891,6 @@ applicationRouter.put(
     } catch (error) {
       return res.json({ messages: [{ text: "Failed to update Funding Request", variant: "error" }] });
     }
-  }
-);
-
-applicationRouter.delete(
-  "/:application_id/files/:object_key",
-  [param("application_id").isInt().notEmpty(), param("object_key").notEmpty()],
-  ReturnValidationErrors,
-  async (req: Request, res: Response) => {
-    const { object_key } = req.params;
-    await documentService.removeDocument(object_key);
-    res.json({ variant: "success" });
   }
 );
 
@@ -1890,6 +1890,90 @@ applicationRouter.patch(
   }
 );
 
+applicationRouter.get(
+  "/:applicationId/funding-request/:fundingRequestId/letters",
+  [param("applicationId").isInt().notEmpty(), param("fundingRequestId").isInt().notEmpty()],
+  ReturnValidationErrors,
+  async (req: Request, res: Response) => {
+    const { applicationId, fundingRequestId } = req.params;
+    let letters = await documentService.getDocumentsForFundingRequest(parseInt(fundingRequestId));
+    res.json({ data: letters });
+  }
+);
+
+applicationRouter.get(
+  "/:applicationId/funding-request/:fundingRequestId/letters/:object_key",
+  [param("applicationId").isInt().notEmpty(), param("fundingRequestId").isInt().notEmpty()],
+  ReturnValidationErrors,
+  async (req: Request, res: Response) => {
+    const { fundingRequestId, object_key } = req.params;
+    let letters = await documentService.getDocumentsForFundingRequest(parseInt(fundingRequestId));
+    let letter = letters.filter((l) => l.object_key == object_key);
+
+    if (letter.length > 0) {
+      let fileReference = await documentService.getDocumentWithFile(object_key);
+
+      if (fileReference) {
+        res.set("Content-disposition", "attachment; filename=" + fileReference.file_name);
+        res.set("Content-type", fileReference.mime_type);
+        return res.send(fileReference.file_contents);
+      }
+    }
+
+    res.status(404).send;
+  }
+);
+
+applicationRouter.delete(
+  "/:applicationId/funding-request/:fundingRequestId/letters/:object_key",
+  [param("applicationId").isInt().notEmpty(), param("fundingRequestId").isInt().notEmpty()],
+  ReturnValidationErrors,
+  async (req: Request, res: Response) => {
+    const { fundingRequestId, object_key } = req.params;
+    let letters = await documentService.getDocumentsForFundingRequest(parseInt(fundingRequestId));
+    let letter = letters.filter((l) => l.object_key == object_key);
+
+    if (letter.length > 0) {
+      await documentService.removeDocument(object_key);
+      return res.status(200).send();
+    }
+
+    res.status(404).send;
+  }
+);
+
+applicationRouter.post(
+  "/:applicationId/funding-request/:fundingRequestId/letter-upload",
+  [param("applicationId").isInt().notEmpty(), param("fundingRequestId").isInt().notEmpty()],
+  ReturnValidationErrors,
+  async (req: Request, res: Response) => {
+    const { applicationId, fundingRequestId } = req.params;
+
+    let application = await db("sfa.application").where({ id: applicationId }).first();
+
+    if (application && req.files) {
+      let file = isArray(req.files.file) ? req.files.file[0] : req.files.file;
+
+      if (file) {
+        await documentService.uploadApplicationDocument({
+          email: req.user.email,
+          student_id: parseInt(application.student_id.toString()),
+          application_id: parseInt(applicationId.toString()),
+          file,
+          source: "Admin",
+          status: DocumentStatus.APPROVED,
+          funding_request_id: parseInt(fundingRequestId.toString()),
+          visible_in_portal: false,
+        });
+
+        return res.status(201).send();
+      }
+    }
+
+    res.status(404).send();
+  }
+);
+
 applicationRouter.delete(
   "/disability-equipment/:id",
   [param("id").isInt().notEmpty()],
@@ -1922,88 +2006,6 @@ applicationRouter.delete(
     }
   }
 );
-
-applicationRouter.get(
-  "/:applicationId/funding-request/:fundingRequestId/letters",
-  [param("applicationId").isInt().notEmpty(), param("fundingRequestId").isInt().notEmpty()],
-  ReturnValidationErrors,
-  async (req: Request, res: Response) => {
-    const{applicationId, fundingRequestId} = req.params;
-    let letters = await documentService.getDocumentsForFundingRequest(parseInt(fundingRequestId));
-    res.json({data: letters});
-  });
-  
-applicationRouter.get(
-  "/:applicationId/funding-request/:fundingRequestId/letters/:object_key",
-  [param("applicationId").isInt().notEmpty(), param("fundingRequestId").isInt().notEmpty()],
-  ReturnValidationErrors,
-  async (req: Request, res: Response) => {
-    const{ fundingRequestId, object_key} = req.params;
-    let letters = await documentService.getDocumentsForFundingRequest(parseInt(fundingRequestId));
-    let letter = letters.filter(l => l.object_key == object_key);
-
-    if (letter.length > 0) {
-      let fileReference = await documentService.getDocumentWithFile(object_key);
-
-      if (fileReference) {        
-        res.set("Content-disposition", "attachment; filename=" + fileReference.file_name);
-        res.set("Content-type", fileReference.mime_type);
-        return res.send(fileReference.file_contents);
-      }
-    }
-
-    res.status(404).send
-  });
-
-applicationRouter.delete(
-    "/:applicationId/funding-request/:fundingRequestId/letters/:object_key",
-    [param("applicationId").isInt().notEmpty(), param("fundingRequestId").isInt().notEmpty()],
-    ReturnValidationErrors,
-    async (req: Request, res: Response) => {
-      const{ fundingRequestId, object_key} = req.params;
-      let letters = await documentService.getDocumentsForFundingRequest(parseInt(fundingRequestId));
-      let letter = letters.filter(l => l.object_key == object_key);
-  
-      if (letter.length > 0) {
-         await documentService.removeDocument(object_key);
-        return res.status(200).send();
-      }
-  
-      res.status(404).send
-  });
-
-
-applicationRouter.post(
-  "/:applicationId/funding-request/:fundingRequestId/letter-upload",
-  [param("applicationId").isInt().notEmpty(), param("fundingRequestId").isInt().notEmpty()],
-  ReturnValidationErrors,
-  async (req: Request, res: Response) => {
-    const{ applicationId, fundingRequestId } = req.params;
-
-    let application = await db("sfa.application").where({id: applicationId}).first();
-
-    if (application && req.files) {
-        let file = isArray(req.files.file) ? req.files.file[0] : req.files.file;
-
-        if (file) {
-          await documentService.uploadApplicationDocument(    
-          {
-            email: req.user.email, 
-            student_id: parseInt(application.student_id.toString()), 
-            application_id: parseInt(applicationId.toString()), 
-            file,
-            source: "Admin", 
-            status: DocumentStatus.APPROVED,
-            funding_request_id: parseInt(fundingRequestId.toString()),
-            visible_in_portal: false
-          });
-
-          return res.status(201).send();
-        }
-    }
-
-    res.status(404).send();
-  });
 
 applicationRouter.get(
   "/:application_id/:funding_request_id/assessments",
@@ -2280,46 +2282,71 @@ applicationRouter.post(
                 .where({ id: resSP[0].assessment_id_inserted })
                 .update({ ...dataAssessment });
 
-              // Insert the disbursement list
-              for (const item of dataDisburse) {
-                const resInsert = await db("sfa.disbursement")
-                  .insert({
-                    disbursement_type_id: item.disbursement_type_id,
-                    assessment_id: resSP[0].assessment_id_inserted,
-                    funding_request_id: funding_request_id,
-                    disbursed_amount: item.disbursed_amount,
-                    due_date: item.due_date,
-                    tax_year: item.tax_year,
-                    issue_date: item.issue_date,
-                    paid_amount: item.paid_amount,
-                    change_reason_id: item.change_reason_id,
-                    financial_batch_id: item.financial_batch_id,
-                    financial_batch_id_year: item.financial_batch_id_year,
-                    financial_batch_run_date: item.financial_batch_run_date,
-                    financial_batch_serial_no: item.financial_batch_serial_no,
-                    transaction_number: item.transaction_number,
-                    csl_cert_seq_number: item.csl_cert_seq_number,
-                    ecert_sent_date: item.ecert_sent_date,
-                    ecert_response_date: item.ecert_response_date,
-                    ecert_status: item.ecert_status,
-                    ecert_portal_status_id: item.ecert_portal_status_id,
-                  })
-                  .returning("*");
+              if (dataDisburse.length) {
+                const student = await db("sfa.assessment AS a")
+                  .select("s.vendor_id AS vendor_id")
+                  .innerJoin("sfa.funding_request AS fr", "fr.id", "a.funding_request_id")
+                  .innerJoin("sfa.application AS app", "app.id", "fr.application_id")
+                  .innerJoin("sfa.student AS s", "s.id", "app.student_id")
+                  .where("a.id", resSP[0].assessment_id_inserted)
+                  .first();
+
+                if (student.vendor_id) {
+                  // Insert the disbursement list
+                  for (const item of dataDisburse) {
+                    if (!item.issue_date) {
+                      return res.json({
+                        messages: [{ variant: "error", text: "Issue date is mandatory in disbursements" }],
+                        data: [],
+                      });
+                    }
+                    const resInsert = await db("sfa.disbursement")
+                      .insert({
+                        disbursement_type_id: item.disbursement_type_id,
+                        assessment_id: resSP[0].assessment_id_inserted,
+                        funding_request_id: funding_request_id,
+                        disbursed_amount: item.disbursed_amount,
+                        due_date: item.due_date,
+                        tax_year: item.tax_year,
+                        issue_date: item.issue_date || item.issue_date.slice(0, 4),
+                        paid_amount: item.paid_amount,
+                        change_reason_id: item.change_reason_id,
+                        financial_batch_id: item.financial_batch_id,
+                        financial_batch_id_year: item.financial_batch_id_year,
+                        financial_batch_run_date: item.financial_batch_run_date,
+                        financial_batch_serial_no: item.financial_batch_serial_no,
+                        transaction_number: item.transaction_number,
+                        csl_cert_seq_number: item.csl_cert_seq_number,
+                        ecert_sent_date: item.ecert_sent_date,
+                        ecert_response_date: item.ecert_response_date,
+                        ecert_status: item.ecert_status,
+                        ecert_portal_status_id: item.ecert_portal_status_id,
+                      })
+                      .returning("*");
+                  }
+                } else {
+                  return res.json({
+                    messages: [
+                      { text: "Saved, but student must have a Vendor ID to create disbursements", variant: "error" },
+                    ],
+                    data: [],
+                  });
+                }
+
+                const updateStatusFundingRequest = await db("sfa.funding_request")
+                  .where({ id: funding_request_id })
+                  .update({ status_id: 7 });
+
+                return res.json({
+                  messages: [{ variant: "success" }],
+                  data: [],
+                });
+              } else {
+                return res.json({
+                  messages: [{ variant: "error", text: "Error to insert assessment" }],
+                  data: [],
+                });
               }
-
-              const updateStatusFundingRequest = await db("sfa.funding_request")
-                .where({ id: funding_request_id })
-                .update({ status_id: 7 });
-
-              return res.json({
-                messages: [{ variant: "success" }],
-                data: [],
-              });
-            } else {
-              return res.json({
-                messages: [{ variant: "error", text: "Error to insert assessment" }],
-                data: [],
-              });
             }
           });
         } else if (fundingRequest?.request_type_id === 3) {
@@ -2787,6 +2814,8 @@ applicationRouter.patch(
               Number(assessment_id),
               Number(funding_request_id)
             );
+
+            return res.json({ messages: [resAssessment] });
           } else if (data.assessment_type_id == 2) {
             const assessmentMethods = new AssessmentYEA(db);
 

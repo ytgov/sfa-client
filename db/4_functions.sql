@@ -358,20 +358,22 @@ GO
 CREATE OR ALTER FUNCTION sfa.fn_get_allowed_weeks (@start_date_p DATE, @end_date_p DATE )
 RETURNS NUMERIC AS
 BEGIN
-	DECLARE @v_day_of_week_start NUMERIC;
-	DECLARE @v_day_of_week_end NUMERIC;
-	DECLARE @v_ceil_weeks NUMERIC;
-	DECLARE @v_weeks NUMERIC;
-	DECLARE @v_floor_weeks NUMERIC;
-	DECLARE @v_return_weeks NUMERIC;
+	DECLARE @v_days FLOAT;
+    DECLARE @v_day_of_week_start FLOAT;
+    DECLARE @v_day_of_week_end FLOAT;
+    DECLARE @v_ceil_weeks FLOAT;
+    DECLARE @v_weeks FLOAT;
+    DECLARE @v_floor_weeks FLOAT;
+    DECLARE @v_return_weeks FLOAT;
 
     SET @v_return_weeks = 0;
     SET @v_day_of_week_start = DATEPART(dw, CAST(@start_date_p AS DATE));
     SET @v_day_of_week_end = DATEPART(dw, CAST(@end_date_p AS DATE));
-    
-    SET @v_weeks =  (DATEDIFF(day, @start_date_p, @end_date_p))/7;
-    SET @v_ceil_weeks =  CEILING((DATEDIFF(day, @start_date_p, @end_date_p))/7);
-    SET @v_floor_weeks =  FLOOR((DATEDIFF(day, @start_date_p, @end_date_p))/7);
+
+    SET @v_days = CAST(DATEDIFF(day, @start_date_p, @end_date_p) AS FLOAT);
+    SET @v_weeks = @v_days/7;
+    SET @v_ceil_weeks =  CEILING(@v_days/7);
+    SET @v_floor_weeks =  FLOOR(@v_days/7);
 
     IF @v_day_of_week_start > 1 and @v_day_of_week_start < 7
         BEGIN
@@ -1789,13 +1791,15 @@ BEGIN
                                     id,
                                     funding_request_id,
                                     assessment_id,
-                                    issue_date
+                                    issue_date,
+                                    tax_year
                                 )
                                 VALUES(
                                     @count,
                                     @funding_request_id,
                                     @assessment_id,
-                                    GETDATE()
+                                    GETDATE(),
+                                    YEAR(GETDATE())
                                 );
 
                                 IF @financial_batch_id IS NULL
@@ -1897,13 +1901,15 @@ BEGIN
                         id,
                         funding_request_id,
                         assessment_id,
-                        issue_date
+                        issue_date,
+                        tax_year
                     )
                     VALUES(
                         -1,
                         @funding_request_id,
                         @assessment_id,
-                        GETDATE()
+                        GETDATE(),
+                        YEAR(GETDATE())
                     );
                     
                     IF @financial_batch_id IS NULL
@@ -4915,7 +4921,7 @@ AS
     SPACE(30) + ' ' + '0000000' + '000000000000000' + '0' + FORMAT(CAST(@issue_date_str AS DATE), 'yyyyMMdd') + '0' + '03    ' + 'CAD ' +
     '0000000000000' + '0000000000000' + ' ' + '1' + '  ' + '0000000000000' + '0000000000000' + '  ' + '    ' 
     AS record1,
-    '2'+ RIGHT(REPLICATE(' ', 12) + s.vendor_id, 12)  + '03    ' + '000000000' +
+    '2'+ LEFT(s.vendor_id + REPLICATE(' ', 12), 12)  + ' 03    ' + '000000000' +
 		( LEFT(LTRIM(ISNULL(CAST(d.financial_batch_id_year AS NVARCHAR(2)), '00')+  '-' + ISNULL(CAST(d.financial_batch_id AS NVARCHAR(10)), '00') ) + REPLICATE(' ', 12)  , 12))+ 
         LEFT(CASE WHEN app.student_number IS NULL THEN 'Yukon Student'
                     ELSE app.student_number
@@ -4949,7 +4955,7 @@ AS
             '     '+ '     '+ '     '+ REPLICATE(' ', 25) + '            '+
             '0'+ ' '+ '    '
         as record2, -- Voucher Header (VOH)
-    '3'+ REPLICATE(' ', 12 - LEN(s.vendor_id)) + s.vendor_id + '03    '+ '000000000'+
+    '3'+ LEFT(s.vendor_id + REPLICATE(' ', 12), 12) + ' 03    '+ '000000000'+
             '00001' +( LEFT(LTRIM(ISNULL(CAST(d.financial_batch_id_year AS NVARCHAR(2)), '00')+  '-' + ISNULL(CAST(d.financial_batch_id AS NVARCHAR(10)), '00') ) + REPLICATE(' ', 12)  , 12))+
             LEFT( 
                 CASE WHEN app.student_number IS NULL THEN 'Yukon Student'
@@ -4967,7 +4973,7 @@ AS
             '0' + '     ' + '000000000000000' + '0' + '     ' + '000000000000000' + '0' + '               ' +
             '               ' + ' ' + ' ' + REPLICATE(' ', 22) + ' ' + '000000000000000' + '0' + '    '+REPLICATE(' ',245)
         as record3, --   Voucher Line Record -- (VOL)
-    '4'+ REPLICATE(' ', 12 - LEN(s.vendor_id)) + s.vendor_id  + '03    '+ '000000000'
+    '4'+ LEFT(s.vendor_id + REPLICATE(' ', 12), 12)  + ' 03    '+ '000000000'
             +'00001' + '00001' 
             +( LEFT(LTRIM(ISNULL(CAST(d.financial_batch_id_year AS NVARCHAR(2)), '00')+  '-' + ISNULL(CAST(d.financial_batch_id AS NVARCHAR(10)), '00') ) + REPLICATE(' ', 12)  , 12))+LEFT( 
                 CASE WHEN app.student_number IS NULL THEN 'Yukon Student'
@@ -7411,27 +7417,34 @@ CREATE OR ALTER PROCEDURE sfa.sp_check_error_status
     @error_id_p INT OUTPUT
 AS
 BEGIN
-    DECLARE @is_resend_flg VARCHAR(255), @error_id INT;
+	DECLARE @is_resend_flg VARCHAR(255), @error_id INT;
 
     SELECT @is_resend_flg = is_resend, @error_id = id
     FROM sfa.entitlement_error_codes
     WHERE code = @error_code_p;
 
-    INSERT INTO sfa.ENTITLEMENT_ERROR
-    (
-        disbursement_id,
-        entitlement_error_code_id,
-        is_resend
-    )
-    VALUES
-    (
-        @disbursement_id_p,
-        @error_id,
-        @is_resend_flg
-    );
-
-    SET @is_resend_p = @is_resend_flg;
-    SET @error_id_p = @error_id;
+	if @is_resend_flg IS NOT NULL AND @error_id IS NOT NULL
+		BEGIN 
+			INSERT INTO sfa.ENTITLEMENT_ERROR
+			(
+			    disbursement_id,
+			    entitlement_error_code_id,
+			    is_resend
+			)
+			VALUES
+			(
+			    @disbursement_id_p,
+			    @error_id,
+			    @is_resend_flg
+			);
+			SET @is_resend_p = @is_resend_flg;
+	    	SET @error_id_p = @error_id;
+		END	 
+	ELSE
+		BEGIN
+			SET @is_resend_p = 0;
+    		SET @error_id_p = -1;
+		END		    
 END
 GO
 
@@ -7667,5 +7680,3 @@ BEGIN
 
    END
 GO
-
-
