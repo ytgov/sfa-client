@@ -573,6 +573,18 @@ applicationRouter.post("/:application_id/status",
                 }
 
                 if (checkIsActive?.is_active) {
+                    
+                    if (newRecord.request_type_id === 1) {
+
+                        const isSTACandidate = await db("sfa.institution_campus")
+                            .where({ id: application.institution_campus_id })
+                            .whereIn('institution_id', [30,811])
+                            .first();
+
+                        if (!isSTACandidate?.id) {
+                            return res.json({ messages: [{ variant: "error", text: "Only available for Yukon University or Alkan Air" }] });
+                        }
+                    }
 
                     const resInsert = await db("sfa.funding_request")
                     .insert({ ...newRecord, is_csg_only: false, application_id , status_id : 2});
@@ -2222,32 +2234,56 @@ applicationRouter.post("/:application_id/:funding_request_id/assessments-with-di
                                 .where({ id: resSP[0].assessment_id_inserted })
                                 .update({ ...dataAssessment });
 
-                            // Insert the disbursement list
-                            for (const item of dataDisburse) {
-                                const resInsert = await db("sfa.disbursement")
-                                    .insert({
-                                        disbursement_type_id: item.disbursement_type_id,
-                                        assessment_id: resSP[0].assessment_id_inserted,
-                                        funding_request_id: funding_request_id,
-                                        disbursed_amount: item.disbursed_amount,
-                                        due_date: item.due_date,
-                                        tax_year: item.tax_year,
-                                        issue_date: item.issue_date,
-                                        paid_amount: item.paid_amount,
-                                        change_reason_id: item.change_reason_id,
-                                        financial_batch_id: item.financial_batch_id,
-                                        financial_batch_id_year: item.financial_batch_id_year,
-                                        financial_batch_run_date: item.financial_batch_run_date,
-                                        financial_batch_serial_no: item.financial_batch_serial_no,
-                                        transaction_number: item.transaction_number,
-                                        csl_cert_seq_number: item.csl_cert_seq_number,
-                                        ecert_sent_date: item.ecert_sent_date,
-                                        ecert_response_date: item.ecert_response_date,
-                                        ecert_status: item.ecert_status,
-                                        ecert_portal_status_id: item.ecert_portal_status_id
-                                    
-                                    })
-                                    .returning("*");
+                            
+                            if (dataDisburse.length) {
+                                const student = await db("sfa.assessment AS a")
+                                    .select("s.vendor_id AS vendor_id")
+                                    .innerJoin("sfa.funding_request AS fr", "fr.id", "a.funding_request_id")
+                                    .innerJoin("sfa.application AS app", "app.id", "fr.application_id")
+                                    .innerJoin("sfa.student AS s", "s.id", "app.student_id")
+                                    .where("a.id", resSP[0].assessment_id_inserted)
+                                    .first();
+
+                                if (student.vendor_id) {
+                                    // Insert the disbursement list
+                                    for (const item of dataDisburse) {
+                                        if (!item.issue_date) {
+                                            return res.json({
+                                                messages: [{ variant: "error" , text: "Issue date is mandatory in disbursements" }],
+                                                data: [],
+                                            });
+                                        }
+                                        const resInsert = await db("sfa.disbursement")
+                                            .insert({
+                                                disbursement_type_id: item.disbursement_type_id,
+                                                assessment_id: resSP[0].assessment_id_inserted,
+                                                funding_request_id: funding_request_id,
+                                                disbursed_amount: item.disbursed_amount,
+                                                due_date: item.due_date,
+                                                tax_year: item.tax_year,
+                                                issue_date: item.issue_date || item.issue_date.slice(0, 4),
+                                                paid_amount: item.paid_amount,
+                                                change_reason_id: item.change_reason_id,
+                                                financial_batch_id: item.financial_batch_id,
+                                                financial_batch_id_year: item.financial_batch_id_year,
+                                                financial_batch_run_date: item.financial_batch_run_date,
+                                                financial_batch_serial_no: item.financial_batch_serial_no,
+                                                transaction_number: item.transaction_number,
+                                                csl_cert_seq_number: item.csl_cert_seq_number,
+                                                ecert_sent_date: item.ecert_sent_date,
+                                                ecert_response_date: item.ecert_response_date,
+                                                ecert_status: item.ecert_status,
+                                                ecert_portal_status_id: item.ecert_portal_status_id
+                                            
+                                            })
+                                            .returning("*");
+                                    }
+                                } else {
+                                    return res.json({
+                                        messages: [{ text: "Saved, but student must have a Vendor ID to create disbursements", variant: "error" }],
+                                        data: [],
+                                    });
+                                }
                             }
 
                             const updateStatusFundingRequest = await db("sfa.funding_request")
@@ -2774,6 +2810,8 @@ applicationRouter.patch("/:application_id/:funding_request_id/assessments/:asses
                                 Number(assessment_id),
                                 Number(funding_request_id)
                             );
+                        
+                        return res.json({ messages: [ resAssessment ] });
     
                     } else if (data.assessment_type_id == 2) {
                         const assessmentMethods = new AssessmentYEA(db);

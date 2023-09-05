@@ -99,7 +99,7 @@ const actions = {
             if (message?.variant === "success") {
                 thisVal?.$emit("showSuccess", "Added!");
             } else {
-                thisVal?.$emit("showSuccess", "Error to add");
+                thisVal?.$emit("showError", message?.text || "Error to add");
             }
 
         } catch (error) {
@@ -134,13 +134,13 @@ const actions = {
             if (message?.variant === "success") {
                 thisVal?.$emit("showSuccess", "Both added!");
             } else {
-                thisVal?.$emit("showSuccess", "Error to add");
+                thisVal?.$emit("showError", message?.text || "Error to add");
             }
 
         } catch (error) {
             const thisVal = vals?.thisVal || {};
             console.log("Error to insert assessments", error);
-            thisVal?.$emit("showSuccess", "Error to insert");
+            thisVal?.$emit("showError", "Error to insert");
         } finally {
             if (!(vals?.application_id && vals?.funding_request_id)) {
                 return;

@@ -332,22 +332,47 @@ export class AssessmentSTA extends AssessmentBaseRepository {
         assessment_id: number,
         assessment: AssessmentDTO,
         disbursementList: DisbursementDTO[],
-    ): Promise<AssessmentDTO[] | undefined> {
+    ): Promise<any | undefined> {
 
         try {
             const assessInfo: AssessmentDTO[] = await this.updateAssessment(assessment_id, assessment);
 
-            for (const disburse of disbursementList) {
-                if (disburse?.id) {
-                    await this.updateDisbursements(disburse);
-                } else {
-                    disburse.assessment_id = assessment_id;
-                    disburse.funding_request_id = assessment.funding_request_id;
-                    await this.insertDisbursements(disburse);
-                }
-            }
+            const student = await this.mainDb("sfa.assessment AS a")
+                .select("s.vendor_id AS vendor_id")
+                .innerJoin("sfa.funding_request AS fr", "fr.id", "a.funding_request_id")
+                .innerJoin("sfa.application AS app", "app.id", "fr.application_id")
+                .innerJoin("sfa.student AS s", "s.id", "app.student_id")
+                .where("a.id", assessInfo[0].id)
+                .first();
 
-            return assessInfo;
+            if (student.vendor_id) {
+                for (const disburse of disbursementList) {
+                    if (!disburse.issue_date) {
+                        return { variant: "error", text: "Issue date is mandatory in disbursements" };
+                    }
+
+                    disburse.tax_year = moment(disburse.issue_date).year();
+                    
+                    if (disburse?.id) {
+                        await this.updateDisbursements(disburse);
+                    } else {
+                        disburse.assessment_id = assessment_id;
+                        disburse.funding_request_id = assessment.funding_request_id;
+                        await this.insertDisbursements(disburse);
+                    }
+                }
+    
+                if (disbursementList?.length) {
+                    const updateStatusFundingRequest = await this.mainDb("sfa.funding_request")
+                        .where({ id: assessment.funding_request_id })
+                        .update({ status_id: 7 });
+                }
+
+                return { text: "Assessment created", variant: "success" };
+
+            } else {
+                return { text: "Saved, but student must have a Vendor ID to create disbursements", variant: "error" };
+            }
         } catch (error) {
             return undefined;
         }
@@ -356,22 +381,47 @@ export class AssessmentSTA extends AssessmentBaseRepository {
     async newAssessment(
         assessment: AssessmentDTO,
         disbursementList: DisbursementDTO[],
-    ): Promise<AssessmentDTO[] | undefined> {
+    ): Promise< any | undefined> {
 
         try {
             const assessInfo: AssessmentDTO[] = await this.insertAssessment(assessment);
 
-            for (const disburse of disbursementList) {
-                if (disburse?.id) {
-                    await this.updateDisbursements(disburse);
-                } else if (assessInfo?.[0]?.id) {
-                    disburse.assessment_id = assessInfo[0].id;
-                    disburse.funding_request_id = assessment.funding_request_id;
-                    await this.insertDisbursements(disburse);
-                }
-            }
+            const student = await this.mainDb("sfa.assessment AS a")
+                .select("s.vendor_id AS vendor_id")
+                .innerJoin("sfa.funding_request AS fr", "fr.id", "a.funding_request_id")
+                .innerJoin("sfa.application AS app", "app.id", "fr.application_id")
+                .innerJoin("sfa.student AS s", "s.id", "app.student_id")
+                .where("a.id", assessInfo[0].id)
+                .first();
 
-            return assessInfo;
+            if (student.vendor_id) {
+                
+                for (const disburse of disbursementList) {
+                    if (!disburse.issue_date) {
+                        return { variant: "error", text: "Issue date is mandatory in disbursements" };
+                    }
+
+                    disburse.tax_year = moment(disburse.issue_date).year();
+
+                    if (disburse?.id) {
+                        await this.updateDisbursements(disburse);
+                    } else if (assessInfo?.[0]?.id) {
+                        disburse.assessment_id = assessInfo[0].id;
+                        disburse.funding_request_id = assessment.funding_request_id;
+                        await this.insertDisbursements(disburse);
+                    }
+                } 
+                
+                if (disbursementList?.length) {
+                    const updateStatusFundingRequest = await this.mainDb("sfa.funding_request")
+                        .where({ id: assessment.funding_request_id })
+                        .update({ status_id: 7 });
+                }
+
+                return { text: "Assessment created", variant: "success" };
+            } else {
+                return { text: "Saved, but student must have a Vendor ID to create disbursements", variant: "error" };
+            }
         } catch (error) {
             return undefined;
         }
