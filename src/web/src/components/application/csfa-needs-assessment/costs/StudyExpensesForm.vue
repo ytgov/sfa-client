@@ -13,7 +13,7 @@
               hide-details
               label="Estimated tuition fees"
               v-model="application.tuition_estimate_amount"
-              @change="doSaveApp('tuition_estimate_amount', application.tuition_estimate_amount)"
+              @change="doSaveApp('tuition_estimate_amount', parseMoney(application.tuition_estimate_amount))"
               v-currency="{ currency: 'USD', locale: 'en' }"
             ></v-text-field>
           </div>
@@ -24,10 +24,10 @@
               dense
               background-color="white"
               hide-details
-              label="Books & supplies (no decimals)"
+              label="Books & supplies"
               v-model="application.books_supplies_cost"
-              v-currency="{ currency: 'USD', locale: 'en', precision: 0 }"
-              @change="doSaveApp('books_supplies_cost', parseMoney(application.books_supplies_cost, 0))"
+              v-currency="{ currency: 'USD', locale: 'en' }"
+              @change="doSaveApp('books_supplies_cost', parseMoney(application.books_supplies_cost))"
             ></v-text-field>
           </div>
           <div class="col-md-6">
