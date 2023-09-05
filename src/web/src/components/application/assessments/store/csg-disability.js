@@ -206,8 +206,6 @@ const actions = {
     dispatch("save");
   },
   async removeDisbursement({ state }, { item, index }) {
-    console.log("TRING DELET DISB", item, index);
-
     if (item.id) {
       state.disbursements.splice(index, 1);
       await axios.delete(
