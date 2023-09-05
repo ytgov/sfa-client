@@ -170,6 +170,8 @@ export class DocumentService {
       visible_in_portal: true,
     } as FileReference;
 
+    console.log("Portal File Upload:", fRef);
+
     await this.uploadFile(fRef);
   }
 
