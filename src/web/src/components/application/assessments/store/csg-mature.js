@@ -27,10 +27,10 @@ const getters = {
     return formatMoney(state.baseRate);
   },
   studyMonths(state) {
-    return state.assessment.study_months
+    return state.assessment.study_months;
   },
   assessedAmount(state) {
-    let total = state.assessment.study_months * state.baseRate
+    let total = state.assessment.study_months * state.baseRate;
     return formatMoney(total);
   },
   netAmount(state, getters) {
@@ -213,8 +213,6 @@ const actions = {
     dispatch("save");
   },
   async removeDisbursement({ state }, { item, index }) {
-    console.log("TRING DELET DISB", item, index);
-
     if (item.id) {
       state.disbursements.splice(index, 1);
       await axios.delete(
