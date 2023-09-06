@@ -10,65 +10,42 @@
     </v-tabs>
 
     <v-tabs-items v-model="tab" style="padding: 20px">
-
       <v-tab-item key="0">
-      <!-- TODO Review academic-year component -->
-      <!-- <academic-year></academic-year> -->
-        <program-information-form
-          v-on:showSuccess="showSuccess"
-          v-on:showError="showError"
-        ></program-information-form>
+        <!-- TODO Review academic-year component -->
+        <!-- <academic-year></academic-year> -->
+        <program-information-form v-on:showSuccess="showSuccess" v-on:showError="showError"></program-information-form>
       </v-tab-item>
 
       <v-tab-item key="1">
-        <ResidenceHistoryForm 
-          v-on:showSuccess="showSuccess"
-          v-on:showError="showError"
-        >
-        </ResidenceHistoryForm>
+        <ResidenceHistoryForm v-on:showSuccess="showSuccess" v-on:showError="showError"> </ResidenceHistoryForm>
       </v-tab-item>
 
       <v-tab-item key="2">
-        <EducationForm 
-          v-on:showSuccess="showSuccess"
-          v-on:showError="showError"
-        >
-        </EducationForm>
+        <EducationForm v-on:showSuccess="showSuccess" v-on:showError="showError"> </EducationForm>
       </v-tab-item>
-      
+
       <v-tab-item key="3">
-        <StatisticalForm 
-          v-on:showSuccess="showSuccess"
-          v-on:showError="showError"
-        >
-        </StatisticalForm>
+        <StatisticalForm v-on:showSuccess="showSuccess" v-on:showError="showError"> </StatisticalForm>
       </v-tab-item>
-  
     </v-tabs-items>
   </div>
 </template>
 <script>
 import { mapState } from "vuex";
 import store from "../../store";
-import ParentDependentsForm from "./ParentDependentsForm.vue";
-import ParentInfoForm from "./ParentInfoForm.vue";
 import ProgramInformationForm from "./ProgramInformationForm.vue";
 import StatisticalForm from "./StatisticalForm.vue";
-import AcademicYear from './AcademicYear.vue';
-import ResidenceHistoryForm from './ResidenceHistoryForm.vue';
-import EducationForm from './EducationForm.vue';
+import ResidenceHistoryForm from "./ResidenceHistoryForm.vue";
+import EducationForm from "./EducationForm.vue";
 
 export default {
   components: {
     ProgramInformationForm,
     StatisticalForm,
-    ParentDependentsForm,
-    ParentInfoForm,
     ResidenceHistoryForm,
     EducationForm,
   },
   name: "Home",
-    AcademicYear,
   computed: {
     ...mapState(["selectedStudent"]),
     ...mapState(["selectedApplication"]),
@@ -81,9 +58,8 @@ export default {
     await store.dispatch("clearApplication");
     await store.dispatch("clearStudent");
     this.applicationId = this.$route.params.id;
-    
-    if (this.$route.path.indexOf("/application/") >= 0) {
 
+    if (this.$route.path.indexOf("/application/") >= 0) {
       //console.log("LOADING STUDENT BASED ON URL");
       await store.dispatch("loadApplication", this.applicationId);
       store.dispatch("setAppSidebar", true);
@@ -96,10 +72,10 @@ export default {
     }
   },
   watch: {
-    student: function (val) {
+    student: function(val) {
       if (val) this.updateView(val);
     },
-    selectedApplication: function (val) {
+    selectedApplication: function(val) {
       console.log("WATCH selectedApplication", val);
     },
   },

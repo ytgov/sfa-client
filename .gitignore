@@ -9,7 +9,8 @@ lerna-debug.log*
 
 # IDE settings
 .idea
-.vscode
+.vscode/settings.json
+.vscode/launch.json
 
 # Local docker setup
 docker-compose.local*

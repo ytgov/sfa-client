@@ -1,0 +1,50 @@
+'https://plantuml.com/activity-diagram-beta
+
+@startuml
+start
+
+:Receive funding request;
+
+if (Has 0 assessments?) then (yes)
+  :Assessments section is blank;
+elseif (Has 1 assessment?) then (yes)
+  :Assessments section has 1 section;
+  note right
+    e.g.
+    Rate per Week: $144.00
+    Approv. Weeks: 32
+    Travel/Airfare: $0.00
+  end note
+else (has many assessments)
+  :Assessments section has many sub-sections;
+  note right
+    e.g.
+    Rate per Week: $144.00
+    Approv. Weeks: 32
+    Travel/Airfare: $0.00
+
+    Rate per Week: $144.00
+    Approv. Weeks: 32
+    Travel/Airfare: $0.00
+  end note
+endif
+
+if (Has 0 disbursements?) then (yes)
+  :Disbursements section is blank;
+elseif (Has 1 disbursement?) then (yes)
+  :Disbursements section has 1 row;
+  note right
+  e.g
+  $2304.00 	Dec 2020
+  end note
+else (has many disbursements)
+  :Disbursements section has many rows;
+  note right
+    e.g.
+    $2304.00 	Dec 2020
+    $2304.00 	Upon confirmation
+  end note
+endif
+
+stop
+@enduml

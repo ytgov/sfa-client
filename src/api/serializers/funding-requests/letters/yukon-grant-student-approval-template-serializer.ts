@@ -1,4 +1,4 @@
-import { isArray, isNil, last, sortBy } from "lodash"
+import { isArray, isEmpty, isNil, sortBy } from "lodash"
 
 import Application from "@/models/application"
 import FundingRequest from "@/models/funding-request"
@@ -77,47 +77,18 @@ export default class YukonGrantStudentApprovalTemplateSerializer {
     if (studyArea === undefined)
       throw new Error("Could not prepare template data as study area is missing from application.")
 
-    const assessments = this.#fundingRequest.assessments
-    if (assessments === undefined)
+    if (isNil(application.classesStartDate))
       throw new Error(
-        "Could not prepare template data as assessments is missing from funding request."
+        "Could not prepare template data as classesStartDate is missing from application."
       )
-    if (assessments.length > 1)
-      console.warn(
-        "More than one assessment detected for funding request. This system state has not been investigated."
+    if (isNil(application.classesEndDate))
+      throw new Error(
+        "Could not prepare template data as classesEndDate is missing from application."
       )
 
-    const assessment = last(sortBy(assessments, ["assessedDate"]))
-    if (assessment === undefined)
-      throw new Error(
-        "Could not prepare template data as assessment is missing from funding request."
-      )
-    if (isNil(assessment.classesStartDate))
-      throw new Error(
-        "Could not prepare template data as classesStartDate is missing from studyArea."
-      )
-    if (isNil(assessment.classesEndDate))
-      throw new Error(
-        "Could not prepare template data as classesEndDate is missing from studyArea."
-      )
-
+    const serializedAssessments = this.#prepareAssessments(this.#fundingRequest)
     const institutionName = this.#prepareInstitutionName(application)
-
-    if (isNil(assessment.weeklyAmount))
-      throw new Error("Could not prepare template data as assessement weekly amount is missing.")
-    const ratePerWeekInCents = assessment.weeklyAmount * 100
-
-    if (isNil(assessment.weeksAllowed))
-      throw new Error("Could not prepare template data as weeksAllowed is missing from assessment.")
-
-    if (isNil(assessment.airfareAmount))
-      throw new Error("Could not prepare template data as assessement airfaire amount is missing.")
-    if (isNil(assessment.travelAllowance))
-      throw new Error("Could not prepare template data as assessement travel allowance is missing.")
-    const travelAndAirFairCostInCents =
-      (assessment.airfareAmount + assessment.travelAllowance) * 100
-
-    const disbursements = this.#prepareDisbursements(this.#fundingRequest)
+    const serializedDisbursements = this.#prepareDisbursements(this.#fundingRequest)
 
     return {
       currentDate: new Date(),
@@ -134,16 +105,77 @@ export default class YukonGrantStudentApprovalTemplateSerializer {
       },
       program: {
         name: studyArea.description,
-        startDate: assessment.classesStartDate,
-        endDate: assessment.classesEndDate,
+        startDate: application.classesStartDate,
+        endDate: application.classesEndDate,
         institutionName,
-        ratePerWeekInCents,
-        approvalWeeks: assessment.weeksAllowed,
-        travelAndAirFairCostInCents,
       },
-      disbursements,
+      assessments: serializedAssessments,
+      disbursements: serializedDisbursements,
       studentFinancialAssistanceOfficer: this.#signingOfficer,
     }
+  }
+
+  #prepareAssessments(
+    fundingRequest: FundingRequest
+  ): {
+    assessedDate: Date
+    startDate: Date
+    endDate: Date
+    approvalWeeks: number
+    ratePerWeekInCents: number
+    travelAndAirFairCostInCents: number
+  }[] {
+    const assessments = this.#fundingRequest.assessments
+    if (isNil(assessments) || isEmpty(assessments)) return []
+
+    const sortedAssessments = sortBy(assessments, ["assessedDate"]).reverse()
+
+    const serializedAssessments = sortedAssessments.map((assessment) => {
+      if (isNil(assessment.assessedDate))
+        throw new Error(
+          "Could not prepare template data as assessedDate is missing from assessment."
+        )
+      if (isNil(assessment.classesStartDate))
+        throw new Error(
+          "Could not prepare template data as classesStartDate is missing from assessement."
+        )
+      if (isNil(assessment.classesEndDate))
+        throw new Error(
+          "Could not prepare template data as classesEndDate is missing from assessement."
+        )
+      if (isNil(assessment.weeksAllowed))
+        throw new Error(
+          "Could not prepare template data as weeksAllowed is missing from assessment."
+        )
+
+      if (isNil(assessment.weeklyAmount))
+        throw new Error(
+          "Could not prepare template data as assessement weekly amount is missing from assessment."
+        )
+      const ratePerWeekInCents = assessment.weeklyAmount * 100
+
+      if (isNil(assessment.airfareAmount))
+        throw new Error(
+          "Could not prepare template data as assessement airfaire amount is missing."
+        )
+      if (isNil(assessment.travelAllowance))
+        throw new Error(
+          "Could not prepare template data as assessement travel allowance is missing."
+        )
+      const travelAndAirFairCostInCents =
+        (assessment.airfareAmount + assessment.travelAllowance) * 100
+
+      return {
+        assessedDate: assessment.assessedDate,
+        startDate: assessment.classesStartDate,
+        endDate: assessment.classesEndDate,
+        approvalWeeks: assessment.weeksAllowed,
+        ratePerWeekInCents,
+        travelAndAirFairCostInCents,
+      }
+    })
+
+    return serializedAssessments
   }
 
   // CONSIDER: Generalizing this function, as it used in several serializers.
@@ -184,12 +216,7 @@ export default class YukonGrantStudentApprovalTemplateSerializer {
 
   #prepareDisbursements(fundingRequest: FundingRequest) {
     const disbursements = fundingRequest.disbursements
-    if (disbursements === undefined)
-      throw new Error(
-        "Could not prepare template data as disbursements are missing from funding request."
-      )
-    if (disbursements.length === 0)
-      throw new Error("Could not prepare template data as no disbursements are present.")
+    if (isNil(disbursements) || isEmpty(disbursements)) return []
 
     return disbursements.map((disbursement) => {
       if (disbursement.disbursedAmount === undefined)

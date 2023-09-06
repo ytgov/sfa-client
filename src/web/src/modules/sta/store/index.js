@@ -230,6 +230,13 @@ const actions = {
             }
         } else {
             vm.$emit("showError", message.text);
+            dispatch("staGetAssessment", { funding_request_id: assessment.funding_request_id });
+            if (vm?.setClose && vm.showAdd) {
+                vm.setClose();
+            }
+            if (!vm?.filteredList) {
+                vm.newRecord = {};
+            }
         }
     },
     async removeSTADisbursement({ getters }, vals) {
