@@ -370,8 +370,6 @@ export class AssessmentSTA extends AssessmentBaseRepository {
                 return { text: "Assessment created", variant: "success" };
 
             } else {
-                console.log(disbursementList);
-
                 if (disbursementList?.length) {
                     return { text: "Saved, but student must have a Vendor ID to create disbursements", variant: "success" }; 
                 } else {
