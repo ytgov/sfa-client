@@ -94,9 +94,15 @@ const getters = {
     return formatMoney(getters.netAmountRaw);
   },
   netAmountRaw(state, getters) {
-    return (
-      parse(getters.assessedAmount, { currency: "usd" }) - parse(getters.previousDisbursements, { currency: "usd" })
-    );
+    let rawVal =
+      parse(getters.assessedAmount, { currency: "usd" }) - parse(getters.previousDisbursements, { currency: "usd" });
+    return Math.round(rawVal);
+  },
+  thresholdRange(state, getters) {
+    if (getters.threshold) {
+      return `${formatMoney(getters.threshold.income_threshold)} - ${formatMoney(getters.threshold.income_cutoff)}`;
+    }
+    return "";
   },
 };
 const mutations = {
@@ -242,7 +248,7 @@ const actions = {
   },
 
   async makeDisbursements({ getters, commit, state, dispatch }, numberOfDisbursements) {
-    let parts = getters.netAmountRaw / numberOfDisbursements;
+    let parts = Math.ceil(getters.netAmountRaw / numberOfDisbursements);
     let disbursedValues = [];
 
     let total = 0;
@@ -271,8 +277,6 @@ const actions = {
   },
 
   async removeDisbursement({ state }, { item, index }) {
-    console.log("TRING DELET DISB", item, index);
-
     if (item.id) {
       state.disbursements.splice(index, 1);
       await axios.delete(

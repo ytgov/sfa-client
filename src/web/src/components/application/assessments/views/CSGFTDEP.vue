@@ -198,7 +198,16 @@
           </v-row>
           <v-divider class="my-5" />
           <v-row>
-            <v-col></v-col>
+            <v-col>
+              <v-text-field
+                outlined
+                dense
+                :label="`Threshold range: family of ${assessment.family_size}`"
+                background-color="#ddd"
+                append-icon="mdi-lock"
+                :value="thresholdRange"
+              ></v-text-field>
+            </v-col>
             <v-col>
               <v-text-field
                 outlined
@@ -489,6 +498,7 @@ export default {
       "previousDisbursements",
       "netAmount",
       "netAmountRaw",
+      "thresholdRange",
     ]),
     classification(state) {
       if (this.application && this.cslClassifications) {
