@@ -672,8 +672,8 @@ applicationRouter.post("/:application_id/student/:student_id/files/:requirement_
                         const appId = application_id;                                         
                         const resUpdate = await db("sfa.requirement_met").where({application_id: application_id}).andWhere({requirement_type_id: requirement_type_id})
                             //.update({ ...data });
-                            .update({ completed_date: completed_date});
-                                        
+                            .update({ completed_date: completed_date && completed_date !== 'null' ? completed_date : null});
+                                    
                         return resUpdate ?
                             res.json({ messages: [{ variant: "success", text: "Saved" }] })
                             :
@@ -683,11 +683,12 @@ applicationRouter.post("/:application_id/student/:student_id/files/:requirement_
                         return res.json({ messages: [{ text: "Failed to update Funding Request", variant: "error" }] });
                     }
                 } else {                    
-                    let resInsert;
+                    let resInsert;          
                     try {
-                        resInsert = await db("sfa.requirement_met")
-                        .insert({ completed_date, requirement_type_id, application_id });                                    
+                        resInsert = await db("sfa.requirement_met").insert({ completed_date: completed_date && completed_date !== 'null' ? completed_date : null, requirement_type_id, application_id });   
+                                                         
                     } catch(error) {                                                
+                        console.log(error)
                         return res.json({ messages: [{ variant: "error", text: "Failed to update Funding Request" }] });
                     }
                     return resInsert ?
