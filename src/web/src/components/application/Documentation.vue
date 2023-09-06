@@ -101,7 +101,7 @@
                   :items="documentStatusList"
                   item-text="description"
                   item-value="id"
-                  @change="updateStatus({ status: item.status }, item.requirement_type_id, item)"
+                  @change="updateStatus({ status: item.status, comment: item.comment }, item.requirement_type_id, item, i)"
                 ></v-autocomplete>
               </div>
               <div class="col-md-3">
@@ -113,7 +113,7 @@
                   :disabled="!item.object_key"
                   label="Comment"
                   v-model="item.comment"
-                  @change="updateComment({ comment: item.comment }, item.requirement_type_id, item)"
+                  @change="updateComment({ status: item.status, comment: item.comment }, item.requirement_type_id, item)"
                   required
                 ></v-text-field>
               </div>
@@ -359,10 +359,28 @@ export default {
       this.documentationData.file = event;
     },
     handleUploadAndClose() {
-      if(!this.documentationData.description || !this.documentationData.completed_date || !this.documentationData.received_date || !this.documentationData.status ||!this.documentationData.file[0]) {
-        this.$emit("showError", "Please fill in all fields");
+      if(!this.documentationData.description) {
+        this.$emit("showError", "Please fill in the description field");
       } else {
-        this.uploadNewDoc();
+        if(!this.documentationData.received_date) {
+          this.$emit("showError", "Please fill in the receved date field");
+        } else {
+          if(!this.documentationData.status) {
+            this.$emit("showError", "Please fill in the status field");
+          } else {      
+            console.log(this.documentationData.status);
+            console.log(this.documentationData.comment);
+            if (!this.documentationData.comment && this.documentationData.status === 3) {
+              this.$emit("showError", "If status is rejected, you must comment");
+            }  else {
+              if(!this.documentationData.file) {
+              this.$emit("showError", "Please fill in the file field");
+            } else {              
+              this.uploadNewDoc();
+            }
+            }                          
+          }
+        }
       }
     },
     async uploadNewDoc() {
@@ -384,7 +402,7 @@ export default {
       try {
         const reqType = this.documentationData.description;
 
-        if (this.documentationData.comment === null && this.documentationData.status === 3) {
+        if (!this.documentationData.comment && this.documentationData.status === 3) {
           this.$emit("showError", "If status is rejected, you must comment");
         } else {  
           const resInsert = await axios.post(APPLICATION_URL + `/${this.application.id}/student/${this.student.id}/files`, formData, { headers: { "Content-Type": "multipart/form-data" }});
@@ -495,27 +513,32 @@ export default {
       }
     },
     async updateComment(itemToUpdate, refId, item) {
-      try {
-        const resInsert = await axios.put(APPLICATION_URL + `/${this.application.id}/files/${refId}`, {
-          data: { ...itemToUpdate },
-          type: "comment",
-          object_key: item.object_key,
-        });
-        const message = resInsert?.data?.messages[0];
+      if(itemToUpdate.status !== 3 && itemToUpdate.comment) {
+        try {
+          const resInsert = await axios.put(APPLICATION_URL + `/${this.application.id}/files/${refId}`, {
+            data: { ...itemToUpdate },
+            type: "comment",
+            object_key: item.object_key,
+          });
+          const message = resInsert?.data?.messages[0];
 
-        if (message?.variant === "success") {
-          this.$emit("showSuccess", message.text);
-        } else {
-          this.$emit("showError", message.text);
+          if (message?.variant === "success") {
+            this.$emit("showSuccess", message.text);
+          } else {
+            this.$emit("showError", message.text);
+          }
+        } catch (error) {
+          this.$emit("showError", "Error to update");
+        } finally {
+          store.dispatch("loadApplication", this.applicationId);
         }
-      } catch (error) {
-        this.$emit("showError", "Error to update");
-      } finally {
-        store.dispatch("loadApplication", this.applicationId);
-      }
+      } else {
+        this.$emit("showError", "If status is rejected, you must comment");
+      }      
     },
-    async updateStatus(itemToUpdate, refId, item) {
-      if (this.documentationData.comment === null && item.status === 3) {
+    async updateStatus(itemToUpdate, refId, item, idx) {      
+      console.log(item)
+      if (!itemToUpdate.comment && itemToUpdate.status === 3) {        
         this.$emit("showError", "If status is rejected, you must comment");
       } else {
         try {
