@@ -13,6 +13,7 @@ import {
 } from "../../config";
 import { FileReference, FileReferenceBase, FileStatus } from "../../models";
 import { S3Worker } from "../../utils/document-storage";
+import { clone } from "lodash";
 
 const db = knex(DB_CONFIG);
 
@@ -77,6 +78,11 @@ export class DocumentService {
   }
 
   //return the Document metadata
+  async getDocumentsForFundingRequest(funding_request_id: number): Promise<FileReferenceBase[]> {
+    return await db<FileReferenceBase>("sfa.file_reference").where({ funding_request_id });
+  }
+
+  //return the Document metadata
   async getDocumentsForDraft(application_draft_id: number): Promise<FileReferenceBase[]> {
     return await db<FileReferenceBase>("sfa.file_reference")
       .innerJoin("sfa.document_status", "file_reference.status", "document_status.id")
@@ -93,6 +99,8 @@ export class DocumentService {
       const response = await this.s3Helper.download(`${AWS_S3_PATH}/${docRef.object_key}`);
 
       if (response.Body) {
+        docRef.file_name = docRef.file_name.replace(/,/g, ""); // this was causing problems with downloads
+
         docRef.file_contents = response.Body; // = await streamToBuffer(response.Body as Readable);
         return docRef;
       }
@@ -159,48 +167,41 @@ export class DocumentService {
       disability_requirement_id,
       person_id,
       dependent_id,
+      visible_in_portal: true,
     } as FileReference;
+
+    console.log("Portal File Upload:", fRef);
 
     await this.uploadFile(fRef);
   }
 
-  async uploadApplicationDocument(
-    email: string,
-    student_id: string | number,
-    application_id: string | number,
-    file: UploadedFile,
-    requirement_type_id: number,
-    disability_requirement_id: string | number,
-    person_id: string | number,
-    dependent_id: string | number,
-    comment: string = "",
-    source: string = "Portal",
-    status: number = 1
-  ) {
+  async uploadApplicationDocument(t: UploadMetadata) {
     let fRef = {
       object_key: nanoid(),
       object_key_pdf: nanoid(),
       bucket: AWS_S3_BUCKET,
       upload_date: new Date(),
-      upload_user: email,
-      upload_source: source,
-      file_name: file.name,
-      file_contents: file.data,
-      student_id: parseInt(student_id.toString()),
-      application_id: parseInt(application_id.toString()),
+      upload_user: t.email,
+      upload_source: t.source,
+      file_name: t.file.name,
+      file_contents: t.file.data,
+      student_id: t.student_id,
+      application_id: t.application_id,
       application_draft_id: undefined,
-      requirement_type_id,
-      mime_type: file.mimetype,
-      file_size: file.size,
-      comment: comment,
-      status: status,
+      requirement_type_id: t.requirement_type_id,
+      mime_type: t.file.mimetype,
+      file_size: t.file.size,
+      comment: t.comment,
+      status: t.status,
       status_date: new Date(),
-      disability_requirement_id,
-      person_id,
-      dependent_id,
+      disability_requirement_id: t.disability_requirement_id,
+      person_id: t.person_id,
+      dependent_id: t.dependent_id,
+      funding_request_id: t.funding_request_id,
+      visible_in_portal: t.visible_in_portal,
     } as FileReference;
 
-    await this.uploadFile(fRef);
+    return this.uploadFile(fRef);
   }
 
   async updateDocument(object_key: string, input: any) {
@@ -213,12 +214,12 @@ export class DocumentService {
 
   // writes a document to storage and the database
   async uploadFile(input: FileReference): Promise<FileReference> {
-    await db("sfa.file_reference").insert(forInsert(input));
-
-    await this.s3Helper.upload(`${AWS_S3_PATH}/${input.object_key}`, input.file_contents);
-
-    // this feature is awaiting some sort of universal PDF conversion
-    /* if (input.object_key_pdf) {
+    await db("sfa.file_reference")
+      .insert(forInsert(input))
+      .then(async () => {
+        await this.s3Helper.upload(`${AWS_S3_PATH}/${input.object_key}`, input.file_contents);
+        // this feature is awaiting some sort of universal PDF conversion
+        /* if (input.object_key_pdf) {
       let pdf = await convertToPDF(input);
       console.log("THING", pdf);
 
@@ -231,6 +232,13 @@ export class DocumentService {
 
       await this.client.send(upload2Command);
     } */
+      })
+      .catch((e) => {
+        let i = clone(input) as any;
+        delete i.file_contents;
+        console.log("ERROR: writing to file_reference", i);
+        console.log("--", e);
+      });
 
     return input;
   }
@@ -254,11 +262,13 @@ function forInsert(input: FileReference | FileReferenceBase) {
     upload_date: input.upload_date,
     upload_source: input.upload_source,
     requirement_type_id: input.requirement_type_id,
+    funding_request_id: input.funding_request_id,
+    visible_in_portal: input.visible_in_portal,
   };
 }
 
 function forUpdate(input: FileReference | FileReferenceBase) {
-  return { status: input.status, status_date: input.status_date };
+  return { status: input.status, status_date: input.status_date, visible_in_portal: input.visible_in_portal };
 }
 
 const streamToBuffer = (stream: Readable) =>
@@ -268,3 +278,46 @@ const streamToBuffer = (stream: Readable) =>
     stream.once("end", () => resolve(Buffer.concat(chunks)));
     stream.once("error", reject);
   });
+
+export function bufferToUploadedFileStub(buffer: Buffer, fileName: string, mimeType: string): UploadedFile {
+  return {
+    name: fileName,
+    data: buffer,
+    mimetype: mimeType,
+    size: buffer.length,
+    // all these are not relevant for this stub
+    encoding: "not-relevant",
+    tempFilePath: "not-relevant",
+    truncated: false,
+    md5: "not-relevant",
+    async mv(path: string): Promise<void> {},
+  };
+}
+
+export interface UploadMetadata {
+  email: string;
+  student_id: number;
+  application_id: number;
+  file: UploadedFile;
+  source: string;
+  status: DocumentStatus;
+  requirement_type_id?: number;
+  disability_requirement_id?: number;
+  person_id?: number;
+  dependent_id?: number;
+  comment?: string;
+  funding_request_id?: number;
+  visible_in_portal?: boolean;
+}
+
+export enum DocumentStatus {
+  PENDING = 1,
+  APPROVED = 2,
+  REJECTED = 3,
+  REPLACED = 4,
+}
+
+export enum DocumentSource {
+  ADMIN = "Admin",
+  PORTAL = "Portal",
+}

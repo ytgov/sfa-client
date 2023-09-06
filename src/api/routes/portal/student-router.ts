@@ -1,5 +1,5 @@
 import express, { Request, Response } from "express";
-import { DocumentService } from "../../services/shared";
+import { DocumentService, DocumentStatus } from "../../services/shared";
 import { PortalStudentService } from "../../services/portal";
 
 export const portalStudentRouter = express.Router();
@@ -164,7 +164,7 @@ portalStudentRouter.post("/:sub/draft/:application_id/files", async (req: Reques
   res.json({ error: "No files included in request" });
 });
 
-//uploads a document
+//uploads a document - MJ: I don't think this is currently used...
 portalStudentRouter.post("/:sub/application/:application_id/files", async (req: Request, res: Response) => {
   const { sub, application_id } = req.params;
   const { requirement_type_id, disability_requirement_id, person_id, dependent_id } = req.body;
@@ -176,16 +176,18 @@ portalStudentRouter.post("/:sub/application/:application_id/files", async (req: 
     let files = Array.isArray(req.files.files) ? req.files.files : [req.files.files];
 
     for (let file of files) {
-      await documentService.uploadApplicationDocument(
+      await documentService.uploadApplicationDocument({
         email,
-        sub,
-        application_id,
+        student_id: student.id,
+        source: "Portal",
+        status: DocumentStatus.PENDING,
+        application_id: parseInt(application_id.toString()),
         file,
         requirement_type_id,
         disability_requirement_id,
         person_id,
-        dependent_id
-      );
+        dependent_id,
+      });
     }
     return res.json({ message: "success" });
   }

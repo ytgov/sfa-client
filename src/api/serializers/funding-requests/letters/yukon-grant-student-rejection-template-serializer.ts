@@ -10,28 +10,35 @@ import AddressType from "@/models/address-type"
 export default class YukonGrantStudentRejectionTemplateSerializer {
   #fundingRequest: FundingRequest
   #signingOfficer: User
+  #director: User
 
   constructor({
     fundingRequest,
     signingOfficer,
+    director,
   }: {
     fundingRequest: FundingRequest
     signingOfficer: User
+    director: User
   }) {
     this.#fundingRequest = fundingRequest
     this.#signingOfficer = signingOfficer
+    this.#director = director
   }
 
   static prepare({
     fundingRequest,
     signingOfficer,
+    director,
   }: {
     fundingRequest: FundingRequest
     signingOfficer: User
+    director: User
   }) {
     const serializer = new YukonGrantStudentRejectionTemplateSerializer({
       fundingRequest,
       signingOfficer,
+      director,
     })
     return serializer.prepare()
   }
@@ -94,6 +101,7 @@ export default class YukonGrantStudentRejectionTemplateSerializer {
       },
       rejectionReason: statusReason.description,
       studentFinancialAssistanceOfficer: this.#signingOfficer,
+      directorOfTrainingPrograms: this.#director,
     }
   }
 
