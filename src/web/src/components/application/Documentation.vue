@@ -101,7 +101,7 @@
                   :items="documentStatusList"
                   item-text="description"
                   item-value="id"
-                  @change="updateStatus({ status: item.status, comment: item.comment }, item.requirement_type_id, item, i)"
+                  @change="updateStatus({ status: item.status, comment: item.comment }, item.requirement_type_id, item)"
                 ></v-autocomplete>
               </div>
               <div class="col-md-3">
@@ -367,9 +367,7 @@ export default {
         } else {
           if(!this.documentationData.status) {
             this.$emit("showError", "Please fill in the status field");
-          } else {      
-            console.log(this.documentationData.status);
-            console.log(this.documentationData.comment);
+          } else {                 
             if (!this.documentationData.comment && this.documentationData.status === 3) {
               this.$emit("showError", "If status is rejected, you must comment");
             }  else {
@@ -513,7 +511,7 @@ export default {
       }
     },
     async updateComment(itemToUpdate, refId, item) {
-      if(itemToUpdate.status !== 3 && itemToUpdate.comment) {
+      if(itemToUpdate.status !== 3 || itemToUpdate.comment) {
         try {
           const resInsert = await axios.put(APPLICATION_URL + `/${this.application.id}/files/${refId}`, {
             data: { ...itemToUpdate },
@@ -536,10 +534,9 @@ export default {
         this.$emit("showError", "If status is rejected, you must comment");
       }      
     },
-    async updateStatus(itemToUpdate, refId, item, idx) {      
-      console.log(item)
-      if (!itemToUpdate.comment && itemToUpdate.status === 3) {        
-        this.$emit("showError", "If status is rejected, you must comment");
+    async updateStatus(itemToUpdate, refId) {  
+      if (itemToUpdate.status === 3 && !itemToUpdate.comment) {
+        this.$emit("showError", "If status is rejected, you must comment");                     
       } else {
         try {
           const resInsert = await axios.put(
