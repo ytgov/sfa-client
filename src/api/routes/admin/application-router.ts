@@ -2093,6 +2093,149 @@ applicationRouter.get(
 );
 
 applicationRouter.post(
+  "/:application_id/:funding_request_id/assessments",
+  [param("application_id").isInt().notEmpty(), param("funding_request_id").isInt().notEmpty()],
+  ReturnValidationErrors,
+  async (req: Request, res: Response) => {
+    try {
+      const { application_id, funding_request_id } = req.params;
+      const { dataAssessment = null, dataApplication = null } = req.body;
+
+      const application = await db("sfa.application").where({ id: application_id }).first();
+
+      if (application) {
+        const fundingRequest = await db("sfa.funding_request")
+          .where({ application_id })
+          .where({ id: funding_request_id })
+          .first();
+
+        if (fundingRequest?.request_type_id === 2) {
+          // Create Assessment YG
+
+          db.transaction(async (trx) => {
+            const resSP = await db.raw(
+              `EXEC sfa.sp_get_init_value ${funding_request_id}, ${application.id}, ${application.student_id};`
+            );
+
+            if (resSP?.[0]?.status) {
+              if (dataAssessment) {
+                delete dataAssessment.read_only_data;
+                delete dataAssessment.id;
+                delete dataAssessment.assessment_id;
+                delete dataAssessment.program_division;
+                delete dataAssessment.unused_receipts;
+                delete dataAssessment.yea_balance;
+                delete dataAssessment.yea_net_amount;
+                delete dataAssessment.yea_used;
+                delete dataAssessment.yea_earned;
+
+                const resUpdate = await db("sfa.assessment")
+                  .where({ id: resSP[0].assessment_id_inserted })
+                  .update({ ...dataAssessment });
+
+                const updateStatusFundingRequest = await db("sfa.funding_request")
+                  .where({ id: funding_request_id })
+                  .update({ status_id: 7 });
+
+                return resUpdate
+                  ? res.json({
+                      messages: [{ variant: "success" }],
+                      data: [...resSP],
+                    })
+                  : res.json({
+                      messages: [{ variant: "success", text: "Failed to update values" }],
+                      data: [[...resSP]],
+                    });
+              } else {
+                const updateStatusFundingRequest = await db("sfa.funding_request")
+                  .where({ id: funding_request_id })
+                  .update({ status_id: 7 });
+
+                return res.json({
+                  messages: [{ variant: "success" }],
+                  data: [...resSP],
+                });
+              }
+            } else {
+              return res.json({
+                messages: [{ variant: "error" }],
+                data: [],
+              });
+            }
+          });
+        } else if (fundingRequest?.request_type_id === 3) {
+          // Create Assessment YEA
+          try {
+            db.transaction(async (trx) => {
+              if (!dataAssessment.id) {
+                const insert_response = await db("sfa.assessment").returning("*").insert({
+                  funding_request_id,
+                  assessment_type_id: 2,
+                  student_contrib_exempt: "NO",
+                  spouse_contrib_exempt: "NO",
+                  student_contribution_review: "NO",
+                  spouse_contribution_review: "NO",
+                  parent_contribution_review: "NO",
+                  classes_end_date: dataAssessment.classes_end_date,
+                  classes_start_date: dataAssessment.classes_start_date,
+                  assessed_date: dataAssessment.assessed_date,
+                });
+
+                // if (dataApplication) {
+                //     const update_response = await db("sfa.application")
+                //         .where({ id: dataApplication.id })
+                //         .update({ yea_tot_receipt_amount: dataApplication.yea_tot_receipt_amount })
+                // }
+
+                return res.json({
+                  messages: [{ variant: "success" }],
+                  data: [...insert_response],
+                });
+              } else {
+                // delete dataAssessment.read_only_data;
+                // delete dataAssessment.id;
+                // delete dataAssessment.assessment_id;
+                // const resUpdate = await db("sfa.assessment")
+                // .where({ id: insert_response[0].assessment_id_inserted })
+                // .update({ ...dataAssessment });
+                // return resUpdate
+                //     ? res.json({
+                //         messages: [{ variant: "success" }],
+                //         data: [ ...insert_response ],
+                //     })
+                //     : res.json({
+                //         messages: [{ variant: "success", text: "Failed to update values" }],
+                //         data: [[ ...insert_response ]],
+                //     });
+                // } else {
+                //     return res.json({
+                //         messages: [{ variant: "success" }],
+                //         data: [ ...insert_response ],
+                //     });
+                // }
+              }
+            });
+          } catch (err) {
+            return res.json({
+              messages: [{ variant: "error" }],
+              data: [err],
+            });
+          }
+        } else {
+          return res.json({
+            messages: [{ variant: "error" }],
+            data: [],
+          });
+        }
+      }
+    } catch (error) {
+      console.log(error);
+      return res.status(409).send({ messages: [{ variant: "error", text: "Error to insert" }] });
+    }
+  }
+);
+
+applicationRouter.post(
   "/:application_id/:funding_request_id/assessments-with-disburse",
   [param("application_id").isInt().notEmpty(), param("funding_request_id").isInt().notEmpty()], 
   ReturnValidationErrors, 
