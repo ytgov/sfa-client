@@ -36,7 +36,13 @@
                     v-on="on"
                   ></v-text-field>
                 </template>
-                <v-date-picker v-model="assessment.assessed_date" @input="assessed_date_menu = false"></v-date-picker>
+                <v-date-picker
+                  v-model="assessment.assessed_date"
+                  @input="
+                    saveAssessment();
+                    assessed_date_menu = false;
+                  "
+                ></v-date-picker>
               </v-menu>
               <v-text-field
                 v-model="assessment.classes_start_date"
@@ -535,6 +541,10 @@ export default {
     },
     async saveClick() {
       await this.recalculate();
+      this.$emit("showSuccess", "Assessment saved");
+    },
+    async saveAssessment() {
+      await this.save();
       this.$emit("showSuccess", "Assessment saved");
     },
     async saveDisbursement() {
