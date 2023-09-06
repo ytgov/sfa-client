@@ -347,11 +347,10 @@ export class AssessmentSTA extends AssessmentBaseRepository {
 
             if (student.vendor_id) {
                 for (const disburse of disbursementList) {
-                    if (!disburse.issue_date) {
-                        return { variant: "error", text: "Issue date is mandatory in disbursements" };
+                    
+                    if (String(disburse.issue_date)?.length === 10) {
+                        disburse.tax_year = moment(disburse.issue_date).year();
                     }
-
-                    disburse.tax_year = moment(disburse.issue_date).year();
                     
                     if (disburse?.id) {
                         await this.updateDisbursements(disburse);
@@ -371,7 +370,13 @@ export class AssessmentSTA extends AssessmentBaseRepository {
                 return { text: "Assessment created", variant: "success" };
 
             } else {
-                return { text: "Saved, but student must have a Vendor ID to create disbursements", variant: "error" };
+                console.log(disbursementList);
+
+                if (disbursementList?.length) {
+                    return { text: "Saved, but student must have a Vendor ID to create disbursements", variant: "success" }; 
+                } else {
+                    return { text: "Assessment created", variant: "success" };
+                }
             }
         } catch (error) {
             return undefined;
@@ -397,11 +402,10 @@ export class AssessmentSTA extends AssessmentBaseRepository {
             if (student.vendor_id) {
                 
                 for (const disburse of disbursementList) {
-                    if (!disburse.issue_date) {
-                        return { variant: "error", text: "Issue date is mandatory in disbursements" };
-                    }
 
-                    disburse.tax_year = moment(disburse.issue_date).year();
+                    if (String(disburse.issue_date).length === 10) {
+                        disburse.tax_year = moment(disburse.issue_date).year();
+                    }
 
                     if (disburse?.id) {
                         await this.updateDisbursements(disburse);
@@ -420,7 +424,7 @@ export class AssessmentSTA extends AssessmentBaseRepository {
 
                 return { text: "Assessment created", variant: "success" };
             } else {
-                return { text: "Saved, but student must have a Vendor ID to create disbursements", variant: "error" };
+                return { text: "Saved, but student must have a Vendor ID to create disbursements", variant: "success" };
             }
         } catch (error) {
             return undefined;
