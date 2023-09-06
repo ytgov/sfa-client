@@ -1,9 +1,9 @@
-import FundingRequestLetter from "@/models/funding-request-letter"
-
 import BaseController from "@/controllers/base-controller"
 
+import FundingRequestLettersService from "@/services/funding-request-letters-service"
 import FundingRequestsLetterBuilderService from "@/services/admin/funding-requests/funding-requests-letter-builder-service"
 import FundingRequestsService from "@/services/funding-requests-service"
+import CreateService from "@/services/admin/funding-requests/letters/create-service"
 
 export default class FundingRequestsLettersController extends BaseController {
   async listLetters() {
@@ -22,9 +22,10 @@ export default class FundingRequestsLettersController extends BaseController {
           throw new Error("Funding request, request type has no description")
 
         const requestType = fundingRequest.requestType.description
-        const fundingRequestLetterMetadata = FundingRequestLetter.findByRequestType(requestType)
+        const fundingRequestLetterMetadata = FundingRequestLettersService.where({ requestType })
         this.response.send(fundingRequestLetterMetadata)
-      }).catch((error) => {
+      })
+      .catch((error) => {
         if (error instanceof Error) {
           if (
             error.message.includes("not found") ||
@@ -42,6 +43,7 @@ export default class FundingRequestsLettersController extends BaseController {
               statusCode: 422,
               status: "Unprocessable Entity",
               message: error.message,
+              stackTrace: error.stack?.split("\n").map((line) => line.trim()),
             })
           }
         } else {
@@ -98,6 +100,7 @@ export default class FundingRequestsLettersController extends BaseController {
                 statusCode: 422,
                 status: "Unprocessable Entity",
                 message: error.message,
+                stackTrace: error.stack?.split("\n").map((line) => line.trim()),
               })
             }
           } else {
@@ -134,6 +137,7 @@ export default class FundingRequestsLettersController extends BaseController {
                 statusCode: 422,
                 status: "Unprocessable Entity",
                 message: error.message,
+                stackTrace: error.stack?.split("\n").map((line) => line.trim()),
               })
             }
           } else {
@@ -147,37 +151,87 @@ export default class FundingRequestsLettersController extends BaseController {
     }
 
     return letterService
-        .generateLetterAsJson()
-        .then((approvalLetter) => {
-          this.response.send(approvalLetter)
-        })
-        .catch((error) => {
-          if (error instanceof Error) {
-            if (
-              error.message.includes("not found") ||
-              error.message.includes("no such file or directory")
-            ) {
-              this.response.status(404).send({
-                statusCode: 404,
-                status: "Not Found",
-                message: `Could not find funding request with id: "${fundingRequestId}".`,
-                error: error.message,
-                stackTrace: error.stack?.split("\n").map((line) => line.trim()),
-              })
-            } else {
-              this.response.status(422).send({
-                statusCode: 422,
-                status: "Unprocessable Entity",
-                message: error.message,
-              })
-            }
+      .generateLetterAsJson()
+      .then((approvalLetter) => {
+        this.response.send(approvalLetter)
+      })
+      .catch((error) => {
+        if (error instanceof Error) {
+          if (
+            error.message.includes("not found") ||
+            error.message.includes("no such file or directory")
+          ) {
+            this.response.status(404).send({
+              statusCode: 404,
+              status: "Not Found",
+              message: `Could not find funding request with id: "${fundingRequestId}".`,
+              error: error.message,
+              stackTrace: error.stack?.split("\n").map((line) => line.trim()),
+            })
           } else {
-            this.response.status(500).send({
-              statusCode: 500,
-              status: "Internal Server Error",
-              message: JSON.stringify(error),
+            this.response.status(422).send({
+              statusCode: 422,
+              status: "Unprocessable Entity",
+              message: error.message,
+              stackTrace: error.stack?.split("\n").map((line) => line.trim()),
             })
           }
+        } else {
+          this.response.status(500).send({
+            statusCode: 500,
+            status: "Internal Server Error",
+            message: JSON.stringify(error),
+          })
+        }
+      })
+  }
+
+  async createLetters() {
+    const fundingRequestId = parseInt(this.request.params.fundingRequestId)
+
+    const letterCreationService = new CreateService({
+      fundingRequestId,
+      currentUser: this.currentUser,
+    })
+
+    return letterCreationService
+      .preform()
+      .then((letterNames) => {
+        const letterNamesString = letterNames.join(", ")
+        return this.response.status(201).send({
+          statusCode: 201,
+          status: "Created",
+          message: `Created the following letters: ${letterNamesString}`,
         })
+      })
+      .catch((error) => {
+        if (error instanceof Error) {
+          if (
+            error.message.includes("not found") ||
+            error.message.includes("no such file or directory")
+          ) {
+            this.response.status(404).send({
+              statusCode: 404,
+              status: "Not Found",
+              message: `Could not find funding request with id: "${fundingRequestId}".`,
+              error: error.message,
+              stackTrace: error.stack?.split("\n").map((line) => line.trim()),
+            })
+          } else {
+            this.response.status(422).send({
+              statusCode: 422,
+              status: "Unprocessable Entity",
+              message: error.message,
+              stackTrace: error.stack?.split("\n").map((line) => line.trim()),
+            })
+          }
+        } else {
+          this.response.status(500).send({
+            statusCode: 500,
+            status: "Internal Server Error",
+            message: JSON.stringify(error),
+          })
+        }
+      })
   }
 }

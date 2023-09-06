@@ -295,92 +295,64 @@ export class AssessmentYukonGrant extends AssessmentBaseRepository {
 
         const updatedAssessment: any = await this.mainDb("sfa.assessment")
             .where({ id: assessment_id })
-            .update({ ...assessmentToUpdate })
+            .update({ ...assessmentToUpdate });
+
         if (disbursementList.length) {
-            // Insert the disbursement list
-            for (const item of disbursementList) {
 
-                if (item?.id && (item?.assessment_id === assessment_id)
-                    && (item?.funding_request_id === funding_request_id)) {
-                    const resUpdate = await this.mainDb("sfa.disbursement")
-                        .update({
-                            disbursement_type_id: item.disbursement_type_id,
-                            disbursed_amount: item.disbursed_amount,
-                            due_date: item.due_date,
-                            tax_year: item.tax_year,
-                            issue_date: item.issue_date,
-                            transaction_number: item.transaction_number,
-                            change_reason_id: item.change_reason_id,
-                            financial_batch_id: item.financial_batch_id,
-                        })
-                        .where({ id: item.id });
-                } else {
-                    const resInsert: any = await this.mainDb("sfa.disbursement")
-                        .insert({
-                            assessment_id: assessment_id,
-                            funding_request_id: funding_request_id,
-                            disbursement_type_id: item.disbursement_type_id,
-                            disbursed_amount: item.disbursed_amount,
-                            due_date: item.due_date,
-                            tax_year: item.tax_year,
-                            issue_date: item.issue_date,
-                            transaction_number: item.transaction_number,
-                            change_reason_id: item.change_reason_id,
-                            financial_batch_id: item.financial_batch_id,
-                        })
-                        .returning("*");
+            const student = await this.mainDb("sfa.assessment AS a")
+                .select("s.vendor_id AS vendor_id")
+                .innerJoin("sfa.funding_request AS fr", "fr.id", "a.funding_request_id")
+                .innerJoin("sfa.application AS app", "app.id", "fr.application_id")
+                .innerJoin("sfa.student AS s", "s.id", "app.student_id")
+                .where("a.id", assessment_id)
+                .first();
+
+            if (student.vendor_id) {
+                // Insert the disbursement list
+                for (const item of disbursementList) {
+                    if (!item.issue_date) {
+                        return { variant: "error" , text: "Issue date is mandatory in disbursements" };
+                    }
+                    if (item?.id && (item?.assessment_id === assessment_id)
+                        && (item?.funding_request_id === funding_request_id)) {
+                        const resUpdate = await this.mainDb("sfa.disbursement")
+                            .update({
+                                disbursement_type_id: item.disbursement_type_id,
+                                disbursed_amount: item.disbursed_amount,
+                                due_date: item.due_date,
+                                tax_year: item.tax_year,
+                                issue_date: item.issue_date,
+                                transaction_number: item.transaction_number,
+                                change_reason_id: item.change_reason_id,
+                                financial_batch_id: item.financial_batch_id,
+                            })
+                            .where({ id: item.id });
+                    } else {
+                        const resInsert: any = await this.mainDb("sfa.disbursement")
+                            .insert({
+                                assessment_id: assessment_id,
+                                funding_request_id: funding_request_id,
+                                disbursement_type_id: item.disbursement_type_id,
+                                disbursed_amount: item.disbursed_amount,
+                                due_date: item.due_date,
+                                tax_year: item.tax_year,
+                                issue_date: item.issue_date,
+                                transaction_number: item.transaction_number,
+                                change_reason_id: item.change_reason_id,
+                                financial_batch_id: item.financial_batch_id,
+                            })
+                            .returning("*");
+                    }
                 }
+
+                return { text: "Assessment created", variant: "success" };
+
+            } else {
+                return { text: "Saved, but student must have a Vendor ID to create disbursements", variant: "error" }; 
             }
         }
 
-        return updatedAssessment || null;
-    }
-
-    async createDisburse(
-        application_id: number,
-        dataAssessment: AssessmentDTO,
-        disbursementList: DisbursementDTO[],
-        funding_request_id: number,
-        program_division: number,
-    ): Promise<any> {
-
-        try {
-            const assessment: AssessmentDTO = { ...dataAssessment };
-            const newDisbursement: DisbursementDTO = {};
-            this.application = await this.applicationRepo.getApplicationById(application_id);
-
-            if (
-                (
-                    (
-                        !assessment.air_travel_disbursement_period
-                        && (!assessment.travel_allowance)
-                        && (!assessment.airfare_amount)
-                    )
-                    || ((assessment.air_travel_disbursement_period || 0) <= (assessment.disbursements_required || 0))
-                    || (!assessment.disbursements_required)
-                )
-                &&
-                (
-                    (
-                        !assessment.over_award_disbursement_period
-                        && (!assessment.over_award)
-                        && (assessment.over_award_applied_flg === 'No')
-                    ) // NO AIR TRAVEL
-                    || ((assessment.air_travel_disbursement_period || 0) <= (assessment.disbursements_required || 0))
-                    || (assessment.disbursements_required === 0)
-                )
-                &&
-                (
-                    (assessment?.years_funded_equivalent && (this.application.academic_year_id || 0) < 2016)
-                    || (this.application.academic_year_id || 0) < 2016
-                )
-            ) {
-
-            }
-        } catch (error) {
-
-        }
-
+        return { text: "Assessment created", variant: "success" };
     }
 
 }

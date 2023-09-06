@@ -13,7 +13,7 @@
               hide-details
               label="Estimated tuition fees"
               v-model="application.tuition_estimate_amount"
-              @change="doSaveApp('tuition_estimate_amount', application.tuition_estimate_amount)"
+              @change="doSaveApp('tuition_estimate_amount', parseMoney(application.tuition_estimate_amount))"
               v-currency="{ currency: 'USD', locale: 'en' }"
             ></v-text-field>
           </div>
@@ -27,12 +27,7 @@
               label="Books & supplies"
               v-model="application.books_supplies_cost"
               v-currency="{ currency: 'USD', locale: 'en' }"
-              @change="
-                doSaveApp(
-                  'books_supplies_cost',
-                  vueCurrencyInputParse(application.books_supplies_cost)
-                )
-              "
+              @change="doSaveApp('books_supplies_cost', parseMoney(application.books_supplies_cost))"
             ></v-text-field>
           </div>
           <div class="col-md-6">
@@ -162,7 +157,7 @@
 </template>
 
 <script>
-import { parse as vueCurrencyInputParse } from "vue-currency-input"
+import { parse as vueCurrencyInputParse } from "vue-currency-input";
 import { mapGetters } from "vuex";
 import store from "@/store";
 import { APPLICATION_URL } from "@/urls";
@@ -190,6 +185,15 @@ export default {
   }),
   async created() {},
   methods: {
+    parseMoney(input, decimals = 2) {
+      if (input) {
+        let val = vueCurrencyInputParse(input);
+        if (decimals == 0) val = Math.round(val);
+        return val;
+      }
+
+      return input;
+    },
     doSaveApp(field, value) {
       store.dispatch("updateApplication", [field, value, this]);
     },

@@ -1,10 +1,10 @@
+import FundingRequestLettersService from "@/services/funding-request-letters-service"
 import FundingRequestsService from "@/services/funding-requests-service"
 
 import FundingRequest from "@/models/funding-request"
-import FundingRequestLetter from "@/models/funding-request-letter"
-import User from "@/models/user"
 import RequestType from "@/models/request-type"
 import Status from "@/models/status"
+import User from "@/models/user"
 
 export default class FundingRequestsLetterBuilderService {
   #fundingRequestId: number
@@ -50,18 +50,20 @@ export default class FundingRequestsLetterBuilderService {
   }
 
   async #buildLetterService() {
-    if (!FundingRequestLetter.isValidLetterSlug(this.#letterSlug))
+    if (!FundingRequestLettersService.isValidSlug(this.#letterSlug))
       throw new Error(`Invalid letter slug: ${this.#letterSlug}`)
 
     const fundingRequest = await this.#getFundingRequest(this.#fundingRequestId)
     const requestType = fundingRequest.requestType?.description
     if (!RequestType.isValidRequestType(requestType))
-    throw new Error(`Invalid request type: ${requestType}`)
+      throw new Error(`Invalid request type: ${requestType}`)
 
-  const status = fundingRequest.status?.description
+    const status = fundingRequest.status?.description
     if (!Status.isValidStatus(status)) throw new Error(`Invalid status: ${status}`)
 
-    const LetterServiceClass = FundingRequestLetter.getLetterService({
+    const director = await this.#getDirector()
+
+    const LetterServiceClass = FundingRequestLettersService.getServiceClass({
       requestType,
       status,
       letterSlug: this.#letterSlug,
@@ -72,6 +74,7 @@ export default class FundingRequestsLetterBuilderService {
       requestType,
       signingOfficer: this.#signingOfficer,
       status,
+      director,
     })
   }
 
@@ -84,5 +87,16 @@ export default class FundingRequestsLetterBuilderService {
       "status",
       "statusReason",
     ]).find(fundingRequestId)
+  }
+
+  // TODO: This should pull from the database once the director exists there
+  async #getDirector(): Promise<User> {
+    return {
+      firstName: "Kirsti",
+      lastName: "de Vries",
+      email: "kirsti.devries@yukon.ca",
+      phone: "867-667-5129",
+      position: "Director of Training Programs"
+    } as User
   }
 }
