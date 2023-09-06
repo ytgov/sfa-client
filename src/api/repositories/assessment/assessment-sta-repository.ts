@@ -337,45 +337,28 @@ export class AssessmentSTA extends AssessmentBaseRepository {
         try {
             const assessInfo: AssessmentDTO[] = await this.updateAssessment(assessment_id, assessment);
 
-            const student = await this.mainDb("sfa.assessment AS a")
-                .select("s.vendor_id AS vendor_id")
-                .innerJoin("sfa.funding_request AS fr", "fr.id", "a.funding_request_id")
-                .innerJoin("sfa.application AS app", "app.id", "fr.application_id")
-                .innerJoin("sfa.student AS s", "s.id", "app.student_id")
-                .where("a.id", assessInfo[0].id)
-                .first();
+            for (const disburse of disbursementList) {
 
-            if (student.vendor_id) {
-                for (const disburse of disbursementList) {
-                    
-                    if (String(disburse.issue_date)?.length === 10) {
-                        disburse.tax_year = moment(disburse.issue_date).year();
-                    }
-                    
-                    if (disburse?.id) {
-                        await this.updateDisbursements(disburse);
-                    } else {
-                        disburse.assessment_id = assessment_id;
-                        disburse.funding_request_id = assessment.funding_request_id;
-                        await this.insertDisbursements(disburse);
-                    }
-                }
-    
-                if (disbursementList?.length) {
-                    const updateStatusFundingRequest = await this.mainDb("sfa.funding_request")
-                        .where({ id: assessment.funding_request_id })
-                        .update({ status_id: 7 });
+                if (String(disburse.issue_date)?.length === 10) {
+                    disburse.tax_year = moment(disburse.issue_date).year();
                 }
 
-                return { text: "Assessment created", variant: "success" };
-
-            } else {
-                if (disbursementList?.length) {
-                    return { text: "Saved, but student must have a Vendor ID to create disbursements", variant: "success" }; 
+                if (disburse?.id) {
+                    await this.updateDisbursements(disburse);
                 } else {
-                    return { text: "Assessment created", variant: "success" };
+                    disburse.assessment_id = assessment_id;
+                    disburse.funding_request_id = assessment.funding_request_id;
+                    await this.insertDisbursements(disburse);
                 }
             }
+
+            if (disbursementList?.length) {
+                const updateStatusFundingRequest = await this.mainDb("sfa.funding_request")
+                    .where({ id: assessment.funding_request_id })
+                    .update({ status_id: 7 });
+            }
+
+            return { text: "Assessment saved", variant: "success" };
         } catch (error) {
             return undefined;
         }
@@ -388,42 +371,31 @@ export class AssessmentSTA extends AssessmentBaseRepository {
 
         try {
             const assessInfo: AssessmentDTO[] = await this.insertAssessment(assessment);
+            let updateStatus = false;
 
-            const student = await this.mainDb("sfa.assessment AS a")
-                .select("s.vendor_id AS vendor_id")
-                .innerJoin("sfa.funding_request AS fr", "fr.id", "a.funding_request_id")
-                .innerJoin("sfa.application AS app", "app.id", "fr.application_id")
-                .innerJoin("sfa.student AS s", "s.id", "app.student_id")
-                .where("a.id", assessInfo[0].id)
-                .first();
+            for (const disburse of disbursementList) {
 
-            if (student.vendor_id) {
-                
-                for (const disburse of disbursementList) {
-
-                    if (String(disburse.issue_date).length === 10) {
-                        disburse.tax_year = moment(disburse.issue_date).year();
-                    }
-
-                    if (disburse?.id) {
-                        await this.updateDisbursements(disburse);
-                    } else if (assessInfo?.[0]?.id) {
-                        disburse.assessment_id = assessInfo[0].id;
-                        disburse.funding_request_id = assessment.funding_request_id;
-                        await this.insertDisbursements(disburse);
-                    }
-                } 
-                
-                if (disbursementList?.length) {
-                    const updateStatusFundingRequest = await this.mainDb("sfa.funding_request")
-                        .where({ id: assessment.funding_request_id })
-                        .update({ status_id: 7 });
+                if (String(disburse.issue_date).length === 10) {
+                    disburse.tax_year = moment(disburse.issue_date).year();
                 }
 
-                return { text: "Assessment created", variant: "success" };
-            } else {
-                return { text: "Saved, but student must have a Vendor ID to create disbursements", variant: "success" };
+                if (disburse?.id) {
+                    await this.updateDisbursements(disburse);
+                } else if (assessInfo?.[0]?.id) {
+                    disburse.assessment_id = assessInfo[0].id;
+                    disburse.funding_request_id = assessment.funding_request_id;
+                    await this.insertDisbursements(disburse);
+                    updateStatus = true;
+                }
             }
+
+            if (disbursementList?.length) {
+                const updateStatusFundingRequest = await this.mainDb("sfa.funding_request")
+                    .where({ id: assessment.funding_request_id })
+                    .update({ status_id: 7 });
+            }
+
+            return { text: "Assessment created", variant: "success" };
         } catch (error) {
             return undefined;
         }
@@ -456,5 +428,4 @@ export class AssessmentSTA extends AssessmentBaseRepository {
         delete disbursement?.due_date_menu;
         return this.mainDb("sfa.disbursement").where({ id }).update(disbursement);
     }
-
 }
