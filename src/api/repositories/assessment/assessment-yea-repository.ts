@@ -138,49 +138,61 @@ export class AssessmentYEA extends AssessmentBaseRepository {
 
         if (disbursementList.length) {
             // Insert the disbursement list
-            for (const item of disbursementList) {
+            const student = await this.mainDb("sfa.assessment AS a")
+                .select("s.vendor_id AS vendor_id")
+                .innerJoin("sfa.funding_request AS fr", "fr.id", "a.funding_request_id")
+                .innerJoin("sfa.application AS app", "app.id", "fr.application_id")
+                .innerJoin("sfa.student AS s", "s.id", "app.student_id")
+                .where("a.id", assessment_id)
+                .first();
 
-                if (item?.id && (item?.assessment_id === assessment_id)
-                    && (item?.funding_request_id === funding_request_id)) {
-                    const resUpdate = await this.mainDb("sfa.disbursement")
-                        .update({
-                            disbursement_type_id: item.disbursement_type_id,
-                            disbursed_amount: item.disbursed_amount,
-                            due_date: item.due_date,
-                            tax_year: item.tax_year,
-                            issue_date: item.issue_date,
-                            transaction_number: item.transaction_number,
-                            change_reason_id: item.change_reason_id,
-                            financial_batch_id: item.financial_batch_id,
-                        })
-                        .where({ id: item.id });
-                } else {
-                    const resInsert: any = await this.mainDb("sfa.disbursement")
-                        .insert({
-                            assessment_id: assessment_id,
-                            funding_request_id: funding_request_id,
-                            disbursement_type_id: item.disbursement_type_id,
-                            disbursed_amount: item.disbursed_amount,
-                            due_date: item.due_date,
-                            tax_year: item.tax_year,
-                            issue_date: item.issue_date,
-                            transaction_number: item.transaction_number,
-                            change_reason_id: item.change_reason_id,
-                            financial_batch_id: item.financial_batch_id,
-                        })
-                        .returning("*");
+            if (student.vendor_id) {
+                for (const item of disbursementList) {
+
+                    if (item?.id && (item?.assessment_id === assessment_id)
+                        && (item?.funding_request_id === funding_request_id)) {
+                        const resUpdate = await this.mainDb("sfa.disbursement")
+                            .update({
+                                disbursement_type_id: item.disbursement_type_id,
+                                disbursed_amount: item.disbursed_amount,
+                                due_date: item.due_date,
+                                tax_year: item.tax_year,
+                                issue_date: item.issue_date,
+                                transaction_number: item.transaction_number,
+                                change_reason_id: item.change_reason_id,
+                                financial_batch_id: item.financial_batch_id,
+                            })
+                            .where({ id: item.id });
+                    } else {
+                        const resInsert: any = await this.mainDb("sfa.disbursement")
+                            .insert({
+                                assessment_id: assessment_id,
+                                funding_request_id: funding_request_id,
+                                disbursement_type_id: item.disbursement_type_id,
+                                disbursed_amount: item.disbursed_amount,
+                                due_date: item.due_date,
+                                tax_year: item.tax_year,
+                                issue_date: item.issue_date,
+                                transaction_number: item.transaction_number,
+                                change_reason_id: item.change_reason_id,
+                                financial_batch_id: item.financial_batch_id,
+                            })
+                            .returning("*");
+                    }
                 }
-            }
-            const updateStatusFundingRequest = await this.mainDb("sfa.funding_request")
-                .where({ id: funding_request_id })
-                .update({ status_id: 7 });
 
-            // const response: any = await this.mainDb("sfa.application")
-            //     .where({ id: updatedApplication.id })
-            //     .update({ yea_tot_receipt_amount: updatedApplication.yea_tot_receipt_amount })
+                const updateStatusFundingRequest = await this.mainDb("sfa.funding_request")
+                        .where({ id: funding_request_id })
+                        .update({ status_id: 7 });
+
+                return { text: "Assessment created", variant: "success" };
+            } else {
+                return { text: "Saved, but student must have a Vendor ID to create disbursements", variant: "success" }; 
+            }
+            
         }
 
-        return updatedAssessment || null;
+        return { text: "Assessment created", variant: "success" };
     }
 
 }

@@ -310,9 +310,6 @@ export class AssessmentYukonGrant extends AssessmentBaseRepository {
             if (student.vendor_id) {
                 // Insert the disbursement list
                 for (const item of disbursementList) {
-                    if (!item.issue_date) {
-                        return { variant: "error" , text: "Issue date is mandatory in disbursements" };
-                    }
                     if (item?.id && (item?.assessment_id === assessment_id)
                         && (item?.funding_request_id === funding_request_id)) {
                         const resUpdate = await this.mainDb("sfa.disbursement")
@@ -345,10 +342,14 @@ export class AssessmentYukonGrant extends AssessmentBaseRepository {
                     }
                 }
 
+                const updateStatusFundingRequest = await this.mainDb("sfa.funding_request")
+                    .where({ id: funding_request_id })
+                    .update({ status_id: 7 });
+
                 return { text: "Assessment created", variant: "success" };
 
             } else {
-                return { text: "Saved, but student must have a Vendor ID to create disbursements", variant: "error" }; 
+                return { text: "Saved, but student must have a Vendor ID to create disbursements", variant: "success" }; 
             }
         }
 
