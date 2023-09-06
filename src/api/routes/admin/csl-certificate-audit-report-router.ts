@@ -33,6 +33,7 @@ cslCertificateAuditReportRouter.get("/:FROM_DATE/:TO_DATE/:ACADEMIC_YEAR",
                 db.raw('dt.description AS dis_type'),
                 'd.csl_cert_seq_number',
                 'd.ecert_sent_date',
+                'msfaa.received_date',
                 'msfaa.id AS msfaa_number',
                 'loan_disburse.ecert_sent_date AS loan_cert_date',
                 'loan_disburse.id'
@@ -60,25 +61,25 @@ cslCertificateAuditReportRouter.get("/:FROM_DATE/:TO_DATE/:ACADEMIC_YEAR",
                   .whereIn('fr1.request_type_id', [4, 5])
                   .as('loan_disburse');
               }, function () {
-                this.on('d.transaction_number', '=', 'loan_disburse.transaction_number')
-                  .andOn('d.issue_date', '=', 'loan_disburse.issue_date');
-              })
-              .where('fr.request_type_id', 'in', [4, 6, 15, 16, 17, 18, 19, 22, 23, 24, 32, 29, 27, 26, 28, 30, 31, 33, 47])
+                this.on('d.csl_cert_seq_number', '=', 'loan_disburse.csl_cert_seq_number')
+                  .andOn('d.issue_date', '=', 'loan_disburse.issue_date')
+                  .andOn(
+                    db.raw('(CASE WHEN loan_disburse.ecert_sent_date IS NULL THEN 0 ELSE 1 END) = 0')
+                  )
+                  .andOn('d.transaction_number', '=', 'loan_disburse.transaction_number');
+              })                        
+              .where('fr.request_type_id', 'in', [4, 5, 6, 15, 16, 17, 18, 19, 22, 23, 24, 31, 32, 29, 27, 26, 28, 30, 31, 32, 33, 34, 35, 47])
               .where('d.issue_date', '>=', FROM_DATE)
               .where('d.issue_date', '<=', TO_DATE)
               .where('hd.academic_year_id', '=', ACADEMIC_YEAR)
-              .where(function () {
-                this.where('msfaa.is_full_time', '=', db.raw('CASE WHEN d.disbursement_type_id = 4 THEN 1 ELSE 0 END'))
-                  .andWhere(db.raw('(CASE WHEN loan_disburse.ecert_sent_date IS NULL THEN 0 ELSE 1 END) = 1'))
-                  .andWhere('msfaa.msfaa_status', '!=', 'Cancelled');
-              })
+              .where('msfaa.is_full_time', '=', db.raw('CASE WHEN d.disbursement_type_id = 4 THEN 1 ELSE 0 END'))
+              .where('msfaa.msfaa_status', '!=', 'Cancelled')
               .orderByRaw("RIGHT(CONCAT('00000000000000000000', CAST(d.transaction_number AS CHAR(20))), 20)")
               .orderBy('d.issue_date')
               .orderBy('d.due_date')
               .orderBy('p.last_name')
               .orderBy('p.first_name')
-              .orderBy('rt.description');
-
+              .orderBy('rt.description');                 
 
               const res2 = await db.select(
                 'd.id',
@@ -121,25 +122,24 @@ cslCertificateAuditReportRouter.get("/:FROM_DATE/:TO_DATE/:ACADEMIC_YEAR",
                   .as('loan_disburse');
               }, function () {
                 this.on('d.transaction_number', '=', 'loan_disburse.transaction_number')
-                  .andOn('d.issue_date', '=', 'loan_disburse.issue_date');
-              })
-              .where('fr.request_type_id', 'in', [4, 5, 6, 15, 16, 17, 18, 19, 22, 23, 24, 31, 32, 29, 27, 26, 28, 30, 31, 32, 33, 34, 35, 47])
+                  .andOn('d.issue_date', '=', 'loan_disburse.issue_date')
+                  .andOn(
+                    db.raw('(CASE WHEN loan_disburse.ecert_sent_date IS NULL THEN 0 ELSE 1 END) = 1')
+                  );
+              })                       
+              .where('fr.request_type_id', 'in', [4, 6, 15, 16, 17, 18, 19, 22, 23, 24, 32, 29, 27, 26, 28, 30, 31, 33, 47])
               .where('d.issue_date', '>=', FROM_DATE)
               .where('d.issue_date', '<=', TO_DATE)
               .where('hd.academic_year_id', '=', ACADEMIC_YEAR)
-              .whereRaw("d.transaction_number = loan_disburse.transaction_number")
-              .where(function () {
-                this.where('msfaa.is_full_time', '=', db.raw('CASE WHEN d.disbursement_type_id = 4 THEN 1 ELSE 0 END'))
-                  .andWhere(db.raw('(CASE WHEN loan_disburse.ecert_sent_date IS NULL THEN 0 ELSE 1 END) = 0'))
-                  .andWhere('msfaa.msfaa_status', '!=', 'Cancelled');
-              })
+              .where('msfaa.is_full_time', '=', db.raw('CASE WHEN d.disbursement_type_id = 4 THEN 1 ELSE 0 END'))
+              .where('msfaa.msfaa_status', '!=', 'Cancelled')
               .orderByRaw("RIGHT(CONCAT('00000000000000000000', CAST(d.transaction_number AS CHAR(20))), 20)")
               .orderBy('d.issue_date')
               .orderBy('d.due_date')
               .orderBy('p.last_name')
               .orderBy('p.first_name')
-              .orderBy('rt.description');                                  
-                    
+              .orderBy('rt.description');                                              
+
            return res.json({data1: res1, data2: res2});            
         } catch (error: any) {
             console.log(error);
