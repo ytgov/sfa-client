@@ -359,7 +359,11 @@ export default {
       this.documentationData.file = event;
     },
     handleUploadAndClose() {
-      this.uploadNewDoc();
+      if(!this.documentationData.description || !this.documentationData.completed_date || !this.documentationData.received_date || !this.documentationData.status ||!this.documentationData.file[0]) {
+        this.$emit("showError", "Please fill in all fields");
+      } else {
+        this.uploadNewDoc();
+      }
     },
     async uploadNewDoc() {
       const formData = new FormData();
@@ -374,7 +378,7 @@ export default {
 
       const innerFormData = new FormData();
       innerFormData.append("requirement_type_id", this.documentationData.description);
-      innerFormData.append("completed_date", this.documentationData.completed_date);
+      innerFormData.append("completed_date", this.documentationData.completed_date);      
       innerFormData.append("data", { completed_date: this.documentationData.completed_date });
 
       try {
@@ -382,19 +386,11 @@ export default {
 
         if (this.documentationData.comment === null && this.documentationData.status === 3) {
           this.$emit("showError", "If status is rejected, you must comment");
-        } else {
-          const resInsert = await axios.post(
-            APPLICATION_URL + `/${this.application.id}/student/${this.student.id}/files`,
-            formData,
-            { headers: { "Content-Type": "multipart/form-data" } }
-          );
+        } else {  
+          const resInsert = await axios.post(APPLICATION_URL + `/${this.application.id}/student/${this.student.id}/files`, formData, { headers: { "Content-Type": "multipart/form-data" }});
 
           try {
-            const resInsert = await axios.post(
-              APPLICATION_URL + `/${this.application.id}/student/${this.student.id}/files/${reqType}`,
-              innerFormData,
-              { headers: { "Content-Type": "multipart/form-data" } }
-            );
+            const resInsert = await axios.post(APPLICATION_URL + `/${this.application.id}/student/${this.student.id}/files/${reqType}`, innerFormData, { headers: { "Content-Type": "multipart/form-data" }});
             const message = resInsert?.data?.messages[0];
             if (message?.variant === "success") {
               this.$emit("showSuccess", message.text);
@@ -414,15 +410,15 @@ export default {
           } else {
             this.$emit("showError", message.text);
           }
-          this.setClose();
-        }
-      } catch (error) {
-        console.log(error);
-        this.$emit("showError", "Error to update");
-      } finally {
-        store.dispatch("loadApplication", this.applicationId);
-        this.documentationData.comment = "";
+          this.setClose();        
       }
+    } catch (error) {
+      console.log(error);
+      this.$emit("showError", "Error to update");
+    } finally {
+      store.dispatch("loadApplication", this.applicationId);
+      this.documentationData.comment = "";
+    }
     },
 
     formatDate(date) {

@@ -657,19 +657,19 @@ applicationRouter.post("/:application_id/student/:student_id/files", async (req:
 applicationRouter.post("/:application_id/student/:student_id/files/:requirement_type_id",
     [param("application_id").isInt().notEmpty(), param("student_id").isInt().notEmpty(), param("requirement_type_id").isInt().notEmpty()],
     ReturnValidationErrors,
-    async (req: Request, res: Response) => {                
+    async (req: Request, res: Response) => {                     
         try {            
             const { application_id, student_id, requirement_type_id } = req.params;
             let { completed_date, data } = req.body;                    
             const application: any = await db("sfa.file_reference").where({ application_id: application_id }).andWhere({ student_id: student_id }).andWhere({ requirement_type_id: requirement_type_id }).first();
 
             const alreadyExist: any = await db("sfa.requirement_met").where({ application_id: application_id }).andWhere({ requirement_type_id: requirement_type_id }).first();
+            const compDate = completed_date;        
 
             if (application) {      
-                if(alreadyExist) {                    
+                if(alreadyExist) {                               
                     try {            
-                        const appId = application_id;
-                        const compDate = completed_date;                          
+                        const appId = application_id;                                         
                         const resUpdate = await db("sfa.requirement_met").where({application_id: application_id}).andWhere({requirement_type_id: requirement_type_id})
                             //.update({ ...data });
                             .update({ completed_date: completed_date});
@@ -682,13 +682,18 @@ applicationRouter.post("/:application_id/student/:student_id/files/:requirement_
                     } catch (error) {
                         return res.json({ messages: [{ text: "Failed to update Funding Request", variant: "error" }] });
                     }
-                } else {
-                    const resInsert = await db("sfa.requirement_met")
-                    .insert({ completed_date, requirement_type_id, application_id });                
+                } else {                    
+                    let resInsert;
+                    try {
+                        resInsert = await db("sfa.requirement_met")
+                        .insert({ completed_date, requirement_type_id, application_id });                                    
+                    } catch(error) {                                                
+                        return res.json({ messages: [{ variant: "error", text: "Failed to update Funding Request" }] });
+                    }
                     return resInsert ?
-                        res.json({ messages: [{ variant: "success", text: "Saved" }] })
-                        :
-                        res.json({ messages: [{ variant: "error", text: "Save failed" }] });
+                    res.json({ messages: [{ variant: "success", text: "Saved" }] })
+                    :
+                    res.json({ messages: [{ variant: "error", text: "Save failed" }] });
                 }
                 
 
