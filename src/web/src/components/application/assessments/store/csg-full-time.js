@@ -160,7 +160,7 @@ const actions = {
   },
 
   loadCSGFTAssessment({ commit, state }, applicationId) {
-    axios.get(`${CSG_THRESHOLD_URL}/csgftdep/${applicationId}`).then((resp) => {
+    axios.get(`${CSG_THRESHOLD_URL}/csgft/${applicationId}`).then((resp) => {
       commit("SET_FUNDINGREQUEST", resp.data.data.funding_request);
       commit("SET_DISBURSEMENTS", resp.data.data.disbursements);
 
@@ -183,6 +183,8 @@ const actions = {
           dependent_count: parent.dependent_count,
           student_ln150_income: parent.student_ln150_income,
           spouse_ln150_income: parent.spouse_ln150_income,
+          parent1_income: parent.parent1_income,
+          parent2_income: parent.parent2_income,
           relocation_total: parent.relocation_total,
           discretionary_cost: parent.discretionary_cost,
           discretionary_cost_actual: parent.discretionary_cost_actual,
@@ -224,6 +226,8 @@ const actions = {
         dependent_count: parent.dependent_count,
         student_ln150_income: parent.student_ln150_income,
         spouse_ln150_income: parent.spouse_ln150_income,
+        parent1_income: parent.parent1_income,
+        parent2_income: parent.parent2_income,
         relocation_total: parent.relocation_total,
         discretionary_cost: parent.discretionary_cost,
         discretionary_cost_actual: parent.discretionary_cost_actual,

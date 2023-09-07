@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div class="col-md-12">
+    <div class="mt-4">
       <v-card class="default mb-1 bg-color-blue">
         <v-card-title
           >Assessment - CSGFT
@@ -270,38 +270,38 @@
       </v-card>
     </div>
 
-    <div class="col-lg-12">
+    <div class="mt-4">
       <v-card class="default mb-5 bg-color-blue">
         <v-card-text>
           <h3>Disbursements</h3>
 
-          <v-simple-table class="text-left narrow">
+          <v-simple-table class="text-left">
             <template v-slot:default>
               <thead>
                 <tr>
-                  <th>Reference #</th>
-                  <th>Amount</th>
-                  <th>Type</th>
-                  <th>Issue Date</th>
-                  <th>Due Date</th>
-                  <th>Change Reason</th>
-                  <th>Batch ID</th>
-                  <th></th>
+                  <th class="narrow">Reference #</th>
+                  <th class="narrow">Amount</th>
+                  <th class="narrow">Type</th>
+                  <th class="narrow">Issue Date</th>
+                  <th class="narrow">Due Date</th>
+                  <th class="narrow">Change Reason</th>
+                  <th class="narrow">Batch ID</th>
+                  <th class="narrow"></th>
                 </tr>
               </thead>
               <tbody>
                 <tr v-for="(item, idx) of disbursements">
-                  <td>
+                  <td class="narrow">
                     <v-text-field
                       v-model="item.transaction_number"
                       dense
-                      flat
                       hide-details
                       outlined
                       @change="saveDisbursement"
+                      class="narrowInput"
                     ></v-text-field>
                   </td>
-                  <td>
+                  <td class="narrow">
                     <v-text-field
                       :value="formatMoney(item.disbursed_amount)"
                       dense
@@ -309,18 +309,19 @@
                       outlined
                       background-color="#ccc"
                       hide-details
+                      class="narrowInput"
                     ></v-text-field>
                   </td>
-                  <td>
+                  <td class="narrow">
                     <v-text-field
                       :value="getType(item.disbursement_type_id)"
                       v-if="item.financial_batch_id"
                       dense
-                      flat
                       readonly
                       hide-details
                       outlined
                       background-color="#ccc"
+                      class="narrowInput"
                     ></v-text-field>
                     <v-autocomplete
                       v-model="item.disbursement_type_id"
@@ -329,23 +330,23 @@
                       item-text="description"
                       item-value="id"
                       dense
-                      flat
                       hide-details
                       outlined
                       :readyonly="!item.financial_batch_id"
                       @change="saveDisbursement"
+                      class="narrowInput"
                     ></v-autocomplete>
                   </td>
-                  <td>
+                  <td class="narrow">
                     <v-text-field
                       :value="item.issue_date"
                       v-if="item.financial_batch_id"
                       dense
                       readonly
-                      flat
                       hide-details
                       outlined
                       background-color="#ccc"
+                      class="narrowInput"
                     ></v-text-field>
 
                     <v-menu
@@ -357,6 +358,7 @@
                       nudge-top="26"
                       offset-y
                       min-width="auto"
+                      class="narrowInput"
                     >
                       <template v-slot:activator="{ on, attrs }">
                         <v-text-field
@@ -370,6 +372,7 @@
                           v-bind="attrs"
                           v-on="on"
                           @change="saveDisbursement"
+                          class="narrowInput"
                         ></v-text-field>
                       </template>
                       <v-date-picker
@@ -381,13 +384,12 @@
                       ></v-date-picker>
                     </v-menu>
                   </td>
-                  <td>
+                  <td class="narrow">
                     <v-text-field
                       :value="item.due_date"
                       v-if="item.financial_batch_id"
                       dense
                       readonly
-                      flat
                       hide-details
                       outlined
                       background-color="#ccc"
@@ -415,6 +417,7 @@
                           v-bind="attrs"
                           v-on="on"
                           @change="saveDisbursement"
+                          class="narrowInput"
                         ></v-text-field>
                       </template>
                       <v-date-picker
@@ -426,16 +429,16 @@
                       ></v-date-picker>
                     </v-menu>
                   </td>
-                  <td>
+                  <td class="narrow">
                     <v-text-field
                       :value="getReason(item.change_reason_id)"
                       v-if="item.financial_batch_id"
                       dense
-                      flat
                       readonly
                       hide-details
                       outlined
                       background-color="#ccc"
+                      class="narrowInput"
                     ></v-text-field>
                     <v-autocomplete
                       v-model="item.change_reason_id"
@@ -444,23 +447,23 @@
                       item-text="description"
                       item-value="id"
                       dense
-                      flat
                       hide-details
                       outlined
+                      class="narrowInput"
                       @change="saveDisbursement"
                     ></v-autocomplete>
                   </td>
-                  <td>
+                  <td class="narrow">
                     <v-text-field
                       v-model="item.financial_batch_id"
                       dense
-                      flat
                       hide-details
                       outlined
                       readonly
+                      class="narrowInput"
                     ></v-text-field>
                   </td>
-                  <td>
+                  <td class="narrow">
                     <v-btn
                       fab
                       class="my-0 mr-1"
@@ -521,7 +524,8 @@ export default {
       "previousDisbursements",
       "netAmount",
       "netAmountRaw",
-      "thresholdRange", "threshold"
+      "thresholdRange",
+      "threshold",
     ]),
     classification(state) {
       if (this.application && this.cslClassifications) {
@@ -532,13 +536,7 @@ export default {
     },
   },
   methods: {
-    ...mapActions("csgFullTimeStore", [
-      "initialize",
-      "makeDisbursements",
-      "recalculate",
-      "save",
-      "removeDisbursement",
-    ]),
+    ...mapActions("csgFullTimeStore", ["initialize", "makeDisbursements", "recalculate", "save", "removeDisbursement"]),
     ...mapActions(["setCslClassifications", "setDisbursementTypes", "setChangeReasons"]),
 
     getReason(item) {
@@ -581,8 +579,3 @@ export default {
   },
 };
 </script>
-<style scoped>
-.v-data-table.narrow td {
-  padding: 0 2px;
-}
-</style>
