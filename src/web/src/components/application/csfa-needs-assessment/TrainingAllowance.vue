@@ -513,7 +513,12 @@
                 hide-details
                 @keypress="validate.isNumber($event)"
                 v-model="item.transaction_number"
-                @change="refresh"
+                @change="e => {
+                  if (!item.transaction_number) {
+                    item.transaction_number = null;
+                    refresh();
+                  }
+                }"
               ></v-text-field>
             </div>
             <div class="col-xs-2 col-sm-2 col-lg-2 nopadding" style="margin-right: 6px">
@@ -524,6 +529,7 @@
                 background-color="white"
                 hide-details
                 v-model="item.disbursement_type_id"
+                clearable
                 @change="refresh"
                 :items="disbursementTypes"
                 item-text="description"
@@ -621,6 +627,7 @@
                 background-color="white"
                 hide-details
                 v-model="item.change_reason_id"
+                clearable
                 @change="refresh"
                 :items="changeReasons"
                 item-text="description"
@@ -635,7 +642,12 @@
                 hide-details
                 @keypress="validate.isNumber($event)"
                 v-model="item.financial_batch_id"
-                @change="refresh"
+                @change="e => {
+                  if (!item.financial_batch_id) {
+                    item.financial_batch_id = null;
+                    refresh();
+                  }
+                }"
               ></v-text-field>
             </div>
             <div class="col-xs-1 col-sm-1 col-lg-1 nopadding d-flex">
