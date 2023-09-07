@@ -3,7 +3,7 @@
     <div class="col-md-12">
       <v-card class="default mb-1 bg-color-blue">
         <v-card-title
-          >Assessment - CSGFTDEP
+          >Assessment - CSGFT
           <v-spacer></v-spacer>
           <v-btn dense color="primary" class="my-0" @click="saveClick" :disabled="!assessment.id">
             Recalculate
@@ -119,7 +119,6 @@
             </v-col>
           </v-row>
           <v-divider class="my-5" />
-
           <v-row>
             <v-col>
               <v-text-field
@@ -137,7 +136,25 @@
                 background-color="#ddd"
                 label="Spouse income"
                 readonly
-                :value="formatMoney(assessment.spouse_ln150_income)"
+                :value="formatMoney(assessment.spouse_ln150_income || 0)"
+                append-icon="mdi-lock"
+              ></v-text-field>
+              <v-text-field
+                outlined
+                dense
+                background-color="#ddd"
+                label="Parent 1 income"
+                readonly
+                :value="formatMoney(assessment.parent1_income || 0)"
+                append-icon="mdi-lock"
+              ></v-text-field>
+              <v-text-field
+                outlined
+                dense
+                background-color="#ddd"
+                label="Parent 2 income"
+                readonly
+                :value="formatMoney(assessment.parent2_income || 0)"
                 append-icon="mdi-lock"
               ></v-text-field>
               <v-text-field
@@ -410,8 +427,19 @@
                     </v-menu>
                   </td>
                   <td>
+                    <v-text-field
+                      :value="getReason(item.change_reason_id)"
+                      v-if="item.financial_batch_id"
+                      dense
+                      flat
+                      readonly
+                      hide-details
+                      outlined
+                      background-color="#ccc"
+                    ></v-text-field>
                     <v-autocomplete
                       v-model="item.change_reason_id"
+                      v-else
                       :items="changeReasons"
                       item-text="description"
                       item-value="id"
@@ -427,10 +455,9 @@
                       v-model="item.financial_batch_id"
                       dense
                       flat
-                      readonly
                       hide-details
                       outlined
-                      background-color="#ccc"
+                      readonly
                     ></v-text-field>
                   </td>
                   <td>
@@ -482,10 +509,10 @@ export default {
   },
   computed: {
     ...mapState({ application: "selectedApplication" }),
-    ...mapState("csgDependentStore", ["csgThresholds", "cslft", "assessment", "disbursements"]),
+    ...mapState("csgFullTimeStore", ["csgThresholds", "cslft", "assessment", "disbursements"]),
     ...mapGetters(["cslClassifications", "disbursementTypes", "changeReasons"]),
 
-    ...mapGetters("csgDependentStore", [
+    ...mapGetters("csgFullTimeStore", [
       "familyIncome",
       "phaseOutRate",
       "assessedNeed",
@@ -494,7 +521,7 @@ export default {
       "previousDisbursements",
       "netAmount",
       "netAmountRaw",
-      "thresholdRange",
+      "thresholdRange", "threshold"
     ]),
     classification(state) {
       if (this.application && this.cslClassifications) {
@@ -505,7 +532,7 @@ export default {
     },
   },
   methods: {
-    ...mapActions("csgDependentStore", [
+    ...mapActions("csgFullTimeStore", [
       "initialize",
       "makeDisbursements",
       "recalculate",
@@ -543,13 +570,13 @@ export default {
     },
 
     formatMoney(input) {
-      if (input && isNumber(input)) {
+      if (isNumber(input)) {
         return Intl.NumberFormat("en", {
           currency: "USD",
           style: "currency",
         }).format(input);
       }
-      return "";
+      return "$0.00";
     },
   },
 };
