@@ -89,6 +89,7 @@ export default {
         { icon: 'fa-solid fa-paper-plane', title: 'CSL MSFAA Send', path:'/administration/csl-msfaa-send'},
         { icon: 'fa-solid fa-file-shield', title: 'CSL Restricted Data', path:'/administration/csl-restricted-data'},
         { icon: 'fa-solid fa-money-check', title: 'Cheque Req List', path:'/administration/cheque-req-list'},
+        { icon: 'fa-solid fa-chart-simple', title: 'Reports', path:'/administration/reports'},
       ],
       currentLink: null,
       position: null

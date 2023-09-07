@@ -9,7 +9,6 @@ import Profile from "../views/Profile";
 import store from "../store";
 
 import Reports from "../views/Reports";
-import AdministrationHome from "../views/Administration/AdministrationHome";
 import Search from "../views/Search";
 
 import ApplicationDetails from "../components/application/ApplicationDetails";
@@ -29,13 +28,8 @@ import YukonHuskysCBRadioClubScholarship from "../components/application/csfa-ne
 import NicholasJohnHarachScholarship from "../components/application/csfa-needs-assessment/NicholasJohnHarachScholarship.vue";
 import CSLFT from "../components/application/csfa-needs-assessment/CSLFT.vue";
 import CSLPT from "../components/application/csfa-needs-assessment/CSLPT.vue";
-import CSGPTDEP from "../components/application/csfa-needs-assessment/CSGPTDEP.vue";
 import CSGPT from "../components/application/csfa-needs-assessment/CSGPT.vue";
 import CSGDSE from "../components/application/csfa-needs-assessment/CSGDSE.vue";
-import CSGTP from "../components/application/assessments/views/CSGTP.vue";
-import CSGD from "../components/application/assessments/views/CSGD.vue";
-import CSGFTDEP from "../components/application/assessments/views/CSGFTDEP.vue";
-import CSGFT from "../components/application/csfa-needs-assessment/CSGFT.vue";
 import CanadianArmyScholarship from "../components/application/csfa-needs-assessment/CanadianArmyScholarship.vue";
 import TrainingAllowance from "../components/application/csfa-needs-assessment/TrainingAllowance.vue";
 import YukonGrant from "../components/application/csfa-needs-assessment/YukonGrant.vue";
@@ -82,6 +76,8 @@ import CslCertificateAuditReportRoutes from "@/modules/csl-certificate-audit-rep
 import CslMsfaaSendRoutes from "@/modules/csl-msfaa-send/router";
 import CSLRestrictedDataModuleRoutes from "@/modules/csl-restricted-data/router";
 
+import administrationRoutes from "@/modules/Administration/router";
+
 Vue.use(VueRouter);
 
 const routes = [
@@ -98,6 +94,8 @@ const routes = [
       requiresAuth: true,
     },
   },
+
+  ...administrationRoutes,
 
   {
     path: "/application/:id/personal",
@@ -228,38 +226,6 @@ const routes = [
     },
   },
   {
-    path: "/application/:id/assessment/csgft/0",
-    name: "CSGFT",
-    component: CSGFT,
-    meta: {
-      requiresAuth: true,
-    },
-  },
-  {
-    path: "/application/:id/assessment/csgftdep/0",
-    name: "CSGFTDEP",
-    component: CSGFTDEP,
-    meta: {
-      requiresAuth: true,
-    },
-  },
-  {
-    path: "/application/:id/assessment/csgd/0",
-    name: "CSGD",
-    component: CSGD,
-    meta: {
-      requiresAuth: true,
-    },
-  },
-  {
-    path: "/application/:id/assessment/csgtp/0",
-    name: "CSGTP",
-    component: CSGTP,
-    meta: {
-      requiresAuth: true,
-    },
-  },
-  {
     path: "/application/:id/assessment/csgdse/0",
     name: "CSGTP",
     component: CSGDSE,
@@ -271,14 +237,6 @@ const routes = [
     path: "/application/:id/assessment/csgpt/0",
     name: "CSGPT",
     component: CSGPT,
-    meta: {
-      requiresAuth: true,
-    },
-  },
-  {
-    path: "/application/:id/assessment/csgptdep/0",
-    name: "CSGPTDEP",
-    component: CSGPTDEP,
     meta: {
       requiresAuth: true,
     },
@@ -322,14 +280,6 @@ const routes = [
     path: "/reports",
     name: "Reports",
     component: Reports,
-    meta: {
-      requiresAuth: true,
-    },
-  },
-  {
-    path: "/administration",
-    name: "AdministrationHome",
-    component: AdministrationHome,
     meta: {
       requiresAuth: true,
     },

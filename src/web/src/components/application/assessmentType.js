@@ -6,7 +6,7 @@ import CSGDSE from "@/components/application/csfa-needs-assessment/CSGDSE";
 import CSGTP from "@/components/application/assessments/views/CSGTP";
 import CSGD from "@/components/application/assessments/views/CSGD";
 import CSGFTDEP from "@/components/application/assessments/views/CSGFTDEP";
-import CSGFT from "@/components/application/csfa-needs-assessment/CSGFT";
+import CSGFT from "@/components/application/assessments/views/CSGFT";
 import CanadianArmyScholarship from "@/components/application/csfa-needs-assessment/CanadianArmyScholarship";
 import TrainingAllowance from "@/components/application/csfa-needs-assessment/TrainingAllowance";
 import YukonGrant from "@/components/application/csfa-needs-assessment/YukonGrant";

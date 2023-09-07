@@ -1,5 +1,5 @@
 <template>
-  <div class="">
+  <div>
     <div class="col-md-12">
       <v-card class="default mb-1 bg-color-blue">
         <v-card-title
@@ -36,7 +36,13 @@
                     v-on="on"
                   ></v-text-field>
                 </template>
-                <v-date-picker v-model="assessment.assessed_date" @input="assessed_date_menu = false"></v-date-picker>
+                <v-date-picker
+                  v-model="assessment.assessed_date"
+                  @input="
+                    saveAssessment();
+                    assessed_date_menu = false;
+                  "
+                ></v-date-picker>
               </v-menu>
               <v-text-field
                 v-model="assessment.classes_start_date"
@@ -404,19 +410,8 @@
                     </v-menu>
                   </td>
                   <td>
-                    <v-text-field
-                      :value="getReason(item.change_reason_id)"
-                      v-if="item.financial_batch_id"
-                      dense
-                      flat
-                      readonly
-                      hide-details
-                      outlined
-                      background-color="#ccc"
-                    ></v-text-field>
                     <v-autocomplete
                       v-model="item.change_reason_id"
-                      v-else
                       :items="changeReasons"
                       item-text="description"
                       item-value="id"
@@ -432,9 +427,10 @@
                       v-model="item.financial_batch_id"
                       dense
                       flat
+                      readonly
                       hide-details
                       outlined
-                      readonly
+                      background-color="#ccc"
                     ></v-text-field>
                   </td>
                   <td>
@@ -535,6 +531,10 @@ export default {
     },
     async saveClick() {
       await this.recalculate();
+      this.$emit("showSuccess", "Assessment saved");
+    },
+    async saveAssessment() {
+      await this.save();
       this.$emit("showSuccess", "Assessment saved");
     },
     async saveDisbursement() {

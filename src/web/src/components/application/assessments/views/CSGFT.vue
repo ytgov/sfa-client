@@ -1,9 +1,9 @@
 <template>
-  <div class="">
+  <div>
     <div class="col-md-12">
       <v-card class="default mb-1 bg-color-blue">
         <v-card-title
-          >Assessment - CSGTP
+          >Assessment - CSGFT
           <v-spacer></v-spacer>
           <v-btn dense color="primary" class="my-0" @click="saveClick" :disabled="!assessment.id">
             Recalculate
@@ -44,39 +44,160 @@
                   "
                 ></v-date-picker>
               </v-menu>
-
               <v-text-field
-                label="Student age"
-                append-icon="mdi-lock"
+                v-model="assessment.classes_start_date"
+                label="Classes start date"
                 readonly
-                :value="age"
                 outlined
                 dense
                 background-color="#ddd"
+                append-icon="mdi-lock"
+              ></v-text-field>
+              <v-text-field
+                v-model="assessment.classes_end_date"
+                label="Classes end date"
+                hide-details
+                readonly
+                outlined
+                dense
+                background-color="#ddd"
+                append-icon="mdi-lock"
               ></v-text-field>
             </v-col>
 
             <v-col>
+              <div style="height: 66px"></div>
               <v-text-field
-                label="Monthly rate"
-                append-icon="mdi-lock"
-                readonly
-                :value="monthlyRate"
                 outlined
                 dense
                 background-color="#ddd"
+                label="Study weeks"
+                readonly
+                v-model="assessment.study_weeks"
+                append-icon="mdi-calculator"
               ></v-text-field>
               <v-text-field
+                outlined
+                dense
+                background-color="#ddd"
+                hide-details
+                readonly
                 label="Study months"
-                append-icon="mdi-lock"
-                readonly
-                :value="studyMonths"
-                outlined
-                dense
-                background-color="#ddd"
+                v-model="assessment.study_months"
+                append-icon="mdi-calculator"
               ></v-text-field>
             </v-col>
             <v-col>
+              <v-text-field
+                outlined
+                dense
+                background-color="#ddd"
+                label="Family size"
+                readonly
+                v-model="assessment.family_size"
+                append-icon="mdi-lock"
+              ></v-text-field>
+              <v-text-field
+                outlined
+                dense
+                background-color="#ddd"
+                label="Dependents"
+                readonly
+                v-model="assessment.dependent_count"
+                append-icon="mdi-lock"
+              ></v-text-field>
+              <v-text-field
+                outlined
+                dense
+                background-color="#ddd"
+                hide-details
+                label="Student category"
+                readonly
+                v-model="classification"
+                append-icon="mdi-lock"
+              ></v-text-field>
+            </v-col>
+          </v-row>
+          <v-divider class="my-5" />
+          <v-row>
+            <v-col>
+              <v-text-field
+                outlined
+                dense
+                background-color="#ddd"
+                label="Student income"
+                readonly
+                :value="formatMoney(assessment.student_ln150_income)"
+                append-icon="mdi-lock"
+              ></v-text-field>
+              <v-text-field
+                outlined
+                dense
+                background-color="#ddd"
+                label="Spouse income"
+                readonly
+                :value="formatMoney(assessment.spouse_ln150_income || 0)"
+                append-icon="mdi-lock"
+              ></v-text-field>
+              <v-text-field
+                outlined
+                dense
+                background-color="#ddd"
+                label="Parent 1 income"
+                readonly
+                :value="formatMoney(assessment.parent1_income || 0)"
+                append-icon="mdi-lock"
+              ></v-text-field>
+              <v-text-field
+                outlined
+                dense
+                background-color="#ddd"
+                label="Parent 2 income"
+                readonly
+                :value="formatMoney(assessment.parent2_income || 0)"
+                append-icon="mdi-lock"
+              ></v-text-field>
+              <v-text-field
+                outlined
+                dense
+                background-color="#ddd"
+                hide-details
+                label="Family income"
+                readonly
+                v-model="familyIncome"
+                append-icon="mdi-calculator"
+              ></v-text-field>
+            </v-col>
+            <v-col>
+              <v-text-field
+                outlined
+                dense
+                background-color="#ddd"
+                label="Monthly phase out rate"
+                readonly
+                v-model="phaseOutRate"
+                append-icon="mdi-lock"
+              ></v-text-field>
+              <v-text-field
+                outlined
+                dense
+                background-color="#ddd"
+                readonly
+                label="Monthly rate"
+                v-model="monthlyRate"
+                append-icon="mdi-lock"
+              ></v-text-field>
+            </v-col>
+            <v-col>
+              <v-text-field
+                outlined
+                dense
+                background-color="#ddd"
+                label="Assessed need"
+                readonly
+                v-model="assessedNeed"
+                append-icon="mdi-lock"
+              ></v-text-field>
               <v-text-field
                 outlined
                 dense
@@ -100,7 +221,16 @@
           </v-row>
           <v-divider class="my-5" />
           <v-row>
-            <v-col> </v-col>
+            <v-col>
+              <v-text-field
+                outlined
+                dense
+                :label="`Threshold range: family of ${assessment.family_size}`"
+                background-color="#ddd"
+                append-icon="mdi-lock"
+                :value="thresholdRange"
+              ></v-text-field>
+            </v-col>
             <v-col>
               <v-text-field
                 outlined
@@ -122,8 +252,13 @@
                   dense
                   background-color="white"
                   label="No. of disbursements"
+                  type="number"
+                  min="0"
+                  max="100"
+                  step="1"
                   hide-details
                   v-model="numberOfDisbursements"
+                  append-icon="mdi-pencil"
                 ></v-text-field>
                 <v-btn :disabled="netAmountRaw <= 0" dense color="success" class="my-0 ml-3" @click="disburseClick">
                   Disburse
@@ -347,7 +482,6 @@
 </template>
 <script>
 import store from "@/store";
-import moment from "moment";
 import { isNumber } from "lodash";
 import { mapActions, mapGetters, mapState } from "vuex";
 import Vue from "vue";
@@ -356,7 +490,7 @@ export default {
   name: "Home",
   data: () => ({
     assessed_date_menu: false,
-    numberOfDisbursements: 1,
+    numberOfDisbursements: 2,
     menus1: {},
     menus2: {},
   }),
@@ -375,16 +509,19 @@ export default {
   },
   computed: {
     ...mapState({ application: "selectedApplication" }),
-    ...mapState("csgMatureStore", ["csgThresholds", "cslft", "assessment", "disbursements"]),
+    ...mapState("csgFullTimeStore", ["csgThresholds", "cslft", "assessment", "disbursements"]),
     ...mapGetters(["cslClassifications", "disbursementTypes", "changeReasons"]),
 
-    ...mapGetters("csgMatureStore", [
-      "previousDisbursements",
+    ...mapGetters("csgFullTimeStore", [
+      "familyIncome",
+      "phaseOutRate",
+      "assessedNeed",
       "assessedAmount",
+      "monthlyRate",
+      "previousDisbursements",
       "netAmount",
       "netAmountRaw",
-      "monthlyRate",
-      "studyMonths",
+      "thresholdRange", "threshold"
     ]),
     classification(state) {
       if (this.application && this.cslClassifications) {
@@ -393,15 +530,15 @@ export default {
       }
       return "";
     },
-    age() {
-      if (this.application) {
-        return moment().diff(moment.utc(this.application.mailing_address.birth_date), "years");
-      }
-      return "";
-    },
   },
   methods: {
-    ...mapActions("csgMatureStore", ["initialize", "makeDisbursements", "recalculate", "save", "removeDisbursement"]),
+    ...mapActions("csgFullTimeStore", [
+      "initialize",
+      "makeDisbursements",
+      "recalculate",
+      "save",
+      "removeDisbursement",
+    ]),
     ...mapActions(["setCslClassifications", "setDisbursementTypes", "setChangeReasons"]),
 
     getReason(item) {
@@ -433,13 +570,13 @@ export default {
     },
 
     formatMoney(input) {
-      if (input && isNumber(input)) {
+      if (isNumber(input)) {
         return Intl.NumberFormat("en", {
           currency: "USD",
           style: "currency",
         }).format(input);
       }
-      return "";
+      return "$0.00";
     },
   },
 };
