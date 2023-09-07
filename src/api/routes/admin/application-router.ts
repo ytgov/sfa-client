@@ -135,24 +135,24 @@ applicationRouter.post(
   ReturnValidationErrors,
   async (req: Request, res: Response) => {
     let { studentId, academicYear, institutionId } = req.body;
-    let existing = await db("sfa.application")
-      .where({ student_id: studentId, academic_year: academicYear, institution_id: institutionId })
+    /* let existing = await db("sfa.application")
+      .where({ student_id: studentId, academic_year_id: academicYear, institution_campus_id: institutionId })
       .count("* as count")
-      .first();
+      .first(); */
 
     let newApp = {
       student_id: parseInt(studentId),
-      academic_year_id: academicYear,
-      institution_id: parseInt(institutionId),
+      academic_year_id: parseInt(academicYear),
+      institution_campus_id: parseInt(institutionId),
       program_division: 2,
-      tuition_estimate: 0,
+      tuition_estimate_amount: 0,
       prestudy_accom_code: 1,
       study_accom_code: 1,
       csl_classification: 1,
       prestudy_csl_classification: 1,
-      outstanding_cslpt_amt: 0,
+      outstanding_cslpt_amount: 0,
       prestudy_board_amount: 0,
-      studty_board_amount: 0,
+      study_board_amount: 0,
       parent1_income: 0,
       parent2_income: 0,
       parent1_tax_paid: 0,
@@ -559,6 +559,35 @@ applicationRouter.get("/:id", [param("id").notEmpty()], ReturnValidationErrors, 
 
   res.status(404).send();
 });
+
+
+applicationRouter.delete("/:id", [param("id").notEmpty()], ReturnValidationErrors, async (req: Request, res: Response) => {
+  const {id} = req.params;
+
+  console.log("You want to delete application", id)
+
+  //check for paid disbursements
+
+  /* agency_assistance
+  application_part_time_reasdon
+  course_enrolled
+  dependent_eligibility
+  disability
+  disability_requirement
+  equipment_required
+  expense
+  funding_request => assessment => disbursement, csl_nars_history
+  income
+  investment
+  msfaa => communication_log, msfaa_email_log
+  parent_dependent
+  parent_resident
+  requirement_met
+  file_reference */
+
+  res.json({data: {}, messages: [{variant: "error", text: "This feature is not yet complete"}]})
+});
+
 
 applicationRouter.put("/:id", [param("id").notEmpty()], ReturnValidationErrors, async (req: Request, res: Response) => {
   let { id } = req.params;
