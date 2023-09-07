@@ -709,109 +709,103 @@ applicationRouter.post("/:application_id/student/:student_id/files", async (req:
 
 // updates _met
 applicationRouter.post(
-  "/:application_id/student/:student_id/files/:requirement_type_id",
-  [
-    param("application_id").isInt().notEmpty(),
-    param("student_id").isInt().notEmpty(),
-    param("requirement_type_id").isInt().notEmpty(),
-  ],
-  ReturnValidationErrors,
-  async (req: Request, res: Response) => {
-    try {
-      const { application_id, student_id, requirement_type_id } = req.params;
-      let { completed_date, data } = req.body;
-      const application: any = await db("sfa.file_reference")
-        .where({ application_id: application_id })
-        .andWhere({ student_id: student_id })
-        .andWhere({ requirement_type_id: requirement_type_id })
-        .first();
+    "/:application_id/student/:student_id/files/:requirement_type_id",
+    [
+        param("application_id").isInt().notEmpty(), 
+        param("student_id").isInt().notEmpty(), 
+        param("requirement_type_id").isInt().notEmpty()
+    ],    
+    ReturnValidationErrors,
+    async (req: Request, res: Response) => {                     
+        try {            
+            const { application_id, student_id, requirement_type_id } = req.params;
+            let { completed_date, data } = req.body;                    
+            const application: any = await db("sfa.file_reference").where({ application_id: application_id }).andWhere({ student_id: student_id }).andWhere({ requirement_type_id: requirement_type_id }).first();
 
-      const alreadyExist: any = await db("sfa.requirement_met")
-        .where({ application_id: application_id })
-        .andWhere({ requirement_type_id: requirement_type_id })
-        .first();
+            const alreadyExist: any = await db("sfa.requirement_met").where({ application_id: application_id }).andWhere({ requirement_type_id: requirement_type_id }).first();
+            const compDate = completed_date;        
 
-      if (application) {
-        if (alreadyExist) {
-          try {
-            const appId = application_id;
-            const compDate = completed_date;
-            const resUpdate = await db("sfa.requirement_met")
-              .where({ application_id: application_id })
-              .andWhere({ requirement_type_id: requirement_type_id })
-              //.update({ ...data });
-              .update({ completed_date: completed_date });
+            if (application) {      
+                if(alreadyExist) {                               
+                    try {            
+                        const appId = application_id;                                         
+                        const resUpdate = await db("sfa.requirement_met").where({application_id: application_id}).andWhere({requirement_type_id: requirement_type_id})
+                            //.update({ ...data });
+                            .update({ completed_date: completed_date && completed_date !== 'null' ? completed_date : null});
+                                    
+                        return resUpdate ?
+                            res.json({ messages: [{ variant: "success", text: "Saved" }] })
+                            :
+                            res.json({ messages: [{ variant: "error", text: "Failed" }] });
+                        
+                    } catch (error) {
+                        return res.json({ messages: [{ text: "Failed to update Funding Request", variant: "error" }] });
+                    }
+                } else {                    
+                    let resInsert;          
+                    try {
+                        resInsert = await db("sfa.requirement_met").insert({ completed_date: completed_date && completed_date !== 'null' ? completed_date : null, requirement_type_id, application_id });   
+                                                         
+                    } catch(error) {                                                
+                        console.log(error)
+                        return res.json({ messages: [{ variant: "error", text: "Failed to update Funding Request" }] });
+                    }
+                    return resInsert ?
+                    res.json({ messages: [{ variant: "success", text: "Saved" }] })
+                    :
+                    res.json({ messages: [{ variant: "error", text: "Save failed" }] });
+                }
+                
 
-            return resUpdate
-              ? res.json({ messages: [{ variant: "success", text: "Saved" }] })
-              : res.json({ messages: [{ variant: "error", text: "Failed" }] });
-          } catch (error) {
-            return res.json({ messages: [{ text: "Failed to update Funding Request", variant: "error" }] });
-          }
-        } else {
-          const resInsert = await db("sfa.requirement_met").insert({
-            completed_date,
-            requirement_type_id,
-            application_id,
-          });
-          return resInsert
-            ? res.json({ messages: [{ variant: "success", text: "Saved" }] })
-            : res.json({ messages: [{ variant: "error", text: "Save failed" }] });
+            }
+
+            return res.status(404).send();
+
+        } catch (error) {
+            console.error(error);
+            return res.status(400).send(error);
         }
-      }
-
-      return res.status(404).send();
-    } catch (error) {
-      console.error(error);
-      return res.status(400).send(error);
     }
-  }
 );
 
 // downloads a document with extra parameters
 applicationRouter.get(
-  "/:application_id/student/:student_id/files/:file_type/fellow_type/:fellow_type/fellow/:fellow",
-  async (req: Request, res: Response) => {
-    const { student_id, application_id, file_type, fellow_type, fellow } = req.params;
+    "/:application_id/student/:student_id/files/:file_type/fellow_type/:fellow_type/fellow/:fellow", 
+    async (req: Request, res: Response) => {                      
+    
+    const { student_id, application_id, file_type, fellow_type, fellow } = req.params;    
 
-    let doc: any;
-    switch (fellow_type) {
-      case "dependent":
-        doc = await db("sfa.file_reference")
-          .where({ application_id: application_id })
-          .andWhere({ student_id: student_id })
-          .andWhere({ requirement_type_id: file_type })
-          .andWhere({ dependent_id: fellow })
-          .orderBy("upload_date", "desc")
-          .first();
-        break;
-      case "parent":
-        doc = await db("sfa.file_reference")
-          .where({ application_id: application_id })
-          .andWhere({ student_id: student_id })
-          .andWhere({ requirement_type_id: file_type })
-          .andWhere({ fellow_type: fellow })
-          .orderBy("upload_date", "desc")
-          .first();
-        break;
+    
+    let doc:any;
+    switch(fellow_type) {
+        case "dependent":                    
+            doc = await db("sfa.file_reference").where({ application_id: application_id}).andWhere({student_id: student_id}).andWhere
+            ({requirement_type_id: file_type}).andWhere({dependent_id: fellow}).orderBy("upload_date", "desc").first();                      
+            break;
+        case "parent":
+            doc = await db("sfa.file_reference").where({ application_id: application_id}).andWhere({student_id: student_id}).andWhere
+            ({requirement_type_id: file_type}).andWhere({fellow_type: fellow}).orderBy("upload_date", "desc").first();   
+            break;
+        
     }
-
-    if (doc) {
-      let fileReference = await documentService.getDocumentWithFile(doc.object_key);
-
-      if (
-        fileReference &&
-        fileReference.student_id == parseInt(student_id) &&
-        fileReference.application_id == parseInt(application_id)
-      ) {
-        res.set("Content-disposition", "attachment; filename=" + fileReference.file_name);
-        res.set("Content-type", fileReference.mime_type);
-        return res.send(fileReference.file_contents);
-      }
+    
+    if(doc) {
+        let fileReference = await documentService.getDocumentWithFile(doc.object_key);    
+    
+        if (
+            fileReference &&
+            fileReference.student_id == parseInt(student_id) &&
+            fileReference.application_id == parseInt(application_id)
+        ) {
+            res.set("Content-disposition", "attachment; filename=" + fileReference.file_name);
+            res.set("Content-type", fileReference.mime_type);
+            return res.send(fileReference.file_contents);
+        }
+            
     }
-
+    
     res.status(404).send();
-  }
+    }
 );
 
 applicationRouter.put(

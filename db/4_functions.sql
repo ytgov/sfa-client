@@ -3919,121 +3919,126 @@ AS
 BEGIN
 	DECLARE cur_cslft CURSOR FOR
 	
-	SELECT s.id, app.id, SUBSTRING(p.sin,1,9) AS sin
-    , ISNULL(SUBSTRING(app.student_number,1,12),' ') AS student_number
-    , CASE app.marital_status_id
-      	WHEN 1 THEN 'S'
-        WHEN 2 THEN 'S'
-        WHEN 4 THEN 'M'
-        ELSE 'O'
-    END AS marital_status
-    ,CASE p.sex_id
-	    WHEN 1 THEN 'M'
-        WHEN 2 THEN 'F'
-        ELSE 'U'
-    END AS gender
-    ,CASE p.language_id
-        WHEN 2 THEN 2
-        ELSE 1
-    END AS language_id
-    ,FORMAT(p.birth_date, 'yyyyMMdd') AS birth_date
-    , SUBSTRING(p.last_name,1,50) AS last_name
-    , SUBSTRING(p.first_name,1,25) AS first_name
-    , ISNULL(pa.address1,' ') as home_address1
-    , ISNULL(pa.address2,' ') as home_address2
-    , ISNULL(sfa.fn_get_city_fct(pa.city_id),' ') AS home_city
-    , pa.province_id
-    , ISNULL(sfa.fn_get_province_fct(pa.province_id),' ') AS home_province
-    , ISNULL(p.telephone,' ') as student_phone
-    , ISNULL( UPPER(CASE 
-              WHEN LEN(pa.postal_code) = 7 THEN SUBSTRING(pa.postal_code, 1, 3) + SUBSTRING(pa.postal_code, 5, 3)
-              ELSE pa.postal_code
-          END),' ') AS student_postal_code   
-    , ISNULL(sfa.fn_get_country_fct(pa.country_id),' ') AS home_country
-    , ISNULL(p.email,' ') as student_email 
-    , ISNULL(pam.address1,' ') as mailing_address1
-    , ISNULL(pam.address2,' ') as mailing_address2
-    , ISNULL(sfa.fn_get_city_fct(pam.city_id),' ') mailing_city
-    , pam.province_id 
-    , ISNULL(sfa.fn_get_province_fct(pam.province_id),' ') AS mailing_province
-    , ISNULL(app.school_telephone, ' ')
-    , ISNULL(UPPER(CASE 
-            WHEN LEN(pam.postal_code) = 7 THEN SUBSTRING(pam.postal_code, 1, 3) + SUBSTRING(pam.postal_code, 5, 3)
-            ELSE pam.postal_code
-        END),  ' ') AS mailing_postal_code
-    , ISNULL(sfa.fn_get_country_fct(pam.country_id),' ') AS mailing_country
-    , ISNULL(app.school_email,' ') as school_email
-    , SUBSTRING(CONVERT(VARCHAR,sfa.fn_get_institution_code_fct(app.institution_campus_id)),1,4) AS institution_code
-    , SUBSTRING(CONVERT(VARCHAR, sfa.fn_get_field_program_code_fct(sfa.fn_get_study_field_id_fct(app.study_area_id),app.program_id)),1,2) AS field_of_study
-    , RIGHT('0' + CAST(SUBSTRING(ISNULL(CONVERT(VARCHAR, app.program_year), 0), 1, 1) AS VARCHAR), 1) AS program_year
-    , RIGHT('0' + CAST(SUBSTRING(ISNULL(CONVERT(VARCHAR, app.program_year_total), 0), 1, 1) AS VARCHAR), 1) AS program_year_total
-    , FORMAT(a.classes_start_date,'yyyyMMdd') AS classes_start
-    , FORMAT(a.classes_end_date,'yyyyMMdd') AS classes_end
-    , ISNULL(CONVERT(INT,d.disbursed_amount),0) AS csl_amount 
-    , CASE d.disbursement_type_id
-      	WHEN 4 THEN 'F'
-	    ELSE 'P'
-	  END AS pt_indicator
-   	, RIGHT('        ' + SUBSTRING(CAST(d.transaction_number AS VARCHAR(100)), 1, 8), 8) AS transaction_number    
-    , FORMAT(d.due_date,'yyyyMMdd') AS not_before_date
-    , FORMAT(d.issue_date,'yyyyMMdd') AS issue_date
-    , FORMAT(a.study_weeks, '00') AS study_weeks 
-    , ISNULL(CONVERT(INT,(sfa.fn_get_grant_amount(app.id,22))),0) AS cag_pd_amount
-    , ISNULL(CONVERT(INT,(sfa.fn_get_grant_amount(app.id,23))),0) AS cag_li_amount
-    , ISNULL(CONVERT(INT,(sfa.fn_get_grant_amount(app.id,26))),0) AS tg_amount
-    , ISNULL(CONVERT(INT,(sfa.fn_get_nbd_grant_amount(app.id,d.issue_date,27))),0) 
-    + ISNULL(CONVERT(INT,(sfa.fn_get_nbd_grant_amount(app.id,d.issue_date,35))),0) 
-    + ISNULL(CONVERT(INT,(sfa.fn_get_nbd_grant_amount(app.id,d.issue_date,31))),0) AS csgli_nbd_amount
-    , ISNULL(CONVERT(INT,(sfa.fn_get_nbd_grant_amount(app.id,d.issue_date,28))),0) AS csgmi_nbd_amount
-    , ISNULL(CONVERT(INT,(sfa.fn_get_nbd_grant_amount(app.id,d.issue_date,47))),0) AS csgmi_nbd_amount  
-    , ISNULL(CONVERT(INT,(sfa.fn_get_nbd_grant_amount(app.id,d.issue_date,29))),0) AS csgpd_nbd_amount
-    , ISNULL(CONVERT(INT,(sfa.fn_get_nbd_grant_amount(app.id,d.issue_date,32))),0) AS csgdep_nbd_amount     
-    , ISNULL(CONVERT(INT,(sfa.fn_get_nbd_grant_amount(app.id,d.issue_date,30))),0) AS csgse_nbd_amount
-    , ISNULL(CONVERT(INT,(sfa.fn_get_mp_grant_amount(app.id,d.issue_date,27))),0)
-    + ISNULL(CONVERT(INT,(sfa.fn_get_mp_grant_amount(app.id,d.issue_date,35))),0) AS csgli_mid_amount
-    , ISNULL(CONVERT(INT,(sfa.fn_get_mp_grant_amount(app.id,d.issue_date,28))),0) AS csgmi_mid_amount
-    , ISNULL(CONVERT(INT,(sfa.fn_get_mp_grant_amount(app.id,d.issue_date,47))),0)
-    , ISNULL(CONVERT(INT,(sfa.fn_get_mp_grant_amount(app.id,d.issue_date,29))),0) AS csgpd_mid_amount
-    , ISNULL(CONVERT(INT,(sfa.fn_get_mp_grant_amount(app.id,d.issue_date,32))),0) AS csgdep_mid_amount      
-    , ISNULL(CONVERT(INT,(sfa.fn_get_mp_grant_amount(app.id,d.issue_date,30))),0) AS csgse_mid_amount
-    , SUBSTRING(sfa.fn_get_study_area_fct(app.study_area_id),1,50) AS study_area
-    , CASE app.permanent_disability 
-    	WHEN 1 THEN 'Y'
-    	ELSE 'N'
-      END AS perm_disabled_indicator
-    , app.academic_year_id
-    , CASE app.permanent_disability
-    	WHEN 1 THEN '40'
-    	ELSE
-    		(CASE app.percent_of_full_time
-    			WHEN NULL THEN '60'
-    			ELSE percent_of_full_time
-    		END)
-      END AS percent_of_full_time
-    , d.id
-	, CASE ISNULL(app.is_persist_disabled, 0)
+	SELECT 
+		s.id, 
+		app.id,     
+		COALESCE(SUBSTRING(p.sin,1,9), ' ') AS sin
+		, ISNULL(SUBSTRING(app.student_number,1,12),' ') AS student_number
+		, CASE app.marital_status_id
+			WHEN 1 THEN 'S'
+			WHEN 2 THEN 'S'
+			WHEN 4 THEN 'M'
+			ELSE 'O'
+		END AS marital_status
+		,CASE p.sex_id
+			WHEN 1 THEN 'M'
+			WHEN 2 THEN 'F'
+			ELSE 'U'
+		END AS gender
+		,CASE p.language_id
+			WHEN 2 THEN 2
+			ELSE 1
+		END AS language_id
+		, COALESCE(FORMAT(p.birth_date, 'yyyyMMdd'), ' ') AS birth_date
+		, COALESCE(SUBSTRING(p.last_name,1,50), ' ') AS last_name
+		, COALESCE(SUBSTRING(p.first_name,1,25), ' ') AS first_name
+		, ISNULL(pa.address1,' ') as home_address1
+		, ISNULL(pa.address2,' ') as home_address2
+		, ISNULL(sfa.fn_get_city_fct(pa.city_id),' ') AS home_city
+		, ISNULL(pa.province_id, ' ')
+		, ISNULL(sfa.fn_get_province_fct(pa.province_id),' ') AS home_province
+		, ISNULL(p.telephone,' ') as student_phone
+		, ISNULL( UPPER(CASE 
+				WHEN LEN(pa.postal_code) = 7 THEN SUBSTRING(pa.postal_code, 1, 3) + SUBSTRING(pa.postal_code, 5, 3)
+				ELSE pa.postal_code
+			END),' ') AS student_postal_code   
+		, ISNULL(sfa.fn_get_country_fct(pa.country_id),' ') AS home_country
+		, ISNULL(p.email,' ') as student_email 
+		, ISNULL(pam.address1,' ') as mailing_address1
+		, ISNULL(pam.address2,' ') as mailing_address2
+		, ISNULL(sfa.fn_get_city_fct(pam.city_id),' ') mailing_city
+		, COALESCE(pam.province_id, ' ')
+		, ISNULL(sfa.fn_get_province_fct(pam.province_id),' ') AS mailing_province    
+		, ISNULL(app.school_telephone, ' ')
+		, ISNULL(UPPER(CASE 
+				WHEN LEN(pam.postal_code) = 7 THEN SUBSTRING(pam.postal_code, 1, 3) + SUBSTRING(pam.postal_code, 5, 3)
+				ELSE pam.postal_code
+			END),  ' ') AS mailing_postal_code
+		, ISNULL(sfa.fn_get_country_fct(pam.country_id),' ') AS mailing_country
+		, ISNULL(app.school_email,' ') as school_email
+		, COALESCE(SUBSTRING(sfa.fn_get_institution_code_fct(app.institution_campus_id),1,4), ' ') AS institution_code        
+		, COALESCE(SUBSTRING(CONVERT(VARCHAR, sfa.fn_get_field_program_code_fct(sfa.fn_get_study_field_id_fct(app.study_area_id),app.program_id)),1,2), ' ') AS field_of_study
+		, RIGHT('0' + CAST(SUBSTRING(ISNULL(CONVERT(VARCHAR, app.program_year), 0), 1, 1) AS VARCHAR), 1) AS program_year
+		, RIGHT('0' + CAST(SUBSTRING(ISNULL(CONVERT(VARCHAR, app.program_year_total), 0), 1, 1) AS VARCHAR), 1) AS program_year_total
+		, COALESCE(FORMAT(a.classes_start_date,'yyyyMMdd'), ' ') AS classes_start
+		, COALESCE(FORMAT(a.classes_end_date,'yyyyMMdd'), ' ') AS classes_end
+		, ISNULL(CONVERT(INT,d.disbursed_amount),0) AS csl_amount 
+		, CASE d.disbursement_type_id
+			WHEN 4 THEN 'F'
+			ELSE 'P'
+			END AS pt_indicator
+		, RIGHT('        ' + SUBSTRING(COALESCE(CAST(d.transaction_number AS VARCHAR(100)), ''), 1, 8), 8) AS transaction_number    
+		, COALESCE(FORMAT(d.due_date,'yyyyMMdd'), ' ') AS not_before_date
+		, COALESCE(FORMAT(d.issue_date,'yyyyMMdd'), ' ') AS issue_date
+		, RIGHT('00' + COALESCE(CAST(a.study_weeks AS VARCHAR(3)), ''), 2) AS study_weeks 
+		, ISNULL(CONVERT(INT,(sfa.fn_get_grant_amount(app.id,22))),0) AS cag_pd_amount
+		, ISNULL(CONVERT(INT,(sfa.fn_get_grant_amount(app.id,23))),0) AS cag_li_amount
+		, ISNULL(CONVERT(INT,(sfa.fn_get_grant_amount(app.id,26))),0) AS tg_amount
+		, ISNULL(CONVERT(INT,(sfa.fn_get_nbd_grant_amount(app.id,d.issue_date,27))),0) 
+		+ ISNULL(CONVERT(INT,(sfa.fn_get_nbd_grant_amount(app.id,d.issue_date,35))),0) 
+		+ ISNULL(CONVERT(INT,(sfa.fn_get_nbd_grant_amount(app.id,d.issue_date,31))),0) AS csgli_nbd_amount
+		, ISNULL(CONVERT(INT,(sfa.fn_get_nbd_grant_amount(app.id,d.issue_date,28))),0) AS csgmi_nbd_amount
+		, ISNULL(CONVERT(INT,(sfa.fn_get_nbd_grant_amount(app.id,d.issue_date,47))),0) AS csgmi_nbd_amount  
+		, ISNULL(CONVERT(INT,(sfa.fn_get_nbd_grant_amount(app.id,d.issue_date,29))),0) AS csgpd_nbd_amount
+		, ISNULL(CONVERT(INT,(sfa.fn_get_nbd_grant_amount(app.id,d.issue_date,32))),0) AS csgdep_nbd_amount     
+		, ISNULL(CONVERT(INT,(sfa.fn_get_nbd_grant_amount(app.id,d.issue_date,30))),0) AS csgse_nbd_amount
+		, ISNULL(CONVERT(INT,(sfa.fn_get_mp_grant_amount(app.id,d.issue_date,27))),0)
+		+ ISNULL(CONVERT(INT,(sfa.fn_get_mp_grant_amount(app.id,d.issue_date,35))),0) AS csgli_mid_amount
+		, ISNULL(CONVERT(INT,(sfa.fn_get_mp_grant_amount(app.id,d.issue_date,28))),0) AS csgmi_mid_amount
+		, ISNULL(CONVERT(INT,(sfa.fn_get_mp_grant_amount(app.id,d.issue_date,47))),0)
+		, ISNULL(CONVERT(INT,(sfa.fn_get_mp_grant_amount(app.id,d.issue_date,29))),0) AS csgpd_mid_amount
+		, ISNULL(CONVERT(INT,(sfa.fn_get_mp_grant_amount(app.id,d.issue_date,32))),0) AS csgdep_mid_amount      
+		, ISNULL(CONVERT(INT,(sfa.fn_get_mp_grant_amount(app.id,d.issue_date,30))),0) AS csgse_mid_amount
+		, COALESCE(SUBSTRING(sfa.fn_get_study_area_fct(app.study_area_id),1,50), ' ') AS study_area
+		, CASE app.permanent_disability 
+			WHEN 1 THEN 'Y'
+			ELSE 'N'
+		END AS perm_disabled_indicator
+		, app.academic_year_id
+		, CASE app.permanent_disability
+			WHEN 1 THEN '40'
+			ELSE
+				CASE 
+					WHEN app.percent_of_full_time IS NULL THEN '60'
+					ELSE app.percent_of_full_time
+				END
+			
+		END AS percent_of_full_time
+		, d.id
+		, CASE ISNULL(app.is_persist_disabled, 0)
 		WHEN 1 THEN 'Y'
 		ELSE 'N'
-	  END AS persist_disabled_indicator          
+		END AS persist_disabled_indicator          
 	FROM sfa.student s 
-	    INNER JOIN sfa.application app ON s.id = app.student_id
-	    INNER JOIN sfa.funding_request fr ON app.id = fr.application_id
-	    INNER JOIN sfa.assessment a ON fr.id = a.funding_request_id
-	    INNER JOIN sfa.disbursement d ON a.id = d.assessment_id
-	    INNER JOIN sfa.person p ON p.id = s.person_id
-	    LEFT JOIN sfa.person_address pa ON pa.person_id = p.id AND pa.address_type_id = 1 
-	    LEFT JOIN sfa.person_address pam ON pa.person_id = p.id AND pa.address_type_id = 2
-	    LEFT JOIN sfa.msfaa m ON s.id = m.student_id
+		INNER JOIN sfa.application app ON s.id = app.student_id
+		INNER JOIN sfa.funding_request fr ON app.id = fr.application_id
+		INNER JOIN sfa.assessment a ON fr.id = a.funding_request_id
+		INNER JOIN sfa.disbursement d ON a.id = d.assessment_id
+		INNER JOIN sfa.person p ON p.id = s.person_id
+		LEFT JOIN sfa.person_address pa ON pa.person_id = p.id AND pa.address_type_id = 1 
+		LEFT JOIN sfa.person_address pam ON pa.person_id = p.id AND pa.address_type_id = 2
+		LEFT JOIN sfa.msfaa m ON s.id = m.student_id
 	WHERE fr.request_type_id IN (4, 5)
 		AND d.csl_cert_seq_number = @CSL_CERT_SEQ_P
 		AND d.issue_date >= @FROM_DATE_P AND d.issue_date <= @TO_DATE_P	   					
 		AND (m.msfaa_status = 'Received' AND m.is_full_time = CASE WHEN d.disbursement_type_id = 4 THEN 1 ELSE 0 END OR app.academic_year_id <= 2012)
 		AND d.ecert_sent_date IS NULL
 	ORDER BY
-    	d.due_date DESC,
-	    d.transaction_number,
-	    p.last_name,
-	    p.first_name;	   	   	
+		d.due_date DESC,
+		d.transaction_number,
+		p.last_name,
+		p.first_name;	  
+			
  
 	DECLARE @out_file AS INT; 
 	DECLARE @v_file_name AS VARCHAR(100);
@@ -4125,9 +4130,8 @@ BEGIN
 
    		
  	SET @v_file_name = 'PPYT.EDU.CERTS.D' + CONVERT(NVARCHAR(4), YEAR(GETDATE())) + RIGHT('00' + CONVERT(NVARCHAR(3), DATEPART(DAYOFYEAR, GETDATE())), 3) + '.001';	
-	SET @out_record = 'H' + RIGHT('000000000' + CAST(@CSL_CERT_SEQ_P AS NVARCHAR(9)), 9) + 'YT' + CONVERT(NVARCHAR(8), GETDATE(), 112) + REPLICATE(' ', 592);
-	
-    --out_record := 'H'||RPAD(:CSL_CERT_SEQ_P,9,'0')||'YT'|| TO_CHAR(SYSDATE,'yyyymmdd') ||RPAD(' ',492,' ');
+	SET @out_record = 'H' + RIGHT('000000000' + CAST(@CSL_CERT_SEQ_P AS NVARCHAR(9)), 9) + 'YT' + CONVERT(NVARCHAR(8), GETDATE(), 112) + REPLICATE(' ', 592) + char(10);
+		      
 	OPEN cur_cslft;							
 		WHILE @@FETCH_STATUS = 0
 			BEGIN   			
@@ -4163,8 +4167,7 @@ BEGIN
 				ELSE 
 					BEGIN
 						SET @v_enrol_conf_status = 'U';
-					END
-					
+					END				
 				
 				SET @v_mailing = sfa.fn_get_address_fct(@id, @app_id);
 				
@@ -4172,7 +4175,7 @@ BEGIN
 					BEGIN
 						SET @v_address1 = SUBSTRING(@home_address1,1,50);
 	                	SET @v_address2 = SUBSTRING(@home_address2,1,50);
-	                	SET @v_city = SUBSTRING(@home_city,1,28);
+	                	SET @v_city = SUBSTRING(@home_city,1, 28);
 	                						
 	                	IF @province_id >= 1 AND @province_id <= 13
 		                	BEGIN
@@ -4302,6 +4305,7 @@ BEGIN
 					+ ISNULL(@persist_disabled_indicator, '')
 					+ ISNULL(@percent_of_full_time, '')
 					+ ISNULL(LEFT(' ' + '                          ', 26), '')
+					+ char(10)
 );
 	                
 	               

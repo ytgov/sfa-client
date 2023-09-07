@@ -331,7 +331,7 @@ export default {
         for(let col of this.tableData) {             
           dataColumns += "<tr style='text-align: center;'>"
           dataColumns += "<td>"
-            dataColumns += col.id;
+            dataColumns += col.transaction_number;
           dataColumns += "</td>"
 
           dataColumns += "<td>"
