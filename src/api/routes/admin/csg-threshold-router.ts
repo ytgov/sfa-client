@@ -8,6 +8,7 @@ const db = knex(DB_CONFIG);
 const CSGDEP_REQUEST_TYPE_ID = 32;
 const CSGD_REQUEST_TYPE_ID = 29;
 const CSGTU_REQUEST_TYPE_ID = 28;
+const CSGFT_REQUEST_TYPE_ID = 35;
 
 export const csgThresholdRouter = express.Router();
 
@@ -104,6 +105,35 @@ csgThresholdRouter.get("/csgtu/:application_id", async (req: Request, res: Respo
 
   let funding_request = await db("sfa.funding_request")
     .where({ application_id, request_type_id: CSGTU_REQUEST_TYPE_ID })
+    .orderBy("id", "desc")
+    .first();
+
+  if (funding_request) {
+    let assessment = await db("sfa.assessment")
+      .where({
+        funding_request_id: funding_request.id,
+      })
+      .orderBy("id", "desc")
+      .first();
+
+    let disbursements = await db("sfa.disbursement")
+      .where({
+        funding_request_id: funding_request.id,
+      })
+      .orderBy("issue_date")
+      .orderBy("id");
+
+    return res.json({ data: { funding_request, assessment, disbursements } });
+  }
+
+  res.status(404).send();
+});
+
+csgThresholdRouter.get("/csgft/:application_id", async (req: Request, res: Response) => {
+  const { application_id } = req.params;
+
+  let funding_request = await db("sfa.funding_request")
+    .where({ application_id, request_type_id: CSGFT_REQUEST_TYPE_ID })
     .orderBy("id", "desc")
     .first();
 

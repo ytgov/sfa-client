@@ -26,7 +26,7 @@ export default new Vuetify({
         }
     },
     icons: {
-        iconfont: 'faSvg',
+        //iconfont: 'faSvg', this breaks several things
     },
 });
 

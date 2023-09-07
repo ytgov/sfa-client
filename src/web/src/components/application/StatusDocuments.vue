@@ -120,14 +120,6 @@ export default {
     },
   },
   methods: {
-    async loadAssessments() {
-      axios
-        .get(`${APPLICATION_URL}/${this.item.application_id}/${this.item.id}/assessments`)
-        .then((resp) => {
-          this.assessments = resp.data;
-        })
-        .catch();
-    },
     async loadLetters() {
       axios
         .get(`${APPLICATION_URL}/${this.item.application_id}/funding-request/${this.item.id}/letters`)
