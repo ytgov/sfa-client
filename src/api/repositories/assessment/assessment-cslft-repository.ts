@@ -427,6 +427,18 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
             this.assessment.student_contribution_review = this.assessment.assessment_type_id === 2 ? "YES" : "NO";
             this.assessment.spouse_contribution_review = this.assessment.assessment_type_id === 2 ? "YES" : "NO";
             this.assessment.parent_contribution_review = this.assessment.assessment_type_id === 2 ? "YES" : "NO";
+
+            await this.getCalculatedAward();
+
+            // Calculate the totaln_disbursments_required
+            if (this.assessment.csl_full_amt_flag) {
+                this.assessment.assessed_amount = Math.max(Math.min(this.assessment.calculated_award ?? 0, this.assessment.csl_request_amount ?? 0) - (this.assessment.recovered_overaward ?? 0), 0);
+            }
+            else {
+                this.assessment.assessed_amount = Math.max((this.assessment.calculated_award ?? 0) - (this.assessment.recovered_overaward ?? 0), 0);
+            }
+
+            this.assessment.net_amount = this.getNetAmount(this.assessment.assessed_amount, this.assessment.previous_disbursement, this.assessment.return_uncashable_cert);
         }
 
         this.resultDto.data = this.assessment;
@@ -924,7 +936,7 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
         }
 
         // Calculate the totaln_disbursments_required
-        if (!this.assessment.csl_full_amt_flag) {
+        if (this.assessment.csl_full_amt_flag) {
             this.assessment.assessed_amount = Math.max(Math.min(this.assessment.calculated_award ?? 0, this.assessment.csl_request_amount ?? 0) - (this.assessment.recovered_overaward ?? 0), 0);
         }
         else {
@@ -981,7 +993,7 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
 
         const assess_needed: number = this.numHelper.round(Math.max((total_study_cost - resources_total), 0));
         const assess_needed_sixty: number = this.numHelper.round(assess_needed * 0.6);
-                
+
         const calculated_award_min = Math.min(assess_needed_sixty - (this.assessment.total_grant_awarded ?? 0), (this.assessment.max_allowable ?? 0));
         const calculated_award: number = Math.max(0, this.numHelper.round(calculated_award_min));
         this.assessment.calculated_award = calculated_award;

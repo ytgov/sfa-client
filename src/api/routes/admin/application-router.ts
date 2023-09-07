@@ -2294,11 +2294,8 @@ applicationRouter.post(
                 if (student.vendor_id) {
                   // Insert the disbursement list
                   for (const item of dataDisburse) {
-                    if (!item.issue_date) {
-                      return res.json({
-                        messages: [{ variant: "error", text: "Issue date is mandatory in disbursements" }],
-                        data: [],
-                      });
+                    if (item?.issue_date?.length === 10) {
+                      item.tax_year = item.issue_date?.slice(0, 4);
                     }
                     const resInsert = await db("sfa.disbursement")
                       .insert({
@@ -2308,7 +2305,7 @@ applicationRouter.post(
                         disbursed_amount: item.disbursed_amount,
                         due_date: item.due_date,
                         tax_year: item.tax_year,
-                        issue_date: item.issue_date || item.issue_date.slice(0, 4),
+                        issue_date: item.issue_date,
                         paid_amount: item.paid_amount,
                         change_reason_id: item.change_reason_id,
                         financial_batch_id: item.financial_batch_id,
@@ -2327,7 +2324,7 @@ applicationRouter.post(
                 } else {
                   return res.json({
                     messages: [
-                      { text: "Saved, but student must have a Vendor ID to create disbursements", variant: "error" },
+                      { text: "Saved, but student must have a Vendor ID to create disbursements", variant: "success" },
                     ],
                     data: [],
                   });
@@ -2354,7 +2351,7 @@ applicationRouter.post(
           try {
             db.transaction(async (trx) => {
               if (!dataAssessment.id) {
-                const insert_response = await db("sfa.assessment").returning("id").insert({
+                const insert_response: any = await db("sfa.assessment").returning("id").insert({
                   funding_request_id,
                   assessment_type_id: 2,
                   student_contrib_exempt: "NO",
@@ -2374,30 +2371,51 @@ applicationRouter.post(
                 // }
 
                 // Insert the disbursement list
-                for (const item of dataDisburse) {
-                  const resInsert = await db("sfa.disbursement")
-                    .insert({
-                      disbursement_type_id: item.disbursement_type_id,
-                      assessment_id: get(insert_response, "[0].id", ""),
-                      funding_request_id: funding_request_id,
-                      disbursed_amount: item.disbursed_amount,
-                      due_date: item.due_date,
-                      tax_year: item.tax_year,
-                      issue_date: item.issue_date,
-                      paid_amount: item.paid_amount,
-                      change_reason_id: item.change_reason_id,
-                      financial_batch_id: item.financial_batch_id,
-                      financial_batch_id_year: item.financial_batch_id_year,
-                      financial_batch_run_date: item.financial_batch_run_date,
-                      financial_batch_serial_no: item.financial_batch_serial_no,
-                      transaction_number: item.transaction_number,
-                      csl_cert_seq_number: item.csl_cert_seq_number,
-                      ecert_sent_date: item.ecert_sent_date,
-                      ecert_response_date: item.ecert_response_date,
-                      ecert_status: item.ecert_status,
-                      ecert_portal_status_id: item.ecert_portal_status_id,
-                    })
-                    .returning("*");
+                if (dataDisburse?.length) {
+
+                  const student = await db("sfa.assessment AS a")
+                    .select("s.vendor_id AS vendor_id")
+                    .innerJoin("sfa.funding_request AS fr", "fr.id", "a.funding_request_id")
+                    .innerJoin("sfa.application AS app", "app.id", "fr.application_id")
+                    .innerJoin("sfa.student AS s", "s.id", "app.student_id")
+                    .where("a.id", insert_response[0].id)
+                    .first();
+                  
+                  if (student.vendor_id) {
+                    for (const item of dataDisburse) {
+                      const resInsert = await db("sfa.disbursement")
+                        .insert({
+                          disbursement_type_id: item.disbursement_type_id,
+                          assessment_id: get(insert_response, "[0].id", ""),
+                          funding_request_id: funding_request_id,
+                          disbursed_amount: item.disbursed_amount,
+                          due_date: item.due_date,
+                          tax_year: item.tax_year,
+                          issue_date: item.issue_date,
+                          paid_amount: item.paid_amount,
+                          change_reason_id: item.change_reason_id,
+                          financial_batch_id: item.financial_batch_id,
+                          financial_batch_id_year: item.financial_batch_id_year,
+                          financial_batch_run_date: item.financial_batch_run_date,
+                          financial_batch_serial_no: item.financial_batch_serial_no,
+                          transaction_number: item.transaction_number,
+                          csl_cert_seq_number: item.csl_cert_seq_number,
+                          ecert_sent_date: item.ecert_sent_date,
+                          ecert_response_date: item.ecert_response_date,
+                          ecert_status: item.ecert_status,
+                          ecert_portal_status_id: item.ecert_portal_status_id,
+                        })
+                        .returning("*");
+                    }
+                  } else {
+                    return res.json({
+                      messages: [
+                        { text: "Saved, but student must have a Vendor ID to create disbursements", variant: "success" },
+                      ],
+                      data: [],
+                    });
+                  }
+                  
                 }
 
                 const updateStatusFundingRequest = await db("sfa.funding_request")
@@ -2826,6 +2844,8 @@ applicationRouter.patch(
               Number(assessment_id),
               Number(funding_request_id)
             );
+
+            return res.json({ messages: [resAssessment] });
           }
 
           return resAssessment

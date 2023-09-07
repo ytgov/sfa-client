@@ -132,7 +132,7 @@ const actions = {
             const message = res?.data?.messages[0];
             
             if (message?.variant === "success") {
-                thisVal?.$emit("showSuccess", "Both added!");
+                thisVal?.$emit("showSuccess", message?.text || "Both added!");
             } else {
                 thisVal?.$emit("showError", message?.text || "Error to add");
             }
