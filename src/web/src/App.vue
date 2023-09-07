@@ -60,7 +60,6 @@
         </v-list-item>
 
         <v-btn
-          v-if="false"
           color="primary"
           small
           dark
@@ -353,7 +352,7 @@ export default {
       this.$router.push(`/application/${this.chosenApplication}/personal`);
     },
     createApplication: function () {
-      this.$refs.createApplicationForm.show(this.selectedStudent);
+      this.$refs.createApplicationForm.show();
     },
     duplicateApplication: function () {
       this.$refs.duplicateApplicationForm.show(this.selectedApplication);
