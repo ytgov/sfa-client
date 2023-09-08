@@ -3919,7 +3919,7 @@ AS
 BEGIN
 	DECLARE cur_cslft CURSOR FOR
 	
-	SELECT DISTINCT
+	SELECT
 		s.id, 
 		app.id,     
 		COALESCE(SUBSTRING(p.sin,1,9), ' ') AS sin
@@ -4032,7 +4032,13 @@ BEGIN
 		AND d.csl_cert_seq_number = @CSL_CERT_SEQ_P
 		AND d.issue_date >= @FROM_DATE_P AND d.issue_date <= @TO_DATE_P	   					
 		AND (m.msfaa_status = 'Received' AND m.is_full_time = CASE WHEN d.disbursement_type_id = 4 THEN 1 ELSE 0 END OR app.academic_year_id <= 2012)
-		AND d.ecert_sent_date IS NULL		
+		AND d.ecert_sent_date IS NULL	
+	ORDER BY	
+		d.due_date DESC,	
+		d.transaction_number,	
+		p.last_name,	
+		p.first_name;	  	
+				
  
 	DECLARE @out_file AS INT; 
 	DECLARE @v_file_name AS VARCHAR(100);
