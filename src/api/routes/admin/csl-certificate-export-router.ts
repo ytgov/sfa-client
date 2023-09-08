@@ -22,24 +22,25 @@ cslCertificateExportRouter.get("/:FROM_DATE_P/:TO_DATE_P/:CSL_CERT_SEQ_P/:IS_PRE
         const { CSL_CERT_SEQ_P, FROM_DATE_P, TO_DATE_P, IS_PREVIEW} = req.params;
         
         try {                     
-            const results = await db.distinct().select('s.id', db.raw('CONCAT(p.last_name, \', \', p.first_name) AS name'), 
+            const results = await db.select('s.id', db.raw('CONCAT(p.last_name, \', \', p.first_name) AS name'), 
             db.raw('ISNULL(ROUND(d.disbursed_amount, 0), 0) AS csl_amount'), 
             'd.transaction_number', 
             'd.issue_date', 
             'd.due_date', 
-            'r.description')            
+            'r.description')
             .from('sfa.student AS s')
             .join('sfa.person AS p', 's.person_id', '=', 'p.id')
             .join('sfa.application AS hd', 's.id', '=', 'hd.student_id')
-            .leftJoin('sfa.msfaa AS m', 's.id', '=', 'm.student_id')      
             .join('sfa.funding_request AS fr', 'hd.id', '=', 'fr.application_id')
             .join('sfa.disbursement AS d', 'fr.id', '=', 'd.funding_request_id')
-            .join('sfa.request_type AS r', 'fr.request_type_id', '=', 'r.id')                  
+            .join('sfa.request_type AS r', 'fr.request_type_id', '=', 'r.id')
+            .join('sfa.msfaa AS m', 's.id', '=', 'm.student_id')            
             .where(IS_PREVIEW === '1' ? 'd.csl_cert_seq_number_prev' : 'd.csl_cert_seq_number', '=', CSL_CERT_SEQ_P)                        
             .andWhere('d.issue_date', '>=', FROM_DATE_P)
             .andWhere('d.issue_date', '<=', TO_DATE_P)  
-            .andWhere(db.raw(`(m.msfaa_status = 'Received' AND m.is_full_time = CASE WHEN d.disbursement_type_id = 4 THEN 1 ELSE 0 END) OR hd.academic_year_id <= 2012`));
-
+            .andWhere('m.msfaa_status', '=', 'Received')    
+            .andWhere(db.raw("((m.is_full_time = CASE d.disbursement_type_id WHEN 4 THEN 1 ELSE 0 END) OR hd.academic_year_id <= 2012) "))                        
+            
             if(results.length) {
                 const results2 = await db.raw(
                     'SELECT sfa.fn_cert_data(?, ?, ?) as fileText',
@@ -75,30 +76,26 @@ cslCertificateExportRouter.put("/:FROM_DATE_P/:TO_DATE_P/:PREVIEW",
                 
         try {           
 
-            const count = await db('sfa.disbursement')
-            .count('id as count')
-            .whereNull('csl_cert_seq_number')
-            .where('issue_date', '>=', FROM_DATE_P)
-            .where('issue_date', '<=', TO_DATE_P)
-            .whereIn('disbursement_type_id', [3, 4, 5, 7, 9])
-            .whereNotNull('due_date')
-            .whereNotNull('transaction_number');
-            
-            if(!count[0].count || count[0].count === "null") {
-                return res.json({flag: 0, data: `There are no certificates with received MSFAA between ${FROM_DATE_P} and ${TO_DATE_P}`}); 
-            } else {
-                const nextVal = await db
+                const results = await db 
+                .select(db.raw(`sfa.fn_get_count_disbursement_ecerts('${FROM_DATE_P}', '${TO_DATE_P}') AS result`))               
+                                                                 
+                if(results[0].result > 0) {                    
+                    const nextVal = await db
                     .select(db.raw(`NEXT VALUE FOR ${PREVIEW === '1' ?  'sfa.csl_cert_seq_prev' : 'sfa.csl_cert_seq'} AS nextVal;`));
-                    const innerSelect = await db.raw(`EXEC ${PREVIEW === '1' ? 'sfa.sp_get_and_update_csl_cert_seq_num_prev' : 'sfa.sp_get_and_update_csl_cert_seq_num'} '${FROM_DATE_P}','${TO_DATE_P}', ${nextVal[0].nextVal};`);     
                                         
+                    const innerSelect = await db.raw(`EXEC ${PREVIEW === '1' ? 'sfa.sp_get_and_update_csl_cert_seq_num_prev' : 'sfa.sp_get_and_update_csl_cert_seq_num'} '${FROM_DATE_P}','${TO_DATE_P}', ${nextVal[0].nextVal};`);     
+                    
                     const resultsCheck = await db.raw(`SELECT count(id) as count FROM sfa.disbursement d where ${PREVIEW === '1' ? 'csl_cert_seq_number_prev' : 'csl_cert_seq_number'} = ${nextVal[0].nextVal}`);
                     
                     if(resultsCheck[0].count) {
                         return res.json({flag: 1, data: nextVal[0].nextVal});  
                     } else {
                         return res.json({flag: 0, data: `Something went wrong! No records have been modified from ${FROM_DATE_P} to ${TO_DATE_P}`}); 
-                    }        
-            }                              
+                    }                                                                           
+                } else {
+                    return res.json({flag: 0, data: `There are no certificates with received MSFAA between ${FROM_DATE_P} and ${TO_DATE_P}`});                                                			                                            
+                } 
+                               
         } catch (error: any) {
             console.log(error);
             return res.status(404).send();
