@@ -431,7 +431,7 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
             await this.getCalculatedAward();
 
             // Calculate the totaln_disbursments_required
-            if (this.assessment.csl_full_amt_flag) {
+            if (!this.assessment.csl_full_amt_flag) {
                 this.assessment.assessed_amount = Math.max(Math.min(this.assessment.calculated_award ?? 0, this.assessment.csl_request_amount ?? 0) - (this.assessment.recovered_overaward ?? 0), 0);
             }
             else {
@@ -936,7 +936,7 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
         }
 
         // Calculate the totaln_disbursments_required
-        if (this.assessment.csl_full_amt_flag) {
+        if (!this.assessment.csl_full_amt_flag) {
             this.assessment.assessed_amount = Math.max(Math.min(this.assessment.calculated_award ?? 0, this.assessment.csl_request_amount ?? 0) - (this.assessment.recovered_overaward ?? 0), 0);
         }
         else {
