@@ -4921,7 +4921,7 @@ AS
     SPACE(30) + ' ' + '0000000' + '000000000000000' + '0' + FORMAT(CAST(@issue_date_str AS DATE), 'yyyyMMdd') + '0' + '03    ' + 'CAD ' +
     '0000000000000' + '0000000000000' + ' ' + '1' + '  ' + '0000000000000' + '0000000000000' + '  ' + '    ' 
     AS record1,
-    '2'+ LEFT(s.vendor_id + REPLICATE(' ', 12), 12)  + ' 03    ' + '000000000' +
+    '2'+ LEFT(s.vendor_id + REPLICATE(' ', 12), 12)  + '03    ' + '000000000' +
 		( LEFT(LTRIM(ISNULL(CAST(d.financial_batch_id_year AS NVARCHAR(2)), '00')+  '-' + ISNULL(CAST(d.financial_batch_id AS NVARCHAR(10)), '00') ) + REPLICATE(' ', 12)  , 12))+ 
         LEFT(CASE WHEN app.student_number IS NULL THEN 'Yukon Student'
                     ELSE app.student_number
@@ -4955,7 +4955,7 @@ AS
             '     '+ '     '+ '     '+ REPLICATE(' ', 25) + '            '+
             '0'+ ' '+ '    '
         as record2, -- Voucher Header (VOH)
-    '3'+ LEFT(s.vendor_id + REPLICATE(' ', 12), 12) + ' 03    '+ '000000000'+
+    '3'+ LEFT(s.vendor_id + REPLICATE(' ', 12), 12) + '03    '+ '000000000'+
             '00001' +( LEFT(LTRIM(ISNULL(CAST(d.financial_batch_id_year AS NVARCHAR(2)), '00')+  '-' + ISNULL(CAST(d.financial_batch_id AS NVARCHAR(10)), '00') ) + REPLICATE(' ', 12)  , 12))+
             LEFT( 
                 CASE WHEN app.student_number IS NULL THEN 'Yukon Student'
@@ -4973,7 +4973,7 @@ AS
             '0' + '     ' + '000000000000000' + '0' + '     ' + '000000000000000' + '0' + '               ' +
             '               ' + ' ' + ' ' + REPLICATE(' ', 22) + ' ' + '000000000000000' + '0' + '    '+REPLICATE(' ',245)
         as record3, --   Voucher Line Record -- (VOL)
-    '4'+ LEFT(s.vendor_id + REPLICATE(' ', 12), 12)  + ' 03    '+ '000000000'
+    '4'+ LEFT(s.vendor_id + REPLICATE(' ', 12), 12)  + '03    '+ '000000000'
             +'00001' + '00001' 
             +( LEFT(LTRIM(ISNULL(CAST(d.financial_batch_id_year AS NVARCHAR(2)), '00')+  '-' + ISNULL(CAST(d.financial_batch_id AS NVARCHAR(10)), '00') ) + REPLICATE(' ', 12)  , 12))+LEFT( 
                 CASE WHEN app.student_number IS NULL THEN 'Yukon Student'
