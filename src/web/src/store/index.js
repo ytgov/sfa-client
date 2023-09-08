@@ -77,6 +77,10 @@ import sta from "@/modules/sta/store";
 import csgDisabilityStore from "../components/application/assessments/store/csg-disability";
 import csgDependentStore from "../components/application/assessments/store/csg-dependent";
 import csgMatureStore from "../components/application/assessments/store/csg-mature";
+import csgFullTimeStore from "../components/application/assessments/store/csg-full-time";
+
+// Administration Stores
+import reportsStore from "@/modules/Administration/store/ReportsStore"
 
 // Config
 import axios from "axios";
@@ -98,7 +102,7 @@ export default new Vuex.Store({
     recentApplications: [],
     newApplications: [],
     yearOptions: [],
-    monthOptions: [],    
+    monthOptions: [],
   },
   getters: {
     showAppSidebar: (state) => state.showAppSidebar,
@@ -109,7 +113,7 @@ export default new Vuex.Store({
     recentApplications: (state) => state.recentApplications,
     newApplications: (state) => state.newApplications,
     yearOptions: (state) => state.yearOptions,
-    monthOptions: (state) => state.monthOptions,    
+    monthOptions: (state) => state.monthOptions,
   },
   mutations: {
     SET_MONTH_OPTIONS(state, value) {
@@ -208,8 +212,7 @@ export default new Vuex.Store({
       state.commit("CLEAR_APPLICATION");
     },
     async loadApplication(state, id) {
-      if (state.state.selectedApplicationId != id)
-        state.commit("CLEAR_APPLICATION");
+      if (state.state.selectedApplicationId != id) state.commit("CLEAR_APPLICATION");
       let resp = await axios.get(`${APPLICATION_URL}/${id}`);
 
       if (!state.state.selectedStudent.id) {
@@ -222,8 +225,7 @@ export default new Vuex.Store({
       state.commit("SET_NEW_APPLICATION", resp.data.data);
     },
     async loadStudent(state, id) {
-      if (state.state.selectedStudentId != id)
-        state.commit("CLEAR_APPLICATION");
+      if (state.state.selectedStudentId != id) state.commit("CLEAR_APPLICATION");
 
       let resp = await axios.get(`${STUDENT_URL}/${id}`);
       state.commit("SET_STUDENT", resp.data.data);
@@ -231,9 +233,7 @@ export default new Vuex.Store({
     async updateStudent(state, vals) {
       const url = vals[6] !== undefined ? vals[6] : "";
       const isInsertion = vals[7] !== undefined ? vals[7] : false;
-      let body = JSON.parse(
-        `{"data": { "${vals[0]}": "${vals[1]}" }, "type": "${vals[2]}", "extraId": "${vals[3]}"}`
-      );
+      let body = JSON.parse(`{"data": { "${vals[0]}": "${vals[1]}" }, "type": "${vals[2]}", "extraId": "${vals[3]}"}`);
 
       if (vals[1] === null) {
         body.data[vals[0]] = null;
@@ -245,17 +245,11 @@ export default new Vuex.Store({
 
       let emitter = vals[4];
 
-      body =
-        vals[5]?.length > 0
-          ? { ...body, addressType: vals[5] }
-          : { ...body, addressType: null };
+      body = vals[5]?.length > 0 ? { ...body, addressType: vals[5] } : { ...body, addressType: null };
 
       try {
         if (isInsertion) {
-          const resInsert = await axios.post(
-            `${STUDENT_URL}/${state.state.selectedStudentId}${url}`,
-            body
-          );
+          const resInsert = await axios.post(`${STUDENT_URL}/${state.state.selectedStudentId}${url}`, body);
 
           const message = resInsert?.data?.messages[0];
 
@@ -271,10 +265,7 @@ export default new Vuex.Store({
             emitter.$emit("showError", message.text);
           }
         } else {
-          const resUpdate = await axios.put(
-            `${STUDENT_URL}/${state.state.selectedStudentId}${url}`,
-            body
-          );
+          const resUpdate = await axios.put(`${STUDENT_URL}/${state.state.selectedStudentId}${url}`, body);
 
           const message = resUpdate?.data?.messages[0];
 
@@ -311,8 +302,7 @@ export default new Vuex.Store({
         .put(`${APPLICATION_URL}/${state.state.selectedApplicationId}`, body)
         .then((resp) => {
           let message = resp.data.messages[0];
-          if (message.variant == "success")
-            emitter.$emit("showSuccess", message.text);
+          if (message.variant == "success") emitter.$emit("showSuccess", message.text);
           else emitter.$emit("showError", message.text);
         })
         .catch((err) => {
@@ -330,10 +320,7 @@ export default new Vuex.Store({
         delete consent.id;
 
         axios
-          .put(
-            `${STUDENT_URL}/${state.state.selectedStudentId}/consent/${id}`,
-            consent
-          )
+          .put(`${STUDENT_URL}/${state.state.selectedStudentId}/consent/${id}`, consent)
           .then((resp) => {
             let message = resp.data.messages[0];
             if (message.variant == "success") {
@@ -351,10 +338,7 @@ export default new Vuex.Store({
         //console.log("DOING POST", consent)
 
         axios
-          .post(
-            `${STUDENT_URL}/${state.state.selectedStudentId}/consent`,
-            consent
-          )
+          .post(`${STUDENT_URL}/${state.state.selectedStudentId}/consent`, consent)
           .then((resp) => {
             let message = resp.data.messages[0];
             if (message.variant == "success") {
@@ -379,8 +363,7 @@ export default new Vuex.Store({
         .delete(`${STUDENT_URL}/${state.state.selectedStudentId}/consent/${id}`)
         .then((resp) => {
           let message = resp.data.messages[0];
-          if (message.variant == "success")
-            emitter.$emit("showSuccess", message.text);
+          if (message.variant == "success") emitter.$emit("showSuccess", message.text);
           else emitter.$emit("showError", message.text);
         })
         .catch((err) => {
@@ -396,8 +379,7 @@ export default new Vuex.Store({
         .delete(`${STUDENT_URL}/${idToDelete}/education`)
         .then((resp) => {
           let message = resp.data.messages[0];
-          if (message.variant == "success")
-            emitter.$emit("showSuccess", message.text);
+          if (message.variant == "success") emitter.$emit("showSuccess", message.text);
           else emitter.$emit("showError", message.text);
         })
         .catch((err) => {
@@ -416,8 +398,7 @@ export default new Vuex.Store({
         .delete(`${STUDENT_URL}/${idToDelete}/consent`)
         .then((resp) => {
           let message = resp.data.messages[0];
-          if (message.variant == "success")
-            emitter.$emit("showSuccess", message.text);
+          if (message.variant == "success") emitter.$emit("showSuccess", message.text);
           else emitter.$emit("showError", message.text);
         })
         .catch((err) => {
@@ -436,8 +417,7 @@ export default new Vuex.Store({
         .delete(`${STUDENT_URL}/${idToDelete}/dependent`)
         .then((resp) => {
           let message = resp.data.messages[0];
-          if (message.variant == "success")
-            emitter.$emit("showSuccess", message.text);
+          if (message.variant == "success") emitter.$emit("showSuccess", message.text);
           else emitter.$emit("showError", message.text);
         })
         .catch((err) => {
@@ -456,8 +436,7 @@ export default new Vuex.Store({
         .delete(`${STUDENT_URL}/${idToDelete}/residence`)
         .then((resp) => {
           let message = resp.data.messages[0];
-          if (message.variant == "success")
-            emitter.$emit("showSuccess", message.text);
+          if (message.variant == "success") emitter.$emit("showSuccess", message.text);
           else emitter.$emit("showError", message.text);
         })
         .catch((err) => {
@@ -540,6 +519,9 @@ export default new Vuex.Store({
 
     csgDisabilityStore,
     csgDependentStore,
-    csgMatureStore
-  }
+    csgMatureStore,
+    csgFullTimeStore,
+
+    reportsStore
+  },
 });

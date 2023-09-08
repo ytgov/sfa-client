@@ -1,19 +1,19 @@
 <template>
-    <div>
-        <v-breadcrumbs
-            divider="/"
-            large
-            :items="[
-                {
-                    text: 'Administration Home',
-                    to: '/administration',
-                    exact: true,
-                },
-            ]"
-        >
-        </v-breadcrumbs>
-        <h1>Administration Home</h1>
-    <p> 
+  <div>
+    <v-breadcrumbs
+      divider="/"
+      large
+      :items="[
+        {
+          text: 'Administration Home',
+          to: '/administration',
+          exact: true,
+        },
+      ]"
+    >
+    </v-breadcrumbs>
+    <h1>Administration Home</h1>
+    <p>
       <router-link to="/administration/institutions">Institutions</router-link>
     </p>
     <p>
@@ -22,12 +22,15 @@
     <p>
       <router-link to="/administration/application-type">Application-Type</router-link>
     </p>
+    <p>
+      <router-link to="/administration/reports">Reports</router-link>
+    </p>
   </div>
 </template>
 
 <script>
 import { mapState } from "vuex";
-import store from "../../store";
+import store from "@/store";
 
 export default {
   data: () => ({}),
@@ -36,9 +39,7 @@ export default {
     ...mapState(["showSideBarAdmin"]),
   },
   async created() {
-    await store.dispatch(
-      "setAppSideBarAdmin",
-      this.$route.path.startsWith("/administration"));
-  }
+    await store.dispatch("setAppSideBarAdmin", this.$route.path.startsWith("/administration"));
+  },
 };
 </script>
