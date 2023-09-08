@@ -3919,7 +3919,7 @@ AS
 BEGIN
 	DECLARE cur_cslft CURSOR FOR
 	
-	SELECT 
+	SELECT DISTINCT
 		s.id, 
 		app.id,     
 		COALESCE(SUBSTRING(p.sin,1,9), ' ') AS sin
@@ -3977,7 +3977,7 @@ BEGIN
 			WHEN 4 THEN 'F'
 			ELSE 'P'
 			END AS pt_indicator
-		, RIGHT('        ' + SUBSTRING(COALESCE(CAST(d.transaction_number AS VARCHAR(100)), ''), 1, 8), 8) AS transaction_number    
+		, RIGHT(SUBSTRING(COALESCE(CAST(d.transaction_number AS VARCHAR(100)), ''), 1, 8), 8) AS transaction_number    
 		, COALESCE(FORMAT(d.due_date,'yyyyMMdd'), ' ') AS not_before_date
 		, COALESCE(FORMAT(d.issue_date,'yyyyMMdd'), ' ') AS issue_date
 		, RIGHT('00' + COALESCE(CAST(a.study_weeks AS VARCHAR(3)), ''), 2) AS study_weeks 
@@ -4032,13 +4032,7 @@ BEGIN
 		AND d.csl_cert_seq_number = @CSL_CERT_SEQ_P
 		AND d.issue_date >= @FROM_DATE_P AND d.issue_date <= @TO_DATE_P	   					
 		AND (m.msfaa_status = 'Received' AND m.is_full_time = CASE WHEN d.disbursement_type_id = 4 THEN 1 ELSE 0 END OR app.academic_year_id <= 2012)
-		AND d.ecert_sent_date IS NULL
-	ORDER BY
-		d.due_date DESC,
-		d.transaction_number,
-		p.last_name,
-		p.first_name;	  
-			
+		AND d.ecert_sent_date IS NULL		
  
 	DECLARE @out_file AS INT; 
 	DECLARE @v_file_name AS VARCHAR(100);
