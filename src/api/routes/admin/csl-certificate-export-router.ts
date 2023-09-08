@@ -101,6 +101,6 @@ cslCertificateExportRouter.put("/:FROM_DATE_P/:TO_DATE_P/:PREVIEW",
             }                              
         } catch (error: any) {
             console.log(error);
-            return res.status(404).send();
+            return res.status(404).send(); 
         }        
 });
