@@ -340,9 +340,8 @@
 <script>
 import store from "@/store";
 import moment from "moment";
-import { isNumber } from "lodash";
+import { isNumber, isUndefined } from "lodash";
 import { mapActions, mapGetters, mapState } from "vuex";
-import Vue from "vue";
 
 export default {
   name: "Home",
@@ -360,14 +359,20 @@ export default {
       await store.dispatch("loadApplication", this.applicationId);
     }
 
-    await this.initialize(storeApp);
+    await this.initialize(storeApp).then((r) => {
+      if (isUndefined(this.parentAssessment)) {
+        this.$emit("showError", "Please create the CSLFT Assessment first");
+        this.$emit("close");
+      }
+    });
+
     await this.setCslClassifications();
     await this.setDisbursementTypes();
     await this.setChangeReasons();
   },
   computed: {
     ...mapState({ application: "selectedApplication" }),
-    ...mapState("csgMatureStore", ["csgThresholds", "cslft", "assessment", "disbursements"]),
+    ...mapState("csgMatureStore", ["csgThresholds", "cslft", "assessment", "disbursements", "parentAssessment"]),
     ...mapGetters(["cslClassifications", "disbursementTypes", "changeReasons"]),
 
     ...mapGetters("csgMatureStore", [
@@ -416,8 +421,13 @@ export default {
       this.$emit("showSuccess", "Assessment saved");
     },
     async saveAssessment() {
-      await this.save();
-      this.$emit("showSuccess", "Assessment saved");
+      await this.save()
+        .then((resp) => {
+          this.$emit("showSuccess", "Assessment saved");
+        })
+        .catch((err) => {
+          this.$emit("showError", "Error saving assessment");
+        });
     },
     async saveDisbursement() {
       await this.save();
