@@ -564,28 +564,61 @@ applicationRouter.get("/:id", [param("id").notEmpty()], ReturnValidationErrors, 
 applicationRouter.delete("/:id", [param("id").notEmpty()], ReturnValidationErrors, async (req: Request, res: Response) => {
   const {id} = req.params;
 
-  console.log("You want to delete application", id)
+  let disbursements = await db("sfa.disbursement")
+    .join("sfa.funding_request","funding_request.id","disbursement.funding_request_id")
+    .where("funding_request.application_id", id)
+    .select("disbursement.*");
 
-  //check for paid disbursements
+  if (disbursements.length > 0) {
+    return res.status(400).json({data: {}, messages: [{variant: "error", text: "This application has disbursements and cannot be deleted"}]})
+  }
 
-  /* agency_assistance
-  application_part_time_reasdon
-  course_enrolled
-  dependent_eligibility
-  disability
-  disability_requirement
-  equipment_required
-  expense
-  funding_request => assessment => disbursement, csl_nars_history
-  income
-  investment
-  msfaa => communication_log, msfaa_email_log
-  parent_dependent
-  parent_resident
-  requirement_met
-  file_reference */
+  let fundingRequests = await db("sfa.funding_request").where({application_id: id}).select("id");
+  let frIds = fundingRequests.map(r => r.id);
+  
+  let msfaas = await db("sfa.msfaa").where({application_id: id}).select("id");
+  let msIds = msfaas.map(r => r.id);
 
-  res.json({data: {}, messages: [{variant: "error", text: "This feature is not yet complete"}]})
+  db.transaction(trx => {
+    let d1 = trx("sfa.agency_assistance").where({application_id: id}).delete()
+    let d2 = trx("sfa.application_part_time_reason").where({application_id: id}).delete()
+    let d3 = trx("sfa.course_enrolled").where({application_id: id}).delete()
+    let d4 = trx("sfa.dependent_eligibility").where({application_id: id}).delete()
+    let d5 = trx("sfa.disability").where({application_id: id}).delete()
+    let d6 = trx("sfa.disability_requirement").where({application_id: id}).delete()
+    let d7 = trx("sfa.equipment_required").where({application_id: id}).delete()
+    let d8 = trx("sfa.expense").where({application_id: id}).delete()
+    let d9 = trx("sfa.income").where({application_id: id}).delete()
+    let d10 = trx("sfa.investment").where({application_id: id}).delete()
+    let d11 = trx("sfa.parent_dependent").where({application_id: id}).delete()
+    let d12 = trx("sfa.parent_resident").where({application_id: id}).delete()
+    let d13 = trx("sfa.requirement_met").where({application_id: id}).delete()
+    let d14 = trx("sfa.file_reference").where({application_id: id}).update({application_id: null})
+    let d15 = trx("sfa.csl_nars_history").where({application_id: id}).delete()
+    let d16 = trx("sfa.disbursement").whereIn("funding_request_id", frIds).delete()
+    let d17 = trx("sfa.assessment").whereIn("funding_request_id", frIds).delete()
+    let d18 = trx("sfa.msfaa_email_log").whereIn("msfaa_id", msIds).delete()
+    let d19 = trx("sfa.communication_log").whereIn("msfaa_id", msIds).delete()
+    
+    Promise.all([d1,d2,d3,d4,d5,d6,d7,d8,d9,d10,d11,d12,d13,d14,d15,d16,d17,d18,d19])
+      .then( async () => {
+        let d20 = trx("sfa.funding_request").where({application_id: id}).delete()
+        let d21 = trx("sfa.msfaa").where({application_id: id}).delete()
+
+        Promise.all([d20, d21]).then(async () => {
+          await trx("sfa.application").where({id}).delete();
+          trx.commit();
+        });
+      }
+    )
+    .catch(err => {
+      console.log("ERROR DELETEING", err)
+      trx.rollback();
+      return res.json({ data: {}, messages: [{variant: "error", text: "Error deleting application, "}]})
+    })
+  })
+
+  res.json({data: {}, messages: [{variant: "success", text: "Application deleted"}]})
 });
 
 
