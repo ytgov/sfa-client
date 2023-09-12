@@ -629,7 +629,7 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
         const spouse_sa_count = await this.countIncomeTypeByApplication(21, this.application.id);
         const spouse_ie_count = await this.countIncomeTypeByApplication(2, this.application.id);
         const spouse_cppd_count = await this.countIncomeTypeByApplication(3, this.application.id);
-
+        
         if (spouse_sa_count > 0) {
             this.assessment.spouse_exemption_reason = "Receives SA";
         }
@@ -909,8 +909,8 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
             
             const aStatusCount = await this.aboriginalStatusRepo.getAboriginalStatusCount(this.application.aboriginal_status_id);
             student_cppd_count = await this.incomeRepo.getIncomeByType(this.application.id, [3]);
-
-            if (aStatusCount > 0 || this.student.indigenous_learner_id === 1 || this.student.is_crown_ward || this.application.is_disabled || this.application.is_perm_disabled || this.assessment.dependent_count > 0 || student_cppd_count > 0) {
+             
+            if (aStatusCount > 0 || (this.student.indigenous_learner_id && this.student.indigenous_learner_id > 0) || this.student.is_crown_ward || this.application.is_disabled || this.application.is_perm_disabled || this.assessment.dependent_count > 0 || student_cppd_count > 0) {            
                 this.assessment.student_contrib_exempt = "YES";
             }
             
