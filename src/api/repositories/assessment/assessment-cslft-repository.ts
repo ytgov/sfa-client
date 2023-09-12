@@ -730,7 +730,7 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
         this.assessment.student_contrib_exempt = "NO";
         this.assessment.spouse_contrib_exempt = "NO";
 
-        this.assessment.dependent_count = await this.getScalarValue<number>("fn_get_dependent_count", [this.application.id ?? 0])
+        this.assessment.dependent_count = (await this.getScalarValue<number>("fn_get_dependent_count", [this.application.id ?? 0])) + 1;
         this.assessment.classes_start_date = this.application.classes_start_date;
         this.assessment.classes_end_date = this.application.classes_end_date;
         const daysDiff = moment.utc(this.assessment.classes_end_date).diff(moment(this.assessment.classes_start_date), "day");
@@ -831,13 +831,13 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
         const prestudyCodeValidation: boolean = this.global.prestudy_code === studyCodes.SP || this.global.prestudy_code === studyCodes.M;
 
         if (studyCodeValidation && this.assessment.dependent_count > 0) {
-            this.assessment.depend_food_allowable = await this.studentLivingAllowanceRepo.getShelterFoodMisc(this.application.academic_year_id, study_prov, studyCodes.DEP);
+            this.assessment.depend_food_allowable = await this.studentLivingAllowanceRepo.getShelterFoodMisc(this.application.academic_year_id, study_prov, studyCodes.DEP) * this.assessment.dependent_count;
             this.assessment.day_care_allowable = await this.childCareCeilingRepo.getChildCare(this.application.academic_year_id, study_prov) * this.assessment.dependent_count;
         }
 
         if (this.assessment.study_bus_flag) {
             if (studyCodeValidation && this.assessment.dependent_count > 0) {
-                this.assessment.depend_tran_allowable = await this.studentLivingAllowanceRepo.getPublicTransportaion(this.application.academic_percent, study_prov, studyCodes.DEP) * this.assessment.dependent_count;
+                this.assessment.depend_tran_allowable = await this.studentLivingAllowanceRepo.getPublicTransportaion(this.application.academic_year_id, study_prov, studyCodes.DEP) * this.assessment.dependent_count;
             }
             
             this.assessment.p_trans_month = await this.studentLivingAllowanceRepo.getPublicTransportaion(this.application.academic_year_id, study_prov, this.global.study_code);
