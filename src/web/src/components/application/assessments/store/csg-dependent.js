@@ -1,8 +1,10 @@
 import axios from "axios";
 import moment from "moment";
-import { isNumber } from "lodash";
+import { isArray, isNumber } from "lodash";
 import { parse } from "vue-currency-input";
 import { CSG_THRESHOLD_URL } from "@/urls";
+
+import store from "@/store";
 
 const state = {
   csgThresholds: [],
@@ -96,7 +98,7 @@ const getters = {
   netAmountRaw(state, getters) {
     let rawVal =
       parse(getters.assessedAmount, { currency: "usd" }) - parse(getters.previousDisbursements, { currency: "usd" });
-    return Math.round(rawVal);
+    return Object.is(Math.round(rawVal), -0) ? 0 : Math.round(rawVal);
   },
   thresholdRange(state, getters) {
     if (getters.threshold) {
@@ -170,6 +172,11 @@ const actions = {
         commit("SET_ASSESSMENT", resp.data.data.assessment);
       } else {
         let parent = state.parentAssessment;
+        let dependentCount = 0;
+        if (store.getters.selectedStudent && isArray(store.getters.selectedStudent.dependent_info)) {
+          dependentCount = store.getters.selectedStudent.dependent_info.filter((d) => d.is_csg_eligible).length;
+        }
+
         let assessment = {
           assessed_date: moment().format("YYYY-MM-DD"),
           study_weeks: parent.study_weeks,
@@ -177,7 +184,7 @@ const actions = {
           classes_end_date: moment.utc(parent.classes_end_date).format("YYYY-MM-DD"),
           study_months: parent.study_months,
           family_size: parent.family_size,
-          dependent_count: parent.dependent_count,
+          dependent_count: dependentCount,
           student_ln150_income: parent.student_ln150_income,
           spouse_ln150_income: parent.spouse_ln150_income,
           relocation_total: parent.relocation_total,
@@ -209,6 +216,10 @@ const actions = {
   async recalculate({ state, dispatch, commit }) {
     dispatch("loadCSLFTAssessment", { id: state.fundingRequest.application_id, refreshChild: false }).then(() => {
       let parent = state.parentAssessment;
+      let dependentCount = 0;
+      if (store.getters.selectedStudent && isArray(store.getters.selectedStudent.dependent_info)) {
+        dependentCount = store.getters.selectedStudent.dependent_info.filter((d) => d.is_csg_eligible).length;
+      }
 
       let assessment = {
         id: state.assessment.id,
@@ -218,7 +229,7 @@ const actions = {
         classes_end_date: moment.utc(parent.classes_end_date).format("YYYY-MM-DD"),
         study_months: parent.study_months,
         family_size: parent.family_size,
-        dependent_count: parent.dependent_count,
+        dependent_count: dependentCount,
         student_ln150_income: parent.student_ln150_income,
         spouse_ln150_income: parent.spouse_ln150_income,
         relocation_total: parent.relocation_total,

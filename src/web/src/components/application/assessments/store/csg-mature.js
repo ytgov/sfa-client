@@ -39,9 +39,9 @@ const getters = {
     return formatMoney(getters.netAmountRaw);
   },
   netAmountRaw(state, getters) {
-    return (
-      parse(getters.assessedAmount, { currency: "usd" }) - parse(getters.previousDisbursements, { currency: "usd" })
-    );
+    let rawVal =
+      parse(getters.assessedAmount, { currency: "usd" }) - parse(getters.previousDisbursements, { currency: "usd" });
+    return Object.is(Math.round(rawVal), -0) ? 0 : Math.round(rawVal);
   },
 };
 const mutations = {
