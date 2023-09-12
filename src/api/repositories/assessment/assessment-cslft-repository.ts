@@ -730,7 +730,7 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
         this.assessment.student_contrib_exempt = "NO";
         this.assessment.spouse_contrib_exempt = "NO";
 
-        this.assessment.dependent_count = (await this.getScalarValue<number>("fn_get_dependent_count", [this.application.id ?? 0])) + 1;
+        this.assessment.dependent_count = await this.getScalarValue<number>("fn_get_dependent_count", [this.application.id ?? 0]);
         this.assessment.classes_start_date = this.application.classes_start_date;
         this.assessment.classes_end_date = this.application.classes_end_date;
         const daysDiff = moment.utc(this.assessment.classes_end_date).diff(moment(this.assessment.classes_start_date), "day");
