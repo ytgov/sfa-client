@@ -357,15 +357,18 @@ export class ChequeReqList extends BaseRepository {
                     'd.id as disbursement_id',
                     'd.disbursed_amount',
                     this.mainDb.raw(`
-          CASE
-            WHEN rt.batch_group_id = 5 THEN
-              CASE fr.yea_request_type
-                WHEN 1 THEN 3
-                WHEN 2 THEN 4
-                ELSE 1
-              END
-            ELSE ISNULL(sfa.get_batch_group_id_fct(fr.id), rt.batch_group_id)
-          END AS bg_id`),
+                    CASE
+                        WHEN rt.batch_group_id = 5 THEN
+                            CASE
+                                WHEN fr.yea_request_type = 1 THEN 3
+                                WHEN fr.yea_request_type = 2 THEN 4
+                                ELSE 1
+                            END
+                        WHEN rt.batch_group_id = 1 THEN
+                            sfa.get_batch_group_id_fct(fr.id)
+                        ELSE rt.batch_group_id
+                    END AS bg_id
+                `),
                     'd.issue_date',
                     this.mainDb.raw('sfa.get_fiscal_year_fct(d.issue_date) AS f_year'),
                 )
