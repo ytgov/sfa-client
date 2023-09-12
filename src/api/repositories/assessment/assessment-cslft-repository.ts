@@ -602,7 +602,7 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
 
     async getContribDisplayValues(): Promise<void> {
 
-        const student_cppd_count = await this.countIncomeTypeByApplication(3, this.application.id);
+        const student_cppd_count = await this.incomeRepo.getIncomeByType(this.application.id, [3]);
         const aboriginalStatusCount = await this.aboriginalStatusRepo.getAboriginalStatusCount(this.application.aboriginal_status_id);
 
         if (this.application.is_perm_disabled || this.application.is_disabled) {
@@ -621,28 +621,12 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
             this.assessment.student_exemption_reason = "Crown Ward";
         }
 
-        if ((this.student.indigenous_learner_id && this.student.indigenous_learner_id > 0) || aboriginalStatusCount > 0) {
-            this.assessment.student_exemption_reason = "Indigenous Learner";
+        if (aboriginalStatusCount > 0) {
+            this.assessment.student_exemption_reason = "Aboriginal";
         }
 
         // Spouse exempt reason
-        const spouse_sa_count = await this.countIncomeTypeByApplication(21, this.application.id);
-        const spouse_ie_count = await this.countIncomeTypeByApplication(2, this.application.id);
-        const spouse_cppd_count = await this.countIncomeTypeByApplication(3, this.application.id);
-        
-        if (spouse_sa_count > 0) {
-            this.assessment.spouse_exemption_reason = "Receives SA";
-        }
-
-        if (spouse_cppd_count > 0) {
-            this.assessment.spouse_exemption_reason = "Receives CPP Disability";
-        }
-
-        if (spouse_ie_count > 0) {
-            this.assessment.spouse_exemption_reason = "Receives IE";
-        }
-
-        if (this.application.spouse_study_school_from) {
+        if (this.spouseIsFullTimeStudent()) {
             this.assessment.spouse_exemption_reason = "Is a student";
         }
 
@@ -662,6 +646,17 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
             default:
                 this.assessment.family_income = (this.assessment.student_ln150_income ?? 0);
         }
+    }
+
+    spouseIsFullTimeStudent(): boolean {
+        let result: boolean = false;
+
+        const spouseStudyFrom = this.application.spouse_study_school_from ? moment(this.application.spouse_study_school_from) : undefined;
+        const spouseStudyTo = this.application.spouse_study_school_to ? moment(this.application.spouse_study_school_to) : undefined;
+
+        result = moment().isBetween(spouseStudyFrom, spouseStudyTo);
+
+        return result;
     }
 
     getCombinedContribution(): void {
@@ -910,14 +905,14 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
             const aStatusCount = await this.aboriginalStatusRepo.getAboriginalStatusCount(this.application.aboriginal_status_id);
             student_cppd_count = await this.incomeRepo.getIncomeByType(this.application.id, [3]);
              
-            if ((aStatusCount > 0 || (this.student.indigenous_learner_id && this.student.indigenous_learner_id > 0)) || this.student.is_crown_ward || this.application.is_disabled || this.application.is_perm_disabled || this.assessment.dependent_count > 0 || student_cppd_count > 0) {            
+            if (aStatusCount > 0 || this.student.is_crown_ward || this.application.is_disabled || this.application.is_perm_disabled || this.assessment.dependent_count > 0 || student_cppd_count > 0) {            
                 this.assessment.student_contrib_exempt = "YES";
             }
             
             let spouse_exempt_count = await this.employmentStatusRepo.isEmployed(this.application.spouse_study_emp_status_id);
 
             // Validation change accordingly to an email from SFA team.
-            if (!spouse_exempt_count) {
+            if (!spouse_exempt_count || this.spouseIsFullTimeStudent()) {
                 this.assessment.spouse_contrib_exempt = "YES";
             }
         }
