@@ -2428,6 +2428,7 @@ applicationRouter.post(
 
                 // Insert the disbursement list
                 if (dataDisburse?.length) {
+                  let existYEARequestType = false;
 
                   const student = await db("sfa.assessment AS a")
                     .select("s.vendor_id AS vendor_id")
@@ -2437,8 +2438,13 @@ applicationRouter.post(
                     .where("a.id", insert_response[0].id)
                     .first();
                   
-                  if (student.vendor_id) {
+                  if (student?.vendor_id) {
                     for (const item of dataDisburse) {
+
+                      if (!existYEARequestType && item?.disbursement_type_id === 1) {
+                        existYEARequestType = true;
+                      }
+
                       const resInsert = await db("sfa.disbursement")
                         .insert({
                           disbursement_type_id: item.disbursement_type_id,
@@ -2463,6 +2469,11 @@ applicationRouter.post(
                         })
                         .returning("*");
                     }
+
+                    const updateYeaRequestType = await db("sfa.funding_request")
+                      .where({ id: funding_request_id })
+                      .update({ yea_request_type: existYEARequestType ? 1 : 2 });
+
                   } else {
                     return res.json({
                       messages: [
