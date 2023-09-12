@@ -138,6 +138,8 @@ export class AssessmentYEA extends AssessmentBaseRepository {
 
         if (disbursementList.length) {
             // Insert the disbursement list
+            let existYEARequestType = false;
+
             const student = await this.mainDb("sfa.assessment AS a")
                 .select("s.vendor_id AS vendor_id")
                 .innerJoin("sfa.funding_request AS fr", "fr.id", "a.funding_request_id")
@@ -146,8 +148,12 @@ export class AssessmentYEA extends AssessmentBaseRepository {
                 .where("a.id", assessment_id)
                 .first();
 
-            if (student.vendor_id) {
+            if (student?.vendor_id) {
                 for (const item of disbursementList) {
+
+                    if (!existYEARequestType && item?.disbursement_type_id === 1) {
+                        existYEARequestType = true;
+                    }
 
                     if (item?.id && (item?.assessment_id === assessment_id)
                         && (item?.funding_request_id === funding_request_id)) {
@@ -180,6 +186,10 @@ export class AssessmentYEA extends AssessmentBaseRepository {
                             .returning("*");
                     }
                 }
+
+                const updateYeaRequestType = await this.mainDb("sfa.funding_request")
+                      .where({ id: funding_request_id })
+                      .update({ yea_request_type: existYEARequestType ? 1 : 2 });
 
                 const updateStatusFundingRequest = await this.mainDb("sfa.funding_request")
                         .where({ id: funding_request_id })
