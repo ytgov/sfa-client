@@ -1,0 +1,51 @@
+<div>
+  <div class="header">
+    GOVERNMENT OF YUKON, DEPT. OF EDUCATION, STUDENT FINANCIAL ASSISTANCE
+    <div class="mt-2">
+      Training Allowance Report For Yukon University Student Payroll
+    </div>
+    <hr style="border-color: black; border-bottom: 0;  margin-bottom: 20px; margin-top: 15px" />
+  </div>
+
+  <table class="table mt-4" cellpadding="0" cellspacing="0" style="width: 100%">
+    <thead>
+      <tr style="border-bottom: 1px black solid">
+        <th style="border-bottom: 1px black solid">Name</th>
+        <th style="border-bottom: 1px black solid">SIN</th>
+        <th style="border-bottom: 1px black solid">Effective Date</th>
+        <th style="text-align:right; border-bottom: 1px black solid">Week</th>
+        <th style="text-align:right; border-bottom: 1px black solid">Rate/Week</th>
+        <th style="text-align:right; border-bottom: 1px black solid">Travel</th>
+        <th style="text-align:right; border-bottom: 1px black solid">Net</th>
+        <th style="border-bottom: 1px black solid">Comment</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      {{#each disbursements}}
+        <tr>
+          <td>{{this.name}}</td>
+          <td>{{this.sin}}</td>
+          <td>{{momentDateFormat this.effectiveDate "DD/MM/YY"}}</td>
+          <td style="text-align:right">{{weeks}}</td>
+          <td style="text-align:right">{{centsToDollarString this.weeklyAmount}}</td>
+          <td style="text-align:right">{{centsToDollarString this.travelAllowance}}</td>
+          <td style="text-align:right">{{centsToDollarString this.net}}</td>
+          <td>{{this.comment}}</td>
+        </tr>
+      {{/each}}
+    </tbody>
+    <thead>
+      <tr>
+        <th colspan="6" style="border-top: 1px black solid">Total:</th>
+        <th colspan="1" style="border-top: 1px black solid; text-align: right">{{centsToDollarString total}}</th>
+        <th colspan="2" style="border-top: 1px black solid"></th>
+
+      </tr>
+    </thead>
+
+  </table>
+
+  {{!-- <p class="date">{{momentDateFormat currentDate "DD MMM YYYY"}}</p> --}}
+
+</div>
