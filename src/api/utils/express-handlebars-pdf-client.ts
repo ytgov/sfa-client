@@ -14,6 +14,12 @@ const hbs = create({
   helpers,
 })
 
+const hbsForReports = create({
+  defaultLayout: "./templates/layouts/report-layout",
+  extname: ".handlebars",
+  helpers,
+})
+
 // As far as I can tell, express-handlebars is _supposed_ to be able to load templates
 // without the extension, but for whatever reason it does not.
 // This is a workaround.
@@ -46,3 +52,26 @@ export function renderViewAsPdf(viewPath: string, options: RenderViewOptions, fo
     return generatePDF(htmlToRenderAsPDF, format, landscape)
   })
 }
+
+export function renderReportAsHtml(viewPath: string, options: RenderViewOptions): Promise<string> {
+  const patchedViewPath = patchExtensionlessPath(viewPath)
+  options = { ...options, API_PORT }
+  return new Promise((resolve, reject) => {
+    hbsForReports.renderView(patchedViewPath, options, (error, result) => {
+      if (error) {
+        reject(error)
+      } else if (result === null || result === undefined) {
+        reject(new Error("No content rendered"))
+      } else {
+        resolve(result)
+      }
+    })
+  })
+}
+
+export function renderReportAsPdf(viewPath: string, options: RenderViewOptions, format: PaperFormat = "letter", landscape: boolean = false) {
+  return renderReportAsHtml(viewPath, options).then((htmlToRenderAsPDF) => {
+    return generatePDF(htmlToRenderAsPDF, format, landscape)
+  })
+}
+

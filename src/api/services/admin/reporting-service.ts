@@ -1,6 +1,9 @@
 import db from "@/db/db-client";
 import { unparse } from "papaparse";
 import moment from "moment";
+import { renderReportAsHtml, renderReportAsPdf } from "@/utils/express-handlebars-pdf-client";
+
+const STA_YUKON_UNIVERSITY_TEMPLATE = "./templates/admin/reports/student-training-allowance-yukon-university";
 
 export default class ReportingService {
   static async runFundingStatusReport({ years }: FundingStatusReportParams): Promise<any[]> {
@@ -89,23 +92,81 @@ export default class ReportingService {
         mimeType: "text/csv",
       });
     } else if (format == "html") {
-      let t = unparse(reportData, {
-        quotes: true,
-      });
+      let disbursements = await db.raw(
+        `SELECT disbursement.id,
+        CONCAT(person.first_name, ' ', person.last_name) 'Name', 
+        person.sin, 
+        assessment.effective_rate_date effectiveDate, 
+        weeks_allowed weeks,
+        weekly_amount * 100 AS weekly_amount,
+        travel_allowance * 100 AS travel_allowance,
+        disbursement.disbursed_amount * 100 as net,
+        change_reason.description as comment
+        FROM sfa.funding_request
+        INNER JOIN sfa.application ON funding_request.application_id = application.id
+        INNER JOIN sfa.student ON application.student_id = student.id
+        INNER JOIN sfa.person ON student.person_id = person.id
+        INNER JOIN sfa.assessment ON assessment.funding_request_id = funding_request.id
+        INNER JOIN sfa.disbursement ON assessment.id = disbursement.assessment_id
+        LEFT OUTER JOIN sfa.change_reason ON disbursement.change_reason_id = change_reason.id
+        WHERE application.academic_year_id IN (2023)
+          AND application.institution_campus_id IN (5326, 3488, 5648)
+          AND disbursement.issue_date <= GETDATE()
+          AND disbursement.due_date IS NULL
+        ORDER BY person.last_name, person.first_name`
+      );
+
+      let total = disbursements.reduce((t: number, a: any) => {
+        return t + a.net;
+      }, 0);
+
+      let data = { currentDate: new Date(), disbursements, total };
+      let file = await renderReportAsHtml(STA_YUKON_UNIVERSITY_TEMPLATE, data);
 
       return Promise.resolve({
-        fileContent: t,
-        fileName: `fundingStatusReport_${moment().format("YYYY-MM-DD")}.csv`,
+        fileContent: file,
+        fileName: `fundingStatusReport_${moment().format("YYYY-MM-DD")}.html`,
         mimeType: "text/html",
       });
     } else if (format == "pdf") {
+      let results = await db.raw(
+        `SELECT disbursement.id,
+        CONCAT(person.first_name, ' ', person.last_name) 'Name', 
+        person.sin, 
+        assessment.effective_rate_date effectiveDate, 
+        weeks_allowed weeks,
+        weekly_amount * 100 AS weekly_amount,
+        travel_allowance * 100 AS travel_allowance,
+        disbursement.disbursed_amount * 100 as net,
+        change_reason.description as comment
+        FROM sfa.funding_request
+        INNER JOIN sfa.application ON funding_request.application_id = application.id
+        INNER JOIN sfa.student ON application.student_id = student.id
+        INNER JOIN sfa.person ON student.person_id = person.id
+        INNER JOIN sfa.assessment ON assessment.funding_request_id = funding_request.id
+        INNER JOIN sfa.disbursement ON assessment.id = disbursement.assessment_id
+        LEFT OUTER JOIN sfa.change_reason ON disbursement.change_reason_id = change_reason.id
+        WHERE application.academic_year_id IN (2023)
+          AND application.institution_campus_id IN (5326, 3488, 5648)
+          AND disbursement.issue_date <= GETDATE()
+          AND disbursement.due_date IS NULL
+        ORDER BY person.last_name, person.first_name`
+      );
 
-      //generate the pdf
+      for (let line of results) {
+        await db("disbursement").where({ id: line.id }).update({ due_date: new Date() });
+      }
 
-      
+      let total = results.reduce((t: number, a: any) => {
+        return t + a.net;
+      }, 0);
+
+      let data = { currentDate: new Date(), disbursements: results, total };
+      let pdf = await renderReportAsPdf(STA_YUKON_UNIVERSITY_TEMPLATE, data, "LETTER", true);
+
       return Promise.resolve({
-        fileContent: null,
-        fileName: `STA_YukonUniversity_${moment().format("YYYY-MM-DD")}.csv`,
+        fileContent: pdf,
+        fileName: `STA_YukonUniversity_${moment().format("YYYY-MM-DD")}.pdf`,
         mimeType: "application/pdf",
       });
     } else {
