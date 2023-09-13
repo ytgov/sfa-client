@@ -34,6 +34,7 @@ export default {
   methods: {
     show(application) {
       this.application = application;
+      this.confirm = false;
       this.visible = true;
     },
     hide() {
@@ -46,17 +47,22 @@ export default {
         institutionId: this.institutionId,
       };
 
-      axios.delete(`${APPLICATION_URL}/${this.application.id}`).then((resp) => {
-        this.$emit("showAPIMessages", resp.data);
+      axios
+        .delete(`${APPLICATION_URL}/${this.application.id}`)
+        .then((resp) => {
+          this.$emit("showAPIMessages", resp.data);
 
-        if (resp.data && resp.data.data) {
-          this.visible = false;
-          store.dispatch("clearStudent");
-          store.dispatch("clearApplication");
-          store.dispatch("loadStudent", this.application.student_id);
-          this.$router.push(`/student/${this.application.student_id}`);
-        }
-      });
+          if (resp.data && resp.data.data) {
+            this.visible = false;
+            store.dispatch("clearStudent");
+            store.dispatch("clearApplication");
+            store.dispatch("loadStudent", this.application.student_id);
+            this.$router.push(`/student/${this.application.student_id}`);
+          }
+        })
+        .catch((err) => {
+          this.$emit("showAPIMessages", err.response.data);
+        });
     },
   },
 };

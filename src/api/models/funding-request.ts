@@ -38,4 +38,5 @@ export default interface FundingRequest {
   requestType?: RequestType
   status?: Status
   statusReason?: StatusReason
+  yeaRemaining?: number
 }

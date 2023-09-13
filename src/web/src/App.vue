@@ -91,8 +91,8 @@
 
           <v-divider class="mb-3"></v-divider>
 
-          <v-row v-if="false">
-            <v-col
+          <v-row>
+            <v-col v-if="false"
               ><v-btn
                 small
                 color="warning"

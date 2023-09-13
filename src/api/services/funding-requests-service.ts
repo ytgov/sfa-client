@@ -1,10 +1,10 @@
-import { isNil } from "lodash"
+import { isNil } from "lodash";
 
-import db from "@/db/db-client"
+import db from "@/db/db-client";
 
-import FundingRequest from "@/models/funding-request"
+import FundingRequest from "@/models/funding-request";
 
-import ApplicationsService from "@/services/applications-service"
+import ApplicationsService from "@/services/applications-service";
 
 namespace FundingRequestsService {
   export type IncludeTypes = (
@@ -14,23 +14,24 @@ namespace FundingRequestsService {
     | "requestType"
     | "status"
     | "statusReason"
-  )[]
+    | "yea"
+  )[];
 }
 
 export default class FundingRequestsService {
-  #includes: FundingRequestsService.IncludeTypes
+  #includes: FundingRequestsService.IncludeTypes;
 
   constructor({ includes }: { includes?: FundingRequestsService.IncludeTypes } = {}) {
-    this.#includes = includes || []
+    this.#includes = includes || [];
   }
 
   static includes(includes: FundingRequestsService.IncludeTypes) {
-    return new FundingRequestsService({ includes })
+    return new FundingRequestsService({ includes });
   }
 
   static find(id: number) {
-    const service = new FundingRequestsService()
-    return service.find(id)
+    const service = new FundingRequestsService();
+    return service.find(id);
   }
 
   // OPINION: if you want this to be faster, switch to Sequelize.
@@ -40,10 +41,10 @@ export default class FundingRequestsService {
       .where({ id })
       .first()
       .then((fundingRequest) => {
-        if (fundingRequest) return fundingRequest
+        if (fundingRequest) return fundingRequest;
 
-        throw new Error("Funding request not found")
-      })
+        throw new Error("Funding request not found");
+      });
 
     if (this.#includes.includes("application")) {
       fundingRequest.application = await ApplicationsService.includes([
@@ -51,19 +52,19 @@ export default class FundingRequestsService {
         "primaryAddress",
         "student",
         "studyArea",
-      ]).find(fundingRequest.applicationId)
+      ]).find(fundingRequest.applicationId);
     }
 
     if (this.#includes.includes("assessments")) {
       fundingRequest.assessments = await db("assessment").where({
         fundingRequestId: fundingRequest.id,
-      })
+      });
     }
 
     if (this.#includes.includes("disbursements")) {
       fundingRequest.disbursements = await db("disbursement").where({
         fundingRequestId: fundingRequest.id,
-      })
+      });
     }
 
     if (this.#includes.includes("requestType") && fundingRequest.requestTypeId) {
@@ -71,10 +72,10 @@ export default class FundingRequestsService {
         .where({ id: fundingRequest.requestTypeId })
         .first()
         .then((requestType) => {
-          if (requestType) return requestType
+          if (requestType) return requestType;
 
-          throw new Error("Request type not found")
-        })
+          throw new Error("Request type not found");
+        });
     }
 
     if (this.#includes.includes("status") && fundingRequest.statusId) {
@@ -82,21 +83,34 @@ export default class FundingRequestsService {
         .where({ id: fundingRequest.statusId })
         .first()
         .then((status) => {
-          if (status) return status
+          if (status) return status;
 
-          throw new Error("Status not found")
-        })
+          throw new Error("Status not found");
+        });
     }
 
     if (this.#includes.includes("statusReason") && fundingRequest.statusReasonId) {
-      const statusReason = await db("statusReason")
-        .where({ id: fundingRequest.statusReasonId })
-        .first()
-      if (isNil(statusReason)) throw new Error("Status reason not found")
+      const statusReason = await db("statusReason").where({ id: fundingRequest.statusReasonId }).first();
+      if (isNil(statusReason)) throw new Error("Status reason not found");
 
-      fundingRequest.statusReason = statusReason
+      fundingRequest.statusReason = statusReason;
     }
 
-    return fundingRequest
+    if (this.#includes.includes("yea")) {
+      const yeaEarned = await db.raw("SELECT TOP 1 sfa.fn_get_yea_total(?) AS earned", [
+        fundingRequest.application?.student?.yukonId,
+      ]);
+      const yeaUsed = await db.raw("SELECT TOP 1 sfa.fn_get_system_yea_used(?) AS used", [
+        fundingRequest.application?.studentId,
+      ]);
+
+      let eVal = yeaEarned[0].earned || 0;
+      let uVal = yeaUsed[0].used || 0;
+      //if (isNil(statusReason)) throw new Error("Status reason not found")
+
+      fundingRequest.yeaRemaining = (eVal - uVal) * 100;
+    }
+
+    return fundingRequest;
   }
 }

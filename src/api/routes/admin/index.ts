@@ -164,5 +164,6 @@ adminRouter.use("/csl-restricted-data", cslRestrictedData);
 
 adminRouter.use("/reporting", pathFormatMiddleware);
 adminRouter.use("/reporting/fundingStatus/:years", routedTo(ReportingController, "runFundingStatusReport"));
+adminRouter.use("/reporting/staYukonUniversity", routedTo(ReportingController, "runSTAYukonUniversityReport"));
 
 adminRouter.use("/csg-threshold", csgThresholdRouter);

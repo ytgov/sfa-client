@@ -10,6 +10,8 @@ import StudentTrainingAllowanceYukonUniversityApprovalLetterService from "@/serv
 import YukonGrantInstitutionApprovalLetterService from "@/services/admin/funding-requests/letters/yukon-grant-institution-approval-letter-service"
 import YukonGrantStudentApprovalLetterService from "@/services/admin/funding-requests/letters/yukon-grant-student-approval-letter-service"
 import YukonGrantStudentRejectionLetterService from "@/services/admin/funding-requests/letters/yukon-grant-student-rejection-letter-service"
+import YukonExcellenceAwardsApprovalLetterService from "@/services/admin/funding-requests/letters/yukon-excellence-awards-approval-letter-service"
+import YukonExcellenceAwardsRejectionLetterService from "@/services/admin/funding-requests/letters/yukon-excellence-awards-rejection-letter-service"
 
 export enum TemplatePaths {
   YUKON_GRANT_INSTITUTION_APPROVAL = "./templates/admin/application-letter/approval/yukon-grant-institution",
@@ -18,6 +20,8 @@ export enum TemplatePaths {
   STUDENT_TRAINING_ALLOWANCE_YUKON_UNIVERSITY_APPROVAL = "./templates/admin/application-letter/approval/student-training-allowance-yukon-university",
   STUDENT_TRAINING_ALLOWANCE_ALKAN_AIR_APPROVAL = "./templates/admin/application-letter/approval/student-training-allowance-alkan-air",
   STUDENT_TRAINING_ALLOWANCE_REJECTION = "./templates/admin/application-letter/rejection/student-training-allowance",
+  YUKON_EXCELLENCE_AWARDS_APPROVAL = "./templates/admin/application-letter/approval/yukon-excellence-awards",
+  YUKON_EXCELLENCE_AWARDS_REJECTION = "./templates/admin/application-letter/rejection/yukon-excellence-awards",
 }
 
 export enum LetterTypes {
@@ -89,6 +93,24 @@ export const FUNDING_REQUEST_LETTERS: FundingRequestLetter[] = [
     service: StudentTrainingAllowanceRejectionLetterService,
     slug: "student-training-allowance-rejection",
     template: TemplatePaths.STUDENT_TRAINING_ALLOWANCE_REJECTION,
+    type: LetterTypes.REJECTION,
+  },
+  {
+    description: "Yukon Excellence Awards",
+    requestStatus: Status.Types.AWARDED,
+    requestType: RequestType.Types.YUKON_EXCELLENCE_AWARDS,
+    service: YukonExcellenceAwardsApprovalLetterService,
+    slug: "yukon-excellence-awards-approval",
+    template: TemplatePaths.YUKON_EXCELLENCE_AWARDS_APPROVAL,
+    type: LetterTypes.APPROVAL,
+  },
+  {
+    description: "Yukon Excellence Awards Rejection",
+    requestStatus: Status.Types.REJECTED,
+    requestType: RequestType.Types.YUKON_EXCELLENCE_AWARDS,
+    service: YukonExcellenceAwardsRejectionLetterService,
+    slug: "yukon-excellence-awards-rejection",
+    template: TemplatePaths.YUKON_EXCELLENCE_AWARDS_REJECTION,
     type: LetterTypes.REJECTION,
   },
 ]
