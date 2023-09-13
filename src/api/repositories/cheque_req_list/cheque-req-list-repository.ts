@@ -70,7 +70,7 @@ export class ChequeReqList extends BaseRepository {
                     pdfData: [...pdfData],
                     batchTotal: [ ...batchTotal ],
                     pdfDataSigned: [...pdfDataSigned],
-                    batchTotalSigned: [ ...batchTotal ]
+                    batchTotalSigned: [ ...batchTotalSigned ]
                 }
             };
         } catch (error) {
