@@ -39,6 +39,37 @@ export default class ReportingService {
     return results;
   }
 
+  static async runSTAYukonUniversityReport({ date }: { date: Date | undefined }): Promise<any[]> {
+    let results = await db.raw(
+      `SELECT CONCAT(person.first_name, ' ', person.last_name) 'Name', 
+      person.sin, 
+      assessment.effective_rate_date effectiveDate, 
+      weeks_allowed weeks,
+      weekly_amount,
+      travel_allowance,
+      disbursement.disbursed_amount as net,
+      change_reason.description as comment
+      FROM sfa.funding_request
+      INNER JOIN sfa.application ON funding_request.application_id = application.id
+      INNER JOIN sfa.student ON application.student_id = student.id
+      INNER JOIN sfa.person ON student.person_id = person.id
+      INNER JOIN sfa.assessment ON assessment.funding_request_id = funding_request.id
+      INNER JOIN sfa.disbursement ON assessment.id = disbursement.assessment_id
+      LEFT OUTER JOIN sfa.change_reason ON disbursement.change_reason_id = change_reason.id
+      WHERE application.academic_year_id IN (2023)
+        AND application.institution_campus_id IN (5326, 3488, 5648)
+        AND disbursement.issue_date <= GETDATE()
+        AND disbursement.due_date IS NULL
+      ORDER BY person.last_name, person.first_name`
+    );
+
+    for (let row of results) {
+      row.effectiveDate = row.effectiveDate ? moment.utc(row.effectiveDate).format("YYYY-MM-DD") : "";
+    }
+
+    return results;
+  }
+
   static async generateAs({
     format,
     reportData,
@@ -46,7 +77,8 @@ export default class ReportingService {
     format: string | undefined;
     reportData: any[];
   }): Promise<{ fileContent: any; fileName: string; mimeType: string }> {
-    if (format == "csv") {
+    if (format == "json") {
+    } else if (format == "csv") {
       let t = unparse(reportData, {
         quotes: true,
       });
@@ -66,11 +98,19 @@ export default class ReportingService {
         fileName: `fundingStatusReport_${moment().format("YYYY-MM-DD")}.csv`,
         mimeType: "text/html",
       });
+    } else if (format == "pdf") {
+
+      //generate the pdf
+
+      
+      return Promise.resolve({
+        fileContent: null,
+        fileName: `STA_YukonUniversity_${moment().format("YYYY-MM-DD")}.csv`,
+        mimeType: "application/pdf",
+      });
     } else {
       return Promise.reject("Unsupported format");
     }
-
-    console.log("GOING TO GENERATE AS ", format);
 
     return Promise.resolve({ fileContent: reportData, fileName: "asdf.csv", mimeType: "text/csv" });
   }
