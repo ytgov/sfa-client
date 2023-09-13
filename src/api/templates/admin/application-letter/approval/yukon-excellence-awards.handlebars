@@ -1,0 +1,65 @@
+<div>
+  <div class="header">
+    <p class="date">{{momentDateFormat currentDate "DD MMM YYYY"}}</p>
+  </div>
+
+  <p class="address">
+    {{recipient.firstName}}
+    {{recipient.initials}}
+    {{recipient.lastName}}
+    <br />
+    {{recipient.address1}}
+    {{#if recipient.address2}}
+      <br />
+      {{recipient.address2}}
+    {{/if}}
+    <br />
+    {{recipient.city}},
+    {{recipient.province}}
+    <br />
+    {{recipient.country}},
+    {{recipient.postalCode}}
+  </p>
+
+  <p class="saluation">
+    Dear
+    {{recipient.firstName}}:
+  </p>
+
+  <p>
+    I am pleased to inform you that your Yukon Excellence Award application for this academic year has been processed.
+  </p>
+
+  <p>
+    Your payment in the amount of
+    {{centsToDollarString amountInCents}}
+    has been processed and you will receive it shortly. For your information, you have
+    {{centsToDollarString remainingInCents}}
+    remaining in your account.
+  </p>
+
+  <p>
+    Should you have any questions regarding your award, please contact our office by email at sfa@yukon.ca, by telephone
+    at 867-667-5929, or toll free within Yukon at 1-800-661-0408 ext. 5929.
+  </p>
+
+  <p>
+    On behalf of the Department of Education, I wish you the very best in your studies.
+  </p>
+
+  <p>
+    Sincerely,
+  </p>
+  <p class="mt-10">
+    {{studentFinancialAssistanceOfficer.firstName}}
+    {{studentFinancialAssistanceOfficer.lastName}}
+    <br />
+    {{#if studentFinancialAssistanceOfficer.position}}
+      {{studentFinancialAssistanceOfficer.position}}
+    {{else}}
+      Student Financial Services Officer
+    {{/if}}
+    <br />
+    Department of Education, Government of Yukon
+  </p>
+</div>
