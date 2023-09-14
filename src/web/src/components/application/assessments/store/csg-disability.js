@@ -2,7 +2,7 @@ import axios from "axios";
 import moment from "moment";
 import { isNumber } from "lodash";
 import { parse } from "vue-currency-input";
-import { CSG_THRESHOLD_URL } from "@/urls";
+import { APPLICATION_URL, CSG_THRESHOLD_URL } from "@/urls";
 
 const state = {
   csgThresholds: [],
@@ -31,7 +31,7 @@ const getters = {
   },
   netAmountRaw(state, getters) {
     let rawVal =
-      -parse(getters.assessedAmount, { currency: "usd" }) - parse(getters.previousDisbursements, { currency: "usd" });
+      parse(getters.assessedAmount, { currency: "usd" }) - parse(getters.previousDisbursements, { currency: "usd" });
     return Object.is(Math.round(rawVal), -0) ? 0 : Math.round(rawVal);
   },
 };
@@ -203,6 +203,11 @@ const actions = {
     });
 
     await commit("SET_DISBURSEMENTS", [...state.disbursements, ...disbursedValues]);
+
+    await axios.put(`${APPLICATION_URL}/${state.fundingRequest.application_id}/status/${state.fundingRequest.id}`, {
+      data: { status_id: 7 }, // Awarded
+    });
+
     dispatch("save");
   },
   async removeDisbursement({ state }, { item, index }) {

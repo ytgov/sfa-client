@@ -2,7 +2,7 @@ import axios from "axios";
 import moment from "moment";
 import { isNumber, isUndefined } from "lodash";
 import { parse } from "vue-currency-input";
-import { CSG_THRESHOLD_URL } from "@/urls";
+import { APPLICATION_URL, CSG_THRESHOLD_URL } from "@/urls";
 
 const state = {
   csgThresholds: [],
@@ -284,6 +284,11 @@ const actions = {
     });
 
     await commit("SET_DISBURSEMENTS", [...state.disbursements, ...disbursedValues]);
+
+    await axios.put(`${APPLICATION_URL}/${state.fundingRequest.application_id}/status/${state.fundingRequest.id}`, {
+      data: { status_id: 7 }, // Awarded
+    });
+
     dispatch("save");
   },
 

@@ -60,8 +60,6 @@ export default class FundingRequestsService {
         .max("signedDate as maxSignDate")
         .first();
 
-      console.log(msfaaNumbers);
-
       fundingRequest.msfaaNumber = "";
       fundingRequest.msfaaSigned = undefined;
 
@@ -82,16 +80,12 @@ export default class FundingRequestsService {
     }
 
     if (this.#includes.includes("disbursements")) {
-      console.log(fundingRequest.requestTypeId);
-
       // this is CSLFT and we include the grants with it!
       if (fundingRequest.requestTypeId == 4) {
         let childFundingRequests = await db("fundingRequest").where({ application_id: fundingRequest.applicationId });
         //the related grants
         let childTypeIds = [35, 32, 29, 28];
         childFundingRequests = childFundingRequests.filter((c) => childTypeIds.includes(c.requestTypeId));
-
-        console.log("LOOKING FOR DISBURSEMETNS FOR",  [fundingRequest.id, ...childFundingRequests.map((fr) => fr.id)])
 
         fundingRequest.disbursements = await db("disbursement")
           .join("fundingRequest", "fundingRequest.id", "disbursement.fundingRequestId")
