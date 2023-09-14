@@ -201,25 +201,29 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
         }
     }
 
-    async calcFamilyDetails(): Promise<void> {            
-        
-        let parentFamilySize = await this.getParentFamilySize(this.application.id);
+    async calcFamilyDetails(): Promise<void> {
+        // single dependent is family size plus student
         if (this.assessment.csl_classification === 1) {
+            let parentFamilySize = await this.getParentFamilySize(this.application.id);
             this.assessment.student_family_size = parentFamilySize + 1;
             this.assessment.family_income = (this.assessment.parent1_income ?? 0) + (this.assessment.parent2_income ?? 0);
-        }
+        }        
+        // single parent is 1 + eligible dependent count
         else if (this.assessment.csl_classification === 4) {
-            this.assessment.student_family_size = await this.dependentRepo.getCslDependentCount(this.application.id) + 1 + parentFamilySize;
+            this.assessment.student_family_size = await this.dependentRepo.getCslDependentCount(this.application.id) + 1;
             this.assessment.family_income = (this.assessment.student_ln150_income ?? 0);
-        }
+        }        
+        // married is 2 + eligible dependent count
         else if (this.assessment.csl_classification === 3) {
             this.assessment.student_family_size = await this.dependentRepo.getCslDependentCount(this.application.id) + 2;
             this.assessment.family_income = (this.assessment.student_ln150_income ?? 0) + (this.assessment.spouse_ln150_income ?? 0);
         }
+        // single independent is always 1
         else {
             this.assessment.student_family_size = 1;
             this.assessment.family_income = (this.assessment.student_ln150_income ?? 0);
         }
+
         this.assessment.family_size = this.assessment.student_family_size;
     }
 
@@ -725,7 +729,6 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
         this.assessment.student_contrib_exempt = "NO";
         this.assessment.spouse_contrib_exempt = "NO";
 
-        this.assessment.dependent_count = await this.getScalarValue<number>("fn_get_dependent_count", [this.application.id ?? 0]);
         this.assessment.classes_start_date = this.application.classes_start_date;
         this.assessment.classes_end_date = this.application.classes_end_date;
         const daysDiff = moment.utc(this.assessment.classes_end_date).diff(moment(this.assessment.classes_start_date), "day");
@@ -772,7 +775,12 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
         this.assessment.parent_ps_depend_count = await this.getParentDependentCount(this.application.id, true);
         this.assessment.parent_province_id = await this.provinceRepo.getStudentProvinceIdByApplication(this.application.id, 4);
         this.assessment.total_grant_awarded = await this.disbursementRepo.getTotalGrantAmount(this.application.id);        
-        
+                
+        // this should be 0 unless the married or single parent
+        this.assessment.dependent_count = 0;
+        if ([3, 4].includes(this.assessment.csl_classification || 0))
+            this.assessment.dependent_count = await this.getScalarValue<number>("fn_get_dependent_count", [this.application.id ?? 0]);
+
         await this.calcFamilyDetails();
         await this.setIdGlobals();
 
