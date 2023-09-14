@@ -246,7 +246,6 @@
                 <v-btn :disabled="Math.abs(netAmountRaw) == 0" dense color="success" class="my-0 ml-3" @click="disburseClick">
                   Disburse
                 </v-btn>
-                {{ Math.abs(netAmountRaw) }}
               </div>
             </v-col>
           </v-row>
