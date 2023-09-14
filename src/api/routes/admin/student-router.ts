@@ -402,18 +402,34 @@ studentRouter.get("/:id",
                             "sfa.dependent.student_id",
                         )
                         .where({ student_id: id });
-
-                    const temporalAddress = await db("sfa.person_address")
-                        .where({ person_id: student.person_id })
-                        .where({ address_type_id: 3 })
-                        .orderBy("id", "DESC")
-                        .first();
-
-                    const permanentAddress = await db("sfa.person_address")
-                        .where({ person_id: student.person_id })
-                        .where({ address_type_id: 1 })
-                        .orderBy("id", "DESC")
-                        .first();
+                        
+                    let addresses = await db("sfa.person_address")
+                    .where({ person_id: person.id, "person_address.is_active": true })
+                    .leftOuterJoin("sfa.city", "city.id", "person_address.city_id")
+                    .leftOuterJoin("sfa.province", "province.id", "person_address.province_id")
+                    .leftOuterJoin("sfa.country", "country.id", "person_address.country_id")
+                    .select([
+                      "person_address.*",
+                      "city.description as city_name",
+                      "province.description as province_name",
+                      "country.description as country_name",
+                    ])
+                    orderBy(id, "desc");
+                    
+                    for (let item of addresses) {
+                        item.address_display = `${item.city_name || ""} ${item.province_name || ""} ${item.postal_code || ""}`.trim();
+                  
+                        if (item.address2)
+                          item.address_display = `${item.address2}
+${item.address_display}`;
+                  
+                        if (item.address1)
+                          item.address_display = `${item.address1}
+${item.address_display}`;
+                      }
+                  
+                    const temporalAddress = addresses.filter(a => a.address_type_id == 2)[0];
+                    const permanentAddress = addresses.filter(a => a.address_type_id == 1)[0];
 
                     const educationInfo = await db("sfa.education")
                         .leftJoin(
@@ -472,6 +488,7 @@ studentRouter.get("/:id",
                         ...person,
                         temporalAddress: { ...temporalAddress },
                         permanentAddress: { ...permanentAddress },
+                        addresses,
                         locator_number: student.locator_number,
                         yukon_id: student.yukon_id,
                         pre_funded_year: student.pre_funded_year,
