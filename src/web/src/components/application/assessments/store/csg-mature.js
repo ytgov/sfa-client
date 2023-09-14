@@ -1,6 +1,6 @@
 import axios from "axios";
 import moment from "moment";
-import { isNumber } from "lodash";
+import { isNumber, isUndefined } from "lodash";
 import { parse } from "vue-currency-input";
 import { CSG_THRESHOLD_URL } from "@/urls";
 
@@ -30,6 +30,8 @@ const getters = {
     return state.assessment.study_months;
   },
   assessedAmount(state) {
+    if (isUndefined(state.assessment.study_months)) return formatMoney(0);
+
     let total = state.assessment.study_months * state.baseRate;
     return formatMoney(total);
   },
@@ -37,9 +39,9 @@ const getters = {
     return formatMoney(getters.netAmountRaw);
   },
   netAmountRaw(state, getters) {
-    return (
-      parse(getters.assessedAmount, { currency: "usd" }) - parse(getters.previousDisbursements, { currency: "usd" })
-    );
+    let rawVal =
+      parse(getters.assessedAmount, { currency: "usd" }) - parse(getters.previousDisbursements, { currency: "usd" });
+    return Object.is(Math.round(rawVal), -0) ? 0 : Math.round(rawVal);
   },
 };
 const mutations = {
@@ -69,7 +71,7 @@ const mutations = {
 };
 const actions = {
   async initialize(store, app) {
-    console.log("INIT");
+    console.log("Initializing CSGTP Store");
     store.dispatch("loadThresholds", app.academic_year_id);
     store.dispatch("loadCSLFTAssessment", { id: app.id, refreshChild: true });
   },
@@ -85,9 +87,7 @@ const actions = {
       commit("SET_PARENTASSESSMENT", resp.data.data.assessment);
       commit("SET_PARENTDISBURSEMENTS", resp.data.data.disbursements);
 
-      let parent = resp.data.data.assessment;
-
-      if (parent && refreshChild) {
+      if (refreshChild) {
         dispatch("loadCSGFTAssessment", id);
       }
     });
@@ -106,39 +106,41 @@ const actions = {
 
         commit("SET_ASSESSMENT", resp.data.data.assessment);
       } else {
-        let parent = state.parentAssessment;
-        let assessment = {
-          assessed_date: moment().format("YYYY-MM-DD"),
-          study_weeks: parent.study_weeks,
-          classes_start_date: moment.utc(parent.classes_start_date).format("YYYY-MM-DD"),
-          classes_end_date: moment.utc(parent.classes_end_date).format("YYYY-MM-DD"),
-          study_months: parent.study_months,
-          family_size: parent.family_size,
-          dependent_count: parent.dependent_count,
-          student_ln150_income: parent.student_ln150_income,
-          spouse_ln150_income: parent.spouse_ln150_income,
-          relocation_total: parent.relocation_total,
-          discretionary_cost: parent.discretionary_cost,
-          discretionary_cost_actual: parent.discretionary_cost_actual,
-          tuition_estimate: parent.tuition_estimate,
-          books_supplies_cost: parent.books_supplies_cost,
-          r_trans_16wk: parent.r_trans_16wk,
-          shelter_month: parent.shelter_month,
-          p_trans_month: parent.p_trans_month,
-          day_care_allowable: parent.day_care_allowable,
-          day_care_actual: parent.day_care_actual,
-          depend_food_allowable: parent.depend_food_allowable,
-          depend_tran_allowable: parent.depend_tran_allowable,
-          spouse_expected_contribution: parent.spouse_expected_contribution,
-          student_expected_contribution: parent.student_expected_contribution,
-          student_contrib_exempt: parent.student_contrib_exempt,
-          spouse_contrib_exempt: parent.spouse_contrib_exempt,
-          student_contribution_review: parent.student_contribution_review,
-          spouse_contribution_review: parent.spouse_contribution_review,
-          parent_contribution_review: parent.parent_contribution_review,
-        };
+        if (state.parentAssessment) {
+          let parent = state.parentAssessment;
+          let assessment = {
+            assessed_date: moment().format("YYYY-MM-DD"),
+            study_weeks: parent.study_weeks,
+            classes_start_date: moment.utc(parent.classes_start_date).format("YYYY-MM-DD"),
+            classes_end_date: moment.utc(parent.classes_end_date).format("YYYY-MM-DD"),
+            study_months: parent.study_months,
+            family_size: parent.family_size,
+            dependent_count: parent.dependent_count,
+            student_ln150_income: parent.student_ln150_income,
+            spouse_ln150_income: parent.spouse_ln150_income,
+            relocation_total: parent.relocation_total,
+            discretionary_cost: parent.discretionary_cost,
+            discretionary_cost_actual: parent.discretionary_cost_actual,
+            tuition_estimate: parent.tuition_estimate,
+            books_supplies_cost: parent.books_supplies_cost,
+            r_trans_16wk: parent.r_trans_16wk,
+            shelter_month: parent.shelter_month,
+            p_trans_month: parent.p_trans_month,
+            day_care_allowable: parent.day_care_allowable,
+            day_care_actual: parent.day_care_actual,
+            depend_food_allowable: parent.depend_food_allowable,
+            depend_tran_allowable: parent.depend_tran_allowable,
+            spouse_expected_contribution: parent.spouse_expected_contribution,
+            student_expected_contribution: parent.student_expected_contribution,
+            student_contrib_exempt: parent.student_contrib_exempt,
+            spouse_contrib_exempt: parent.spouse_contrib_exempt,
+            student_contribution_review: parent.student_contribution_review,
+            spouse_contribution_review: parent.spouse_contribution_review,
+            parent_contribution_review: parent.parent_contribution_review,
+          };
 
-        commit("SET_ASSESSMENT", assessment);
+          commit("SET_ASSESSMENT", assessment);
+        }
       }
     });
   },
@@ -226,24 +228,26 @@ const actions = {
   async save({ state, dispatch }) {
     state.assessment.disbursements = state.disbursements;
 
-    if (state.assessment.id) {
-      axios
-        .put(
-          `${CSG_THRESHOLD_URL}/csgftdep/${state.fundingRequest.application_id}/funding-request/${state.fundingRequest.id}/assessment/${state.assessment.id}`,
-          state.assessment
-        )
-        .then((resp) => {
-          dispatch("loadCSGFTAssessment", state.fundingRequest.application_id);
-        });
-    } else {
-      axios
-        .post(
-          `${CSG_THRESHOLD_URL}/csgftdep/${state.fundingRequest.application_id}/funding-request/${state.fundingRequest.id}/assessment`,
-          state.assessment
-        )
-        .then((resp) => {
-          dispatch("loadCSGFTAssessment", state.fundingRequest.application_id);
-        });
+    if (state.fundingRequest.id) {
+      if (state.assessment.id) {
+        return axios
+          .put(
+            `${CSG_THRESHOLD_URL}/csgftdep/${state.fundingRequest.application_id}/funding-request/${state.fundingRequest.id}/assessment/${state.assessment.id}`,
+            state.assessment
+          )
+          .then((resp) => {
+            dispatch("loadCSGFTAssessment", state.fundingRequest.application_id);
+          });
+      } else {
+        return axios
+          .post(
+            `${CSG_THRESHOLD_URL}/csgftdep/${state.fundingRequest.application_id}/funding-request/${state.fundingRequest.id}/assessment`,
+            state.assessment
+          )
+          .then((resp) => {
+            dispatch("loadCSGFTAssessment", state.fundingRequest.application_id);
+          });
+      }
     }
   },
 };

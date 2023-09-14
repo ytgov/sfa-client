@@ -1,6 +1,6 @@
 import axios from "axios";
 import moment from "moment";
-import { isNumber } from "lodash";
+import { isNumber, isUndefined } from "lodash";
 import { parse } from "vue-currency-input";
 import { CSG_THRESHOLD_URL } from "@/urls";
 
@@ -68,6 +68,8 @@ const getters = {
   },
 
   monthlyRate(state, getters) {
+    if (isUndefined(getters.threshold.phase_out_rate) || isUndefined(getters.familyIncome)) return formatMoney(0);
+
     let rate = Math.max(
       0,
       Math.min(
@@ -81,6 +83,8 @@ const getters = {
     return formatMoney(rate);
   },
   assessedAmount(state, getters) {
+    if (isUndefined(state.assessment.study_months)) return formatMoney(0);
+
     return state.assessment
       ? formatMoney(parse(getters.monthlyRate, { currency: "usd" }) * state.assessment.study_months)
       : formatMoney(0);

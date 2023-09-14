@@ -2,6 +2,8 @@ import express, { Request, Response } from "express";
 import knex from "knex";
 import { DB_CONFIG } from "../../config";
 import { isArray } from "lodash";
+import { param } from "express-validator";
+import { ReturnValidationErrors } from "@/middleware";
 
 const db = knex(DB_CONFIG);
 
@@ -160,6 +162,7 @@ csgThresholdRouter.get("/csgft/:application_id", async (req: Request, res: Respo
 
 csgThresholdRouter.post(
   "/csgftdep/:application_id/funding-request/:funding_request_id/assessment",
+  param("application_id").isInt(), param("funding_request_id").isInt(), ReturnValidationErrors,
   async (req: Request, res: Response) => {
     const { application_id, funding_request_id } = req.params;
 
