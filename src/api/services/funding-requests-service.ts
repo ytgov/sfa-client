@@ -53,6 +53,26 @@ export default class FundingRequestsService {
         "student",
         "studyArea",
       ]).find(fundingRequest.applicationId);
+
+      let msfaaNumbers = await db("msfaa")
+        .where({ student_id: fundingRequest.application.studentId })
+        .max("id as maxid")
+        .max("signedDate as maxSignDate")
+        .first();
+
+      console.log(msfaaNumbers);
+
+      fundingRequest.msfaaNumber = "";
+      fundingRequest.msfaaSigned = undefined;
+
+      if (msfaaNumbers) {
+        if (msfaaNumbers.maxid) {
+          let max = "0000000000" + msfaaNumbers.maxid;
+          fundingRequest.msfaaNumber = max.substring(max.length - 10);
+        }
+
+        if (msfaaNumbers.maxSignDate) fundingRequest.msfaaSigned = msfaaNumbers.maxSignDate || undefined;
+      }
     }
 
     if (this.#includes.includes("assessments")) {
@@ -62,9 +82,28 @@ export default class FundingRequestsService {
     }
 
     if (this.#includes.includes("disbursements")) {
-      fundingRequest.disbursements = await db("disbursement").where({
-        fundingRequestId: fundingRequest.id,
-      });
+      console.log(fundingRequest.requestTypeId);
+
+      // this is CSLFT and we include the grants with it!
+      if (fundingRequest.requestTypeId == 4) {
+        let childFundingRequests = await db("fundingRequest").where({ application_id: fundingRequest.applicationId });
+        //the related grants
+        let childTypeIds = [35, 32, 29, 28];
+        childFundingRequests = childFundingRequests.filter((c) => childTypeIds.includes(c.requestTypeId));
+
+        console.log("LOOKING FOR DISBURSEMETNS FOR",  [fundingRequest.id, ...childFundingRequests.map((fr) => fr.id)])
+
+        fundingRequest.disbursements = await db("disbursement")
+          .join("fundingRequest", "fundingRequest.id", "disbursement.fundingRequestId")
+          .join("requestType", "requestType.id", "fundingRequest.requestTypeId")
+          .select("requestType.description as fundingRequestDescription", "disbursement.*")
+          .whereIn("fundingRequestId", [fundingRequest.id, ...childFundingRequests.map((fr) => fr.id)])
+          .orderBy("disbursement.issueDate");
+      } else {
+        fundingRequest.disbursements = await db("disbursement").where({
+          fundingRequestId: fundingRequest.id,
+        });
+      }
     }
 
     if (this.#includes.includes("requestType") && fundingRequest.requestTypeId) {

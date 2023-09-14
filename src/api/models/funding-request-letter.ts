@@ -12,6 +12,8 @@ import YukonGrantStudentApprovalLetterService from "@/services/admin/funding-req
 import YukonGrantStudentRejectionLetterService from "@/services/admin/funding-requests/letters/yukon-grant-student-rejection-letter-service"
 import YukonExcellenceAwardsApprovalLetterService from "@/services/admin/funding-requests/letters/yukon-excellence-awards-approval-letter-service"
 import YukonExcellenceAwardsRejectionLetterService from "@/services/admin/funding-requests/letters/yukon-excellence-awards-rejection-letter-service"
+import CanadaStudentLoanFulltimeApprovalLetterService from "@/services/admin/funding-requests/letters/canada-student-loan-fulltime-approval-letter-service"
+import CanadaStudentLoanFulltimeRejectionLetterService from "@/services/admin/funding-requests/letters/canada-student-loan-fulltime-rejection-letter-service"
 
 export enum TemplatePaths {
   YUKON_GRANT_INSTITUTION_APPROVAL = "./templates/admin/application-letter/approval/yukon-grant-institution",
@@ -22,6 +24,8 @@ export enum TemplatePaths {
   STUDENT_TRAINING_ALLOWANCE_REJECTION = "./templates/admin/application-letter/rejection/student-training-allowance",
   YUKON_EXCELLENCE_AWARDS_APPROVAL = "./templates/admin/application-letter/approval/yukon-excellence-awards",
   YUKON_EXCELLENCE_AWARDS_REJECTION = "./templates/admin/application-letter/rejection/yukon-excellence-awards",
+  CANADA_STUDENT_LOAN_FULLTIME_APPROVAL = "./templates/admin/application-letter/approval/canada-student-loan-fulltime",
+  CANADA_STUDENT_LOAN_FULLTIME_REJECTION = "./templates/admin/application-letter/rejection/canada-student-loan-fulltime",
 }
 
 export enum LetterTypes {
@@ -111,6 +115,24 @@ export const FUNDING_REQUEST_LETTERS: FundingRequestLetter[] = [
     service: YukonExcellenceAwardsRejectionLetterService,
     slug: "yukon-excellence-awards-rejection",
     template: TemplatePaths.YUKON_EXCELLENCE_AWARDS_REJECTION,
+    type: LetterTypes.REJECTION,
+  },
+  {
+    description: "Canada Student Loan Full-Time",
+    requestStatus: Status.Types.AWARDED,
+    requestType: RequestType.Types.CANADA_STUDENT_LOAN_FULL_TIME,
+    service: CanadaStudentLoanFulltimeApprovalLetterService,
+    slug: "canada-student-loan-fulltime-approval",
+    template: TemplatePaths.YUKON_EXCELLENCE_AWARDS_APPROVAL,
+    type: LetterTypes.APPROVAL,
+  },
+  {
+    description: "Canada Student Loan Full-Time Rejection",
+    requestStatus: Status.Types.REJECTED,
+    requestType: RequestType.Types.CANADA_STUDENT_LOAN_FULL_TIME,
+    service: CanadaStudentLoanFulltimeRejectionLetterService,
+    slug: "canada-student-loan-fulltime-rejection",
+    template: TemplatePaths.CANADA_STUDENT_LOAN_FULLTIME_REJECTION,
     type: LetterTypes.REJECTION,
   },
 ]

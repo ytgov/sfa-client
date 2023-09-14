@@ -19,4 +19,6 @@ export default interface Disbursement {
   ecertResponseDate?: Date
   ecertStatus?: string
   ecertPortalStatusId?: number
+
+  fundingRequestDescription?: string
 }

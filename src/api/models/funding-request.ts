@@ -39,4 +39,6 @@ export default interface FundingRequest {
   status?: Status
   statusReason?: StatusReason
   yeaRemaining?: number
+  msfaaNumber?: number | string
+  msfaaSigned?: Date
 }
