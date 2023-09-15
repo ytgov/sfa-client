@@ -23,7 +23,7 @@ cslMsfaaSendRouter.get("/:EXPORT_DATE/:SEQ_NUM/:FLAG",
             let v_mailing;
             let v_out_record;
             let v_count = 0;
-            let v_total_sin = '';
+            let v_total_sin = 0;
             let v_mailing_address1;
             let v_mailing_address2;
             let v_mailing_city;
@@ -134,7 +134,7 @@ cslMsfaaSendRouter.get("/:EXPORT_DATE/:SEQ_NUM/:FLAG",
                         ' ' + '\n';
 
                         v_count = v_count + 1;
-                        v_total_sin = v_total_sin + (col.sin ? col.sin : '');
+                        v_total_sin = v_total_sin + Number((col.sin ? col.sin : 0));
                 						
                         let sp_msfaa_send = await db.raw(`EXEC sfa.sp_update_msfa_send ${nextVal[0].nextVal}, ${col.agreement_number ? col.agreement_number : -1};`);  						             
                     }								
@@ -220,7 +220,7 @@ cslMsfaaSendRouter.get("/:EXPORT_DATE/:SEQ_NUM/:FLAG",
 					' ' + '\n';
 
 					v_count = v_count + 1;
-					v_total_sin = v_total_sin + (col.sin ? col.sin : 0);
+					v_total_sin = v_total_sin + Number((col.sin ? col.sin : 0));
 								
 					let sp_msfaa_send = await db.raw(`EXEC sfa.sp_update_date_msfa_send ${nextVal[0].nextVal}, '${moment(v_send_date, 'YYYYMMDD').format('YYYY-MM-DD')}', ${col.agreement_number ? col.agreement_number : -1};`);  
 				}
