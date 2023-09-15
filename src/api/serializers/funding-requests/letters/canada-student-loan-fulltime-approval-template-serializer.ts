@@ -153,7 +153,7 @@ export default class CanadaStudentLoanFulltimeApprovalTemplateSerializer {
       return {
         fundName: disbursement.fundingRequestDescription,
         amountInCents: disbursement.disbursedAmount * 100,
-        releaseDate: disbursement.issueDate,
+        releaseDate: disbursement.dueDate,
       };
     });
   }
