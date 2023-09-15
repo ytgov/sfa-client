@@ -49,7 +49,7 @@ cslMsfaaSendRouter.get("/:EXPORT_DATE/:SEQ_NUM/:FLAG",
             			
 			v_filename = 'PPYT.EDU.MSFA.SENT.' + v_send_date + nextVal[0].nextVal;
 
-            v_out_record = '100' + 'YT  ' + 'MSFAA SENT'.padEnd(40, ' ') + v_send_date + v_send_time +  nextVal[0].nextVal.padStart(6, '0') + ' '.padEnd(535, ' ');
+            v_out_record = '100' + 'YT  ' + 'MSFAA SENT'.padEnd(40, ' ') + v_send_date + v_send_time +  nextVal[0].nextVal.padStart(6, '0') + ' ' + '\n';
 
             if(FLAG === '0') {			
                 msfaa_view_select = await db("sfa.vw_msfaa_send")
@@ -131,7 +131,7 @@ cslMsfaaSendRouter.get("/:EXPORT_DATE/:SEQ_NUM/:FLAG",
                         (col.home_country ? col.home_country : ' ').substring(0, 20).padEnd(20, ' ') +
                         (v_home_phone ? v_home_phone : ' ').padStart(20, '0') +
                         (col.part_full_time ? col.part_full_time :  'FT').padEnd(2, ' ') +
-                        ' '.padEnd(110, ' ');
+                        ' ' + '\n';
 
                         v_count = v_count + 1;
                         v_total_sin = v_total_sin + (col.sin ? col.sin : '');
@@ -217,7 +217,7 @@ cslMsfaaSendRouter.get("/:EXPORT_DATE/:SEQ_NUM/:FLAG",
 					(col.home_country ? col.home_country : ' ').substring(0, 20).padEnd(20, ' ') +
 					(v_home_phone ? v_home_phone : ' ').padStart(20, '0') +
 					(col.part_full_time ? col.part_full_time : 'FT').padEnd(2, ' ') +
-					' '.padEnd(112, ' ');
+					' ' + '\n';
 
 					v_count = v_count + 1;
 					v_total_sin = v_total_sin + (col.sin ? col.sin : 0);
