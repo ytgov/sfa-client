@@ -428,7 +428,7 @@ ${item.address_display}`;
 ${item.address_display}`;
                       }
                   
-                    const temporalAddress = addresses.filter(a => a.address_type_id == 3)[0];
+                    const temporalAddress = addresses.filter(a => a.address_type_id == 2)[0];
                     const permanentAddress = addresses.filter(a => a.address_type_id == 1)[0];
 
                     const educationInfo = await db("sfa.education")
