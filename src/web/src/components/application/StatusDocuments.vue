@@ -168,9 +168,7 @@ export default {
 
     printLetterClick(item, letterSlug) {
       const fundingRequestId = item.id;
-      //MAX REMOVE
-      //let approvalLetterUrl = `${FUNDING_REQUESTS_URL}/${fundingRequestId}/letters`;
-      let approvalLetterUrl = `${APPLICATION_URL}/${this.item.application_id}/funding-request/${this.item.id}/letters`;
+      let approvalLetterUrl = `${FUNDING_REQUESTS_URL}/${fundingRequestId}/letters`;
 
       axios
         .post(approvalLetterUrl)
