@@ -80,11 +80,12 @@ import csgMatureStore from "../components/application/assessments/store/csg-matu
 import csgFullTimeStore from "../components/application/assessments/store/csg-full-time";
 
 // Administration Stores
-import reportsStore from "@/modules/Administration/store/ReportsStore"
+import reportsStore from "@/modules/Administration/store/ReportsStore";
 
 // Config
 import axios from "axios";
 import { APPLICATION_URL, STUDENT_URL } from "../urls";
+import router from "@/router";
 
 Vue.use(Vuex);
 
@@ -213,12 +214,21 @@ export default new Vuex.Store({
     },
     async loadApplication(state, id) {
       if (state.state.selectedApplicationId != id) state.commit("CLEAR_APPLICATION");
-      let resp = await axios.get(`${APPLICATION_URL}/${id}`);
 
-      if (!state.state.selectedStudent.id) {
-        this.dispatch("loadStudent", resp.data.data.student_id);
-      }
-      state.commit("SET_APPLICATION", resp.data.data);
+      axios
+        .get(`${APPLICATION_URL}/${id}`)
+        .then((resp) => {
+          if (!state.state.selectedStudent.id) {
+            this.dispatch("loadStudent", resp.data.data.student_id);
+          }
+          state.commit("SET_APPLICATION", resp.data.data);
+        })
+        .catch((err) => {
+          let recentList = JSON.parse(localStorage.RECENT_APPLICATIONS);
+          recentList = recentList.filter((r) => r.id != id);
+          localStorage.RECENT_APPLICATIONS = JSON.stringify(recentList);
+          router.push("/dashboard");
+        });
     },
     async loadNewApplications(state) {
       let resp = await axios.get(`${APPLICATION_URL}/all`);
@@ -522,6 +532,6 @@ export default new Vuex.Store({
     csgMatureStore,
     csgFullTimeStore,
 
-    reportsStore
+    reportsStore,
   },
 });

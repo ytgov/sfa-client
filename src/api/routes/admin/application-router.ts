@@ -579,7 +579,9 @@ applicationRouter.delete("/:id", [param("id").notEmpty()], ReturnValidationError
   let msfaas = await db("sfa.msfaa").where({application_id: id}).select("id");
   let msIds = msfaas.map(r => r.id);
 
-  db.transaction(trx => {
+  let trx = await db.transaction();
+
+  try {
     let d1 = trx("sfa.agency_assistance").where({application_id: id}).delete()
     let d2 = trx("sfa.application_part_time_reason").where({application_id: id}).delete()
     let d3 = trx("sfa.course_enrolled").where({application_id: id}).delete()
@@ -601,24 +603,27 @@ applicationRouter.delete("/:id", [param("id").notEmpty()], ReturnValidationError
     let d19 = trx("sfa.communication_log").whereIn("msfaa_id", msIds).delete()
     
     Promise.all([d1,d2,d3,d4,d5,d6,d7,d8,d9,d10,d11,d12,d13,d14,d15,d16,d17,d18,d19])
-      .then( async () => {
+      .then(async () => {
         let d20 = trx("sfa.funding_request").where({application_id: id}).delete()
         let d21 = trx("sfa.msfaa").where({application_id: id}).delete()
 
-        Promise.all([d20, d21]).then(async () => {
-          await trx("sfa.application").where({id}).delete();
-          trx.commit();
+        await Promise.all([d20, d21]).then(async () => {
+          return trx("sfa.application").where({id}).delete();
         });
-      }
-    )
-    .catch(err => {
-      console.log("ERROR DELETEING", err)
-      trx.rollback();
-      return res.json({ data: {}, messages: [{variant: "error", text: "Error deleting application, "}]})
-    })
-  })
 
-  res.json({data: {}, messages: [{variant: "success", text: "Application deleted"}]})
+        await trx.commit();
+        res.json({data: {}, messages: [{variant: "success", text: "Application deleted"}]})
+      })
+      .catch(async(err) => {
+        await trx.rollback();
+        console.log("ERROR DELETING, ROLLBACK", err.message)
+        return res.status(500).json({ data: {}, messages: [{variant: "error", text: "Error deleting application: " + err.message}]})
+      })
+  }
+  catch(e: any) {
+    trx.rollback();
+    return res.status(500).json({ data: {}, messages: [{variant: "error", text: "Error deleting application: " + e.message}]})
+  }
 });
 
 
