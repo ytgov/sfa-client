@@ -371,7 +371,7 @@ export default class CreateService {
   }
 
   #getRequestType(fundingRequest: FundingRequest): RequestTypes {
-    const requestType = fundingRequest.requestType?.description;
+    const requestType = fundingRequest.requestType?.id;
     if (!RequestType.isValidRequestType(requestType)) throw new Error(`Invalid request type: ${requestType}`);
 
     return requestType;

@@ -21,7 +21,7 @@ export default class FundingRequestsLettersController extends BaseController {
         if (fundingRequest.requestType.description === undefined)
           throw new Error("Funding request, request type has no description")
 
-        const requestType = fundingRequest.requestType.description
+        const requestType = fundingRequest.requestType.id
         const fundingRequestLetterMetadata = FundingRequestLettersService.where({ requestType })
         this.response.send(fundingRequestLetterMetadata)
       })

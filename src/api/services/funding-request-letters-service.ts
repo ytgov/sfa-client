@@ -2,7 +2,7 @@ import FundingRequestLetter, { FUNDING_REQUEST_LETTERS } from "@/models/funding-
 import { FundingRequestsLettersBaseServiceConstructor } from "./admin/funding-requests/letters/funding-requests-letters-base-service"
 
 interface FilterOptions {
-  requestType: string
+  requestType: number
   status: string
   letterSlug: string
 }
@@ -33,7 +33,7 @@ export default class FundingRequestLettersService {
     return letter.service
   }
 
-  static where({ requestType }: { requestType: string }): FundingRequestLetter[] {
+  static where({ requestType }: { requestType: number }): FundingRequestLetter[] {
     return FUNDING_REQUEST_LETTERS.filter((letter) => letter.requestType === requestType)
   }
 
