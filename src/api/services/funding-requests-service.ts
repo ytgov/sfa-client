@@ -92,7 +92,8 @@ export default class FundingRequestsService {
           .join("requestType", "requestType.id", "fundingRequest.requestTypeId")
           .select("requestType.description as fundingRequestDescription", "disbursement.*")
           .whereIn("fundingRequestId", [fundingRequest.id, ...childFundingRequests.map((fr) => fr.id)])
-          .orderBy("disbursement.issueDate");
+          .orderByRaw("CASE WHEN request_type.description LIKE 'Grant%' THEN 2 ELSE 1 END")
+          .orderBy("disbursement.dueDate");
       } else {
         fundingRequest.disbursements = await db("disbursement").where({
           fundingRequestId: fundingRequest.id,
