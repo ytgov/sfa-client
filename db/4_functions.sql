@@ -2909,7 +2909,8 @@ FROM sfa.person p
 	LEFT JOIN sfa.person_address pa
 		ON pa.person_id = p.id 
 WHERE p.id = @person_id
-AND pa.address_type_id = @address_type;
+AND pa.address_type_id = @address_type
+AND pa.is_active = 1;
 GO
 
 -- Get Standard Living Amount
