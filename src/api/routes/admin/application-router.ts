@@ -1230,7 +1230,7 @@ applicationRouter.patch(
         delete data.student_id;
       }
       const resUpdate = await db("sfa.person_address")
-        .update({ ...data })
+        .update({ ...data, is_active: true })
         .where({ id: person_address_id })
         .returning("*");
 
