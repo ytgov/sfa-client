@@ -58,6 +58,10 @@ export default {
             store.dispatch("clearApplication");
             store.dispatch("loadStudent", this.application.student_id);
             this.$router.push(`/student/${this.application.student_id}`);
+
+            let recentList = JSON.parse(localStorage.RECENT_APPLICATIONS);
+            recentList = recentList.filter((r) => r.id != this.application.id);
+            localStorage.RECENT_APPLICATIONS = JSON.stringify(recentList);
           }
         })
         .catch((err) => {
