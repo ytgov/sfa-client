@@ -130,7 +130,7 @@
         <v-card-title>E-Certificate</v-card-title>
         <div class="col-xs-12 col-sm-12 col-lg-12 d-flex noppading-bottom">
           <div class="col-xs-2 col-sm-2 col-lg-2 nopadding d-flex align-center justify-center">
-            <p class="nomargin">Cart #</p>
+            <p class="nomargin">Cert #</p>
           </div>
           <div class="col-xs-2 col-sm-2 col-lg-2 nopadding d-flex align-center justify-center">
             <p class="nomargin">Sent Date</p>
