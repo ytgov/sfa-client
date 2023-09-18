@@ -97,8 +97,6 @@ cslMsfaaSendRouter.get(
         badMessage = " There are no MSFAAs to Send, Header and Trailer still written";
       }
 
-      console.log("HERE 1");
-
       if (msfaa_view_select.length == 0) {
         badMessage = " There are no MSFAAs to Send, Header and Trailer still written";
       }
@@ -180,15 +178,11 @@ cslMsfaaSendRouter.get(
         v_count = v_count + 1;
         v_total_sin = v_total_sin + Number(col.sin ? col.sin : 0);
 
-        if (FLAG === "0") {
-          await db.raw(`EXEC sfa.sp_update_msfa_send ${nextVal}, ${col.agreement_number ? col.agreement_number : -1};`);
-        } else {
-          let sp_msfaa_send = await db.raw(
-            `EXEC sfa.sp_update_date_msfa_send ${nextVal}, '${moment(v_send_date, "YYYYMMDD").format("YYYY-MM-DD")}', ${
-              col.agreement_number ? col.agreement_number : -1
-            };`
-          );
-        }
+        await db.raw(
+          `EXEC sfa.sp_update_date_msfa_send ${nextVal}, '${moment(v_send_date, "YYYYMMDD").format("YYYY-MM-DD")}', ${
+            col.agreement_number ? col.agreement_number : -1
+          };`
+        );
       }
 
       if (FLAG === "0") {
