@@ -3920,7 +3920,7 @@ AS
 BEGIN
 	DECLARE cur_cslft CURSOR FOR
 	
-	SELECT
+	SELECT DISTINCT
 		s.id, 
 		app.id,     
 		COALESCE(SUBSTRING(p.sin,1,9), ' ') AS sin
@@ -3955,18 +3955,15 @@ BEGIN
 			END),' ') AS student_postal_code   
 		, ISNULL(sfa.fn_get_country_fct(pa.country_id),' ') AS home_country
 		, ISNULL(p.email,' ') as student_email 
-		, ISNULL(pam.address1,' ') as mailing_address1
-		, ISNULL(pam.address2,' ') as mailing_address2
-		, ISNULL(sfa.fn_get_city_fct(pam.city_id),' ') mailing_city
-		, COALESCE(pam.province_id, ' ')
-		, ISNULL(sfa.fn_get_province_fct(pam.province_id),' ') AS mailing_province    
-		, ISNULL(app.school_telephone, ' ')
-		, ISNULL(UPPER(CASE 
-				WHEN LEN(pam.postal_code) = 7 THEN SUBSTRING(pam.postal_code, 1, 3) + SUBSTRING(pam.postal_code, 5, 3)
-				ELSE pam.postal_code
-			END),  ' ') AS mailing_postal_code
-		, ISNULL(sfa.fn_get_country_fct(pam.country_id),' ') AS mailing_country
-		, ISNULL(app.school_email,' ') as school_email
+		, '' as mailing_address1
+		, '' as mailing_address2
+		, '' mailing_city
+		, ''
+		, '' AS mailing_province    
+		, ISNULL(p.telephone, ' ')
+		, '' AS mailing_postal_code
+		, '' AS mailing_country
+		, ISNULL(p.email,' ') as school_email
 		, COALESCE(SUBSTRING(sfa.fn_get_institution_code_fct(app.institution_campus_id),1,4), ' ') AS institution_code        
 		, COALESCE(SUBSTRING(CONVERT(VARCHAR, sfa.fn_get_field_program_code_fct(sfa.fn_get_study_field_id_fct(app.study_area_id),app.program_id)),1,2), ' ') AS field_of_study
 		, RIGHT('0' + CAST(SUBSTRING(ISNULL(CONVERT(VARCHAR, app.program_year), 0), 1, 1) AS VARCHAR), 1) AS program_year
@@ -4034,11 +4031,7 @@ BEGIN
 		AND d.issue_date >= @FROM_DATE_P AND d.issue_date <= @TO_DATE_P	   					
 		AND (m.msfaa_status = 'Received' AND m.is_full_time = CASE WHEN d.disbursement_type_id = 4 THEN 1 ELSE 0 END OR app.academic_year_id <= 2012)
 		AND d.ecert_sent_date IS NULL	
-	ORDER BY	
-		d.due_date DESC,	
-		d.transaction_number,	
-		p.last_name,	
-		p.first_name;	  	
+	ORDER BY 1, 2;	  	
 				
  
 	DECLARE @out_file AS INT; 
