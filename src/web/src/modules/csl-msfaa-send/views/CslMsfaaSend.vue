@@ -18,8 +18,8 @@
 
     <v-card class="default mb-5">
       <v-card-text>
-        <div class="row">
-          <div class="col-md-5">
+        <v-row>
+          <v-col cols="12" md="4">
             <v-menu
               :close-on-content-click="false"
               transition="scale-transition"
@@ -49,9 +49,8 @@
                 @change="checkFilled()"
               ></v-date-picker>
             </v-menu>
-          </div>
-
-          <div class="col-md-5">
+          </v-col>
+          <v-col cols="12" md="4">
             <v-text-field
               outlined
               background-color="white"
@@ -61,16 +60,12 @@
               v-model="seqNum"
               @change="checkFilled()"
             ></v-text-field>
-          </div>
-          <div class="col-md-1">
-            <v-btn @click="importFile(0)" class="my-0" color="primary"><v-icon>mdi-plus</v-icon>Create</v-btn>
-          </div>
-          <div class="col-md-1">
-            <v-btn :disabled="disabled.flag" @click="importFile(1)" class="my-0" color="primary"
-              ><v-icon>mdi-plus</v-icon>Resend</v-btn
-            >
-          </div>
-        </div>
+          </v-col>
+          <v-col cols="12" md="4">
+            <v-btn @click="importFile(0)" class="my-0 mr-3" color="primary">Create</v-btn>
+            <v-btn :disabled="disabled.flag" @click="importFile(1)" class="my-0" color="primary">Resend</v-btn>
+          </v-col>
+        </v-row>
       </v-card-text>
     </v-card>
     <modal :title="this.modalTitle" ref="modal">
@@ -81,16 +76,14 @@
 </template>
 
 <script>
-import store from "@/store";
-import { mapState } from "vuex";
 import axios from "axios";
-import { CSL_MSFAA_SEND, INDIGENOUS_LERNER } from "../../../urls";
-import jsPDF from "jspdf";
-import Modal from "../../../components/commonCatalog/Modal.vue";
-import LoadingAnimation from "../../../components/commonCatalog/LoadingScreen.vue";
-import moment from "moment";
+import { mapState } from "vuex";
+import store from "@/store";
+import { CSL_MSFAA_SEND } from "@/urls";
+import Modal from "@/components/commonCatalog/Modal.vue";
+import LoadingAnimation from "@/components/commonCatalog/LoadingScreen.vue";
 export default {
-  name: "OfficerList",
+  name: "CslMsfaaSend",
   data: () => ({
     exportDate: {
       date: null,
@@ -131,8 +124,9 @@ export default {
     async importFile(type) {
       if (this.checkFilled()) {
         let resInsert = await axios.get(
-          CSL_MSFAA_SEND +
-            `/${this.exportDate.date ? this.exportDate.date : "0000-00-00"}/${this.seqNum ? this.seqNum : "-1"}/${type}`
+          `${CSL_MSFAA_SEND}/${this.exportDate.date ? this.exportDate.date : "0000-00-00"}/${
+            this.seqNum ? this.seqNum : "-1"
+          }/${type}`
         );
         if (resInsert.data.flag) {
           this.$emit("showSuccess", resInsert.data.message);

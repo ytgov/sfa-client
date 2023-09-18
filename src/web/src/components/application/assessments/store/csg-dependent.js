@@ -81,7 +81,11 @@ const getters = {
   },
   assessedAmount(state, getters) {
     return state.assessment
-      ? formatMoney(parse(getters.monthlyRate, { currency: "usd" }) * state.assessment.study_months)
+      ? formatMoney(
+          parse(getters.monthlyRate, { currency: "usd" }) *
+            state.assessment.study_months *
+            state.assessment.dependent_count
+        )
       : formatMoney(0);
   },
   previousDisbursements(state) {
@@ -98,6 +102,7 @@ const getters = {
   netAmountRaw(state, getters) {
     let rawVal =
       parse(getters.assessedAmount, { currency: "usd" }) - parse(getters.previousDisbursements, { currency: "usd" });
+    if (rawVal > 0 && rawVal < 100) return 100.0;
     return Object.is(Math.round(rawVal), -0) ? 0 : Math.round(rawVal);
   },
   thresholdRange(state, getters) {
@@ -173,8 +178,11 @@ const actions = {
       } else {
         let parent = state.parentAssessment;
         let dependentCount = 0;
+
         if (store.getters.selectedStudent && isArray(store.getters.selectedStudent.dependent_info)) {
-          dependentCount = store.getters.selectedStudent.dependent_info.filter((d) => d.is_csg_eligible).length;
+          dependentCount = store.getters.selectedStudent.dependent_info.filter(
+            (d) => d.is_csg_eligible && d.application_id == state.fundingRequest.application_id
+          ).length;
         }
 
         let assessment = {
@@ -218,7 +226,9 @@ const actions = {
       let parent = state.parentAssessment;
       let dependentCount = 0;
       if (store.getters.selectedStudent && isArray(store.getters.selectedStudent.dependent_info)) {
-        dependentCount = store.getters.selectedStudent.dependent_info.filter((d) => d.is_csg_eligible).length;
+        dependentCount = store.getters.selectedStudent.dependent_info.filter(
+          (d) => d.is_csg_eligible && d.application_id == state.fundingRequest.application_id
+        ).length;
       }
 
       let assessment = {
