@@ -20,16 +20,6 @@ cslMsfaaSendRouter.get(
       let v_out_record;
       let v_count = 0;
       let v_total_sin = 0;
-      let v_mailing_address1;
-      let v_mailing_address2;
-      let v_mailing_city;
-      let v_mailing_province;
-      let v_home_province;
-      let v_mailing_phone;
-      let v_mailing_postal_code;
-      let v_home_postal_code;
-      let v_mailing_country;
-      let v_mailing_email;
       let v_home_phone;
       let v_email_sent = "No Emails sent.";
       let okMessage;
@@ -68,15 +58,6 @@ cslMsfaaSendRouter.get(
         "home_country",
         "home_phone",
         "home_email",
-        "mailing_address1",
-        "mailing_address2",
-        "mailing_city",
-        "mailing_province",
-        "mailing_province_id",
-        "mailing_postal_code",
-        "mailing_country",
-        "school_phone",
-        "school_email",
         "sent_date",
         "sent_seq_number",
         "part_full_time"
@@ -110,37 +91,6 @@ cslMsfaaSendRouter.get(
           .replace(/\./g, "")
           .replace(/\+/g, "");
 
-        v_mailing_phone = (col.school_phone || "")
-          .replace(/-/g, "")
-          .replace(/\(/g, "")
-          .replace(/\)/g, "")
-          .replace(/ /g, "")
-          .replace(/\./g, "")
-          .replace(/\+/g, "");
-
-        v_home_province = col.home_province;
-        v_home_postal_code = col.home_postal_code;
-
-        // if no mailing address, default to home address
-        if (!col.mailing_address1) {
-          v_mailing_address1 = col.home_address1;
-          v_mailing_address2 = col.home_address2;
-          v_mailing_city = col.home_city;
-          v_mailing_province = v_home_province;
-          v_mailing_postal_code = v_home_postal_code;
-          v_mailing_phone = v_mailing_phone;
-          v_mailing_country = col.home_country;
-          v_mailing_email = col.home_email;
-        } else {
-          v_mailing_address1 = col.mailing_address1;
-          v_mailing_address2 = col.mailing_address2;
-          v_mailing_city = col.mailing_city;
-          v_mailing_province = col.mailing_province;
-          v_mailing_postal_code = col.mailing_postal_code;
-          v_mailing_country = col.mailing_country;
-          v_mailing_email = col.school_email;
-        }
-
         v_out_record =
           v_out_record +
           "200" +
@@ -156,19 +106,19 @@ cslMsfaaSendRouter.get(
           padEndToMax(col.initials, " ", 3) +
           padEndToMax(col.gender, " ", 1) +
           padEndToMax(col.marital_status, " ", 1) +
-          padEndToMax(v_mailing_address1, " ", 40) +
-          padEndToMax(v_mailing_address2, " ", 40) +
-          padEndToMax(v_mailing_city, " ", 25) +
-          padEndToMax(v_mailing_province, " ", 4) +
-          padEndToMax(v_mailing_postal_code, " ", 16) +
-          padEndToMax(v_mailing_country, " ", 20) +
-          padStartToMax(v_mailing_phone, "0", 20) +
-          padEndToMax(v_mailing_email, " ", 70) +
+          padEndToMax("", " ", 40) + // these are the mailing address fields which we aren't using
+          padEndToMax("", " ", 40) +
+          padEndToMax("", " ", 25) +
+          padEndToMax("", " ", 4) +
+          padEndToMax('', " ", 16) +
+          padEndToMax('', " ", 20) +
+          padStartToMax(v_home_phone, "0", 20) +
+          padEndToMax(col.home_email, " ", 70) +
           padEndToMax(col.home_address1, " ", 40) +
           padEndToMax(col.home_address2, " ", 40) +
           padEndToMax(col.home_city, " ", 25) +
-          padEndToMax(v_home_province, " ", 4) +
-          padEndToMax(v_home_postal_code, " ", 16) +
+          padEndToMax(col.home_province, " ", 4) +
+          padEndToMax(col.home_postal_code, " ", 16) +
           padEndToMax(col.home_country, " ", 20) +
           padStartToMax(v_home_phone, "0", 20) +
           padEndToMax(col.part_full_time, "FT", 2) +
