@@ -1,116 +1,107 @@
-<template>      
-    <div>
-      <v-breadcrumbs
-        divider="/"
-        large
-        :items="[
-          { text: 'Administration Home', to: '/administration', exact: true },
-          { 
-            text: 'CSL Certificate Export',
-            to: '/administration/csl-certificate-export',
-            exact: true,
-          },
-        ]"
-      >
-      </v-breadcrumbs>
-        
-      <h1>CSL Certificate Export</h1>      
-        <v-card class="default mb-5">                
-          <v-card-text>
-            <div class="row">
-              <div class="col-md-5">
-                <v-menu                  
-                :close-on-content-click="false"
-                transition="scale-transition"
-                left
-                nudge-top="26"
-                offset-y
-                min-width="auto"       
-                v-model="from.menu"    
-                >
-                  <template v-slot:activator="{ on, attrs }">
-                    <v-text-field                      
-                    label="Date"
-                    append-icon="mdi-calendar"
-                    hide-details
-                    readonly                                
-                    outlined
-                    dense
-                    background-color="white"
-                    v-bind="attrs"
-                    v-on="on"       
-                    :value="from.date ? from.date.toString().slice(0, 10) : from.date"         
-                    ></v-text-field>
-                  </template>
-                  <v-date-picker    
-                    v-model="from.date"    
-                    @input="from.menu = false"   
-                    @change = "checkFilled()"                                            
-                  ></v-date-picker>
-              </v-menu>
-            </div>    
+<template>
+  <div>
+    <v-breadcrumbs
+      divider="/"
+      large
+      :items="[
+        { text: 'Administration Home', to: '/administration', exact: true },
+        {
+          text: 'CSL Certificate Export',
+          to: '/administration/csl-certificate-export',
+          exact: true,
+        },
+      ]"
+    >
+    </v-breadcrumbs>
 
-            <div class="col-md-5">
-                <v-menu                  
-                :close-on-content-click="false"
-                transition="scale-transition"
-                left
-                nudge-top="26"
-                offset-y
-                min-width="auto"        
-                v-model="to.menu"        
-                >
-                  <template v-slot:activator="{ on, attrs }">
-                    <v-text-field                      
-                    label="Date"
-                    append-icon="mdi-calendar"
-                    hide-details
-                    readonly                                
-                    outlined
-                    dense
-                    background-color="white"
-                    v-bind="attrs"
-                    v-on="on"         
-                    :value="to.date ? to.date.toString().slice(0, 10) : to.date"                
-                    ></v-text-field>
-                  </template>
-                  <v-date-picker   
-                    v-model="to.date"    
-                    @input="to.menu = false"       
-                    @change = "checkFilled()"
-                  ></v-date-picker>
-              </v-menu>
-            </div> 
-            
-              
-            <div class="col-md-1">
-              <v-btn :disabled=disabled.flag @click="generateReport(0)" class="my-0" color="primary"><v-icon>mdi-plus</v-icon>Export</v-btn>                   
-            </div>
-
-            <div class="col-md-1">
-              <v-btn :disabled=disabled.flag @click="generateReport(1)" class="my-0" color="primary"><v-icon style="margin-right: 2px;">mdi-eye</v-icon>Preview</v-btn>       
-            </div>                    
+    <h1>CSL Certificate Export</h1>
+    <v-card class="default mb-5">
+      <v-card-text>
+        <div class="row">
+          <div class="col-md-5">
+            <v-menu
+              :close-on-content-click="false"
+              transition="scale-transition"
+              left
+              nudge-top="26"
+              offset-y
+              min-width="auto"
+              v-model="from.menu"
+            >
+              <template v-slot:activator="{ on, attrs }">
+                <v-text-field
+                  label="Date"
+                  append-icon="mdi-calendar"
+                  hide-details
+                  readonly
+                  outlined
+                  dense
+                  background-color="white"
+                  v-bind="attrs"
+                  v-on="on"
+                  :value="from.date ? from.date.toString().slice(0, 10) : from.date"
+                ></v-text-field>
+              </template>
+              <v-date-picker v-model="from.date" @input="from.menu = false" @change="checkFilled()"></v-date-picker>
+            </v-menu>
           </div>
-          </v-card-text>
-        </v-card>
-      
 
-      <modal :title="this.modalTitle" ref="modal">      
-        <p>{{ this.modalText }}</p>
-      </modal>     
-      <loading-animation :loading="isLoading.flag" />
-    </div>
-  
+          <div class="col-md-5">
+            <v-menu
+              :close-on-content-click="false"
+              transition="scale-transition"
+              left
+              nudge-top="26"
+              offset-y
+              min-width="auto"
+              v-model="to.menu"
+            >
+              <template v-slot:activator="{ on, attrs }">
+                <v-text-field
+                  label="Date"
+                  append-icon="mdi-calendar"
+                  hide-details
+                  readonly
+                  outlined
+                  dense
+                  background-color="white"
+                  v-bind="attrs"
+                  v-on="on"
+                  :value="to.date ? to.date.toString().slice(0, 10) : to.date"
+                ></v-text-field>
+              </template>
+              <v-date-picker v-model="to.date" @input="to.menu = false" @change="checkFilled()"></v-date-picker>
+            </v-menu>
+          </div>
+
+          <div class="col-md-1">
+            <v-btn :disabled="disabled.flag" @click="generateReport(0)" class="my-0" color="primary"
+              ><v-icon>mdi-plus</v-icon>Export</v-btn
+            >
+          </div>
+
+          <div class="col-md-1">
+            <v-btn :disabled="disabled.flag" @click="generateReport(1)" class="my-0" color="primary"
+              ><v-icon style="margin-right: 2px;">mdi-eye</v-icon>Preview</v-btn
+            >
+          </div>
+        </div>
+      </v-card-text>
+    </v-card>
+
+    <modal :title="this.modalTitle" ref="modal">
+      <p>{{ this.modalText }}</p>
+    </modal>
+    <loading-animation :loading="isLoading.flag" />
+  </div>
 </template>
 
 <script>
-import store from "@/store";  
+import store from "@/store";
 import { mapState } from "vuex";
 import axios from "axios";
-import {
-  CSL_CERTIFICATE_EXPORT
-} from "../../../urls";
-import jsPDF from 'jspdf';
+import { CSL_CERTIFICATE_EXPORT } from "../../../urls";
+import jsPDF from "jspdf";
 import Modal from "../../../components/commonCatalog/Modal.vue";
 import LoadingAnimation from "../../../components/commonCatalog/LoadingScreen.vue";
 import moment from "moment";
@@ -120,154 +111,155 @@ export default {
   data: () => ({
     from: {
       date: null,
-      menu: null
-      
+      menu: null,
     },
     to: {
       date: null,
-      menu: null
+      menu: null,
     },
-    seqNum: null,    
+    seqNum: null,
     tableData: null,
     batch: null,
     modalText: null,
     modalTitle: null,
-    disabled: {flag: true},
-    isLoading: {flag: false},    
+    disabled: { flag: true },
+    isLoading: { flag: false },
   }),
   components: {
     Modal,
-    LoadingAnimation
+    LoadingAnimation,
   },
   computed: {
-    ...mapState(["showSideBarAdmin"]),            
+    ...mapState(["showSideBarAdmin"]),
   },
   async mounted() {
-    await store.dispatch("setAppSideBarAdmin", this.$route.path.startsWith("/administration"));          
+    await store.dispatch("setAppSideBarAdmin", this.$route.path.startsWith("/administration"));
   },
-  methods: {    
+  methods: {
     async checkFilled() {
-      if(this.from.date && this.to.date) {        
-        this.disabled = {flag: false}
-      }      
+      if (this.from.date && this.to.date) {
+        this.disabled = { flag: false };
+      }
     },
 
-    async generateReport(isPreview) {           
-      
-      if(this.from.date === "" || this.from.date === null || this.to.date === "" || this.to.date === null) {
+    async generateReport(isPreview) {
+      if (this.from.date === "" || this.from.date === null || this.to.date === "" || this.to.date === null) {
         this.modalTitle = "Error";
-        this.modalText ="Please fill in all the fields";
+        this.modalText = "Please fill in all the fields";
         this.openModal();
-      } else {   
-        let newFlag = {flag:true}     
-        this.disabled = newFlag;    
-        
-        let newLoading = {flag:true}     
-        this.isLoading = newFlag; 
+      } else {
+        let newFlag = { flag: true };
+        this.disabled = newFlag;
+
+        let newLoading = { flag: true };
+        this.isLoading = newFlag;
         let resInsert;
-        if(isPreview) {          
-          resInsert = await axios.put(CSL_CERTIFICATE_EXPORT + `/${this.from.date}/${this.to.date}/1`);          
-        } else {          
-          resInsert = await axios.put(CSL_CERTIFICATE_EXPORT + `/${this.from.date}/${this.to.date}/0`);          
+        if (isPreview) {
+          resInsert = await axios.put(CSL_CERTIFICATE_EXPORT + `/${this.from.date}/${this.to.date}/1`);
+        } else {
+          resInsert = await axios.put(CSL_CERTIFICATE_EXPORT + `/${this.from.date}/${this.to.date}/0`);
         }
-      
-        if(resInsert.data.flag === 0 || !resInsert.data.data) {   
-          let newFlag = {flag:false}     
-          this.disabled = newFlag;                 
-          let newLoading = {flag:false}     
-          this.isLoading = newFlag; 
-          this.$emit("showError", resInsert.data.data);          
+
+        if (resInsert.data.flag === 0 || !resInsert.data.data) {
+          let newFlag = { flag: false };
+          this.disabled = newFlag;
+          let newLoading = { flag: false };
+          this.isLoading = newFlag;
+          this.$emit("showError", resInsert.data.data);
         } else {
           let resInsert2;
-          if(isPreview === 1) {
-            resInsert2 = await axios.get(CSL_CERTIFICATE_EXPORT + `/${this.from.date}/${this.to.date}/${resInsert.data.data}/1`);
+          if (isPreview === 1) {
+            resInsert2 = await axios.get(
+              CSL_CERTIFICATE_EXPORT + `/${this.from.date}/${this.to.date}/${resInsert.data.data}/1`
+            );
           } else {
-            resInsert2 = await axios.get(CSL_CERTIFICATE_EXPORT + `/${this.from.date}/${this.to.date}/${resInsert.data.data}/0`);
+            resInsert2 = await axios.get(
+              CSL_CERTIFICATE_EXPORT + `/${this.from.date}/${this.to.date}/${resInsert.data.data}/0`
+            );
           }
-                        
 
-          if(resInsert2.data.success) {
+          if (resInsert2.data.success) {
             this.tableData = resInsert2.data.data1;
-            this.batch =  resInsert2.data.batch;
-            this.generatePDF(isPreview);          
-          
-            let FileSaver = require('file-saver');                                                            
+            this.batch = resInsert2.data.batch;
+            this.generatePDF(isPreview);
+
+            let FileSaver = require("file-saver");
             const regex = /PPYT\.EDU\.CERTS\.D\d+\.001/;
-            
-            const match = resInsert2.data.data2[0]['fileText'] ? resInsert2.data.data2[0]['fileText'].match(regex) : '';            
-            const resultado = match ? match[0] : '';
 
-            let blob = new Blob([resInsert2.data.data2[0]['fileText'].replace(/PPYT\.EDU\.CERTS\.D\d+\.001/, '')], {type: "text/plain;charset=utf-8"});    
-            FileSaver.saveAs(blob, `${isPreview === 1 ? 'PREVIEW_' : ''}${resultado}.txt`);   
-            let newFlag = {flag:false}     
-            this.disabled = newFlag;                 
+            const match = resInsert2.data.data2[0]["fileText"] ? resInsert2.data.data2[0]["fileText"].match(regex) : "";
+            const resultado = match ? match[0] : "";
 
-            let newLoading = {flag:false}     
-            this.isLoading = newFlag; 
+            let blob = new Blob([resInsert2.data.data2[0]["fileText"].replace(/PPYT\.EDU\.CERTS\.D\d+\.001/, "")], {
+              type: "text/plain;charset=utf-8",
+            });
+            FileSaver.saveAs(blob, `${isPreview === 1 ? "PREVIEW_" : ""}${resultado}.txt`);
+            let newFlag = { flag: false };
+            this.disabled = newFlag;
+
+            let newLoading = { flag: false };
+            this.isLoading = newFlag;
           } else {
             this.$emit("showError", resInsert2.data.message);
-            let newFlag = {flag:false}     
-            this.disabled = newFlag;  
-            
-            let newLoading = {flag:false}     
-            this.isLoading = newLoading;                         
+            let newFlag = { flag: false };
+            this.disabled = newFlag;
+
+            let newLoading = { flag: false };
+            this.isLoading = newLoading;
           }
         }
-      }  
-      
-    },    
+      }
+    },
     strMonth(month) {
       let stringMonth = "";
-      switch(parseInt(month)) {
-              case 1:
-                  stringMonth = "Jan";
-                  break;
-              case 2:
-                  stringMonth = "Feb";
-                  break;
-              case 3:
-                  stringMonth = "Mar";
-                  break;
-              case 4:
-                  stringMonth = "Apr";
-                  break;
-              case 5:
-                  stringMonth = "May";
-                  break;
-              case 6:
-                  stringMonth = "Jun";
-                  break;
-              case 7:
-                  stringMonth = "Jul";
-                  break;
-              case 8:
-                  stringMonth = "Aug";
-                  break;
-              case 9:
-                  stringMonth = "Sep";
-                  break;
-              case 10:
-                  stringMonth = "Oct";
-                  break;
-              case 11:
-                  stringMonth = "Nov";
-                  break;
-              case 12:
-                  stringMonth = "Dec";
-                  break;
-              default:
-                  stringMonth = "?"                        
-          }       
-      return stringMonth.toUpperCase();                    
+      switch (parseInt(month)) {
+        case 1:
+          stringMonth = "Jan";
+          break;
+        case 2:
+          stringMonth = "Feb";
+          break;
+        case 3:
+          stringMonth = "Mar";
+          break;
+        case 4:
+          stringMonth = "Apr";
+          break;
+        case 5:
+          stringMonth = "May";
+          break;
+        case 6:
+          stringMonth = "Jun";
+          break;
+        case 7:
+          stringMonth = "Jul";
+          break;
+        case 8:
+          stringMonth = "Aug";
+          break;
+        case 9:
+          stringMonth = "Sep";
+          break;
+        case 10:
+          stringMonth = "Oct";
+          break;
+        case 11:
+          stringMonth = "Nov";
+          break;
+        case 12:
+          stringMonth = "Dec";
+          break;
+        default:
+          stringMonth = "?";
+      }
+      return stringMonth.toUpperCase();
     },
-    async generatePDF(isPreview) {                   
-      const doc = new jsPDF();        
-      const formatter = new Intl.NumberFormat('en-US', {
-        style: 'currency',
-        currency: 'USD',
-      });      
+    async generatePDF(isPreview) {
+      const doc = new jsPDF();
+      const formatter = new Intl.NumberFormat("en-US", {
+        style: "currency",
+        currency: "USD",
+      });
 
-            
       let htmlTop = `<div style="width: 190px">
   <header
     style="
@@ -299,7 +291,11 @@ export default {
       <p>GOVERNMENT OF YUKON, DEPARTMENT OF EDUCATION</p>
       <p>STUDENT FINANCIAL ASSISTANCE</p>
       <p style="font-size: 5px; margin-bottom: 1px;">CSL Entitlement List</p>      
-      <p style="font-size: 3.1px; font-weight: 400;">FROM: ${moment(this.from.date.slice(0, 10), 'YYYY-MM-DD').format('YYYY MMM DD').toUpperCase()} TO: ${moment(this.to.date, 'YYYY-MM-DD').format('YYYY MMM DD').toUpperCase()}</p>
+      <p style="font-size: 3.1px; font-weight: 400;">FROM: ${moment(this.from.date.slice(0, 10), "YYYY-MM-DD")
+        .format("YYYY MMM DD")
+        .toUpperCase()} TO: ${moment(this.to.date, "YYYY-MM-DD")
+        .format("YYYY MMM DD")
+        .toUpperCase()}</p>
     </div>
   </header>  
 
@@ -323,61 +319,67 @@ export default {
     </thead>
 `;
 
-
       let dataColumns = "";
       let idx = 0;
-      
-      if(this.tableData) {
-        for(let col of this.tableData) {             
-          dataColumns += "<tr style='text-align: center;'>"
-          dataColumns += "<td>"
-            dataColumns += col.transaction_number;
-          dataColumns += "</td>"
 
-          dataColumns += "<td>"
+      if (this.tableData) {
+        for (let col of this.tableData) {
+          dataColumns += "<tr style='text-align: center;'>";
+          dataColumns += "<td>";
+          dataColumns += col.transaction_number;
+          dataColumns += "</td>";
+
+          dataColumns += "<td>";
           dataColumns += col.name;
-          dataColumns += "</td>"
+          dataColumns += "</td>";
 
-          dataColumns += "<td>"
+          dataColumns += "<td>";
           dataColumns += col.description;
-          dataColumns += "</td>"
+          dataColumns += "</td>";
 
-          dataColumns += "<td>"
+          dataColumns += "<td>";
           dataColumns += formatter.format(col.csl_amount);
-          dataColumns += "</td>"
+          dataColumns += "</td>";
 
-          dataColumns += "<td>"          
-          dataColumns += col.issue_date ? moment(col.issue_date, 'YYYY-MM-DD').format('YYYY MMM DD').toUpperCase() : null;
-          dataColumns += "</td>"
+          dataColumns += "<td>";
+          dataColumns += col.issue_date
+            ? moment(col.issue_date, "YYYY-MM-DD")
+                .format("YYYY MMM DD")
+                .toUpperCase()
+            : null;
+          dataColumns += "</td>";
 
-          dataColumns += "<td>"
-          dataColumns += col.due_date ? moment(col.due_date, 'YYYY-MM-DD').format('YYYY MMM DD').toUpperCase() : null;
+          dataColumns += "<td>";
+          dataColumns += col.due_date
+            ? moment(col.due_date, "YYYY-MM-DD")
+                .format("YYYY MMM DD")
+                .toUpperCase()
+            : null;
 
-          dataColumns += "</td>"                         
-        dataColumns += "</tr>"                              
+          dataColumns += "</td>";
+          dataColumns += "</tr>";
+        }
       }
-      }      
 
       let htmlBottom = `
       </table>
-      </div>`
+      </div>`;
 
       let finalHTML = htmlTop + dataColumns + htmlBottom;
-      
-      let fileName = `${isPreview === 1 ? 'PREVIEW_' : ''}EDU-SFA`;
+
+      let fileName = `${isPreview === 1 ? "PREVIEW_" : ""}EDU-SFA`;
 
       doc.html(finalHTML, {
-        callback: function (doc) {      
+        callback: function(doc) {
           doc.save(fileName);
-      },
-      x: 10,
-      y: 10
-      }); 
-    },   
+        },
+        x: 10,
+        y: 10,
+      });
+    },
     openModal() {
       this.$refs.modal.openModal();
     },
-    
   },
 };
 </script>
