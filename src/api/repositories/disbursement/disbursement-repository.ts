@@ -56,7 +56,7 @@ export class DisbursementRepository extends BaseRepository implements IMainTable
                     "*"
                 )
                 .where({ assessment_id: assessment_id })
-                .whereNull("financial_batch_id")
+                .whereNotNull("csl_cert_seq_number")
                 .orderBy("id", "asc");
             
             query.forEach((x: DisbursementDTO) => result.push(x));
