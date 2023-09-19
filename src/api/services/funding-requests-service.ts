@@ -46,6 +46,8 @@ export default class FundingRequestsService {
         throw new Error("Funding request not found");
       });
 
+    fundingRequest.requestType
+
     if (this.#includes.includes("application")) {
       fundingRequest.application = await ApplicationsService.includes([
         "institutionCampus",
@@ -55,7 +57,7 @@ export default class FundingRequestsService {
       ]).find(fundingRequest.applicationId);
 
       let msfaaNumbers = await db("msfaa")
-        .where({ student_id: fundingRequest.application.studentId })
+        .where({ application_id: fundingRequest.application.id })
         .max("id as maxid")
         .max("signedDate as maxSignDate")
         .first();
