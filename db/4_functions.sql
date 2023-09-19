@@ -4023,8 +4023,7 @@ BEGIN
 		INNER JOIN sfa.assessment a ON fr.id = a.funding_request_id
 		INNER JOIN sfa.disbursement d ON a.id = d.assessment_id
 		INNER JOIN sfa.person p ON p.id = s.person_id
-		LEFT JOIN sfa.person_address pa ON pa.person_id = p.id AND pa.address_type_id = 1 
-		LEFT JOIN sfa.person_address pam ON pa.person_id = p.id AND pa.address_type_id = 2
+		LEFT JOIN sfa.person_address pa ON pa.person_id = p.id AND pa.id = app.primary_address_id
 		LEFT JOIN sfa.msfaa m ON s.id = m.student_id
 	WHERE fr.request_type_id IN (4, 5)
 		AND d.csl_cert_seq_number = @CSL_CERT_SEQ_P
