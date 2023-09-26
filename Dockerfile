@@ -7,6 +7,9 @@ RUN apk add --no-cache \
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
     PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
 
+COPY fonts/*.ttf /usr/share/fonts
+RUN fc-cache -fv
+
 RUN mkdir /home/node/app && chown -R node:node /home/node/app
 RUN mkdir /home/node/web && chown -R node:node /home/node/web
 

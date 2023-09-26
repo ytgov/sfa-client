@@ -16,9 +16,7 @@ const RELEVANT_LOAN_TYPES = [4, 5];
 cslCertificateAuditReportRouter.get(
   "/:FROM_DATE/:TO_DATE/:ACADEMIC_YEAR.:format",
   [param("ACADEMIC_YEAR").isInt().notEmpty(), param("FROM_DATE").notEmpty(), param("TO_DATE").notEmpty()],
-  //ReturnValidationErrors,
   async (req: Request, res: Response) => {
-    //const { filter = true } = req.query;
     const { FROM_DATE, TO_DATE, ACADEMIC_YEAR, format } = req.params;
 
     try {
@@ -53,7 +51,6 @@ cslCertificateAuditReportRouter.get(
           and d.csl_cert_seq_number IS NOT NULL
           and m.msfaa_status = 'Received'
         ORDER BY 1, CASE WHEN rt.id IN (${RELEVANT_LOAN_TYPES.join(",")}) THEN 1 ELSE 2 END, due_date, rt.id`);
-    
 
       let data = {
         currentDate: new Date(),
