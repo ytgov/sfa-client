@@ -24,9 +24,8 @@
       <tr style="border-bottom: 1px black solid">
         <th style="border-bottom: 1px black solid">Cert Num</th>
         <th style="border-bottom: 1px black solid">MSFAA Num</th>
-        <th style="border-bottom: 1px black solid">Ecert Rec'd</th>
-        <th style="border-bottom: 1px black solid">Last Name</th>
-        <th style="border-bottom: 1px black solid">First Name</th>
+        <th style="border-bottom: 1px black solid">MSFAA Rec'd</th>
+        <th style="border-bottom: 1px black solid">Name</th>
         <th style="border-bottom: 1px black solid">Request Type</th>
         <th style="border-bottom: 1px black solid">Issue Date</th>
         <th style="border-bottom: 1px black solid">Due Date</th>
@@ -38,16 +37,15 @@
     <tbody>
       {{#each notSent}}
         <tr>
-          <td>{{this.transaction_number}}</td>
-          <td>{{this.msfaa_number}}</td>
+          <td>{{this.cert_num}}</td>
+          <td>{{this.msfaa_num}}</td>
           <td>{{momentDateFormatDefault this.received_date "YYYY-MM-DD" ""}}</td>
-          <td>{{this.last_name}}</td>
-          <td>{{this.first_name}}</td>
-          <td>{{this.type}}</td>
+          <td>{{this.name}}</td>
+          <td>{{this.request_type}}</td>
           <td>{{momentDateFormatDefault this.issue_date "YYYY-MM-DD" ""}}</td>
           <td>{{momentDateFormatDefault this.due_date "YYYY-MM-DD" ""}}</td>
-          <td style="text-align:right">{{centsToDollarString this.disbursed_amount}}</td>
-          <td>{{this.csl_cert_seq_number}}</td>
+          <td style="text-align:right">{{centsToDollarString this.amount}}</td>
+          <td>{{this.seq}}</td>
         </tr>
       {{/each}}
     </tbody>
@@ -62,9 +60,8 @@
       <tr style="border-bottom: 1px black solid">
         <th style="border-bottom: 1px black solid">Cert Num</th>
         <th style="border-bottom: 1px black solid">MSFAA Num</th>
-        <th style="border-bottom: 1px black solid">Ecert Sent</th>
-        <th style="border-bottom: 1px black solid">Last Name</th>
-        <th style="border-bottom: 1px black solid">First Name</th>
+        <th style="border-bottom: 1px black solid">MSFAA Rec'd</th>
+        <th style="border-bottom: 1px black solid">Name</th>
         <th style="border-bottom: 1px black solid">Request Type</th>
         <th style="border-bottom: 1px black solid">Issue Date</th>
         <th style="border-bottom: 1px black solid">Due Date</th>
@@ -76,16 +73,15 @@
     <tbody>
       {{#each sent}}
         <tr>
-          <td>{{this.transaction_number}}</td>
-          <td>{{this.msfaa_number}}</td>
+          <td>{{this.cert_num}}</td>
+          <td>{{this.msfaa_num}}</td>
           <td>{{momentDateFormatDefault this.ecert_sent_date "YYYY-MM-DD" ""}}</td>
-          <td>{{this.last_name}}</td>
-          <td>{{this.first_name}}</td>
-          <td>{{this.type}}</td>
+          <td>{{this.name}}</td>
+          <td>{{this.request_type}}</td>
           <td>{{momentDateFormatDefault this.issue_date "YYYY-MM-DD" ""}}</td>
           <td>{{momentDateFormatDefault this.due_date "YYYY-MM-DD" ""}}</td>
-          <td style="text-align:right">{{centsToDollarString this.disbursed_amount}}</td>
-          <td>{{this.csl_cert_seq_number}}</td>
+          <td style="text-align:right">{{centsToDollarString this.amount}}</td>
+          <td>{{this.seq}}</td>
         </tr>
       {{/each}}
     </tbody>
