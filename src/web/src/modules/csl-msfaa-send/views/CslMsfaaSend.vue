@@ -31,7 +31,7 @@
             >
               <template v-slot:activator="{ on, attrs }">
                 <v-text-field
-                  label="Export Date"
+                  label="Export date"
                   append-icon="mdi-calendar"
                   hide-details
                   readonly
@@ -56,14 +56,18 @@
               background-color="white"
               dense
               hide-details
-              label="Sequence Number"
+              label="Sequence number"
               v-model="seqNum"
               @change="checkFilled()"
             ></v-text-field>
           </v-col>
           <v-col cols="12" md="4">
-            <v-btn @click="importFile(0)" class="my-0 mr-3" color="primary">Create</v-btn>
-            <v-btn :disabled="disabled.flag" @click="importFile(1)" class="my-0" color="primary">Resend</v-btn>
+            <div class="text-right">
+              <v-btn @click="importFile(0)" class="my-0 mr-3" color="primary" style="height: 40px">Create</v-btn>
+              <v-btn :disabled="disabled.flag" @click="importFile(1)" class="my-0" color="primary" style="height: 40px"
+                >Resend</v-btn
+              >
+            </div>
           </v-col>
         </v-row>
       </v-card-text>
