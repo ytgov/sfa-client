@@ -1,0 +1,97 @@
+<div>
+  <img
+    src="http://localhost:{{API_PORT}}/yukon-logo.png"
+    style="height: 80px; width: 160px; float: left; margin-top: -12px"
+  />
+  <div class="header" style="text-align: right; font-size: .9rem">
+    GOVERNMENT OF YUKON, DEPARTMENT OF EDUCATION
+    <br />
+    STUDENT FINANCIAL ASSISTANCE
+    <div class="mt-2" style="font-size: 1.3rem">
+      CSL Certificate Audit Report
+    </div>
+    <hr style="border-color: black; border-bottom: 0;  margin-bottom: 10px; margin-top: 15px" />
+  </div>
+  Report run on:
+  {{momentDateFormat currentDate "YYYY-MM-DD h:mm a" false}}
+
+  <div class="mt-4" style="font-size: 1.2rem">
+    Certificates Not Yet Sent
+  </div>
+
+  <table class="table mt-2" cellpadding="0" cellspacing="0" style="width: 100%">
+    <thead>
+      <tr style="border-bottom: 1px black solid">
+        <th style="border-bottom: 1px black solid">Cert Num</th>
+        <th style="border-bottom: 1px black solid">MSFAA Num</th>
+        <th style="border-bottom: 1px black solid">Ecert Rec'd</th>
+        <th style="border-bottom: 1px black solid">Last Name</th>
+        <th style="border-bottom: 1px black solid">First Name</th>
+        <th style="border-bottom: 1px black solid">Request Type</th>
+        <th style="border-bottom: 1px black solid">Issue Date</th>
+        <th style="border-bottom: 1px black solid">Due Date</th>
+        <th style="text-align:right; border-bottom: 1px black solid">Amount</th>
+        <th style="border-bottom: 1px black solid">Seq</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      {{#each notSent}}
+        <tr>
+          <td>{{this.transaction_number}}</td>
+          <td>{{this.msfaa_number}}</td>
+          <td>{{momentDateFormatDefault this.received_date "YYYY-MM-DD" ""}}</td>
+          <td>{{this.last_name}}</td>
+          <td>{{this.first_name}}</td>
+          <td>{{this.type}}</td>
+          <td>{{momentDateFormatDefault this.issue_date "YYYY-MM-DD" ""}}</td>
+          <td>{{momentDateFormatDefault this.due_date "YYYY-MM-DD" ""}}</td>
+          <td style="text-align:right">{{centsToDollarString this.disbursed_amount}}</td>
+          <td>{{this.csl_cert_seq_number}}</td>
+        </tr>
+      {{/each}}
+    </tbody>
+  </table>
+
+  <div style="font-size: 1.2rem; margin-top: 30px">
+    Certificates Sent
+  </div>
+
+  <table class="table mt-2" cellpadding="0" cellspacing="0" style="width: 100%">
+    <thead>
+      <tr style="border-bottom: 1px black solid">
+        <th style="border-bottom: 1px black solid">Cert Num</th>
+        <th style="border-bottom: 1px black solid">MSFAA Num</th>
+        <th style="border-bottom: 1px black solid">Ecert Sent</th>
+        <th style="border-bottom: 1px black solid">Last Name</th>
+        <th style="border-bottom: 1px black solid">First Name</th>
+        <th style="border-bottom: 1px black solid">Request Type</th>
+        <th style="border-bottom: 1px black solid">Issue Date</th>
+        <th style="border-bottom: 1px black solid">Due Date</th>
+        <th style="text-align:right; border-bottom: 1px black solid">Amount</th>
+        <th style="border-bottom: 1px black solid">Seq</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      {{#each sent}}
+        <tr>
+          <td>{{this.transaction_number}}</td>
+          <td>{{this.msfaa_number}}</td>
+          <td>{{momentDateFormatDefault this.ecert_sent_date "YYYY-MM-DD" ""}}</td>
+          <td>{{this.last_name}}</td>
+          <td>{{this.first_name}}</td>
+          <td>{{this.type}}</td>
+          <td>{{momentDateFormatDefault this.issue_date "YYYY-MM-DD" ""}}</td>
+          <td>{{momentDateFormatDefault this.due_date "YYYY-MM-DD" ""}}</td>
+          <td style="text-align:right">{{centsToDollarString this.disbursed_amount}}</td>
+          <td>{{this.csl_cert_seq_number}}</td>
+        </tr>
+      {{/each}}
+    </tbody>
+
+  </table>
+
+  {{!-- <p class="date">{{momentDateFormat currentDate "DD MMM YYYY"}}</p> --}}
+
+</div>
