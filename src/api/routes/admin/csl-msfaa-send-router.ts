@@ -106,12 +106,12 @@ cslMsfaaSendRouter.get(
           padEndToMax(col.initials, " ", 3) +
           padEndToMax(col.gender, " ", 1) +
           padEndToMax(col.marital_status, " ", 1) +
-          padEndToMax("", " ", 40) + // these are the mailing address fields which we aren't using
-          padEndToMax("", " ", 40) +
-          padEndToMax("", " ", 25) +
-          padEndToMax("", " ", 4) +
-          padEndToMax('', " ", 16) +
-          padEndToMax('', " ", 20) +
+          padEndToMax(col.home_address1, " ", 40) + // these are the mailing address fields which we aren't using
+          padEndToMax(col.home_address2, " ", 40) +
+          padEndToMax(col.home_city, " ", 25) +
+          padEndToMax(col.home_province, " ", 4) +
+          padEndToMax(col.home_postal_code, " ", 16) +
+          padEndToMax(col.home_country, " ", 20) +
           padStartToMax(v_home_phone, "0", 20) +
           padEndToMax(col.home_email, " ", 70) +
           padEndToMax(col.home_address1, " ", 40) +

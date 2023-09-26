@@ -197,6 +197,7 @@
               label="City"
               item-value="id"
               item-text="description"
+              autocomplete="null"
               :items="cityOptions"
               :value="student.permanentAddress?.city_id"
               @change="
@@ -223,6 +224,7 @@
               hide-details
               label="Province"
               :items="provinceOptions"
+              autocomplete="null"
               item-value="id"
               item-text="description"
               :value="student.permanentAddress?.province_id"
@@ -274,6 +276,7 @@
               hide-details
               label="Country"
               :items="countryOptions"
+              autocomplete="null"
               item-value="id"
               item-text="description"
               :value="student.permanentAddress?.country_id"
@@ -296,7 +299,7 @@
         </div>
       </v-card-text>
     </v-card>
-    
+
     <v-card class="default mb-5">
       <v-card-title>Mailing Address While at School</v-card-title>
       <v-card-text>
@@ -359,6 +362,7 @@
               item-value="id"
               item-text="description"
               :items="cityOptions"
+              autocomplete="null"
               :value="student.temporalAddress?.city_id"
               @change="
                 doSaveStudent(
@@ -384,6 +388,7 @@
               hide-details
               label="Province"
               :items="provinceOptions"
+              autocomplete="null"
               item-value="id"
               item-text="description"
               :value="student.temporalAddress?.province_id"
@@ -435,6 +440,7 @@
               hide-details
               label="Country"
               :items="countryOptions"
+              autocomplete="null"
               item-value="id"
               item-text="description"
               :value="student.temporalAddress?.country_id"

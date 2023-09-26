@@ -1,62 +1,59 @@
-<template>      
-    <div>
-      <v-breadcrumbs
-        divider="/"
-        large
-        :items="[
-          { text: 'Administration Home', to: '/administration', exact: true },
-          { 
-            text: 'CSL Entitlement Feedback',
-            to: '/administration/csl-entitlement-feedback',
-            exact: true,
-          },
-        ]"
-      >
-      </v-breadcrumbs>
-        
-      <h1>CSL Entitlement Feedback</h1>      
-      <v-card class="default mb-5">        
-      <v-card-text>
-        <div class="row"> 
+<template>
+  <div>
+    <v-breadcrumbs
+      divider="/"
+      large
+      :items="[
+        { text: 'Administration Home', to: '/administration', exact: true },
+        {
+          text: 'CSL Entitlement Feedback',
+          to: '/administration/csl-entitlement-feedback',
+          exact: true,
+        },
+      ]"
+    >
+    </v-breadcrumbs>
 
-        <div class="col-md-10">
-          <v-file-input       
-            ref="fileInput"           
-            multiple
-            truncate-length="15"
-            outlined
-            dense
-            background-color="white"
-            hide-details
-            label="Upload document"                  
-            v-model="documents"     
-            @change="uploadDoc()"                         
-          ></v-file-input>
-        </div> 
-        
-          
-        <div class="col-md-2">
-          <v-btn :disabled="disabled.flag" @click="importFile()" class="my-0" color="primary"><v-icon>mdi-plus</v-icon>Import</v-btn>                   
+    <h1>CSL Entitlement Feedback</h1>
+    <v-card class="default mb-5">
+      <v-card-text>
+        <div class="row">
+          <div class="col-md-10">
+            <v-file-input
+              ref="fileInput"
+              multiple
+              truncate-length="15"
+              outlined
+              dense
+              background-color="white"
+              hide-details
+              label="Upload document"
+              v-model="documents"
+              @change="uploadDoc()"
+            ></v-file-input>
+          </div>
+
+          <div class="col-md-2">
+            <v-btn :disabled="disabled.flag" @click="importFile()" class="my-0" color="primary"
+              ><v-icon>mdi-plus</v-icon>Import</v-btn
+            >
+          </div>
         </div>
-                       
-      </div>
       </v-card-text>
-  </v-card>
-  <modal :title="this.modalTitle" ref="modal">      
-    <p>{{ this.modalText }}</p>
-  </modal>     
-  <loading-animation :loading="isLoading.flag" />
+    </v-card>
+    <modal :title="this.modalTitle" ref="modal">
+      <p>{{ this.modalText }}</p>
+    </modal>
+    <loading-animation :loading="isLoading.flag" />
   </div>
 </template>
 
 <script>
-import store from "@/store";  
+import store from "@/store";
 import { mapState } from "vuex";
 import axios from "axios";
-import {
-  CSL_ENTITLEMENT_FEEDBACK 
-} from "../../../urls";
-import jsPDF from 'jspdf';
+import { CSL_ENTITLEMENT_FEEDBACK } from "../../../urls";
+import jsPDF from "jspdf";
 import Modal from "../../../components/commonCatalog/Modal.vue";
 import LoadingAnimation from "../../../components/commonCatalog/LoadingScreen.vue";
 import moment from "moment";
@@ -65,74 +62,72 @@ export default {
   data: () => ({
     from: {
       date: null,
-      menu: null
-      
+      menu: null,
     },
     to: {
       date: null,
-      menu: null
+      menu: null,
     },
-    seqNum: null,    
+    seqNum: null,
     tableData: null,
     batch: null,
     modalText: null,
     modalTitle: null,
-    disabled: {flag: false},
+    disabled: { flag: false },
     documents: null,
     statusDisabled: false,
     uploadedDoc: null,
     modalText: null,
     modalTitle: null,
-    disabled: {flag: true},
-    isLoading: {flag: false}, 
+    disabled: { flag: true },
+    isLoading: { flag: false },
     pdfData: null,
     seq: null,
-    date: null
+    date: null,
   }),
   components: {
     Modal,
-    LoadingAnimation
+    LoadingAnimation,
   },
   computed: {
-    ...mapState(["showSideBarAdmin"]),            
+    ...mapState(["showSideBarAdmin"]),
   },
   async mounted() {
-    await store.dispatch("setAppSideBarAdmin", this.$route.path.startsWith("/administration"));      
+    await store.dispatch("setAppSideBarAdmin", this.$route.path.startsWith("/administration"));
   },
-  methods: {                   
+  methods: {
     openModal() {
       this.$refs.modal.openModal();
     },
-    async uploadDoc() {                     
-      this.statusDisabled = false;                               
-      this.uploadedDoc = event.target.files[0]; 
+    async uploadDoc() {
+      this.statusDisabled = false;
+      this.uploadedDoc = event.target.files[0];
       let enableButton = false;
-      this.disabled.flag = enableButton;                  
+      this.disabled.flag = enableButton;
     },
     async importFile() {
-      const formData = new FormData();  
-      formData.append('file', this.uploadedDoc);      
-      let resInsert = await axios.post(CSL_ENTITLEMENT_FEEDBACK + `/${this.uploadedDoc.name}`, formData );   
-      console.log(resInsert)
+      const formData = new FormData();
+      formData.append("file", this.uploadedDoc);
+      let resInsert = await axios.post(CSL_ENTITLEMENT_FEEDBACK + `/${this.uploadedDoc.name}`, formData);
+      console.log(resInsert);
       this.seq = resInsert.data.seq;
-      this.date = resInsert.data.date;      
-      if(resInsert.data.flag === 0) {
+      this.date = resInsert.data.date;
+      if (resInsert.data.flag === 0) {
         this.$emit("showError", resInsert.data.data);
       } else {
         this.$emit("showSuccess", resInsert.data.data);
-        this.pdfData =  resInsert.data.tableData;        
+        this.pdfData = resInsert.data.tableData;
         this.generatePDF();
       }
     },
 
-    async generatePDF() {                   
-      const doc = new jsPDF();        
-      const formatter = new Intl.NumberFormat('en-US', {
-        style: 'currency',
-        currency: 'USD',
-      });      
+    async generatePDF() {
+      const doc = new jsPDF();
+      const formatter = new Intl.NumberFormat("en-US", {
+        style: "currency",
+        currency: "USD",
+      });
 
-            
       let htmlTop = `<div style="width: 190px">
   <header
     style="
@@ -177,7 +172,9 @@ export default {
   />
 
   <div style="display: flex; margin-bottom: 2px;">
-    <p style="font-size: 3px; padding: 0 8px; margin-bottom: 3px">ECert File Received Date: ${this.date ? moment(this.date).format('YYYY-MM-DD') : ""}</p>
+    <p style="font-size: 3px; padding: 0 8px; margin-bottom: 3px">ECert File Received Date: ${
+      this.date ? moment(this.date).format("YYYY-MM-DD") : ""
+    }</p>
     <p style="font-size: 3px; padding: 0 8px;">ECert Seq:  ${Number(this.seq) ? Number(this.seq) : ""}</p>
   </div>
   <table style="font-size: 3px; margin: 0 8px;"
@@ -193,60 +190,56 @@ export default {
     </thead>
 `;
 
-
       let dataColumns = "";
       let idx = 0;
-          
-      if(this.pdfData) {
-        for(let col of this.pdfData) {             
-          dataColumns += "<tr style='text-align: center;'>"
-          dataColumns += "<td>"
-            dataColumns += col.sin ? col.sin : "";
-          dataColumns += "</td>"
 
-          dataColumns += "<td>"
+      if (this.pdfData) {
+        for (let col of this.pdfData) {
+          dataColumns += "<tr style='text-align: center;'>";
+          dataColumns += "<td>";
+          dataColumns += col.sin ? col.sin : "";
+          dataColumns += "</td>";
+
+          dataColumns += "<td>";
           dataColumns += col.certificate_number ? col.certificate_number : "";
-          dataColumns += "</td>"
+          dataColumns += "</td>";
 
-          dataColumns += "<td>"
+          dataColumns += "<td>";
           dataColumns += col.student_name ? col.student_name : "";
-          dataColumns += "</td>"
+          dataColumns += "</td>";
 
-          dataColumns += "<td>"
+          dataColumns += "<td>";
           dataColumns += col.ecert_status ? col.ecert_status : "";
-          dataColumns += "</td>"
+          dataColumns += "</td>";
 
-          dataColumns += "<td>"          
+          dataColumns += "<td>";
           dataColumns += col.ecert_sent_date ? col.ecert_sent_date : "";
-          dataColumns += "</td>"
+          dataColumns += "</td>";
 
-          dataColumns += "<td>"
+          dataColumns += "<td>";
           dataColumns += col.error_message ? col.error_message : "";
-          dataColumns += "</td>"      
-                  
-        dataColumns += "</tr>"                              
-      }      
+          dataColumns += "</td>";
+
+          dataColumns += "</tr>";
+        }
       }
-      
-      
-      
+
       let htmlBottom = `
       </table>
-      </div>`
+      </div>`;
 
       console.log("----", this.date);
       let finalHTML = htmlTop + dataColumns + htmlBottom;
-      let fileName = `${this.date ? moment(this.date).format('YYYY-MM-DD') : ""} MSFAA_RECEIVED_RPT`;
+      let fileName = `${this.date ? moment(this.date).format("YYYY-MM-DD") : ""} MSFAA_RECEIVED_RPT`;
 
       doc.html(finalHTML, {
-        callback: function (doc) {      
+        callback: function(doc) {
           doc.save(fileName);
-      },
-      x: 10,
-      y: 10
-      }); 
-    },   
+        },
+        x: 10,
+        y: 10,
+      });
+    },
   },
-   
 };
 </script>
