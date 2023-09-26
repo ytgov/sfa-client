@@ -17,8 +17,8 @@
     <h1>CSL Certificate Export</h1>
     <v-card class="default mb-5">
       <v-card-text>
-        <div class="row">
-          <div class="col-md-5">
+        <v-row>
+          <v-col>
             <v-menu
               :close-on-content-click="false"
               transition="scale-transition"
@@ -30,9 +30,8 @@
             >
               <template v-slot:activator="{ on, attrs }">
                 <v-text-field
-                  label="Date"
+                  label="Date from"
                   append-icon="mdi-calendar"
-                  hide-details
                   readonly
                   outlined
                   dense
@@ -44,9 +43,7 @@
               </template>
               <v-date-picker v-model="from.date" @input="from.menu = false" @change="checkFilled()"></v-date-picker>
             </v-menu>
-          </div>
 
-          <div class="col-md-5">
             <v-menu
               :close-on-content-click="false"
               transition="scale-transition"
@@ -58,7 +55,7 @@
             >
               <template v-slot:activator="{ on, attrs }">
                 <v-text-field
-                  label="Date"
+                  label="Date to"
                   append-icon="mdi-calendar"
                   hide-details
                   readonly
@@ -72,20 +69,39 @@
               </template>
               <v-date-picker v-model="to.date" @input="to.menu = false" @change="checkFilled()"></v-date-picker>
             </v-menu>
-          </div>
+          </v-col>
+          <v-col>
+            <div class="text-right">
+              <v-btn-toggle v-model="icon">
+                <v-btn
+                  :disabled="disabled.flag"
+                  class="my-0"
+                  style="height: 40px; border-color: #9e9e9e !important; padding-right: 14px !important"
+                  @click="generateReport(1)"
+                  title="Preview"
+                >
+                  <span class="hidden-sm-and-down" style="color: #0097a9">Preview</span>
 
-          <div class="col-md-1">
-            <v-btn :disabled="disabled.flag" @click="generateReport(0)" class="my-0" color="primary"
-              ><v-icon>mdi-plus</v-icon>Export</v-btn
-            >
-          </div>
+                  <v-icon right color="primary">
+                    mdi-eye
+                  </v-icon>
+                </v-btn>
 
-          <div class="col-md-1">
-            <v-btn :disabled="disabled.flag" @click="generateReport(1)" class="my-0" color="primary"
-              ><v-icon style="margin-right: 2px;">mdi-eye</v-icon>Preview</v-btn
-            >
-          </div>
-        </div>
+                <v-btn
+                  :disabled="disabled.flag"
+                  style="height: 40px; border-color: #9e9e9e !important; padding-right: 14px !important"
+                  @click="generateReport(0)"
+                  title="Download PDF"
+                >
+                  <span class="hidden-sm-and-down text-primary" style="color: #0097a9">Download</span>
+                  <v-icon right color="primary">
+                    mdi-download
+                  </v-icon>
+                </v-btn>
+              </v-btn-toggle>
+            </div>
+          </v-col>
+        </v-row>
       </v-card-text>
     </v-card>
 
@@ -98,6 +114,7 @@
 
 <script>
 import store from "@/store";
+import Vue from "vue";
 import { mapState } from "vuex";
 import axios from "axios";
 import { CSL_CERTIFICATE_EXPORT } from "../../../urls";
@@ -109,6 +126,7 @@ import moment from "moment";
 export default {
   name: "OfficerList",
   data: () => ({
+    icon: "",
     from: {
       date: null,
       menu: null,
@@ -143,6 +161,10 @@ export default {
     },
 
     async generateReport(isPreview) {
+      Vue.nextTick(() => {
+        this.icon = "99"; // no toggle
+      });
+
       if (this.from.date === "" || this.from.date === null || this.to.date === "" || this.to.date === null) {
         this.modalTitle = "Error";
         this.modalText = "Please fill in all the fields";
