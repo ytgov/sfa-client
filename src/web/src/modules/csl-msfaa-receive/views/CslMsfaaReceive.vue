@@ -5,7 +5,7 @@
       large
       :items="[
         { text: 'Administration Home', to: '/administration', exact: true },
-        { 
+        {
           text: 'CSL MSFAA Receive',
           to: '/administration/csl-msfaa-receive',
           exact: true,
@@ -13,51 +13,53 @@
       ]"
     >
     </v-breadcrumbs>
-      
+
     <h1>CSL MSFAA Receive</h1>
 
-    <v-card class="default mb-5">        
+    <v-card class="default mb-5">
       <v-card-text>
-        <div class="row"> 
-
-        <div class="col-md-10">
-          <v-file-input       
-            ref="fileInput"           
-            multiple
-            truncate-length="15"
-            outlined
-            dense
-            background-color="white"
-            hide-details
-            label="Upload document"                  
-            v-model="documents"     
-            @change="uploadDoc()"                         
-          ></v-file-input>
-        </div> 
-        
-          
-        <div class="col-md-2">
-          <v-btn :disabled="disabled.flag" @click="importFile()" class="my-0" color="primary"><v-icon>mdi-plus</v-icon>Import</v-btn>                   
-        </div>
-                       
-      </div>
+        <v-row>
+          <v-col cols="12" class="d-flex">
+            <v-file-input
+              ref="fileInput"
+              truncate-length="15"
+              outlined
+              dense
+              background-color="white"
+              hide-details
+              label="Select document"
+              v-model="documents"
+              @change="uploadDoc()"
+            />
+            <div class="text-right">
+              <v-btn
+                :disabled="disabled.flag"
+                @click="importFile()"
+                class="my-0 ml-4"
+                color="primary"
+                elevation="0"
+                style="height: 40px"
+              >
+                Upload</v-btn
+              >
+            </div>
+          </v-col>
+        </v-row>
       </v-card-text>
-  </v-card>
-  <modal :title="this.modalTitle" ref="modal">      
-    <p>{{ this.modalText }}</p>
-  </modal>     
-  <loading-animation :loading="isLoading.flag" />
+    </v-card>
+    <modal :title="this.modalTitle" ref="modal">
+      <p>{{ this.modalText }}</p>
+    </modal>
+    <loading-animation :loading="isLoading.flag" />
   </div>
 </template>
 
 <script>
-import store from "@/store";  
+import store from "@/store";
 import { mapState } from "vuex";
 import axios from "axios";
-import {
-  CSL_MSFAA_RECEIVE 
-} from "../../../urls";
-import jsPDF from 'jspdf';
+import { CSL_MSFAA_RECEIVE } from "../../../urls";
+import jsPDF from "jspdf";
 import Modal from "../../../components/commonCatalog/Modal.vue";
 import LoadingAnimation from "../../../components/commonCatalog/LoadingScreen.vue";
 import moment from "moment";
@@ -66,99 +68,97 @@ export default {
   data: () => ({
     from: {
       date: null,
-      menu: null
-      
+      menu: null,
     },
     to: {
       date: null,
-      menu: null
+      menu: null,
     },
-    seqNum: null,    
+    seqNum: null,
     tableData: null,
     batch: null,
     modalText: null,
     modalTitle: null,
-    disabled: {flag: false},
+    disabled: { flag: false },
     documents: null,
     statusDisabled: false,
     uploadedDoc: null,
     modalText: null,
     modalTitle: null,
-    disabled: {flag: true},
-    isLoading: {flag: false}, 
+    disabled: { flag: true },
+    isLoading: { flag: false },
     pdfData: null,
     seq: null,
-    date: null
+    date: null,
   }),
   components: {
     Modal,
-    LoadingAnimation
+    LoadingAnimation,
   },
   computed: {
-    ...mapState(["showSideBarAdmin"]),            
+    ...mapState(["showSideBarAdmin"]),
   },
   async mounted() {
-    await store.dispatch("setAppSideBarAdmin", this.$route.path.startsWith("/administration"));      
+    await store.dispatch("setAppSideBarAdmin", this.$route.path.startsWith("/administration"));
   },
-  methods: {                   
+  methods: {
     openModal() {
       this.$refs.modal.openModal();
     },
-    async uploadDoc() {                     
-      this.statusDisabled = false;                               
-      this.uploadedDoc = event.target.files[0]; 
+    async uploadDoc() {
+      this.statusDisabled = false;
+      this.uploadedDoc = event.target.files;
       let enableButton = false;
-      this.disabled.flag = enableButton;                  
+      this.disabled.flag = enableButton;
     },
     async importFile() {
-      const formData = new FormData();  
-      formData.append('file', this.uploadedDoc);      
-      let resInsert = await axios.post(CSL_MSFAA_RECEIVE + `/${this.uploadedDoc.name}`, formData );    
-      if(resInsert.data.flag === 1) {        
-        this.$emit("showSuccess", resInsert.data.data);         
+      const formData = new FormData();
+      formData.append("file", this.uploadedDoc);
+      let resInsert = await axios.post(CSL_MSFAA_RECEIVE + `/${this.uploadedDoc.name}`, formData);
+      if (resInsert.data.flag === 1) {
+        this.$emit("showSuccess", resInsert.data.data);
         this.seq = resInsert.data.seq;
         this.date = resInsert.data.date;
-        let resInsert2 = await axios.put(CSL_MSFAA_RECEIVE + `/`);            
-        let newFlag = {flag:true}     
-        this.isLoading = newFlag; 
-        if(resInsert2.data.flag === 1) {          
+        let resInsert2 = await axios.put(CSL_MSFAA_RECEIVE + `/`);
+        let newFlag = { flag: true };
+        this.isLoading = newFlag;
+        if (resInsert2.data.flag === 1) {
           this.modalTitle = "Success";
           this.modalText = resInsert2.data.data;
-          this.openModal();  
-          this.pdfData = await axios.get(CSL_MSFAA_RECEIVE + `/`);    
-          this.generatePDF();          
+          this.openModal();
+          this.pdfData = await axios.get(CSL_MSFAA_RECEIVE + `/`);
+          this.generatePDF();
           let emptyDoc = null;
           this.documents = emptyDoc;
           let disableButton = true;
-          this.disabled.flag = disableButton;      
-          let newFlag = {flag:false}     
-          this.isLoading = newFlag;       
+          this.disabled.flag = disableButton;
+          let newFlag = { flag: false };
+          this.isLoading = newFlag;
         } else {
           let emptyDoc = null;
           this.documents = emptyDoc;
           let disableButton = true;
-          this.disabled.flag = disableButton;     
-          this.$emit("showError", resInsert2.data.data); 
-          let newFlag = {flag:false}     
-          this.isLoading = newFlag; 
+          this.disabled.flag = disableButton;
+          this.$emit("showError", resInsert2.data.data);
+          let newFlag = { flag: false };
+          this.isLoading = newFlag;
         }
       } else {
         let emptyDoc = null;
         this.documents = emptyDoc;
         let disableButton = true;
-        this.disabled.flag = disableButton;     
-        this.$emit("showError", resInsert.data.data);   
-    }
+        this.disabled.flag = disableButton;
+        this.$emit("showError", resInsert.data.data);
+      }
     },
 
-    async generatePDF() {                   
-      const doc = new jsPDF();        
-      const formatter = new Intl.NumberFormat('en-US', {
-        style: 'currency',
-        currency: 'USD',
-      });      
+    async generatePDF() {
+      const doc = new jsPDF();
+      const formatter = new Intl.NumberFormat("en-US", {
+        style: "currency",
+        currency: "USD",
+      });
 
-            
       let htmlTop = `<div style="width: 190px">
   <header
     style="
@@ -222,65 +222,63 @@ export default {
     </thead>
 `;
 
-
       let dataColumns = "";
       let idx = 0;
-          
-      for(let col of this.pdfData.data.data) {             
-          dataColumns += "<tr style='text-align: center;'>"
-          dataColumns += "<td>"
-            dataColumns += col.sin ? col.sin : "";
-          dataColumns += "</td>"
 
-          dataColumns += "<td>"
-          dataColumns += col.agreement_number ? col.agreement_number : "";
-          dataColumns += "</td>"
+      for (let col of this.pdfData.data.data) {
+        dataColumns += "<tr style='text-align: center;'>";
+        dataColumns += "<td>";
+        dataColumns += col.sin ? col.sin : "";
+        dataColumns += "</td>";
 
-          dataColumns += "<td>"
-          dataColumns += col.student_name ? col.student_name : "";
-          dataColumns += "</td>"
+        dataColumns += "<td>";
+        dataColumns += col.agreement_number ? col.agreement_number : "";
+        dataColumns += "</td>";
 
-          dataColumns += "<td>"
-          dataColumns += col.status_code ? col.status_code : "";
-          dataColumns += "</td>"
+        dataColumns += "<td>";
+        dataColumns += col.student_name ? col.student_name : "";
+        dataColumns += "</td>";
 
-          dataColumns += "<td>"          
-          dataColumns += col.borrower_signed_date ? col.borrower_signed_date : "";
-          dataColumns += "</td>"
+        dataColumns += "<td>";
+        dataColumns += col.status_code ? col.status_code : "";
+        dataColumns += "</td>";
 
-          dataColumns += "<td>"
-          dataColumns += col.sp_received_date ? col.sp_received_date : "";
-          dataColumns += "</td>"      
-          
-          dataColumns += "<td>"
-          dataColumns += col.cancel_date ? col.cancel_date : "";
-          dataColumns += "</td>"  
+        dataColumns += "<td>";
+        dataColumns += col.borrower_signed_date ? col.borrower_signed_date : "";
+        dataColumns += "</td>";
 
-          dataColumns += "<td>"
-          dataColumns += col.new_issue_prov ? col.new_issue_prov : "";
-          dataColumns += "</td>"  
+        dataColumns += "<td>";
+        dataColumns += col.sp_received_date ? col.sp_received_date : "";
+        dataColumns += "</td>";
 
-          dataColumns += "<td>"
-          dataColumns += col.error_message ? col.error_message : "";
-          dataColumns += "</td>"  
-        dataColumns += "</tr>"                              
-      }      
-      
+        dataColumns += "<td>";
+        dataColumns += col.cancel_date ? col.cancel_date : "";
+        dataColumns += "</td>";
+
+        dataColumns += "<td>";
+        dataColumns += col.new_issue_prov ? col.new_issue_prov : "";
+        dataColumns += "</td>";
+
+        dataColumns += "<td>";
+        dataColumns += col.error_message ? col.error_message : "";
+        dataColumns += "</td>";
+        dataColumns += "</tr>";
+      }
+
       let htmlBottom = `
       </table>
-      </div>`
+      </div>`;
 
       let finalHTML = htmlTop + dataColumns + htmlBottom;
-      let fileName = `${moment(this.date, 'YYYY-MMM-DD').format('YYYY-MM-DD')} MSFAA_RECEIVED_RPT`;
+      let fileName = `${moment(this.date, "YYYY-MMM-DD").format("YYYY-MM-DD")} MSFAA_RECEIVED_RPT`;
       doc.html(finalHTML, {
-        callback: function (doc) {      
+        callback: function(doc) {
           doc.save(fileName);
-      },
-      x: 10,
-      y: 10
-      }); 
-    },   
+        },
+        x: 10,
+        y: 10,
+      });
+    },
   },
-   
 };
 </script>

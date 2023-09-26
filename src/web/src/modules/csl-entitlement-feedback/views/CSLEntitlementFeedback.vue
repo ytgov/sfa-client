@@ -17,8 +17,8 @@
     <h1>CSL Entitlement Feedback</h1>
     <v-card class="default mb-5">
       <v-card-text>
-        <div class="row">
-          <div class="col-md-10">
+        <v-row>
+          <v-col class="d-flex">
             <v-file-input
               ref="fileInput"
               multiple
@@ -27,18 +27,18 @@
               dense
               background-color="white"
               hide-details
-              label="Upload document"
+              label="Select document"
               v-model="documents"
               @change="uploadDoc()"
-            ></v-file-input>
-          </div>
+            />
 
-          <div class="col-md-2">
-            <v-btn :disabled="disabled.flag" @click="importFile()" class="my-0" color="primary"
-              ><v-icon>mdi-plus</v-icon>Import</v-btn
-            >
-          </div>
-        </div>
+            <div class="text-right ml-4">
+              <v-btn :disabled="disabled.flag" @click="importFile()" class="my-0" color="primary" style="height: 40px"
+                >Upload</v-btn
+              >
+            </div>
+          </v-col>
+        </v-row>
       </v-card-text>
     </v-card>
     <modal :title="this.modalTitle" ref="modal">

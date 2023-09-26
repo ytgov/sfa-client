@@ -16,31 +16,32 @@
     <h1>CSL Restricted Data</h1>
     <v-card class="default mb-5">
       <v-card-text>
-        <div class="row">
-          <div class="col-md-10">
+        <v-row>
+          <v-col cols="12" class="d-flex">
             <v-file-input
               v-model="files"
-              label="File"
+              label="Select document"
               hide-details
               outlined
               dense
               background-color="white"
-            ></v-file-input>
-          </div>
+            />
 
-          <div class="col-md-2">
-            <v-btn :disabled="!files" class="my-0" color="primary" @click="loadFile">
+            <v-btn :disabled="!files" class="my-0 ml-4" color="primary" style="height: 40px" @click="loadFile">
               Update
             </v-btn>
+          </v-col>
+
+          <v-col>
             <div v-if="total == 0" class="text-body-1">
               <p>
                 <strong>NOTE:</strong> before clicking UPDATE, please verify that the process has not run today, this
                 process can take up to 30 minutes.
               </p>
             </div>
-          </div>
-          <div class="text-body-1"><strong>COUNT:</strong> {{ total }}</div>
-        </div>
+            <div class="text-body-1"><strong>COUNT:</strong> {{ total }}</div>
+          </v-col>
+        </v-row>
       </v-card-text>
     </v-card>
 
@@ -62,7 +63,7 @@ export default {
   name: "ChequeReqList",
   data: () => ({
     issueDate: "",
-    total: 0,
+    total: null,
     files: null,
     reRunBatch: "",
     issue_date_calendar: false,

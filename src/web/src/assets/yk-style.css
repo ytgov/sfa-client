@@ -29,10 +29,10 @@ a {
 .v-main .v-btn,
 .v-dialog__content .v-btn {
   text-transform: none;
-  color: #ffffff;
+  /*  color: #ffffff; */
   /* border: 1px #000 solid !important; */
+  /* margin: 15px 0; */
   text-decoration: none;
-  margin: 15px 0;
   box-shadow: none;
   font-size: 16px;
   font-weight: 400;
