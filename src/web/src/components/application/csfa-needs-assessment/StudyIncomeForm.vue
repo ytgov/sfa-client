@@ -2,7 +2,7 @@
   <div>
     <v-card class="default mb-5">
       <v-card-text>
-        <h3>Study Income</h3>
+        <h3 class="text-h6 font-weight-regular">Study income</h3>
 
         <div class="row" v-for="(item, i) of application?.incomes" :key="i">
           <div class="col-md-4">
@@ -121,8 +121,10 @@
             </div>
           </div>
         </div>
+        <div class="mt-3">
         <v-btn color="info" v-if="!showAdd" @click="showAdd = true">Add income</v-btn>
         <v-btn color="info" v-else @click="setShowAdd()">Cancel</v-btn>
+      </div>
       </v-card-text>
     </v-card>
 

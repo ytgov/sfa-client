@@ -1,363 +1,372 @@
 <template>
   <div>
     <h3 class="text-h5 font-weight-regular mb-5">Student’s Dependents</h3>
-    <v-card class="default row mb-5" v-for="(dependent, index) in filterList" :key="index">
-      <div class="col-md-6">
-        <h3 class="text-h6 font-weight-regular">Dependent {{ index + 1 }}</h3>
-      </div>
-      <div class="col-md-6">
-        <v-row>
-          <div class="col-md-6">
-            <v-btn
-              :disabled="showAdd"
-              block
-              color="error"
-              @click="removeRecord(dependent.d_id, dependent.de_id)"
-              class="my-0"
-              >Remove dependent</v-btn
-            >
-          </div>
-          <div class="col-md-6">
-            <v-btn :disabled="showAdd" block color="success" class="my-0" @click="showPDF(dependent)">View BCERT</v-btn>
-          </div>
-        </v-row>
-      </div>
+    <v-card class="default mb-5" v-for="(dependent, index) in filterList" :key="index">
+      <v-card-text class="row">
+        <div class="col-md-6">
+          <h3 class="text-h6 font-weight-regular">Dependent {{ index + 1 }}</h3>
+        </div>
+        <div class="col-md-6">
+          <v-row>
+            <div class="col-md-6">
+              <v-btn
+                :disabled="showAdd"
+                block
+                color="error"
+                @click="removeRecord(dependent.d_id, dependent.de_id)"
+                class="my-0"
+                >Remove dependent</v-btn
+              >
+            </div>
+            <div class="col-md-6">
+              <v-btn :disabled="showAdd" block color="success" class="my-0" @click="showPDF(dependent)"
+                >View BCERT</v-btn
+              >
+            </div>
+          </v-row>
+        </div>
 
-      <div class="col-md-3">
-        <v-text-field
-          :disabled="showAdd"
-          outlined
-          dense
-          background-color="white"
-          hide-details
-          label="Last name"
-          oninput="
-                        if (this.value.length > 100) this.value = this.value?.slice(0, 10);
-                        const arr = this.value.split(' ');
-
-
-                        for (var i = 0; i < arr.length; i++) {
-                            arr[i] = arr[i].charAt(0).toUpperCase() + arr[i]?.slice(1);
-
-                        }
-
-                        this.value = arr.join(' ');
-                    "
-          @change="updateDependent(dependent.d_id, { last_name: dependent.last_name }, 'dependent')"
-          v-model="dependent.last_name"
-        >
-        </v-text-field>
-      </div>
-      <div class="col-md-3">
-        <v-text-field
-          :disabled="showAdd"
-          outlined
-          dense
-          background-color="white"
-          hide-details
-          label="First name"
-          oninput="
-                        if (this.value.length > 100) this.value = this.value?.slice(0, 10);
-                        const arr = this.value.split(' ');
-
-
-                        for (var i = 0; i < arr.length; i++) {
-                            arr[i] = arr[i].charAt(0).toUpperCase() + arr[i]?.slice(1);
-
-                        }
-
-                        this.value = arr.join(' ');
-                    "
-          @change="updateDependent(dependent.d_id, { first_name: dependent.first_name }, 'dependent')"
-          v-model="dependent.first_name"
-        >
-        </v-text-field>
-      </div>
-      <div class="col-md-2">
-        <v-menu
-          :disabled="showAdd"
-          v-model="dependent.show_menu"
-          :close-on-content-click="false"
-          transition="scale-transition"
-          left
-          nudge-top="26"
-          offset-y
-          min-width="auto"
-        >
-          <template v-slot:activator="{ on, attrs }">
-            <v-text-field
-              :disabled="showAdd"
-              label="Birth date"
-              append-icon="mdi-calendar"
-              readonly
-              :value="dependent.birth_date?.slice(0, 10)"
-              outlined
-              dense
-              background-color="white"
-              v-bind="attrs"
-              v-on="on"
-            ></v-text-field>
-          </template>
-          <v-date-picker
-            :value="dependent.birth_date?.slice(0, 10)"
-            @input="
-              (e) => {
-                dependent.birth_date = e;
-                dependent.show_menu = false;
-              }
-            "
-            @change="updateDependent(dependent.d_id, { birth_date: dependent.birth_date }, 'dependent')"
+        <div class="col-md-3">
+          <v-text-field
             :disabled="showAdd"
+            outlined
+            dense
+            background-color="white"
+            hide-details
+            label="Last name"
+            oninput="
+                        if (this.value.length > 100) this.value = this.value?.slice(0, 10);
+                        const arr = this.value.split(' ');
+
+
+                        for (var i = 0; i < arr.length; i++) {
+                            arr[i] = arr[i].charAt(0).toUpperCase() + arr[i]?.slice(1);
+
+                        }
+
+                        this.value = arr.join(' ');
+                    "
+            @change="updateDependent(dependent.d_id, { last_name: dependent.last_name }, 'dependent')"
+            v-model="dependent.last_name"
           >
-          </v-date-picker>
-        </v-menu>
-      </div>
-      <div class="col-md-2 d-flex">
-        <h3 class="text-subtitle-1 mt-1 mr-2">Age</h3>
-        <v-text-field
-          disabled
-          outlined
-          dense
-          background-color="white"
-          :value="moment().diff(dependent.birth_date, 'years') || 0"
-          hide-details
-          label="Age"
-        >
-        </v-text-field>
-      </div>
-      <div class="col-md-2">
-        <v-autocomplete
-          :disabled="showAdd"
-          outlined
-          dense
-          background-color="white"
-          hide-details
-          label="Relationship"
-          @change="updateDependent(dependent.d_id, { relationship_id: dependent.relationship_id }, 'dependent')"
-          v-model="dependent.relationship_id"
-          :items="relationships"
-          item-text="description"
-          item-value="id"
-        >
-        </v-autocomplete>
-      </div>
+          </v-text-field>
+        </div>
+        <div class="col-md-3">
+          <v-text-field
+            :disabled="showAdd"
+            outlined
+            dense
+            background-color="white"
+            hide-details
+            label="First name"
+            oninput="
+                        if (this.value.length > 100) this.value = this.value?.slice(0, 10);
+                        const arr = this.value.split(' ');
 
-      <div class="col-md-4">
-        <v-switch
-          :disabled="showAdd"
-          class="my-n5"
-          label="Resides with"
-          v-model="dependent.resides_with_student"
-          @change="
-            updateDependent(dependent.de_id, { resides_with_student: dependent.resides_with_student }, 'd_eligibility')
-          "
-        >
-        </v-switch>
-      </div>
-      <div class="col-md-4">
-        <v-switch
-          :disabled="showAdd"
-          class="my-n5"
-          label="Shared custody"
-          v-model="dependent.is_shares_custody"
-          @change="
-            updateDependent(dependent.de_id, { is_shares_custody: dependent.is_shares_custody }, 'd_eligibility')
-          "
-        >
-        </v-switch>
-      </div>
-      <div class="col-md-4">
-        <v-switch
-          :disabled="showAdd"
-          class="my-n5"
-          label="In post-secondary"
-          v-model="dependent.is_post_secondary"
-          @change="
-            updateDependent(dependent.de_id, { is_post_secondary: dependent.is_post_secondary }, 'd_eligibility')
-          "
-        >
-        </v-switch>
-      </div>
 
-      <div class="col-md-4">
-        <v-switch
-          :disabled="showAdd"
-          class="my-n5"
-          label="STA eligible"
-          v-model="dependent.is_sta_eligible"
-          @change="toggle($event, 'is_sta_eligible', dependent.de_id, 'd_eligibility')"
-        >
-        </v-switch>
-      </div>
-      <div class="col-md-4">
-        <v-switch
-          :disabled="showAdd"
-          class="my-n5"
-          label="CSG eligible"
-          v-model="dependent.is_csg_eligible"
-          @change="toggle($event, 'is_csg_eligible', dependent.de_id, 'd_eligibility')"
-        >
-        </v-switch>
-      </div>
-      <div class="col-md-4">
-        <v-switch
-          :disabled="showAdd"
-          class="my-n5"
-          label="CSL eligible"
-          v-model="dependent.is_csl_eligible"
-          @change="toggle($event, 'is_csl_eligible', dependent.de_id, 'd_eligibility')"
-        >
-        </v-switch>
-      </div>
+                        for (var i = 0; i < arr.length; i++) {
+                            arr[i] = arr[i].charAt(0).toUpperCase() + arr[i]?.slice(1);
 
-      <div class="col-md-12">
-        <v-textarea
-          :disabled="showAdd"
-          outlined
-          rows="1"
-          dense
-          background-color="white"
-          hide-details
-          label="Comment"
-          v-model="dependent.comments"
-          @change="updateDependent(dependent.d_id, { comments: dependent.comments }, 'dependent')"
-        >
-        </v-textarea>
-      </div>
+                        }
+
+                        this.value = arr.join(' ');
+                    "
+            @change="updateDependent(dependent.d_id, { first_name: dependent.first_name }, 'dependent')"
+            v-model="dependent.first_name"
+          >
+          </v-text-field>
+        </div>
+        <div class="col-md-2">
+          <v-menu
+            :disabled="showAdd"
+            v-model="dependent.show_menu"
+            :close-on-content-click="false"
+            transition="scale-transition"
+            left
+            nudge-top="26"
+            offset-y
+            min-width="auto"
+          >
+            <template v-slot:activator="{ on, attrs }">
+              <v-text-field
+                :disabled="showAdd"
+                label="Birth date"
+                append-icon="mdi-calendar"
+                readonly
+                :value="dependent.birth_date?.slice(0, 10)"
+                outlined
+                dense
+                background-color="white"
+                v-bind="attrs"
+                v-on="on"
+              ></v-text-field>
+            </template>
+            <v-date-picker
+              :value="dependent.birth_date?.slice(0, 10)"
+              @input="
+                (e) => {
+                  dependent.birth_date = e;
+                  dependent.show_menu = false;
+                }
+              "
+              @change="updateDependent(dependent.d_id, { birth_date: dependent.birth_date }, 'dependent')"
+              :disabled="showAdd"
+            >
+            </v-date-picker>
+          </v-menu>
+        </div>
+        <div class="col-md-2 d-flex">
+          <h3 class="text-subtitle-1 mt-1 mr-2">Age</h3>
+          <v-text-field
+            disabled
+            outlined
+            dense
+            background-color="white"
+            :value="moment().diff(dependent.birth_date, 'years') || 0"
+            hide-details
+            label="Age"
+          >
+          </v-text-field>
+        </div>
+        <div class="col-md-2">
+          <v-autocomplete
+            :disabled="showAdd"
+            outlined
+            dense
+            background-color="white"
+            hide-details
+            label="Relationship"
+            @change="updateDependent(dependent.d_id, { relationship_id: dependent.relationship_id }, 'dependent')"
+            v-model="dependent.relationship_id"
+            :items="relationships"
+            item-text="description"
+            item-value="id"
+          >
+          </v-autocomplete>
+        </div>
+
+        <div class="col-md-4">
+          <v-switch
+            :disabled="showAdd"
+            class="my-n5"
+            label="Resides with"
+            v-model="dependent.resides_with_student"
+            @change="
+              updateDependent(
+                dependent.de_id,
+                { resides_with_student: dependent.resides_with_student },
+                'd_eligibility'
+              )
+            "
+          >
+          </v-switch>
+        </div>
+        <div class="col-md-4">
+          <v-switch
+            :disabled="showAdd"
+            class="my-n5"
+            label="Shared custody"
+            v-model="dependent.is_shares_custody"
+            @change="
+              updateDependent(dependent.de_id, { is_shares_custody: dependent.is_shares_custody }, 'd_eligibility')
+            "
+          >
+          </v-switch>
+        </div>
+        <div class="col-md-4">
+          <v-switch
+            :disabled="showAdd"
+            class="my-n5"
+            label="In post-secondary"
+            v-model="dependent.is_post_secondary"
+            @change="
+              updateDependent(dependent.de_id, { is_post_secondary: dependent.is_post_secondary }, 'd_eligibility')
+            "
+          >
+          </v-switch>
+        </div>
+
+        <div class="col-md-4">
+          <v-switch
+            :disabled="showAdd"
+            class="my-n5"
+            label="STA eligible"
+            v-model="dependent.is_sta_eligible"
+            @change="toggle($event, 'is_sta_eligible', dependent.de_id, 'd_eligibility')"
+          >
+          </v-switch>
+        </div>
+        <div class="col-md-4">
+          <v-switch
+            :disabled="showAdd"
+            class="my-n5"
+            label="CSG eligible"
+            v-model="dependent.is_csg_eligible"
+            @change="toggle($event, 'is_csg_eligible', dependent.de_id, 'd_eligibility')"
+          >
+          </v-switch>
+        </div>
+        <div class="col-md-4">
+          <v-switch
+            :disabled="showAdd"
+            class="my-n5"
+            label="CSL eligible"
+            v-model="dependent.is_csl_eligible"
+            @change="toggle($event, 'is_csl_eligible', dependent.de_id, 'd_eligibility')"
+          >
+          </v-switch>
+        </div>
+
+        <div class="col-md-12">
+          <v-textarea
+            :disabled="showAdd"
+            outlined
+            rows="1"
+            dense
+            background-color="white"
+            hide-details
+            label="Comment"
+            v-model="dependent.comments"
+            @change="updateDependent(dependent.d_id, { comments: dependent.comments }, 'dependent')"
+          >
+          </v-textarea></div
+      ></v-card-text>
     </v-card>
 
-    <v-card class="default row mb-5" v-if="showAdd">
-      <div class="col-md-6">
-        <h3 class="text-h6 font-weight-regular">Add Dependent</h3>
-      </div>
-      <div class="col-md-6">
-        <v-row>
-          <div class="col-md-6">
-            <v-btn @click="setClose" block color="error" class="my-0">Cancel</v-btn>
-          </div>
-          <div class="col-md-6">
-            <v-btn block color="success" class="my-0" @click="insertDependent">Add</v-btn>
-          </div>
-        </v-row>
-      </div>
+    <v-card class="default mb-5" v-if="showAdd">
+      <v-card-text class="row">
+        <div class="col-md-6">
+          <h3 class="text-h6 font-weight-regular">Add Dependent</h3>
+        </div>
+        <div class="col-md-6">
+          <v-row>
+            <div class="col-md-6">
+              <v-btn @click="setClose" block color="error" class="my-0">Cancel</v-btn>
+            </div>
+            <div class="col-md-6">
+              <v-btn block color="success" class="my-0" @click="insertDependent">Add</v-btn>
+            </div>
+          </v-row>
+        </div>
 
-      <div class="col-md-3">
-        <v-text-field
-          outlined
-          dense
-          background-color="white"
-          hide-details
-          label="Last name"
-          v-model="dependentData.last_name"
-        >
-        </v-text-field>
-      </div>
-      <div class="col-md-3">
-        <v-text-field
-          outlined
-          dense
-          background-color="white"
-          hide-details
-          label="First name"
-          v-model="dependentData.first_name"
-        >
-        </v-text-field>
-      </div>
-      <div class="col-md-2">
-        <v-menu
-          v-model="show_menu_add"
-          :close-on-content-click="false"
-          transition="scale-transition"
-          left
-          nudge-top="26"
-          offset-y
-          min-width="auto"
-        >
-          <template v-slot:activator="{ on, attrs }">
-            <v-text-field
-              label="Birth date"
-              append-icon="mdi-calendar"
-              v-model="dependentData.birth_date"
-              readonly
-              outlined
-              dense
-              background-color="white"
-              v-bind="attrs"
-              v-on="on"
-            ></v-text-field>
-          </template>
-          <v-date-picker
-            :value="dependentData.birth_date"
-            @input="
-              (e) => {
-                dependentData.birth_date = e;
-                show_menu_add = false;
-              }
-            "
+        <div class="col-md-3">
+          <v-text-field
+            outlined
+            dense
+            background-color="white"
+            hide-details
+            label="Last name"
+            v-model="dependentData.last_name"
           >
-          </v-date-picker>
-        </v-menu>
-      </div>
-      <div class="col-md-2 d-flex">
-        <h3 class="text-subtitle-1 mt-1 mr-2">Age</h3>
-        <v-text-field
-          disabled
-          outlined
-          dense
-          background-color="white"
-          hide-details
-          label="Age"
-          :value="moment().diff(dependentData.birth_date, 'years') || 0"
-        >
-        </v-text-field>
-      </div>
-      <div class="col-md-2">
-        <v-autocomplete
-          outlined
-          dense
-          background-color="white"
-          hide-details
-          label="Relationship"
-          v-model="dependentData.relationship_id"
-          :items="relationships"
-          item-text="description"
-          item-value="id"
-        >
-        </v-autocomplete>
-      </div>
+          </v-text-field>
+        </div>
+        <div class="col-md-3">
+          <v-text-field
+            outlined
+            dense
+            background-color="white"
+            hide-details
+            label="First name"
+            v-model="dependentData.first_name"
+          >
+          </v-text-field>
+        </div>
+        <div class="col-md-2">
+          <v-menu
+            v-model="show_menu_add"
+            :close-on-content-click="false"
+            transition="scale-transition"
+            left
+            nudge-top="26"
+            offset-y
+            min-width="auto"
+          >
+            <template v-slot:activator="{ on, attrs }">
+              <v-text-field
+                label="Birth date"
+                append-icon="mdi-calendar"
+                v-model="dependentData.birth_date"
+                readonly
+                outlined
+                dense
+                background-color="white"
+                v-bind="attrs"
+                v-on="on"
+              ></v-text-field>
+            </template>
+            <v-date-picker
+              :value="dependentData.birth_date"
+              @input="
+                (e) => {
+                  dependentData.birth_date = e;
+                  show_menu_add = false;
+                }
+              "
+            >
+            </v-date-picker>
+          </v-menu>
+        </div>
+        <div class="col-md-2 d-flex">
+          <h3 class="text-subtitle-1 mt-1 mr-2">Age</h3>
+          <v-text-field
+            disabled
+            outlined
+            dense
+            background-color="white"
+            hide-details
+            label="Age"
+            :value="moment().diff(dependentData.birth_date, 'years') || 0"
+          >
+          </v-text-field>
+        </div>
+        <div class="col-md-2">
+          <v-autocomplete
+            outlined
+            dense
+            background-color="white"
+            hide-details
+            label="Relationship"
+            v-model="dependentData.relationship_id"
+            :items="relationships"
+            item-text="description"
+            item-value="id"
+          >
+          </v-autocomplete>
+        </div>
 
-      <div class="col-md-4">
-        <v-switch class="my-n5" label="Resides with" v-model="dEligibilityData.resides_with_student"> </v-switch>
-      </div>
-      <div class="col-md-4">
-        <v-switch class="my-n5" label="Shared custody" v-model="dEligibilityData.is_shares_custody"> </v-switch>
-      </div>
-      <div class="col-md-4">
-        <v-switch class="my-n5" label="In post-secondary" v-model="dEligibilityData.is_post_secondary"> </v-switch>
-      </div>
+        <div class="col-md-4">
+          <v-switch class="my-n5" label="Resides with" v-model="dEligibilityData.resides_with_student"> </v-switch>
+        </div>
+        <div class="col-md-4">
+          <v-switch class="my-n5" label="Shared custody" v-model="dEligibilityData.is_shares_custody"> </v-switch>
+        </div>
+        <div class="col-md-4">
+          <v-switch class="my-n5" label="In post-secondary" v-model="dEligibilityData.is_post_secondary"> </v-switch>
+        </div>
 
-      <div class="col-md-4">
-        <v-switch class="my-n5" label="STA eligible"> </v-switch>
-      </div>
-      <div class="col-md-4">
-        <v-switch class="my-n5" label="CSG eligible" v-model="dEligibilityData.is_csg_eligible"> </v-switch>
-      </div>
-      <div class="col-md-4">
-        <v-switch class="my-n5" label="CSL eligible" v-model="dEligibilityData.is_csl_eligible"> </v-switch>
-      </div>
+        <div class="col-md-4">
+          <v-switch class="my-n5" label="STA eligible"> </v-switch>
+        </div>
+        <div class="col-md-4">
+          <v-switch class="my-n5" label="CSG eligible" v-model="dEligibilityData.is_csg_eligible"> </v-switch>
+        </div>
+        <div class="col-md-4">
+          <v-switch class="my-n5" label="CSL eligible" v-model="dEligibilityData.is_csl_eligible"> </v-switch>
+        </div>
 
-      <div class="col-md-12">
-        <v-textarea
-          outlined
-          rows="1"
-          dense
-          background-color="white"
-          hide-details
-          label="Comment"
-          v-model="dependentData.comments"
-        >
-        </v-textarea>
-      </div>
+        <div class="col-md-12">
+          <v-textarea
+            outlined
+            rows="1"
+            dense
+            background-color="white"
+            hide-details
+            label="Comment"
+            v-model="dependentData.comments"
+          >
+          </v-textarea>
+        </div>
+      </v-card-text>
     </v-card>
 
     <v-btn color="primary" @click="setClose" v-if="!showAdd">

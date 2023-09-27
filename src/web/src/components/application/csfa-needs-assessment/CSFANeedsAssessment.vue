@@ -9,7 +9,7 @@
         <v-tab key="3">SCREENING</v-tab>
       </v-tabs>
   
-      <v-tabs-items v-model="tab" style="padding: 20px">
+      <v-tabs-items v-model="tab" style="padding: 20px 0">
   
         <v-tab-item key="0">
           <AccommodationForm

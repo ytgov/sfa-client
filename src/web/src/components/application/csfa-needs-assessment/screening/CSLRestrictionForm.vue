@@ -1,8 +1,8 @@
 <template>
   <div>
     <v-card class="default">
-      <v-card-title>CSFA Restriction</v-card-title>
       <v-card-text>
+        <h3 class="text-h6 font-weight-regular">CSFA Restriction</h3>
         <div class="row">
           <div class="col-md-4">
             <v-text-field

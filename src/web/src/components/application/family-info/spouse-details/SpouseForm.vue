@@ -140,8 +140,8 @@
     </v-card>
 
     <v-card class="default mb-5">
-      <v-card-title>Study Period</v-card-title>
       <v-card-text>
+        <h3 class="text-h6 font-weight-regular">Study Period</h3>
         <div class="row">
           <div class="col-md-8">
             <v-select

@@ -2,7 +2,7 @@
   <div>
     <v-card class="default mb-5">
       <v-card-text>
-        <h3>Mandatory (Student may not leave blank)</h3>
+        <h3 class="text-h6 font-weight-regular">Mandatory (Student may not leave blank)</h3>
 
         <div class="row mb-5">
           <div class="col-md-6">
@@ -147,8 +147,10 @@
           </div>
         </div>
 
-        <v-btn color="info" v-if="!showAdd" @click="showAdd = true">Add expense</v-btn>
-        <v-btn color="info" v-else @click="setShowAdd">Cancel</v-btn>
+        <div class="mt-3">
+          <v-btn color="info" v-if="!showAdd" @click="showAdd = true">Add expense</v-btn>
+          <v-btn color="info" v-else @click="setShowAdd">Cancel</v-btn>
+        </div>
       </v-card-text>
     </v-card>
 
