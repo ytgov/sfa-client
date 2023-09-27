@@ -1,8 +1,8 @@
 <template>
   <div>
     <v-card class="default mb-5">
-      <v-card-title>Name and SIN</v-card-title>
       <v-card-text>
+        <h3 class="text-h6 font-weight-regular">Name and SIN</h3>
         <div class="row">
           <div class="col-md-5">
             <v-text-field
@@ -137,7 +137,7 @@
     </v-card>
 
     <v-card class="default mb-5">
-      <v-card-title>Permanent Mailing Address</v-card-title>
+      <v-card-title class="text-h6 font-weight-regular">Permanent Mailing Address</v-card-title>
       <v-card-text>
         <div class="row">
           <div class="col-md-6">
@@ -301,7 +301,7 @@
     </v-card>
 
     <v-card class="default mb-5">
-      <v-card-title>Mailing Address While at School</v-card-title>
+      <v-card-title class="text-h6 font-weight-regular">Mailing Address While at School</v-card-title>
       <v-card-text>
         <div class="row">
           <div class="col-md-6">
