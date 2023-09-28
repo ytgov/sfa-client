@@ -12,7 +12,7 @@ const state = {
   disbursements: [],
   parentAssessment: {},
   parentDisbursements: [],
-  baseRate: 2800,
+  baseRate: 0.00,
 };
 const getters = {
   previousDisbursements(state) {
@@ -39,6 +39,9 @@ const getters = {
 const mutations = {
   SET_THRESHOLDS(state, value) {
     state.csgThresholds = value;
+  },
+  SET_BASERATE(state, value) {
+    state.baseRate = value;
   },
   SET_FUNDINGREQUEST(state, value) {
     state.fundingRequest = value;
@@ -71,6 +74,7 @@ const actions = {
   async loadThresholds({ commit }, academicYear) {
     axios.get(`${CSG_THRESHOLD_URL}/${academicYear}`).then((resp) => {
       commit("SET_THRESHOLDS", resp.data.data);
+      commit("SET_BASERATE", resp.data.rates.csg_pd_yearly_amount);
     });
   },
 
