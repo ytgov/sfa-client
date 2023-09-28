@@ -12,7 +12,7 @@ const state = {
   disbursements: [],
   parentAssessment: {},
   parentDisbursements: [],
-  baseRate: 200,
+  baseRate: 200, // hardcoded as it is not stored in the database yet
 };
 const getters = {
   previousDisbursements(state) {
