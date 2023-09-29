@@ -422,8 +422,7 @@ const getters = {
         return Math.max(numHelper.round(getters.cslft_parent_net_income - numHelper.getNum(state.cslft.parent_msol)), 0);
     },
     cslft_calculated_parental_contribution(state, getters) {
-        let baseDependCount = state.cslft.parent_ps_depend_count || 0; // this does not include current student
-        baseDependCount +=1;
+        let baseDependCount = state.cslft.parent_ps_depend_count || 0; // this does now includes the current student
 
         return numHelper.round(numHelper.getNum(state.cslft.parent_weekly_contrib) * numHelper.getNum(state.cslft.study_weeks) / baseDependCount);
     },

@@ -154,7 +154,7 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
       result = await this.getScalarValue<number>("fn_get_parent_dependent_count", [application_id, param]);
     }
 
-    return result;
+    return result + 1;
   }
 
   async getOtherIncomeAmount(application_id?: number, academic_year_id?: number): Promise<number> {
@@ -505,33 +505,19 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
 
       await this.getCalculatedAward();
 
-      // this is to debug a specific event
-      if (this.assessment.id == 36101) {
-        console.log("CHECKING 36101 ************");
-        console.log("*** calculated_award", this.assessment.calculated_award);
-        console.log("*** csl_full_amt_flag", this.assessment.csl_full_amt_flag);
-        console.log("*** csl_request_amount", this.assessment.csl_request_amount);
-        console.log("*** recovered_overaward", this.assessment.recovered_overaward);
-      }
-
       // Calculate the totaln_disbursments_required
       if (!this.assessment.csl_full_amt_flag) {
-        if (this.assessment.id == 36101) console.log("*** in if");
-
         this.assessment.assessed_amount = Math.max(
           Math.min(this.assessment.calculated_award ?? 0, this.assessment.csl_request_amount ?? 0) -
             (this.assessment.recovered_overaward ?? 0),
           0
         );
       } else {
-        if (this.assessment.id == 36101) console.log("*** in else");
         this.assessment.assessed_amount = Math.max(
           (this.assessment.calculated_award ?? 0) - (this.assessment.recovered_overaward ?? 0),
           0
         );
       }
-
-      if (this.assessment.id == 36101) console.log("*** assessed_amount", this.assessment.assessed_amount);
 
       this.assessment.net_amount = this.getNetAmount(
         this.assessment.assessed_amount,
@@ -1182,34 +1168,19 @@ export class AssessmentCslftRepository extends AssessmentBaseRepository {
       await this.getCalculatedAward();
     }
 
-
-      // this is to debug a specific event
-      if (this.assessment.id == 36101) {
-        console.log("CHECKING 36101 ###########");
-        console.log("### calculated_award", this.assessment.calculated_award);
-        console.log("### csl_full_amt_flag", this.assessment.csl_full_amt_flag);
-        console.log("### csl_request_amount", this.assessment.csl_request_amount);
-        console.log("### recovered_overaward", this.assessment.recovered_overaward);
-      }
-
-
     // Calculate the totaln_disbursments_required
     if (!this.assessment.csl_full_amt_flag) {
-      if (this.assessment.id == 36101) console.log("### in if");
       this.assessment.assessed_amount = Math.max(
         Math.min(this.assessment.calculated_award ?? 0, this.assessment.csl_request_amount ?? 0) -
           (this.assessment.recovered_overaward ?? 0),
         0
       );
     } else {
-      if (this.assessment.id == 36101) console.log("### in else");
       this.assessment.assessed_amount = Math.max(
         (this.assessment.calculated_award ?? 0) - (this.assessment.recovered_overaward ?? 0),
         0
       );
     }
-    
-    if (this.assessment.id == 36101) console.log("### assessed_amount", this.assessment.assessed_amount);
 
     this.assessment.net_amount = this.getNetAmount(
       this.assessment.assessed_amount,
