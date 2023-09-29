@@ -2,7 +2,7 @@ import CSLFT from "@/components/application/csfa-needs-assessment/CSLFT";
 import CSLPT from "@/components/application/csfa-needs-assessment/CSLPT";
 import CSGPTDEP from "@/components/application/csfa-needs-assessment/CSGPTDEP";
 import CSGPT from "@/components/application/csfa-needs-assessment/CSGPT";
-import CSGDSE from "@/components/application/csfa-needs-assessment/CSGDSE";
+import CSGDSE from "@/components/application/assessments/views/CSGDSE";
 import CSGTP from "@/components/application/assessments/views/CSGTP";
 import CSGD from "@/components/application/assessments/views/CSGD";
 import CSGFTDEP from "@/components/application/assessments/views/CSGFTDEP";

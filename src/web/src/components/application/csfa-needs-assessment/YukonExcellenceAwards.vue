@@ -1,5 +1,5 @@
 <template>
-  <div class="home yukon-excellence-awards-assessment">
+  <div class="row yukon-excellence-awards-assessment">
     <div class="col-lg-12">
       <v-card class="default mb-5 bg-color-blue">
         <div class="col-lg-12 nopadding d-flex flex-wrap low-margin">

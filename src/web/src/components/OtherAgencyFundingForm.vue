@@ -1,27 +1,13 @@
 <template>
   <div class="home">
-    <v-switch
-      dense
-      hide-details
-      label="Applied for other funding"
-      v-model="applied_other_funding"
-    ></v-switch>
+    <v-switch dense hide-details label="Applied for other funding" v-model="applied_other_funding"></v-switch>
 
     <div v-if="applied_other_funding" class="mt-5">
-      <v-card
-        class="default mb-5"
-        v-for="(item, i) of application.other_funding"
-        :key="i"
-      >
+      <v-card class="default mb-5" v-for="(item, i) of application.other_funding" :key="i">
         <v-card-title>
           Agency {{ 1 + i }}
           <v-spacer></v-spacer>
-          <v-btn
-            color="warning"
-            x-small
-            fab
-            class="my-0"
-            @click="removeOtherFunding(i)"
+          <v-btn color="warning" x-small fab class="my-0" @click="removeOtherFunding(i)"
             ><v-icon>mdi-close</v-icon></v-btn
           ></v-card-title
         >
@@ -53,36 +39,16 @@
             </div>
 
             <div class="col-md-2 py-0">
-              <v-switch
-                dense
-                hide-details
-                label="Tuition"
-                v-model="item.TUITION_FLAG"
-              ></v-switch>
+              <v-switch dense hide-details label="Tuition" v-model="item.TUITION_FLAG"></v-switch>
             </div>
             <div class="col-md-2 py-0">
-              <v-switch
-                dense
-                hide-details
-                label="Books"
-                v-model="item.BOOKS_FLAG"
-              ></v-switch>
+              <v-switch dense hide-details label="Books" v-model="item.BOOKS_FLAG"></v-switch>
             </div>
             <div class="col-md-2 py-0">
-              <v-switch
-                dense
-                hide-details
-                label="Living expenses"
-                v-model="item.LIVING_EXPENSE_FLAG"
-              ></v-switch>
+              <v-switch dense hide-details label="Living expenses" v-model="item.LIVING_EXPENSE_FLAG"></v-switch>
             </div>
             <div class="col-md-2 py-0">
-              <v-switch
-                dense
-                hide-details
-                label="Transportation"
-                v-model="item.TRANSPORTATION_FLAG"
-              ></v-switch>
+              <v-switch dense hide-details label="Transportation" v-model="item.TRANSPORTATION_FLAG"></v-switch>
             </div>
 
             <div class="col-md-4">
@@ -119,12 +85,12 @@
 <script>
 import store from "../store";
 import axios from "axios";
-import { AGENCY_URL } from "../urls";
+import { AGENCY } from "../urls";
 
 export default {
   name: "Home",
   computed: {
-    application: function () {
+    application: function() {
       return store.getters.selectedApplication;
     },
   },
@@ -138,7 +104,7 @@ export default {
   },
   methods: {
     loadAgencies() {
-      axios.get(AGENCY_URL).then((resp) => {
+      axios.get(AGENCY).then((resp) => {
         this.agencyOptions = resp.data;
       });
     },

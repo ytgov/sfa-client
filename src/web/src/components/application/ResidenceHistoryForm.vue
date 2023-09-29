@@ -787,7 +787,6 @@ export default {
           && residence.to_month === null))
       ?.filter((residence) => !(residence.country_id === 1 && residence.province_id === 3 
         && residence.to_year === null && residence.to_month === null));
-        console.log("***", list);
 
       list.sort((a, b) => {
         if (a.from_year > b.from_year) {

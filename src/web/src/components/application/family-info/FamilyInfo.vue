@@ -10,7 +10,6 @@
 
     <v-tabs-items v-model="tab" style="padding: 20px 0">
       <v-tab-item key="0">
-        <academic-year></academic-year>
         <ParentDetails v-on:showSuccess="showSuccess" v-on:showError="showError"></ParentDetails>
       </v-tab-item>
 
@@ -30,24 +29,14 @@ import store from "@/store";
 import ParentDetails from "./parent-details/Main.vue";
 import SpouseForm from "./spouse-details/SpouseForm.vue";
 import StudentDependents from "./dependents-details/StudentDependents";
-import ProgramInformationForm from "../ProgramInformationForm.vue";
-import StatisticalForm from "../StatisticalForm.vue";
-import AcademicYear from "../AcademicYear.vue";
-import ResidenceHistoryForm from "../ResidenceHistoryForm.vue";
-import EducationForm from "../EducationForm.vue";
 
 export default {
   components: {
-    ProgramInformationForm,
-    StatisticalForm,
     ParentDetails,
     SpouseForm,
     StudentDependents,
-    ResidenceHistoryForm,
-    EducationForm,
   },
   name: "Home",
-  AcademicYear,
   computed: {
     ...mapState(["selectedStudent"]),
   },
@@ -59,25 +48,10 @@ export default {
     this.applicationId = this.$route.params.id;
     let storeApp = store.getters.selectedApplication;
 
-    if (this.$route.path.indexOf("/student/") >= 0) {
-      //console.log("LOADING STUDENT BASED ON URL");
-      await store.dispatch("loadStudent", this.applicationId);
-      store.dispatch("setAppSidebar", true);
-    } else {
-      if (this.applicationId != storeApp.HISTORY_DETAIL_ID) {
-        //console.log("LOADING APPLICTION BASED ON URL");
-        await store.dispatch("loadApplication", this.applicationId);
-        store.dispatch("setAppSidebar", true);
-      }
+    if (this.applicationId != storeApp.id) {
+      await store.dispatch("loadApplication", this.applicationId);
     }
-  },
-  watch: {
-    student: function(val) {
-      if (val) this.updateView(val);
-    },
-    //selectedStudent: function (val) {
-    //console.log("WATCH selectedStudent", val);
-    //},
+    store.dispatch("setAppSidebar", true);
   },
   methods: {
     showSuccess(mgs) {
