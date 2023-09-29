@@ -26,7 +26,7 @@
                 <template v-slot:activator="{ on, attrs }">
                   <v-text-field
                     v-model="assessment.assessed_date"
-                    label="Assesssed date"
+                    label="Assessed date"
                     append-icon="mdi-calendar"
                     readonly
                     outlined
