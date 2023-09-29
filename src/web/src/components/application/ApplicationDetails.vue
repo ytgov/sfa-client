@@ -60,12 +60,10 @@ export default {
     this.applicationId = this.$route.params.id;
 
     if (this.$route.path.indexOf("/application/") >= 0) {
-      //console.log("LOADING STUDENT BASED ON URL");
       await store.dispatch("loadApplication", this.applicationId);
       store.dispatch("setAppSidebar", true);
     } else {
-      if (this.applicationId != storeApp.HISTORY_DETAIL_ID) {
-        console.log("ENTRE APPLICTION BASED ON URL");
+      if (this.applicationId != storeApp.id) {
         await store.dispatch("loadApplication", this.applicationId);
         store.dispatch("setAppSidebar", true);
       }
@@ -74,9 +72,6 @@ export default {
   watch: {
     student: function(val) {
       if (val) this.updateView(val);
-    },
-    selectedApplication: function(val) {
-      console.log("WATCH selectedApplication", val);
     },
   },
   methods: {

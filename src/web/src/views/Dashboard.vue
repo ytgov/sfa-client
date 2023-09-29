@@ -72,11 +72,21 @@
         </v-card>
       </div>
       <div class="col-md-4">
-        <v-card color="#fff2d5">
-          <v-card-title>New Applications</v-card-title>
+        <v-card class="default">
           <v-card-text>
+            <h3 class="text-h6 font-weight-regular">New Applications</h3>
+
             <div v-if="loading">Loading...</div>
             <p v-if="newApplications.length == 0 && !loading" class="mb-0">None yet</p>
+            <v-list>
+              
+            </v-list>
+
+
+
+
+
+
             <ol v-if="newApplications.length > 0">
               <li v-for="(item, idx) of newApplications" :key="idx">
                 <router-link :to="`/application/${item.id}/personal`">

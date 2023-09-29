@@ -78,6 +78,7 @@ import csgDisabilityStore from "../components/application/assessments/store/csg-
 import csgDependentStore from "../components/application/assessments/store/csg-dependent";
 import csgMatureStore from "../components/application/assessments/store/csg-mature";
 import csgFullTimeStore from "../components/application/assessments/store/csg-full-time";
+import csgDisabilitySEStore from "../components/application/assessments/store/csg-disability-se";
 
 // Administration Stores
 import reportsStore from "@/modules/Administration/store/ReportsStore";
@@ -130,7 +131,6 @@ export default new Vuex.Store({
       state.showSideBarAdmin = value;
     },
     SET_APPLICATION(state, value) {
-      console.log("SET APPLICATION");
       state.selectedApplication = value;
       state.selectedApplicationId = value.id;
 
@@ -152,12 +152,10 @@ export default new Vuex.Store({
       state.selectedApplicationId = value.id;
     },
     CLEAR_APPLICATION(state) {
-      console.log("CLEARING APPLICATION");
       state.selectedApplication = {};
       state.selectedApplicationId = 0;
     },
     SET_STUDENT(state, value) {
-      console.log("SET STUDENT");
       state.selectedStudentFullName = `${value.first_name} ${value.last_name}`;
       state.selectedStudentLocator = value.locator_number;
       state.selectedStudentId = value.id;
@@ -531,6 +529,7 @@ export default new Vuex.Store({
     csgDependentStore,
     csgMatureStore,
     csgFullTimeStore,
+    csgDisabilitySEStore,
 
     reportsStore,
   },
