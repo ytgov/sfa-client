@@ -1,7 +1,7 @@
 <template>
   <div>
     <v-card class="default mb-5">
-      <v-card-title>Basic Demographics</v-card-title>
+      <v-card-title class="text-h6 font-weight-regular">Basic Demographics</v-card-title>
       <v-card-text>
         <div class="row">
           <div class="col-md-6">

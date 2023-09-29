@@ -5,24 +5,6 @@ export const AUTH_CHECK_URL = `${config.apiBaseUrl}/api/auth/isAuthenticated`;
 export const LOGOUT_URL = `${config.apiBaseUrl}/api/auth/logout`;
 export const PROFILE_URL = `${config.apiBaseUrl}/api/user`;
 
-export const STATIC_URL = `${config.apiBaseUrl}/api/v1/data`;
-export const LANGUAGE_URL = `${STATIC_URL}/languages`;
-export const ABORIGINAL_STATUS_URL = `${STATIC_URL}/aboriginalstatus`;
-export const FIRST_NATIONS_URL = `${STATIC_URL}/firstnations`;
-export const MARITAL_URL = `${STATIC_URL}/maritalstatus`;
-export const HIGH_SCHOOOL_URL = `${STATIC_URL}/highschools`;
-export const EDUCATION_LEVEL_URL = `${STATIC_URL}/educationlevel`;
-export const RELATIONSHIP_URL = `${STATIC_URL}/relationships`;
-export const REQUIREMENT_TYPE_URL = `${STATIC_URL}/requirementtypes`;
-export const FUNDING_TYPE_URL = `${STATIC_URL}/requesttypes`;
-export const FUNDING_STATUS_URL = `${STATIC_URL}/status`;
-export const FUNDING_REASON_URL = `${STATIC_URL}/statusreasons`;
-export const CATEGORY_URL = `${STATIC_URL}/studentcategory`;
-export const AGENCY_URL = `${STATIC_URL}/agency`;
-export const PROGRAM_AREA_URL = `${STATIC_URL}/studyareas`;
-export const PROGRAM_TYPE_URL = `${STATIC_URL}/programs`;
-export const PROGRAM_DIVISION_URL = `${STATIC_URL}/programdivisions`;
-
 export const REFERENCE_BASE_URL = `${config.apiBaseUrl}/api/v2/reference`;
 export const CITY_URL = `${REFERENCE_BASE_URL}/city`;
 export const PROVINCE_URL = `${REFERENCE_BASE_URL}/province`;
@@ -97,6 +79,7 @@ export const CSL_MSFAA_SEND = `${config.apiBaseUrl}/api/v2/admin/csl-msfaa-send`
 export const CSL_RESTRICTED_DATA = `${config.apiBaseUrl}/api/v2/admin/csl-restricted-data`;
 
 export const FUNDING_REQUESTS_URL = `${config.apiBaseUrl}/api/v2/admin/funding-requests`;
+export const REQUEST_TYPE_URL = `${config.apiBaseUrl}/api/v2/admin/request-types`;
 
 // Modules
 export const CSLFT = `${ASSESSMENT}/cslft`;

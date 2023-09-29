@@ -1,7 +1,7 @@
 <template>
   <div>
     <v-card class="default mb-5">
-      <v-card-title>Institution</v-card-title>
+      <v-card-title class="text-h6 font-weight-regular">Institution</v-card-title>
       <v-card-text class="row">
         <div class="col-md-3">
           <div class="row">
@@ -179,7 +179,7 @@
     </v-card>
 
     <v-card class="default mb-5">
-      <v-card-title>Program</v-card-title>
+      <v-card-title class="text-h6 font-weight-regular">Program</v-card-title>
       <v-card-text class="row">
         <div class="col-md-4">
           <div class="row">

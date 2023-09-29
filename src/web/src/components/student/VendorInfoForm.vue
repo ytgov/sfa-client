@@ -1,7 +1,7 @@
 <template>
   <div>
     <v-card class="default mb-5">
-      <v-card-title>
+      <v-card-title class="text-h6 font-weight-regular">
         Vendor
         <v-spacer />
         <div>
@@ -49,7 +49,7 @@
       </v-card-text>
     </v-card>
     <v-card class="default mb-5">
-      <v-card-title>SFA Address Data</v-card-title>
+      <v-card-title class="text-h6 font-weight-regular">SFA Address Data</v-card-title>
       <v-card-text>
         <div class="row">
           <div class="col-12 mb-n2">
@@ -283,7 +283,7 @@
       Cancel
     </v-btn>
 
-    <v-card class="default mb-5" v-if="student?.vendor_updates?.length > 0">
+    <v-card class="default mt-5" v-if="student?.vendor_updates?.length > 0">
       <v-card-text class="mb-8" v-for="(item, index) in student?.vendor_updates" :key="index">
         <div class="row">
           <div class="col-md-4">

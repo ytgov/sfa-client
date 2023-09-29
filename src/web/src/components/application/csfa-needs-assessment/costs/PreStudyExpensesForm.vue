@@ -2,7 +2,7 @@
   <div>
     <v-card class="default mb-5">
       <v-card-text>
-        <h3>Pre-Study Expenses</h3>
+        <h3 class="text-h6 font-weight-regular">Pre-Study Expenses</h3>
 
         <div class="row" v-for="(item, i) of prestudyExpenses" :key="i">
           <div class="col-md-4">
@@ -14,7 +14,7 @@
               hide-details
               label="Expense type"
               v-model="item.category_id"
-              @change="updateExpense(item.id, {category_id: item.category_id})"
+              @change="updateExpense(item.id, { category_id: item.category_id })"
               :items="expenseCategories"
               item-text="description"
               item-value="id"
@@ -29,7 +29,7 @@
               hide-details
               label="Amount"
               v-model="item.amount"
-              @change="updateExpense(item.id, {amount: item.amount})"
+              @change="updateExpense(item.id, { amount: item.amount })"
               v-currency="{ currency: 'USD', locale: 'en' }"
             ></v-text-field>
           </div>
@@ -42,7 +42,7 @@
               hide-details
               label="Comment"
               v-model="item.description"
-              @change="updateExpense(item.id, {description: item.description })"
+              @change="updateExpense(item.id, { description: item.description })"
             ></v-text-field>
           </div>
           <div class="col-md-1">
@@ -58,7 +58,6 @@
             >
           </div>
         </div>
-
 
         <div class="row" v-if="showAdd">
           <div class="col-md-4">
@@ -99,32 +98,23 @@
           <div class="col-md-2">
             <div class="row">
               <div class="col-6 d-flex justify-md-end">
-                <v-btn
-                  color="success"
-                  x-small
-                  fab
-                  class="my-0"
-                  title="Save"
-                  @click="addExpense"
+                <v-btn color="success" x-small fab class="my-0" title="Save" @click="addExpense"
                   ><v-icon>mdi-check</v-icon></v-btn
                 >
               </div>
               <div class="col-6 d-flex justify-end">
-                <v-btn
-                color="error"
-                x-small
-                fab
-                class="my-0"
-                title="Cancel"
-                @click="setShowAdd"
-                ><v-icon>mdi-close</v-icon></v-btn>
+                <v-btn color="error" x-small fab class="my-0" title="Cancel" @click="setShowAdd"
+                  ><v-icon>mdi-close</v-icon></v-btn
+                >
               </div>
             </div>
           </div>
         </div>
 
-        <v-btn color="info" v-if="!showAdd" @click="showAdd = true">Add expense</v-btn>
-        <v-btn color="info" v-else @click="setShowAdd">Cancel</v-btn>
+        <div class="mt-3">
+          <v-btn color="info" v-if="!showAdd" @click="showAdd = true">Add expense</v-btn>
+          <v-btn color="info" v-else @click="setShowAdd">Cancel</v-btn>
+        </div>
       </v-card-text>
     </v-card>
 
@@ -133,20 +123,20 @@
 </template>
 
 <script>
-import { mapGetters } from 'vuex';
+import { mapGetters } from "vuex";
 import store from "@/store";
-import { APPLICATION_URL } from '@/urls';
-import axios from 'axios';
+import { APPLICATION_URL } from "@/urls";
+import axios from "axios";
 
 export default {
   name: "pre-study-expenses-form",
   computed: {
     ...mapGetters(["expenseCategories"]),
-    application: function () {
+    application: function() {
       return store.getters.selectedApplication;
     },
     prestudyExpenses() {
-      const newList = this.application?.expenses?.filter(e => e?.period_id === 1) || [];
+      const newList = this.application?.expenses?.filter((e) => e?.period_id === 1) || [];
       return newList;
     },
   },
@@ -155,7 +145,7 @@ export default {
     newRecord: {
       category_id: null,
       amount: 0,
-      description: ""
+      description: "",
     },
   }),
   async created() {
@@ -166,16 +156,13 @@ export default {
       this.newRecord = {
         category_id: null,
         amount: 0,
-        description: ""
+        description: "",
       };
       this.showAdd = false;
     },
     async updateExpense(id, data) {
       try {
-        const resUpdate = await axios.patch(
-          `${APPLICATION_URL}/${this.application.id}/expense/${id}`,
-          { data }
-        );
+        const resUpdate = await axios.patch(`${APPLICATION_URL}/${this.application.id}/expense/${id}`, { data });
 
         const message = resUpdate?.data?.messages[0];
 
@@ -184,21 +171,18 @@ export default {
         } else {
           this.$emit("showError", message.text);
         }
-
       } catch (error) {
         console.log(error);
         this.$emit("showError", "Error to update");
-
       } finally {
         store.dispatch("loadApplication", this.application.id);
       }
     },
     async addExpense() {
       try {
-        const resInsert = await axios.post(
-          `${APPLICATION_URL}/${this.application.id}/expense`,
-          { data: { ...this.newRecord, period_id: 1 } }
-        );
+        const resInsert = await axios.post(`${APPLICATION_URL}/${this.application.id}/expense`, {
+          data: { ...this.newRecord, period_id: 1 },
+        });
 
         const message = resInsert?.data?.messages[0];
 
@@ -208,34 +192,31 @@ export default {
         } else {
           this.$emit("showError", message.text);
         }
-
       } catch (error) {
         console.log(error);
         this.$emit("showError", "Error to insert");
-
       } finally {
         store.dispatch("loadApplication", this.application.id);
       }
     },
     async deleteExpense(id) {
-            try {
-                const resDelete = await axios.delete(`${APPLICATION_URL}/expense/${id}`);
+      try {
+        const resDelete = await axios.delete(`${APPLICATION_URL}/expense/${id}`);
 
-                const message = resDelete?.data?.messages[0];
+        const message = resDelete?.data?.messages[0];
 
-                if (message?.variant === "success") {
-                    this.$emit("showSuccess", message.text);
-                } else {
-                    this.$emit("showError", message.text);
-                }
-
-            } catch (error) {
-                console.log(error);
-                this.$emit("showError", "Error to delete");
-            } finally {
-                store.dispatch("loadApplication", this.application.id);
-            }
-        },
+        if (message?.variant === "success") {
+          this.$emit("showSuccess", message.text);
+        } else {
+          this.$emit("showError", message.text);
+        }
+      } catch (error) {
+        console.log(error);
+        this.$emit("showError", "Error to delete");
+      } finally {
+        store.dispatch("loadApplication", this.application.id);
+      }
+    },
     removeExpense(id) {
       this.$refs.confirm.show(
         "Are you sure?",

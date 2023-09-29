@@ -8,32 +8,19 @@
       <v-tab key="2">DEPENDENT DETAILS</v-tab>
     </v-tabs>
 
-    <v-tabs-items v-model="tab" style="padding: 20px">
-
+    <v-tabs-items v-model="tab" style="padding: 20px 0">
       <v-tab-item key="0">
         <academic-year></academic-year>
-        <ParentDetails
-          v-on:showSuccess="showSuccess"
-          v-on:showError="showError"
-        ></ParentDetails>
+        <ParentDetails v-on:showSuccess="showSuccess" v-on:showError="showError"></ParentDetails>
       </v-tab-item>
 
       <v-tab-item key="1">
-        <SpouseForm 
-          v-on:showSuccess="showSuccess"
-          v-on:showError="showError"
-        >
-        </SpouseForm>
+        <SpouseForm v-on:showSuccess="showSuccess" v-on:showError="showError"> </SpouseForm>
       </v-tab-item>
 
       <v-tab-item key="2">
-        <StudentDependents 
-          v-on:showSuccess="showSuccess"
-          v-on:showError="showError"
-        >
-        </StudentDependents>
+        <StudentDependents v-on:showSuccess="showSuccess" v-on:showError="showError"> </StudentDependents>
       </v-tab-item>
-  
     </v-tabs-items>
   </div>
 </template>
@@ -45,9 +32,9 @@ import SpouseForm from "./spouse-details/SpouseForm.vue";
 import StudentDependents from "./dependents-details/StudentDependents";
 import ProgramInformationForm from "../ProgramInformationForm.vue";
 import StatisticalForm from "../StatisticalForm.vue";
-import AcademicYear from '../AcademicYear.vue';
-import ResidenceHistoryForm from '../ResidenceHistoryForm.vue';
-import EducationForm from '../EducationForm.vue';
+import AcademicYear from "../AcademicYear.vue";
+import ResidenceHistoryForm from "../ResidenceHistoryForm.vue";
+import EducationForm from "../EducationForm.vue";
 
 export default {
   components: {
@@ -60,7 +47,7 @@ export default {
     EducationForm,
   },
   name: "Home",
-    AcademicYear,
+  AcademicYear,
   computed: {
     ...mapState(["selectedStudent"]),
   },
@@ -85,7 +72,7 @@ export default {
     }
   },
   watch: {
-    student: function (val) {
+    student: function(val) {
       if (val) this.updateView(val);
     },
     //selectedStudent: function (val) {

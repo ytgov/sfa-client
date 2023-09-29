@@ -6,13 +6,13 @@
     </p>
     <div v-for="(item, i) of student.consent_info" :key="i">
       <v-card class="default mb-5">
-        <v-card-title
+        <v-card-title class="text-h6 font-weight-regular"
           >Consent {{ 1 + i }}
           <v-spacer></v-spacer>
           <v-btn color="warning" x-small fab class="my-0" @click="deleteRecord(item.id)"
             ><v-icon>mdi-close</v-icon></v-btn
-          ></v-card-title
-        >
+          >
+        </v-card-title>
         <v-card-text>
           <div class="row">
             <div class="col-md-12">
@@ -32,8 +32,8 @@
     </div>
 
     <v-card class="default mb-5" v-if="showAdd">
-      <v-card-title>Add Consent</v-card-title>
       <v-card-text>
+        <h3 class="text-h6 font-weight-regular">Add Consent</h3>
         <div class="row">
           <div class="col-md-4">
             <v-text-field

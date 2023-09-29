@@ -16,7 +16,9 @@ export const csgThresholdRouter = express.Router();
 
 csgThresholdRouter.get("/:academic_year_id", async (req: Request, res: Response) => {
   const { academic_year_id } = req.params;
-  res.json({ data: await db("sfa.csg_threshold").where({ academic_year_id }) });
+  let data = await db("sfa.csg_threshold").where({ academic_year_id });
+  let rates = await db("sfa.csg_lookup").where({ academic_year_id }).first();
+  res.json({ data, rates });
 });
 
 csgThresholdRouter.get("/cslft/:application_id", async (req: Request, res: Response) => {
@@ -162,7 +164,9 @@ csgThresholdRouter.get("/csgft/:application_id", async (req: Request, res: Respo
 
 csgThresholdRouter.post(
   "/csgftdep/:application_id/funding-request/:funding_request_id/assessment",
-  param("application_id").isInt(), param("funding_request_id").isInt(), ReturnValidationErrors,
+  param("application_id").isInt(),
+  param("funding_request_id").isInt(),
+  ReturnValidationErrors,
   async (req: Request, res: Response) => {
     const { application_id, funding_request_id } = req.params;
 
