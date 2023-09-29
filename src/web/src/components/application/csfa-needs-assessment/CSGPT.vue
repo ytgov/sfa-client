@@ -60,7 +60,7 @@
                         <v-text-field
                           :disabled="showAdd"
                           v-model="assesst_date"
-                          label="Assesssed Date"
+                          label="Assessed Date"
                           append-icon="mdi-calendar"
                           hide-details
                           readonly
