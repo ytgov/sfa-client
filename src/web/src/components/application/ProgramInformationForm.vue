@@ -65,7 +65,6 @@
               ></v-text-field>
             </div>
           </div>
-            
         </div>
         <div class="col-md-9">
           <div class="row">
@@ -102,7 +101,7 @@
                 background-color="white"
                 hide-details
                 label="City"
-                :value="cities.find(c => c.id === selectedInstitution.address_city_id)?.description"
+                :value="cities.find((c) => c.id === selectedInstitution.address_city_id)?.description"
               ></v-text-field>
             </div>
             <div class="col-md-3">
@@ -113,7 +112,7 @@
                 background-color="white"
                 hide-details
                 label="Province"
-                :value="provinces.find(c => c.id === selectedInstitution.address_province_id)?.description"
+                :value="provinces.find((c) => c.id === selectedInstitution.address_province_id)?.description"
               ></v-text-field>
             </div>
             <div class="col-md-2">
@@ -135,7 +134,7 @@
                 background-color="white"
                 hide-details
                 label="Country"
-                :value="countries.find(c => c.id === selectedInstitution.address_country_id)?.description"
+                :value="countries.find((c) => c.id === selectedInstitution.address_country_id)?.description"
               ></v-text-field>
             </div>
             <div class="col-md-1"></div>
@@ -158,7 +157,7 @@
                 background-color="white"
                 hide-details
                 label="Institution level"
-                :value="institutionLevels.find(i => i.id = selectedInstitution.institution_level_id)?.description"
+                :value="institutionLevels.find((i) => (i.id = selectedInstitution.institution_level_id))?.description"
               ></v-text-field>
             </div>
             <div class="col-md-2">
@@ -198,11 +197,7 @@
               ></v-autocomplete>
             </div>
             <div class="col-md-6">
-              <v-btn
-              class="mt-0"
-              color="success"
-              @click="showPDF(76)"
-              >
+              <v-btn class="mt-0" color="success" @click="showPDF(76)">
                 View PIF
               </v-btn>
             </div>
@@ -234,7 +229,7 @@
                 :items="programDivisions"
                 item-text="description"
                 item-value="id"
-                v-model="application.program_division" 
+                v-model="application.program_division"
                 @change="doSaveApp('program_division', application.program_division)"
               ></v-select>
             </div>
@@ -250,7 +245,6 @@
                 item-value="id"
                 v-model="application.attendance_id"
                 @change="doSaveApp('attendance_id', application.attendance_id)"
-                
               ></v-select>
             </div>
             <div class="col-md-6 px-1">
@@ -287,10 +281,12 @@
                 </template>
                 <v-date-picker
                   :value="application.classes_start_date?.slice(0, 10)"
-                  @input="e => {
-                    application.classes_start_date = e;
-                    classes_start_menu = false;
-                  }"
+                  @input="
+                    (e) => {
+                      application.classes_start_date = e;
+                      classes_start_menu = false;
+                    }
+                  "
                   @change="doSaveApp('classes_start_date', application.classes_start_date)"
                 ></v-date-picker>
               </v-menu>
@@ -321,10 +317,12 @@
                 </template>
                 <v-date-picker
                   :value="application.classes_end_date?.slice(0, 10)"
-                  @input="e => {
-                    application.classes_end_date = e;
-                    classes_end_menu = false;
-                  }"
+                  @input="
+                    (e) => {
+                      application.classes_end_date = e;
+                      classes_end_menu = false;
+                    }
+                  "
                   @change="doSaveApp('classes_end_date', application.classes_end_date)"
                 ></v-date-picker>
               </v-menu>
@@ -345,16 +343,13 @@
               ></v-text-field>
             </div-->
           </div>
-        </div>  
+        </div>
       </v-card-text>
     </v-card>
-    
-    <show-pdf ref="showPdf">
-    </show-pdf>
 
+    <show-pdf ref="showPdf"> </show-pdf>
   </div>
 </template>
-
 
 <style>
 .v-expansion-panel {
@@ -365,44 +360,37 @@
 }
 </style>
 
-
-
 <script>
 import store from "../../store";
 import axios from "axios";
 import moment from "moment";
 import validator from "@/validator";
-import {
-  INSTITUTION_URL,
-  INSTITUTION_LEVEL_URL,
-  CITY_URL,
-  COUNTRY_URL,
-  PROVINCE_URL,
-  PROGRAM_AREA_URL,
-  PROGRAM_TYPE_URL,
-  PROGRAM_DIVISION_URL,
-  CATEGORY_URL,
-  APPLICATION_URL,
-  STUDENT_URL
-} from "../../urls";
-import { mapGetters } from 'vuex';
+import { INSTITUTION_URL, APPLICATION_URL } from "@/urls";
+import { mapGetters } from "vuex";
 
 export default {
   computed: {
-    ...mapGetters(["yearOptions", "countries", "cities", "provinces", 
-      "institutionLevels", "studyAreas", "yukonGrantEligibilityList",
-      "programs", "attendances", "programDivisions"]),
-    student: function () {
+    ...mapGetters([
+      "yearOptions",
+      "countries",
+      "cities",
+      "provinces",
+      "institutionLevels",
+      "studyAreas",
+      "yukonGrantEligibilityList",
+      "programs",
+      "attendances",
+      "programDivisions",
+    ]),
+    student: function() {
       return store.getters.selectedStudent;
     },
-    application: function () {
+    application: function() {
       return store.getters.selectedApplication;
     },
     selectedInstitution() {
-      const finded = this.institutionOptions.find(
-        (i) => i.id === this.application.institution_campus_id
-      );
-      return  finded ? finded : {};
+      const finded = this.institutionOptions.find((i) => i.id === this.application.institution_campus_id);
+      return finded ? finded : {};
     },
   },
   data: () => ({
@@ -434,7 +422,6 @@ export default {
     store.dispatch("setPrograms");
     store.dispatch("setProgramDivisions");
     store.dispatch("setAttendances");
-
   },
   methods: {
     loadInstitutions() {
@@ -442,8 +429,12 @@ export default {
         .get(`${INSTITUTION_URL}`)
         .then((resp) => {
           this.institutionOptions = resp.data.data
-            .map(data => {
-              const campuses = data.campuses?.map(c => ({ ...c, name: `${c.name} - ${data.name}`, institution_level_id: data.institution_level_id }));
+            .map((data) => {
+              const campuses = data.campuses?.map((c) => ({
+                ...c,
+                name: `${c.name} - ${data.name}`,
+                institution_level_id: data.institution_level_id,
+              }));
               return [...campuses];
             })
             .flat();
@@ -452,26 +443,22 @@ export default {
           console.log(err);
         });
     },
-    loadPrograms() {
-      axios.get(PROGRAM_DIVISION_URL).then((resp) => {
-        this.programDivisionOptions = resp.data;
-      });
-    },
     doSaveApp(field, value) {
       store.dispatch("updateApplication", [field, value, this]);
     },
-    
-    async showPDF(reqId) {      
-      try {              
-          let buf = await fetch(APPLICATION_URL + `/${this.application.id}/student/${this.student.id}/files/76`)           
-            .then((r) => r.arrayBuffer());                        
-            const blob = new Blob([buf], {type: 'application/pdf'});
-            const blobURL = URL.createObjectURL(blob) || "";                   
-            this.$refs.showPdf.showModal(blobURL);                                                                   
+
+    async showPDF(reqId) {
+      try {
+        let buf = await fetch(
+          APPLICATION_URL + `/${this.application.id}/student/${this.student.id}/files/76`
+        ).then((r) => r.arrayBuffer());
+        const blob = new Blob([buf], { type: "application/pdf" });
+        const blobURL = URL.createObjectURL(blob) || "";
+        this.$refs.showPdf.showModal(blobURL);
       } catch (error) {
         console.log(error);
       }
-    }
+    },
   },
 };
 </script>

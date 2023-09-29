@@ -22,19 +22,19 @@
           <v-card-title class="d-block mb-2">
             <div class="float-right text-right">
               <v-btn
-                :disabled="!(item?.status_id === 6 || item?.status_id === 7 || item?.status_id === 40)"
+                :disabled="!(item.status_id === 6 || item.status_id === 7 || item.status_id === 40)"
                 dense
                 small
                 color="info"
                 class="my-0"
-                @click="showAssessment(item?.request_type_id || null, item?.id || null)"
+                @click="showAssessment(item.request_type_id || null, item.id || null)"
                 block
               >
                 Assessment
               </v-btn>
             </div>
 
-            <div>{{ fundingTypeOptions?.find((ft) => ft.REQUEST_TYPE_ID === item?.request_type_id)?.DESCRIPTION }}</div>
+            <div>{{ getName(item.request_type_id) }}</div>
           </v-card-title>
           <v-card-text>
             <div class="row">
@@ -83,8 +83,8 @@
                   @change="updateFundingRequest({ status_id: item.status_id }, item.id)"
                   v-model="item.status_id"
                   :items="statusOptions"
-                  item-text="DESCRIPTION"
-                  item-value="STATUS_ID"
+                  item-text="description"
+                  item-value="id"
                 ></v-select>
               </div>
               <div class="col-md-3">
@@ -133,13 +133,17 @@
                   @change="updateFundingRequest({ status_reason_id: item.status_reason_id }, item.id)"
                   v-model="item.status_reason_id"
                   :items="reasonOptions"
-                  item-text="DESCRIPTION"
-                  item-value="STATUS_REASON_ID"
+                  item-text="description"
+                  item-value="id"
                 ></v-autocomplete>
               </div>
 
               <div class="col-md-3">
-                <status-documents :item="item" :type="fundingTypeOptions?.find((ft) => ft.REQUEST_TYPE_ID === item?.request_type_id)?.DESCRIPTION"  v-on:showError="showError"></status-documents>
+                <status-documents
+                  :item="item"
+                  :type="fundingTypeOptions?.find((ft) => ft.id === item.request_type_id)?.description"
+                  v-on:showError="showError"
+                ></status-documents>
               </div>
             </div>
           </v-card-text>
@@ -158,19 +162,13 @@
 </template>
 
 <script>
-import store from "../../store";
+import store from "@/store";
 import axios from "axios";
 //Grants and Scholarships
 import { assessmentType } from "@/components/application/assessmentType.js";
 import StatusDocuments from "./StatusDocuments.vue";
 import { mapGetters } from "vuex";
-import {
-  REQUIREMENT_TYPE_URL,
-  FUNDING_TYPE_URL,
-  FUNDING_STATUS_URL,
-  FUNDING_REASON_URL,
-  APPLICATION_URL,
-} from "../../urls";
+import { REQUEST_TYPES, STATUS, STATUS_REASON, APPLICATION_URL } from "@/urls";
 
 export default {
   name: "application-status",
@@ -190,7 +188,6 @@ export default {
     applicationId: -1,
     fundingTypeOptions: [],
     reasonOptions: [],
-    requirementTypeOptions: [],
     statusOptions: [],
     newRecord: {
       request_type_id: null,
@@ -204,7 +201,6 @@ export default {
     },
   }),
   async created() {
-    this.loadRequirementTypes();
     this.loadFundingTypes();
     this.loadStatus();
     this.loadReasons();
@@ -216,6 +212,15 @@ export default {
     store.dispatch("setAppSidebar", true);
   },
   methods: {
+    getName(typeId) {
+      if (this.fundingTypeOptions) {
+        let item = this.fundingTypeOptions.find((ft) => ft.id == typeId);
+        return item ? item.description : "";
+      }
+
+      return "";
+    },
+
     async assessmentTypeC() {
       this.assessmentComponent = await assessmentType(
         this.assessmentTypeId,
@@ -242,7 +247,6 @@ export default {
     async loadFundingData() {
       try {
         await store.dispatch("loadApplication", this.applicationId);
-        this.loadRequirementTypes();
         this.loadFundingTypes();
         this.loadStatus();
         this.loadReasons();
@@ -262,32 +266,24 @@ export default {
       };
       this.showAdd = !this.showAdd;
     },
-    assessmentLoadForm: function(items) {
-      console.log("Value: ", items.request_type_id);
-    },
-    loadRequirementTypes() {
-      axios.get(REQUIREMENT_TYPE_URL).then((resp) => {
-        this.requirementTypeOptions = resp.data;
-      });
-    },
     loadFundingTypes() {
-      axios.get(FUNDING_TYPE_URL).then((resp) => {
-        this.fundingTypeOptions = resp.data;
+      axios.get(REQUEST_TYPES).then((resp) => {
+        this.fundingTypeOptions = resp.data.data;
       });
     },
     loadStatus() {
-      axios.get(FUNDING_STATUS_URL).then((resp) => {
-        this.statusOptions = resp.data;
+      axios.get(STATUS).then((resp) => {
+        this.statusOptions = resp.data.data;
       });
     },
     loadReasons() {
-      axios.get(FUNDING_REASON_URL).then((resp) => {
-        this.reasonOptions = resp.data;
+      axios.get(STATUS_REASON).then((resp) => {
+        this.reasonOptions = resp.data.data;
       });
     },
     async updateFundingRequest(itemToUpdate, id) {
       try {
-        const resInsert = await axios.put(APPLICATION_URL + `/${this.applicationId}/status/${id}`, {
+        const resInsert = await axios.put(`${APPLICATION_URL}/${this.applicationId}/status/${id}`, {
           data: { ...itemToUpdate },
         });
         const message = resInsert?.data?.messages[0];
