@@ -2,16 +2,57 @@
   <div class="">
     <div class="mt-4">
       <v-card class="default mb-1 bg-color-blue">
-        <v-card-title
-          >Assessment - CSGDSE
-          <v-spacer></v-spacer>
-          <v-btn dense color="primary" class="my-0" @click="saveClick" :disabled="!assessment.id">
-            Recalculate
-          </v-btn>
+        <v-card-title>
+          Assessment - CSGDSE
         </v-card-title>
         <v-divider class="my-1"></v-divider>
 
         <v-card-text v-if="assessment">
+          <v-simple-table dense class="mb-4">
+            <template v-slot:default>
+              <thead>
+                <tr>
+                  <th>
+                    Equipment Category
+                  </th>
+                  <th style="width: 160px; text-align:right">Approved Amount</th>
+                  <th style="width: 120px">Verified</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="item of equipment">
+                  <td>
+                    {{ equipmentCategories?.find((c) => c.id == item.equipment_category_id)?.description }}
+                  </td>
+                  <td style="width: 160px; text-align:right">
+                    {{ formatMoney(item.approve_amount) }}
+                  </td>
+                  <td><v-icon color="success">mdi-check</v-icon></td>
+                </tr>
+              </tbody>
+            </template>
+          </v-simple-table>
+
+          <v-simple-table dense class="mb-4">
+            <template v-slot:default>
+              <thead>
+                <tr>
+                  <th>Service Category</th>
+                  <th style="width: 160px; text-align:right">Approved Amount</th>
+                  <th style="width: 120px">Verified</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="item of services">
+                  <td>
+                    {{ disabilityServices?.find((c) => c.id == item.disability_service_id)?.description }}
+                  </td>
+                  <td style="width: 160px; text-align:right">{{ formatMoney(item.approve_amount) }}</td>
+                  <td><v-icon color="success">mdi-check</v-icon></td>
+                </tr>
+              </tbody>
+            </template>
+          </v-simple-table>
           <v-row>
             <v-col>
               <v-menu
@@ -26,7 +67,7 @@
                 <template v-slot:activator="{ on, attrs }">
                   <v-text-field
                     v-model="assessment.assessed_date"
-                    label="Assesssed date"
+                    label="Assessed date"
                     append-icon="mdi-calendar"
                     readonly
                     outlined
@@ -46,33 +87,7 @@
               </v-menu>
             </v-col>
 
-            <v-col>
-              <v-text-field
-                label="Disability status"
-                append-icon="mdi-lock"
-                readonly
-                :value="
-                  application.permanent_disability
-                    ? 'Permanent disability'
-                    : application.pers_or_prolong_disability
-                    ? 'Persistent/prolonged disability'
-                    : ''
-                "
-                outlined
-                dense
-                background-color="#ddd"
-              ></v-text-field>
-
-              <v-text-field
-                label="Disability start date"
-                append-icon="mdi-lock"
-                readonly
-                :value="application.disability_start_date?.slice(0, 10)"
-                outlined
-                dense
-                background-color="#ddd"
-              ></v-text-field>
-            </v-col>
+            <v-col> </v-col>
             <v-col>
               <v-text-field
                 outlined
@@ -235,7 +250,7 @@
                           v-bind="attrs"
                           v-on="on"
                           @change="saveDisbursement"
-                      class="narrowInput"
+                          class="narrowInput"
                         ></v-text-field>
                       </template>
                       <v-date-picker
@@ -281,7 +296,7 @@
                           v-bind="attrs"
                           v-on="on"
                           @change="saveDisbursement"
-                      class="narrowInput"
+                          class="narrowInput"
                         ></v-text-field>
                       </template>
                       <v-date-picker
@@ -353,25 +368,29 @@ export default {
     this.applicationId = this.$route.params.id;
     let storeApp = store.getters.selectedApplication;
 
-    if (this.applicationId != storeApp.HISTORY_DETAIL_ID) {
+    if (this.applicationId != storeApp.id) {
       await store.dispatch("loadApplication", this.applicationId);
     }
 
-    await this.initialize(storeApp).then((r) => {
-      if (isUndefined(this.parentAssessment)) {
-        this.$emit("showError", "Please create the CSLFT Assessment first");
-        this.$emit("close");
-      }
-    });
+    await this.initialize(storeApp);
 
     await this.setCslClassifications();
     await this.setDisbursementTypes();
     await this.setChangeReasons();
+
+    store.dispatch("setDisabilityServices");
+    store.dispatch("setEquipmentCategories");
   },
   computed: {
     ...mapState({ application: "selectedApplication" }),
-    ...mapState("csgDisabilitySEStore", ["csgThresholds", "cslft", "assessment", "disbursements", "parentAssessment"]),
-    ...mapGetters(["cslClassifications", "disbursementTypes", "changeReasons"]),
+    ...mapState("csgDisabilitySEStore", ["services", "equipment", "assessment", "disbursements"]),
+    ...mapGetters([
+      "cslClassifications",
+      "disbursementTypes",
+      "changeReasons",
+      "disabilityServices",
+      "equipmentCategories",
+    ]),
 
     ...mapGetters("csgDisabilitySEStore", ["previousDisbursements", "assessedAmount", "netAmount", "netAmountRaw"]),
     classification(state) {
