@@ -62,13 +62,78 @@ cslCertificateExportRouter.get(
           return res.status(200).json({ success: false, data1: results, data2: results2, batch: CSL_CERT_SEQ_P });
         }
       } else {
-        return res
-          .status(200)
-          .json({
-            success: false,
-            batch: CSL_CERT_SEQ_P,
-            message: "There are no records between " + FROM_DATE_P + " and " + TO_DATE_P,
-          });
+        return res.status(200).json({
+          success: false,
+          batch: CSL_CERT_SEQ_P,
+          message: "There are no records between " + FROM_DATE_P + " and " + TO_DATE_P,
+        });
+      }
+    } catch (error: any) {
+      console.log(error);
+      return res.status(404).send();
+    }
+  }
+);
+
+cslCertificateExportRouter.get(
+  "/:FROM_DATE_P/:TO_DATE_P/:CSL_CERT_SEQ_P/:IS_PREVIEW/regenerate",
+  [
+    param("CSL_CERT_SEQ_P").isInt().notEmpty(),
+    param("FROM_DATE_P").notEmpty(),
+    param("TO_DATE_P").notEmpty(),
+    param("IS_PREVIEW").notEmpty(),
+  ],
+  //ReturnValidationErrors,
+  async (req: Request, res: Response) => {
+    const { filter = true } = req.query;
+    const { CSL_CERT_SEQ_P, FROM_DATE_P, TO_DATE_P, IS_PREVIEW } = req.params;
+
+    try {
+      const results = await db
+        .select(
+          "s.id",
+          db.raw("CONCAT(p.last_name, ', ', p.first_name) AS name"),
+          db.raw("ISNULL(ROUND(d.disbursed_amount, 0), 0) AS csl_amount"),
+          "d.transaction_number",
+          "d.issue_date",
+          "d.due_date",
+          "r.description"
+        )
+        .from("sfa.student AS s")
+        .join("sfa.person AS p", "s.person_id", "=", "p.id")
+        .join("sfa.application AS hd", "s.id", "=", "hd.student_id")
+        .join("sfa.funding_request AS fr", "hd.id", "=", "fr.application_id")
+        .join("sfa.disbursement AS d", "fr.id", "=", "d.funding_request_id")
+        .join("sfa.request_type AS r", "fr.request_type_id", "=", "r.id")
+        .join("sfa.msfaa AS m", "s.id", "=", "m.student_id")
+        .where(IS_PREVIEW === "1" ? "d.csl_cert_seq_number_prev" : "d.csl_cert_seq_number", "=", CSL_CERT_SEQ_P)
+        .andWhere("d.issue_date", ">=", FROM_DATE_P)
+        .andWhere("d.issue_date", "<=", TO_DATE_P)
+        .andWhere("m.msfaa_status", "=", "Received")
+        .andWhere(
+          db.raw(
+            "((m.is_full_time = CASE d.disbursement_type_id WHEN 4 THEN 1 ELSE 0 END) OR hd.academic_year_id <= 2012) "
+          )
+        );
+
+      if (results.length) {
+        const results2 = await db.raw("SELECT sfa.fn_cert_data_regen(?, ?, ?) as fileText", [
+          CSL_CERT_SEQ_P,
+          FROM_DATE_P,
+          TO_DATE_P,
+        ]);
+
+        if (results2[0].fileText) {
+          return res.status(200).json({ success: true, data1: results, data2: results2, batch: CSL_CERT_SEQ_P });
+        } else {
+          return res.status(200).json({ success: false, data1: results, data2: results2, batch: CSL_CERT_SEQ_P });
+        }
+      } else {
+        return res.status(200).json({
+          success: false,
+          batch: CSL_CERT_SEQ_P,
+          message: "There are no records between " + FROM_DATE_P + " and " + TO_DATE_P,
+        });
       }
     } catch (error: any) {
       console.log(error);

@@ -72,7 +72,7 @@
           </v-col>
           <v-col>
             <div class="text-right">
-              <v-btn-toggle v-model="icon">
+              <v-btn-toggle v-model="icon" class="mb-6">
                 <v-btn
                   :disabled="disabled.flag"
                   class="my-0"
@@ -100,6 +100,25 @@
                 </v-btn>
               </v-btn-toggle>
             </div>
+          </v-col>
+        </v-row>
+        <v-divider class="my-4" />
+        <v-row>
+          <v-col class="d-flex">
+            <v-text-field
+              label="Sequence"
+              dense
+              outlined
+              background-color="white"
+              hide-details
+              v-model="sequence"
+            ></v-text-field>
+            <v-btn class="ml-4" style="height: 40px" @click="regenerateReport(0)" color="secondary">
+              Regenerate
+              <v-icon right>
+                mdi-refresh
+              </v-icon>
+            </v-btn>
           </v-col>
         </v-row>
       </v-card-text>
@@ -142,6 +161,8 @@ export default {
     modalTitle: null,
     disabled: { flag: true },
     isLoading: { flag: false },
+
+    sequence: "",
   }),
   components: {
     Modal,
@@ -173,7 +194,6 @@ export default {
         let newFlag = { flag: true };
         this.disabled = newFlag;
 
-        let newLoading = { flag: true };
         this.isLoading = newFlag;
         let resInsert;
         if (isPreview) {
@@ -191,10 +211,14 @@ export default {
         } else {
           let resInsert2;
           if (isPreview === 1) {
+            this.sequence = resInsert.data.data;
+
             resInsert2 = await axios.get(
               CSL_CERTIFICATE_EXPORT + `/${this.from.date}/${this.to.date}/${resInsert.data.data}/1`
             );
           } else {
+            this.sequence = resInsert.data.data;
+
             resInsert2 = await axios.get(
               CSL_CERTIFICATE_EXPORT + `/${this.from.date}/${this.to.date}/${resInsert.data.data}/0`
             );
@@ -231,6 +255,53 @@ export default {
         }
       }
     },
+    async regenerateReport() {
+      Vue.nextTick(() => {
+        this.icon = "99"; // no toggle
+      });
+
+      if (this.from.date === "" || this.from.date === null || this.to.date === "" || this.to.date === null) {
+        this.modalTitle = "Error";
+        this.modalText = "Please fill in all the fields";
+        this.openModal();
+      } else {
+        let newFlag = { flag: true };
+        this.disabled = newFlag;
+        this.isLoading = newFlag;
+
+        let resInsert2 = await axios.get(
+          `${CSL_CERTIFICATE_EXPORT}/${this.from.date}/${this.to.date}/${this.sequence}/0/regenerate`
+        );
+
+        if (resInsert2.data.success) {
+          this.tableData = resInsert2.data.data1;
+          this.batch = resInsert2.data.batch;
+          this.generatePDF(isPreview);
+
+          let FileSaver = require("file-saver");
+          const regex = /PPYT\.EDU\.CERTS\.D\d+\.001/;
+
+          const match = resInsert2.data.data2[0]["fileText"] ? resInsert2.data.data2[0]["fileText"].match(regex) : "";
+          const resultado = match ? match[0] : "";
+
+          let blob = new Blob([resInsert2.data.data2[0]["fileText"].replace(/PPYT\.EDU\.CERTS\.D\d+\.001/, "")], {
+            type: "text/plain;charset=utf-8",
+          });
+          FileSaver.saveAs(blob, `${isPreview === 1 ? "PREVIEW_" : ""}${resultado}.txt`);
+          let newFlag = { flag: false };
+          this.disabled = newFlag;
+          this.isLoading = newFlag;
+        } else {
+          this.$emit("showError", resInsert2.data.message);
+          let newFlag = { flag: false };
+          this.disabled = newFlag;
+
+          let newLoading = { flag: false };
+          this.isLoading = newLoading;
+        }
+      }
+    },
+
     strMonth(month) {
       let stringMonth = "";
       switch (parseInt(month)) {
