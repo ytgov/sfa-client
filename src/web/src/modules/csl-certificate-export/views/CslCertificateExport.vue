@@ -197,30 +197,28 @@ export default {
         this.isLoading = newFlag;
         let resInsert;
         if (isPreview) {
-          resInsert = await axios.put(CSL_CERTIFICATE_EXPORT + `/${this.from.date}/${this.to.date}/1`);
+          resInsert = await axios.put(`${CSL_CERTIFICATE_EXPORT}/${this.from.date}/${this.to.date}/1`);
         } else {
-          resInsert = await axios.put(CSL_CERTIFICATE_EXPORT + `/${this.from.date}/${this.to.date}/0`);
+          resInsert = await axios.put(`${CSL_CERTIFICATE_EXPORT}/${this.from.date}/${this.to.date}/0`);
         }
+
+        let newSequenceNumber = resInsert.data.data;
+        this.sequence = newSequenceNumber;
 
         if (resInsert.data.flag === 0 || !resInsert.data.data) {
           let newFlag = { flag: false };
           this.disabled = newFlag;
-          let newLoading = { flag: false };
           this.isLoading = newFlag;
           this.$emit("showError", resInsert.data.data);
         } else {
           let resInsert2;
           if (isPreview === 1) {
-            this.sequence = resInsert.data.data;
-
             resInsert2 = await axios.get(
-              CSL_CERTIFICATE_EXPORT + `/${this.from.date}/${this.to.date}/${resInsert.data.data}/1`
+              `${CSL_CERTIFICATE_EXPORT}/${this.from.date}/${this.to.date}/${newSequenceNumber}/1`
             );
           } else {
-            this.sequence = resInsert.data.data;
-
             resInsert2 = await axios.get(
-              CSL_CERTIFICATE_EXPORT + `/${this.from.date}/${this.to.date}/${resInsert.data.data}/0`
+              `${CSL_CERTIFICATE_EXPORT}/${this.from.date}/${this.to.date}/${newSequenceNumber}/0`
             );
           }
 
@@ -241,8 +239,6 @@ export default {
             FileSaver.saveAs(blob, `${isPreview === 1 ? "PREVIEW_" : ""}${resultado}.txt`);
             let newFlag = { flag: false };
             this.disabled = newFlag;
-
-            let newLoading = { flag: false };
             this.isLoading = newFlag;
           } else {
             this.$emit("showError", resInsert2.data.message);
@@ -260,7 +256,7 @@ export default {
         this.icon = "99"; // no toggle
       });
 
-      if (this.from.date === "" || this.from.date === null || this.to.date === "" || this.to.date === null) {
+      if (!this.sequence) {
         this.modalTitle = "Error";
         this.modalText = "Please fill in all the fields";
         this.openModal();
@@ -270,13 +266,13 @@ export default {
         this.isLoading = newFlag;
 
         let resInsert2 = await axios.get(
-          `${CSL_CERTIFICATE_EXPORT}/${this.from.date}/${this.to.date}/${this.sequence}/0/regenerate`
+          `${CSL_CERTIFICATE_EXPORT}/regenerate/${this.sequence}`
         );
 
         if (resInsert2.data.success) {
           this.tableData = resInsert2.data.data1;
           this.batch = resInsert2.data.batch;
-          this.generatePDF(isPreview);
+          this.generatePDF(0);
 
           let FileSaver = require("file-saver");
           const regex = /PPYT\.EDU\.CERTS\.D\d+\.001/;
@@ -287,7 +283,7 @@ export default {
           let blob = new Blob([resInsert2.data.data2[0]["fileText"].replace(/PPYT\.EDU\.CERTS\.D\d+\.001/, "")], {
             type: "text/plain;charset=utf-8",
           });
-          FileSaver.saveAs(blob, `${isPreview === 1 ? "PREVIEW_" : ""}${resultado}.txt`);
+          FileSaver.saveAs(blob, `${resultado}.txt`);
           let newFlag = { flag: false };
           this.disabled = newFlag;
           this.isLoading = newFlag;
