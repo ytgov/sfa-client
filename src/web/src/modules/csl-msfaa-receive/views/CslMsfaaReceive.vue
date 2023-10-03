@@ -28,12 +28,11 @@
               background-color="white"
               hide-details
               label="Select document"
-              v-model="documents"
-              @change="uploadDoc()"
+              v-model="document"
             />
             <div class="text-right">
               <v-btn
-                :disabled="disabled.flag"
+                :disabled="!document"
                 @click="importFile()"
                 class="my-0 ml-4"
                 color="primary"
@@ -66,26 +65,10 @@ import moment from "moment";
 export default {
   name: "OfficerList",
   data: () => ({
-    from: {
-      date: null,
-      menu: null,
-    },
-    to: {
-      date: null,
-      menu: null,
-    },
-    seqNum: null,
-    tableData: null,
-    batch: null,
     modalText: null,
     modalTitle: null,
     disabled: { flag: false },
-    documents: null,
-    statusDisabled: false,
-    uploadedDoc: null,
-    modalText: null,
-    modalTitle: null,
-    disabled: { flag: true },
+    document: null,
     isLoading: { flag: false },
     pdfData: null,
     seq: null,
@@ -105,16 +88,17 @@ export default {
     openModal() {
       this.$refs.modal.openModal();
     },
-    async uploadDoc() {
-      this.statusDisabled = false;
-      this.uploadedDoc = event.target.files;
-      let enableButton = false;
-      this.disabled.flag = enableButton;
-    },
     async importFile() {
       const formData = new FormData();
-      formData.append("file", this.uploadedDoc);
-      let resInsert = await axios.post(CSL_MSFAA_RECEIVE + `/${this.uploadedDoc.name}`, formData);
+      formData.append("file", this.document);
+
+      let resInsert = await axios
+        .post(CSL_MSFAA_RECEIVE + `/${this.document.name}`, formData)
+        .then((res) => res)
+        .catch((err) => {
+          this.$emit("showError", "Error: " + err.response.data);
+        });
+
       if (resInsert.data.flag === 1) {
         this.$emit("showSuccess", resInsert.data.data);
         this.seq = resInsert.data.seq;
@@ -128,26 +112,19 @@ export default {
           this.openModal();
           this.pdfData = await axios.get(CSL_MSFAA_RECEIVE + `/`);
           this.generatePDF();
-          let emptyDoc = null;
-          this.documents = emptyDoc;
-          let disableButton = true;
-          this.disabled.flag = disableButton;
-          let newFlag = { flag: false };
-          this.isLoading = newFlag;
+
+          this.document = null;
+          this.disabled.flag = true;
+          this.isLoading = { flag: false };
         } else {
-          let emptyDoc = null;
-          this.documents = emptyDoc;
-          let disableButton = true;
-          this.disabled.flag = disableButton;
+          this.document = null;
+          this.disabled.flag = true;
           this.$emit("showError", resInsert2.data.data);
-          let newFlag = { flag: false };
-          this.isLoading = newFlag;
+          this.isLoading = { flag: false };
         }
       } else {
-        let emptyDoc = null;
-        this.documents = emptyDoc;
-        let disableButton = true;
-        this.disabled.flag = disableButton;
+        this.document = null;
+        this.disabled.flag = true;
         this.$emit("showError", resInsert.data.data);
       }
     },
