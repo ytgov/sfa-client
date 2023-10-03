@@ -29,7 +29,6 @@ import NicholasJohnHarachScholarship from "../components/application/csfa-needs-
 import CSLFT from "../components/application/csfa-needs-assessment/CSLFT.vue";
 import CSLPT from "../components/application/csfa-needs-assessment/CSLPT.vue";
 import CSGPT from "../components/application/csfa-needs-assessment/CSGPT.vue";
-import CSGDSE from "../components/application/csfa-needs-assessment/CSGDSE.vue";
 import CanadianArmyScholarship from "../components/application/csfa-needs-assessment/CanadianArmyScholarship.vue";
 import TrainingAllowance from "../components/application/csfa-needs-assessment/TrainingAllowance.vue";
 import YukonGrant from "../components/application/csfa-needs-assessment/YukonGrant.vue";
@@ -77,6 +76,7 @@ import CslMsfaaSendRoutes from "@/modules/csl-msfaa-send/router";
 import CSLRestrictedDataModuleRoutes from "@/modules/csl-restricted-data/router";
 
 import administrationRoutes from "@/modules/Administration/router";
+import fundingRequestRoutes from "@/components/application/funding-requests/router"
 
 Vue.use(VueRouter);
 
@@ -96,6 +96,7 @@ const routes = [
   },
 
   ...administrationRoutes,
+  ...fundingRequestRoutes,
 
   {
     path: "/application/:id/personal",
@@ -221,38 +222,6 @@ const routes = [
     path: "/application/:id/assessment/yukon-excellence-awards/0",
     name: "YukonExcellenceAwards",
     component: YukonExcellenceAwards,
-    meta: {
-      requiresAuth: true,
-    },
-  },
-  {
-    path: "/application/:id/assessment/csgdse/0",
-    name: "CSGTP",
-    component: CSGDSE,
-    meta: {
-      requiresAuth: true,
-    },
-  },
-  {
-    path: "/application/:id/assessment/csgpt/0",
-    name: "CSGPT",
-    component: CSGPT,
-    meta: {
-      requiresAuth: true,
-    },
-  },
-  {
-    path: "/application/:id/assessment/cslpt/0",
-    name: "CSLPT",
-    component: CSLPT,
-    meta: {
-      requiresAuth: true,
-    },
-  },
-  {
-    path: "/application/:id/assessment/CSLFT/0",
-    name: "CSLFT",
-    component: CSLFT,
     meta: {
       requiresAuth: true,
     },
