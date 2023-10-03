@@ -49,24 +49,20 @@ cslCertificateExportRouter.get(
           )
         );
 
-      if (results.length) {
-        const results2 = await db.raw("SELECT sfa.fn_cert_data(?, ?, ?) as fileText", [
-          CSL_CERT_SEQ_P,
-          FROM_DATE_P,
-          TO_DATE_P,
-        ]);
+      const results2 = await db.raw("SELECT sfa.fn_cert_data(?, ?, ?) as fileText", [
+        CSL_CERT_SEQ_P,
+        FROM_DATE_P,
+        TO_DATE_P,
+      ]);
 
-        if (results2[0].fileText) {
-          return res.status(200).json({ success: true, data1: results, data2: results2, batch: CSL_CERT_SEQ_P });
-        } else {
-          return res.status(200).json({ success: false, data1: results, data2: results2, batch: CSL_CERT_SEQ_P });
-        }
+      await db("sfa.disbursement")
+        .where({ csl_cert_seq_number: CSL_CERT_SEQ_P })
+        .update({ ecert_sent_date: new Date() });
+
+      if (results2[0].fileText) {
+        return res.status(200).json({ success: true, data1: results, data2: results2, batch: CSL_CERT_SEQ_P });
       } else {
-        return res.status(200).json({
-          success: false,
-          batch: CSL_CERT_SEQ_P,
-          message: "There are no records between " + FROM_DATE_P + " and " + TO_DATE_P,
-        });
+        return res.status(200).json({ success: false, data1: results, data2: results2, batch: CSL_CERT_SEQ_P });
       }
     } catch (error: any) {
       console.log(error);
@@ -76,17 +72,11 @@ cslCertificateExportRouter.get(
 );
 
 cslCertificateExportRouter.get(
-  "/:FROM_DATE_P/:TO_DATE_P/:CSL_CERT_SEQ_P/:IS_PREVIEW/regenerate",
-  [
-    param("CSL_CERT_SEQ_P").isInt().notEmpty(),
-    param("FROM_DATE_P").notEmpty(),
-    param("TO_DATE_P").notEmpty(),
-    param("IS_PREVIEW").notEmpty(),
-  ],
+  "/regenerate/:CSL_CERT_SEQ_P",
+  [param("CSL_CERT_SEQ_P").isInt().notEmpty()],
   //ReturnValidationErrors,
   async (req: Request, res: Response) => {
-    const { filter = true } = req.query;
-    const { CSL_CERT_SEQ_P, FROM_DATE_P, TO_DATE_P, IS_PREVIEW } = req.params;
+    const { CSL_CERT_SEQ_P } = req.params;
 
     try {
       const results = await db
@@ -106,9 +96,7 @@ cslCertificateExportRouter.get(
         .join("sfa.disbursement AS d", "fr.id", "=", "d.funding_request_id")
         .join("sfa.request_type AS r", "fr.request_type_id", "=", "r.id")
         .join("sfa.msfaa AS m", "s.id", "=", "m.student_id")
-        .where(IS_PREVIEW === "1" ? "d.csl_cert_seq_number_prev" : "d.csl_cert_seq_number", "=", CSL_CERT_SEQ_P)
-        .andWhere("d.issue_date", ">=", FROM_DATE_P)
-        .andWhere("d.issue_date", "<=", TO_DATE_P)
+        .where("d.csl_cert_seq_number", "=", CSL_CERT_SEQ_P)
         .andWhere("m.msfaa_status", "=", "Received")
         .andWhere(
           db.raw(
@@ -116,24 +104,12 @@ cslCertificateExportRouter.get(
           )
         );
 
-      if (results.length) {
-        const results2 = await db.raw("SELECT sfa.fn_cert_data_regen(?, ?, ?) as fileText", [
-          CSL_CERT_SEQ_P,
-          FROM_DATE_P,
-          TO_DATE_P,
-        ]);
+      const results2 = await db.raw("SELECT sfa.fn_cert_data_regen(?) as fileText", [CSL_CERT_SEQ_P]);
 
-        if (results2[0].fileText) {
-          return res.status(200).json({ success: true, data1: results, data2: results2, batch: CSL_CERT_SEQ_P });
-        } else {
-          return res.status(200).json({ success: false, data1: results, data2: results2, batch: CSL_CERT_SEQ_P });
-        }
+      if (results2[0].fileText) {
+        return res.status(200).json({ success: true, data1: results, data2: results2, batch: CSL_CERT_SEQ_P });
       } else {
-        return res.status(200).json({
-          success: false,
-          batch: CSL_CERT_SEQ_P,
-          message: "There are no records between " + FROM_DATE_P + " and " + TO_DATE_P,
-        });
+        return res.status(200).json({ success: false, data1: results, data2: results2, batch: CSL_CERT_SEQ_P });
       }
     } catch (error: any) {
       console.log(error);
@@ -151,41 +127,41 @@ cslCertificateExportRouter.put(
     const { FROM_DATE_P, TO_DATE_P, PREVIEW } = req.params;
 
     try {
-      const results = await db.select(
+      /* const results = await db.select(
         db.raw(`sfa.fn_get_count_disbursement_ecerts('${FROM_DATE_P}', '${TO_DATE_P}') AS result`)
+      ); */
+
+      //if (results[0].result > 0) {
+      const nextVal = await db.select(
+        db.raw(`NEXT VALUE FOR ${PREVIEW === "1" ? "sfa.csl_cert_seq_prev" : "sfa.csl_cert_seq"} AS nextVal;`)
       );
 
-      if (results[0].result > 0) {
-        const nextVal = await db.select(
-          db.raw(`NEXT VALUE FOR ${PREVIEW === "1" ? "sfa.csl_cert_seq_prev" : "sfa.csl_cert_seq"} AS nextVal;`)
-        );
+      await db.raw(
+        `EXEC ${
+          PREVIEW === "1" ? "sfa.sp_get_and_update_csl_cert_seq_num_prev" : "sfa.sp_get_and_update_csl_cert_seq_num"
+        } '${FROM_DATE_P}','${TO_DATE_P}', ${nextVal[0].nextVal};`
+      );
 
-        const innerSelect = await db.raw(
-          `EXEC ${
-            PREVIEW === "1" ? "sfa.sp_get_and_update_csl_cert_seq_num_prev" : "sfa.sp_get_and_update_csl_cert_seq_num"
-          } '${FROM_DATE_P}','${TO_DATE_P}', ${nextVal[0].nextVal};`
-        );
+      /* const resultsCheck = await db.raw(
+        `SELECT count(id) as count FROM sfa.disbursement d where ${
+          PREVIEW === "1" ? "csl_cert_seq_number_prev" : "csl_cert_seq_number"
+        } = ${nextVal[0].nextVal}`
+      ); */
 
-        const resultsCheck = await db.raw(
-          `SELECT count(id) as count FROM sfa.disbursement d where ${
-            PREVIEW === "1" ? "csl_cert_seq_number_prev" : "csl_cert_seq_number"
-          } = ${nextVal[0].nextVal}`
-        );
-
-        if (resultsCheck[0].count) {
-          return res.json({ flag: 1, data: nextVal[0].nextVal });
-        } else {
-          return res.json({
-            flag: 0,
-            data: `Something went wrong! No records have been modified from ${FROM_DATE_P} to ${TO_DATE_P}`,
-          });
-        }
-      } else {
+      //if (resultsCheck[0].count) {
+      return res.json({ flag: 1, data: nextVal[0].nextVal });
+      /* } else {
+        return res.json({
+          flag: 0,
+          data: `Something went wrong! No records have been modified from ${FROM_DATE_P} to ${TO_DATE_P}`,
+        });
+      } */
+      /* } else {
         return res.json({
           flag: 0,
           data: `There are no certificates with received MSFAA between ${FROM_DATE_P} and ${TO_DATE_P}`,
         });
-      }
+      } */
     } catch (error: any) {
       console.log(error);
       return res.status(404).send();
