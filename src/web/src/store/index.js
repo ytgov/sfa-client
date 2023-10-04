@@ -213,7 +213,7 @@ export default new Vuex.Store({
     async loadApplication(state, id) {
       if (state.state.selectedApplicationId != id) state.commit("CLEAR_APPLICATION");
 
-      axios
+      return axios
         .get(`${APPLICATION_URL}/${id}`)
         .then((resp) => {
           if (!state.state.selectedStudent.id) {

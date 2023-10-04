@@ -15,6 +15,9 @@ const state = {
   baseRate: 0.00,
 };
 const getters = {
+  disbursements(state) {
+    return state.disbursements;
+  },
   previousDisbursements(state) {
     let amounts = state.disbursements.map((d) => d.disbursed_amount);
     let total = amounts.reduce((t, a) => {
@@ -224,6 +227,13 @@ const actions = {
     } else {
       state.disbursements.splice(index, 1);
     }
+  },
+
+  async addDisbursement({ state }) {
+    state.disbursements.push({
+      disbursement_type_id: 4,
+      issue_date: moment().format("YYYY-MM-DD"), // today
+    });
   },
 
   async save({ state, dispatch }) {

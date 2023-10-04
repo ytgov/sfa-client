@@ -14,9 +14,12 @@ const state = {
   disbursements: [],
   parentAssessment: {},
   parentDisbursements: [],
-  baseRate: 0.00,
+  baseRate: 0.0,
 };
 const getters = {
+  disbursements(state) {
+    return state.disbursements;
+  },
   familyIncome(state) {
     let val = state.assessment
       ? (state.assessment.student_ln150_income || 0) + (state.assessment.spouse_ln150_income || 0)
@@ -89,7 +92,7 @@ const getters = {
       : formatMoney(0);
   },
   previousDisbursements(state) {
-    let amounts = state.disbursements.map((d) => d.disbursed_amount);
+    let amounts = state.disbursements.map((d) => d.disbursed_amount ?? 0);
     let total = amounts.reduce((t, a) => {
       return t + a;
     }, 0);
@@ -315,6 +318,13 @@ const actions = {
     } else {
       state.disbursements.splice(index, 1);
     }
+  },
+
+  async addDisbursement({ state }) {
+    state.disbursements.push({
+      disbursement_type_id: 4,
+      issue_date: moment().format("YYYY-MM-DD"), // today
+    });
   },
 
   async save({ state, dispatch }) {

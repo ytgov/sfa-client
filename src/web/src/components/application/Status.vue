@@ -27,7 +27,7 @@
                 small
                 color="info"
                 class="my-0"
-                @click="showAssessment(item.request_type_id || null, item.id || null)"
+                @click="showAssessment(item.request_type_id, item.id)"
                 block
               >
                 Assessment
@@ -207,7 +207,10 @@ export default {
 
     this.applicationId = this.$route.params.id;
     let storeApp = store.getters.selectedApplication;
-    await store.dispatch("loadApplication", this.applicationId);
+
+    if (this.applicationId != storeApp.id) {
+      await store.dispatch("loadApplication", this.applicationId);
+    }
 
     store.dispatch("setAppSidebar", true);
   },
@@ -231,11 +234,31 @@ export default {
       );
     },
     showAssessment(request_type_id, funding_request_id) {
-      this.showFundings = false;
-      store.dispatch("getAssessments", { application_id: this.application.id, funding_request_id });
-      this.assessmentTypeId = request_type_id;
-      this.fundingRequestId = funding_request_id;
-      this.assessmentTypeC();
+      switch (request_type_id) {
+        case 30:
+          this.$router.push(`/application/${this.applicationId}/csgdse/${funding_request_id}`);
+          break;
+        case 32:
+          this.$router.push(`/application/${this.applicationId}/csgftdep/${funding_request_id}`);
+          break;
+        case 35:
+          this.$router.push(`/application/${this.applicationId}/csgft/${funding_request_id}`);
+          break;
+        case 29:
+          this.$router.push(`/application/${this.applicationId}/csgd/${funding_request_id}`);
+          break;
+        case 28:
+          this.$router.push(`/application/${this.applicationId}/csgtp/${funding_request_id}`);
+          break;
+
+        default:
+          console.log("REQUEST", request_type_id);
+          this.showFundings = false;
+          store.dispatch("getAssessments", { application_id: this.application.id, funding_request_id });
+          this.assessmentTypeId = request_type_id;
+          this.fundingRequestId = funding_request_id;
+          this.assessmentTypeC();
+      }
     },
     async showFundingStatus() {
       this.showFundings = true;
