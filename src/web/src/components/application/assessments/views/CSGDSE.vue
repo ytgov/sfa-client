@@ -187,14 +187,10 @@ export default {
     let storeApp = store.getters.selectedApplication;
 
     if (this.applicationId != storeApp.id) {
-      await store.dispatch("loadApplication", this.applicationId);
+      await store.dispatch("loadApplication", this.applicationId).then(async () => {
+        await this.initialize(store.getters.selectedApplication);
+      });
     }
-
-
-
-
-    
-    await this.initialize(storeApp);
 
     await this.setCslClassifications();
     await this.setDisbursementTypes();
