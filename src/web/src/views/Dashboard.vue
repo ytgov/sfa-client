@@ -37,58 +37,39 @@
       </v-col>
 
       <v-col cols="12" md="4" sm="6">
-        <v-card color="#fff2d5">
-          <v-card-text>
-            <h3 class="text-h6 font-weight-regular">Recently viewed Applications</h3>
-            <p v-if="recentApplications.length == 0" class="mb-0">None yet</p>
-            <ol v-if="recentApplications.length > 0">
-              <li v-for="(item, idx) of recentApplications" :key="idx">
-                <router-link :to="`/application/${item.id}/personal`"
-                  >{{ getStudentName(item) }} - {{ item.academic_year_id }}: {{ item.main_institution.name }}
-                </router-link>
-              </li>
-            </ol>
-          </v-card-text>
-        </v-card>
-      </v-col>
-      <v-col cols="12" md="4" sm="6">
-        <v-card class="default">
-          <v-card-text>
-            <h3 class="text-h6 font-weight-regular">New Applications</h3>
-
-            <div v-if="loading">Loading...</div>
-            <p v-if="newApplications.length == 0 && !loading" class="mb-0">None yet</p>
-
-            <ol v-if="newApplications.length > 0">
-              <li v-for="(item, idx) of newApplications" :key="idx">
-                <router-link :to="`/application/${item.id}/personal`">
-                  {{ item.title }}
-                </router-link>
-              </li>
-            </ol>
-          </v-card-text>
-        </v-card>
-      </v-col>
-      <v-col cols="12" md="4" sm="6">
         <v-card class="default mb-5">
-          <v-card-text>
-            <h3 class="text-h6 font-weight-regular">Recent updates or messages</h3>
-            <p v-if="recentUpdated.length == 0" class="mb-0">None yet</p>
-            <ol v-if="recentUpdated.length > 0">
-              <li v-for="(item, idx) of recentUpdated" :key="idx" style="list">
-                <router-link :to="`/application/${item.id}/personal`"
-                  >{{ item.title }} - <span style="font-size: 10px">{{ getFormattedDate(item.updated_at) }}</span>
-                </router-link>
-              </li>
-            </ol>
+          <v-toolbar flat color="#e0d5bb" dense>
+            Recently Viewed Applications
+          </v-toolbar>
+          <v-card-text class="py-0">
+            <p v-if="recentApplications.length == 0" class="mb-0">None yet</p>
+
+            <v-list dense color="#ffffff00" v-if="recentApplications">
+              <div v-for="(item, idx) of recentApplications">
+                <v-list-item :to="`/application/${item.id}/personal`" class="pl-1">
+                  <v-list-item-content class="">
+                    <v-list-item-title
+                      >{{ getStudentName(item) }} - {{ item.academic_year_id }}: {{ item.main_institution.name }}
+                    </v-list-item-title>
+                    <!-- <v-subheader class="my-0 py-0" style="height: 14px">
+                      <strong>Flags:</strong>&nbsp; {{ item.flags.replace(/,/g, ", ") }}
+                    </v-subheader> -->
+                  </v-list-item-content>
+                </v-list-item>
+                <v-divider v-if="idx < recentApplications.length - 1" />
+              </div>
+            </v-list>
           </v-card-text>
         </v-card>
-        <v-card class="default">
-          <v-card-text class="pb-0">
-            <h3 class="text-h6 font-weight-regular">Flagged Applications</h3>
 
+        <v-card class="default">
+          <v-toolbar flat color="#e0d5bb" dense>
+            Flagged Applications
+          </v-toolbar>
+          <v-card-text class="pb-0">
             <v-select
               label="Select a flag"
+              class="my-0"
               v-model="selectedFlag"
               :items="flagOptions"
               dense
@@ -97,18 +78,76 @@
               hide-details
             >
             </v-select>
+            <div class="d-flex" style="font-size: .8rem">
+              <v-switch v-model="filterFlagged" label="Also apply name filter" hide-details class="my-0" />
+            </div>
+            <v-divider class="mt-1" />
+            <p v-if="filteredFlagMatches.length == 0" class="mb-0">None yet</p>
 
-            <v-list dense color="#ffffff00" v-if="flagMatches">
-              <div v-for="(item, idx) of flagMatches">
+            <v-list dense color="#ffffff00" v-if="filteredFlagMatches" class="mt-0 pt-0">
+              <div v-for="(item, idx) of filteredFlagMatches">
                 <v-list-item :to="`/application/${item.id}/personal`" class="pl-1">
                   <v-list-item-content class="">
                     <v-list-item-title>{{ item.title }} </v-list-item-title>
                     <v-subheader class="my-0 py-0" style="height: 14px">
-                      <strong>Flags:</strong>&nbsp; {{ item.flags.replace(",", ", ") }}
+                      <strong>Flags:</strong>&nbsp; {{ item.flags.replace(/,/g, ", ") }}
                     </v-subheader>
                   </v-list-item-content>
                 </v-list-item>
-                <v-divider v-if="idx < flagMatches.length - 1" />
+                <v-divider v-if="idx < filteredFlagMatches.length - 1" />
+              </div>
+            </v-list>
+          </v-card-text>
+        </v-card>
+      </v-col>
+
+      <v-col cols="12" md="4" sm="6">
+        <v-card class="default">
+          <v-toolbar flat color="#e0d5bb" dense>
+            New Applications
+          </v-toolbar>
+          <v-card-text class="py-0">
+            <!-- <h3 class="text-h6 font-weight-regular mb-0">New Applications</h3> -->
+
+            <div v-if="loading">Loading...</div>
+            <p v-if="newApplications.length == 0 && !loading" class="mb-0">None yet</p>
+
+            <v-list dense color="#ffffff00" v-if="newApplications">
+              <div v-for="(item, idx) of newApplications">
+                <v-list-item :to="`/application/${item.id}/personal`" class="pl-1">
+                  <v-list-item-content class="">
+                    <v-list-item-title>{{ item.title }} </v-list-item-title>
+                    <v-subheader class="my-0 py-0" style="height: 14px">
+                      <strong>Submitted:</strong>&nbsp; {{ getFormattedDate(item.online_submit_date) }}
+                    </v-subheader>
+                  </v-list-item-content>
+                </v-list-item>
+                <v-divider v-if="idx < newApplications.length - 1" />
+              </div>
+            </v-list>
+          </v-card-text>
+        </v-card>
+      </v-col>
+
+      <v-col cols="12" md="4" sm="6">
+        <v-card class="default mb-5">
+          <v-toolbar flat color="#e0d5bb" dense>
+            Recent Updates or Messages
+          </v-toolbar>
+          <v-card-text class="py-0">
+            <p v-if="recentUpdated.length == 0" class="mb-0">None yet</p>
+
+            <v-list dense color="#ffffff00" v-if="recentUpdated">
+              <div v-for="(item, idx) of recentUpdated">
+                <v-list-item :to="`/application/${item.id}/personal`" class="pl-1">
+                  <v-list-item-content class="">
+                    <v-list-item-title>{{ item.title }} </v-list-item-title>
+                    <v-subheader class="my-0 py-0" style="height: 14px">
+                      <strong>Updated:</strong>&nbsp; {{ getFormattedDate(item.updated_at) }}
+                    </v-subheader>
+                  </v-list-item-content>
+                </v-list-item>
+                <v-divider v-if="idx < recentUpdated.length - 1" />
               </div>
             </v-list>
           </v-card-text>
@@ -175,9 +214,23 @@ export default {
   name: "Home",
   computed: {
     ...mapState(["recentStudents", "flagOptions", "flagMatches"]),
+    filteredFlagMatches() {
+      if (this.filterFlagged && this.filter.length > 0) {
+        let matches = [];
+
+        for (let item of this.filter) {
+          matches.push(...this.flagMatches.filter((f) => f.last_name.startsWith(item)));
+        }
+
+        console.log("MATCH", matches);
+
+        return matches;
+      } else return this.flagMatches;
+    },
   },
   data: () => ({
     selectedFlag: "",
+    filterFlagged: false,
 
     filter: [],
     recentApplications: [],
