@@ -222,8 +222,6 @@ export default {
           matches.push(...this.flagMatches.filter((f) => f.last_name.startsWith(item)));
         }
 
-        console.log("MATCH", matches);
-
         return matches;
       } else return this.flagMatches;
     },
