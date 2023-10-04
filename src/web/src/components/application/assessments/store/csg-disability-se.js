@@ -22,7 +22,7 @@ const getters = {
     return state.disbursements;
   },
   previousDisbursements(state) {
-    let amounts = state.disbursements.map((d) => d.disbursed_amount);
+    let amounts = state.disbursements.map((d) => d.disbursed_amount ?? 0);
     let total = amounts.reduce((t, a) => {
       return t + a;
     }, 0);
@@ -68,10 +68,10 @@ const mutations = {
     state.disbursements = value;
   },
   SET_EQUIPMENT(state, value) {
-    state.equipment = value;
+    state.equipment = value ?? [];
   },
   SET_SERVICES(state, value) {
-    state.services = value;
+    state.services = value ?? [];
   },
 };
 const actions = {
@@ -81,11 +81,11 @@ const actions = {
 
     store.commit(
       "SET_EQUIPMENT",
-      app.disability_equipments.filter((e) => e.verified_equipment_need)
+      (app.disability_equipments ?? []).filter((e) => e.verified_equipment_need)
     );
     store.commit(
       "SET_SERVICES",
-      app.disability_services.filter((s) => s.verified_service_need)
+      (app.disability_services ?? []).filter((s) => s.verified_service_need)
     );
   },
 
