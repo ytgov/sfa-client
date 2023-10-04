@@ -18,6 +18,9 @@ const state = {
   equipment: [],
 };
 const getters = {
+  disbursements(state) {
+    return state.disbursements;
+  },
   previousDisbursements(state) {
     let amounts = state.disbursements.map((d) => d.disbursed_amount);
     let total = amounts.reduce((t, a) => {
@@ -134,7 +137,7 @@ const actions = {
 
       disbursedValues.push({
         disbursed_amount: amount,
-        disbursement_type_id: 4,
+        disbursement_type_id: 1,
         issue_date: moment().format("YYYY-MM-DD"), // today
       });
     }
@@ -143,7 +146,7 @@ const actions = {
 
     disbursedValues.push({
       disbursed_amount: remainder,
-      disbursement_type_id: 4,
+      disbursement_type_id: 1,
       issue_date: moment().format("YYYY-MM-DD"),
     });
 
@@ -166,6 +169,13 @@ const actions = {
     }
   },
 
+  async addDisbursement({ state }) {
+    state.disbursements.push({
+      disbursement_type_id: 4,
+      issue_date: moment().format("YYYY-MM-DD"), // today
+    });
+  },
+
   async save({ state, dispatch }) {
     state.assessment.disbursements = state.disbursements;
 
@@ -176,18 +186,14 @@ const actions = {
             `${CSG_THRESHOLD_URL}/csgftdep/${state.fundingRequest.application_id}/funding-request/${state.fundingRequest.id}/assessment/${state.assessment.id}`,
             state.assessment
           )
-          .then((resp) => {
-            dispatch("loadCSGFTAssessment", state.fundingRequest.application_id);
-          });
+          .then((resp) => {});
       } else {
         return axios
           .post(
             `${CSG_THRESHOLD_URL}/csgftdep/${state.fundingRequest.application_id}/funding-request/${state.fundingRequest.id}/assessment`,
             state.assessment
           )
-          .then((resp) => {
-            dispatch("loadCSGFTAssessment", state.fundingRequest.application_id);
-          });
+          .then((resp) => {});
       }
     }
   },
