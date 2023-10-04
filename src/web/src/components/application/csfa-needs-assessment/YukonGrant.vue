@@ -766,7 +766,7 @@ export default {
       });
     },
     updateAssessment() {
-      console.lolg("UPDATE")
+      console.log("UPDATE");
       const custom = JSON.parse(JSON.stringify(this.customAssessment));
 
       store.dispatch("updateApplication", ["program_division", this.application.program_division, this]);
@@ -783,7 +783,7 @@ export default {
       });
     },
     recalcAssessment() {
-      console.log("RECALC")
+      console.log("RECALC");
       const custom = JSON.parse(JSON.stringify(this.customAssessment));
       if (this.programDivisionBack !== null) {
         delete this.customAssessment.program_division;
@@ -864,7 +864,7 @@ export default {
       );
     },
     refreshData() {
-      console.log("REFRESH CALLED")
+      console.log("REFRESH CALLED");
       const previewDisburseAmountsList =
         this.previewDisbursementList?.map((d) => {
           return Number(d.disbursed_amount);
