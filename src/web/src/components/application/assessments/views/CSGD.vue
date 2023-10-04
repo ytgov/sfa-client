@@ -6,7 +6,7 @@
       </v-btn>
       <h1 class="mb-0">Funding Status</h1>
     </div>
-    
+
     <div class="mt-4">
       <v-card class="default mb-1 bg-color-blue">
         <v-card-title
@@ -143,7 +143,7 @@
 
     <div class="mt-4">
       <v-card class="default mb-5 bg-color-blue">
-        <v-card-text>          
+        <v-card-text>
           <csg-disbursements
             store="csgDisabilityStore"
             v-on:showError="showError"
@@ -174,7 +174,6 @@ export default {
 
     if (this.applicationId != storeApp.id) {
       await store.dispatch("loadApplication", this.applicationId).then(async (res) => {
-
         await this.initialize(store.getters.selectedApplication).then((r) => {
           if (isUndefined(this.parentAssessment)) {
             this.$emit("showError", "Please create the CSLFT Assessment first");
