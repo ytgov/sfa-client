@@ -158,6 +158,7 @@ const actions = {
 
     dispatch("save");
   },
+
   async removeDisbursement({ state }, { item, index }) {
     if (item.id) {
       state.disbursements.splice(index, 1);
@@ -186,7 +187,9 @@ const actions = {
             `${CSG_THRESHOLD_URL}/csgftdep/${state.fundingRequest.application_id}/funding-request/${state.fundingRequest.id}/assessment/${state.assessment.id}`,
             state.assessment
           )
-          .then((resp) => {});
+          .then((resp) => {
+            dispatch("loadCSGDSEAssessment", { id: state.fundingRequest.application_id });
+          });
       } else {
         return axios
           .post(

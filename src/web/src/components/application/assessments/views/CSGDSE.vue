@@ -190,6 +190,8 @@ export default {
       await store.dispatch("loadApplication", this.applicationId).then(async () => {
         await this.initialize(store.getters.selectedApplication);
       });
+    } else {
+      await this.initialize(store.getters.selectedApplication);
     }
 
     await this.setCslClassifications();
