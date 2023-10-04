@@ -8,13 +8,13 @@
       <template v-slot:default>
         <thead>
           <tr>
-            <th class="narrow">Reference #</th>
+            <th class="narrow">Certificate</th>
             <th class="narrow">Amount</th>
             <th class="narrow">Type</th>
             <th class="narrow">Issue Date</th>
             <th class="narrow">Due Date</th>
             <th class="narrow">Change Reason</th>
-            <th class="narrow">Batch #</th>
+            <th class="narrow">eCert</th>
             <th class="narrow"></th>
           </tr>
         </thead>

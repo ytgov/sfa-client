@@ -278,13 +278,14 @@ csgThresholdRouter.put(
     for (let disb of disbursements) {
       disb.assessment_id = assessment_id;
       disb.funding_request_id = funding_request_id;
+      disb.disbursed_amount = cleanNumber(disb.disbursed_amount);
+
       delete disb.financial_batch_id; // not editable through the interface
       delete disb.csl_cert_seq_number;
 
       if (disb.id) {
         let id = disb.id;
         delete disb.id;
-        disb.disbursed_amount = cleanNumber(disb.disbursed_amount);
 
         await db("sfa.disbursement").where({ id }).update(disb);
       } else {

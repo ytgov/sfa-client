@@ -145,7 +145,7 @@ export default new Vuex.Store({
       let isRecent = JSON.parse(localStorage.RECENT_APPLICATIONS).filter((r) => r.id == value.id);
 
       if (isRecent.length == 0) {
-        if (JSON.parse(localStorage.RECENT_APPLICATIONS).length >= 25) {
+        if (JSON.parse(localStorage.RECENT_APPLICATIONS).length >= 10) {
           const currentRecentApplication = JSON.parse(localStorage.RECENT_APPLICATIONS);
           currentRecentApplication.pop();
           localStorage.RECENT_APPLICATIONS = JSON.stringify(currentRecentApplication);
