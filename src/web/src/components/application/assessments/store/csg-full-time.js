@@ -15,6 +15,9 @@ const state = {
   baseRate: 0.00,
 };
 const getters = {
+  disbursements(state) {
+    return state.disbursements;
+  },
   familyIncome(state) {
     let val = state.assessment
       ? (state.assessment.student_ln150_income || 0) +
@@ -306,6 +309,13 @@ const actions = {
     } else {
       state.disbursements.splice(index, 1);
     }
+  },
+
+  async addDisbursement({ state }) {
+    state.disbursements.push({
+      disbursement_type_id: 4,
+      issue_date: moment().format("YYYY-MM-DD"), // today
+    });
   },
 
   async save({ state, dispatch }) {

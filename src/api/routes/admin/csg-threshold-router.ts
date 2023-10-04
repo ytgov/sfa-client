@@ -4,6 +4,7 @@ import { DB_CONFIG } from "../../config";
 import { isArray } from "lodash";
 import { param } from "express-validator";
 import { ReturnValidationErrors } from "@/middleware";
+import { cleanNumber } from "@/models";
 
 const db = knex(DB_CONFIG);
 
@@ -15,47 +16,30 @@ const CSGDSE_REQUEST_TYPE_ID = 30;
 
 export const csgThresholdRouter = express.Router();
 
-csgThresholdRouter.get("/:academic_year_id", async (req: Request, res: Response) => {
-  const { academic_year_id } = req.params;
-  let data = await db("sfa.csg_threshold").where({ academic_year_id });
-  let rates = await db("sfa.csg_lookup").where({ academic_year_id }).first();
-  res.json({ data, rates });
-});
+csgThresholdRouter.get(
+  "/:academic_year_id",
+  param("academic_year_id").isInt(),
+  ReturnValidationErrors,
+  async (req: Request, res: Response) => {
+    const { academic_year_id } = req.params;
+    let data = await db("sfa.csg_threshold").where({ academic_year_id });
+    let rates = await db("sfa.csg_lookup").where({ academic_year_id }).first();
+    res.json({ data, rates });
+  }
+);
 
-csgThresholdRouter.get("/cslft/:application_id", async (req: Request, res: Response) => {
-  const { application_id } = req.params;
+csgThresholdRouter.get(
+  "/cslft/:application_id",
+  param("application_id").isInt(),
+  ReturnValidationErrors,
+  async (req: Request, res: Response) => {
+    const { application_id } = req.params;
 
-  let funding_request = await db("sfa.funding_request")
-    .where({ application_id, request_type_id: 4 })
-    .orderBy("id", "desc")
-    .first();
+    let funding_request = await db("sfa.funding_request")
+      .where({ application_id, request_type_id: 4 })
+      .orderBy("id", "desc")
+      .first();
 
-  let assessment = await db("sfa.assessment")
-    .where({
-      funding_request_id: funding_request.id,
-    })
-    .orderBy("id", "desc")
-    .first();
-
-  let disbursements = await db("sfa.disbursement")
-    .where({
-      funding_request_id: funding_request.id,
-    })
-    .orderBy("issue_date")
-    .orderBy("id");
-
-  res.json({ data: { funding_request, assessment, disbursements } });
-});
-
-csgThresholdRouter.get("/csgftdep/:application_id", async (req: Request, res: Response) => {
-  const { application_id } = req.params;
-
-  let funding_request = await db("sfa.funding_request")
-    .where({ application_id, request_type_id: CSGDEP_REQUEST_TYPE_ID })
-    .orderBy("id", "desc")
-    .first();
-
-  if (funding_request) {
     let assessment = await db("sfa.assessment")
       .where({
         funding_request_id: funding_request.id,
@@ -70,127 +54,179 @@ csgThresholdRouter.get("/csgftdep/:application_id", async (req: Request, res: Re
       .orderBy("issue_date")
       .orderBy("id");
 
-    return res.json({ data: { funding_request, assessment, disbursements } });
+    res.json({ data: { funding_request, assessment, disbursements } });
   }
+);
 
-  res.status(404).send();
-});
+csgThresholdRouter.get(
+  "/csgftdep/:application_id",
+  param("application_id").isInt(),
+  ReturnValidationErrors,
+  async (req: Request, res: Response) => {
+    const { application_id } = req.params;
 
-csgThresholdRouter.get("/csgd/:application_id", async (req: Request, res: Response) => {
-  const { application_id } = req.params;
-
-  let funding_request = await db("sfa.funding_request")
-    .where({ application_id, request_type_id: CSGD_REQUEST_TYPE_ID })
-    .orderBy("id", "desc")
-    .first();
-
-  if (funding_request) {
-    let assessment = await db("sfa.assessment")
-      .where({
-        funding_request_id: funding_request.id,
-      })
+    let funding_request = await db("sfa.funding_request")
+      .where({ application_id, request_type_id: CSGDEP_REQUEST_TYPE_ID })
       .orderBy("id", "desc")
       .first();
 
-    let disbursements = await db("sfa.disbursement")
-      .where({
-        funding_request_id: funding_request.id,
-      })
-      .orderBy("issue_date")
-      .orderBy("id");
+    if (funding_request) {
+      let assessment = await db("sfa.assessment")
+        .where({
+          funding_request_id: funding_request.id,
+        })
+        .orderBy("id", "desc")
+        .first();
 
-    return res.json({ data: { funding_request, assessment, disbursements } });
+      let disbursements = await db("sfa.disbursement")
+        .where({
+          funding_request_id: funding_request.id,
+        })
+        .orderBy("issue_date")
+        .orderBy("id");
+
+      return res.json({ data: { funding_request, assessment, disbursements } });
+    }
+
+    res.status(404).send();
   }
+);
 
-  res.status(404).send();
-});
+csgThresholdRouter.get(
+  "/csgd/:application_id",
+  param("application_id").isInt(),
+  ReturnValidationErrors,
+  async (req: Request, res: Response) => {
+    const { application_id } = req.params;
 
-csgThresholdRouter.get("/csgtu/:application_id", async (req: Request, res: Response) => {
-  const { application_id } = req.params;
-
-  let funding_request = await db("sfa.funding_request")
-    .where({ application_id, request_type_id: CSGTU_REQUEST_TYPE_ID })
-    .orderBy("id", "desc")
-    .first();
-
-  if (funding_request) {
-    let assessment = await db("sfa.assessment")
-      .where({
-        funding_request_id: funding_request.id,
-      })
+    let funding_request = await db("sfa.funding_request")
+      .where({ application_id, request_type_id: CSGD_REQUEST_TYPE_ID })
       .orderBy("id", "desc")
       .first();
 
-    let disbursements = await db("sfa.disbursement")
-      .where({
-        funding_request_id: funding_request.id,
-      })
-      .orderBy("issue_date")
-      .orderBy("id");
+    if (funding_request) {
+      let assessment = await db("sfa.assessment")
+        .where({
+          funding_request_id: funding_request.id,
+        })
+        .orderBy("id", "desc")
+        .first();
 
-    return res.json({ data: { funding_request, assessment, disbursements } });
+      let disbursements = await db("sfa.disbursement")
+        .where({
+          funding_request_id: funding_request.id,
+        })
+        .orderBy("issue_date")
+        .orderBy("id");
+
+      return res.json({ data: { funding_request, assessment, disbursements } });
+    }
+
+    res.status(404).send();
   }
+);
 
-  res.status(404).send();
-});
+csgThresholdRouter.get(
+  "/csgtu/:application_id",
+  param("application_id").isInt(),
+  ReturnValidationErrors,
+  async (req: Request, res: Response) => {
+    const { application_id } = req.params;
 
-csgThresholdRouter.get("/csgdse/:application_id", async (req: Request, res: Response) => {
-  const { application_id } = req.params;
-
-  let funding_request = await db("sfa.funding_request")
-    .where({ application_id, request_type_id: CSGDSE_REQUEST_TYPE_ID })
-    .orderBy("id", "desc")
-    .first();
-
-  if (funding_request) {
-    let assessment = await db("sfa.assessment")
-      .where({
-        funding_request_id: funding_request.id,
-      })
+    let funding_request = await db("sfa.funding_request")
+      .where({ application_id, request_type_id: CSGTU_REQUEST_TYPE_ID })
       .orderBy("id", "desc")
       .first();
 
-    let disbursements = await db("sfa.disbursement")
-      .where({
-        funding_request_id: funding_request.id,
-      })
-      .orderBy("issue_date")
-      .orderBy("id");
+    if (funding_request) {
+      let assessment = await db("sfa.assessment")
+        .where({
+          funding_request_id: funding_request.id,
+        })
+        .orderBy("id", "desc")
+        .first();
 
-    return res.json({ data: { funding_request, assessment, disbursements } });
+      let disbursements = await db("sfa.disbursement")
+        .where({
+          funding_request_id: funding_request.id,
+        })
+        .orderBy("issue_date")
+        .orderBy("id");
+
+      return res.json({ data: { funding_request, assessment, disbursements } });
+    }
+
+    res.status(404).send();
   }
+);
 
-  res.status(404).send();
-});
+csgThresholdRouter.get(
+  "/csgdse/:application_id",
+  param("application_id").isInt(),
+  ReturnValidationErrors,
+  async (req: Request, res: Response) => {
+    const { application_id } = req.params;
 
-csgThresholdRouter.get("/csgft/:application_id", async (req: Request, res: Response) => {
-  const { application_id } = req.params;
-
-  let funding_request = await db("sfa.funding_request")
-    .where({ application_id, request_type_id: CSGFT_REQUEST_TYPE_ID })
-    .orderBy("id", "desc")
-    .first();
-
-  if (funding_request) {
-    let assessment = await db("sfa.assessment")
-      .where({
-        funding_request_id: funding_request.id,
-      })
+    let funding_request = await db("sfa.funding_request")
+      .where({ application_id, request_type_id: CSGDSE_REQUEST_TYPE_ID })
       .orderBy("id", "desc")
       .first();
 
-    let disbursements = await db("sfa.disbursement")
-      .where({
-        funding_request_id: funding_request.id,
-      })
-      .orderBy("issue_date")
-      .orderBy("id");
+    if (funding_request) {
+      let assessment = await db("sfa.assessment")
+        .where({
+          funding_request_id: funding_request.id,
+        })
+        .orderBy("id", "desc")
+        .first();
 
-    return res.json({ data: { funding_request, assessment, disbursements } });
+      let disbursements = await db("sfa.disbursement")
+        .where({
+          funding_request_id: funding_request.id,
+        })
+        .orderBy("issue_date")
+        .orderBy("id");
+
+      return res.json({ data: { funding_request, assessment, disbursements } });
+    }
+
+    res.status(404).send();
   }
+);
 
-  res.status(404).send();
-});
+csgThresholdRouter.get(
+  "/csgft/:application_id",
+  param("application_id").isInt(),
+  ReturnValidationErrors,
+  async (req: Request, res: Response) => {
+    const { application_id } = req.params;
+
+    let funding_request = await db("sfa.funding_request")
+      .where({ application_id, request_type_id: CSGFT_REQUEST_TYPE_ID })
+      .orderBy("id", "desc")
+      .first();
+
+    if (funding_request) {
+      let assessment = await db("sfa.assessment")
+        .where({
+          funding_request_id: funding_request.id,
+        })
+        .orderBy("id", "desc")
+        .first();
+
+      let disbursements = await db("sfa.disbursement")
+        .where({
+          funding_request_id: funding_request.id,
+        })
+        .orderBy("issue_date")
+        .orderBy("id");
+
+      return res.json({ data: { funding_request, assessment, disbursements } });
+    }
+
+    res.status(404).send();
+  }
+);
 
 csgThresholdRouter.post(
   "/csgftdep/:application_id/funding-request/:funding_request_id/assessment",
@@ -210,11 +246,13 @@ csgThresholdRouter.post(
       for (let disb of disbursements) {
         disb.assessment_id = assessmentInsert[0].id;
         disb.funding_request_id = funding_request_id;
+        delete disb.financial_batch_id; // not editable through the interface
+        delete disb.csl_cert_seq_number;
 
         if (disb.id) {
           let id = disb.id;
           delete disb.id;
-          delete disb.financial_batch_id; // not editable through the interface
+          disb.disbursed_amount = cleanNumber(disb.disbursed_amount);
           await db("sfa.disbursement").where({ id }).update(disb);
         } else {
           await db("sfa.disbursement").insert(disb);
@@ -240,11 +278,14 @@ csgThresholdRouter.put(
     for (let disb of disbursements) {
       disb.assessment_id = assessment_id;
       disb.funding_request_id = funding_request_id;
+      delete disb.financial_batch_id; // not editable through the interface
+      delete disb.csl_cert_seq_number;
 
       if (disb.id) {
         let id = disb.id;
         delete disb.id;
-        delete disb.financial_batch_id; // not editable through the interface
+        disb.disbursed_amount = cleanNumber(disb.disbursed_amount);
+
         await db("sfa.disbursement").where({ id }).update(disb);
       } else {
         await db("sfa.disbursement").insert(disb);

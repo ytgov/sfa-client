@@ -1,7 +1,6 @@
 <template>
   <v-app>
-    
-    <SideBarAdmin :show="hasSideBarAdmin"/>
+    <SideBarAdmin :show="hasSideBarAdmin" />
     <SnackBarAdmin />
 
     <v-navigation-drawer
@@ -13,12 +12,7 @@
       v-bind:class="{ 'd-none': !hasSidebar }"
     >
       <v-list dense nav style="" class="mt-4">
-        <v-list-item
-          link
-          nav
-          title="Student Basics"
-          :to="`/student/${selectedStudentId}`"
-        >
+        <v-list-item link nav title="Student Basics" :to="`/student/${selectedStudentId}`">
           <v-list-item-icon>
             <v-icon>mdi-school</v-icon>
           </v-list-item-icon>
@@ -27,12 +21,7 @@
           </v-list-item-content>
         </v-list-item>
 
-        <v-list-item
-          link
-          nav
-          title="Communications Log"
-          :to="`/communications-log/${selectedStudentId}`"
-        >
+        <v-list-item link nav title="Communications Log" :to="`/communications-log/${selectedStudentId}`">
           <v-list-item-icon>
             <v-icon>mdi-forum</v-icon>
           </v-list-item-icon>
@@ -40,7 +29,6 @@
             <v-list-item-title>Communications Log</v-list-item-title>
           </v-list-item-content>
         </v-list-item>
-
 
         <v-list-item class="px-0">
           <v-select
@@ -59,14 +47,7 @@
           ></v-select>
         </v-list-item>
 
-        <v-btn
-          color="primary"
-          small
-          dark
-          style="width: 100%"
-          class="mb-3"
-          @click="createApplication"
-        >
+        <v-btn color="primary" small dark style="width: 100%" class="mb-3" @click="createApplication">
           <v-icon>mdi-plus</v-icon> Create application</v-btn
         >
 
@@ -93,23 +74,9 @@
 
           <v-row>
             <v-col v-if="false"
-              ><v-btn
-                small
-                color="warning"
-                style="width: 100%"
-                @click="duplicateApplication"
-                >Duplicate</v-btn
-              ></v-col
+              ><v-btn small color="warning" style="width: 100%" @click="duplicateApplication">Duplicate</v-btn></v-col
             >
-            <v-col
-              ><v-btn
-                small
-                color="error"
-                style="width: 100%"
-                @click="deleteApplication"
-                >Delete</v-btn
-              ></v-col
-            >
+            <v-col><v-btn small color="error" style="width: 100%" @click="deleteApplication">Delete</v-btn></v-col>
           </v-row>
         </div>
       </v-list>
@@ -135,13 +102,7 @@
       v-on:showAPIMessages="showAPIMessages"
     ></application-delete>
 
-    <v-app-bar
-      app
-      color="#fff"
-      flat
-      height="70"
-      style="left: 0; border-bottom: 3px #f3b228 solid"
-    >
+    <v-app-bar app color="#fff" flat height="70" style="left: 0; border-bottom: 3px #f3b228 solid">
       <!-- <v-icon color="#f3b228" class="mr-5">{{ applicationIcon }}</v-icon> -->
       <img src="/yukon.svg" style="margin: -8px 155px 0 0" height="44" />
       <v-toolbar-title>
@@ -243,7 +204,7 @@ import SnackBarAdmin from "@/components/commonCatalog/SnackBarAdmin.vue";
 
 export default {
   name: "App",
-  components: { SideBarAdmin,SnackBarAdmin },
+  components: { SideBarAdmin, SnackBarAdmin },
   computed: {
     ...mapState([
       "isAuthenticated",
@@ -286,15 +247,12 @@ export default {
 
     chosenApplication: -1,
   }),
-  created: async function () {
+  created: async function() {
     store.dispatch(
       "setAppSidebar",
-      this.$route.path.startsWith("/application") ||
-        this.$route.path.startsWith("/student")
+      this.$route.path.startsWith("/application") || this.$route.path.startsWith("/student")
     );
-    store.dispatch(
-      "setAppSideBarAdmin",
-      this.$route.path.startsWith("/administration"));
+    store.dispatch("setAppSideBarAdmin", this.$route.path.startsWith("/administration"));
 
     this.hasSideBarAdmin = this.$route.path.startsWith("/administration");
 
@@ -302,62 +260,59 @@ export default {
     this.chosenApplication = this.selectedApplicationId;
   },
   watch: {
-    isAuthenticated: function (val) {
+    isAuthenticated: function(val) {
       if (!val) {
         this.hasSidebar = false;
         this.hasSideBarAdmin = false;
-      }
-        
-      else {
+      } else {
         this.hasSideBarAdmin = store.getters.showSideBarAdmin;
         this.hasSidebar = store.getters.showAppSidebar;
       }
-        
     },
-    showAppSidebar: function (val) {
+    showAppSidebar: function(val) {
       this.hasSidebar = val; // && this.isAuthenticated;
     },
-    showSideBarAdmin: function (val) {
+    showSideBarAdmin: function(val) {
       this.hasSideBarAdmin = val;
     },
-    selectedApplicationId: function (val) {
+    selectedApplicationId: function(val) {
       console.log("APPCHG", val);
       this.chosenApplication = val;
     },
   },
   methods: {
-    nav: function (location) {
+    nav: function(location) {
       router.push(location);
     },
-    toggleHeader: function () {
+    toggleHeader: function() {
       this.headerShow = !this.headerShow;
     },
-    toggleMenu: function () {
+    toggleMenu: function() {
       this.menuShow = !this.menuShow;
     },
-    signOut: function () {
+    signOut: function() {
       window.location = LOGOUT_URL;
     },
-    showError: function (msg) {
+    showError: function(msg) {
       this.$refs.notifier.showError(msg);
     },
-    showSuccess: function (msg) {
+    showSuccess: function(msg) {
       this.$refs.notifier.showSuccess(msg);
     },
-    showAPIMessages: function (msg) {
+    showAPIMessages: function(msg) {
       this.$refs.notifier.showAPIMessages(msg);
     },
-    changeApplication: function () {
+    changeApplication: function() {
       store.dispatch("loadApplication", this.chosenApplication);
       this.$router.push(`/application/${this.chosenApplication}/personal`);
     },
-    createApplication: function () {
+    createApplication: function() {
       this.$refs.createApplicationForm.show();
     },
-    duplicateApplication: function () {
+    duplicateApplication: function() {
       this.$refs.duplicateApplicationForm.show(this.selectedApplication);
     },
-    deleteApplication: function () {
+    deleteApplication: function() {
       this.$refs.deleteApplicationForm.show(this.selectedApplication);
     },
   },

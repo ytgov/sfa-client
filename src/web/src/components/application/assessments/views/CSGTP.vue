@@ -1,5 +1,12 @@
 <template>
   <div>
+    <div class="d-flex">
+      <v-btn :to="`/application/${applicationId}/status`" color="warning" x-small fab class="mt-2 mr-5">
+        <v-icon>mdi-keyboard-backspace</v-icon>
+      </v-btn>
+      <h1 class="mb-0">Funding Status</h1>
+    </div>
+
     <div class="mt-4">
       <v-card class="default mb-1 bg-color-blue">
         <v-card-title
@@ -138,200 +145,11 @@
     <div class="mt-4">
       <v-card class="default mb-5 bg-color-blue">
         <v-card-text>
-          <h3>Disbursements</h3>
-
-          <v-simple-table class="text-left narrow">
-            <template v-slot:default>
-              <thead>
-                <tr>
-                  <th class="narrow">Reference #</th>
-                  <th class="narrow">Amount</th>
-                  <th class="narrow">Type</th>
-                  <th class="narrow">Issue Date</th>
-                  <th class="narrow">Due Date</th>
-                  <th class="narrow">Change Reason</th>
-                  <th class="narrow">Batch ID</th>
-                  <th class="narrow"></th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="(item, idx) of disbursements">
-                  <td class="">
-                    <v-text-field
-                      v-model="item.transaction_number"
-                      dense
-                      hide-details
-                      outlined
-                      @change="saveDisbursement"
-                      class="narrowInput"
-                    ></v-text-field>
-                  </td>
-                  <td>
-                    <v-text-field
-                      :value="formatMoney(item.disbursed_amount)"
-                      dense
-                      readonly
-                      outlined
-                      background-color="#ccc"
-                      hide-details
-                      class="narrowInput"
-                    ></v-text-field>
-                  </td>
-                  <td>
-                    <v-text-field
-                      :value="getType(item.disbursement_type_id)"
-                      v-if="item.financial_batch_id"
-                      dense
-                      readonly
-                      hide-details
-                      outlined
-                      background-color="#ccc"
-                      class="narrowInput"
-                    ></v-text-field>
-                    <v-autocomplete
-                      v-model="item.disbursement_type_id"
-                      v-else
-                      :items="disbursementTypes"
-                      item-text="description"
-                      item-value="id"
-                      dense
-                      hide-details
-                      outlined
-                      :readyonly="!item.financial_batch_id"
-                      @change="saveDisbursement"
-                      class="narrowInput"
-                    ></v-autocomplete>
-                  </td>
-                  <td>
-                    <v-text-field
-                      :value="item.issue_date"
-                      v-if="item.financial_batch_id"
-                      dense
-                      readonly
-                      hide-details
-                      outlined
-                      background-color="#ccc"
-                      class="narrowInput"
-                    ></v-text-field>
-
-                    <v-menu
-                      v-else
-                      v-model="menus1[idx]"
-                      :close-on-content-click="false"
-                      transition="scale-transition"
-                      left
-                      nudge-top="26"
-                      offset-y
-                      min-width="auto"
-                    >
-                      <template v-slot:activator="{ on, attrs }">
-                        <v-text-field
-                          v-model="item.issue_date"
-                          readonly
-                          outlined
-                          clearable
-                          dense
-                          hide-details
-                          background-color="white"
-                          v-bind="attrs"
-                          v-on="on"
-                          @change="saveDisbursement"
-                          class="narrowInput"
-                        ></v-text-field>
-                      </template>
-                      <v-date-picker
-                        v-model="item.issue_date"
-                        @input="
-                          menus1[idx] = false;
-                          saveDisbursement();
-                        "
-                      ></v-date-picker>
-                    </v-menu>
-                  </td>
-                  <td>
-                    <v-text-field
-                      :value="item.due_date"
-                      v-if="item.financial_batch_id"
-                      dense
-                      readonly
-                      hide-details
-                      outlined
-                      background-color="#ccc"
-                      class="narrowInput"
-                    ></v-text-field>
-
-                    <v-menu
-                      v-else
-                      v-model="menus2[idx]"
-                      :close-on-content-click="false"
-                      transition="scale-transition"
-                      left
-                      nudge-top="26"
-                      offset-y
-                      min-width="auto"
-                    >
-                      <template v-slot:activator="{ on, attrs }">
-                        <v-text-field
-                          v-model="item.due_date"
-                          readonly
-                          outlined
-                          clearable
-                          dense
-                          hide-details
-                          background-color="white"
-                          v-bind="attrs"
-                          v-on="on"
-                          @change="saveDisbursement"
-                          class="narrowInput"
-                        ></v-text-field>
-                      </template>
-                      <v-date-picker
-                        v-model="item.due_date"
-                        @input="
-                          menus2[idx] = false;
-                          saveDisbursement();
-                        "
-                      ></v-date-picker>
-                    </v-menu>
-                  </td>
-                  <td>
-                    <v-autocomplete
-                      v-model="item.change_reason_id"
-                      :items="changeReasons"
-                      item-text="description"
-                      item-value="id"
-                      dense
-                      hide-details
-                      outlined
-                      @change="saveDisbursement"
-                      class="narrowInput"
-                    ></v-autocomplete>
-                  </td>
-                  <td>
-                    <v-text-field
-                      v-model="item.financial_batch_id"
-                      dense
-                      hide-details
-                      readonly
-                      outlined
-                      class="narrowInput"
-                    ></v-text-field>
-                  </td>
-                  <td>
-                    <v-btn
-                      fab
-                      class="my-0 mr-1"
-                      color="warning"
-                      x-small
-                      @click="deleteDisbursement(item, idx)"
-                      v-if="!item.financial_batch_id"
-                      ><v-icon>mdi-delete</v-icon></v-btn
-                    >
-                  </td>
-                </tr>
-              </tbody>
-            </template>
-          </v-simple-table>
+          <csg-disbursements
+            store="csgMatureStore"
+            v-on:showError="showError"
+            v-on:showSuccess="showSuccess"
+          ></csg-disbursements>
         </v-card-text>
       </v-card>
     </div>
@@ -342,29 +160,38 @@ import store from "@/store";
 import moment from "moment";
 import { isNumber, isUndefined } from "lodash";
 import { mapActions, mapGetters, mapState } from "vuex";
+import CsgDisbursements from "../components/csg-disbursements.vue";
 
 export default {
   name: "Home",
+  components: { CsgDisbursements },
   data: () => ({
     assessed_date_menu: false,
     numberOfDisbursements: 1,
-    menus1: {},
-    menus2: {},
   }),
   async created() {
     this.applicationId = this.$route.params.id;
     let storeApp = store.getters.selectedApplication;
+    store.dispatch("setAppSidebar", true);
 
-    if (this.applicationId != storeApp.HISTORY_DETAIL_ID) {
-      await store.dispatch("loadApplication", this.applicationId);
+    if (this.applicationId != storeApp.id) {
+      await store.dispatch("loadApplication", this.applicationId).then(async (res) => {
+
+        await this.initialize(store.getters.selectedApplication).then((r) => {
+          if (isUndefined(this.parentAssessment)) {
+            this.$emit("showError", "Please create the CSLFT Assessment first");
+            this.$emit("close");
+          }
+        });
+      });
+    } else {
+      await this.initialize(storeApp).then((r) => {
+        if (isUndefined(this.parentAssessment)) {
+          this.$emit("showError", "Please create the CSLFT Assessment first");
+          this.$emit("close");
+        }
+      });
     }
-
-    await this.initialize(storeApp).then((r) => {
-      if (isUndefined(this.parentAssessment)) {
-        this.$emit("showError", "Please create the CSLFT Assessment first");
-        this.$emit("close");
-      }
-    });
 
     await this.setCslClassifications();
     await this.setDisbursementTypes();
@@ -391,7 +218,7 @@ export default {
       return "";
     },
     age() {
-      if (this.application) {
+      if (this.application && this.application.mailing_address) {
         return moment().diff(moment.utc(this.application.mailing_address.birth_date), "years");
       }
       return "";
@@ -443,11 +270,12 @@ export default {
       }
       return "";
     },
+    showSuccess(mgs) {
+      this.$emit("showSuccess", mgs);
+    },
+    showError(mgs) {
+      this.$emit("showError", mgs);
+    },
   },
 };
 </script>
-<style scoped>
-.v-data-table.narrow td {
-  padding: 0 2px;
-}
-</style>

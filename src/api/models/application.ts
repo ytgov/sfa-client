@@ -353,8 +353,12 @@ export function ApplicationFromDraft(draft: any): Application {
     csl_classification: studentCategoryToCSLClassification(draft.personal_details.category),
     prestudy_csl_classification: studentCategoryToCSLClassification(draft.personal_details.category),
     has_last_travel: draft.residency.has_traveled,
-    last_travel_year: draft.residency.last_return_date ? ensureInteger(draft.residency.last_return_date.split("/")[0]) : null,
-    last_travel_month: draft.residency.last_return_date ? ensureInteger(draft.residency.last_return_date.split("/")[1]) : null,
+    last_travel_year: draft.residency.last_return_date
+      ? ensureInteger(draft.residency.last_return_date.split("/")[0])
+      : null,
+    last_travel_month: draft.residency.last_return_date
+      ? ensureInteger(draft.residency.last_return_date.split("/")[1])
+      : null,
 
     //prestudy_start_date: undefined,
     //prestudy_end_date: undefined,
@@ -734,9 +738,9 @@ const SQL_MAXVALUE = 99999999.99;
 
 export function cleanNumber(input: any): number {
   let isNegative = false;
-  input = (input || "").trim();
+  input = (`${input}` ?? "0").trim();
 
-  if (input.indexOf("(") >= 0) {
+  if (input.indexOf("(") >= 0 || input.indexOf("-") == 0) {
     isNegative = true;
     input = input.replace("(", "").replace(")", "").trim();
   }
@@ -745,6 +749,8 @@ export function cleanNumber(input: any): number {
     Number(Number(input.replace("$", "").replace(/,/g, "").replace(/-/g, "").trim()).toFixed(2)),
     SQL_MAXVALUE
   );
+
+  if (isNaN(num)) return 0;
 
   return isNegative ? -num : num;
 }
