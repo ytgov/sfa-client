@@ -185,6 +185,7 @@ export default {
   async created() {
     this.applicationId = this.$route.params.id;
     let storeApp = store.getters.selectedApplication;
+    store.dispatch("setAppSidebar", true);
 
     if (this.applicationId != storeApp.id) {
       await store.dispatch("loadApplication", this.applicationId).then(async () => {
