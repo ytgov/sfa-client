@@ -58,8 +58,8 @@
             </div> -->
       <div class="col-md-4">
         <v-card color="#fff2d5">
-          <v-card-title>Recently viewed Applications:</v-card-title>
           <v-card-text>
+            <h3 class="text-h6 font-weight-regular">Recently viewed Applications</h3>
             <p v-if="recentApplications.length == 0" class="mb-0">None yet</p>
             <ol v-if="recentApplications.length > 0">
               <li v-for="(item, idx) of recentApplications" :key="idx">
@@ -78,14 +78,6 @@
 
             <div v-if="loading">Loading...</div>
             <p v-if="newApplications.length == 0 && !loading" class="mb-0">None yet</p>
-            <v-list>
-              
-            </v-list>
-
-
-
-
-
 
             <ol v-if="newApplications.length > 0">
               <li v-for="(item, idx) of newApplications" :key="idx">
@@ -98,17 +90,17 @@
         </v-card>
       </div>
       <div class="col-md-4">
-        <v-card color="#fff2d5">
-          <v-card-title>Recent updates or messages</v-card-title>
+        <v-card class="default">
           <v-card-text>
+            <h3 class="text-h6 font-weight-regular">Recent updates or messages</h3>
             <p v-if="recentUpdated.length == 0" class="mb-0">None yet</p>
-            <ol v-if="recentUpdated.length > 0">
-              <li v-for="(item, idx) of recentUpdated" :key="idx">
+            <ul v-if="recentUpdated.length > 0">
+              <li v-for="(item, idx) of recentUpdated" :key="idx" style="list">
                 <router-link :to="`/application/${item.id}/personal`"
                   >{{ item.title }} - <span style="font-size: 10px">{{ getFormattedDate(item.updated_at) }}</span>
                 </router-link>
               </li>
-            </ol>
+            </ul>
           </v-card-text>
         </v-card>
       </div>
