@@ -5,8 +5,7 @@ import knex from "knex";
 import { DocumentService, DocumentStatus } from "../../services/shared";
 import { ReturnValidationErrors } from "../../middleware";
 import { DB_CONFIG } from "../../config";
-import { Buffer } from "buffer";
-import { functionsIn, indexOf, orderBy, parseInt, min, update, get, isArray } from "lodash";
+import { uniq, parseInt, min,  get, isArray } from "lodash";
 import { AssessmentYukonGrant, AssessmentYEA } from "../../repositories/assessment";
 
 const db = knex(DB_CONFIG);
@@ -168,6 +167,41 @@ applicationRouter.post(
     }
   }
 );
+
+applicationRouter.get("/flags",  async (req: Request, res: Response) => {
+  let flagList = await db("sfa.application").whereNotNull("flags").select("flags").distinct();
+  let flags = uniq(flagList.flatMap(f => f.flags.split(",")));
+
+  res.json({data: flags })
+}) 
+
+applicationRouter.get("/flags/:flag", ReturnValidationErrors, async (req: Request, res: Response) => {
+  try {
+    const { flag } = req.params;
+    let applications = await db("sfa.application")
+        .leftJoin("sfa.institution_campus", "application.institution_campus_id", "institution_campus.id")
+        .leftJoin("sfa.institution", "institution.id", "institution_campus.institution_id")
+        .leftJoin("sfa.student", "student.id", "application.student_id")
+        .leftJoin("sfa.person", "student.person_id", "person.id")
+        .select("application.*")
+        .select("institution.name as institution_name")
+        .select("person.first_name")
+        .select("person.last_name")
+        .limit(150)
+        .whereLike("flags", `%${flag}%`)
+        .orderBy("updated_at", "desc");
+    
+
+    for (let item of applications) {
+      item.title = `${item.first_name} ${item.last_name} - ${item.academic_year_id}: ${item.institution_name}`;
+    }
+
+    return res.json({ data: applications });
+  } catch (error) {
+    console.log("/all-ERR: ", error);
+    res.status(404).send(error);
+  }
+});
 
 applicationRouter.get("/:id", [param("id").notEmpty()], ReturnValidationErrors, async (req: Request, res: Response) => {
   let { id } = req.params;

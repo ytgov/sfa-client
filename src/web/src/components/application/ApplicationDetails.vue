@@ -61,13 +61,13 @@ export default {
 
     if (this.$route.path.indexOf("/application/") >= 0) {
       await store.dispatch("loadApplication", this.applicationId);
-      store.dispatch("setAppSidebar", true);
     } else {
       if (this.applicationId != storeApp.id) {
         await store.dispatch("loadApplication", this.applicationId);
-        store.dispatch("setAppSidebar", true);
       }
     }
+
+    store.dispatch("setAppSidebar", true);
   },
   watch: {
     student: function(val) {

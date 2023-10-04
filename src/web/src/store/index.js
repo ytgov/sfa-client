@@ -87,6 +87,7 @@ import reportsStore from "@/modules/Administration/store/ReportsStore";
 import axios from "axios";
 import { APPLICATION_URL, STUDENT_URL } from "../urls";
 import router from "@/router";
+import { isEmpty } from "lodash";
 
 Vue.use(Vuex);
 
@@ -105,6 +106,8 @@ export default new Vuex.Store({
     newApplications: [],
     yearOptions: [],
     monthOptions: [],
+    flagOptions: [],
+    flagMatches: [],
   },
   getters: {
     showAppSidebar: (state) => state.showAppSidebar,
@@ -116,6 +119,11 @@ export default new Vuex.Store({
     newApplications: (state) => state.newApplications,
     yearOptions: (state) => state.yearOptions,
     monthOptions: (state) => state.monthOptions,
+    applicationFlags(state) {
+      if (state.selectedApplication && !isEmpty(state.selectedApplication.flags))
+        return state.selectedApplication.flags.split(",");
+      return [];
+    },
   },
   mutations: {
     SET_MONTH_OPTIONS(state, value) {
@@ -172,6 +180,12 @@ export default new Vuex.Store({
       state.selectedStudentLocator = "";
       state.selectedStudentId = 0;
       state.selectedStudent = {};
+    },
+    SET_FLAGOPTIONS(state, value) {
+      state.flagOptions = value;
+    },
+    SET_FLAGMATCHES(state, value) {
+      state.flagMatches = value;
     },
   },
   actions: {
@@ -454,6 +468,32 @@ export default new Vuex.Store({
         .finally(() => {
           state.dispatch("loadStudent", emitter.student.id);
         });
+    },
+    saveApplicationFlags({ state, dispatch }, vals) {
+      let val = vals.join(",").trim();
+
+      axios
+        .put(`${APPLICATION_URL}/${state.selectedApplicationId}`, { flags: val })
+        .then((resp) => {
+          dispatch("loadApplication", state.selectedApplicationId);
+          //let message = resp.data.messages[0];
+          //if (message.variant == "success") emitter.$emit("showSuccess", message.text);
+          //else emitter.$emit("showError", message.text);
+        })
+        .catch((err) => {
+          console.log("ERROR HAPPENED", err);
+          //emitter.$emit("showError", err.data.messages[0].text);
+        });
+    },
+    loadFlagOptions({ commit }) {
+      axios.get(`${APPLICATION_URL}/flags`).then((resp) => {
+        commit("SET_FLAGOPTIONS", resp.data.data);
+      });
+    },
+    searchApplicationsByFlag({ commit }, flag) {
+      axios.get(`${APPLICATION_URL}/flags/${flag}`).then((resp) => {
+        commit("SET_FLAGMATCHES", resp.data.data);
+      });
     },
   },
 

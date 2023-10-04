@@ -2,7 +2,7 @@
   <div class="home">
     <h1>Dashboard</h1>
 
-    <v-card class="mt-5" color="#fff2d5">
+    <v-card class="mt-5 mb-5" color="#fff2d5">
       <v-card-title>Find a Student or Application</v-card-title>
       <v-card-text>
         <v-text-field
@@ -19,8 +19,8 @@
         <router-link to="/search">Advanced search</router-link>
       </v-card-text>
     </v-card>
-    <div class="row" style="margin: 12px 0px 0px 0px">
-      <div class="col-md-3" style="padding: 8px 0px 8px 0px">
+    <v-row>
+      <v-col cols="12">
         <v-select
           outlined
           dense
@@ -34,29 +34,9 @@
           :items="filters"
           @change="persistFilter"
         ></v-select>
-      </div>
-    </div>
-    <div class="row">
-      <!-- <div class="col-md-4">
-                <v-card class="mt-5" color="#fff2d5">
-                    <v-card-title>Recently viewed Students:</v-card-title>
-                    <v-card-text>
-                      <p v-if="recentStudents.length == 0" class="mb-0">None yet</p>
-                        <ol v-if="recentStudents.length > 0">
-                            <li
-                                v-for="(item, idx) of recentStudents"
-                                :key="idx"
-                            >
-                                <router-link :to="`/student/${item.id}`"
-                                    >{{ item.first_name }} {{ item.initials }}
-                                    {{ item.last_name }} ({{ item.sin }})
-                                </router-link>
-                            </li>
-                        </ol>
-                    </v-card-text>
-                </v-card>
-            </div> -->
-      <div class="col-md-4">
+      </v-col>
+
+      <v-col cols="12" md="4" sm="6">
         <v-card color="#fff2d5">
           <v-card-text>
             <h3 class="text-h6 font-weight-regular">Recently viewed Applications</h3>
@@ -70,8 +50,8 @@
             </ol>
           </v-card-text>
         </v-card>
-      </div>
-      <div class="col-md-4">
+      </v-col>
+      <v-col cols="12" md="4" sm="6">
         <v-card class="default">
           <v-card-text>
             <h3 class="text-h6 font-weight-regular">New Applications</h3>
@@ -88,23 +68,53 @@
             </ol>
           </v-card-text>
         </v-card>
-      </div>
-      <div class="col-md-4">
-        <v-card class="default">
+      </v-col>
+      <v-col cols="12" md="4" sm="6">
+        <v-card class="default mb-5">
           <v-card-text>
             <h3 class="text-h6 font-weight-regular">Recent updates or messages</h3>
             <p v-if="recentUpdated.length == 0" class="mb-0">None yet</p>
-            <ul v-if="recentUpdated.length > 0">
+            <ol v-if="recentUpdated.length > 0">
               <li v-for="(item, idx) of recentUpdated" :key="idx" style="list">
                 <router-link :to="`/application/${item.id}/personal`"
                   >{{ item.title }} - <span style="font-size: 10px">{{ getFormattedDate(item.updated_at) }}</span>
                 </router-link>
               </li>
-            </ul>
+            </ol>
           </v-card-text>
         </v-card>
-      </div>
-    </div>
+        <v-card class="default">
+          <v-card-text class="pb-0">
+            <h3 class="text-h6 font-weight-regular">Flagged Applications</h3>
+
+            <v-select
+              label="Select a flag"
+              v-model="selectedFlag"
+              :items="flagOptions"
+              dense
+              outlined
+              background-color="white"
+              hide-details
+            >
+            </v-select>
+
+            <v-list dense color="#ffffff00" v-if="flagMatches">
+              <div v-for="(item, idx) of flagMatches">
+                <v-list-item :to="`/application/${item.id}/personal`" class="pl-1">
+                  <v-list-item-content class="">
+                    <v-list-item-title>{{ item.title }} </v-list-item-title>
+                    <v-subheader class="my-0 py-0" style="height: 14px">
+                      <strong>Flags:</strong>&nbsp; {{ item.flags.replace(",", ", ") }}
+                    </v-subheader>
+                  </v-list-item-content>
+                </v-list-item>
+                <v-divider v-if="idx < flagMatches.length - 1" />
+              </div>
+            </v-list>
+          </v-card-text>
+        </v-card>
+      </v-col>
+    </v-row>
 
     <v-navigation-drawer v-model="drawer" absolute right temporary width="600" loading>
       <v-list-item loading>
@@ -157,16 +167,18 @@
 
 <script>
 import axios from "axios";
-import { mapState } from "vuex";
+import { mapActions, mapState } from "vuex";
 import { get, includes } from "lodash";
 import { APPLICATION_URL, STUDENT_SEARCH_URL } from "../urls";
 
 export default {
   name: "Home",
   computed: {
-    ...mapState(["recentStudents"]),
+    ...mapState(["recentStudents", "flagOptions", "flagMatches"]),
   },
   data: () => ({
+    selectedFlag: "",
+
     filter: [],
     recentApplications: [],
     search: "",
@@ -301,31 +313,17 @@ export default {
       localStorage.setItem("RECENT_APPLICATIONS", JSON.stringify([]));
     }
 
-    axios
-      .get(`${APPLICATION_URL}/all`, {
-        params: {
-          filter: this.filter,
-        },
-      })
-      .then((response) => {
-        this.newApplications = get(response, "data.data", []);
-      })
-      .catch((error) => console.log(error))
-      .finally(() => (this.loading = false));
-
-    axios
-      .get(`${APPLICATION_URL}/latest-updates`, {
-        params: {
-          filter: this.filter,
-        },
-      })
-      .then((response) => {
-        this.recentUpdated = get(response, "data.data", []);
-      })
-      .catch((error) => console.log(error))
-      .finally(() => (this.loading = false));
+    this.getData();
+    this.loadFlagOptions();
+  },
+  watch: {
+    selectedFlag(n, o) {
+      this.searchApplicationsByFlag(n);
+    },
   },
   methods: {
+    ...mapActions(["loadFlagOptions", "searchApplicationsByFlag"]),
+
     getFormattedDate(date) {
       return new Date(date).toLocaleDateString();
     },
@@ -391,6 +389,8 @@ export default {
           this.isSearching = false;
         });
     },
+    searchByFlag() {},
+
     selectStudent(item) {
       this.selectedStudent = item;
       this.$router.push(`/student/${item.student_id}`);
@@ -405,9 +405,3 @@ export default {
   },
 };
 </script>
-
-<style scoped>
-.v-card__title {
-  word-break: keep-all;
-}
-</style>
