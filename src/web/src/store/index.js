@@ -87,7 +87,7 @@ import reportsStore from "@/modules/Administration/store/ReportsStore";
 import axios from "axios";
 import { APPLICATION_URL, STUDENT_URL } from "../urls";
 import router from "@/router";
-import { isEmpty } from "lodash";
+import { isEmpty, isUndefined } from "lodash";
 
 Vue.use(Vuex);
 
@@ -142,18 +142,10 @@ export default new Vuex.Store({
       state.selectedApplication = value;
       state.selectedApplicationId = value.id;
 
-      let isRecent = JSON.parse(localStorage.RECENT_APPLICATIONS).filter((r) => r.id == value.id);
-
-      if (isRecent.length == 0) {
-        if (JSON.parse(localStorage.RECENT_APPLICATIONS).length >= 10) {
-          const currentRecentApplication = JSON.parse(localStorage.RECENT_APPLICATIONS);
-          currentRecentApplication.pop();
-          localStorage.RECENT_APPLICATIONS = JSON.stringify(currentRecentApplication);
-          localStorage.RECENT_APPLICATIONS = JSON.stringify([value, ...JSON.parse(localStorage.RECENT_APPLICATIONS)]);
-        } else {
-          localStorage.RECENT_APPLICATIONS = JSON.stringify([value, ...JSON.parse(localStorage.RECENT_APPLICATIONS)]);
-        }
-      }
+      let currentRecentApplications = JSON.parse(localStorage.RECENT_APPLICATIONS ?? "[]");
+      currentRecentApplications = currentRecentApplications.filter((r) => r.id != value.id); // take out current application
+      currentRecentApplications = currentRecentApplications.slice(0, 9);
+      localStorage.RECENT_APPLICATIONS = JSON.stringify([value, ...currentRecentApplications]);
     },
     SET_NEW_APPLICATIONS(state, value) {
       state.selectedApplication = value;
@@ -168,6 +160,13 @@ export default new Vuex.Store({
       state.selectedStudentLocator = value.locator_number;
       state.selectedStudentId = value.id;
       state.selectedStudent = value;
+
+      if (!isUndefined(value)) {
+        let currentRecentStudents = JSON.parse(localStorage.RECENT_STUDENTS ?? "[]");
+        currentRecentStudents = currentRecentStudents.filter((r) => r.id != value.id); // take out current student
+        currentRecentStudents = currentRecentStudents.slice(0, 9);
+        localStorage.RECENT_STUDENTS = JSON.stringify([value, ...currentRecentStudents]);
+      }
 
       let isRecent = state.recentStudents.filter((r) => r.id == value.id);
 

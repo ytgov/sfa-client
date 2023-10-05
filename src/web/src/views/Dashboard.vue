@@ -37,19 +37,44 @@
       </v-col>
 
       <v-col cols="12" md="4" sm="6">
-        <v-card class="default mb-5">
-          <v-toolbar flat color="#e0d5bb" dense>
+
+
+<v-card class="default mb-5">
+          <v-toolbar flat color="#ffc850" dense>
+            Recently Viewed Students
+          </v-toolbar>
+          <v-card-text class="py-0 px-3">
+            <p v-if="recentStudents.length == 0" class="mb-0">None yet</p>
+
+            <v-list dense color="#ffffff00" v-if="recentStudents" class="ml-0">
+              <div v-for="(item, idx) of recentStudents">
+                <v-list-item :to="`/student/${item.id}`" class="pl-1 ml-0 py-2" style="min-height: auto">
+                  <v-list-item-content class="py-0">
+                    <v-list-item-title>
+                      {{ idx + 1 }}. {{ item.first_name }} {{ item.last_name }} 
+                    </v-list-item-title>
+                  </v-list-item-content>
+                </v-list-item>
+                <v-divider v-if="idx < recentStudents.length - 1" />
+              </div>
+            </v-list>
+          </v-card-text>
+        </v-card>
+
+        <v-card class="default mb-5 d-none">
+          <v-toolbar flat color="#ffc850" dense>
             Recently Viewed Applications
           </v-toolbar>
-          <v-card-text class="py-0">
+          <v-card-text class="py-0 px-3">
             <p v-if="recentApplications.length == 0" class="mb-0">None yet</p>
 
-            <v-list dense color="#ffffff00" v-if="recentApplications">
+            <v-list dense color="#ffffff00" v-if="recentApplications" class="ml-0">
               <div v-for="(item, idx) of recentApplications">
-                <v-list-item :to="`/application/${item.id}/personal`" class="pl-1">
-                  <v-list-item-content class="">
-                    <v-list-item-title
-                      >{{ getStudentName(item) }} - {{ item.academic_year_id }}: {{ item.main_institution.name }}
+                <v-list-item :to="`/application/${item.id}/personal`" class="pl-1 ml-0 py-2" style="min-height: auto">
+                  <v-list-item-content class="py-0">
+                    <v-list-item-title>
+                      {{ idx + 1 }}. {{ getStudentName(item) }} - {{ item.academic_year_id }}:
+                      {{ item.main_institution.name }}
                     </v-list-item-title>
                     <!-- <v-subheader class="my-0 py-0" style="height: 14px">
                       <strong>Flags:</strong>&nbsp; {{ item.flags.replace(/,/g, ", ") }}
@@ -63,10 +88,10 @@
         </v-card>
 
         <v-card class="default">
-          <v-toolbar flat color="#e0d5bb" dense>
+          <v-toolbar flat color="#ffc850" dense>
             Flagged Applications
           </v-toolbar>
-          <v-card-text class="pb-0">
+          <v-card-text class="pb-0 px-3">
             <v-select
               label="Select a flag"
               class="my-0"
@@ -82,15 +107,15 @@
               <v-switch v-model="filterFlagged" label="Also apply name filter" hide-details class="my-0" />
             </div>
             <v-divider class="mt-1" />
-            <p v-if="filteredFlagMatches.length == 0" class="mb-0">None yet</p>
+            <p v-if="filteredFlagMatches.length == 0" class="mb-0 mt-2">None yet</p>
 
             <v-list dense color="#ffffff00" v-if="filteredFlagMatches" class="mt-0 pt-0">
               <div v-for="(item, idx) of filteredFlagMatches">
-                <v-list-item :to="`/application/${item.id}/personal`" class="pl-1">
-                  <v-list-item-content class="">
-                    <v-list-item-title>{{ item.title }} </v-list-item-title>
-                    <v-subheader class="my-0 py-0" style="height: 14px">
-                      <strong>Flags:</strong>&nbsp; {{ item.flags.replace(/,/g, ", ") }}
+                <v-list-item :to="`/application/${item.id}/personal`" class="pl-1"">
+                  <v-list-item-content>
+                    <v-list-item-title>{{ idx + 1 }}. {{ item.title }} </v-list-item-title>
+                    <v-subheader class="my-0 py-0 ml-3">
+                      <strong>Flags:</strong> {{ item.flags.replace(/,/g, ", ") }}
                     </v-subheader>
                   </v-list-item-content>
                 </v-list-item>
@@ -103,10 +128,10 @@
 
       <v-col cols="12" md="4" sm="6">
         <v-card class="default">
-          <v-toolbar flat color="#e0d5bb" dense>
+          <v-toolbar flat color="#ffc850" dense>
             New Applications
           </v-toolbar>
-          <v-card-text class="py-0">
+          <v-card-text class="py-0 px-3">
             <!-- <h3 class="text-h6 font-weight-regular mb-0">New Applications</h3> -->
 
             <div v-if="loading">Loading...</div>
@@ -116,9 +141,9 @@
               <div v-for="(item, idx) of newApplications">
                 <v-list-item :to="`/application/${item.id}/personal`" class="pl-1">
                   <v-list-item-content class="">
-                    <v-list-item-title>{{ item.title }} </v-list-item-title>
-                    <v-subheader class="my-0 py-0" style="height: 14px">
-                      <strong>Submitted:</strong>&nbsp; {{ getFormattedDate(item.online_submit_date) }}
+                    <v-list-item-title>{{ idx + 1 }}. {{ item.title }} </v-list-item-title>
+                    <v-subheader class="my-0 py-0 ml-3">
+                      <strong>Submitted:</strong> {{ getFormattedDate(item.online_submit_date) }}
                     </v-subheader>
                   </v-list-item-content>
                 </v-list-item>
@@ -131,19 +156,19 @@
 
       <v-col cols="12" md="4" sm="6">
         <v-card class="default mb-5">
-          <v-toolbar flat color="#e0d5bb" dense>
+          <v-toolbar flat color="#ffc850" dense>
             Recent Updates or Messages
           </v-toolbar>
-          <v-card-text class="py-0">
+          <v-card-text class="py-0 px-3">
             <p v-if="recentUpdated.length == 0" class="mb-0">None yet</p>
 
             <v-list dense color="#ffffff00" v-if="recentUpdated">
               <div v-for="(item, idx) of recentUpdated">
                 <v-list-item :to="`/application/${item.id}/personal`" class="pl-1">
                   <v-list-item-content class="">
-                    <v-list-item-title>{{ item.title }} </v-list-item-title>
-                    <v-subheader class="my-0 py-0" style="height: 14px">
-                      <strong>Updated:</strong>&nbsp; {{ getFormattedDate(item.updated_at) }}
+                    <v-list-item-title>{{ idx + 1 }}. {{ item.title }} </v-list-item-title>
+                    <v-subheader class="my-0  ml-3">
+                      <strong>Updated:</strong> {{ getFormattedDate(item.updated_at) }}
                     </v-subheader>
                   </v-list-item-content>
                 </v-list-item>
@@ -206,6 +231,7 @@
 
 <script>
 import axios from "axios";
+import moment from "moment";
 import { mapActions, mapState } from "vuex";
 import { get, includes } from "lodash";
 import { APPLICATION_URL, STUDENT_SEARCH_URL } from "../urls";
@@ -232,6 +258,7 @@ export default {
 
     filter: [],
     recentApplications: [],
+    recentStudents: [],
     search: "",
     drawer: null,
     selectedStudent: null,
@@ -358,11 +385,12 @@ export default {
       this.filter = localStorage.DASHBOARD_LASTNAME_FILTER.split(",");
     }
 
-    if (localStorage.RECENT_APPLICATIONS) {
+    if (localStorage.RECENT_APPLICATIONS) 
       this.recentApplications = JSON.parse(localStorage.RECENT_APPLICATIONS);
-    } else {
-      localStorage.setItem("RECENT_APPLICATIONS", JSON.stringify([]));
-    }
+    
+
+    if(localStorage.RECENT_STUDENTS)
+    this.recentStudents = JSON.parse(localStorage.RECENT_STUDENTS);
 
     this.getData();
     this.loadFlagOptions();
@@ -376,7 +404,7 @@ export default {
     ...mapActions(["loadFlagOptions", "searchApplicationsByFlag"]),
 
     getFormattedDate(date) {
-      return new Date(date).toLocaleDateString();
+      return `${moment(date).format("YYYY-MM-DD")} (${moment(date).fromNow()})`;
     },
     getData() {
       axios
@@ -456,3 +484,19 @@ export default {
   },
 };
 </script>
+
+<style scoped>
+.v-list-item__title {
+  font-size: 15px !important;
+}
+.v-subheader {
+  height: 16px !important;
+  font-size: 14px;
+  line-height: 14px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: block;
+  padding-left: 19px
+}
+</style>
