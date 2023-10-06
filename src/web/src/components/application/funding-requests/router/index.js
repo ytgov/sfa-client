@@ -48,4 +48,12 @@ export default [
       requiresAuth: true,
     },
   },
+  {
+    path: "/application/:id/cslpt/:fundingRequestId",
+    name: "FR_CSLPT",
+    component: () => import("../../assessments/views/CSLPT.vue"),
+    meta: {
+      requiresAuth: true,
+    },
+  },
 ];

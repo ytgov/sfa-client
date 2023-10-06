@@ -40,21 +40,59 @@ csgThresholdRouter.get(
       .orderBy("id", "desc")
       .first();
 
-    let assessment = await db("sfa.assessment")
-      .where({
-        funding_request_id: funding_request.id,
-      })
+    if (funding_request) {
+      let assessment = await db("sfa.assessment")
+        .where({
+          funding_request_id: funding_request.id,
+        })
+        .orderBy("id", "desc")
+        .first();
+
+      let disbursements = await db("sfa.disbursement")
+        .where({
+          funding_request_id: funding_request.id,
+        })
+        .orderBy("issue_date")
+        .orderBy("id");
+
+      return res.json({ data: { funding_request, assessment, disbursements } });
+    }
+
+    res.status(404).send("Funding Request not found");
+  }
+);
+
+csgThresholdRouter.get(
+  "/cslpt/:application_id",
+  param("application_id").isInt(),
+  ReturnValidationErrors,
+  async (req: Request, res: Response) => {
+    const { application_id } = req.params;
+
+    let funding_request = await db("sfa.funding_request")
+      .where({ application_id, request_type_id: 5 })
       .orderBy("id", "desc")
       .first();
 
-    let disbursements = await db("sfa.disbursement")
-      .where({
-        funding_request_id: funding_request.id,
-      })
-      .orderBy("issue_date")
-      .orderBy("id");
+    if (funding_request) {
+      let assessment = await db("sfa.assessment")
+        .where({
+          funding_request_id: funding_request.id,
+        })
+        .orderBy("id", "desc")
+        .first();
 
-    res.json({ data: { funding_request, assessment, disbursements } });
+      let disbursements = await db("sfa.disbursement")
+        .where({
+          funding_request_id: funding_request.id,
+        })
+        .orderBy("issue_date")
+        .orderBy("id");
+
+      return res.json({ data: { funding_request, assessment, disbursements } });
+    }
+
+    res.status(404).send("Funding Request not found");
   }
 );
 
