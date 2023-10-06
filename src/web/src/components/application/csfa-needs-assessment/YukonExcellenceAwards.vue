@@ -1,60 +1,58 @@
 <template>
   <div class="row yukon-excellence-awards-assessment">
     <div class="col-lg-12">
-      <v-card class="default mb-5 bg-color-blue">
+      <v-card class="default bg-color-blue">
         <div class="col-lg-12 nopadding d-flex flex-wrap low-margin">
           <v-card-title class="col-xs-12 col-lg-8">Assessment - Yukon Excellence Awards</v-card-title>
           <div class="col-xs-12 col-lg-4 nopadding d-flex">
             <div class="col-xs-4 col-sm-4 ">
-              <v-btn 
+              <v-btn
                 :disabled="!isPreviewCharged && !isChanging && !editingDisburse"
                 dense
-                color="green" 
+                color="green"
                 class="my-0"
                 block
-                @click="e => {
-                  if (!customAssessment?.id) {
-                    if (isPreviewCharged) {
-                      insertAssessmentWithDisbursement();
+                @click="
+                  (e) => {
+                    if (!customAssessment?.id) {
+                      if (isPreviewCharged) {
+                        insertAssessmentWithDisbursement();
+                      } else {
+                        addAssessment();
+                      }
                     } else {
-                      addAssessment();
+                      updateAssessment();
                     }
-                  } else {
-                    updateAssessment();
                   }
-                }"
+                "
               >
                 SAVE
               </v-btn>
             </div>
             <div class="col-xs-4 col-sm-4 ">
-              <v-btn 
+              <v-btn
                 :disabled="!isPreviewCharged && !isChanging && !editingDisburse"
                 dense
-                color="orange" 
+                color="orange"
                 class="my-0"
                 block
-                @click=" e => {
-                  if (!customAssessment?.id) {
-                    $emit('close');
-                    $store.dispatch('setIsPreviewCharged', false);
-                  } else {
+                @click="
+                  (e) => {
+                    if (!customAssessment?.id) {
+                      $emit('close');
+                      $store.dispatch('setIsPreviewCharged', false);
+                    } else {
                       $store.dispatch('setIsPreviewCharged', false);
                       cancelEdition();
+                    }
                   }
-                }"
+                "
               >
                 CANCEL
               </v-btn>
             </div>
             <div class="col-xs-4 col-sm-4 ">
-              <v-btn 
-                @click="$emit('close')"
-                dense
-                color="red" 
-                class="my-0"
-                block
-              >
+              <v-btn @click="$emit('close')" dense color="red" class="my-0" block>
                 EXIT
               </v-btn>
             </div>
@@ -90,12 +88,14 @@
                     ></v-text-field>
                   </template>
                   <v-date-picker
-                      @change="refreshData"
-                      :value="customAssessment.assessed_date?.slice(0, 10)"
-                      @input="e => {
+                    @change="refreshData"
+                    :value="customAssessment.assessed_date?.slice(0, 10)"
+                    @input="
+                      (e) => {
                         customAssessment.assessed_date = e;
                         assessed_date_menu = false;
-                      }"
+                      }
+                    "
                   ></v-date-picker>
                 </v-menu>
               </div>
@@ -131,10 +131,12 @@
                     disabled
                     @change="refreshData"
                     :value="customAssessment.classes_start_date?.slice(0, 10)"
-                    @input="e => {
-                      customAssessment.classes_start_date = e;
-                      classes_start_date_menu = false;
-                    }"
+                    @input="
+                      (e) => {
+                        customAssessment.classes_start_date = e;
+                        classes_start_date_menu = false;
+                      }
+                    "
                   ></v-date-picker>
                 </v-menu>
               </div>
@@ -151,28 +153,30 @@
                   offset-y
                   min-width="auto"
                 >
-                <template v-slot:activator="{ on, attrs }">
-                  <v-text-field
-                    :value="customAssessment.classes_end_date?.slice(0, 10)"
-                    disabled
-                    label="Classes End Date"
-                    append-icon="mdi-calendar"
-                    hide-details
-                    readonly
-                    outlined
-                    dense
-                    background-color="white"
-                    v-bind="attrs"
-                    v-on="on"
-                  ></v-text-field>
+                  <template v-slot:activator="{ on, attrs }">
+                    <v-text-field
+                      :value="customAssessment.classes_end_date?.slice(0, 10)"
+                      disabled
+                      label="Classes End Date"
+                      append-icon="mdi-calendar"
+                      hide-details
+                      readonly
+                      outlined
+                      dense
+                      background-color="white"
+                      v-bind="attrs"
+                      v-on="on"
+                    ></v-text-field>
                   </template>
                   <v-date-picker
                     @change="refreshData"
                     :value="customAssessment.classes_end_date?.slice(0, 10)"
-                    @input="e => {
-                      customAssessment.classes_end_date = e;
-                      classes_end_date_menu = false;
-                    }"
+                    @input="
+                      (e) => {
+                        customAssessment.classes_end_date = e;
+                        classes_end_date_menu = false;
+                      }
+                    "
                   ></v-date-picker>
                 </v-menu>
               </div>
@@ -247,7 +251,7 @@
                   readonly
                   disabled
                   @keypress="validate.isNumber($event)"
-                  :value="(customAssessment.read_only_data.yea_balance)"
+                  :value="customAssessment.read_only_data.yea_balance"
                 ></v-text-field>
               </div>
             </div>
@@ -265,28 +269,22 @@
                 ></v-text-field>
               </div>
               <div class="col-sm-4 col-lg-5">
-                <v-btn 
-                  @click="refreshData"
-                  dense
-                  color="blue" 
-                  class="my-0"
-                  block
-                >
-                RE-CALC 
-                </v-btn> 
-              </div> 
-            </div> 
+                <v-btn @click="refreshData" dense color="blue" class="my-0" block>
+                  RE-CALC
+                </v-btn>
+              </div>
+            </div>
             <div class="col-lg-12 nopadding d-flex">
               <div class="col-sm-4 col-lg-7">
                 <v-text-field
-                    disabled
-                    outlined
-                    dense
-                    background-color="white"
-                    hide-details
-                    label="Assessed Amount"
-                    :value="customAssessment?.read_only_data?.assessed_amount"
-                  >
+                  disabled
+                  outlined
+                  dense
+                  background-color="white"
+                  hide-details
+                  label="Assessed Amount"
+                  :value="customAssessment?.read_only_data?.assessed_amount"
+                >
                 </v-text-field>
               </div>
             </div>
@@ -318,38 +316,41 @@
                 ></v-text-field>
               </div>
               <div class="col-sm-4 col-lg-5 noppading-bottom">
-                <v-btn 
-                    :disabled="isDisburseBlocked"
-                    @click="e => {
-                      
-                        if (!isDisburseBlocked) {
-                          disburse();
-                        }
-                    }"
-                    dense
-                    color="blue" 
-                    class="my-0"
-                    block
-                  >
+                <v-btn
+                  :disabled="isDisburseBlocked"
+                  @click="
+                    (e) => {
+                      if (!isDisburseBlocked) {
+                        disburse();
+                      }
+                    }
+                  "
+                  dense
+                  color="blue"
+                  class="my-0"
+                  block
+                >
                   DISBURSE
-                  </v-btn>
+                </v-btn>
               </div>
             </div>
           </div>
         </v-card-text>
       </v-card>
     </div>
-    <Disbursement
-      :assessmentId="customAssessment?.id" 
-      :fundingRequestId="customAssessment?.funding_request_id"
-      :refreshFrom="'refreshAssessmentYEA'"
-      v-on:showError="showError" 
-      v-on:showSuccess="showSuccess" 
-      v-on:blockDisburse="blockDisburse"  
-      v-on:currentEditing="currentEditing" 
-      ref="disburseComponent" 
+    <div class="col-lg-12">
+      <Disbursement
+        :assessmentId="customAssessment?.id"
+        :fundingRequestId="customAssessment?.funding_request_id"
+        :refreshFrom="'refreshAssessmentYEA'"
+        v-on:showError="showError"
+        v-on:showSuccess="showSuccess"
+        v-on:blockDisburse="blockDisburse"
+        v-on:currentEditing="currentEditing"
+        ref="disburseComponent"
       ></Disbursement>
-      <confirm-dialog ref="confirm"></confirm-dialog>
+    </div>
+    <confirm-dialog ref="confirm"></confirm-dialog>
   </div>
 </template>
 <script>
@@ -378,16 +379,28 @@ export default {
     };
   },
   computed: {
-    ...mapGetters(["selectedStudent", "assessments", "cities", "programDivisions", "customAssessment", "selectedAssessment", "disbursements", "setIsPreviewCharged", "isPreviewCharged", "previewDisbursementList", "selectedFundingId"]),
-    application: function () {
+    ...mapGetters([
+      "selectedStudent",
+      "assessments",
+      "cities",
+      "programDivisions",
+      "customAssessment",
+      "selectedAssessment",
+      "disbursements",
+      "setIsPreviewCharged",
+      "isPreviewCharged",
+      "previewDisbursementList",
+      "selectedFundingId",
+    ]),
+    application: function() {
       return store.getters.selectedApplication;
     },
     programDivision() {
       return this.application?.program_division;
     },
-    selectedFunding: function () {
-      return this.application.funding_requests.find(item => item.id === this.selectedFundingId)
-    }
+    selectedFunding: function() {
+      return this.application.funding_requests.find((item) => item.id === this.selectedFundingId);
+    },
   },
   methods: {
     ObjCompare(obj1, obj2) {
@@ -413,84 +426,72 @@ export default {
         this.application.program_division = this.programDivisionBack;
         this.programDivisionBack = null;
       }
-      const selected = JSON.parse(JSON.stringify(this.selectedAssessment))
+      const selected = JSON.parse(JSON.stringify(this.selectedAssessment));
       store.dispatch("setCustomAssessment", { ...selected });
       const custom = JSON.parse(JSON.stringify(this.customAssessment));
       this.isChanging = this.ObjCompare({ ...custom }, { ...selected });
       this.$refs.disburseComponent.closeEditor();
     },
     addAssessment() {
-      store.dispatch(
-        "postAssessment",
-        {
-          application_id: this.application.id,
-          funding_request_id: this.fundingRequestId,
-          dataAssessment: { ...this.customAssessment },
-          dataApplication: { ...this.application },
-          thisVal: this
-        }
-      );
-      
+      store.dispatch("postAssessment", {
+        application_id: this.application.id,
+        funding_request_id: this.fundingRequestId,
+        dataAssessment: { ...this.customAssessment },
+        dataApplication: { ...this.application },
+        thisVal: this,
+      });
     },
     updateAssessment() {
       const custom = JSON.parse(JSON.stringify(this.customAssessment));
-      const filterDisbursements = this.disbursements.filter(d => d.assessment_id === custom?.id) || [];
- 
-      store.dispatch(
-          "updateAssessmentYEA",
-          {
-            data: custom,
-            application: this.application,
-            disburseList: [ ...this.previewDisbursementList, ...filterDisbursements ],
-            application_id: this.application.id,
-            funding_request_id: custom.funding_request_id,
-            assessment_id: custom.id,
-            thisVal: this
-          }
-        );
+      const filterDisbursements = this.disbursements.filter((d) => d.assessment_id === custom?.id) || [];
+
+      store.dispatch("updateAssessmentYEA", {
+        data: custom,
+        application: this.application,
+        disburseList: [...this.previewDisbursementList, ...filterDisbursements],
+        application_id: this.application.id,
+        funding_request_id: custom.funding_request_id,
+        assessment_id: custom.id,
+        thisVal: this,
+      });
     },
     refreshData() {
-      const previewDisburseAmountsList = this.previewDisbursementList?.map(d => {
-        return Number(d.disbursed_amount);
-      }) || [];
-
-      const disburseFilter = this.disbursements?.filter(d => d.assessment_id === this.customAssessment?.id )
-      let disburseAmountsList = [];
-      
-      if (disburseFilter?.length) {
-        disburseAmountsList = disburseFilter.map(d => {
+      const previewDisburseAmountsList =
+        this.previewDisbursementList?.map((d) => {
           return Number(d.disbursed_amount);
         }) || [];
+
+      const disburseFilter = this.disbursements?.filter((d) => d.assessment_id === this.customAssessment?.id);
+      let disburseAmountsList = [];
+
+      if (disburseFilter?.length) {
+        disburseAmountsList =
+          disburseFilter.map((d) => {
+            return Number(d.disbursed_amount);
+          }) || [];
       }
-      
-    
-      store.dispatch("refreshAssessmentYEA", { 
-        application_id: this.application.id, 
+
+      store.dispatch("refreshAssessmentYEA", {
+        application_id: this.application.id,
         data: { assessment: this.customAssessment, application: this.application },
-        disburseAmountList: [ ...previewDisburseAmountsList, ...disburseAmountsList ],
+        disburseAmountList: [...previewDisburseAmountsList, ...disburseAmountsList],
       });
     },
     recalcAssessment() {
       const custom = JSON.parse(JSON.stringify(this.customAssessment));
-      store.dispatch(
-          "recalcAssessment",
-          {
-            application_id: this.application.id,
-            funding_request_id: this.selectedFundingId,
-            assessment_id: custom.id,
-          }
-        );
+      store.dispatch("recalcAssessment", {
+        application_id: this.application.id,
+        funding_request_id: this.selectedFundingId,
+        assessment_id: custom.id,
+      });
     },
     disburse() {
-      store.dispatch(
-        "previewYEADisbursements",
-        {
-          application_id: this.application.id,
-          assessment_id: this.customAssessment?.id || 0,
-          data: { ...this.customAssessment, funding_request_id: this.fundingRequestId },
-          thisVal: this
-        }
-      );
+      store.dispatch("previewYEADisbursements", {
+        application_id: this.application.id,
+        assessment_id: this.customAssessment?.id || 0,
+        data: { ...this.customAssessment, funding_request_id: this.fundingRequestId },
+        thisVal: this,
+      });
       this.application.yea_tot_receipt_amount = 0;
       this.refreshData();
     },
@@ -503,36 +504,33 @@ export default {
       this.isDisburseBlocked = value;
     },
     insertDisburse() {
-      if(this.isPreviewCharged && this.previewDisbursementList.length) {
+      if (this.isPreviewCharged && this.previewDisbursementList.length) {
         store.dispatch("postDisbursement", {
-        data: [ ...this.previewDisbursementList ],
-        funding_request_id: this.customAssessment.funding_request_id,
-        application_id: this.application.id, 
-        isList: "disburseList",
-        emiter: this
-      });
+          data: [...this.previewDisbursementList],
+          funding_request_id: this.customAssessment.funding_request_id,
+          application_id: this.application.id,
+          isList: "disburseList",
+          emiter: this,
+        });
       } else {
         !this.previewDisbursementList.length
-        ? this.showError("No disburse in list")
-        : this.showError("Something went wrong ")
+          ? this.showError("No disburse in list")
+          : this.showError("Something went wrong ");
       }
     },
     insertAssessmentWithDisbursement() {
-      if(this.isPreviewCharged && this.previewDisbursementList.length) {
-        store.dispatch(
-          "postAssessmentWithDisbursements",
-          {
-            application_id: this.application.id,
-            funding_request_id: this.fundingRequestId,
-            dataDisburse: [ ...this.previewDisbursementList ],
-            dataAssessment: { ...this.customAssessment },
-            thisVal: this
-          }
-        );
+      if (this.isPreviewCharged && this.previewDisbursementList.length) {
+        store.dispatch("postAssessmentWithDisbursements", {
+          application_id: this.application.id,
+          funding_request_id: this.fundingRequestId,
+          dataDisburse: [...this.previewDisbursementList],
+          dataAssessment: { ...this.customAssessment },
+          thisVal: this,
+        });
       } else {
         !this.previewDisbursementList.length
-        ? this.showError("No disburse in list")
-        : this.showError("Something went wrong ")
+          ? this.showError("No disburse in list")
+          : this.showError("Something went wrong ");
       }
     },
     showSuccess(mgs) {
@@ -545,9 +543,7 @@ export default {
       this.$refs.confirm.show(
         "Need to save assessment",
         "You have to save the assessment to add the disbursement",
-        () => {
-          
-        },
+        () => {},
         () => {},
         false,
         "Accept"
@@ -556,17 +552,17 @@ export default {
   },
   watch: {
     customAssessment: {
-        deep: true,
-        handler(val, oldVal) {
-          const custom = JSON.parse(JSON.stringify(val));
-          const selected = JSON.parse(JSON.stringify(this.selectedAssessment))
+      deep: true,
+      handler(val, oldVal) {
+        const custom = JSON.parse(JSON.stringify(val));
+        const selected = JSON.parse(JSON.stringify(this.selectedAssessment));
 
-          this.isChanging = this.ObjCompare({ ...custom }, { ...selected });
-        },
+        this.isChanging = this.ObjCompare({ ...custom }, { ...selected });
+      },
     },
     programDivision(val, oldVal) {
       const custom = JSON.parse(JSON.stringify(val));
-      const selected = JSON.parse(JSON.stringify(this.selectedAssessment))
+      const selected = JSON.parse(JSON.stringify(this.selectedAssessment));
 
       if (this.programDivisionBack) {
         this.isChanging = this.ObjCompare({ ...custom }, { ...selected });
@@ -574,9 +570,7 @@ export default {
     },
     disbursements: {
       deep: true,
-        handler(val, oldVal) {
-
-        },
+      handler(val, oldVal) {},
     },
   },
   async created() {
@@ -590,97 +584,97 @@ export default {
   },
   props: {
     fundingRequestId: Number,
-  }
+  },
 };
 </script>
 <style>
-  .nopadding {
-    padding: 0 !important;
+.nopadding {
+  padding: 0 !important;
+}
+.nopadding-lr {
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+.noppading-bottom {
+  padding-bottom: 0 !important;
+}
+.noppading-top {
+  padding-top: 0 !important;
+}
+.equalize-heights {
+  height: 40px;
+}
+.border-container {
+  border-radius: 4px;
+  border: 1px solid #ccc;
+}
+.w-auto {
+  min-width: unset !important;
+  width: 100%;
+}
+.bg-color-blue {
+  background-color: #e2f1fd !important;
+}
+.low-margin {
+  margin-bottom: 20px !important;
+}
+.txtarea-width {
+  width: 97.6% !important;
+}
+.line-jump-height {
+  height: 64px;
+}
+.v-btn:not(.v-btn--round).v-size--default {
+  padding: 0 8px !important;
+}
+.right-block-container > div {
+  border-left: 1px solid #ccc;
+}
+.right-block-container .line-jump-height:first-child:first-child {
+  height: 72px;
+  margin-top: 12px;
+}
+.not-displayed-lg {
+  display: none;
+}
+.v-card__title {
+  font-weight: bold !important;
+  font-size: 1.65rem !important;
+}
+@media (max-width: 1263px) {
+  .v-card__title {
+    font-size: 1.25rem !important;
   }
-  .nopadding-lr {
-    padding-left: 0 !important;
-    padding-right: 0 !important;
+  .not-displayed-lg {
+    display: block;
+    height: 0px;
+    margin: 20px 15px;
   }
-  .noppading-bottom {
-    padding-bottom: 0 !important;
+  .yukon-excellence-awards-assessment .right-block-container .not-displayed-lg {
+    border-top: 1px solid #ccc;
   }
-  .noppading-top {
-    padding-top: 0 !important;
-  }
-  .equalize-heights {
-    height: 40px;
-  }
-  .border-container{
-    border-radius: 4px;
-    border: 1px solid #ccc;
-  }
-  .w-auto{
-    min-width: unset !important;
-    width: 100%;
-  }
-  .bg-color-blue{
-    background-color: #E2F1FD !important;
-  }
-  .low-margin{
-    margin-bottom: 20px !important;
-  }
-  .txtarea-width{
-    width: 97.6% !important;
-  }
-  .line-jump-height{
-    height: 64px;
-  }
-  .v-btn:not(.v-btn--round).v-size--default{
-    padding: 0 8px !important;
-  }
-  .right-block-container > div{
-    border-left: 1px solid #ccc;
-  }
-  .right-block-container .line-jump-height:first-child:first-child{
-    height: 72px;
-    margin-top: 12px; 
-  }
-  .not-displayed-lg{
+  .not-displayed-sx-md {
     display: none;
   }
-  .v-card__title{
-    font-weight: bold !important;
-    font-size: 1.65rem !important;
+  .right-block-container > div {
+    border-left: 0px;
   }
-  @media (max-width: 1263px) {
-    .v-card__title{
-      font-size: 1.25rem !important;
-    }
-    .not-displayed-lg{
-      display: block;
-      height: 0px;
-      margin: 20px 15px;
-    }
-    .yukon-excellence-awards-assessment .right-block-container .not-displayed-lg{
-      border-top: 1px solid #ccc;
-    }
-    .not-displayed-sx-md{
-      display: none;
-    }
-    .right-block-container > div{
-      border-left: 0px;
-    }
+}
+@media (max-width: 599px) {
+  .not-displayed-sx {
+    display: none;
   }
-  @media (max-width: 599px){
-    .not-displayed-sx{
-      display: none;
-    }
-    .mobile-column-flex{
-      flex-direction: column;
-    }
-    .mobile-low-margin{
-      margin-bottom: 20px !important;
-    }
-    .mobile-top-margin{
-      margin-top: 20px !important;
-    }
-    .right-block-container > div:nth-child(5) > div:first-child{
-      padding-bottom: 0px;
-    }
+  .mobile-column-flex {
+    flex-direction: column;
   }
+  .mobile-low-margin {
+    margin-bottom: 20px !important;
+  }
+  .mobile-top-margin {
+    margin-top: 20px !important;
+  }
+  .right-block-container > div:nth-child(5) > div:first-child {
+    padding-bottom: 0px;
+  }
+}
 </style>
