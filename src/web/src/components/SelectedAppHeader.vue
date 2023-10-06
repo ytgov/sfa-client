@@ -39,18 +39,18 @@
 
 <script>
 import { mapActions, mapState, mapGetters } from "vuex";
-import { sortBy, uniq } from "lodash";
+import { isEmpty, sortBy, uniq } from "lodash";
 
 export default {
   computed: {
     ...mapState(["selectedStudentFullName", "selectedApplication", "flagOptions"]),
     ...mapGetters(["applicationFlags"]),
     allOptions() {
-      return sortBy(uniq([...this.flagOptions, ...this.baseOptions]));
+      return uniq([...this.baseOptions, sortBy(...this.flagOptions)]).filter((f) => !isEmpty(f));
     },
   },
   data: () => ({
-    baseOptions: ["Director Review", "Duplicate"],
+    baseOptions: ["Director Review", "Manager Review", "See Communications", "Tech Issue", "Urgent", "Vendor ID"],
     flags: [],
   }),
   watch: {

@@ -5,7 +5,7 @@ import knex from "knex";
 import { DocumentService, DocumentStatus } from "../../services/shared";
 import { ReturnValidationErrors } from "../../middleware";
 import { DB_CONFIG } from "../../config";
-import { uniq, parseInt, min,  get, isArray } from "lodash";
+import { uniq, parseInt, min, get, isArray, isEmpty } from "lodash";
 import { AssessmentYukonGrant, AssessmentYEA } from "../../repositories/assessment";
 
 const db = knex(DB_CONFIG);
@@ -170,7 +170,7 @@ applicationRouter.post(
 
 applicationRouter.get("/flags",  async (req: Request, res: Response) => {
   let flagList = await db("sfa.application").whereNotNull("flags").select("flags").distinct();
-  let flags = uniq(flagList.flatMap(f => f.flags.split(",")));
+  let flags = uniq(flagList.flatMap(f => f.flags.split(","))).map(i => i.trim()).filter(i => !isEmpty(i));
 
   res.json({data: flags })
 }) 

@@ -1,6 +1,6 @@
 <template>
   <tr class="narrow">
-    <td>
+    <td style="width: 90px">
       <v-text-field
         v-if="canEdit('transaction_number')"
         v-model="item.transaction_number"
@@ -22,7 +22,7 @@
         class="narrowInput"
       ></v-text-field>
     </td>
-    <td>
+    <td style="max-width: 120px;">
       <div v-if="canEdit('disbursed_amount')">
         <v-text-field
           v-model="amount"
@@ -49,19 +49,9 @@
       </div>
     </td>
     <td>
-      <v-text-field
-        :value="getType(item.disbursement_type_id)"
-        v-if="item.csl_cert_seq_number"
-        dense
-        readonly
-        hide-details
-        outlined
-        background-color="#ccc"
-        class="narrowInput"
-      ></v-text-field>
       <v-autocomplete
+        v-if="canEdit('disbursement_type_id')"
         v-model="item.disbursement_type_id"
-        v-else
         :items="disbursementTypes"
         item-text="description"
         item-value="id"
@@ -72,11 +62,9 @@
         class="narrowInput"
         @change="saveDisbursement"
       ></v-autocomplete>
-    </td>
-    <td>
       <v-text-field
-        :value="item.issue_date"
-        v-if="item.csl_cert_seq_number"
+        v-else
+        :value="getType(item.disbursement_type_id)"
         dense
         readonly
         hide-details
@@ -84,9 +72,10 @@
         background-color="#ccc"
         class="narrowInput"
       ></v-text-field>
-
+    </td>
+    <td style="width: 110px;">
       <v-menu
-        v-else
+        v-if="canEdit('issue_date')"
         v-model="menus1[idx]"
         :close-on-content-click="false"
         transition="scale-transition"
@@ -128,11 +117,9 @@
           </v-btn>
         </v-date-picker>
       </v-menu>
-    </td>
-    <td>
       <v-text-field
-        :value="item.due_date"
-        v-if="item.csl_cert_seq_number"
+        v-else
+        :value="item.issue_date"
         dense
         readonly
         hide-details
@@ -140,9 +127,10 @@
         background-color="#ccc"
         class="narrowInput"
       ></v-text-field>
-
+    </td>
+    <td style="width: 110px;">
       <v-menu
-        v-else
+        v-if="canEdit('due_date')"
         v-model="menus2[idx]"
         :close-on-content-click="false"
         transition="scale-transition"
@@ -184,6 +172,16 @@
           </v-btn>
         </v-date-picker>
       </v-menu>
+      <v-text-field
+        :value="item.due_date"
+        v-else
+        dense
+        readonly
+        hide-details
+        outlined
+        background-color="#ccc"
+        class="narrowInput"
+      ></v-text-field>
     </td>
     <td>
       <v-autocomplete
@@ -198,18 +196,17 @@
         class="narrowInput"
       ></v-autocomplete>
     </td>
-    <td>
+    <td style="width: 90px">
       <v-text-field
         v-model="item.csl_cert_seq_number"
         dense
         hide-details
-        readonly
         outlined
         background-color="#ccc"
         class="narrowInput"
       ></v-text-field>
     </td>
-    <td>
+    <td style="width: 40px">
       <v-btn
         fab
         class="my-0 mr-1"
