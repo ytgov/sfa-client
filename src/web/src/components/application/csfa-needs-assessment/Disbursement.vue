@@ -1,244 +1,288 @@
 <template>
-  <div class="col-lg-12">
+  <div>
     <v-card class="default mb-5 bg-color-blue">
-      <div v-if="smallTitle" class="col-lg-12 d-flex align-center  line-jump-height">
-        <H3 class="nomargin nopadding">Disbursement (s)</H3>
-      </div>
-      <v-card-title v-else>Disbursement (s)</v-card-title>
-
-      <div class="col-xs-12 col-sm-12 col-lg-12 d-flex">
-        <div class="col-xs-1 col-sm-1 col-lg-1 nopadding d-flex align-center justify-center" style="margin-right: 4px">
-          <p class="nomargin" style="font-size: 14px">Disbursed Amt</p>
-        </div>
-        <div class="col-xs-1 col-sm-1 col-lg-1 nopadding d-flex align-center justify-center" style="margin-right: 4px">
-          <p class="nomargin" style="font-size: 14px">Reference #</p>
-        </div>
-        <div class="col-xs-2 col-sm-2 col-lg-2 nopadding d-flex align-center justify-center" style="margin-right: 4px">
-          <p class="nomargin" style="font-size: 14px">Disbursement Type</p>
-        </div>
-        <div class="col-xs-1 col-sm-1 col-lg-1 nopadding d-flex align-center justify-center" style="margin-right: 4px">
-          <p class="nomargin" style="font-size: 14px">Issue Date</p>
-        </div>
-        <div class="col-xs-1 col-sm-1 col-lg-1 nopadding d-flex align-center justify-center" style="margin-right: 4px">
-          <p class="nomargin" style="font-size: 14px">Tax Year</p>
-        </div>
-        <div class="col-xs-1 col-sm-1 col-lg-1 nopadding d-flex align-center justify-center" style="margin-right: 4px">
-          <p class="nomargin" style="font-size: 14px">Due Date</p>
-        </div>
-        <div class="col-xs-3 col-sm-3 col-lg-3 nopadding d-flex align-center justify-center" style="margin-right: 4px">
-          <p class="nomargin" style="font-size: 14px">Change Reason</p>
-        </div>
-        <div class="col-xs-1 col-sm-1 col-lg-1 nopadding d-flex align-center justify-center" style="margin-right: 4px">
-          <p class="nomargin" style="font-size: 14px">Batch ID</p>
-        </div>
-      </div>
-      <div v-for="(item, index) in disbursementsByAssessmentId" :key="index">
-        <div class="col-xs-12 col-sm-12 col-lg-12 d-flex noppading-top">
-          <div class="col-xs-1 col-sm-1 col-lg-1 nopadding" style="margin-right: 6px">
-            <v-text-field
-              outlined
-              dense
-              background-color="white"
-              hide-details
-              @keypress="validate.isNumber($event)"
-              v-model="item.disbursed_amount"
-              @change="
-                (e) => {
-                  $emit('blockDisburse', true);
-                  refreshData();
-                }
-              "
-            ></v-text-field>
-          </div>
-          <div class="col-xs-1 col-sm-1 col-lg-1 nopadding" style="margin-right: 6px">
-            <v-text-field
-              outlined
-              dense
-              background-color="white"
-              hide-details
-              @keypress="validate.isNumber($event)"
-              v-model="item.transaction_number"
-              @change="
-                (e) => {
-                  $emit('blockDisburse', true);
-                  refreshData();
-                }
-              "
-            ></v-text-field>
-          </div>
-          <div class="col-xs-2 col-sm-2 col-lg-2 nopadding" style="margin-right: 6px">
-            <v-autocomplete
-              outlined
-              dense
-              background-color="white"
-              hide-details
-              v-model="item.disbursement_type_id"
-              :items="disbursementTypes"
-              item-text="description"
-              item-value="id"
-              @change="
-                (e) => {
-                  $emit('blockDisburse', true);
-                  refreshData();
-                }
-              "
-            ></v-autocomplete>
-          </div>
-          <div class="col-xs-1 col-sm-1 col-lg-1 nopadding" style="margin-right: 6px">
-            <v-menu
-              v-model="item.issue_date_menu"
-              :close-on-content-click="false"
-              transition="scale-transition"
-              left
-              nudge-top="26"
-              offset-y
-              min-width="auto"
+      <v-card-text>
+        <h3>
+          Disbursements
+          <v-btn @click="addDisbursement" color="primary" class="float-right" small>Add</v-btn>
+        </h3>
+        <div class="row" style="clear:both">
+          <div class="col-xs-12 col-sm-12 col-lg-12 d-flex">
+            <div
+              class="col-xs-1 col-sm-1 col-lg-1 nopadding d-flex align-center justify-center"
+              style="margin-right: 4px"
             >
-              <template v-slot:activator="{ on, attrs }">
-                <v-text-field
+              <p class="nomargin" style="font-size: 14px">Disbursed Amt</p>
+            </div>
+            <div
+              class="col-xs-1 col-sm-1 col-lg-1 nopadding d-flex align-center justify-center"
+              style="margin-right: 4px"
+            >
+              <p class="nomargin" style="font-size: 14px">Reference #</p>
+            </div>
+            <div
+              class="col-xs-2 col-sm-2 col-lg-2 nopadding d-flex align-center justify-center"
+              style="margin-right: 4px"
+            >
+              <p class="nomargin" style="font-size: 14px">Disbursement Type</p>
+            </div>
+            <div
+              class="col-xs-1 col-sm-1 col-lg-1 nopadding d-flex align-center justify-center"
+              style="margin-right: 4px"
+            >
+              <p class="nomargin" style="font-size: 14px">Issue Date</p>
+            </div>
+            <div
+              class="col-xs-1 col-sm-1 col-lg-1 nopadding d-flex align-center justify-center"
+              style="margin-right: 4px"
+            >
+              <p class="nomargin" style="font-size: 14px">Due Date</p>
+            </div>
+            <div
+              class="col-xs-1 col-sm-1 col-lg-1 nopadding d-flex align-center justify-center"
+              style="margin-right: 4px"
+            >
+              <p class="nomargin" style="font-size: 14px">Tax Year</p>
+            </div>
+            <div
+              class="col-xs-3 col-sm-3 col-lg-3 nopadding d-flex align-center justify-center"
+              style="margin-right: 4px"
+            >
+              <p class="nomargin" style="font-size: 14px">Change Reason</p>
+            </div>
+            <div
+              class="col-xs-1 col-sm-1 col-lg-1 nopadding d-flex align-center justify-center"
+              style="margin-right: 4px"
+            >
+              <p class="nomargin" style="font-size: 14px">Batch ID</p>
+            </div>
+          </div>
+        </div>
+        <div v-for="(item, index) in disbursementsByAssessmentId" :key="index" class="row">
+          <div class="col-xs-12 col-sm-12 col-lg-12 d-flex noppading-top">
+            <div class="col-xs-1 col-sm-1 col-lg-1 nopadding" style="margin-right: 6px">
+              <v-text-field
+                outlined
+                dense
+                background-color="white"
+                hide-details
+                @keypress="validate.isNumber($event)"
+                v-model="item.disbursed_amount"
+                @change="
+                  (e) => {
+                    $emit('blockDisburse', true);
+                    refreshData();
+                  }
+                "
+              ></v-text-field>
+            </div>
+            <div class="col-xs-1 col-sm-1 col-lg-1 nopadding" style="margin-right: 6px">
+              <v-text-field
+                outlined
+                dense
+                background-color="white"
+                hide-details
+                @keypress="validate.isNumber($event)"
+                v-model="item.transaction_number"
+                @change="
+                  (e) => {
+                    $emit('blockDisburse', true);
+                    refreshData();
+                  }
+                "
+              ></v-text-field>
+            </div>
+            <div class="col-xs-2 col-sm-2 col-lg-2 nopadding" style="margin-right: 6px">
+              <v-autocomplete
+                outlined
+                dense
+                background-color="white"
+                hide-details
+                v-model="item.disbursement_type_id"
+                :items="disbursementTypes"
+                item-text="description"
+                item-value="id"
+                @change="
+                  (e) => {
+                    $emit('blockDisburse', true);
+                    refreshData();
+                  }
+                "
+              ></v-autocomplete>
+            </div>
+            <div class="col-xs-1 col-sm-1 col-lg-1 nopadding" style="margin-right: 6px">
+              <v-menu
+                v-model="item.issue_date_menu"
+                :close-on-content-click="false"
+                transition="scale-transition"
+                left
+                nudge-top="26"
+                offset-y
+                min-width="auto"
+              >
+                <template v-slot:activator="{ on, attrs }">
+                  <v-text-field
+                    :value="item.issue_date?.slice(0, 10)"
+                    hide-details
+                    readonly
+                    outlined
+                    dense
+                    background-color="white"
+                    v-bind="attrs"
+                    v-on="on"
+                    @change="
+                      (e) => {
+                        $emit('blockDisburse', true);
+                        item.issue_date = null;
+                        item.issue_date_menu = false;
+                      }
+                    "
+                  ></v-text-field>
+                </template>
+                <v-date-picker
                   :value="item.issue_date?.slice(0, 10)"
-                  label="Issue Date"
-                  hide-details
-                  readonly
-                  outlined
-                  dense
-                  background-color="white"
-                  v-bind="attrs"
-                  v-on="on"
-                  clearable
-                  @change="
+                  @input="
                     (e) => {
-                      $emit('blockDisburse', true);
-                      item.issue_date = null;
+                      item.issue_date = e;
                       item.issue_date_menu = false;
                     }
                   "
-                ></v-text-field>
-              </template>
-              <v-date-picker
-                :value="item.issue_date?.slice(0, 10)"
-                @input="
-                  (e) => {
-                    item.issue_date = e;
-                    item.tax_year = e.slice(0, 4);
-                    item.issue_date_menu = false;
-                  }
-                "
-                @change="
-                  (e) => {
-                    $emit('blockDisburse', true);
-                  }
-                "
-              ></v-date-picker>
-            </v-menu>
-          </div>
-          <div class="col-xs-1 col-sm-1 col-lg-1 nopadding" style="margin-right: 6px">
-            <v-text-field
-              outlined
-              dense
-              background-color="white"
-              hide-details
-              @keypress="validate.isNumber($event)"
-              v-model="item.tax_year"
-              @change="
-                (e) => {
-                  $emit('blockDisburse', true);
-                  refreshData();
-                }
-              "
-            ></v-text-field>
-          </div>
-          <div class="col-xs-1 col-sm-1 col-lg-1 nopadding" style="margin-right: 6px">
-            <v-menu
-              v-model="item.due_date_menu"
-              :close-on-content-click="false"
-              transition="scale-transition"
-              left
-              nudge-top="26"
-              offset-y
-              min-width="auto"
-            >
-              <template v-slot:activator="{ on, attrs }">
-                <v-text-field
-                  :value="item.due_date?.slice(0, 10)"
-                  label="Due Date"
-                  hide-details
-                  readonly
-                  outlined
-                  dense
-                  background-color="white"
-                  v-bind="attrs"
-                  v-on="on"
-                  clearable
                   @change="
                     (e) => {
                       $emit('blockDisburse', true);
-                      item.due_date = null;
+                    }
+                  "
+                >
+                  <v-btn
+                    text
+                    color="primary"
+                    @click="
+                      item.issue_date = undefined;
+                      item.issue_date_menu = false;
+                    "
+                  >
+                    Clear
+                  </v-btn>
+                </v-date-picker>
+              </v-menu>
+            </div>
+            <div class="col-xs-1 col-sm-1 col-lg-1 nopadding" style="margin-right: 6px">
+              <v-menu
+                v-model="item.due_date_menu"
+                :close-on-content-click="false"
+                transition="scale-transition"
+                left
+                nudge-top="26"
+                offset-y
+                min-width="auto"
+              >
+                <template v-slot:activator="{ on, attrs }">
+                  <v-text-field
+                    :value="item.due_date?.slice(0, 10)"
+                    hide-details
+                    readonly
+                    outlined
+                    dense
+                    background-color="white"
+                    v-bind="attrs"
+                    v-on="on"
+                    @change="
+                      (e) => {
+                        $emit('blockDisburse', true);
+                        item.due_date = null;
+                        item.due_date_menu = false;
+                      }
+                    "
+                  ></v-text-field>
+                </template>
+                <v-date-picker
+                  :value="item.due_date?.slice(0, 10)"
+                  @input="
+                    (e) => {
+                      item.due_date = e;
+                      item.tax_year = e.slice(0, 4);
                       item.due_date_menu = false;
                     }
                   "
-                ></v-text-field>
-              </template>
-              <v-date-picker
-                :value="item.due_date?.slice(0, 10)"
-                @input="
-                  (e) => {
-                    item.due_date = e;
-                    item.due_date_menu = false;
-                  }
-                "
+                  @change="
+                    (e) => {
+                      $emit('blockDisburse', true);
+                    }
+                  "
+                >
+                  <v-btn
+                    text
+                    color="primary"
+                    @click="
+                      item.due_date = undefined;
+                      item.due_date_menu = false;
+                    "
+                  >
+                    Clear
+                  </v-btn>
+                </v-date-picker>
+              </v-menu>
+            </div>
+            <div class="col-xs-1 col-sm-1 col-lg-1 nopadding" style="margin-right: 6px">
+              <v-text-field
+                outlined
+                dense
+                background-color="white"
+                hide-details
+                @keypress="validate.isNumber($event)"
+                v-model="item.tax_year"
                 @change="
                   (e) => {
                     $emit('blockDisburse', true);
+                    refreshData();
                   }
                 "
-              ></v-date-picker>
-            </v-menu>
-          </div>
-          <div class="col-xs-3 col-sm-3 col-lg-3 nopadding" style="margin-right: 6px">
-            <v-autocomplete
-              outlined
-              dense
-              background-color="white"
-              hide-details
-              v-model="item.change_reason_id"
-              :items="changeReasons"
-              item-text="description"
-              item-value="id"
-              @change="
-                (e) => {
-                  $emit('blockDisburse', true);
-                  refreshData();
-                }
-              "
-            ></v-autocomplete>
-          </div>
-          <div class="col-xs-1 col-sm-1 col-lg-1 nopadding d-flex" style="margin-right: 12px">
-            <v-text-field
-              outlined
-              dense
-              background-color="white"
-              hide-details
-              @keypress="validate.isNumber($event)"
-              v-model="item.financial_batch_id"
-              @change="
-                (e) => {
-                  $emit('blockDisburse', true);
-                  refreshData();
-                }
-              "
-            ></v-text-field>
-          </div>
-          <div v-if="item?.id" class="col-xs-1 col-sm-1 col-lg-1 nopadding d-flex">
-            <v-btn color="error" x-small fab class="my-1" @click="removeDisbursement(item.id)">
-              <v-icon>mdi-delete</v-icon>
-            </v-btn>
+              ></v-text-field>
+            </div>
+            <div class="col-xs-3 col-sm-3 col-lg-3 nopadding" style="margin-right: 6px">
+              <v-autocomplete
+                outlined
+                dense
+                background-color="white"
+                hide-details
+                v-model="item.change_reason_id"
+                :items="changeReasons"
+                item-text="description"
+                item-value="id"
+                @change="
+                  (e) => {
+                    $emit('blockDisburse', true);
+                    refreshData();
+                  }
+                "
+              ></v-autocomplete>
+            </div>
+            <div class="col-xs-1 col-sm-1 col-lg-1 nopadding d-flex" style="margin-right: 12px">
+              <v-text-field
+                outlined
+                dense
+                background-color="white"
+                hide-details
+                @keypress="validate.isNumber($event)"
+                v-model="item.financial_batch_id"
+                @change="
+                  (e) => {
+                    $emit('blockDisburse', true);
+                    refreshData();
+                  }
+                "
+              ></v-text-field>
+            </div>
+            <div v-if="item?.id" class="col-xs-1 col-sm-1 col-lg-1 nopadding d-flex">
+              <v-btn color="error" x-small fab class="my-1" @click="removeDisbursement(item.id)">
+                <v-icon>mdi-delete</v-icon>
+              </v-btn>
+            </div>
           </div>
         </div>
-      </div>
 
-      <div v-for="(item, index) in previewDisbursementList" :key="index + 'sd'">
-        <!-- <div class="col-xs-12 col-sm-12 col-lg-12 d-flex noppading-bottom">
+        <div v-for="(item, index) in previewDisbursementList" :key="index + 'sd'" class="row">
+          <!-- <div class="col-xs-12 col-sm-12 col-lg-12 d-flex noppading-bottom">
                 <div class="col-xs-12 col-sm-12 col-lg-12 nopadding d-flex align-end justify-end">
                   <v-btn 
                       color="warning ml-5" 
@@ -252,196 +296,199 @@
                 </div>
               </div> -->
 
-        <div class="col-xs-12 col-sm-12 col-lg-12 d-flex noppading-top">
-          <div class="col-xs-1 col-sm-1 col-lg-1 nopadding" style="margin-right: 6px">
-            <v-text-field
-              outlined
-              dense
-              background-color="white"
-              hide-details
-              @keypress="validate.isNumber($event)"
-              v-model="item.disbursed_amount"
-              @change="
-                (e) => {
-                  $emit('blockDisburse', true);
-                  refreshData();
-                }
-              "
-            >
-            </v-text-field>
-          </div>
-          <div class="col-xs-1 col-sm-1 col-lg-1 nopadding" style="margin-right: 6px">
-            <v-text-field
-              outlined
-              dense
-              background-color="white"
-              hide-details
-              @keypress="validate.isNumber($event)"
-              v-model="item.transaction_number"
-            ></v-text-field>
-          </div>
-          <div class="col-xs-2 col-sm-2 col-lg-2 nopadding" style="margin-right: 6px">
-            <v-autocomplete
-              outlined
-              dense
-              background-color="white"
-              hide-details
-              v-model="item.disbursement_type_id"
-              :items="disbursementTypes"
-              item-text="description"
-              item-value="id"
-            ></v-autocomplete>
-          </div>
-          <div class="col-xs-1 col-sm-1 col-lg-1 nopadding" style="margin-right: 6px">
-            <v-menu
-              v-model="item.issue_date_menu"
-              :close-on-content-click="false"
-              transition="scale-transition"
-              left
-              nudge-top="26"
-              offset-y
-              min-width="auto"
-            >
-              <template v-slot:activator="{ on, attrs }">
-                <v-text-field
+          <div class="col-xs-12 col-sm-12 col-lg-12 d-flex noppading-top">
+            <div class="col-xs-1 col-sm-1 col-lg-1 nopadding" style="margin-right: 6px">
+              <v-text-field
+                outlined
+                dense
+                background-color="white"
+                hide-details
+                @keypress="validate.isNumber($event)"
+                v-model="item.disbursed_amount"
+                @change="
+                  (e) => {
+                    $emit('blockDisburse', true);
+                    refreshData();
+                  }
+                "
+              >
+              </v-text-field>
+            </div>
+            <div class="col-xs-1 col-sm-1 col-lg-1 nopadding" style="margin-right: 6px">
+              <v-text-field
+                outlined
+                dense
+                background-color="white"
+                hide-details
+                @keypress="validate.isNumber($event)"
+                v-model="item.transaction_number"
+              ></v-text-field>
+            </div>
+            <div class="col-xs-2 col-sm-2 col-lg-2 nopadding" style="margin-right: 6px">
+              <v-autocomplete
+                outlined
+                dense
+                background-color="white"
+                hide-details
+                v-model="item.disbursement_type_id"
+                :items="disbursementTypes"
+                item-text="description"
+                item-value="id"
+              ></v-autocomplete>
+            </div>
+            <div class="col-xs-1 col-sm-1 col-lg-1 nopadding" style="margin-right: 6px">
+              <v-menu
+                v-model="item.issue_date_menu"
+                :close-on-content-click="false"
+                transition="scale-transition"
+                left
+                nudge-top="26"
+                offset-y
+                min-width="auto"
+              >
+                <template v-slot:activator="{ on, attrs }">
+                  <v-text-field
+                    :value="item.issue_date?.slice(0, 10)"
+                    hide-details
+                    readonly
+                    outlined
+                    dense
+                    background-color="white"
+                    v-bind="attrs"
+                    v-on="on"
+                    @change="
+                      (e) => {
+                        $emit('blockDisburse', true);
+                        refreshData();
+                        item.issue_date = null;
+                        item.issue_date_menu = false;
+                      }
+                    "
+                  ></v-text-field>
+                </template>
+                <v-date-picker
                   :value="item.issue_date?.slice(0, 10)"
-                  label="Issue Date"
-                  hide-details
-                  readonly
-                  outlined
-                  dense
-                  background-color="white"
-                  v-bind="attrs"
-                  v-on="on"
-                  clearable
-                  @change="
+                  @input="
                     (e) => {
-                      $emit('blockDisburse', true);
-                      refreshData();
-                      item.issue_date = null;
+                      item.issue_date = e;
                       item.issue_date_menu = false;
                     }
                   "
-                ></v-text-field>
-              </template>
-              <v-date-picker
-                :value="item.issue_date?.slice(0, 10)"
-                @input="
-                  (e) => {
-                    item.issue_date = e;
-                    item.tax_year = e.slice(0, 4);
-                    item.issue_date_menu = false;
-                  }
-                "
-                @change="
-                  (e) => {
-                    $emit('blockDisburse', true);
-                  }
-                "
-              ></v-date-picker>
-            </v-menu>
-          </div>
-          <div class="col-xs-1 col-sm-1 col-lg-1 nopadding" style="margin-right: 6px">
-            <v-text-field
-              outlined
-              dense
-              background-color="white"
-              @keypress="validate.isNumber($event)"
-              v-model="item.tax_year"
-            ></v-text-field>
-          </div>
-          <div class="col-xs-1 col-sm-1 col-lg-1 nopadding" style="margin-right: 6px">
-            <v-menu
-              v-model="item.due_date_menu"
-              :close-on-content-click="false"
-              transition="scale-transition"
-              left
-              nudge-top="26"
-              offset-y
-              min-width="auto"
-            >
-              <template v-slot:activator="{ on, attrs }">
-                <v-text-field
-                  :value="item.due_date ? item.due_date.slice(0, 10) : null"
-                  label="Due Date"
-                  hide-details
-                  readonly
-                  outlined
-                  dense
-                  background-color="white"
-                  v-bind="attrs"
-                  v-on="on"
-                  clearable
                   @change="
                     (e) => {
                       $emit('blockDisburse', true);
-                      item.due_date = null;
+                    }
+                  "
+                >
+                  <v-btn
+                    text
+                    color="primary"
+                    @click="
+                      item.issue_date = undefined;
+                      item.issue_date_menu = false;
+                    "
+                  >
+                    Clear
+                  </v-btn></v-date-picker
+                >
+              </v-menu>
+            </div>
+            <div class="col-xs-1 col-sm-1 col-lg-1 nopadding" style="margin-right: 6px">
+              <v-menu
+                v-model="item.due_date_menu"
+                :close-on-content-click="false"
+                transition="scale-transition"
+                left
+                nudge-top="26"
+                offset-y
+                min-width="auto"
+              >
+                <template v-slot:activator="{ on, attrs }">
+                  <v-text-field
+                    :value="item.due_date ? item.due_date.slice(0, 10) : null"
+                    hide-details
+                    readonly
+                    outlined
+                    dense
+                    background-color="white"
+                    v-bind="attrs"
+                    v-on="on"
+                    @change="
+                      (e) => {
+                        $emit('blockDisburse', true);
+                        item.due_date = null;
+                        item.due_date_menu = false;
+                      }
+                    "
+                  ></v-text-field>
+                </template>
+                <v-date-picker
+                  :value="item.due_date ? item.due_date.slice(0, 10) : null"
+                  @input="
+                    (e) => {
+                      item.due_date = e;
+                      item.tax_year = e.slice(0, 4);
                       item.due_date_menu = false;
                     }
                   "
-                ></v-text-field>
-              </template>
-              <v-date-picker
-                :value="item.due_date ? item.due_date.slice(0, 10) : null"
-                @input="
-                  (e) => {
-                    item.due_date = e;
-                    item.due_date_menu = false;
-                  }
-                "
-                @change="
-                  (e) => {
-                    $emit('blockDisburse', true);
-                  }
-                "
-              ></v-date-picker>
-            </v-menu>
-          </div>
-          <div class="col-xs-3 col-sm-3 col-lg-3 nopadding" style="margin-right: 6px">
-            <v-autocomplete
-              outlined
-              dense
-              background-color="white"
-              hide-details
-              v-model="item.change_reason_id"
-              :items="changeReasons"
-              item-text="description"
-              item-value="id"
-            ></v-autocomplete>
-          </div>
-          <div class="col-xs-1 col-sm-1 col-lg-1 nopadding" style="margin-right: 12px">
-            <v-text-field
-              outlined
-              dense
-              background-color="white"
-              hide-details
-              @keypress="validate.isNumber($event)"
-              v-model="item.financial_batch_id"
-            ></v-text-field>
-          </div>
-          <div class="col-xs-1 col-sm-1 col-lg-1 nopadding d-flex">
-            <v-btn color="warning" x-small fab class="my-1" @click="cancelDisbursement(index)">
-              <v-icon>mdi-close</v-icon>
-            </v-btn>
+                  @change="
+                    (e) => {
+                      $emit('blockDisburse', true);
+                    }
+                  "
+                >
+                  <v-btn
+                    text
+                    color="primary"
+                    @click="
+                      item.due_date = undefined;
+                      item.due_date_menu = false;
+                    "
+                  >
+                    Clear
+                  </v-btn>
+                </v-date-picker>
+              </v-menu>
+            </div>
+            <div class="col-xs-1 col-sm-1 col-lg-1 nopadding" style="margin-right: 6px">
+              <v-text-field
+                outlined
+                dense
+                background-color="white"
+                @keypress="validate.isNumber($event)"
+                v-model="item.tax_year"
+              ></v-text-field>
+            </div>
+            <div class="col-xs-3 col-sm-3 col-lg-3 nopadding" style="margin-right: 6px">
+              <v-autocomplete
+                outlined
+                dense
+                background-color="white"
+                hide-details
+                v-model="item.change_reason_id"
+                :items="changeReasons"
+                item-text="description"
+                item-value="id"
+              ></v-autocomplete>
+            </div>
+            <div class="col-xs-1 col-sm-1 col-lg-1 nopadding" style="margin-right: 12px">
+              <v-text-field
+                outlined
+                dense
+                background-color="white"
+                hide-details
+                @keypress="validate.isNumber($event)"
+                v-model="item.financial_batch_id"
+              ></v-text-field>
+            </div>
+            <div class="col-xs-1 col-sm-1 col-lg-1 nopadding d-flex">
+              <v-btn color="warning" x-small fab class="my-1" @click="cancelDisbursement(index)">
+                <v-icon>mdi-close</v-icon>
+              </v-btn>
+            </div>
           </div>
         </div>
-      </div>
-
-      <div class="col-xs-12 col-sm-12 col-lg-12 d-flex noppading-bottom">
-        <div class="col-xs-12 col-sm-12 col-lg-12 nopadding d-flex align-end justify-end">
-          <v-btn
-            @click="
-              (e) => {
-                addDisbursement();
-              }
-            "
-            color="success"
-            class=""
-          >
-            Add
-          </v-btn>
-        </div>
-      </div>
+      </v-card-text>
     </v-card>
     <confirm-dialog ref="confirm"></confirm-dialog>
   </div>
