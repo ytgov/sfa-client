@@ -159,11 +159,11 @@
     <div class="mt-4">
       <v-card class="default mb-5 bg-color-blue">
         <v-card-text>
-          <csg-disbursements
+          <sfa-disbursements
             store="csgDisabilitySEStore"
             v-on:showError="showError"
             v-on:showSuccess="showSuccess"
-          ></csg-disbursements>
+          ></sfa-disbursements>
         </v-card-text>
       </v-card>
     </div>
@@ -173,11 +173,11 @@
 import store from "@/store";
 import { isNumber } from "lodash";
 import { mapActions, mapGetters, mapState } from "vuex";
-import CsgDisbursements from "../components/csg-disbursements.vue";
+import SfaDisbursements from "../components/sfa-disbursements.vue";
 
 export default {
   name: "Home",
-  components: { CsgDisbursements },
+  components: { SfaDisbursements },
   data: () => ({
     assessed_date_menu: false,
     numberOfDisbursements: 1,

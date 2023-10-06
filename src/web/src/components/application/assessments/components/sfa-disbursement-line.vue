@@ -58,7 +58,6 @@
         dense
         hide-details
         outlined
-        :readyonly="!item.csl_cert_seq_number"
         class="narrowInput"
         @change="saveDisbursement"
       ></v-autocomplete>
@@ -128,6 +127,7 @@
         class="narrowInput"
       ></v-text-field>
     </td>
+
     <td style="width: 110px;">
       <v-menu
         v-if="canEdit('due_date')"
@@ -149,7 +149,7 @@
             background-color="white"
             v-bind="attrs"
             v-on="on"
-            @change="saveDisbursement"
+            @change="setDefaultTaxYear"
             class="narrowInput"
           ></v-text-field>
         </template>
@@ -157,7 +157,7 @@
           v-model="item.due_date"
           @input="
             menus2[idx] = false;
-            saveDisbursement();
+            setDefaultTaxYear();
           "
         >
           <v-btn
@@ -183,6 +183,18 @@
         class="narrowInput"
       ></v-text-field>
     </td>
+
+    <td style="width: 85px">
+      <v-autocomplete
+        v-model="item.tax_year"
+        :items="taxYearOptions"
+        dense
+        hide-details
+        outlined
+        @change="saveDisbursement"
+        class="narrowInput"
+      ></v-autocomplete>
+    </td>
     <td>
       <v-autocomplete
         v-model="item.change_reason_id"
@@ -198,22 +210,17 @@
     </td>
     <td style="width: 90px">
       <v-text-field
-        v-model="item.csl_cert_seq_number"
+        v-model="item.financial_batch_id"
         dense
         hide-details
         outlined
+        readonly
         background-color="#ccc"
         class="narrowInput"
       ></v-text-field>
     </td>
-    <td style="width: 40px">
-      <v-btn
-        fab
-        class="my-0 mr-1"
-        color="warning"
-        x-small
-        @click="deleteDisbursement(item, idx)"
-        v-if="!item.csl_cert_seq_number"
+    <td style="width: 40px" v-if="!item.financial_batch_id">
+      <v-btn fab class="my-0 mr-1" color="warning" x-small @click="deleteDisbursement(item, idx)"
         ><v-icon>mdi-delete</v-icon></v-btn
       >
     </td>
@@ -221,6 +228,7 @@
 </template>
 
 <script>
+import moment from "moment";
 import { mapGetters } from "vuex";
 import { isNumber, isEmpty } from "lodash";
 import { setValue, getValue } from "vue-currency-input";
@@ -234,6 +242,16 @@ export default {
   }),
   computed: {
     ...mapGetters(["cslClassifications", "disbursementTypes", "changeReasons"]),
+    taxYearOptions() {
+      let date = moment().add(2, "year");
+      let years = [];
+
+      for (let i = 0; i < 10; i++) {
+        years.push(date.get("year"));
+        date.subtract(1, "year");
+      }
+      return years;
+    },
   },
   mounted() {
     if (this.$refs.amount1) setValue(this.$refs.amount1.$el, this.item.disbursed_amount);
@@ -248,10 +266,9 @@ export default {
   },
   methods: {
     canEdit(field) {
-      let alwaysEditable = ["transaction_number", "change_reason_id"];
+      let alwaysEditable = ["transaction_number", "change_reason_id", "tax_year"];
       if (alwaysEditable.includes(field)) return true;
-
-      if (isEmpty(this.item.csl_cert_seq_number)) return true;
+      if (isEmpty(this.item.financial_batch_id)) return true;
 
       return false;
     },
@@ -264,13 +281,15 @@ export default {
       }
       return "";
     },
-    getReason(item) {
-      let val = this.changeReasons.filter((r) => r.id == item);
-      return val[0] ? val[0].description : "";
-    },
     getType(item) {
       let val = this.disbursementTypes.filter((r) => r.id == item);
       return val[0] ? val[0].description : "";
+    },
+    setDefaultTaxYear() {
+      if (!isEmpty(this.item.due_date)) {
+        this.item.tax_year = moment(this.item.due_date).get("year");
+      }
+      this.saveDisbursement();
     },
   },
 };
