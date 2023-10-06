@@ -25,6 +25,7 @@
             :idx="idx"
             :saveDisbursement="saveDisbursement"
             :deleteDisbursement="deleteDisbursement"
+            :key="idx"
           />
         </tbody>
       </template>

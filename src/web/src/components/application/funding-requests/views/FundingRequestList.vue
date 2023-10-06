@@ -8,7 +8,7 @@
 
         <v-card>
           <v-list dense>
-            <v-list-item v-for="item of addableFundingTypes" @click="menu = false">
+            <v-list-item v-for="item of addableFundingTypes" @click="menu = false" :key="item.id">
               <v-list-item-title>
                 <v-icon color>mdi-plus</v-icon>
                 {{ item.description }}</v-list-item-title
