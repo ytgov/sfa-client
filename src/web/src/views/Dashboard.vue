@@ -37,9 +37,7 @@
       </v-col>
 
       <v-col cols="12" md="4" sm="6">
-
-
-<v-card class="default mb-5">
+        <v-card class="default mb-5">
           <v-toolbar flat color="#ffc850" dense>
             Recently Viewed Students
           </v-toolbar>
@@ -50,9 +48,7 @@
               <div v-for="(item, idx) of recentStudents">
                 <v-list-item :to="`/student/${item.id}`" class="pl-1 ml-0 py-2" style="min-height: auto">
                   <v-list-item-content class="py-0">
-                    <v-list-item-title>
-                      {{ idx + 1 }}. {{ item.first_name }} {{ item.last_name }} 
-                    </v-list-item-title>
+                    <v-list-item-title> {{ idx + 1 }}. {{ item.first_name }} {{ item.last_name }} </v-list-item-title>
                   </v-list-item-content>
                 </v-list-item>
                 <v-divider v-if="idx < recentStudents.length - 1" />
@@ -111,7 +107,7 @@
 
             <v-list dense color="#ffffff00" v-if="filteredFlagMatches" class="mt-0 pt-0">
               <div v-for="(item, idx) of filteredFlagMatches">
-                <v-list-item :to="`/application/${item.id}/personal`" class="pl-1"">
+                <v-list-item :to="`/application/${item.id}/personal`" class="pl-1">
                   <v-list-item-content>
                     <v-list-item-title>{{ idx + 1 }}. {{ item.title }} </v-list-item-title>
                     <v-subheader class="my-0 py-0 ml-3">
@@ -239,7 +235,7 @@ import { APPLICATION_URL, STUDENT_SEARCH_URL } from "../urls";
 export default {
   name: "Home",
   computed: {
-    ...mapState(["recentStudents", "flagOptions", "flagMatches"]),
+    ...mapState(["flagOptions", "flagMatches"]),
     filteredFlagMatches() {
       if (this.filterFlagged && this.filter.length > 0) {
         let matches = [];
@@ -381,16 +377,9 @@ export default {
     ],
   }),
   mounted() {
-    if (localStorage.DASHBOARD_LASTNAME_FILTER) {
-      this.filter = localStorage.DASHBOARD_LASTNAME_FILTER.split(",");
-    }
-
-    if (localStorage.RECENT_APPLICATIONS) 
-      this.recentApplications = JSON.parse(localStorage.RECENT_APPLICATIONS);
-    
-
-    if(localStorage.RECENT_STUDENTS)
-    this.recentStudents = JSON.parse(localStorage.RECENT_STUDENTS);
+    if (localStorage.DASHBOARD_LASTNAME_FILTER) this.filter = localStorage.DASHBOARD_LASTNAME_FILTER.split(",");
+    if (localStorage.RECENT_APPLICATIONS) this.recentApplications = JSON.parse(localStorage.RECENT_APPLICATIONS);
+    if (localStorage.RECENT_STUDENTS) this.recentStudents = JSON.parse(localStorage.RECENT_STUDENTS);
 
     this.getData();
     this.loadFlagOptions();
@@ -497,6 +486,6 @@ export default {
   overflow: hidden;
   text-overflow: ellipsis;
   display: block;
-  padding-left: 19px
+  padding-left: 19px;
 }
 </style>
