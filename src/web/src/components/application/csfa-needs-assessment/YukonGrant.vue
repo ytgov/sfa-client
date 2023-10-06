@@ -1,625 +1,602 @@
 <template>
-  <div class="row yukon-grant-assessment">
-    <!-- <div class="row col-md-12 justify-space-between">
-      <div class="col-md-4">
-        <v-select
-          outlined 
-          dense 
-          background-color="white"
-          hide-details 
-          label="assessments"
-          v-model="assessmentSelected"
-          :items="assessments"
-          item-text="name_assessment"
-          item-value="id"
-        >
-        </v-select>
-      </div>
-      <div class="col-md-3 pr-0">
-        <v-btn 
-          dense
-          color="green" 
-          class="my-0"
-          block
-        >
-          <v-icon>mdi-plus</v-icon> CREATE ASSESSMENT
-        </v-btn>
-      </div>
-    </div> -->
-    <div class="col-md-12">
-      <v-card class="bg-color-blue">
-        <div class="col-lg-12 nopadding d-flex flex-wrap low-margin">
-          <v-card-title class="col-xs-12 col-lg-8">Assessment - Yukon Grant</v-card-title>
-          <div class="col-xs-12 col-lg-4 nopadding d-flex">
-            <div class="col-xs-4 col-sm-4">
-              <v-btn
-                :disabled="!isPreviewCharged && !isChanging && !editingDisburse"
-                dense
-                color="green"
-                class="my-0"
-                block
-                @click="saveClick"
-                >SAVE
-              </v-btn>
-            </div>
-            <div class="col-xs-4 col-sm-4">
-              <v-btn
-                :disabled="!isPreviewCharged && !isChanging && !editingDisburse"
-                dense
-                color="orange"
-                class="my-0"
-                block
-                @click="
-                  (e) => {
-                    if (!customAssessment?.id) {
-                      $emit('close');
-                      $store.dispatch('setIsPreviewCharged', false);
-                      $store.dispatch('getDisbursements', {
-                        application_id: this.application.id,
-                        funding_request_id: customAssessment?.funding_request_id,
-                      });
-                      editingDisburse = false;
-                    } else {
-                      $store.dispatch('setIsPreviewCharged', false);
-                      $store.dispatch('getDisbursements', {
-                        application_id: this.application.id,
-                        funding_request_id: customAssessment?.funding_request_id,
-                      });
-                      editingDisburse = false;
-                      cancelEdition();
-                    }
-                  }
-                "
-              >
-                CANCEL
-              </v-btn>
-            </div>
-            <div class="col-xs-4 col-sm-4">
-              <v-btn @click="$emit('close')" dense color="red" class="my-0" block>
-                EXIT
-              </v-btn>
-            </div>
-          </div>
-        </div>
-        <v-card-text class="nopadding d-flex flex-wrap">
-          <div class="col-xs-12 col-lg-8 nopadding left-block-container">
-            <div class="col-xs-12 col-lg-12 nopadding d-flex mobile-column-flex low-margin">
-              <div class="col-xs-12 col-lg-4 nopadding d-flex flex-wrap">
-                <div class="col-xs-12 col-lg-12">
-                  <v-menu
-                    v-model="assessed_date_menu"
-                    :close-on-content-click="false"
-                    transition="scale-transition"
-                    left
-                    nudge-top="26"
-                    offset-y
-                    min-width="auto"
-                  >
-                    <template v-slot:activator="{ on, attrs }">
-                      <v-text-field
-                        :value="customAssessment.assessed_date?.slice(0, 10)"
-                        label="Assessed date"
-                        append-icon="mdi-calendar"
-                        hide-details
-                        readonly
-                        outlined
-                        dense
-                        background-color="white"
-                        v-bind="attrs"
-                        v-on="on"
-                      ></v-text-field>
-                    </template>
-                    <v-date-picker
-                      @change="refreshData"
-                      :value="customAssessment.assessed_date?.slice(0, 10)"
-                      @input="
-                        (e) => {
-                          customAssessment.assessed_date = e;
-                          assessed_date_menu = false;
-                        }
-                      "
-                    ></v-date-picker>
-                  </v-menu>
-                </div>
-                <div class="col-xs-12 col-lg-12">
-                  <v-menu
-                    disabled
-                    v-model="effective_rate_date_menu"
-                    :close-on-content-click="false"
-                    transition="scale-transition"
-                    left
-                    nudge-top="26"
-                    offset-y
-                    min-width="auto"
-                  >
-                    <template v-slot:activator="{ on, attrs }">
-                      <v-text-field
-                        disabled
-                        :value="customAssessment.effective_rate_date?.slice(0, 10)"
-                        label="Effective rate date"
-                        append-icon="mdi-calendar"
-                        hide-details
-                        readonly
-                        outlined
-                        dense
-                        background-color="white"
-                        v-bind="attrs"
-                        v-on="on"
-                      ></v-text-field>
-                    </template>
-                    <v-date-picker
-                      disabled
-                      @change="refreshData"
-                      :value="customAssessment.effective_rate_date?.slice(0, 10)"
-                      @input="
-                        (e) => {
-                          customAssessment.effective_rate_date = e;
-                          effective_rate_date_menu = false;
-                        }
-                      "
-                    ></v-date-picker>
-                  </v-menu>
-                </div>
-                <div class="col-xs-12 col-lg-12 mobile-noppading-bottom">
-                  <v-select
-                    outlined
-                    dense
-                    background-color="white"
-                    hide-details
-                    label="Program division"
-                    :value="application.program_division"
-                    @input="
-                      (e) => {
-                        if (programDivisionBack === null) {
-                          programDivisionBack = application.program_division;
-                        }
-                        application.program_division = e;
-                        customAssessment.program_division = e;
+  <div class="yukon-grant-assessment">
+    <div class="row mb-3">
+      <div class="col-md-12">
+        <v-card class="bg-color-blue">
+          <div class="col-lg-12 nopadding d-flex flex-wrap low-margin">
+            <v-card-title class="col-xs-12 col-lg-8">Assessment - Yukon Grant</v-card-title>
+            <div class="col-xs-12 col-lg-4 nopadding d-flex">
+              <div class="col-xs-4 col-sm-4">
+                <v-btn
+                  :disabled="!isPreviewCharged && !isChanging && !editingDisburse"
+                  dense
+                  color="green"
+                  class="my-0"
+                  block
+                  @click="saveClick"
+                  >SAVE
+                </v-btn>
+              </div>
+              <div class="col-xs-4 col-sm-4">
+                <v-btn
+                  :disabled="!isPreviewCharged && !isChanging && !editingDisburse"
+                  dense
+                  color="orange"
+                  class="my-0"
+                  block
+                  @click="
+                    (e) => {
+                      if (!customAssessment?.id) {
+                        $emit('close');
+                        $store.dispatch('setIsPreviewCharged', false);
+                        $store.dispatch('getDisbursements', {
+                          application_id: this.application.id,
+                          funding_request_id: customAssessment?.funding_request_id,
+                        });
+                        editingDisburse = false;
+                      } else {
+                        $store.dispatch('setIsPreviewCharged', false);
+                        $store.dispatch('getDisbursements', {
+                          application_id: this.application.id,
+                          funding_request_id: customAssessment?.funding_request_id,
+                        });
+                        editingDisburse = false;
+                        cancelEdition();
                       }
-                    "
-                    @change="refreshData"
-                    :items="programDivisions"
-                    item-text="description"
-                    item-value="id"
-                  ></v-select>
-                </div>
+                    }
+                  "
+                >
+                  CANCEL
+                </v-btn>
               </div>
-              <div class="col-xs-12 col-lg-4 nopadding d-flex flex-wrap">
-                <div class="col-xs-12 col-lg-12 clss-st-date-re-order">
-                  <v-menu
-                    disabled
-                    v-model="classes_start_date_menu"
-                    :close-on-content-click="false"
-                    transition="scale-transition"
-                    left
-                    nudge-top="26"
-                    offset-y
-                    min-width="auto"
-                  >
-                    <template v-slot:activator="{ on, attrs }">
-                      <v-text-field
-                        disabled
-                        :value="customAssessment.classes_start_date?.slice(0, 10)"
-                        label="Classes start date"
-                        append-icon="mdi-calendar"
-                        hide-details
-                        readonly
-                        outlined
-                        dense
-                        background-color="white"
-                        v-bind="attrs"
-                        v-on="on"
-                      ></v-text-field>
-                    </template>
-                    <v-date-picker
-                      disabled
-                      @change="refreshData"
-                      :value="customAssessment.classes_start_date?.slice(0, 10)"
-                      @input="
-                        (e) => {
-                          customAssessment.classes_start_date = e;
-                          classes_start_date_menu = false;
-                        }
-                      "
-                    ></v-date-picker>
-                  </v-menu>
-                </div>
-                <div class="col-xs-12 col-lg-12 clss-en-date-re-order mobile-low-margin">
-                  <v-menu
-                    disabled
-                    v-model="classes_end_date_menu"
-                    :close-on-content-click="false"
-                    transition="scale-transition"
-                    left
-                    nudge-top="26"
-                    offset-y
-                    min-width="auto"
-                  >
-                    <template v-slot:activator="{ on, attrs }">
-                      <v-text-field
-                        disabled
-                        :value="customAssessment.classes_end_date?.slice(0, 10)"
-                        label="Classes end date"
-                        append-icon="mdi-calendar"
-                        hide-details
-                        readonly
-                        outlined
-                        dense
-                        background-color="white"
-                        v-bind="attrs"
-                        v-on="on"
-                      ></v-text-field>
-                    </template>
-                    <v-date-picker
-                      disabled
-                      @change="refreshData"
-                      :value="customAssessment.classes_end_date?.slice(0, 10)"
-                      @input="
-                        (e) => {
-                          customAssessment.classes_end_date = e;
-                          classes_end_date_menu = false;
-                        }
-                      "
-                    ></v-date-picker>
-                  </v-menu>
-                </div>
-                <div
-                  class="col-xs-12 col-lg-12 line-jump-height d-flex align-center help-txt-re-order mobile-noppading-top"
-                ></div>
-              </div>
-              <div class="col-xs-12 col-lg-4 nopadding d-flex flex-wrap">
-                <div class="col-xs-12 col-lg-12">
-                  <v-select
-                    outlined
-                    dense
-                    background-color="white"
-                    hide-details
-                    label="Home community"
-                    @change="refreshData"
-                    v-model="customAssessment.home_city_id"
-                    :items="cities"
-                    item-text="description"
-                    item-value="id"
-                  ></v-select>
-                </div>
-                <div class="col-xs-12 col-lg-12">
-                  <v-select
-                    outlined
-                    dense
-                    background-color="white"
-                    hide-details
-                    label="Destination city"
-                    @change="refreshData"
-                    v-model="customAssessment.destination_city_id"
-                    :items="cities"
-                    item-text="description"
-                    item-value="id"
-                  ></v-select>
-                </div>
-                <div class="col-xs-12 col-lg-12 line-jump-height d-flex align-center not-displayed-sx"></div>
-              </div>
-            </div>
-            <div
-              v-if="application?.academic_year_id < 2016"
-              class="col-xs-12 col-lg-12 nopadding d-flex mobile-column-flex low-margin flex-wrap"
-            >
-              <div class="col-xs-12 col-lg-12 nopadding">
-                <v-card-title>Pre Legislation Method</v-card-title>
-              </div>
-              <div class="col-xs-12 col-sm-4 col-lg-4 nopadding d-flex flex-wrap mobile-low-margin">
-                <div class="col-xs-12 col-lg-12">
-                  <v-text-field
-                    outlined
-                    dense
-                    background-color="white"
-                    hide-details
-                    label="Allowed months"
-                    v-model="customAssessment.allowed_months"
-                  ></v-text-field>
-                </div>
-                <div class="col-xs-12 col-lg-12">
-                  <v-text-field
-                    outlined
-                    dense
-                    background-color="white"
-                    hide-details
-                    label="Fraction of whole year"
-                    v-model="customAssessment.years_funded_equivalent"
-                  ></v-text-field>
-                </div>
-                <div class="col-xs-12 col-lg-12">
-                  <v-text-field
-                    disabled
-                    outlined
-                    dense
-                    background-color="white"
-                    hide-details
-                    label="Years funded"
-                    :value="customAssessment?.read_only_data?.years_funded ?? 0"
-                  ></v-text-field>
-                </div>
-              </div>
-              <div class="col-xs-12 col-sm-4 col-lg-4 nopadding d-flex flex-wrap mobile-low-margin">
-                <div class="col-xs-12 col-lg-12">
-                  <v-text-field
-                    outlined
-                    dense
-                    background-color="white"
-                    hide-details
-                    label="Living costs"
-                    v-model="customAssessment.living_costs"
-                  ></v-text-field>
-                </div>
-                <div class="col-xs-12 col-lg-12">
-                  <v-text-field
-                    outlined
-                    dense
-                    background-color="white"
-                    hide-details
-                    label="Allowed tuition"
-                    v-model="customAssessment.allowed_tuition"
-                  ></v-text-field>
-                </div>
-                <div class="col-xs-12 col-lg-12">
-                  <v-text-field
-                    outlined
-                    dense
-                    background-color="white"
-                    hide-details
-                    label="Allowed books"
-                    v-model="customAssessment.allowed_books"
-                  ></v-text-field>
-                </div>
-              </div>
-              <div class="col-xs-12 col-sm-4 col-lg-4 nopadding d-flex flex-wrap">
-                <div class="col-xs-12 col-lg-12">
-                  <v-text-field
-                    disabled
-                    outlined
-                    dense
-                    background-color="white"
-                    hide-details
-                    label="Amount"
-                    v-model="customAssessment.pre_leg_amount"
-                  ></v-text-field>
-                </div>
-                <div class="col-xs-12 col-lg-12 line-jump-height d-flex align-center not-displayed-sx"></div>
-                <div class="col-xs-12 col-lg-12 line-jump-height d-flex align-center not-displayed-sx"></div>
-              </div>
-            </div>
-            <div class="col-xs-12 col-lg-12 nopadding d-flex mobile-column-flex low-margin flex-wrap">
-              <div class="col-xs-12 col-lg-12 nopadding">
-                <v-card-title>Post Legislation Method</v-card-title>
-              </div>
-              <div class="col-xs-12 col-sm-4 col-lg-4 nopadding d-flex flex-wrap mobile-low-margin">
-                <div class="col-xs-12 col-lg-12">
-                  <v-text-field
-                    disabled
-                    outlined
-                    dense
-                    background-color="white"
-                    hide-details
-                    label="Previous weeks"
-                    :value="customAssessment?.read_only_data?.previous_weeks ?? 0"
-                  ></v-text-field>
-                </div>
-                <div
-                  class="col-xs-12 col-lg-12 line-jump-height d-flex align-center not-displayed-sx not-displayed-sx-md"
-                ></div>
-              </div>
-              <div class="col-xs-12 col-sm-4 col-lg-4 nopadding d-flex flex-wrap mobile-low-margin">
-                <div class="col-xs-12 col-lg-12">
-                  <v-text-field
-                    disabled
-                    outlined
-                    dense
-                    background-color="white"
-                    hide-details
-                    label="Assessed weeks"
-                    :value="customAssessment?.read_only_data?.assessed_weeks ?? 0"
-                  ></v-text-field>
-                </div>
-                <div
-                  class="col-xs-12 col-lg-12 line-jump-height d-flex align-center not-displayed-sx not-displayed-sx-md"
-                ></div>
-              </div>
-              <div class="col-xs-12 col-sm-4 col-lg-4 nopadding d-flex flex-wrap">
-                <div class="col-xs-12 col-lg-12">
-                  <v-text-field
-                    outlined
-                    disabled
-                    dense
-                    background-color="white"
-                    hide-details
-                    label="Allowed weeks"
-                    v-model="customAssessment.weeks_allowed"
-                  ></v-text-field>
-                </div>
-                <div class="col-xs-12 col-lg-12">
-                  <v-text-field
-                    outlined
-                    disabled
-                    dense
-                    background-color="white"
-                    hide-details
-                    label="Weekly amount"
-                    :value="customAssessment.weekly_amount"
-                    v-currency
-                  ></v-text-field>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="col-xs-12 col-lg-4 nopadding right-block-container">
-            <div class="not-displayed-lg"></div>
-            <div class="col-lg-12 nopadding d-flex line-jump-height">
-              <div class="col-sm-4 col-lg-7 not-displayed-sx"></div>
-              <div class="col-xs-12 col-sm-4 col-lg-5">
-                <v-btn @click="recalcAssessment" dense color="blue" class="my-0" block>
-                  RE-CALC
+              <div class="col-xs-4 col-sm-4">
+                <v-btn @click="$emit('close')" dense color="red" class="my-0" block>
+                  EXIT
                 </v-btn>
               </div>
             </div>
-            <div class="col-lg-12 nopadding d-flex align-center flex-wrap">
-              <div class="col-sm-6 col-lg-7 nopadding d-flex flex-wrap mobile-custom-border">
-                <div class="col-xs-12 col-lg-12">
-                  <v-text-field
-                    disabled
-                    outlined
-                    dense
-                    background-color="white"
-                    hide-details
-                    label="Travel allowance"
-                    @keypress="validate.isNumber($event)"
-                    v-model="customAssessment.travel_allowance"
-                  ></v-text-field>
+          </div>
+          <v-card-text class="nopadding d-flex flex-wrap">
+            <div class="col-xs-12 col-lg-8 nopadding left-block-container">
+              <div class="col-xs-12 col-lg-12 nopadding d-flex mobile-column-flex low-margin">
+                <div class="col-xs-12 col-lg-4 nopadding d-flex flex-wrap">
+                  <div class="col-xs-12 col-lg-12">
+                    <v-menu
+                      v-model="assessed_date_menu"
+                      :close-on-content-click="false"
+                      transition="scale-transition"
+                      left
+                      nudge-top="26"
+                      offset-y
+                      min-width="auto"
+                    >
+                      <template v-slot:activator="{ on, attrs }">
+                        <v-text-field
+                          :value="customAssessment.assessed_date?.slice(0, 10)"
+                          label="Assessed date"
+                          append-icon="mdi-calendar"
+                          hide-details
+                          readonly
+                          outlined
+                          dense
+                          background-color="white"
+                          v-bind="attrs"
+                          v-on="on"
+                        ></v-text-field>
+                      </template>
+                      <v-date-picker
+                        @change="refreshData"
+                        :value="customAssessment.assessed_date?.slice(0, 10)"
+                        @input="
+                          (e) => {
+                            customAssessment.assessed_date = e;
+                            assessed_date_menu = false;
+                          }
+                        "
+                      ></v-date-picker>
+                    </v-menu>
+                  </div>
+                  <div class="col-xs-12 col-lg-12">
+                    <v-menu
+                      disabled
+                      v-model="effective_rate_date_menu"
+                      :close-on-content-click="false"
+                      transition="scale-transition"
+                      left
+                      nudge-top="26"
+                      offset-y
+                      min-width="auto"
+                    >
+                      <template v-slot:activator="{ on, attrs }">
+                        <v-text-field
+                          disabled
+                          :value="customAssessment.effective_rate_date?.slice(0, 10)"
+                          label="Effective rate date"
+                          append-icon="mdi-calendar"
+                          hide-details
+                          readonly
+                          outlined
+                          dense
+                          background-color="white"
+                          v-bind="attrs"
+                          v-on="on"
+                        ></v-text-field>
+                      </template>
+                      <v-date-picker
+                        disabled
+                        @change="refreshData"
+                        :value="customAssessment.effective_rate_date?.slice(0, 10)"
+                        @input="
+                          (e) => {
+                            customAssessment.effective_rate_date = e;
+                            effective_rate_date_menu = false;
+                          }
+                        "
+                      ></v-date-picker>
+                    </v-menu>
+                  </div>
+                  <div class="col-xs-12 col-lg-12 mobile-noppading-bottom">
+                    <v-select
+                      outlined
+                      dense
+                      background-color="white"
+                      hide-details
+                      label="Program division"
+                      :value="application.program_division"
+                      @input="
+                        (e) => {
+                          if (programDivisionBack === null) {
+                            programDivisionBack = application.program_division;
+                          }
+                          application.program_division = e;
+                          customAssessment.program_division = e;
+                        }
+                      "
+                      @change="refreshData"
+                      :items="programDivisions"
+                      item-text="description"
+                      item-value="id"
+                    ></v-select>
+                  </div>
                 </div>
-                <div class="col-xs-12 col-lg-12">
-                  <v-text-field
-                    disabled
-                    @keypress="validate.isNumber($event)"
-                    outlined
-                    dense
-                    background-color="white"
-                    hide-details
-                    label="Airfare amount"
-                    :value="
-                      this.disbursements?.filter((d) => d.assessment_id === this.customAssessment?.id)?.length
-                        ? 0
-                        : customAssessment.airfare_amount
-                    "
-                  ></v-text-field>
+                <div class="col-xs-12 col-lg-4 nopadding d-flex flex-wrap">
+                  <div class="col-xs-12 col-lg-12 clss-st-date-re-order">
+                    <v-menu
+                      disabled
+                      v-model="classes_start_date_menu"
+                      :close-on-content-click="false"
+                      transition="scale-transition"
+                      left
+                      nudge-top="26"
+                      offset-y
+                      min-width="auto"
+                    >
+                      <template v-slot:activator="{ on, attrs }">
+                        <v-text-field
+                          disabled
+                          :value="customAssessment.classes_start_date?.slice(0, 10)"
+                          label="Classes start date"
+                          append-icon="mdi-calendar"
+                          hide-details
+                          readonly
+                          outlined
+                          dense
+                          background-color="white"
+                          v-bind="attrs"
+                          v-on="on"
+                        ></v-text-field>
+                      </template>
+                      <v-date-picker
+                        disabled
+                        @change="refreshData"
+                        :value="customAssessment.classes_start_date?.slice(0, 10)"
+                        @input="
+                          (e) => {
+                            customAssessment.classes_start_date = e;
+                            classes_start_date_menu = false;
+                          }
+                        "
+                      ></v-date-picker>
+                    </v-menu>
+                  </div>
+                  <div class="col-xs-12 col-lg-12 clss-en-date-re-order mobile-low-margin">
+                    <v-menu
+                      disabled
+                      v-model="classes_end_date_menu"
+                      :close-on-content-click="false"
+                      transition="scale-transition"
+                      left
+                      nudge-top="26"
+                      offset-y
+                      min-width="auto"
+                    >
+                      <template v-slot:activator="{ on, attrs }">
+                        <v-text-field
+                          disabled
+                          :value="customAssessment.classes_end_date?.slice(0, 10)"
+                          label="Classes end date"
+                          append-icon="mdi-calendar"
+                          hide-details
+                          readonly
+                          outlined
+                          dense
+                          background-color="white"
+                          v-bind="attrs"
+                          v-on="on"
+                        ></v-text-field>
+                      </template>
+                      <v-date-picker
+                        disabled
+                        @change="refreshData"
+                        :value="customAssessment.classes_end_date?.slice(0, 10)"
+                        @input="
+                          (e) => {
+                            customAssessment.classes_end_date = e;
+                            classes_end_date_menu = false;
+                          }
+                        "
+                      ></v-date-picker>
+                    </v-menu>
+                  </div>
+                  <div
+                    class="col-xs-12 col-lg-12 line-jump-height d-flex align-center help-txt-re-order mobile-noppading-top"
+                  ></div>
+                </div>
+                <div class="col-xs-12 col-lg-4 nopadding d-flex flex-wrap">
+                  <div class="col-xs-12 col-lg-12">
+                    <v-select
+                      outlined
+                      dense
+                      background-color="white"
+                      hide-details
+                      label="Home community"
+                      @change="refreshData"
+                      v-model="customAssessment.home_city_id"
+                      :items="cities"
+                      item-text="description"
+                      item-value="id"
+                    ></v-select>
+                  </div>
+                  <div class="col-xs-12 col-lg-12">
+                    <v-select
+                      outlined
+                      dense
+                      background-color="white"
+                      hide-details
+                      label="Destination city"
+                      @change="refreshData"
+                      v-model="customAssessment.destination_city_id"
+                      :items="cities"
+                      item-text="description"
+                      item-value="id"
+                    ></v-select>
+                  </div>
+                  <div class="col-xs-12 col-lg-12 line-jump-height d-flex align-center not-displayed-sx"></div>
                 </div>
               </div>
-              <div class="col-sm-6 col-lg-5 d-flex align-center nopadding-left mobile-custom-border-2">
-                <img class="not-displayed-sx" src="../../../../public/img/curly-brackets.png" />
-                <v-text-field
-                  @keypress="validate.isNumber($event)"
-                  outlined
-                  dense
-                  background-color="white"
-                  hide-details
-                  label="Disbursement period 1, 2..."
-                  v-model="customAssessment.air_travel_disbursement_period"
-                ></v-text-field>
+              <div
+                v-if="application?.academic_year_id < 2016"
+                class="col-xs-12 col-lg-12 nopadding d-flex mobile-column-flex low-margin flex-wrap"
+              >
+                <div class="col-xs-12 col-lg-12 nopadding">
+                  <v-card-title>Pre Legislation Method</v-card-title>
+                </div>
+                <div class="col-xs-12 col-sm-4 col-lg-4 nopadding d-flex flex-wrap mobile-low-margin">
+                  <div class="col-xs-12 col-lg-12">
+                    <v-text-field
+                      outlined
+                      dense
+                      background-color="white"
+                      hide-details
+                      label="Allowed months"
+                      v-model="customAssessment.allowed_months"
+                    ></v-text-field>
+                  </div>
+                  <div class="col-xs-12 col-lg-12">
+                    <v-text-field
+                      outlined
+                      dense
+                      background-color="white"
+                      hide-details
+                      label="Fraction of whole year"
+                      v-model="customAssessment.years_funded_equivalent"
+                    ></v-text-field>
+                  </div>
+                  <div class="col-xs-12 col-lg-12">
+                    <v-text-field
+                      disabled
+                      outlined
+                      dense
+                      background-color="white"
+                      hide-details
+                      label="Years funded"
+                      :value="customAssessment?.read_only_data?.years_funded ?? 0"
+                    ></v-text-field>
+                  </div>
+                </div>
+                <div class="col-xs-12 col-sm-4 col-lg-4 nopadding d-flex flex-wrap mobile-low-margin">
+                  <div class="col-xs-12 col-lg-12">
+                    <v-text-field
+                      outlined
+                      dense
+                      background-color="white"
+                      hide-details
+                      label="Living costs"
+                      v-model="customAssessment.living_costs"
+                    ></v-text-field>
+                  </div>
+                  <div class="col-xs-12 col-lg-12">
+                    <v-text-field
+                      outlined
+                      dense
+                      background-color="white"
+                      hide-details
+                      label="Allowed tuition"
+                      v-model="customAssessment.allowed_tuition"
+                    ></v-text-field>
+                  </div>
+                  <div class="col-xs-12 col-lg-12">
+                    <v-text-field
+                      outlined
+                      dense
+                      background-color="white"
+                      hide-details
+                      label="Allowed books"
+                      v-model="customAssessment.allowed_books"
+                    ></v-text-field>
+                  </div>
+                </div>
+                <div class="col-xs-12 col-sm-4 col-lg-4 nopadding d-flex flex-wrap">
+                  <div class="col-xs-12 col-lg-12">
+                    <v-text-field
+                      disabled
+                      outlined
+                      dense
+                      background-color="white"
+                      hide-details
+                      label="Amount"
+                      v-model="customAssessment.pre_leg_amount"
+                    ></v-text-field>
+                  </div>
+                  <div class="col-xs-12 col-lg-12 line-jump-height d-flex align-center not-displayed-sx"></div>
+                  <div class="col-xs-12 col-lg-12 line-jump-height d-flex align-center not-displayed-sx"></div>
+                </div>
               </div>
-              <div class="col-sm-6 col-lg-7 low-margin">
-                <v-text-field
-                  outlined
-                  dense
-                  background-color="white"
-                  hide-details
-                  label="No. of disbursements"
-                  v-model="customAssessment.disbursements_required"
-                ></v-text-field>
+              <div class="col-xs-12 col-lg-12 nopadding d-flex mobile-column-flex low-margin flex-wrap">
+                <div class="col-xs-12 col-lg-12 nopadding">
+                  <v-card-title>Post Legislation Method</v-card-title>
+                </div>
+                <div class="col-xs-12 col-sm-4 col-lg-4 nopadding d-flex flex-wrap mobile-low-margin">
+                  <div class="col-xs-12 col-lg-12">
+                    <v-text-field
+                      disabled
+                      outlined
+                      dense
+                      background-color="white"
+                      hide-details
+                      label="Previous weeks"
+                      :value="customAssessment?.read_only_data?.previous_weeks ?? 0"
+                    ></v-text-field>
+                  </div>
+                  <div
+                    class="col-xs-12 col-lg-12 line-jump-height d-flex align-center not-displayed-sx not-displayed-sx-md"
+                  ></div>
+                </div>
+                <div class="col-xs-12 col-sm-4 col-lg-4 nopadding d-flex flex-wrap mobile-low-margin">
+                  <div class="col-xs-12 col-lg-12">
+                    <v-text-field
+                      disabled
+                      outlined
+                      dense
+                      background-color="white"
+                      hide-details
+                      label="Assessed weeks"
+                      :value="customAssessment?.read_only_data?.assessed_weeks ?? 0"
+                    ></v-text-field>
+                  </div>
+                  <div
+                    class="col-xs-12 col-lg-12 line-jump-height d-flex align-center not-displayed-sx not-displayed-sx-md"
+                  ></div>
+                </div>
+                <div class="col-xs-12 col-sm-4 col-lg-4 nopadding d-flex flex-wrap">
+                  <div class="col-xs-12 col-lg-12">
+                    <v-text-field
+                      outlined
+                      disabled
+                      dense
+                      background-color="white"
+                      hide-details
+                      label="Allowed weeks"
+                      v-model="customAssessment.weeks_allowed"
+                    ></v-text-field>
+                  </div>
+                  <div class="col-xs-12 col-lg-12">
+                    <v-text-field
+                      outlined
+                      disabled
+                      dense
+                      background-color="white"
+                      hide-details
+                      label="Weekly amount"
+                      :value="customAssessment.weekly_amount"
+                      v-currency
+                    ></v-text-field>
+                  </div>
+                </div>
               </div>
             </div>
-            <div class="col-lg-12 nopadding d-flex align-end flex-wrap">
-              <div class="col-sm-6 col-lg-7 nopadding d-flex flex-wrap">
-                <div class="col-xs-12 col-lg-12">
-                  <v-text-field
-                    outlined
-                    dense
-                    background-color="white"
-                    hide-details
-                    label="Adjust amount"
-                    @keypress="validate.isNumber($event)"
-                    v-model="customAssessment.assessment_adj_amount"
-                    @change="refreshData"
-                  ></v-text-field>
-                </div>
-                <div class="col-xs-12 col-lg-12">
-                  <v-text-field
-                    disabled
-                    outlined
-                    dense
-                    background-color="white"
-                    hide-details
-                    label="Assessed amount"
-                    v-model="customAssessment.assessed_amount"
-                  ></v-text-field>
-                </div>
-                <div class="col-xs-12 col-lg-12 low-margin mobile-noppading-bottom">
-                  <v-text-field
-                    disabled
-                    outlined
-                    dense
-                    background-color="white"
-                    hide-details
-                    label="Previous disbursement"
-                    :value="customAssessment?.read_only_data?.previous_disbursement ?? 0"
-                  ></v-text-field>
-                </div>
-              </div>
-              <div class="col-sm-4 col-lg-5 d-flex nopadding line-jump-height align-center low-margin">
-                <div class="col-xs-12 col-lg-12 height-fit-content mobile-noppading-top">
-                  <v-btn
-                    :disabled="isDisburseBlocked"
-                    @click="
-                      (e) => {
-                        if (!isDisburseBlocked) {
-                          disburse();
-                        }
-                      }
-                    "
-                    dense
-                    color="blue"
-                    class="my-0"
-                    block
-                  >
-                    DISBURSE
+            <div class="col-xs-12 col-lg-4 nopadding right-block-container">
+              <div class="not-displayed-lg"></div>
+              <div class="col-lg-12 nopadding d-flex line-jump-height">
+                <div class="col-sm-4 col-lg-7 not-displayed-sx"></div>
+                <div class="col-xs-12 col-sm-4 col-lg-5">
+                  <v-btn @click="recalcAssessment" dense color="blue" class="my-0" block>
+                    RE-CALC
                   </v-btn>
                 </div>
               </div>
-            </div>
-            <div class="col-lg-12 nopadding d-flex align-center flex-wrap low-margin">
-              <div class="col-sm-6 col-lg-7 nopadding d-flex flex-wrap">
-                <div class="col-xs-12 col-lg-12">
+              <div class="col-lg-12 nopadding d-flex align-center flex-wrap">
+                <div class="col-sm-6 col-lg-7 nopadding d-flex flex-wrap mobile-custom-border">
+                  <div class="col-xs-12 col-lg-12">
+                    <v-text-field
+                      disabled
+                      outlined
+                      dense
+                      background-color="white"
+                      hide-details
+                      label="Travel allowance"
+                      @keypress="validate.isNumber($event)"
+                      v-model="customAssessment.travel_allowance"
+                    ></v-text-field>
+                  </div>
+                  <div class="col-xs-12 col-lg-12">
+                    <v-text-field
+                      disabled
+                      @keypress="validate.isNumber($event)"
+                      outlined
+                      dense
+                      background-color="white"
+                      hide-details
+                      label="Airfare amount"
+                      :value="
+                        this.disbursements?.filter((d) => d.assessment_id === this.customAssessment?.id)?.length
+                          ? 0
+                          : customAssessment.airfare_amount
+                      "
+                    ></v-text-field>
+                  </div>
+                </div>
+                <div class="col-sm-6 col-lg-5 d-flex align-center nopadding-left mobile-custom-border-2">
+                  <img class="not-displayed-sx" src="../../../../public/img/curly-brackets.png" />
                   <v-text-field
+                    @keypress="validate.isNumber($event)"
                     outlined
                     dense
                     background-color="white"
                     hide-details
-                    label="Over award"
-                    v-model="customAssessment.over_award"
-                    @change="refreshData"
+                    label="Disbursement period 1, 2..."
+                    v-model="customAssessment.air_travel_disbursement_period"
                   ></v-text-field>
                 </div>
-                <div class="col-xs-12 col-lg-12">
+                <div class="col-sm-6 col-lg-7 low-margin">
                   <v-text-field
                     outlined
                     dense
                     background-color="white"
                     hide-details
-                    label="Over disburse period"
-                    v-model="customAssessment.over_award_disbursement_period"
-                    @change="refreshData"
-                  ></v-text-field>
-                </div>
-                <div class="col-xs-12 col-lg-12">
-                  <v-text-field
-                    disabled
-                    outlined
-                    dense
-                    background-color="white"
-                    hide-details
-                    label="Net amount"
-                    :value="customAssessment?.read_only_data?.net_amount ?? 0"
+                    label="No. of disbursements"
+                    v-model="customAssessment.disbursements_required"
                   ></v-text-field>
                 </div>
               </div>
-              <div class="col-sm-4 col-lg-5 d-flex nopadding line-jump-height align-center justify-center">
-                <div class="col-xs-12 col-lg-12 height-fit-content d-flex justify-center">
-                  <v-switch v-model="customAssessment.over_award_applied_flg" @change="refreshData" label="Applied">
-                  </v-switch>
+              <div class="col-lg-12 nopadding d-flex align-end flex-wrap">
+                <div class="col-sm-6 col-lg-7 nopadding d-flex flex-wrap">
+                  <div class="col-xs-12 col-lg-12">
+                    <v-text-field
+                      outlined
+                      dense
+                      background-color="white"
+                      hide-details
+                      label="Adjust amount"
+                      @keypress="validate.isNumber($event)"
+                      v-model="customAssessment.assessment_adj_amount"
+                      @change="refreshData"
+                    ></v-text-field>
+                  </div>
+                  <div class="col-xs-12 col-lg-12">
+                    <v-text-field
+                      disabled
+                      outlined
+                      dense
+                      background-color="white"
+                      hide-details
+                      label="Assessed amount"
+                      v-model="customAssessment.assessed_amount"
+                    ></v-text-field>
+                  </div>
+                  <div class="col-xs-12 col-lg-12 low-margin mobile-noppading-bottom">
+                    <v-text-field
+                      disabled
+                      outlined
+                      dense
+                      background-color="white"
+                      hide-details
+                      label="Previous disbursement"
+                      :value="customAssessment?.read_only_data?.previous_disbursement ?? 0"
+                    ></v-text-field>
+                  </div>
+                </div>
+                <div class="col-sm-4 col-lg-5 d-flex nopadding line-jump-height align-center low-margin">
+                  <div class="col-xs-12 col-lg-12 height-fit-content mobile-noppading-top">
+                    <v-btn
+                      :disabled="isDisburseBlocked"
+                      @click="
+                        (e) => {
+                          if (!isDisburseBlocked) {
+                            disburse();
+                          }
+                        }
+                      "
+                      dense
+                      color="blue"
+                      class="my-0"
+                      block
+                    >
+                      DISBURSE
+                    </v-btn>
+                  </div>
+                </div>
+              </div>
+              <div class="col-lg-12 nopadding d-flex align-center flex-wrap low-margin">
+                <div class="col-sm-6 col-lg-7 nopadding d-flex flex-wrap">
+                  <div class="col-xs-12 col-lg-12">
+                    <v-text-field
+                      outlined
+                      dense
+                      background-color="white"
+                      hide-details
+                      label="Over award"
+                      v-model="customAssessment.over_award"
+                      @change="refreshData"
+                    ></v-text-field>
+                  </div>
+                  <div class="col-xs-12 col-lg-12">
+                    <v-text-field
+                      outlined
+                      dense
+                      background-color="white"
+                      hide-details
+                      label="Over disburse period"
+                      v-model="customAssessment.over_award_disbursement_period"
+                      @change="refreshData"
+                    ></v-text-field>
+                  </div>
+                  <div class="col-xs-12 col-lg-12">
+                    <v-text-field
+                      disabled
+                      outlined
+                      dense
+                      background-color="white"
+                      hide-details
+                      label="Net amount"
+                      :value="customAssessment?.read_only_data?.net_amount ?? 0"
+                    ></v-text-field>
+                  </div>
+                </div>
+                <div class="col-sm-4 col-lg-5 d-flex nopadding line-jump-height align-center justify-center">
+                  <div class="col-xs-12 col-lg-12 height-fit-content d-flex justify-center">
+                    <v-switch v-model="customAssessment.over_award_applied_flg" @change="refreshData" label="Applied">
+                    </v-switch>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        </v-card-text>
-      </v-card>
+          </v-card-text>
+        </v-card>
+      </div>
     </div>
-    <div class="col-lg-12">
+
+    <div class="">
       <Disbursement
         :assessmentId="customAssessment?.id"
         :fundingRequestId="customAssessment?.funding_request_id"
@@ -684,10 +661,9 @@ export default {
       "setIsPreviewCharged",
       "isPreviewCharged",
       "previewDisbursementList",
+      "disbursements",
     ]),
-    application: function() {
-      return store.getters.selectedApplication;
-    },
+    ...mapGetters({ application: "selectedApplication" }),
     programDivision() {
       return this.application?.program_division;
     },
