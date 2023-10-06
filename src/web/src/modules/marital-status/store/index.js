@@ -16,10 +16,9 @@ const mutations = {
 };
 const actions = {
   async setMaritalStatusList(state, value = true) {
-    const res = await axios.get(MARITAL_STATUS + "?filter=" + value);
-    if (res?.data?.success) {
+    axios.get(MARITAL_STATUS + "?filter=" + value).then((res) => {
       state.commit("SET_MARITAL_STATUS_LIST", [...res.data.data]);
-    }
+    });
   },
 };
 
