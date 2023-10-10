@@ -36,7 +36,7 @@
 
 <script>
 import store from "@/store";
-import { mapGetters } from "vuex";
+import { mapActions, mapGetters } from "vuex";
 import CslDisbursementLine from "./csl-disbursement-line.vue";
 
 export default {
@@ -49,16 +49,19 @@ export default {
     ...mapGetters(["cslClassifications", "disbursementTypes", "changeReasons"]),
   },
   methods: {
+    ...mapActions("cslPartTimeStore", ["addDisbursement", "removeDisbursement", "save"]),
     addClick() {
-      store.dispatch("addCslftDisbursement");
+      this.addDisbursement();
     },
-    async saveDisbursement() {},
+    async saveDisbursement() {
+      this.save();
+    },
     async deleteDisbursement(item, index) {
       this.$refs.confirm.show(
         "Are you sure?",
         "Click 'Confirm' below to permanently remove this disbursement.",
         () => {
-          store.dispatch("removeCslftDisbursement", index);
+          this.removeDisbursement({ item, index });
         },
         () => {}
       );

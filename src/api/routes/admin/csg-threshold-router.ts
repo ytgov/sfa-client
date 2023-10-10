@@ -24,7 +24,9 @@ csgThresholdRouter.get(
     const { academic_year_id } = req.params;
     let data = await db("sfa.csg_threshold").where({ academic_year_id });
     let rates = await db("sfa.csg_lookup").where({ academic_year_id }).first();
-    res.json({ data, rates });
+    let childcare = await db("sfa.child_care_ceiling").where({ academic_year_id });
+    let allowances = await db("sfa.student_living_allowance").where({ academic_year_id });
+    res.json({ data, rates, childcare, allowances });
   }
 );
 
@@ -40,21 +42,59 @@ csgThresholdRouter.get(
       .orderBy("id", "desc")
       .first();
 
-    let assessment = await db("sfa.assessment")
-      .where({
-        funding_request_id: funding_request.id,
-      })
+    if (funding_request) {
+      let assessment = await db("sfa.assessment")
+        .where({
+          funding_request_id: funding_request.id,
+        })
+        .orderBy("id", "desc")
+        .first();
+
+      let disbursements = await db("sfa.disbursement")
+        .where({
+          funding_request_id: funding_request.id,
+        })
+        .orderBy("issue_date")
+        .orderBy("id");
+
+      return res.json({ data: { funding_request, assessment, disbursements } });
+    }
+
+    res.status(404).send("Funding Request not found");
+  }
+);
+
+csgThresholdRouter.get(
+  "/cslpt/:application_id",
+  param("application_id").isInt(),
+  ReturnValidationErrors,
+  async (req: Request, res: Response) => {
+    const { application_id } = req.params;
+
+    let funding_request = await db("sfa.funding_request")
+      .where({ application_id, request_type_id: 5 })
       .orderBy("id", "desc")
       .first();
 
-    let disbursements = await db("sfa.disbursement")
-      .where({
-        funding_request_id: funding_request.id,
-      })
-      .orderBy("issue_date")
-      .orderBy("id");
+    if (funding_request) {
+      let assessment = await db("sfa.assessment")
+        .where({
+          funding_request_id: funding_request.id,
+        })
+        .orderBy("id", "desc")
+        .first();
 
-    res.json({ data: { funding_request, assessment, disbursements } });
+      let disbursements = await db("sfa.disbursement")
+        .where({
+          funding_request_id: funding_request.id,
+        })
+        .orderBy("issue_date")
+        .orderBy("id");
+
+      return res.json({ data: { funding_request, assessment, disbursements } });
+    }
+
+    res.status(404).send("Funding Request not found");
   }
 );
 
@@ -241,6 +281,9 @@ csgThresholdRouter.post(
     assessment.funding_request_id = funding_request_id;
     delete assessment.disbursements;
 
+    if (assessment.return_uncashable_cert)
+      assessment.return_uncashable_cert = cleanNumber(assessment.return_uncashable_cert);
+
     let assessmentInsert = await db("sfa.assessment").insert(assessment).returning("*");
     if (assessmentInsert.length > 0 && disbursements && isArray(disbursements)) {
       for (let disb of disbursements) {
@@ -272,6 +315,9 @@ csgThresholdRouter.put(
     let disbursements = assessment.disbursements;
     delete assessment.id;
     delete assessment.disbursements;
+
+    if (assessment.return_uncashable_cert)
+      assessment.return_uncashable_cert = cleanNumber(assessment.return_uncashable_cert);
 
     await db("sfa.assessment").where({ id: assessment_id }).update(assessment);
 
