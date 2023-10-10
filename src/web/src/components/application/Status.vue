@@ -250,6 +250,9 @@ export default {
         case 28:
           this.$router.push(`/application/${this.applicationId}/csgtp/${funding_request_id}`);
           break;
+        case 5:
+          this.$router.push(`/application/${this.applicationId}/cslpt/${funding_request_id}`);
+          break;
 
         default:
           console.log("REQUEST", request_type_id);
