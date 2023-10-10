@@ -11,27 +11,66 @@ const state = {
   csgThresholds: [],
   fundingRequest: {},
   assessment: {},
+  msfaa: {},
 
+  application: {},
   disbursements: [],
   baseRate: 0.0,
+  childcare: [],
+  allowances: [],
+  baseMiscAmount: 10,
+  baseMaxAllowable: 10000,
 };
 const getters = {
   disbursements(state) {
     return state.disbursements;
   },
-  study_weeks(state) {
-    return 99;
+  assessmentType(state) {
+    return "Assessment";
+  },
+  allowance(state) {
+    return state.allowances?.find(
+      (a) =>
+        a.province_id == state.application?.study_province_id && a.student_category_id == state.application?.category_id
+    );
   },
 
-  study_months(state) {
-    return 99;
+  totalStudyCosts(state) {
+    let total = (state.application?.tuition_estimate_amount ?? 0) + (state.application?.books_supplies_cost ?? 0);
+    return total;
   },
 
+  totalTransportation(state, getters) {
+    return state.assessment.p_trans_month * state.assessment.study_months;
+  },
+  totalDayCare(state) {
+    return (
+      Math.min(state.assessment.day_care_allowable, state.assessment.day_care_actual) * state.assessment.study_months
+    );
+  },
+  maxMiscellaneous(state, getters) {
+    return state.baseMiscAmount * state.application?.courses_per_week;
+  },
+  totalMiscellaneous(state, getters) {
+    return getters.maxMiscellaneous * state.assessment.study_weeks;
+  },
+  totalCosts(state, getters) {
+    return getters.totalStudyCosts + getters.totalTransportation + getters.totalDayCare + getters.totalMiscellaneous;
+  },
   familyIncome(state) {
-    let val = state.assessment
-      ? (state.assessment.student_ln150_income || 0) + (state.assessment.spouse_ln150_income || 0)
-      : 0;
-    return formatMoney(val);
+    return (state.assessment?.student_ln150_income ?? 0) + (state.assessment?.spouse_ln150_income ?? 0);
+  },
+  requestedAmount(state) {
+    if (state.fundingRequest?.is_csg_only === true) return "None";
+    if (state.fundingRequest?.is_csl_full_amount === true) return "Full";
+    return state.fundingRequest?.csl_request_amount ?? 0;
+  },
+  totalGrants(state) {
+    return 0; // this needs to pull from CSGPT, CSGDep PT, CSG Disability
+  },
+
+  maxAllowable(state) {
+    return state.baseMaxAllowable - state.application?.outstanding_cslpt_amount ?? 0;
   },
 
   threshold(state) {
@@ -63,55 +102,35 @@ const getters = {
       let contribution =
         (state.assessment.spouse_expected_contribution || 0) + state.assessment.student_expected_contribution;
 
-      return formatMoney(totalCosts > contribution ? totalCosts - contribution : 0);
+      return totalCosts > contribution ? totalCosts - contribution : 0;
     }
-    return "$0.00";
+    return 0;
   },
 
-  phaseOutRate(state, getters) {
-    let income = parse(getters.familyIncome, { currency: "usd" });
-
-    if (income >= getters.threshold.income_cutoff) return 0;
-    else if (income > getters.threshold.income_threshold) return getters.threshold.csgft_dep_phase_out_rate;
-    else return 0;
+  pastThreshold(state, getters) {
+    if (getters.threshold.middle_income_threshold <= getters.familyIncome) return "Past income threshold";
+    return undefined;
   },
 
-  monthlyRate(state, getters) {
-    let rate = Math.max(
-      0,
-      Math.min(
-        state.baseRate,
-        state.baseRate -
-          getters.threshold.csgft_dep_phase_out_rate *
-            (parse(getters.familyIncome, { currency: "usd" }) - getters.threshold.income_threshold)
-      )
-    );
-
-    return formatMoney(rate);
-  },
   assessedAmount(state, getters) {
-    return state.assessment
-      ? formatMoney(
-          parse(getters.monthlyRate, { currency: "usd" }) *
-            state.assessment.study_months *
-            state.assessment.dependent_count
-        )
-      : formatMoney(0);
+    if (getters.pastThreshold) return 0;
+    return Math.min(getters.maxAllowable, getters.totalCosts - getters.totalGrants);
   },
+  actualAward(state, getters) {
+    let returned = `${state.assessment?.return_uncashable_cert}` ?? "0";
+    return getters.assessedAmount - parse(returned, { currency: "usd" });
+  },
+
   previousDisbursements(state) {
     let amounts = state.disbursements.map((d) => d.disbursed_amount ?? 0);
     let total = amounts.reduce((t, a) => {
       return t + a;
     }, 0);
 
-    return formatMoney(total);
+    return total;
   },
   netAmount(state, getters) {
-    return formatMoney(getters.netAmountRaw);
-  },
-  netAmountRaw(state, getters) {
-    let rawVal =
-      parse(getters.assessedAmount, { currency: "usd" }) - parse(getters.previousDisbursements, { currency: "usd" });
+    let rawVal = getters.actualAward - getters.previousDisbursements;
     if (rawVal > 0 && rawVal < 100) return 100.0;
     return Object.is(Math.round(rawVal), -0) ? 0 : Math.round(rawVal);
   },
@@ -123,6 +142,9 @@ const getters = {
   },
 };
 const mutations = {
+  SET_APPLICATION(state, value) {
+    state.application = value;
+  },
   SET_THRESHOLDS(state, value) {
     state.csgThresholds = value;
   },
@@ -143,23 +165,33 @@ const mutations = {
 
     state.disbursements = value;
   },
+  SET_CHILDCARE(state, value) {
+    state.childcare = value;
+  },
+  SET_ALLOWANCES(state, value) {
+    state.allowances = value;
+  },
 };
 const actions = {
   async initialize(store, app) {
     console.log("Initializing CSLPT");
-    store.dispatch("loadThresholds", app.academic_year_id);
+    await store.dispatch("loadThresholds", app.academic_year_id);
     store.dispatch("loadCSLPTAssessment", app.id);
   },
 
   async loadThresholds({ commit }, academicYear) {
-    axios.get(`${CSG_THRESHOLD_URL}/${academicYear}`).then((resp) => {
+    return axios.get(`${CSG_THRESHOLD_URL}/${academicYear}`).then((resp) => {
       commit("SET_THRESHOLDS", resp.data.data);
       commit("SET_BASERATE", resp.data.rates.csg_dep_monthly_amount);
+      commit("SET_CHILDCARE", resp.data.childcare);
+      commit("SET_ALLOWANCES", resp.data.allowances);
     });
   },
 
-  loadCSLPTAssessment({ commit, state }, applicationId) {
+  loadCSLPTAssessment({ commit, state, getters }, applicationId) {
     axios.get(`${CSG_THRESHOLD_URL}/cslpt/${applicationId}`).then((resp) => {
+      let application = store.getters.selectedApplication;
+      commit("SET_APPLICATION", application);
       commit("SET_FUNDINGREQUEST", resp.data.data.funding_request);
       commit("SET_DISBURSEMENTS", resp.data.data.disbursements);
 
@@ -168,19 +200,26 @@ const actions = {
         assessment.assessed_date = moment.utc(assessment.assessed_date).format("YYYY-MM-DD");
         assessment.classes_start_date = moment.utc(assessment.classes_start_date).format("YYYY-MM-DD");
         assessment.classes_end_date = moment.utc(assessment.classes_end_date).format("YYYY-MM-DD");
-
         commit("SET_ASSESSMENT", resp.data.data.assessment);
       } else {
-        let parent = {};
         let dependentCount = 0;
+        let familySize = 1;
+
+        // Common-law or Married
+        if ([3, 4].includes(state.application.csl_classification)) familySize++;
 
         if (store.getters.selectedStudent && isArray(store.getters.selectedStudent.dependent_info)) {
           dependentCount = store.getters.selectedStudent.dependent_info.filter(
             (d) => d.is_csl_eligible && d.application_id == state.fundingRequest.application_id
           ).length;
         }
+        familySize += dependentCount;
 
-        let application = store.getters.selectedApplication;
+        let dayCareExpenses = state.application?.expenses?.filter((e) => e.category_id == 3);
+        let monthlyDayCare = dayCareExpenses.reduce((t, i) => t + i.amount, 0);
+
+        let provinceMax = state.childcare?.find((c) => c.province_id == state.application.study_province_id);
+        let dayCareAllowable = provinceMax?.max_amount ?? 0;
 
         let assessment = {
           assessed_date: moment().format("YYYY-MM-DD"),
@@ -188,31 +227,39 @@ const actions = {
           classes_end_date: moment.utc(application.classes_end_date).format("YYYY-MM-DD"),
           study_months: monthsBetween(application.classes_start_date, application.classes_end_date),
           study_weeks: weeksBetween(application.classes_start_date, application.classes_end_date),
-
-          family_size: parent.family_size,
+          family_size: familySize,
           dependent_count: dependentCount,
-          student_ln150_income: parent.student_ln150_income,
-          spouse_ln150_income: parent.spouse_ln150_income,
-          relocation_total: parent.relocation_total,
-          discretionary_cost: parent.discretionary_cost,
-          discretionary_cost_actual: parent.discretionary_cost_actual,
-          tuition_estimate: parent.tuition_estimate,
-          books_supplies_cost: parent.books_supplies_cost,
-          r_trans_16wk: parent.r_trans_16wk,
-          shelter_month: parent.shelter_month,
-          p_trans_month: parent.p_trans_month,
-          day_care_allowable: parent.day_care_allowable,
-          day_care_actual: parent.day_care_actual,
-          depend_food_allowable: parent.depend_food_allowable,
-          depend_tran_allowable: parent.depend_tran_allowable,
-          spouse_expected_contribution: parent.spouse_expected_contribution,
-          student_expected_contribution: parent.student_expected_contribution,
-          student_contrib_exempt: parent.student_contrib_exempt,
-          spouse_contrib_exempt: parent.spouse_contrib_exempt,
-          student_contribution_review: parent.student_contribution_review,
-          spouse_contribution_review: parent.spouse_contribution_review,
-          parent_contribution_review: parent.parent_contribution_review,
+          study_province_id: application.study_province_id,
+          tuition_estimate: application.tuition_estimate_amount,
+          books_supplies_cost: application.books_supplies_cost,
+          student_ln150_income: application.student_ln150_income,
+          spouse_ln150_income: application.spouse_ln150_income,
+          spouse_expected_contribution: 0,
+          student_expected_contribution: 0,
+          parent1_income: 0,
+          parent2_income: 0,
+          marital_status_id: application.marital_status_id,
+          csl_classification: application.csl_classification,
+          csl_full_amt_flag: state.fundingRequest?.is_csl_full_amount === true ? 1 : 0,
+          study_area_id: application.study_area_id,
+          program_id: application.program_id,
+          csl_request_amount: state.fundingRequest?.csl_request_amount ?? 0,
+
+          p_trans_month: getters.allowance?.public_tranport_amount ?? 0,
+          day_care_allowable: dayCareAllowable,
+          day_care_actual: monthlyDayCare,
+
+          assessment_type_id: 1,
+          spouse_province_id: null,
+          student_contrib_exempt: "N",
+          spouse_contrib_exempt: "N",
+
           period: 9,
+          total_grant_awarded: 0,
+          assessed_amount: 88888,
+          student_contribution_review: "No",
+          spouse_contribution_review: "No",
+          parent_contribution_review: "No",
         };
 
         commit("SET_ASSESSMENT", assessment);
@@ -222,44 +269,64 @@ const actions = {
 
   async recalculate({ state, dispatch, commit }) {
     dispatch("loadCSLPTAssessment", { id: state.fundingRequest.application_id, refreshChild: false }).then(() => {
-      let parent = state.parentAssessment;
       let dependentCount = 0;
+      let familySize = 1;
+
+      // Common-law or Married
+      if ([3, 4].includes(state.application.csl_classification)) familySize++;
+
       if (store.getters.selectedStudent && isArray(store.getters.selectedStudent.dependent_info)) {
         dependentCount = store.getters.selectedStudent.dependent_info.filter(
-          (d) => d.is_csg_eligible && d.application_id == state.fundingRequest.application_id
+          (d) => d.is_csl_eligible && d.application_id == state.fundingRequest.application_id
         ).length;
       }
+      familySize += dependentCount;
+
+      let dayCareExpenses = state.application?.expenses?.filter((e) => e.category_id == 3);
+      let monthlyDayCare = dayCareExpenses.reduce((t, i) => t + i.amount, 0);
+
+      let provinceMax = state.childcare?.find((c) => c.province_id == state.application.study_province_id);
+      let dayCareAllowable = provinceMax?.max_amount ?? 0;
 
       let assessment = {
-        id: state.assessment.id,
         assessed_date: moment().format("YYYY-MM-DD"),
-        study_weeks: parent.study_weeks,
-        classes_start_date: moment.utc(parent.classes_start_date).format("YYYY-MM-DD"),
-        classes_end_date: moment.utc(parent.classes_end_date).format("YYYY-MM-DD"),
-        study_months: parent.study_months,
-        family_size: parent.family_size,
+        classes_start_date: moment.utc(application.classes_start_date).format("YYYY-MM-DD"),
+        classes_end_date: moment.utc(application.classes_end_date).format("YYYY-MM-DD"),
+        study_months: monthsBetween(application.classes_start_date, application.classes_end_date),
+        study_weeks: weeksBetween(application.classes_start_date, application.classes_end_date),
+        family_size: familySize,
         dependent_count: dependentCount,
-        student_ln150_income: parent.student_ln150_income,
-        spouse_ln150_income: parent.spouse_ln150_income,
-        relocation_total: parent.relocation_total,
-        discretionary_cost: parent.discretionary_cost,
-        discretionary_cost_actual: parent.discretionary_cost_actual,
-        tuition_estimate: parent.tuition_estimate,
-        books_supplies_cost: parent.books_supplies_cost,
-        r_trans_16wk: parent.r_trans_16wk,
-        shelter_month: parent.shelter_month,
-        p_trans_month: parent.p_trans_month,
-        day_care_allowable: parent.day_care_allowable,
-        day_care_actual: parent.day_care_actual,
-        depend_food_allowable: parent.depend_food_allowable,
-        depend_tran_allowable: parent.depend_tran_allowable,
-        spouse_expected_contribution: parent.spouse_expected_contribution,
-        student_expected_contribution: parent.student_expected_contribution,
-        student_contrib_exempt: parent.student_contrib_exempt,
-        spouse_contrib_exempt: parent.spouse_contrib_exempt,
-        student_contribution_review: parent.student_contribution_review,
-        spouse_contribution_review: parent.spouse_contribution_review,
-        parent_contribution_review: parent.parent_contribution_review,
+        study_province_id: application.study_province_id,
+        tuition_estimate: application.tuition_estimate_amount,
+        books_supplies_cost: application.books_supplies_cost,
+        student_ln150_income: application.student_ln150_income,
+        spouse_ln150_income: application.spouse_ln150_income,
+        spouse_expected_contribution: 0,
+        student_expected_contribution: 0,
+        parent1_income: 0,
+        parent2_income: 0,
+        marital_status_id: application.marital_status_id,
+        csl_classification: application.csl_classification,
+        csl_full_amt_flag: state.fundingRequest?.is_csl_full_amount === true ? 1 : 0,
+        study_area_id: application.study_area_id,
+        program_id: application.program_id,
+        csl_request_amount: state.fundingRequest?.csl_request_amount ?? 0,
+
+        p_trans_month: getters.allowance?.public_tranport_amount ?? 0,
+        day_care_allowable: dayCareAllowable,
+        day_care_actual: monthlyDayCare,
+
+        assessment_type_id: 1,
+        spouse_province_id: null,
+        student_contrib_exempt: "N",
+        spouse_contrib_exempt: "N",
+
+        period: 9,
+        total_grant_awarded: 0,
+        assessed_amount: 88888,
+        student_contribution_review: "No",
+        spouse_contribution_review: "No",
+        parent_contribution_review: "No",
       };
 
       commit("SET_ASSESSMENT", assessment);
@@ -268,7 +335,7 @@ const actions = {
   },
 
   async makeDisbursements({ getters, commit, state, dispatch }, numberOfDisbursements) {
-    let parts = Math.ceil(getters.netAmountRaw / numberOfDisbursements);
+    let parts = Math.ceil(getters.netAmount / numberOfDisbursements);
     let disbursedValues = [];
 
     let total = 0;
@@ -284,7 +351,7 @@ const actions = {
       });
     }
 
-    let remainder = parse(formatMoney(getters.netAmountRaw - total), { currency: "usd" });
+    let remainder = parse(formatMoney(getters.netAmount - total), { currency: "usd" });
 
     disbursedValues.push({
       disbursed_amount: remainder,
@@ -362,3 +429,5 @@ function formatMoney(input) {
 
   return "";
 }
+
+function buildAssessment(application, fundingReqest) {}

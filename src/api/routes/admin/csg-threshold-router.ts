@@ -24,7 +24,9 @@ csgThresholdRouter.get(
     const { academic_year_id } = req.params;
     let data = await db("sfa.csg_threshold").where({ academic_year_id });
     let rates = await db("sfa.csg_lookup").where({ academic_year_id }).first();
-    res.json({ data, rates });
+    let childcare = await db("sfa.child_care_ceiling").where({ academic_year_id });
+    let allowances = await db("sfa.student_living_allowance").where({ academic_year_id });
+    res.json({ data, rates, childcare, allowances });
   }
 );
 
@@ -279,6 +281,9 @@ csgThresholdRouter.post(
     assessment.funding_request_id = funding_request_id;
     delete assessment.disbursements;
 
+    if (assessment.return_uncashable_cert)
+      assessment.return_uncashable_cert = cleanNumber(assessment.return_uncashable_cert);
+
     let assessmentInsert = await db("sfa.assessment").insert(assessment).returning("*");
     if (assessmentInsert.length > 0 && disbursements && isArray(disbursements)) {
       for (let disb of disbursements) {
@@ -310,6 +315,9 @@ csgThresholdRouter.put(
     let disbursements = assessment.disbursements;
     delete assessment.id;
     delete assessment.disbursements;
+
+    if (assessment.return_uncashable_cert)
+      assessment.return_uncashable_cert = cleanNumber(assessment.return_uncashable_cert);
 
     await db("sfa.assessment").where({ id: assessment_id }).update(assessment);
 

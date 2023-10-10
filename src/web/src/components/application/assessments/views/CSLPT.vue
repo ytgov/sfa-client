@@ -21,9 +21,8 @@
         <v-tabs v-model="tab">
           <v-tab key="0">BASE</v-tab>
           <v-tab key="1">COSTS</v-tab>
-          <v-tab key="2">INCOME</v-tab>
-          <v-tab key="3">AWARD</v-tab>
-          <v-tab key="4">MSFAA</v-tab>
+          <v-tab key="2">AWARD</v-tab>
+          <v-tab key="3">MSFAA</v-tab>
         </v-tabs>
         <v-divider></v-divider>
         <v-card-text v-if="assessment" class="pt-0">
@@ -32,34 +31,26 @@
               <tab-base></tab-base>
             </v-tab-item>
             <v-tab-item key="1">
-              COSTS
-              <tab-base></tab-base>
+              <tab-costs></tab-costs>
             </v-tab-item>
             <v-tab-item key="2">
-              INCOME
-              <tab-base></tab-base>
+              <tab-award></tab-award>
             </v-tab-item>
             <v-tab-item key="3">
-              AWARD
-              <tab-base></tab-base>
-            </v-tab-item>
-            <v-tab-item key="4">
-              MSFAA
-              <tab-base></tab-base>
+              <tab-msfaa></tab-msfaa>
             </v-tab-item>
           </v-tabs-items>
         </v-card-text>
       </v-card>
     </div>
-
-    <div class="mt-4">
+    <div class="mt-4" v-if="tab == 2">
       <v-card class="default mb-5 bg-color-blue">
         <v-card-text>
-          <csl-disbursements
-            store="cslPTStore"
+          <cslpt-disbursements
+            :disbursements="disbursements"
             v-on:showError="showError"
             v-on:showSuccess="showSuccess"
-          ></csl-disbursements>
+          ></cslpt-disbursements>
         </v-card-text>
       </v-card>
     </div>
@@ -67,15 +58,17 @@
 </template>
 <script>
 import store from "@/store";
-import { isNumber } from "lodash";
 import { mapActions, mapGetters, mapState } from "vuex";
-import CslDisbursements from "../components/csl-disbursements.vue";
+import CslptDisbursements from "../components/cslpt-disbursements.vue";
 
 import TabBase from "../components/csl-pt/tab-base.vue";
+import TabCosts from "../components/csl-pt/tab-costs.vue";
+import TabAward from "../components/csl-pt/tab-award.vue";
+import TabMsfaa from "../components/csl-pt/tab-msfaa.vue";
 
 export default {
   name: "Home",
-  components: { CslDisbursements, TabBase },
+  components: { CslptDisbursements, TabBase, TabCosts, TabAward, TabMsfaa },
   data: () => ({
     tab: 0,
   }),
@@ -95,15 +88,26 @@ export default {
     await this.setDisbursementTypes();
     await this.setChangeReasons();
     await this.setMaritalStatusList();
+    await this.setStudyAreas();
+    await this.setProvinces();
+    await this.setPrograms();
   },
   computed: {
     ...mapState({ application: "selectedApplication" }),
-    ...mapState("cslPTStore", ["assessment"]),
+    ...mapState("cslPartTimeStore", ["assessment", "disbursements"]),
     ...mapGetters(["cslClassifications", "disbursementTypes", "changeReasons"]),
   },
   methods: {
-    ...mapActions("cslPTStore", ["initialize"]),
-    ...mapActions(["setCslClassifications", "setDisbursementTypes", "setChangeReasons", "setMaritalStatusList"]),
+    ...mapActions("cslPartTimeStore", ["initialize"]),
+    ...mapActions([
+      "setCslClassifications",
+      "setDisbursementTypes",
+      "setChangeReasons",
+      "setMaritalStatusList",
+      "setStudyAreas",
+      "setProvinces",
+      "setPrograms",
+    ]),
 
     showSuccess(mgs) {
       this.$emit("showSuccess", mgs);
