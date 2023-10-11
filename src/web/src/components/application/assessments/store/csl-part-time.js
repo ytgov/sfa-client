@@ -66,7 +66,10 @@ const getters = {
     return state.fundingRequest?.csl_request_amount ?? 0;
   },
   totalGrants(state) {
-    return 0; // this needs to pull from CSGPT, CSGDep PT, CSG Disability
+    let value = 0;
+    // this needs to pull from CSGPT, CSGDep PT, CSG Disability
+    state.assessment.total_grant_awarded = value;
+    return value;
   },
 
   maxAllowable(state) {
@@ -113,8 +116,11 @@ const getters = {
   },
 
   assessedAmount(state, getters) {
-    if (getters.pastThreshold) return 0;
-    return Math.min(getters.maxAllowable, getters.totalCosts - getters.totalGrants);
+    let value = 0;
+    if (!getters.pastThreshold) value = Math.min(getters.maxAllowable, getters.totalCosts - getters.totalGrants);
+
+    state.assessment.assessed_amount = value;
+    return value;
   },
   actualAward(state, getters) {
     let returned = `${state.assessment?.return_uncashable_cert}` ?? "0";
@@ -229,7 +235,8 @@ const actions = {
           study_weeks: weeksBetween(application.classes_start_date, application.classes_end_date),
           family_size: familySize,
           dependent_count: dependentCount,
-          study_province_id: application.study_province_id,
+          study_province_id: application.csl_previous_province_id,
+          spouse_province_id: application.spouse_last_jurisdiction_id,
           tuition_estimate: application.tuition_estimate_amount,
           books_supplies_cost: application.books_supplies_cost,
           student_ln150_income: application.student_ln150_income,
@@ -250,17 +257,16 @@ const actions = {
           day_care_actual: monthlyDayCare,
 
           assessment_type_id: 1,
-          spouse_province_id: null,
           student_contrib_exempt: "N",
           spouse_contrib_exempt: "N",
 
-          period: 9,
           total_grant_awarded: 0,
-          assessed_amount: 88888,
+          assessed_amount: 0,
           student_contribution_review: "No",
           spouse_contribution_review: "No",
           parent_contribution_review: "No",
         };
+        assessment.period = assessment.study_months <= 4 ? "S" : "P";
 
         commit("SET_ASSESSMENT", assessment);
       }
@@ -296,7 +302,8 @@ const actions = {
         study_weeks: weeksBetween(application.classes_start_date, application.classes_end_date),
         family_size: familySize,
         dependent_count: dependentCount,
-        study_province_id: application.study_province_id,
+        study_province_id: application.csl_previous_province_id,
+        spouse_province_id: application.spouse_last_jurisdiction_id,
         tuition_estimate: application.tuition_estimate_amount,
         books_supplies_cost: application.books_supplies_cost,
         student_ln150_income: application.student_ln150_income,
@@ -317,17 +324,16 @@ const actions = {
         day_care_actual: monthlyDayCare,
 
         assessment_type_id: 1,
-        spouse_province_id: null,
         student_contrib_exempt: "N",
         spouse_contrib_exempt: "N",
 
-        period: 9,
         total_grant_awarded: 0,
-        assessed_amount: 88888,
+        assessed_amount: 0,
         student_contribution_review: "No",
         spouse_contribution_review: "No",
         parent_contribution_review: "No",
       };
+      assessment.period = assessment.study_months <= 4 ? "S" : "P";
 
       commit("SET_ASSESSMENT", assessment);
       dispatch("save");
