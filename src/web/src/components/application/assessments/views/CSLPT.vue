@@ -21,8 +21,11 @@
         <v-tabs v-model="tab">
           <v-tab key="0">BASE</v-tab>
           <v-tab key="1">COSTS</v-tab>
-          <v-tab key="2">AWARD</v-tab>
-          <v-tab key="3">MSFAA</v-tab>
+          <v-tab key="2">Grant</v-tab>
+          <v-tab key="3">Dependent Grant</v-tab>
+          <v-tab key="4">Disability Grant</v-tab>
+          <v-tab key="5">AWARD</v-tab>
+          <v-tab key="6">MSFAA</v-tab>
         </v-tabs>
         <v-divider></v-divider>
         <v-card-text v-if="assessment" class="pt-0">
@@ -37,13 +40,22 @@
               <tab-award></tab-award>
             </v-tab-item>
             <v-tab-item key="3">
+              <tab-award></tab-award>
+            </v-tab-item>
+            <v-tab-item key="4">
+              <tab-award></tab-award>
+            </v-tab-item>
+            <v-tab-item key="5">
+              <tab-award></tab-award>
+            </v-tab-item>
+            <v-tab-item key="6">
               <tab-msfaa></tab-msfaa>
             </v-tab-item>
           </v-tabs-items>
         </v-card-text>
       </v-card>
     </div>
-    <div class="mt-4" v-if="tab == 2">
+    <div class="mt-4" v-if="[2,3,4,5].includes(tab)">
       <v-card class="default mb-5 bg-color-blue">
         <v-card-text>
           <cslpt-disbursements
