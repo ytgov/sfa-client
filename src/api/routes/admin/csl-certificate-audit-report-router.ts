@@ -1,7 +1,7 @@
 import express, { Request, Response } from "express";
 import knex from "knex";
 import { param } from "express-validator";
-import { DB_CONFIG } from "../../config";
+import { DB_CONFIG, FRONTEND_URL } from "../../config";
 import { renderReportAsHtml, renderReportAsPdf } from "@/utils/express-handlebars-pdf-client";
 import moment from "moment";
 
@@ -69,6 +69,10 @@ cslCertificateAuditReportRouter.get(
       }
 
       let html = await renderReportAsHtml(TEMPLATE_PATH, data);
+
+      // fix the image locations (likely just the Yukon Logo.png)
+      html = html.replace("http://localhost:3000", FRONTEND_URL);
+
       res.send(html);
     } catch (error: any) {
       console.log(error);

@@ -28,7 +28,7 @@ app.use(
       "block-all-mixed-content": [],
       "font-src": ["'self'", "https:", "data:"],
       "frame-ancestors": ["'self'"],
-      "img-src": ["'self'", "data:", "https:"],
+      "img-src": ["'self'", "data:", "https:", "http:"],
       "object-src": ["'none'"],
       "script-src": ["'self'", "'unsafe-eval'"], // added https to accomodate esri components?
       "script-src-attr": ["'none'"],
