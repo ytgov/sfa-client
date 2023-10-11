@@ -61,8 +61,8 @@ const getters = {
     return (state.assessment?.student_ln150_income ?? 0) + (state.assessment?.spouse_ln150_income ?? 0);
   },
   requestedAmount(state) {
-    if (state.fundingRequest?.is_csg_only === true) return "None";
-    if (state.fundingRequest?.is_csl_full_amount === true) return "Full";
+    if (state.fundingRequest?.is_csg_only === true) return "CSG Only";
+    if (state.fundingRequest?.is_csl_full_amount === true) return "Full Amount";
     return state.fundingRequest?.csl_request_amount ?? 0;
   },
   totalGrants(state) {
