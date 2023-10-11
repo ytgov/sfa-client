@@ -67,161 +67,195 @@ export class PortalApplicationService {
     return await db("application_draft").withSchema(schema).where({ id }).update(draftPartial);
   }
 
-  async submitDraft(student: any, id: number): Promise<undefined | Application> {
-    let draft = await db("application_draft").withSchema(schema).where({ id }).first();
+  async submitDraft(student: any, id: number): Promise<Application | undefined> {
+    return new Promise(async (resolve, reject) => {
+      let draft = await db("application_draft").withSchema(schema).where({ id }).first();
 
-    if (draft) {
-      let draftApp = JSON.parse(draft.application_json);
-      let combinedApp = { ...draft, ...draftApp };
-      let conv = ApplicationFromDraft(combinedApp);
+      if (draft) {
+        let trx = await db.transaction();
+        let errorMessage = "Loading loading application information";
 
-      let parents = ParentsFromDraft(combinedApp);
-      if (parents && parents[0]) {
-        let relationship_id = parents[0].relationship;
-        delete parents[0].relationship;
-        let p1 = await db("person").withSchema(schema).insert(parents[0]).returning("*");
+        try {
+          let draftApp = JSON.parse(draft.application_json);
+          let combinedApp = { ...draft, ...draftApp };
+          let conv = ApplicationFromDraft(combinedApp);
 
-        if (p1 && p1.length == 1) {
-          conv.parent1_id = p1[0].id;
-        }
+          /* let parents = ParentsFromDraft(combinedApp);
+          if (parents && parents[0]) {
+            let relationship_id = parents[0].relationship;
+            delete parents[0].relationship;
 
-        await db("student_persons").withSchema(schema).insert({
-          student_id: student.id,
-          person_id: p1[0].id,
-          relationship_id,
-          is_active: true,
-        });
-      }
+            parents[0].id = 123;
+            console.log("I AM IN P1 makind bad",)
 
-      if (parents && parents[1]) {
-        let relationship_id = parents[1].relationship;
-        delete parents[1].relationship;
-        let p2 = await db("person").withSchema(schema).insert(parents[1]).returning("*");
+            let p1 = await trx("person")
+              .withSchema(schema)
+              .insert(parents[0])
+              .returning("*")
+              .then(async (r) => {
+                if (r && r.length == 1) {
+                  conv.parent1_id = r[0].id;
+                  await trx("student_persons").withSchema(schema).insert({
+                    student_id: student.id,
+                    person_id: r[0].id,
+                    relationship_id,
+                    is_active: true,
+                  });
+                }
+              });
 
-        if (p2 && p2.length == 1) {
-          conv.parent2_id = p2[0].id;
-        }
+              console.log("I AM IN P1", p1)
 
-        await db("student_persons").withSchema(schema).insert({
-          student_id: student.id,
-          person_id: p2[0].id,
-          relationship_id,
-          is_active: true,
-        });
-      }
-
-      let addresses = AddressesFromDraft(combinedApp);
-      if (addresses && addresses.length > 0) {
-        for (let address of addresses) {
-          address.person_id = student.person_id;
-          let newAddrId = await db("person_address").withSchema(schema).insert(address).returning("*");
-
-          if (
-            newAddrId &&
-            newAddrId.length > 0 &&
-            combinedApp.addresses.primary == "Permanent" &&
-            address.address_type_id == 1
-          )
-            (conv as any).primary_address_id = newAddrId[0].id;
-          else if (
-            newAddrId &&
-            newAddrId.length > 0 &&
-            combinedApp.addresses.primary == "School" &&
-            address.address_type_id == 3
-          )
-            (conv as any).primary_address_id = newAddrId[0].id;
-        }
-      }
-
-      if (combinedApp.addresses.home_address1_id != -1 && combinedApp.addresses.primary == "Permanent") {
-        (conv as any).primary_address_id = combinedApp.addresses.home_address1_id;
-      }
-      if (combinedApp.addresses.home_address2_id != -1 && combinedApp.addresses.primary == "School") {
-        (conv as any).primary_address_id = combinedApp.addresses.home_address2_id;
-      }
-
-      let person = PersonFromDraft(combinedApp);
-      await db("person").withSchema(schema).where({ id: student.person_id }).update(person);
-
-      let consents = ConsentFromDraft(combinedApp);
-      if (consents && consents.length > 0) {
-        for (let consent of consents) {
-          consent.student_id = student.id;
-          await db("student_consent").withSchema(schema).insert(consent);
-        }
-      }
-
-      let residences = ResidenceFromDraft(combinedApp);
-      if (residences && residences.length > 0) {
-        for (let residence of residences) {
-          residence.student_id = student.id;
-          await db("residence").withSchema(schema).insert(residence);
-        }
-      }
-
-      let newApplication = await db("application").withSchema(schema).insert(conv).returning("*");
-
-      if (newApplication) {
-        let fundings = FundingFromDraft(combinedApp);
-        if (fundings && fundings.length > 0) {
-          for (let funding of fundings) {
-            funding.application_id = newApplication[0].id;
-            await db("funding_request").withSchema(schema).insert(funding);
           }
-        }
 
-        let otherFundings = OtherFundingFromDraft(combinedApp);
-        if (otherFundings && otherFundings.length > 0) {
-          for (let funding of otherFundings) {
-            funding.application_id = newApplication[0].id;
-            await db("agency_assistance").withSchema(schema).insert(funding);
+          if (parents && parents[1]) {
+            let relationship_id = parents[1].relationship;
+            delete parents[1].relationship;
+            let p2 = await trx("person").withSchema(schema).insert(parents[1]).returning("*");
+
+            if (p2 && p2.length == 1) {
+              conv.parent2_id = p2[0].id;
+              await trx("student_persons").withSchema(schema).insert({
+                student_id: student.id,
+                person_id: p2[0].id,
+                relationship_id,
+                is_active: true,
+              });
+            }
+          } */
+
+          let errorMessage = "Error creating addresses";
+          let addresses = AddressesFromDraft(combinedApp);
+          if (addresses && addresses.length > 0) {
+            for (let address of addresses) {
+              address.person_id = student.person_id;
+              let newAddrId = await trx("person_address").withSchema(schema).insert(address).returning("*");
+
+              if (
+                newAddrId &&
+                newAddrId.length > 0 &&
+                combinedApp.addresses.primary == "Permanent" &&
+                address.address_type_id == 1
+              )
+                (conv as any).primary_address_id = newAddrId[0].id;
+              else if (
+                newAddrId &&
+                newAddrId.length > 0 &&
+                combinedApp.addresses.primary == "School" &&
+                address.address_type_id == 3
+              )
+                (conv as any).primary_address_id = newAddrId[0].id;
+            }
           }
-        }
 
-        let incomes = IncomeFromDraft(combinedApp);
-        if (incomes && incomes.length > 0) {
-          for (let income of incomes) {
-            income.application_id = newApplication[0].id;
-            await db("income").withSchema(schema).insert(income);
+          if (combinedApp.addresses.home_address1_id != -1 && combinedApp.addresses.primary == "Permanent") {
+            (conv as any).primary_address_id = combinedApp.addresses.home_address1_id;
           }
-        }
-
-        let expenses = ExpensesFromDraft(combinedApp);
-        if (expenses && expenses.length > 0) {
-          for (let expense of expenses) {
-            expense.application_id = newApplication[0].id;
-            await db("expense").withSchema(schema).insert(expense);
+          if (combinedApp.addresses.home_address2_id != -1 && combinedApp.addresses.primary == "School") {
+            (conv as any).primary_address_id = combinedApp.addresses.home_address2_id;
           }
-        }
 
-        let depends = DependantsFromDraft(combinedApp);
-        if (depends && depends.length > 0) {
-          for (let depend of depends) {
-            let elig = depend.eligibility;
-            delete depend.eligibility;
-            depend.student_id = student.id;
-            let newDep = await db("dependent").withSchema(schema).insert(depend).returning("*");
+          errorMessage = "Error updating person record";
+          let person = PersonFromDraft(combinedApp);
+          await trx("person").withSchema(schema).where({ id: student.person_id }).update(person);
 
-            elig.application_id = newApplication[0].id;
-            elig.dependent_id = newDep[0].id;
-            await db("dependent_eligibility").withSchema(schema).insert(elig);
+          errorMessage = "Error creating consents";
+          let consents = ConsentFromDraft(combinedApp);
+          if (consents && consents.length > 0) {
+            for (let consent of consents) {
+              consent.student_id = student.id;
+              await trx("student_consent").withSchema(schema).insert(consent);
+            }
           }
+
+          errorMessage = "Error creating residences";
+          let residences = ResidenceFromDraft(combinedApp);
+          if (residences && residences.length > 0) {
+            for (let residence of residences) {
+              residence.student_id = student.id;
+              await trx("residence").withSchema(schema).insert(residence);
+            }
+          }
+          errorMessage = "Error creating new application";
+          let newApplication = await trx("application").withSchema(schema).insert(conv).returning("*");
+
+          if (newApplication) {
+            errorMessage = "Error creating funding requests";
+            let fundings = FundingFromDraft(combinedApp);
+            if (fundings && fundings.length > 0) {
+              for (let funding of fundings) {
+                funding.application_id = newApplication[0].id;
+                await trx("funding_request").withSchema(schema).insert(funding);
+              }
+            }
+            errorMessage = "Error creating other funding";
+
+            let otherFundings = OtherFundingFromDraft(combinedApp);
+            if (otherFundings && otherFundings.length > 0) {
+              for (let funding of otherFundings) {
+                funding.application_id = newApplication[0].id;
+                await trx("agency_assistance").withSchema(schema).insert(funding);
+              }
+            }
+
+            errorMessage = "Error creating income records";
+            let incomes = IncomeFromDraft(combinedApp);
+            if (incomes && incomes.length > 0) {
+              for (let income of incomes) {
+                income.application_id = newApplication[0].id;
+                await trx("income").withSchema(schema).insert(income);
+              }
+            }
+
+            errorMessage = "Error creating expense records";
+            let expenses = ExpensesFromDraft(combinedApp);
+            if (expenses && expenses.length > 0) {
+              for (let expense of expenses) {
+                expense.application_id = newApplication[0].id;
+                await trx("expense").withSchema(schema).insert(expense);
+              }
+            }
+
+            errorMessage = "Error creating dependent records";
+            let depends = DependantsFromDraft(combinedApp);
+            if (depends && depends.length > 0) {
+              for (let depend of depends) {
+                let elig = depend.eligibility;
+                delete depend.eligibility;
+                depend.student_id = student.id;
+                let newDep = await trx("dependent").withSchema(schema).insert(depend).returning("*");
+
+                elig.application_id = newApplication[0].id;
+                elig.dependent_id = newDep[0].id;
+                await trx("dependent_eligibility").withSchema(schema).insert(elig);
+              }
+            }
+
+            errorMessage = "Error updating student record";
+            let studentUpdate = StudentFromDraft(combinedApp);
+            await trx("student").withSchema(schema).where({ id: student.id }).update(studentUpdate);
+
+            errorMessage = "Error setting draft status";
+            await trx("application_draft").withSchema(schema).where({ id }).update({
+              status: "Submitted",
+              application_id: newApplication[0].id,
+              submit_date: new Date(),
+            });
+          }
+
+          errorMessage = "";
+
+          await trx.commit();
+          resolve(newApplication[0]);
+        } catch (e: any) {
+          trx.rollback();
+          console.log("ERROR SUBMITTING APPLICATION", e);
+          return reject(errorMessage);
         }
-
-        let studentUpdate = StudentFromDraft(combinedApp);
-        await db("student").withSchema(schema).where({ id: student.id }).update(studentUpdate);
-
-        await db("application_draft").withSchema(schema).where({ id }).update({
-          status: "Submitted",
-          application_id: newApplication[0].id,
-          submit_date: new Date(),
-        });
       }
 
-      return newApplication[0];
-    }
-
-    return undefined;
+      resolve(undefined);
+    });
   }
 
   async deleteDraft(id: number) {

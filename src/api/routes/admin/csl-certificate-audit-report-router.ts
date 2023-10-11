@@ -22,7 +22,7 @@ cslCertificateAuditReportRouter.get(
     try {
       let notSentData = await db.raw(`SELECT d.transaction_number cert_num, m.id msfaa_num, m.received_date,
           CONCAT(p.first_name,' ', p.last_name) [name], rt.description request_type, d.issue_date, 
-          d.due_date, d.disbursed_amount * 100 amount, d.csl_cert_seq_number seq
+          d.due_date, COALESCE(d.disbursed_amount, 0.00) * 100 amount, d.csl_cert_seq_number seq
         FROM sfa.disbursement d
           INNER JOIN sfa.funding_request fr ON (fr.id = d.funding_request_id)
           INNER JOIN sfa.request_type rt ON (rt.id = fr.request_type_id)
@@ -38,7 +38,7 @@ cslCertificateAuditReportRouter.get(
 
       let sentData = await db.raw(`SELECT d.transaction_number cert_num, m.id msfaa_num, m.received_date,
           CONCAT(p.first_name,' ', p.last_name) [name], rt.description request_type, d.issue_date, 
-          d.due_date, d.disbursed_amount * 100 amount, d.csl_cert_seq_number seq
+          d.due_date, COALESCE(d.disbursed_amount, 0.00) * 100 amount, d.csl_cert_seq_number seq
         FROM sfa.disbursement d
           INNER JOIN sfa.funding_request fr ON (fr.id = d.funding_request_id)
           INNER JOIN sfa.request_type rt ON (rt.id = fr.request_type_id)

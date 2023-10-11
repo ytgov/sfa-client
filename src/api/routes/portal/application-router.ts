@@ -92,7 +92,7 @@ portalApplicationRouter.get("/:sub/:draftId/required-documents", async (req: Req
       for (let doc of returnDocs) {
         doc.meets_conditions = true;
 
-       // if (doc.condition) console.log(doc, doc.condition);
+        // if (doc.condition) console.log(doc, doc.condition);
 
         switch (doc.condition) {
           case "CSL Only":
@@ -266,17 +266,28 @@ portalApplicationRouter.put("/:sub/:draftId/submit", async (req: Request, res: R
     let appIds = applications.map((a) => a.id);
 
     if (appIds.includes(parseInt(draftId))) {
-      let application = await applicationService.submitDraft(student, parseInt(draftId));
+      await applicationService
+        .submitDraft(student, parseInt(draftId))
+        .then(async (application) => {
+          if (application && application.id) {
+            await documentService.getDocumentsForDraft(parseInt(draftId));
+            documentService.draftToApplication(parseInt(draftId), application?.id);
 
-      if (application) {
-        let draftDocs = await documentService.getDocumentsForDraft(parseInt(draftId));
-        documentService.draftToApplication(parseInt(draftId), application.id);
+            return res.json({ data: application });
+          } else {
+            console.log("Application created, but returned empty", application);
+          }
+        })
+        .catch((err) => {
+          console.log("Error Submitting Application:", err);
+          return res.json({ error: err });
+        });
 
-        return res.json({ data: application });
-      }
+      return;
     }
   }
-  res.status(404);
+
+  res.status(404).send("Not found");
 });
 
 // deletes a draft application
