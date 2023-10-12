@@ -10,7 +10,7 @@
     <div class="mt-4">
       <v-card class="default mb-1 bg-color-blue">
         <v-card-title class="pb-3"
-          >Assessment - CSLPT
+          >Assessment: CSL-PT
           <v-spacer></v-spacer>
           <v-btn dense color="primary" class="my-0" @click="saveClick" :disabled="!assessment.id">
             Recalculate
@@ -21,16 +21,16 @@
         <v-tabs v-model="tab">
           <v-tab key="0">Base</v-tab>
           <v-tab key="1">Costs<br />{{ formatMoney(totalCosts) }}</v-tab>
-          <v-tab key="2">Grant<br />{{ formatMoney(grantAmount) }}</v-tab>
+          <v-tab key="2">CSG-PT<br />{{ formatMoney(grantAmount) }}</v-tab>
           <v-tab key="3"
-            >Dependent Grant<br />
+            >CSG-PTDEP<br />
             {{ formatMoney(depAmount) }}</v-tab
           >
           <v-tab key="4"
-            >Disability Grant<br />
+            >CSGD<br />
             {{ formatMoney(disAmount) }}</v-tab
           >
-          <v-tab key="5">Loan<br />{{ formatMoney(assessedAmount) }}</v-tab>
+          <v-tab key="5">CSL-PT<br />{{ formatMoney(assessedAmount) }}</v-tab>
           <v-tab key="6">MSFAA</v-tab>
         </v-tabs>
         <v-divider></v-divider>

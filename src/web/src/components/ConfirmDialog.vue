@@ -3,7 +3,7 @@
     <v-card>
       <v-card-title>{{ title }}</v-card-title>
       <v-card-text>{{ message }}</v-card-text>
-      <v-card-actions>
+      <v-card-actions class="mb-3">
         <v-btn color="primary"  v-if="showConfirm" @click="doConfirm()">Confirm</v-btn>
         <v-spacer></v-spacer>
         <v-btn color="secondary" @click="doDeny()">{{messageButton}}</v-btn>

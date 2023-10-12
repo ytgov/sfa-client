@@ -14,10 +14,9 @@
     </div>
     <!--  -->
 
-    <v-card class="default row mb-5">
+    <v-card class="default row mb-5" :disabled="!checkCSFAPartTimeRequest">
       <div class="col-md-6">
         <v-autocomplete
-          :disabled="!checkCSFAPartTimeRequest"
           outlined
           dense
           background-color="white"
@@ -33,7 +32,6 @@
       </div>
       <div class="col-md-6">
         <v-select
-          :disabled="!checkCSFAPartTimeRequest"
           outlined
           dense
           background-color="white"
@@ -50,7 +48,6 @@
         <div class="row">
           <div class="col-md-6">
             <v-switch
-              :disabled="!checkCSFAPartTimeRequest"
               class="my-0"
               label="Full amount requested"
               v-model="CSFAPartTimeRequest.is_csl_full_amount"
@@ -60,7 +57,6 @@
           </div>
           <div class="col-md-6">
             <v-text-field
-              :disabled="!checkCSFAPartTimeRequest"
               outlined
               dense
               background-color="white"
@@ -88,7 +84,6 @@
       </div>
       <div class="col-md-6">
         <v-text-field
-          :disabled="!checkCSFAPartTimeRequest"
           outlined
           dense
           background-color="white"
@@ -107,7 +102,6 @@
       </div>
       <div class="col-md-6">
         <v-switch
-          :disabled="!checkCSFAPartTimeRequest"
           class="my-0"
           label="Applied for Canada Student Grant Only"
           v-model="CSFAPartTimeRequest.is_csg_only"
@@ -121,7 +115,6 @@
           dense
           background-color="white"
           hide-details
-          :disabled="!checkCSFAPartTimeRequest"
           label="Outstanding principal from previous CSFA Loan"
           v-model="application.outstanding_cslpt_amount"
           @change="doSaveApp('outstanding_cslpt_amount', application.outstanding_cslpt_amount)"
@@ -130,7 +123,6 @@
       </div>
       <div class="col-md-6">
         <v-switch
-          :disabled="!checkCSFAPartTimeRequest"
           class="my-0"
           label="This is a part of a Full-time program"
           v-model="application.is_part_of_ft"
@@ -155,7 +147,6 @@
           </div>
           <div class="col-md-4">
             <v-text-field
-              :disabled="!checkCSFAPartTimeRequest"
               outlined
               dense
               background-color="white"
@@ -168,7 +159,6 @@
           </div>
           <div class="col-md-4">
             <v-text-field
-              :disabled="!checkCSFAPartTimeRequest"
               outlined
               dense
               background-color="white"
@@ -185,7 +175,6 @@
       <!-- QUESTIONS -->
       <div class="col-md-2">
         <v-select
-          :disabled="!checkCSFAPartTimeRequest"
           outlined
           dense
           background-color="white"
@@ -214,7 +203,6 @@
 
       <div class="col-md-2 my-n2">
         <v-select
-          :disabled="!checkCSFAPartTimeRequest"
           outlined
           dense
           background-color="white"
@@ -243,7 +231,6 @@
 
       <div class="col-md-2 my-n2">
         <v-select
-          :disabled="!checkCSFAPartTimeRequest"
           outlined
           dense
           background-color="white"
@@ -272,7 +259,6 @@
 
       <div class="col-md-2 my-n2">
         <v-select
-          :disabled="!checkCSFAPartTimeRequest"
           outlined
           dense
           background-color="white"
@@ -305,7 +291,6 @@
       <!-- COMMENT -->
       <div class="col-md-12 mt-n2">
         <v-textarea
-          :disabled="!checkCSFAPartTimeRequest"
           rows="3"
           outlined
           dense
@@ -440,12 +425,8 @@ import validator from "@/validator";
 export default {
   computed: {
     ...mapGetters(["cslClassifications", "provinces", "instructionTypes"]),
-    student() {
-      return store.getters.selectedStudent;
-    },
-    application: function() {
-      return store.getters.selectedApplication;
-    },
+    ...mapGetters({ student: "selectedStudent" }),
+    ...mapGetters({ application: "selectedApplication" }),
     CSFAPartTimeRequest: function() {
       const request = this.application?.funding_requests?.find((fr) => fr.request_type_id === 5);
 
@@ -558,7 +539,7 @@ export default {
     },
     async addFundingRequest(type) {
       try {
-        const resInsert = await axios.post(APPLICATION_URL + `/${this.application.id}/status`, {
+        const resInsert = await axios.post(`${APPLICATION_URL}/${this.application.id}/status`, {
           request_type_id: type,
           received_date: new Date(),
         });
@@ -587,7 +568,7 @@ export default {
           return;
         }
 
-        const resInsert = await axios.post(APPLICATION_URL + `/${this.application.id}/course`, {
+        const resInsert = await axios.post(`${APPLICATION_URL}/${this.application.id}/course`, {
           data: { ...this.newRecord, application_id: this.application.id },
         });
         const message = resInsert?.data?.messages[0];
