@@ -39,7 +39,7 @@ import { mapGetters } from "vuex";
 import CsgDisbursementLine from "./csg-disbursement-line.vue";
 
 export default {
-  name: "CSGDisbursemetns",
+  name: "CSGDisbursements",
   props: ["store"],
   components: { CsgDisbursementLine },
   data: () => ({}),
@@ -47,6 +47,8 @@ export default {
   computed: {
     ...mapGetters(["cslClassifications", "disbursementTypes", "changeReasons"]),
     disbursements() {
+      console.log("STORE: ",`${this.store}/disbursements`)
+
       let values = store.getters[`${this.store}/disbursements`];
       return values;
     },

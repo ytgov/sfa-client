@@ -12,6 +12,7 @@ const state = {
   disbursements: [],
   parentAssessment: {},
   parentDisbursements: [],
+  baseMiscAmount: 10,
   baseRate: 0.0,
 };
 const getters = {
@@ -25,7 +26,28 @@ const getters = {
         (state.assessment.parent1_income || 0) +
         (state.assessment.parent2_income || 0)
       : 0;
-    return formatMoney(val);
+    return val;
+  },
+  totalStudyCosts(state) {
+    let total = (state.application?.tuition_estimate_amount ?? 0) + (state.application?.books_supplies_cost ?? 0);
+    return total;
+  },
+  totalTransportation(state) {
+    return state.assessment.p_trans_month * state.assessment.study_months;
+  },
+  totalDayCare(state) {
+    return (
+      Math.min(state.assessment.day_care_allowable, state.assessment.day_care_actual) * state.assessment.study_months
+    );
+  },
+  maxMiscellaneous(state, getters) {
+    return state.baseMiscAmount * state.application?.courses_per_week;
+  },
+  totalMiscellaneous(state, getters) {
+    return getters.maxMiscellaneous * state.assessment.study_weeks;
+  },
+  totalCosts(state, getters) {
+    return getters.totalStudyCosts + getters.totalTransportation + getters.totalDayCare + getters.totalMiscellaneous;
   },
 
   threshold(state) {
@@ -37,60 +59,27 @@ const getters = {
     return {};
   },
 
-  assessedNeed(state) {
-    if (state.assessment) {
-      let mult = state.assessment.study_weeks >= 24 ? 2 : state.assessment.study_weeks > 0 ? 1 : 0;
-
-      let reloc = state.assessment.relocation_total || 0;
-      let disc = Math.min(state.assessment.discretionary_cost, state.assessment.discretionary_cost_actual) || 0;
-      let tuit = state.assessment.tuition_estimate || 0;
-      let books = state.assessment.books_supplies_cost || 0;
-      let rtrans = state.assessment.r_trans_16wk * mult;
-      let shelter = state.assessment.shelter_month * state.assessment.study_months;
-      let ptrans = state.assessment.p_trans_month * state.assessment.study_months;
-      let daycare =
-        Math.min(state.assessment.day_care_allowable, state.assessment.day_care_actual) * state.assessment.study_months;
-      let dshelter = state.assessment.depend_food_allowable * state.assessment.study_months;
-      let dptrans = state.assessment.depend_tran_allowable * state.assessment.study_months;
-      let totalCosts = reloc + disc + tuit + books + rtrans + shelter + ptrans + daycare + dshelter + dptrans;
-
-      let contribution =
-        (state.assessment.spouse_expected_contribution || 0) + state.assessment.student_expected_contribution;
-
-      return formatMoney(totalCosts > contribution ? totalCosts - contribution : 0);
-    }
-    return "$0.00";
-  },
-
   phaseOutRate(state, getters) {
-    let income = parse(getters.familyIncome, { currency: "usd" });
+    let income = getters.familyIncome;
 
     if (income >= getters.threshold.income_cutoff) return 0;
-    else if (income > getters.threshold.income_threshold) return getters.threshold.phase_out_rate;
+    else if (income > getters.threshold.income_threshold) return getters.threshold.csgpt_phase_out_rate;
     else return 0;
   },
 
-  monthlyRate(state, getters) {
-    if (isUndefined(getters.threshold.phase_out_rate) || isUndefined(getters.familyIncome)) return formatMoney(0);
+  assessedAmount(state, getters) {
+    if (isUndefined(state.assessment.study_months)) return 0;
 
-    let rate = Math.max(
+    let amt = Math.max(
       0,
       Math.min(
+        getters.totalCosts,
         state.baseRate,
-        state.baseRate -
-          getters.threshold.phase_out_rate *
-            (parse(getters.familyIncome, { currency: "usd" }) - getters.threshold.income_threshold)
+        state.baseRate - getters.phaseOutRate * (getters.familyIncome - getters.threshold.income_threshold)
       )
     );
 
-    return formatMoney(rate);
-  },
-  assessedAmount(state, getters) {
-    if (isUndefined(state.assessment.study_months)) return formatMoney(0);
-
-    return state.assessment
-      ? formatMoney(parse(getters.monthlyRate, { currency: "usd" }) * state.assessment.study_months)
-      : formatMoney(0);
+    return amt;
   },
   previousDisbursements(state) {
     let amounts = state.disbursements.map((d) => d.disbursed_amount);
@@ -98,14 +87,10 @@ const getters = {
       return t + a;
     }, 0);
 
-    return formatMoney(total);
+    return total;
   },
   netAmount(state, getters) {
-    return formatMoney(getters.netAmountRaw);
-  },
-  netAmountRaw(state, getters) {
-    let rawVal =
-      parse(getters.assessedAmount, { currency: "usd" }) - parse(getters.previousDisbursements, { currency: "usd" });
+    let rawVal = getters.assessedAmount - getters.previousDisbursements;
     if (rawVal > 0 && rawVal < 100) return 100.0;
     return Object.is(Math.round(rawVal), -0) ? 0 : Math.round(rawVal);
   },
@@ -146,35 +131,23 @@ const mutations = {
 };
 const actions = {
   async initialize(store, { app, assessment }) {
-    console.log("INIT");
-    store.dispatch("loadThresholds", app.academic_year_id);
-    store.dispatch("loadCSLFTAssessment", { id: app.id, refreshChild: true });
+    console.log("Initializing CSGPT");
+    store.state.application = app;
+    store.state.parentAssessment = assessment;
 
-    console.log("MY ASSESS", assessment);
+    store.dispatch("loadThresholds", app.academic_year_id);
+    store.dispatch("loadAssessment", app.id);
   },
 
   async loadThresholds({ commit }, academicYear) {
     axios.get(`${CSG_THRESHOLD_URL}/${academicYear}`).then((resp) => {
       commit("SET_THRESHOLDS", resp.data.data);
-      commit("SET_BASERATE", resp.data.rates.csg_8_month_amount / 8);
+      commit("SET_BASERATE", resp.data.rates.csgpt_yearly_amount);
     });
   },
 
-  async loadCSLFTAssessment({ commit, dispatch }, { id, refreshChild }) {
-    axios.get(`${CSG_THRESHOLD_URL}/cslft/${id}`).then((resp) => {
-      commit("SET_PARENTASSESSMENT", resp.data.data.assessment);
-      commit("SET_PARENTDISBURSEMENTS", resp.data.data.disbursements);
-
-      let parent = resp.data.data.assessment;
-
-      if (parent && refreshChild) {
-        dispatch("loadCSGFTAssessment", id);
-      }
-    });
-  },
-
-  loadCSGFTAssessment({ commit, state }, applicationId) {
-    axios.get(`${CSG_THRESHOLD_URL}/csgft/${applicationId}`).then((resp) => {
+  loadAssessment({ commit, state }, applicationId) {
+    axios.get(`${CSG_THRESHOLD_URL}/csgpt/${applicationId}`).then((resp) => {
       commit("SET_FUNDINGREQUEST", resp.data.data.funding_request);
       commit("SET_DISBURSEMENTS", resp.data.data.disbursements);
 
@@ -226,7 +199,7 @@ const actions = {
   },
 
   async recalculate({ state, dispatch, commit }) {
-    dispatch("loadCSLFTAssessment", { id: state.fundingRequest.application_id, refreshChild: false }).then(() => {
+    dispatch("loadAssessment", { id: state.fundingRequest.application_id, refreshChild: false }).then(() => {
       let parent = state.parentAssessment;
 
       let assessment = {
@@ -269,7 +242,7 @@ const actions = {
   },
 
   async makeDisbursements({ getters, commit, state, dispatch }, numberOfDisbursements) {
-    let parts = Math.ceil(getters.netAmountRaw / numberOfDisbursements);
+    let parts = Math.ceil(getters.netAmount / numberOfDisbursements);
     let disbursedValues = [];
 
     let total = 0;
@@ -285,7 +258,7 @@ const actions = {
       });
     }
 
-    let remainder = parse(formatMoney(getters.netAmountRaw - total), { currency: "usd" });
+    let remainder = parse(formatMoney(getters.netAmount - total), { currency: "usd" });
 
     disbursedValues.push({
       disbursed_amount: remainder,
@@ -330,7 +303,7 @@ const actions = {
           state.assessment
         )
         .then((resp) => {
-          dispatch("loadCSGFTAssessment", state.fundingRequest.application_id);
+          dispatch("loadAssessment", state.fundingRequest.application_id);
         });
     } else {
       axios
@@ -339,7 +312,7 @@ const actions = {
           state.assessment
         )
         .then((resp) => {
-          dispatch("loadCSGFTAssessment", state.fundingRequest.application_id);
+          dispatch("loadAssessment", state.fundingRequest.application_id);
         });
     }
   },

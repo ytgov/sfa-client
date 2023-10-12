@@ -19,12 +19,18 @@
         <v-divider class="mt-1"></v-divider>
 
         <v-tabs v-model="tab">
-          <v-tab key="0">BASE</v-tab>
-          <v-tab key="1">COSTS</v-tab>
-          <v-tab key="2">Grant</v-tab>
-          <v-tab key="3">Dependent Grant</v-tab>
-          <v-tab key="4">Disability Grant</v-tab>
-          <v-tab key="5">AWARD</v-tab>
+          <v-tab key="0">Base</v-tab>
+          <v-tab key="1">Costs<br />{{ formatMoney(totalCosts) }}</v-tab>
+          <v-tab key="2">Grant<br />{{ formatMoney(grantAmount) }}</v-tab>
+          <v-tab key="3"
+            >Dependent Grant<br />
+            {{ formatMoney(depAmount) }}</v-tab
+          >
+          <v-tab key="4"
+            >Disability Grant<br />
+            {{ formatMoney(disAmount) }}</v-tab
+          >
+          <v-tab key="5">Loan<br />{{ formatMoney(assessedAmount) }}</v-tab>
           <v-tab key="6">MSFAA</v-tab>
         </v-tabs>
         <v-divider></v-divider>
@@ -37,13 +43,13 @@
               <tab-costs></tab-costs>
             </v-tab-item>
             <v-tab-item key="2">
-              <tab-award></tab-award>
+              <tab-grant></tab-grant>
             </v-tab-item>
             <v-tab-item key="3">
-              <tab-award></tab-award>
+              <tab-dependent></tab-dependent>
             </v-tab-item>
             <v-tab-item key="4">
-              <tab-award></tab-award>
+              <tab-disability></tab-disability>
             </v-tab-item>
             <v-tab-item key="5">
               <tab-award></tab-award>
@@ -55,10 +61,32 @@
         </v-card-text>
       </v-card>
     </div>
-    <div class="mt-4" v-if="[2,3,4,5].includes(tab)">
+    <div class="mt-4" v-if="[2, 3, 4, 5].includes(tab)">
       <v-card class="default mb-5 bg-color-blue">
         <v-card-text>
+          <csg-disbursements
+            v-if="[2].includes(tab)"
+            store="csgPartTimeStore"
+            v-on:showError="showError"
+            v-on:showSuccess="showSuccess"
+          ></csg-disbursements>
+
+          <csg-disbursements
+            v-if="[3].includes(tab)"
+            store="csgPartTimeDependentStore"
+            v-on:showError="showError"
+            v-on:showSuccess="showSuccess"
+          ></csg-disbursements>
+
+          <csg-disbursements
+            v-if="[4].includes(tab)"
+            store="csgPartTimeDisabilityStore"
+            v-on:showError="showError"
+            v-on:showSuccess="showSuccess"
+          ></csg-disbursements>
+
           <cslpt-disbursements
+            v-if="[5].includes(tab)"
             :disbursements="disbursements"
             v-on:showError="showError"
             v-on:showSuccess="showSuccess"
@@ -70,17 +98,32 @@
 </template>
 <script>
 import store from "@/store";
+import { isNumber } from "lodash";
 import { mapActions, mapGetters, mapState } from "vuex";
 import CslptDisbursements from "../components/cslpt-disbursements.vue";
+import CsgDisbursements from "../components/csg-disbursements.vue";
 
 import TabBase from "../components/csl-pt/tab-base.vue";
 import TabCosts from "../components/csl-pt/tab-costs.vue";
 import TabAward from "../components/csl-pt/tab-award.vue";
+import TabGrant from "../components/csl-pt/tab-grant.vue";
+import TabDependent from "../components/csl-pt/tab-dependent.vue";
+import TabDisability from "../components/csl-pt/tab-disability.vue";
 import TabMsfaa from "../components/csl-pt/tab-msfaa.vue";
 
 export default {
   name: "Home",
-  components: { CslptDisbursements, TabBase, TabCosts, TabAward, TabMsfaa },
+  components: {
+    CslptDisbursements,
+    CsgDisbursements,
+    TabBase,
+    TabCosts,
+    TabGrant,
+    TabDependent,
+    TabDisability,
+    TabAward,
+    TabMsfaa,
+  },
   data: () => ({
     tab: 0,
   }),
@@ -107,10 +150,14 @@ export default {
   computed: {
     ...mapState({ application: "selectedApplication" }),
     ...mapState("cslPartTimeStore", ["assessment", "disbursements"]),
+    ...mapGetters("cslPartTimeStore", ["totalCosts", "assessedAmount"]),
+    ...mapGetters("csgPartTimeStore", { grantAmount: "assessedAmount" }),
+    ...mapGetters("csgPartTimeDependentStore", { depAmount: "assessedAmount" }),
+    ...mapGetters("csgPartTimeDisabilityStore", { disAmount: "assessedAmount" }),
     ...mapGetters(["cslClassifications", "disbursementTypes", "changeReasons"]),
   },
   methods: {
-    ...mapActions("cslPartTimeStore", ["initialize"]),
+    ...mapActions("cslPartTimeStore", ["initialize", "recalculate"]),
     ...mapActions([
       "setCslClassifications",
       "setDisbursementTypes",
@@ -127,7 +174,19 @@ export default {
     showError(mgs) {
       this.$emit("showError", mgs);
     },
-    saveClick() {},
+    saveClick() {
+      this.recalculate();
+    },
+    formatMoney(input, defaultVal = false) {
+      if (isNumber(input)) {
+        return Intl.NumberFormat("en", {
+          currency: "USD",
+          style: "currency",
+        }).format(input);
+      }
+      if (defaultVal) return input;
+      return "$0.00";
+    },
   },
 };
 </script>

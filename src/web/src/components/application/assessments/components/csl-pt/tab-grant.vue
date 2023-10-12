@@ -2,16 +2,30 @@
   <div>
     <v-row v-if="assessment">
       <v-col cols="12" md="4">
-        <v-text-field
-          label="Total study costs"
-          readonly
-          outlined
-          dense
-          hide-details
-          background-color="#ddd"
-          append-icon="mdi-calculator"
-          :value="formatMoney(totalCosts)"
-        />
+        <v-menu
+          v-model="assessed_date_menu"
+          :close-on-content-click="false"
+          transition="scale-transition"
+          left
+          offset-y
+          min-width="auto"
+        >
+          <template v-slot:activator="{ on, attrs }">
+            <v-text-field
+              v-model="assessment.assessed_date"
+              label="Assessed date"
+              append-icon="mdi-calendar"
+              hide-details
+              readonly
+              outlined
+              dense
+              background-color="white"
+              v-bind="attrs"
+              v-on="on"
+            />
+          </template>
+          <v-date-picker v-model="assessment.assessed_date" @input="assessed_date_menu = false"></v-date-picker>
+        </v-menu>
       </v-col>
       <v-col cols="12" md="4">
         <v-text-field
@@ -23,6 +37,20 @@
           background-color="#ddd"
           append-icon="mdi-lock"
           :value="assessment.family_size"
+        />
+      </v-col>
+      <v-col cols="12" md="4"></v-col>
+
+      <v-col cols="12" md="4">
+        <v-text-field
+          label="Total study costs"
+          readonly
+          outlined
+          dense
+          hide-details
+          background-color="#ddd"
+          append-icon="mdi-calculator"
+          :value="formatMoney(totalCosts)"
         />
       </v-col>
       <v-col cols="12" md="4">
@@ -37,79 +65,7 @@
           :value="formatMoney(familyIncome)"
         />
       </v-col>
-      <v-col cols="12" md="4">
-        <v-text-field
-          label="Outstanding loans"
-          readonly
-          outlined
-          dense
-          hide-details
-          background-color="#ddd"
-          append-icon="mdi-lock"
-          :value="formatMoney(application.outstanding_cslpt_amount)"
-        />
-      </v-col>
-      <v-col cols="12" md="4">
-        <v-text-field
-          label="Max allowable"
-          readonly
-          outlined
-          dense
-          background-color="#ddd"
-          append-icon="mdi-lock"
-          hide-details
-          :value="formatMoney(maxAllowable)"
-        />
-      </v-col>
-      <v-col cols="12" md="4"></v-col>
 
-      <v-col cols="12" md="4">
-        <v-text-field
-          label="Requested amount"
-          readonly
-          outlined
-          dense
-          background-color="#ddd"
-          append-icon="mdi-lock"
-          hide-details
-          :value="formatMoney(requestedAmount, true)"
-        />
-      </v-col>
-      <v-col cols="12" md="4">
-        <v-text-field
-          label="Total grants"
-          readonly
-          outlined
-          dense
-          hide-details
-          background-color="#ddd"
-          append-icon="mdi-calculator"
-          :value="formatMoney(assessment.total_grant_awarded)"
-        />
-      </v-col>
-      <v-col cols="12" md="4">
-        <v-text-field
-          label="Calculated award"
-          readonly
-          outlined
-          dense
-          hide-details
-          background-color="#ddd"
-          append-icon="mdi-calculator"
-          :value="formatMoney(assessedAmount)"
-        />
-      </v-col>
-      <v-col cols="12" md="4" offset-md="4">
-        <v-text-field
-          label="Returned/Uncashable"
-          v-currency
-          outlined
-          dense
-          hide-details
-          background-color="white"
-          v-model="assessment.return_uncashable_cert"
-        />
-      </v-col>
       <v-col cols="12" md="4">
         <v-text-field
           label="Actual award"
@@ -119,25 +75,13 @@
           hide-details
           background-color="#ddd"
           append-icon="mdi-calculator"
-          :value="formatMoney(actualAward)"
+          :value="formatMoney(assessedAmount)"
         />
       </v-col>
     </v-row>
     <v-divider class="my-5" />
     <v-row>
-      <v-col cols="12" md="4">
-        <v-text-field
-          v-model="assessment.number"
-          label="Previous cert"
-          readonly
-          outlined
-          dense
-          hide-details
-          background-color="#ddd"
-          append-icon="mdi-lock"
-        />
-      </v-col>
-      <v-col cols="12" md="4">
+      <v-col cols="12" md="4" offset-md="4">
         <v-text-field
           label="Previous disbursements"
           readonly
@@ -176,7 +120,7 @@
         <v-btn color="primary" class="ml-3" @click="disburseClick" :disabled="netAmount == 0">Disburse</v-btn>
       </v-col>
     </v-row>
-    {{ fundingRequest }}
+  {{ fundingRequest }}
   </div>
 </template>
 
@@ -187,23 +131,24 @@ import { isNumber } from "lodash";
 export default {
   data: () => ({
     disburseCount: 2,
+    assessed_date_menu: false,
   }),
   computed: {
-    ...mapState({ application: "selectedApplication" }),
-    ...mapState("cslPartTimeStore", ["assessment", "fundingRequest"]),
-    ...mapGetters("cslPartTimeStore", [
+    ...mapState("csgPartTimeStore", ["assessment", "fundingRequest"]),
+    ...mapGetters("csgPartTimeStore", [
       "totalCosts",
       "familyIncome",
       "requestedAmount",
       "maxAllowable",
       "assessedAmount",
       "previousDisbursements",
-      "actualAward",
+      "totalGrants",
       "netAmount",
+      "threshold",
     ]),
   },
   methods: {
-    ...mapActions("cslPartTimeStore", ["makeDisbursements"]),
+    ...mapActions("csgPartTimeStore", ["makeDisbursements"]),
     disburseClick() {
       this.makeDisbursements(this.disburseCount);
     },

@@ -66,10 +66,7 @@ const getters = {
     return state.fundingRequest?.csl_request_amount ?? 0;
   },
   totalGrants(state) {
-    let value = 0;
-    // this needs to pull from CSGPT, CSGDep PT, CSG Disability
-    state.assessment.total_grant_awarded = value;
-    return value;
+    return state.assessment.total_grant_awarded;
   },
 
   maxAllowable(state) {
@@ -117,6 +114,10 @@ const getters = {
 
   assessedAmount(state, getters) {
     let value = 0;
+
+
+    console.log(getters.totalCosts , getters.totalGrants)
+
     if (!getters.pastThreshold) value = Math.min(getters.maxAllowable, getters.totalCosts - getters.totalGrants);
 
     state.assessment.assessed_amount = value;
@@ -179,10 +180,10 @@ const mutations = {
   },
 };
 const actions = {
-  async initialize(store, app) {
+  async initialize(localStore, app) {
     console.log("Initializing CSLPT");
-    await store.dispatch("loadThresholds", app.academic_year_id);
-    store.dispatch("loadCSLPTAssessment", app.id);
+    await localStore.dispatch("loadThresholds", app.academic_year_id);
+    await localStore.dispatch("loadCSLPTAssessment", app.id);
   },
 
   async loadThresholds({ commit }, academicYear) {
@@ -195,7 +196,7 @@ const actions = {
   },
 
   loadCSLPTAssessment({ commit, state, getters }, applicationId) {
-    axios.get(`${CSG_THRESHOLD_URL}/cslpt/${applicationId}`).then((resp) => {
+    axios.get(`${CSG_THRESHOLD_URL}/cslpt/${applicationId}`).then(async (resp) => {
       let application = store.getters.selectedApplication;
       commit("SET_APPLICATION", application);
       commit("SET_FUNDINGREQUEST", resp.data.data.funding_request);
@@ -226,6 +227,11 @@ const actions = {
 
         let provinceMax = state.childcare?.find((c) => c.province_id == state.application.study_province_id);
         let dayCareAllowable = provinceMax?.max_amount ?? 0;
+
+        let totalGrants = 0;
+        totalGrants += store.getters["csgPartTimeStore/assessedAmount"];
+        totalGrants += store.getters["csgPartTimeDependentStore/assessedAmount"];
+        totalGrants += store.getters["csgPartTimeDisabilityStore/assessedAmount"];
 
         let assessment = {
           assessed_date: moment().format("YYYY-MM-DD"),
@@ -260,7 +266,7 @@ const actions = {
           student_contrib_exempt: "N",
           spouse_contrib_exempt: "N",
 
-          total_grant_awarded: 0,
+          total_grant_awarded: totalGrants,
           assessed_amount: 0,
           student_contribution_review: "No",
           spouse_contribution_review: "No",
@@ -270,13 +276,19 @@ const actions = {
 
         commit("SET_ASSESSMENT", assessment);
       }
+
+      // child store initializers
+      await store.dispatch("csgPartTimeStore/initialize", { app: application, assessment: state.assessment });
+      await store.dispatch("csgPartTimeDependentStore/initialize", { app: application, assessment: state.assessment });
+      await store.dispatch("csgPartTimeDisabilityStore/initialize", { app: application, assessment: state.assessment });
     });
   },
 
   async recalculate({ state, dispatch, commit }) {
-    dispatch("loadCSLPTAssessment", { id: state.fundingRequest.application_id, refreshChild: false }).then(() => {
+    dispatch("loadCSLPTAssessment", state.fundingRequest.application_id).then(() => {
       let dependentCount = 0;
       let familySize = 1;
+      let application = state.application;
 
       // Common-law or Married
       if ([3, 4].includes(state.application.csl_classification)) familySize++;
@@ -293,6 +305,11 @@ const actions = {
 
       let provinceMax = state.childcare?.find((c) => c.province_id == state.application.study_province_id);
       let dayCareAllowable = provinceMax?.max_amount ?? 0;
+
+      let totalGrants = 0;
+      totalGrants += store.getters["csgPartTimeStore/assessedAmount"];
+      totalGrants += store.getters["csgPartTimeDependentStore/assessedAmount"];
+      totalGrants += store.getters["csgPartTimeDisabilityStore/assessedAmount"];
 
       let assessment = {
         assessed_date: moment().format("YYYY-MM-DD"),
@@ -327,13 +344,15 @@ const actions = {
         student_contrib_exempt: "N",
         spouse_contrib_exempt: "N",
 
-        total_grant_awarded: 0,
+        total_grant_awarded: totalGrants,
         assessed_amount: 0,
         student_contribution_review: "No",
         spouse_contribution_review: "No",
         parent_contribution_review: "No",
       };
       assessment.period = assessment.study_months <= 4 ? "S" : "P";
+
+      console.log(assessment);
 
       commit("SET_ASSESSMENT", assessment);
       dispatch("save");
@@ -435,5 +454,3 @@ function formatMoney(input) {
 
   return "";
 }
-
-function buildAssessment(application, fundingReqest) {}
