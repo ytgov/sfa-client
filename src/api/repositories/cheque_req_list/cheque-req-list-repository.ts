@@ -12,15 +12,10 @@ interface ChequeReqDTO {
 }
 
 export class ChequeReqList extends BaseRepository {
-  //private applicationRepo: ApplicationRepository;
-  //private application: Partial<ApplicationDTO> = {};
-
   constructor(maindb: Knex<any, unknown>) {
     super(maindb);
-    //this.applicationRepo = new ApplicationRepository(maindb);
   }
 
-  //AfterPForm ()
   async validate(issueDate: string, start_p: number): Promise<any> {
     try {
       let records: any = [];
@@ -45,7 +40,7 @@ export class ChequeReqList extends BaseRepository {
         .where("financial_batch_serial_no", serial_no_p)
         .whereNotNull("issue_date"); //NOTE: Amy has confirmed that as long as the batch report will not pick up disbursements until they have an issue date
 
-      if (!disburseCount?.[0].count) {
+      if (!disburseCount[0].count) {
         return { success: false, text: "There are no new disbursements for this date. This will end the report." };
       } else {
         records = (await this.getInfoFileDAT(issueDate, serial_no_p || 0)) ?? []; //cheque_req_export;
@@ -175,6 +170,7 @@ export class ChequeReqList extends BaseRepository {
       return undefined;
     }
   }
+
   async getBatchTotal(issueDate: string, serialNo: number, isSigned: boolean): Promise<any> {
     try {
       const batchTotal = await this.mainDb
@@ -212,7 +208,7 @@ export class ChequeReqList extends BaseRepository {
       return undefined;
     }
   }
-  //assign_cheque_req_batch ()
+
   async assignChequeReqBatch(issueDate: string): Promise<number | undefined> {
     try {
       const fb_serial = await this.getScalarValue<number>("get_serial_fct", [`'${issueDate}'`]);
@@ -381,6 +377,7 @@ export class ChequeReqList extends BaseRepository {
       return undefined;
     }
   }
+
   generateFileName(issueDateStr: string, serialNo: number): string {
     const issueDate = new Date(issueDateStr);
 
