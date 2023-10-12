@@ -8,7 +8,6 @@ export const chequeReqRouter = express.Router();
 
 chequeReqRouter.get("/", async (req: Request, res: Response) => {
   const { issueDate = "", reRunBatch = null } = req.query;
-  console.log("CHEKC REQ");
 
   try {
     let start_p = 0;
@@ -25,9 +24,6 @@ chequeReqRouter.get("/", async (req: Request, res: Response) => {
     }
 
     const chequeRequest = new ChequeReqList(db);
-
-    console.log("VALIDATE")
-
     const records: any = await chequeRequest.validate(issueDate.toString(), start_p);
 
     return res.status(200).json({ ...records });
