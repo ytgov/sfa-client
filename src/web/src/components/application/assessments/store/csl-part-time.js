@@ -216,6 +216,7 @@ const actions = {
       commit("SET_APPLICATION", application);
       commit("SET_FUNDINGREQUEST", resp.data.data.funding_request);
       commit("SET_DISBURSEMENTS", resp.data.data.disbursements);
+      commit("SET_MSFAA", resp.data.data.msfaa);
 
       if (resp.data.data.assessment) {
         let assessment = resp.data.data.assessment;
