@@ -157,7 +157,7 @@ import CsgDisbursements from "../csg-disbursements.vue";
 export default {
   components: { CsgDisbursements },
   data: () => ({
-    disburseCount: 2,
+    disburseCount: 1,
     assessed_date_menu: false,
   }),
   computed: {

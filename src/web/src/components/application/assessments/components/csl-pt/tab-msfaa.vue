@@ -83,8 +83,8 @@
 
         <v-col cols="12" md="6">
           <v-text-field
-            :value="msfaa.number"
-            label="Home email"
+            :value="formatDate(msfaa.last_reminder_sent)"
+            label="Reminder sent"
             readonly
             outlined
             dense
@@ -106,35 +106,12 @@
             append-icon="mdi-lock"
           ></v-text-field>
         </v-col>
+        <v-col cols="12" md="6"> </v-col>
 
-        <v-col cols="12" md="6">
-          <v-text-field
-            :value="formatDate(msfaa.last_reminder_sent)"
-            label="Reminder sent"
-            readonly
-            outlined
-            dense
-            hide-details
-            background-color="#ddd"
-            append-icon="mdi-lock"
-          ></v-text-field>
-        </v-col>
         <v-col cols="12" md="6">
           <v-text-field
             :value="msfaa.msfaa_status"
             label="NSLSC status"
-            readonly
-            outlined
-            dense
-            hide-details
-            background-color="#ddd"
-            append-icon="mdi-lock"
-          ></v-text-field>
-        </v-col>
-        <v-col cols="12" md="6">
-          <v-text-field
-            :value="msfaa.number"
-            label="Update status"
             readonly
             outlined
             dense
@@ -156,6 +133,7 @@ import moment from "moment";
 export default {
   data: () => ({}),
   computed: {
+    ...mapState({ student: "selectedStudent" }),
     ...mapState("cslPartTimeStore", ["assessment", "msfaa"]),
   },
   methods: {

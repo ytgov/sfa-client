@@ -71,7 +71,7 @@ const getters = {
   },
 
   assessedAmount(state, getters) {
-    if (isUndefined(state.assessment.study_months)) return 0;
+    if (isUndefined(state.assessment.study_months) || getters.familyIncome >= getters.threshold.income_cutoff) return 0;
 
     let amt = Math.max(
       0,
@@ -104,9 +104,9 @@ const getters = {
     return "";
   },
   needRemaining(state) {
-    let totalNeed =  store.getters["cslPartTimeStore/totalCosts"];
+    let totalNeed = store.getters["cslPartTimeStore/totalCosts"];
     return totalNeed - store.getters["csgPartTimeDisabilityStore/assessedAmount"];
-  }
+  },
 };
 const mutations = {
   SET_THRESHOLDS(state, value) {
@@ -206,7 +206,7 @@ const actions = {
   },
 
   async recalculate({ state, dispatch, commit }) {
-    dispatch("loadAssessment", { id: state.fundingRequest.application_id, refreshChild: false }).then(() => {
+    dispatch("loadAssessment", state.fundingRequest.application_id).then(() => {
       let parent = state.parentAssessment;
 
       let assessment = {
@@ -329,6 +329,17 @@ const actions = {
       .post(`${APPLICATION_URL}/${state.application.id}/status`, {
         request_type_id: REQUEST_TYPE_ID,
         received_date: new Date(),
+      })
+      .then((resp) => {
+        dispatch("loadAssessment", state.application.id);
+      });
+  },
+  async updateFundingRequest({ state, dispatch }) {
+    return await axios
+      .put(`${APPLICATION_URL}/${state.application.id}/status/${state.fundingRequest.id}`, {
+        status_id: state.fundingRequest.status_id,
+        status_date: new Date(),
+        status_reason_id: state.fundingRequest.status_reason_id,
       })
       .then((resp) => {
         dispatch("loadAssessment", state.application.id);

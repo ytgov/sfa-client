@@ -207,7 +207,7 @@ import CslptDisbursements from "../cslpt-disbursements.vue";
 export default {
   components: { CslptDisbursements },
   data: () => ({
-    disburseCount: 2,
+    disburseCount: 1,
   }),
   computed: {
     ...mapState({ application: "selectedApplication" }),

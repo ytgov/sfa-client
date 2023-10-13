@@ -297,7 +297,6 @@ const actions = {
       await store.dispatch("csgPartTimeStore/initialize", { app: application, assessment: state.assessment });
       await store.dispatch("csgPartTimeDependentStore/initialize", { app: application, assessment: state.assessment });
       await store.dispatch("csgPartTimeDisabilityStore/initialize", { app: application, assessment: state.assessment });
-      console.log(getters.needRemaining);
     });
   },
 

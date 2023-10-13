@@ -109,6 +109,8 @@ export default {
     await this.setStudyAreas();
     await this.setProvinces();
     await this.setPrograms();
+    await this.setStatus();
+    await this.setStatusReasons();
   },
   computed: {
     ...mapState({ application: "selectedApplication" }),
@@ -129,6 +131,8 @@ export default {
       "setStudyAreas",
       "setProvinces",
       "setPrograms",
+      "setStatus",
+      "setStatusReasons",
     ]),
 
     showSuccess(mgs) {

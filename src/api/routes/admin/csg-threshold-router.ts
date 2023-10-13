@@ -411,7 +411,7 @@ csgThresholdRouter.post(
       let fundingRequest = await db("sfa.funding_request").where({ id: funding_request_id }).first();
 
       if (fundingRequest && fundingRequest.request_type_id == CSLPT_REQUEST_TYPE_ID) {
-        let msfaaForApplication = await db("sfa.msfaa").where({ application_id });
+        let msfaaForApplication = await db("sfa.msfaa").where({ application_id, is_full_time: false });
 
         if (msfaaForApplication.length == 0) {
           let app = await db("sfa.application").where({ id: application_id }).select("student_id").first();
