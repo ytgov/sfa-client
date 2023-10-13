@@ -662,7 +662,7 @@ applicationRouter.post(
           if (newRecord.request_type_id === 1) {
             const isSTACandidate = await db("sfa.institution_campus")
               .where({ id: application.institution_campus_id })
-              .whereIn("institution_id", [30, 811])
+              .whereIn("institution_id", [30, 811, 852]) // Alkan, Yukon College, Yukon University
               .first();
 
             if (!isSTACandidate?.id) {
