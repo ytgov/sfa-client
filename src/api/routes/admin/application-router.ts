@@ -168,29 +168,30 @@ applicationRouter.post(
   }
 );
 
-applicationRouter.get("/flags",  async (req: Request, res: Response) => {
+applicationRouter.get("/flags", async (req: Request, res: Response) => {
   let flagList = await db("sfa.application").whereNotNull("flags").select("flags").distinct();
-  let flags = uniq(flagList.flatMap(f => f.flags.split(","))).map(i => i.trim()).filter(i => !isEmpty(i));
+  let flags = uniq(flagList.flatMap((f) => f.flags.split(",")))
+    .map((i) => i.trim())
+    .filter((i) => !isEmpty(i));
 
-  res.json({data: flags })
-}) 
+  res.json({ data: flags });
+});
 
 applicationRouter.get("/flags/:flag", ReturnValidationErrors, async (req: Request, res: Response) => {
   try {
     const { flag } = req.params;
     let applications = await db("sfa.application")
-        .leftJoin("sfa.institution_campus", "application.institution_campus_id", "institution_campus.id")
-        .leftJoin("sfa.institution", "institution.id", "institution_campus.institution_id")
-        .leftJoin("sfa.student", "student.id", "application.student_id")
-        .leftJoin("sfa.person", "student.person_id", "person.id")
-        .select("application.*")
-        .select("institution.name as institution_name")
-        .select("person.first_name")
-        .select("person.last_name")
-        .limit(150)
-        .whereLike("flags", `%${flag}%`)
-        .orderBy("updated_at", "desc");
-    
+      .leftJoin("sfa.institution_campus", "application.institution_campus_id", "institution_campus.id")
+      .leftJoin("sfa.institution", "institution.id", "institution_campus.institution_id")
+      .leftJoin("sfa.student", "student.id", "application.student_id")
+      .leftJoin("sfa.person", "student.person_id", "person.id")
+      .select("application.*")
+      .select("institution.name as institution_name")
+      .select("person.first_name")
+      .select("person.last_name")
+      .limit(150)
+      .whereLike("flags", `%${flag}%`)
+      .orderBy("updated_at", "desc");
 
     for (let item of applications) {
       item.title = `${item.first_name} ${item.last_name} - ${item.academic_year_id}: ${item.institution_name}`;
@@ -526,72 +527,81 @@ applicationRouter.get("/:id", [param("id").notEmpty()], ReturnValidationErrors, 
   res.status(404).send();
 });
 
+applicationRouter.delete(
+  "/:id",
+  [param("id").notEmpty()],
+  ReturnValidationErrors,
+  async (req: Request, res: Response) => {
+    const { id } = req.params;
 
-applicationRouter.delete("/:id", [param("id").notEmpty()], ReturnValidationErrors, async (req: Request, res: Response) => {
-  const {id} = req.params;
+    let disbursements = await db("sfa.disbursement")
+      .join("sfa.funding_request", "funding_request.id", "disbursement.funding_request_id")
+      .where("funding_request.application_id", id)
+      .select("disbursement.*");
 
-  let disbursements = await db("sfa.disbursement")
-    .join("sfa.funding_request","funding_request.id","disbursement.funding_request_id")
-    .where("funding_request.application_id", id)
-    .select("disbursement.*");
+    if (disbursements.length > 0) {
+      return res.status(400).json({
+        data: {},
+        messages: [{ variant: "error", text: "This application has disbursements and cannot be deleted" }],
+      });
+    }
 
-  if (disbursements.length > 0) {
-    return res.status(400).json({data: {}, messages: [{variant: "error", text: "This application has disbursements and cannot be deleted"}]})
-  }
+    let fundingRequests = await db("sfa.funding_request").where({ application_id: id }).select("id");
+    let frIds = fundingRequests.map((r) => r.id);
 
-  let fundingRequests = await db("sfa.funding_request").where({application_id: id}).select("id");
-  let frIds = fundingRequests.map(r => r.id);
-  
-  let msfaas = await db("sfa.msfaa").where({application_id: id}).select("id");
-  let msIds = msfaas.map(r => r.id);
+    let msfaas = await db("sfa.msfaa").where({ application_id: id }).select("id");
+    let msIds = msfaas.map((r) => r.id);
 
-  let trx = await db.transaction();
+    let trx = await db.transaction();
 
-  try {
-    let d1 = trx("sfa.agency_assistance").where({application_id: id}).delete()
-    let d2 = trx("sfa.application_part_time_reason").where({application_id: id}).delete()
-    let d3 = trx("sfa.course_enrolled").where({application_id: id}).delete()
-    let d4 = trx("sfa.dependent_eligibility").where({application_id: id}).delete()
-    let d5 = trx("sfa.disability").where({application_id: id}).delete()
-    let d6 = trx("sfa.disability_requirement").where({application_id: id}).delete()
-    let d7 = trx("sfa.equipment_required").where({application_id: id}).delete()
-    let d8 = trx("sfa.expense").where({application_id: id}).delete()
-    let d9 = trx("sfa.income").where({application_id: id}).delete()
-    let d10 = trx("sfa.investment").where({application_id: id}).delete()
-    let d11 = trx("sfa.parent_dependent").where({application_id: id}).delete()
-    let d12 = trx("sfa.parent_resident").where({application_id: id}).delete()
-    let d13 = trx("sfa.requirement_met").where({application_id: id}).delete()
-    let d14 = trx("sfa.file_reference").where({application_id: id}).update({application_id: null})
-    let d15 = trx("sfa.csl_nars_history").where({application_id: id}).delete()
-    let d16 = trx("sfa.disbursement").whereIn("funding_request_id", frIds).delete()
-    let d17 = trx("sfa.assessment").whereIn("funding_request_id", frIds).delete()
-    let d18 = trx("sfa.msfaa_email_log").whereIn("msfaa_id", msIds).delete()
-    let d19 = trx("sfa.communication_log").whereIn("msfaa_id", msIds).delete()
-    
-    Promise.all([d1,d2,d3,d4,d5,d6,d7,d8,d9,d10,d11,d12,d13,d14,d15,d16,d17,d18,d19])
-      .then(async () => {
-        let d20 = trx("sfa.funding_request").where({application_id: id}).delete()
-        let d21 = trx("sfa.msfaa").where({application_id: id}).delete()
+    try {
+      let d1 = trx("sfa.agency_assistance").where({ application_id: id }).delete();
+      let d2 = trx("sfa.application_part_time_reason").where({ application_id: id }).delete();
+      let d3 = trx("sfa.course_enrolled").where({ application_id: id }).delete();
+      let d4 = trx("sfa.dependent_eligibility").where({ application_id: id }).delete();
+      let d5 = trx("sfa.disability").where({ application_id: id }).delete();
+      let d6 = trx("sfa.disability_requirement").where({ application_id: id }).delete();
+      let d7 = trx("sfa.equipment_required").where({ application_id: id }).delete();
+      let d8 = trx("sfa.expense").where({ application_id: id }).delete();
+      let d9 = trx("sfa.income").where({ application_id: id }).delete();
+      let d10 = trx("sfa.investment").where({ application_id: id }).delete();
+      let d11 = trx("sfa.parent_dependent").where({ application_id: id }).delete();
+      let d12 = trx("sfa.parent_resident").where({ application_id: id }).delete();
+      let d13 = trx("sfa.requirement_met").where({ application_id: id }).delete();
+      let d14 = trx("sfa.file_reference").where({ application_id: id }).update({ application_id: null });
+      let d15 = trx("sfa.csl_nars_history").where({ application_id: id }).delete();
+      let d16 = trx("sfa.disbursement").whereIn("funding_request_id", frIds).delete();
+      let d17 = trx("sfa.assessment").whereIn("funding_request_id", frIds).delete();
+      let d18 = trx("sfa.msfaa_email_log").whereIn("msfaa_id", msIds).delete();
+      let d19 = trx("sfa.communication_log").whereIn("msfaa_id", msIds).delete();
 
-        await Promise.all([d20, d21]).then(async () => {
-          return trx("sfa.application").where({id}).delete();
+      Promise.all([d1, d2, d3, d4, d5, d6, d7, d8, d9, d10, d11, d12, d13, d14, d15, d16, d17, d18, d19])
+        .then(async () => {
+          let d20 = trx("sfa.funding_request").where({ application_id: id }).delete();
+          let d21 = trx("sfa.msfaa").where({ application_id: id }).delete();
+
+          await Promise.all([d20, d21]).then(async () => {
+            return trx("sfa.application").where({ id }).delete();
+          });
+
+          await trx.commit();
+          res.json({ data: {}, messages: [{ variant: "success", text: "Application deleted" }] });
+        })
+        .catch(async (err) => {
+          await trx.rollback();
+          console.log("ERROR DELETING, ROLLBACK", err.message);
+          return res
+            .status(500)
+            .json({ data: {}, messages: [{ variant: "error", text: "Error deleting application: " + err.message }] });
         });
-
-        await trx.commit();
-        res.json({data: {}, messages: [{variant: "success", text: "Application deleted"}]})
-      })
-      .catch(async(err) => {
-        await trx.rollback();
-        console.log("ERROR DELETING, ROLLBACK", err.message)
-        return res.status(500).json({ data: {}, messages: [{variant: "error", text: "Error deleting application: " + err.message}]})
-      })
+    } catch (e: any) {
+      trx.rollback();
+      return res
+        .status(500)
+        .json({ data: {}, messages: [{ variant: "error", text: "Error deleting application: " + e.message }] });
+    }
   }
-  catch(e: any) {
-    trx.rollback();
-    return res.status(500).json({ data: {}, messages: [{variant: "error", text: "Error deleting application: " + e.message}]})
-  }
-});
-
+);
 
 applicationRouter.put("/:id", [param("id").notEmpty()], ReturnValidationErrors, async (req: Request, res: Response) => {
   let { id } = req.params;
@@ -635,18 +645,18 @@ applicationRouter.post(
           status_date,
           comments,
         };
-        const checkIsActive = await db("sfa.request_type").where("id", request_type_id).first();
 
-        const checkIfExist = await db("sfa.funding_request")
-          .where("request_type_id", request_type_id)
-          .where("application_id", application_id)
-          .first();
+        // see if this application already has this funding request
+        const checkIfExist = await db("sfa.funding_request").where({ request_type_id, application_id }).first();
 
         if (checkIfExist) {
           return res.json({
             messages: [{ variant: "error", text: "A record already exist with the same information" }],
           });
         }
+
+        // make sure request type is active
+        const checkIsActive = await db("sfa.request_type").where("id", request_type_id).first();
 
         if (checkIsActive?.is_active) {
           if (newRecord.request_type_id === 1) {
@@ -742,103 +752,115 @@ applicationRouter.post("/:application_id/student/:student_id/files", async (req:
 
 // updates _met
 applicationRouter.post(
-    "/:application_id/student/:student_id/files/:requirement_type_id",
-    [
-        param("application_id").isInt().notEmpty(), 
-        param("student_id").isInt().notEmpty(), 
-        param("requirement_type_id").isInt().notEmpty()
-    ],    
-    ReturnValidationErrors,
-    async (req: Request, res: Response) => {                     
-        try {            
-            const { application_id, student_id, requirement_type_id } = req.params;
-            let { completed_date, data } = req.body;                    
-            const application: any = await db("sfa.file_reference").where({ application_id: application_id }).andWhere({ student_id: student_id }).andWhere({ requirement_type_id: requirement_type_id }).first();
+  "/:application_id/student/:student_id/files/:requirement_type_id",
+  [
+    param("application_id").isInt().notEmpty(),
+    param("student_id").isInt().notEmpty(),
+    param("requirement_type_id").isInt().notEmpty(),
+  ],
+  ReturnValidationErrors,
+  async (req: Request, res: Response) => {
+    try {
+      const { application_id, student_id, requirement_type_id } = req.params;
+      let { completed_date, data } = req.body;
+      const application: any = await db("sfa.file_reference")
+        .where({ application_id: application_id })
+        .andWhere({ student_id: student_id })
+        .andWhere({ requirement_type_id: requirement_type_id })
+        .first();
 
-            const alreadyExist: any = await db("sfa.requirement_met").where({ application_id: application_id }).andWhere({ requirement_type_id: requirement_type_id }).first();
-            const compDate = completed_date;        
+      const alreadyExist: any = await db("sfa.requirement_met")
+        .where({ application_id: application_id })
+        .andWhere({ requirement_type_id: requirement_type_id })
+        .first();
+      const compDate = completed_date;
 
-            if (application) {      
-                if(alreadyExist) {                               
-                    try {            
-                        const appId = application_id;                                         
-                        const resUpdate = await db("sfa.requirement_met").where({application_id: application_id}).andWhere({requirement_type_id: requirement_type_id})
-                            //.update({ ...data });
-                            .update({ completed_date: completed_date && completed_date !== 'null' ? completed_date : null});
-                                    
-                        return resUpdate ?
-                            res.json({ messages: [{ variant: "success", text: "Saved" }] })
-                            :
-                            res.json({ messages: [{ variant: "error", text: "Failed" }] });
-                        
-                    } catch (error) {
-                        return res.json({ messages: [{ text: "Failed to update Funding Request", variant: "error" }] });
-                    }
-                } else {                    
-                    let resInsert;          
-                    try {
-                        resInsert = await db("sfa.requirement_met").insert({ completed_date: completed_date && completed_date !== 'null' ? completed_date : null, requirement_type_id, application_id });   
-                                                         
-                    } catch(error) {                                                
-                        console.log(error)
-                        return res.json({ messages: [{ variant: "error", text: "Failed to update Funding Request" }] });
-                    }
-                    return resInsert ?
-                    res.json({ messages: [{ variant: "success", text: "Saved" }] })
-                    :
-                    res.json({ messages: [{ variant: "error", text: "Save failed" }] });
-                }
-                
+      if (application) {
+        if (alreadyExist) {
+          try {
+            const appId = application_id;
+            const resUpdate = await db("sfa.requirement_met")
+              .where({ application_id: application_id })
+              .andWhere({ requirement_type_id: requirement_type_id })
+              //.update({ ...data });
+              .update({ completed_date: completed_date && completed_date !== "null" ? completed_date : null });
 
-            }
-
-            return res.status(404).send();
-
-        } catch (error) {
-            console.error(error);
-            return res.status(400).send(error);
+            return resUpdate
+              ? res.json({ messages: [{ variant: "success", text: "Saved" }] })
+              : res.json({ messages: [{ variant: "error", text: "Failed" }] });
+          } catch (error) {
+            return res.json({ messages: [{ text: "Failed to update Funding Request", variant: "error" }] });
+          }
+        } else {
+          let resInsert;
+          try {
+            resInsert = await db("sfa.requirement_met").insert({
+              completed_date: completed_date && completed_date !== "null" ? completed_date : null,
+              requirement_type_id,
+              application_id,
+            });
+          } catch (error) {
+            console.log(error);
+            return res.json({ messages: [{ variant: "error", text: "Failed to update Funding Request" }] });
+          }
+          return resInsert
+            ? res.json({ messages: [{ variant: "success", text: "Saved" }] })
+            : res.json({ messages: [{ variant: "error", text: "Save failed" }] });
         }
+      }
+
+      return res.status(404).send();
+    } catch (error) {
+      console.error(error);
+      return res.status(400).send(error);
     }
+  }
 );
 
 // downloads a document with extra parameters
 applicationRouter.get(
-    "/:application_id/student/:student_id/files/:file_type/fellow_type/:fellow_type/fellow/:fellow", 
-    async (req: Request, res: Response) => {                      
-    
-    const { student_id, application_id, file_type, fellow_type, fellow } = req.params;    
+  "/:application_id/student/:student_id/files/:file_type/fellow_type/:fellow_type/fellow/:fellow",
+  async (req: Request, res: Response) => {
+    const { student_id, application_id, file_type, fellow_type, fellow } = req.params;
 
-    
-    let doc:any;
-    switch(fellow_type) {
-        case "dependent":                    
-            doc = await db("sfa.file_reference").where({ application_id: application_id}).andWhere({student_id: student_id}).andWhere
-            ({requirement_type_id: file_type}).andWhere({dependent_id: fellow}).orderBy("upload_date", "desc").first();                      
-            break;
-        case "parent":
-            doc = await db("sfa.file_reference").where({ application_id: application_id}).andWhere({student_id: student_id}).andWhere
-            ({requirement_type_id: file_type}).andWhere({fellow_type: fellow}).orderBy("upload_date", "desc").first();   
-            break;
-        
+    let doc: any;
+    switch (fellow_type) {
+      case "dependent":
+        doc = await db("sfa.file_reference")
+          .where({ application_id: application_id })
+          .andWhere({ student_id: student_id })
+          .andWhere({ requirement_type_id: file_type })
+          .andWhere({ dependent_id: fellow })
+          .orderBy("upload_date", "desc")
+          .first();
+        break;
+      case "parent":
+        doc = await db("sfa.file_reference")
+          .where({ application_id: application_id })
+          .andWhere({ student_id: student_id })
+          .andWhere({ requirement_type_id: file_type })
+          .andWhere({ fellow_type: fellow })
+          .orderBy("upload_date", "desc")
+          .first();
+        break;
     }
-    
-    if(doc) {
-        let fileReference = await documentService.getDocumentWithFile(doc.object_key);    
-    
-        if (
-            fileReference &&
-            fileReference.student_id == parseInt(student_id) &&
-            fileReference.application_id == parseInt(application_id)
-        ) {
-            res.set("Content-disposition", "attachment; filename=" + fileReference.file_name);
-            res.set("Content-type", fileReference.mime_type);
-            return res.send(fileReference.file_contents);
-        }
-            
+
+    if (doc) {
+      let fileReference = await documentService.getDocumentWithFile(doc.object_key);
+
+      if (
+        fileReference &&
+        fileReference.student_id == parseInt(student_id) &&
+        fileReference.application_id == parseInt(application_id)
+      ) {
+        res.set("Content-disposition", "attachment; filename=" + fileReference.file_name);
+        res.set("Content-type", fileReference.mime_type);
+        return res.send(fileReference.file_contents);
+      }
     }
-    
+
     res.status(404).send();
-    }
+  }
 );
 
 applicationRouter.put(
@@ -952,7 +974,7 @@ applicationRouter.delete(
   async (req: Request, res: Response) => {
     const { id } = req.params;
     try {
-      const verifyRecord: any = await db("sfa.funding_request").where({ id: id }).first();
+      const verifyRecord: any = await db("sfa.funding_request").where({ id }).first();
 
       if (!verifyRecord) {
         return res.status(404).send({ messages: [{ variant: "error", text: "The record does not exits" }] });
@@ -2408,10 +2430,9 @@ applicationRouter.post(
                     .innerJoin("sfa.student AS s", "s.id", "app.student_id")
                     .where("a.id", insert_response[0].id)
                     .first();
-                  
+
                   if (student?.vendor_id) {
                     for (const item of dataDisburse) {
-
                       if (!existYEARequestType && item?.disbursement_type_id === 1) {
                         existYEARequestType = true;
                       }
@@ -2444,16 +2465,17 @@ applicationRouter.post(
                     const updateYeaRequestType = await db("sfa.funding_request")
                       .where({ id: funding_request_id })
                       .update({ yea_request_type: existYEARequestType ? 1 : 2 });
-
                   } else {
                     return res.json({
                       messages: [
-                        { text: "Saved, but student must have a Vendor ID to create disbursements", variant: "success" },
+                        {
+                          text: "Saved, but student must have a Vendor ID to create disbursements",
+                          variant: "success",
+                        },
                       ],
                       data: [],
                     });
                   }
-                  
                 }
 
                 const updateStatusFundingRequest = await db("sfa.funding_request")

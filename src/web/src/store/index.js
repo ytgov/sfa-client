@@ -80,6 +80,9 @@ import csgMatureStore from "../components/application/assessments/store/csg-matu
 import csgFullTimeStore from "../components/application/assessments/store/csg-full-time";
 import csgDisabilitySEStore from "../components/application/assessments/store/csg-disability-se";
 import cslPartTimeStore from "../components/application/assessments/store/csl-part-time";
+import csgPartTimeStore from "../components/application/assessments/store/csg-part-time";
+import csgPartTimeDependentStore from "../components/application/assessments/store/csg-part-time-dependent";
+import csgPartTimeDisabilityStore from "../components/application/assessments/store/csg-part-time-disability";
 
 // Administration Stores
 import reportsStore from "@/modules/Administration/store/ReportsStore";
@@ -571,7 +574,10 @@ export default new Vuex.Store({
     csgFullTimeStore,
     csgDisabilitySEStore,
     cslPartTimeStore,
-
+    csgPartTimeStore,
+    csgPartTimeDependentStore,
+    csgPartTimeDisabilityStore,
+    
     reportsStore,
   },
 });

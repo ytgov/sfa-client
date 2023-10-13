@@ -10,7 +10,7 @@
     <div class="mt-4">
       <v-card class="default mb-1 bg-color-blue">
         <v-card-title class="pb-3"
-          >Assessment - CSLPT
+          >Assessment: CSL-PT
           <v-spacer></v-spacer>
           <v-btn dense color="primary" class="my-0" @click="saveClick" :disabled="!assessment.id">
             Recalculate
@@ -19,68 +19,74 @@
         <v-divider class="mt-1"></v-divider>
 
         <v-tabs v-model="tab">
-          <v-tab key="0">BASE</v-tab>
-          <v-tab key="1">COSTS</v-tab>
-          <v-tab key="2">Grant</v-tab>
-          <v-tab key="3">Dependent Grant</v-tab>
-          <v-tab key="4">Disability Grant</v-tab>
-          <v-tab key="5">AWARD</v-tab>
+          <v-tab key="0">Base</v-tab>
+          <v-tab key="1">Costs<br />{{ formatMoney(totalCosts) }}</v-tab>
+          <v-tab key="2"
+            >CSGD<br />
+            {{ formatMoney(disAmount) }}</v-tab
+          >
+          <v-tab key="3">CSG-PT<br />{{ formatMoney(grantAmount) }}</v-tab>
+          <v-tab key="4"
+            >CSG-PTDEP<br />
+            {{ formatMoney(depAmount) }}</v-tab
+          >
+          <v-tab key="5">CSL-PT<br />{{ formatMoney(assessedAmount) }}</v-tab>
           <v-tab key="6">MSFAA</v-tab>
         </v-tabs>
         <v-divider></v-divider>
-        <v-card-text v-if="assessment" class="pt-0">
-          <v-tabs-items v-model="tab" class="pt-4">
-            <v-tab-item key="0">
-              <tab-base></tab-base>
-            </v-tab-item>
-            <v-tab-item key="1">
-              <tab-costs></tab-costs>
-            </v-tab-item>
-            <v-tab-item key="2">
-              <tab-award></tab-award>
-            </v-tab-item>
-            <v-tab-item key="3">
-              <tab-award></tab-award>
-            </v-tab-item>
-            <v-tab-item key="4">
-              <tab-award></tab-award>
-            </v-tab-item>
-            <v-tab-item key="5">
-              <tab-award></tab-award>
-            </v-tab-item>
-            <v-tab-item key="6">
-              <tab-msfaa></tab-msfaa>
-            </v-tab-item>
-          </v-tabs-items>
-        </v-card-text>
-      </v-card>
-    </div>
-    <div class="mt-4" v-if="[2,3,4,5].includes(tab)">
-      <v-card class="default mb-5 bg-color-blue">
-        <v-card-text>
-          <cslpt-disbursements
-            :disbursements="disbursements"
-            v-on:showError="showError"
-            v-on:showSuccess="showSuccess"
-          ></cslpt-disbursements>
-        </v-card-text>
+        <!--  <v-card-text class="pt-0"> -->
+        <v-tabs-items v-if="assessment" v-model="tab">
+          <v-tab-item key="0">
+            <tab-base></tab-base>
+          </v-tab-item>
+          <v-tab-item key="1">
+            <tab-costs></tab-costs>
+          </v-tab-item>
+          <v-tab-item key="2">
+            <tab-disability v-on:showError="showError" v-on:showSuccess="showSuccess"></tab-disability>
+          </v-tab-item>
+          <v-tab-item key="3">
+            <tab-grant></tab-grant>
+          </v-tab-item>
+          <v-tab-item key="4">
+            <tab-dependent></tab-dependent>
+          </v-tab-item>
+          <v-tab-item key="5">
+            <tab-award></tab-award>
+          </v-tab-item>
+          <v-tab-item key="6">
+            <tab-msfaa></tab-msfaa>
+          </v-tab-item>
+        </v-tabs-items>
+        <!-- </v-card-text> -->
       </v-card>
     </div>
   </div>
 </template>
 <script>
 import store from "@/store";
+import { isNumber } from "lodash";
 import { mapActions, mapGetters, mapState } from "vuex";
-import CslptDisbursements from "../components/cslpt-disbursements.vue";
 
 import TabBase from "../components/csl-pt/tab-base.vue";
 import TabCosts from "../components/csl-pt/tab-costs.vue";
 import TabAward from "../components/csl-pt/tab-award.vue";
+import TabGrant from "../components/csl-pt/tab-grant.vue";
+import TabDependent from "../components/csl-pt/tab-dependent.vue";
+import TabDisability from "../components/csl-pt/tab-disability.vue";
 import TabMsfaa from "../components/csl-pt/tab-msfaa.vue";
 
 export default {
   name: "Home",
-  components: { CslptDisbursements, TabBase, TabCosts, TabAward, TabMsfaa },
+  components: {
+    TabBase,
+    TabCosts,
+    TabGrant,
+    TabDependent,
+    TabDisability,
+    TabAward,
+    TabMsfaa,
+  },
   data: () => ({
     tab: 0,
   }),
@@ -107,10 +113,14 @@ export default {
   computed: {
     ...mapState({ application: "selectedApplication" }),
     ...mapState("cslPartTimeStore", ["assessment", "disbursements"]),
+    ...mapGetters("cslPartTimeStore", ["totalCosts", "assessedAmount"]),
+    ...mapGetters("csgPartTimeStore", { grantAmount: "assessedAmount" }),
+    ...mapGetters("csgPartTimeDependentStore", { depAmount: "assessedAmount" }),
+    ...mapGetters("csgPartTimeDisabilityStore", { disAmount: "assessedAmount" }),
     ...mapGetters(["cslClassifications", "disbursementTypes", "changeReasons"]),
   },
   methods: {
-    ...mapActions("cslPartTimeStore", ["initialize"]),
+    ...mapActions("cslPartTimeStore", ["initialize", "recalculate"]),
     ...mapActions([
       "setCslClassifications",
       "setDisbursementTypes",
@@ -127,7 +137,19 @@ export default {
     showError(mgs) {
       this.$emit("showError", mgs);
     },
-    saveClick() {},
+    saveClick() {
+      this.recalculate();
+    },
+    formatMoney(input, defaultVal = false) {
+      if (isNumber(input)) {
+        return Intl.NumberFormat("en", {
+          currency: "USD",
+          style: "currency",
+        }).format(input);
+      }
+      if (defaultVal) return input;
+      return "$0.00";
+    },
   },
 };
 </script>

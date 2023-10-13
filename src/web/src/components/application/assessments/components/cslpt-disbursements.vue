@@ -4,7 +4,7 @@
       Disbursements
       <v-btn @click="addClick" color="primary" class="float-right" small>Add</v-btn>
     </h3>
-    <v-simple-table class="text-left narrow">
+    <v-simple-table class="text-left narrow" v-if="disbursements.length > 0">
       <template v-slot:default>
         <thead>
           <tr>
@@ -36,17 +36,17 @@
 
 <script>
 import store from "@/store";
-import { mapActions, mapGetters } from "vuex";
+import { mapActions, mapGetters, mapState } from "vuex";
 import CslDisbursementLine from "./csl-disbursement-line.vue";
 
 export default {
-  name: "CSGDisbursemetns",
-  props: ["disbursements"],
+  name: "CSLPTDisbursements",
   components: { CslDisbursementLine },
   data: () => ({}),
   created() {},
   computed: {
     ...mapGetters(["cslClassifications", "disbursementTypes", "changeReasons"]),
+    ...mapState("cslPartTimeStore", ["disbursements"]),
   },
   methods: {
     ...mapActions("cslPartTimeStore", ["addDisbursement", "removeDisbursement", "save"]),
