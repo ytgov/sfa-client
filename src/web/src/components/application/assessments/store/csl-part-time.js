@@ -115,10 +115,12 @@ const getters = {
   assessedAmount(state, getters) {
     let value = 0;
 
+    if (state.fundingRequest?.is_csg_only) return 0;
 
-    console.log(getters.totalCosts , getters.totalGrants)
+    let requestedAmount = state.fundingRequest?.csl_request_amount ?? 10000;
 
-    if (!getters.pastThreshold) value = Math.min(getters.maxAllowable, getters.totalCosts - getters.totalGrants);
+    if (!getters.pastThreshold)
+      value = Math.min(getters.maxAllowable, requestedAmount, getters.totalCosts - getters.totalGrants);
 
     state.assessment.assessed_amount = value;
     return value;
@@ -146,6 +148,16 @@ const getters = {
       return `${formatMoney(getters.threshold.income_threshold)} - ${formatMoney(getters.threshold.income_cutoff)}`;
     }
     return "";
+  },
+  needRemaining(state, getters) {
+    let totalNeed = getters.totalCosts;
+    let totalGrants =
+      store.getters["csgPartTimeDisabilityStore/assessedAmount"] +
+      store.getters["csgPartTimeStore/assessedAmount"] +
+      store.getters["csgPartTimeDependentStore/assessedAmount"];
+
+    state.assessment.total_grant_awarded = totalGrants;
+    return totalNeed - totalGrants;
   },
 };
 const mutations = {
@@ -177,6 +189,9 @@ const mutations = {
   },
   SET_ALLOWANCES(state, value) {
     state.allowances = value;
+  },
+  SET_MSFAA(state, value) {
+    state.msfaa = value;
   },
 };
 const actions = {
@@ -281,6 +296,7 @@ const actions = {
       await store.dispatch("csgPartTimeStore/initialize", { app: application, assessment: state.assessment });
       await store.dispatch("csgPartTimeDependentStore/initialize", { app: application, assessment: state.assessment });
       await store.dispatch("csgPartTimeDisabilityStore/initialize", { app: application, assessment: state.assessment });
+      console.log(getters.needRemaining);
     });
   },
 

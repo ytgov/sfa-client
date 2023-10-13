@@ -21,77 +21,44 @@
         <v-tabs v-model="tab">
           <v-tab key="0">Base</v-tab>
           <v-tab key="1">Costs<br />{{ formatMoney(totalCosts) }}</v-tab>
-          <v-tab key="2">CSG-PT<br />{{ formatMoney(grantAmount) }}</v-tab>
-          <v-tab key="3"
-            >CSG-PTDEP<br />
-            {{ formatMoney(depAmount) }}</v-tab
-          >
-          <v-tab key="4"
+          <v-tab key="2"
             >CSGD<br />
             {{ formatMoney(disAmount) }}</v-tab
+          >
+          <v-tab key="3">CSG-PT<br />{{ formatMoney(grantAmount) }}</v-tab>
+          <v-tab key="4"
+            >CSG-PTDEP<br />
+            {{ formatMoney(depAmount) }}</v-tab
           >
           <v-tab key="5">CSL-PT<br />{{ formatMoney(assessedAmount) }}</v-tab>
           <v-tab key="6">MSFAA</v-tab>
         </v-tabs>
         <v-divider></v-divider>
-        <v-card-text v-if="assessment" class="pt-0">
-          <v-tabs-items v-model="tab" class="pt-4">
-            <v-tab-item key="0">
-              <tab-base></tab-base>
-            </v-tab-item>
-            <v-tab-item key="1">
-              <tab-costs></tab-costs>
-            </v-tab-item>
-            <v-tab-item key="2">
-              <tab-grant></tab-grant>
-            </v-tab-item>
-            <v-tab-item key="3">
-              <tab-dependent></tab-dependent>
-            </v-tab-item>
-            <v-tab-item key="4">
-              <tab-disability></tab-disability>
-            </v-tab-item>
-            <v-tab-item key="5">
-              <tab-award></tab-award>
-            </v-tab-item>
-            <v-tab-item key="6">
-              <tab-msfaa></tab-msfaa>
-            </v-tab-item>
-          </v-tabs-items>
-        </v-card-text>
-      </v-card>
-    </div>
-    <div class="mt-4" v-if="[2, 3, 4, 5].includes(tab)">
-      <v-card class="default mb-5 bg-color-blue">
-        <v-card-text>
-          <csg-disbursements
-            v-if="[2].includes(tab)"
-            store="csgPartTimeStore"
-            v-on:showError="showError"
-            v-on:showSuccess="showSuccess"
-          ></csg-disbursements>
-
-          <csg-disbursements
-            v-if="[3].includes(tab)"
-            store="csgPartTimeDependentStore"
-            v-on:showError="showError"
-            v-on:showSuccess="showSuccess"
-          ></csg-disbursements>
-
-          <csg-disbursements
-            v-if="[4].includes(tab)"
-            store="csgPartTimeDisabilityStore"
-            v-on:showError="showError"
-            v-on:showSuccess="showSuccess"
-          ></csg-disbursements>
-
-          <cslpt-disbursements
-            v-if="[5].includes(tab)"
-            :disbursements="disbursements"
-            v-on:showError="showError"
-            v-on:showSuccess="showSuccess"
-          ></cslpt-disbursements>
-        </v-card-text>
+        <!--  <v-card-text class="pt-0"> -->
+        <v-tabs-items v-if="assessment" v-model="tab">
+          <v-tab-item key="0">
+            <tab-base></tab-base>
+          </v-tab-item>
+          <v-tab-item key="1">
+            <tab-costs></tab-costs>
+          </v-tab-item>
+          <v-tab-item key="2">
+            <tab-disability v-on:showError="showError" v-on:showSuccess="showSuccess"></tab-disability>
+          </v-tab-item>
+          <v-tab-item key="3">
+            <tab-grant></tab-grant>
+          </v-tab-item>
+          <v-tab-item key="4">
+            <tab-dependent></tab-dependent>
+          </v-tab-item>
+          <v-tab-item key="5">
+            <tab-award></tab-award>
+          </v-tab-item>
+          <v-tab-item key="6">
+            <tab-msfaa></tab-msfaa>
+          </v-tab-item>
+        </v-tabs-items>
+        <!-- </v-card-text> -->
       </v-card>
     </div>
   </div>
@@ -100,8 +67,6 @@
 import store from "@/store";
 import { isNumber } from "lodash";
 import { mapActions, mapGetters, mapState } from "vuex";
-import CslptDisbursements from "../components/cslpt-disbursements.vue";
-import CsgDisbursements from "../components/csg-disbursements.vue";
 
 import TabBase from "../components/csl-pt/tab-base.vue";
 import TabCosts from "../components/csl-pt/tab-costs.vue";
@@ -114,8 +79,6 @@ import TabMsfaa from "../components/csl-pt/tab-msfaa.vue";
 export default {
   name: "Home",
   components: {
-    CslptDisbursements,
-    CsgDisbursements,
     TabBase,
     TabCosts,
     TabGrant,

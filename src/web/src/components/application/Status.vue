@@ -17,8 +17,14 @@
     </div>
 
     <div class="row">
-      <div class="col-md-12" v-if="!assessmentComponent && showFundings">
-        <v-card class="default mb-5" v-for="(item, index) in application.funding_requests.filter(f => !requestTypesToHide.includes(f.request_type_id))" :key="index">
+      <div class="col-md-12" v-if="!assessmentComponent && showFundings && application.funding_requests">
+        <v-card
+          class="default mb-5"
+          v-for="(item, index) in application.funding_requests?.filter(
+            (f) => !requestTypesToHide.includes(f.request_type_id)
+          )"
+          :key="index"
+        >
           <v-card-title class="d-block mb-2">
             <div class="float-right text-right">
               <v-btn
@@ -199,7 +205,7 @@ export default {
       received_date_menu: false,
       assessmentsComponents: {},
     },
-    requestTypesToHide: [29,31]
+    requestTypesToHide: [31, 33, 34],
   }),
   async created() {
     this.loadFundingTypes();

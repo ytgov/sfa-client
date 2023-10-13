@@ -5,6 +5,8 @@ import { parse } from "vue-currency-input";
 import { APPLICATION_URL, CSG_THRESHOLD_URL } from "@/urls";
 import store from "@/store";
 
+const REQUEST_TYPE_ID = 33;
+
 const state = {
   csgThresholds: [],
   fundingRequest: {},
@@ -17,6 +19,15 @@ const state = {
   baseRate: {},
 };
 const getters = {
+  dependentCount(state) {
+    if (store.getters.selectedStudent && isArray(store.getters.selectedStudent.dependent_info)) {
+      return store.getters.selectedStudent.dependent_info.filter(
+        (d) => d.is_csg_eligible && d.application_id == state.fundingRequest.application_id
+      ).length;
+    }
+    return 0;
+  },
+
   disbursements(state) {
     return state.disbursements;
   },
@@ -104,6 +115,10 @@ const getters = {
 
     return val;
   },
+  needRemaining(state) {
+    let totalNeed =  store.getters["cslPartTimeStore/totalCosts"];
+    return totalNeed - store.getters["csgPartTimeDisabilityStore/assessedAmount"] - store.getters["csgPartTimeStore/assessedAmount"];
+  } 
 };
 const mutations = {
   SET_THRESHOLDS(state, value) {
@@ -344,6 +359,17 @@ const actions = {
           dispatch("loadAssessment", state.fundingRequest.application_id);
         });
     }
+  },
+
+  async createFundingRequest({ state, dispatch }) {
+    return await axios
+      .post(`${APPLICATION_URL}/${state.application.id}/status`, {
+        request_type_id: REQUEST_TYPE_ID,
+        received_date: new Date(),
+      })
+      .then((resp) => {
+        dispatch("loadAssessment", state.application.id);
+      });
   },
 };
 

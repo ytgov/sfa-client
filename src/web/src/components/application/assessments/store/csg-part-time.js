@@ -3,6 +3,9 @@ import moment from "moment";
 import { isNumber, isUndefined } from "lodash";
 import { parse } from "vue-currency-input";
 import { APPLICATION_URL, CSG_THRESHOLD_URL } from "@/urls";
+import store from "@/store";
+
+const REQUEST_TYPE_ID = 31;
 
 const state = {
   csgThresholds: [],
@@ -100,6 +103,10 @@ const getters = {
     }
     return "";
   },
+  needRemaining(state) {
+    let totalNeed =  store.getters["cslPartTimeStore/totalCosts"];
+    return totalNeed - store.getters["csgPartTimeDisabilityStore/assessedAmount"];
+  }
 };
 const mutations = {
   SET_THRESHOLDS(state, value) {
@@ -315,6 +322,17 @@ const actions = {
           dispatch("loadAssessment", state.fundingRequest.application_id);
         });
     }
+  },
+
+  async createFundingRequest({ state, dispatch }) {
+    return await axios
+      .post(`${APPLICATION_URL}/${state.application.id}/status`, {
+        request_type_id: REQUEST_TYPE_ID,
+        received_date: new Date(),
+      })
+      .then((resp) => {
+        dispatch("loadAssessment", state.application.id);
+      });
   },
 };
 

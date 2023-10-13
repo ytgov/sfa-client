@@ -3,6 +3,9 @@ import moment from "moment";
 import { isNumber } from "lodash";
 import { parse } from "vue-currency-input";
 import { APPLICATION_URL, CSG_THRESHOLD_URL } from "@/urls";
+import store from "@/store";
+
+const REQUEST_TYPE_ID = 34;
 
 const state = {
   csgThresholds: [],
@@ -34,6 +37,9 @@ const getters = {
     let rawVal = getters.assessedAmount - getters.previousDisbursements;
     if (rawVal > 0 && rawVal < 100) return 100.0;
     return Object.is(Math.round(rawVal), -0) ? 0 : Math.round(rawVal);
+  },
+  needRemaining(state) {
+    return store.getters["cslPartTimeStore/totalCosts"];
   },
 };
 const mutations = {
@@ -83,7 +89,7 @@ const actions = {
 
   loadAssessment({ commit, state }, applicationId) {
     axios
-      .get(`${CSG_THRESHOLD_URL}/csgd/${applicationId}`)
+      .get(`${CSG_THRESHOLD_URL}/csgdpt/${applicationId}`)
       .then((resp) => {
         commit("SET_FUNDINGREQUEST", resp.data.data.funding_request);
         commit("SET_DISBURSEMENTS", resp.data.data.disbursements);
@@ -252,6 +258,17 @@ const actions = {
           dispatch("loadAssessment", state.fundingRequest.application_id);
         });
     }
+  },
+
+  async createFundingRequest({ state, dispatch }) {
+    return await axios
+      .post(`${APPLICATION_URL}/${state.application.id}/status`, {
+        request_type_id: REQUEST_TYPE_ID,
+        received_date: new Date(),
+      })
+      .then((resp) => {
+        dispatch("loadAssessment", state.application.id);
+      });
   },
 };
 

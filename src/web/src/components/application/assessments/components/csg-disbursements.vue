@@ -4,7 +4,7 @@
       Disbursements
       <v-btn @click="addClick" color="primary" class="float-right" small>Add</v-btn>
     </h3>
-    <v-simple-table class="text-left narrow">
+    <v-simple-table class="text-left narrow" v-if="disbursements.length > 0">
       <template v-slot:default>
         <thead>
           <tr>
@@ -47,8 +47,6 @@ export default {
   computed: {
     ...mapGetters(["cslClassifications", "disbursementTypes", "changeReasons"]),
     disbursements() {
-      console.log("STORE: ",`${this.store}/disbursements`)
-
       let values = store.getters[`${this.store}/disbursements`];
       return values;
     },
