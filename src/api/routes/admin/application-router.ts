@@ -540,12 +540,10 @@ applicationRouter.delete(
       .select("disbursement.*");
 
     if (disbursements.length > 0) {
-      return res
-        .status(400)
-        .json({
-          data: {},
-          messages: [{ variant: "error", text: "This application has disbursements and cannot be deleted" }],
-        });
+      return res.status(400).json({
+        data: {},
+        messages: [{ variant: "error", text: "This application has disbursements and cannot be deleted" }],
+      });
     }
 
     let fundingRequests = await db("sfa.funding_request").where({ application_id: id }).select("id");
@@ -647,18 +645,18 @@ applicationRouter.post(
           status_date,
           comments,
         };
-        const checkIsActive = await db("sfa.request_type").where("id", request_type_id).first();
 
-        const checkIfExist = await db("sfa.funding_request")
-          .where("request_type_id", request_type_id)
-          .where("application_id", application_id)
-          .first();
+        // see if this application already has this funding request
+        const checkIfExist = await db("sfa.funding_request").where({ request_type_id, application_id }).first();
 
         if (checkIfExist) {
           return res.json({
             messages: [{ variant: "error", text: "A record already exist with the same information" }],
           });
         }
+
+        // make sure request type is active
+        const checkIsActive = await db("sfa.request_type").where("id", request_type_id).first();
 
         if (checkIsActive?.is_active) {
           if (newRecord.request_type_id === 1) {
@@ -976,7 +974,7 @@ applicationRouter.delete(
   async (req: Request, res: Response) => {
     const { id } = req.params;
     try {
-      const verifyRecord: any = await db("sfa.funding_request").where({ id: id }).first();
+      const verifyRecord: any = await db("sfa.funding_request").where({ id }).first();
 
       if (!verifyRecord) {
         return res.status(404).send({ messages: [{ variant: "error", text: "The record does not exits" }] });
