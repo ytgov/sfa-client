@@ -149,8 +149,6 @@ const actions = {
     console.log("INIT");
     store.dispatch("loadThresholds", app.academic_year_id);
     store.dispatch("loadCSLFTAssessment", { id: app.id, refreshChild: true });
-
-    console.log("MY ASSESS", assessment);
   },
 
   async loadThresholds({ commit }, academicYear) {
