@@ -12,7 +12,7 @@
             outlined
             background-color="white"
             label="Status"
-            @change="updateFundingRequest"
+            @change="updateRequest"
             hide-details
           ></v-autocomplete>
         </v-col>
@@ -27,7 +27,8 @@
             background-color="white"
             hide-details
             clearable
-            @change="updateFundingRequest"
+            label="Reason"
+            @change="updateRequest"
           ></v-autocomplete>
         </v-col>
         <v-col>
@@ -37,12 +38,19 @@
             dense
             outlined
             readonly
-            background-color="white"
             hide-details
+            background-color="#ddd"
+            append-icon="mdi-lock"
           />
         </v-col>
-        <v-col>
-          <v-btn @click="recalculateClick">Recalculate</v-btn>
+        <v-col class="text-right">
+          <v-btn
+            @click="recalculateClick"
+            v-if="assessableStatus.includes(fundingRequest.status_id)"
+            :disabled="!assessment.id"
+            color="secondary"
+            >Recalculate</v-btn
+          >
         </v-col>
       </v-row>
     </v-toolbar>
@@ -244,7 +252,12 @@ export default {
     ]),
   },
   methods: {
-    ...mapActions("csgPartTimeStore", ["makeDisbursements", "createFundingRequest", "recalculate", "updateFundingRequest"]),
+    ...mapActions("csgPartTimeStore", [
+      "makeDisbursements",
+      "createFundingRequest",
+      "recalculate",
+      "updateFundingRequest",
+    ]),
     disburseClick() {
       this.makeDisbursements(this.disburseCount);
     },
@@ -265,14 +278,12 @@ export default {
       this.$emit("showError", mgs);
     },
 
-    async updateFundingRequest() {
-      console.log("UPDATING");
-      this.updateFundingRequest()
-      
+    async updateRequest() {
+      this.updateFundingRequest();
     },
     formatDate(input) {
-      if (!isDate(input)) return "";
-      return moment(input).format("YYYY-MM-DD h:mm A");
+      if (isEmpty(input)) return "";
+      return moment.utc(input).format("YYYY-MM-DD");
     },
 
     formatMoney(input, defaultVal = false) {

@@ -1,5 +1,59 @@
 <template>
   <div v-if="assessment">
+    <v-toolbar flat :color="assessableStatus.includes(fundingRequest.status_id) ? '#c7d4de' : 'error lighten-3'">
+      <v-row>
+        <v-col>
+          <v-autocomplete
+            :items="statusList"
+            v-model="fundingRequest.status_id"
+            item-text="description"
+            item-value="id"
+            dense
+            outlined
+            background-color="white"
+            label="Status"
+            @change="updateRequest"
+            hide-details
+          ></v-autocomplete>
+        </v-col>
+        <v-col>
+          <v-autocomplete
+            :items="statusReasons"
+            v-model="fundingRequest.status_reason_id"
+            item-text="description"
+            item-value="id"
+            dense
+            outlined
+            background-color="white"
+            hide-details
+            clearable
+            label="Reason"
+            @change="updateRequest"
+          ></v-autocomplete>
+        </v-col>
+        <v-col>
+          <v-text-field
+            :value="formatDate(fundingRequest.status_date)"
+            label="Status date"
+            dense
+            outlined
+            readonly
+            hide-details
+            background-color="#ddd"
+            append-icon="mdi-lock"
+          />
+        </v-col>
+        <v-col class="text-right">
+          <v-btn
+            @click="recalculateClick"
+            v-if="assessableStatus.includes(fundingRequest.status_id)"
+            :disabled="!assessment.id"
+            color="secondary"
+            >Recalculate</v-btn
+          >
+        </v-col>
+      </v-row>
+    </v-toolbar>
     <v-card-text>
       <div v-if="!fundingRequest?.id">
         <v-alert type="warning" style="line-height: 36px" class="">
@@ -12,7 +66,7 @@
         This student has no CSG Eligible dependents
       </v-alert>
 
-      <div v-if="fundingRequest?.id && assessment.dependent_count > 0">
+      <div v-if="fundingRequest?.id && assessment.dependent_count > 0 && assessableStatus.includes(fundingRequest.status_id)">
         <v-row>
           <v-col cols="12" md="4">
             <v-menu
@@ -196,7 +250,8 @@
 
 <script>
 import { mapActions, mapGetters, mapState } from "vuex";
-import { isNumber } from "lodash";
+import { isNumber, isEmpty } from "lodash";
+import moment from "moment";
 import CsgDisbursements from "../csg-disbursements.vue";
 
 export default {
@@ -204,8 +259,10 @@ export default {
   data: () => ({
     disburseCount: 1,
     assessed_date_menu: false,
+    assessableStatus: [6, 7],
   }),
   computed: {
+    ...mapGetters(["statusReasons", "statusList"]),
     ...mapState("csgPartTimeDependentStore", ["assessment", "fundingRequest"]),
     ...mapGetters("csgPartTimeDependentStore", [
       "totalCosts",
@@ -223,9 +280,17 @@ export default {
     ]),
   },
   methods: {
-    ...mapActions("csgPartTimeDependentStore", ["makeDisbursements", "createFundingRequest"]),
+    ...mapActions("csgPartTimeDependentStore", [
+      "makeDisbursements",
+      "createFundingRequest",
+      "updateFundingRequest",
+      "recalculate",
+    ]),
     disburseClick() {
       this.makeDisbursements(this.disburseCount);
+    },
+    recalculateClick() {
+      this.recalculate();
     },
     createFundingRequestClick() {
       this.createFundingRequest().then(() => {
@@ -240,6 +305,14 @@ export default {
       this.$emit("showError", mgs);
     },
 
+    async updateRequest() {
+      this.updateFundingRequest();
+    },
+
+    formatDate(input) {
+      if (isEmpty(input)) return "";
+      return moment.utc(input).format("YYYY-MM-DD");
+    },
     formatMoney(input, defaultVal = false) {
       if (isNumber(input)) {
         return Intl.NumberFormat("en", {

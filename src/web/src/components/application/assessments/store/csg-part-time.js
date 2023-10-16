@@ -337,9 +337,11 @@ const actions = {
   async updateFundingRequest({ state, dispatch }) {
     return await axios
       .put(`${APPLICATION_URL}/${state.application.id}/status/${state.fundingRequest.id}`, {
-        status_id: state.fundingRequest.status_id,
-        status_date: new Date(),
-        status_reason_id: state.fundingRequest.status_reason_id,
+        data: {
+          status_id: state.fundingRequest.status_id,
+          status_date: new Date(),
+          status_reason_id: state.fundingRequest.status_reason_id,
+        },
       })
       .then((resp) => {
         dispatch("loadAssessment", state.application.id);

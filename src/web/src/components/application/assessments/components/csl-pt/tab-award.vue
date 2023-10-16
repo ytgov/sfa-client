@@ -1,6 +1,61 @@
 <template>
-  <div>
-    <v-card-text v-if="assessment">
+  <div v-if="assessment">
+    <v-toolbar flat :color="assessableStatus.includes(fundingRequest.status_id) ? '#c7d4de' : 'error lighten-3'">
+      <v-row>
+        <v-col>
+          <v-autocomplete
+            :items="statusList"
+            v-model="fundingRequest.status_id"
+            item-text="description"
+            item-value="id"
+            dense
+            outlined
+            background-color="white"
+            label="Status"
+            @change="updateRequest"
+            hide-details
+          ></v-autocomplete>
+        </v-col>
+        <v-col>
+          <v-autocomplete
+            :items="statusReasons"
+            v-model="fundingRequest.status_reason_id"
+            item-text="description"
+            item-value="id"
+            dense
+            outlined
+            background-color="white"
+            hide-details
+            clearable
+            label="Reason"
+            @change="updateRequest"
+          ></v-autocomplete>
+        </v-col>
+        <v-col>
+          <v-text-field
+            :value="formatDate(fundingRequest.status_date)"
+            label="Status date"
+            dense
+            outlined
+            readonly
+            hide-details
+            background-color="#ddd"
+            append-icon="mdi-lock"
+          />
+        </v-col>
+        <v-col class="text-right">
+          <v-btn
+            @click="recalculateClick"
+            v-if="assessableStatus.includes(fundingRequest.status_id)"
+            :disabled="!assessment.id"
+            color="secondary"
+            >Recalculate</v-btn
+          >
+        </v-col>
+      </v-row>
+    </v-toolbar>
+    <v-card-text>
+      <div v-if=" assessableStatus.includes(fundingRequest.status_id)">
       <v-row>
         <v-col cols="12" md="4">
           <v-text-field
@@ -189,27 +244,28 @@
         </v-col>
       </v-row>
 
+    </div>  
       <v-divider class="my-5" />
 
-      <cslpt-disbursements
-        v-on:showError="showError"
-        v-on:showSuccess="showSuccess"
-      ></cslpt-disbursements>
+      <cslpt-disbursements v-on:showError="showError" v-on:showSuccess="showSuccess"></cslpt-disbursements>
     </v-card-text>
   </div>
 </template>
 
 <script>
 import { mapActions, mapGetters, mapState } from "vuex";
-import { isNumber } from "lodash";
+import { isEmpty, isNumber } from "lodash";
+import moment from "moment";
 import CslptDisbursements from "../cslpt-disbursements.vue";
 
 export default {
   components: { CslptDisbursements },
   data: () => ({
     disburseCount: 1,
+    assessableStatus: [6, 7],
   }),
   computed: {
+    ...mapGetters(["statusReasons", "statusList"]),
     ...mapState({ application: "selectedApplication" }),
     ...mapState("cslPartTimeStore", ["assessment", "fundingRequest"]),
     ...mapGetters("cslPartTimeStore", [
@@ -225,7 +281,7 @@ export default {
     ]),
   },
   methods: {
-    ...mapActions("cslPartTimeStore", ["makeDisbursements"]),
+    ...mapActions("cslPartTimeStore", ["makeDisbursements", "recalculate", "updateFundingRequest"]),
     disburseClick() {
       this.makeDisbursements(this.disburseCount);
     },
@@ -235,6 +291,16 @@ export default {
     },
     showError(mgs) {
       this.$emit("showError", mgs);
+    },
+    recalculateClick() {
+      this.recalculate();
+    },
+    async updateRequest() {
+      this.updateFundingRequest();
+    },
+    formatDate(input) {
+      if (isEmpty(input)) return "";
+      return moment.utc(input).format("YYYY-MM-DD");
     },
 
     formatMoney(input, defaultVal = false) {

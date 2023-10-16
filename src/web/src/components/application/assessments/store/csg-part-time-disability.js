@@ -145,7 +145,7 @@ const actions = {
   },
 
   async recalculate({ state, dispatch, commit }) {
-    dispatch("loadAssessment", { id: state.fundingRequest.application_id, refreshChild: false }).then(() => {
+    dispatch("loadAssessment", state.fundingRequest.application_id).then(() => {
       let parent = state.parentAssessment;
 
       let assessment = {
@@ -265,6 +265,19 @@ const actions = {
       .post(`${APPLICATION_URL}/${state.application.id}/status`, {
         request_type_id: REQUEST_TYPE_ID,
         received_date: new Date(),
+      })
+      .then((resp) => {
+        dispatch("loadAssessment", state.application.id);
+      });
+  },
+  async updateFundingRequest({ state, dispatch }) {
+    return await axios
+      .put(`${APPLICATION_URL}/${state.application.id}/status/${state.fundingRequest.id}`, {
+        data: {
+          status_id: state.fundingRequest.status_id,
+          status_date: new Date(),
+          status_reason_id: state.fundingRequest.status_reason_id,
+        },
       })
       .then((resp) => {
         dispatch("loadAssessment", state.application.id);
