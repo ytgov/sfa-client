@@ -29,8 +29,9 @@ const getters = {
 
     return total;
   },
-  assessedAmount(state) {
+  assessedAmount(state, getters) {
     if (!state.fundingRequest) return 0;
+    if (getters.pastThreshold) return 0;
     return state.baseRate;
   },
   netAmount(state, getters) {
@@ -40,6 +41,29 @@ const getters = {
   },
   needRemaining(state) {
     return store.getters["cslPartTimeStore/totalCosts"];
+  },
+
+  threshold(state) {
+    if (state.assessment && state.csgThresholds && state.csgThresholds.length > 0) {
+      let size = Math.min(state.assessment.family_size, 7);
+      let val = state.csgThresholds.filter((f) => f.family_size == size)[0];
+      return val || {};
+    }
+    return {};
+  },
+
+  familyIncome(state) {
+    let val = state.assessment
+      ? (state.assessment.student_ln150_income || 0) +
+        (state.assessment.spouse_ln150_income || 0) +
+        (state.assessment.parent1_income || 0) +
+        (state.assessment.parent2_income || 0)
+      : 0;
+    return val;
+  },
+  pastThreshold(state, getters) {
+    if (getters.threshold.middle_income_threshold <= getters.familyIncome) return "Past income threshold";
+    return undefined;
   },
 };
 const mutations = {

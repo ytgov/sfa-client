@@ -67,6 +67,10 @@
         This student does not have a qualifying disability
       </v-alert>
 
+      <v-alert type="warning" v-if="pastThreshold">
+        {{ pastThreshold }}
+      </v-alert>
+
       <div v-else-if="assessableStatus.includes(fundingRequest.status_id)">
         <v-row>
           <v-col cols="12" md="4">
@@ -226,6 +230,7 @@ export default {
       "previousDisbursements",
       "netAmount",
       "needRemaining",
+      "pastThreshold",
     ]),
 
     hasDisability() {

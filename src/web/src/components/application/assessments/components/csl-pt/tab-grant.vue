@@ -63,6 +63,10 @@
         <v-btn class="" color="primary" @click="createFundingRequestClick">Add Funding Request</v-btn>
       </div>
 
+      <v-alert type="warning" v-if="pastThreshold">
+        {{ pastThreshold }}
+      </v-alert>
+
       <div v-if="fundingRequest?.id && assessableStatus.includes(fundingRequest.status_id)">
         <v-row>
           <v-col cols="12" md="4">
@@ -249,6 +253,7 @@ export default {
       "threshold",
       "needRemaining",
       "thresholdRange",
+      "pastThreshold",
     ]),
   },
   methods: {

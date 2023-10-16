@@ -107,6 +107,11 @@ const getters = {
     let totalNeed = store.getters["cslPartTimeStore/totalCosts"];
     return totalNeed - store.getters["csgPartTimeDisabilityStore/assessedAmount"];
   },
+
+  pastThreshold(state, getters) {
+    if (getters.threshold.middle_income_threshold <= getters.familyIncome) return "Past income threshold";
+    return undefined;
+  },
 };
 const mutations = {
   SET_THRESHOLDS(state, value) {

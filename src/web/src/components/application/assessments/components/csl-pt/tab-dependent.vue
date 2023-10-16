@@ -54,6 +54,7 @@
         </v-col>
       </v-row>
     </v-toolbar>
+
     <v-card-text>
       <div v-if="!fundingRequest?.id">
         <v-alert type="warning" style="line-height: 36px" class="">
@@ -66,7 +67,14 @@
         This student has no CSG Eligible dependents
       </v-alert>
 
-      <div v-if="fundingRequest?.id && assessment.dependent_count > 0 && assessableStatus.includes(fundingRequest.status_id)">
+      <v-alert type="warning" v-if="pastThreshold">
+        {{ pastThreshold }}
+      </v-alert>
+      <div
+        v-if="
+          fundingRequest?.id && assessment.dependent_count > 0 && assessableStatus.includes(fundingRequest.status_id)
+        "
+      >
         <v-row>
           <v-col cols="12" md="4">
             <v-menu
@@ -277,6 +285,7 @@ export default {
       "weeklyRate",
       "dependentCount",
       "needRemaining",
+      "pastThreshold",
     ]),
   },
   methods: {

@@ -71,6 +71,11 @@ const getters = {
     return {};
   },
 
+  pastThreshold(state, getters) {
+    if (getters.threshold.middle_income_threshold <= getters.familyIncome) return "Past income threshold";
+    return undefined;
+  },
+
   phaseOutRate(state, getters) {
     let depCount = state.assessment?.dependent_count ?? 0;
     let income = getters.familyIncome;
@@ -85,6 +90,7 @@ const getters = {
 
   assessedAmount(state, getters) {
     if (isUndefined(state.assessment.study_weeks)) return 0;
+    if (getters.pastThreshold) return 0;
     return state.assessment.study_weeks * getters.weeklyRate;
   },
   previousDisbursements(state) {

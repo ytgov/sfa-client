@@ -122,12 +122,10 @@ const getters = {
     if (state.fundingRequest?.csl_request_amount && state.fundingRequest?.csl_request_amount > 0)
       requestedAmount = state.fundingRequest?.csl_request_amount;
 
-    console.log("NEDDREM", getters.needRemaining)
-    
+    let need = getters.needRemaining;
+
     if (!getters.pastThreshold)
       value = Math.min(getters.maxAllowable, requestedAmount, getters.totalCosts - getters.totalGrants);
-
-    console.log("ASSMT", getters.maxAllowable, requestedAmount, getters.totalCosts, getters.totalGrants);
 
     state.assessment.assessed_amount = value;
     return value;
