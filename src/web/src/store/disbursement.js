@@ -16,8 +16,8 @@ const getters = {
 const mutations = {
   SET_DISBURSEMENTS(state, value) {
     for (let item of value) {
-      if (!isEmpty(item.due_date)) item.due_date = moment(item.due_date).format("YYYY-MM-DD");
-      if (!isEmpty(item.issue_date)) item.issue_date = moment(item.issue_date).format("YYYY-MM-DD");
+      if (!isEmpty(item.due_date)) item.due_date = moment.utc(item.due_date).format("YYYY-MM-DD");
+      if (!isEmpty(item.issue_date)) item.issue_date = moment.utc(item.issue_date).format("YYYY-MM-DD");
     }
 
     state.disbursements = value;
