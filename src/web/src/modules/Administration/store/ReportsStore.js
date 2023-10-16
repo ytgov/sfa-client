@@ -1,5 +1,5 @@
 import axios from "axios";
-import { CSG_THRESHOLD_URL, ADMIN_REPORT_URL } from "@/urls";
+import { ADMIN_REPORT_URL } from "@/urls";
 
 const state = {
   reportOptions: [
@@ -20,10 +20,16 @@ const state = {
     },
     {
       text: "Funding Status Report",
-      url: "/fundingStatus/2023",
+      url: "/fundingStatus/:academic_year_id",
       parameters: [
-        { field: "academic_year_id", type: "year" },
-        { field: "status", type: "status_descrit" },
+        {
+          name: "Academic year",
+          field: "academic_year_id",
+          options: "academicYears",
+          required: true,
+          itemText: "year",
+          itemValue: "year",
+        },
       ],
       downloadFormat: ".csv",
       headers: [
@@ -51,11 +57,6 @@ const getters = {
 
     return [{ text: "Select a report above" }];
   },
-  downloadLink(state) {
-    if (state.selectedReport)
-      return `${ADMIN_REPORT_URL}${state.selectedReport.url}${state.selectedReport.downloadFormat}`;
-    return undefined;
-  },
 };
 const mutations = {
   SET_SELECTEDREPORT(state, value) {
@@ -71,18 +72,25 @@ const mutations = {
   SET_REPORTHEADERS(state, value) {},
 };
 const actions = {
-  async loadThresholds({ commit }, academicYear) {
-    axios.get(`${CSG_THRESHOLD_URL}/${academicYear}`).then((resp) => {
-      commit("SET_THRESHOLDS", resp.data.data);
-    });
-  },
   async setReport({ commit, state }, value) {
     commit("SET_SELECTEDREPORT", value);
   },
   async runReport({ commit, state }) {
-    axios.get(`${ADMIN_REPORT_URL}${state.selectedReport.url}.json`).then((resp) => {
-      commit("SET_REPORTDATA", resp.data);
-    });
+    if (state.selectedReport) {
+      let url = makeUrl(state.selectedReport);
+
+      if (url) {
+        axios.get(`${ADMIN_REPORT_URL}${url}.json`).then((resp) => {
+          commit("SET_REPORTDATA", resp.data);
+        });
+      }
+    }
+  },
+  async downloadReport({ state }) {
+    if (state.selectedReport) {
+      let url = makeUrl(state.selectedReport);
+      if (url) window.open(`${ADMIN_REPORT_URL}${url}${state.selectedReport.downloadFormat}`);
+    }
   },
 };
 
@@ -93,3 +101,20 @@ export default {
   actions,
   namespaced: true,
 };
+
+function makeUrl(selectedReport) {
+  let url = selectedReport.url;
+
+  if (selectedReport.parameters) {
+    for (let param of selectedReport.parameters) {
+      if (param.required && !param.value) {
+        alert(`${param.name} is required`);
+        return;
+      }
+
+      url = url.replace(`:${param.field}`, param.value);
+    }
+  }
+
+  return url;
+}

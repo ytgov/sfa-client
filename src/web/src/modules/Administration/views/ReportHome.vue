@@ -20,8 +20,8 @@
     <h1>Reports</h1>
     <v-divider></v-divider>
 
-    <v-row>
-      <v-col class="d-flex my-3">
+    <v-row class="mt-3">
+      <v-col cols="12" md="9">
         <v-select
           label="Choose a report"
           :items="reportOptions"
@@ -29,9 +29,26 @@
           return-object
           outlined
           dense
-          hide-details
         />
-        <v-btn color="primary" @click="runClick" class="ml-4 my-0" style="width: 200px">
+        <div>
+          <div v-for="item of report?.parameters">
+            <v-select
+              v-if="item.options"
+              :items="getOptions(item.options)"
+              :item-text="item.itemText"
+              :item-value="item.itemValue"
+              :label="item.name"
+              v-model="item.value"
+              dense
+              outlined
+            ></v-select>
+
+            <v-text-field v-else :label="item.name" v-model="item.value" dense outlined></v-text-field>
+          </div>
+        </div>
+      </v-col>
+      <v-col class="text-right">
+        <v-btn color="primary" @click="runClick" >
           <v-icon class="mr-2">mdi-eye</v-icon> Preview
         </v-btn>
       </v-col>
@@ -77,8 +94,9 @@ export default {
   }),
   computed: {
     ...mapState(["showSideBarAdmin"]),
-    ...mapGetters("reportsStore", ["reportHeaders", "reportData", "downloadLink"]),
+    ...mapGetters("reportsStore", ["reportHeaders", "reportData"]),
     ...mapState("reportsStore", ["reportOptions", "selectedReport"]),
+    ...mapState(["academicYears"]),
     report: {
       get() {
         return this.selectedReport;
@@ -90,15 +108,19 @@ export default {
   },
   async created() {
     await store.dispatch("setAppSideBarAdmin", this.$route.path.startsWith("/administration"));
+    await store.dispatch("setAcademicYears");
   },
   methods: {
-    ...mapActions("reportsStore", ["runReport", "setReport"]),
+    ...mapActions("reportsStore", ["runReport", "setReport", "downloadReport"]),
+    getOptions(input) {
+      return store.getters[input];
+    },
     runClick() {
       this.search = "";
       this.runReport();
     },
     downloadClick() {
-      if (this.downloadLink) window.open(this.downloadLink);
+      this.downloadReport();
     },
   },
 };
