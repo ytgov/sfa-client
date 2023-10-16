@@ -1,8 +1,4 @@
 import CSLFT from "@/components/application/csfa-needs-assessment/CSLFT";
-import CSLPT from "@/components/application/csfa-needs-assessment/CSLPT";
-import CSGPTDEP from "@/components/application/csfa-needs-assessment/CSGPTDEP";
-import CSGPT from "@/components/application/csfa-needs-assessment/CSGPT";
-import CSGDSE from "@/components/application/assessments/views/CSGDSE";
 import CSGTP from "@/components/application/assessments/views/CSGTP";
 import CSGD from "@/components/application/assessments/views/CSGD";
 import CSGFTDEP from "@/components/application/assessments/views/CSGFTDEP";
@@ -25,17 +21,13 @@ const assessmentComponentList = {
     2: { component: YukonGrant, props: { status_id: 6, } }, // Yukon Grant
     3: { component: YukonExcellenceAwards, props: {} }, // Yukon Excellence Awards
     4: { component: CSLFT, props: { status_id: 40, request_type_id: 4 } }, // Canada Student Loan Full-Time
-    5: { component: CSLPT, props: { year_to_compare: 2018, }}, // Canada Student Loan Part-Time
     7: { component: CSGTP, props: {} }, // Canadian Army Scholarship
     9: { component: CSGTP, props: {} }, // Nicholas John Harach Scholarship
     10: { component: CSGTP, props: {} }, // Yukon Art Society Scholarship
     11: { component: CSGTP, props: {} }, // Yukon Huskys CB Radio Club Scholarship
     28: { component: CSGTP, props: {} }, // Grant for Mature Learners Top-Up
     29: { component: CSGD, props: {year_to_compare: 2017, } }, // Grant for Students with Permanent Disabilities
-    30: { component: CSGDSE, props: {} }, // Grant for Services & Equipment for PD Students
-    31: { component: CSGPT, props: { year_to_compare: 2018 } }, // Grant for Part-time Studies
     32: { component: CSGFTDEP, props: { year_to_compare: 2017 } }, // Grant for Students with Dependents FT
-    33: { component: CSGPTDEP, props: { year_to_compare: 2018 } }, // Grant for Students with Dependents PT
     35: { component: CSGFT, props: { request_type_id: 4 } }, // Grant for Full-time Students
 };
 

@@ -26,9 +26,6 @@ import Documentation from "../components/application/Documentation";
 import GrantforMatureLearnersTop_Up from "../components/application/csfa-needs-assessment/GrantforMatureLearnersTop_Up.vue";
 import YukonHuskysCBRadioClubScholarship from "../components/application/csfa-needs-assessment/YukonHuskysCBRadioClubScholarship.vue";
 import NicholasJohnHarachScholarship from "../components/application/csfa-needs-assessment/NicholasJohnHarachScholarship.vue";
-import CSLFT from "../components/application/csfa-needs-assessment/CSLFT.vue";
-import CSLPT from "../components/application/csfa-needs-assessment/CSLPT.vue";
-import CSGPT from "../components/application/csfa-needs-assessment/CSGPT.vue";
 import CanadianArmyScholarship from "../components/application/csfa-needs-assessment/CanadianArmyScholarship.vue";
 import TrainingAllowance from "../components/application/csfa-needs-assessment/TrainingAllowance.vue";
 import YukonGrant from "../components/application/csfa-needs-assessment/YukonGrant.vue";
@@ -76,7 +73,7 @@ import CslMsfaaSendRoutes from "@/modules/csl-msfaa-send/router";
 import CSLRestrictedDataModuleRoutes from "@/modules/csl-restricted-data/router";
 
 import administrationRoutes from "@/modules/Administration/router";
-import fundingRequestRoutes from "@/components/application/funding-requests/router"
+import fundingRequestRoutes from "@/components/application/funding-requests/router";
 
 Vue.use(VueRouter);
 
