@@ -310,8 +310,7 @@ export default {
 
     if (this.applicationId != storeApp.id) {
       await store.dispatch("loadApplication", this.applicationId).then(async (res) => {
-
-        await this.initialize(store.getters.selectedApplication).then((r) => {
+        await this.initialize({ app: store.getters.selectedApplication }).then((r) => {
           if (isUndefined(this.parentAssessment)) {
             this.$emit("showError", "Please create the CSLFT Assessment first");
             this.$emit("close");
@@ -319,7 +318,7 @@ export default {
         });
       });
     } else {
-      await this.initialize(storeApp).then((r) => {
+      await this.initialize({app: storeApp}).then((r) => {
         if (isUndefined(this.parentAssessment)) {
           this.$emit("showError", "Please create the CSLFT Assessment first");
           this.$emit("close");

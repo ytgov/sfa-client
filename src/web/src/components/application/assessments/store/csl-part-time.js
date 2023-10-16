@@ -117,7 +117,12 @@ const getters = {
 
     if (state.fundingRequest?.is_csg_only) return 0;
 
-    let requestedAmount = state.fundingRequest?.csl_request_amount ?? 10000;
+    let requestedAmount = state.baseMaxAllowable;
+
+    if (state.fundingRequest?.csl_request_amount && state.fundingRequest?.csl_request_amount > 0)
+      requestedAmount = state.fundingRequest?.csl_request_amount;
+
+    let need = getters.needRemaining;
 
     if (!getters.pastThreshold)
       value = Math.min(getters.maxAllowable, requestedAmount, getters.totalCosts - getters.totalGrants);
@@ -297,7 +302,6 @@ const actions = {
       await store.dispatch("csgPartTimeStore/initialize", { app: application, assessment: state.assessment });
       await store.dispatch("csgPartTimeDependentStore/initialize", { app: application, assessment: state.assessment });
       await store.dispatch("csgPartTimeDisabilityStore/initialize", { app: application, assessment: state.assessment });
-      console.log(getters.needRemaining);
     });
   },
 
@@ -450,6 +454,19 @@ const actions = {
           dispatch("loadCSLPTAssessment", state.fundingRequest.application_id);
         });
     }
+  },
+  async updateFundingRequest({ state, dispatch }) {
+    return await axios
+      .put(`${APPLICATION_URL}/${state.application.id}/status/${state.fundingRequest.id}`, {
+        data: {
+          status_id: state.fundingRequest.status_id,
+          status_date: new Date(),
+          status_reason_id: state.fundingRequest.status_reason_id,
+        },
+      })
+      .then((resp) => {
+        dispatch("loadCSLPTAssessment", state.application.id);
+      });
   },
 };
 

@@ -71,6 +71,11 @@ const getters = {
     return {};
   },
 
+  pastThreshold(state, getters) {
+    if (getters.threshold.middle_income_threshold <= getters.familyIncome) return "Past income threshold";
+    return undefined;
+  },
+
   phaseOutRate(state, getters) {
     let depCount = state.assessment?.dependent_count ?? 0;
     let income = getters.familyIncome;
@@ -85,6 +90,7 @@ const getters = {
 
   assessedAmount(state, getters) {
     if (isUndefined(state.assessment.study_weeks)) return 0;
+    if (getters.pastThreshold) return 0;
     return state.assessment.study_weeks * getters.weeklyRate;
   },
   previousDisbursements(state) {
@@ -116,9 +122,13 @@ const getters = {
     return val;
   },
   needRemaining(state) {
-    let totalNeed =  store.getters["cslPartTimeStore/totalCosts"];
-    return totalNeed - store.getters["csgPartTimeDisabilityStore/assessedAmount"] - store.getters["csgPartTimeStore/assessedAmount"];
-  } 
+    let totalNeed = store.getters["cslPartTimeStore/totalCosts"];
+    return (
+      totalNeed -
+      store.getters["csgPartTimeDisabilityStore/assessedAmount"] -
+      store.getters["csgPartTimeStore/assessedAmount"]
+    );
+  },
 };
 const mutations = {
   SET_THRESHOLDS(state, value) {
@@ -231,7 +241,7 @@ const actions = {
   },
 
   async recalculate({ state, dispatch, commit }) {
-    dispatch("loadAssessment", { id: state.fundingRequest.application_id, refreshChild: false }).then(() => {
+    dispatch("loadAssessment", state.fundingRequest.application_id).then(() => {
       let parent = state.parentAssessment;
       let dependentCount = 0;
       let familySize = 1;
@@ -366,6 +376,19 @@ const actions = {
       .post(`${APPLICATION_URL}/${state.application.id}/status`, {
         request_type_id: REQUEST_TYPE_ID,
         received_date: new Date(),
+      })
+      .then((resp) => {
+        dispatch("loadAssessment", state.application.id);
+      });
+  },
+  async updateFundingRequest({ state, dispatch }) {
+    return await axios
+      .put(`${APPLICATION_URL}/${state.application.id}/status/${state.fundingRequest.id}`, {
+        data: {
+          status_id: state.fundingRequest.status_id,
+          status_date: new Date(),
+          status_reason_id: state.fundingRequest.status_reason_id,
+        },
       })
       .then((resp) => {
         dispatch("loadAssessment", state.application.id);

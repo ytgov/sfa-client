@@ -1,20 +1,35 @@
 <template>
   <div>
-    <div class="d-flex">
+  <!--   <div class="d-flex">
       <v-btn :to="`/application/${applicationId}/status`" color="warning" x-small fab class="mt-2 mr-5">
         <v-icon>mdi-keyboard-backspace</v-icon>
       </v-btn>
       <h1 class="mb-0">Funding Status</h1>
-    </div>
+    </div> -->
 
     <div class="mt-4">
       <v-card class="default mb-1 bg-color-blue">
         <v-card-title class="pb-3"
-          >Assessment: CSL-PT
-          <v-spacer></v-spacer>
-          <v-btn dense color="primary" class="my-0" @click="saveClick" :disabled="!assessment.id">
-            Recalculate
-          </v-btn>
+          >
+      <v-btn :to="`/application/${applicationId}/status`" color="warning" x-small fab class="my-0 mr-5">
+        <v-icon>mdi-keyboard-backspace</v-icon>
+      </v-btn>Assessment: CSFA-PT
+
+          <v-spacer />
+          <div>
+            <v-chip class="my-0 ml-3 text-regular" color="brown lighten-4" style="font-weight: 400"
+              >Total Awarded: {{ totalAwarded }}</v-chip
+            >
+            <v-chip class="my-0 ml-3" color="indigo lighten-4" style="font-weight: 400"
+              >{{ percentAwarded }} of Need</v-chip
+            >
+            <v-chip
+              class="my-0 ml-3"
+              :color="msfaa.msfaa_status == 'Received' ? 'green lighten-3' : 'orange lighten-4'"
+              style="font-weight: 400"
+              >MSFAA: {{ msfaa.msfaa_status }}</v-chip
+            >
+          </div>
         </v-card-title>
         <v-divider class="mt-1"></v-divider>
 
@@ -109,15 +124,25 @@ export default {
     await this.setStudyAreas();
     await this.setProvinces();
     await this.setPrograms();
+    await this.setStatus();
+    await this.setStatusReasons();
   },
   computed: {
     ...mapState({ application: "selectedApplication" }),
-    ...mapState("cslPartTimeStore", ["assessment", "disbursements"]),
+    ...mapState("cslPartTimeStore", ["assessment", "disbursements", "msfaa"]),
     ...mapGetters("cslPartTimeStore", ["totalCosts", "assessedAmount"]),
     ...mapGetters("csgPartTimeStore", { grantAmount: "assessedAmount" }),
     ...mapGetters("csgPartTimeDependentStore", { depAmount: "assessedAmount" }),
     ...mapGetters("csgPartTimeDisabilityStore", { disAmount: "assessedAmount" }),
     ...mapGetters(["cslClassifications", "disbursementTypes", "changeReasons"]),
+    totalAwarded() {
+      return this.formatMoney(this.disAmount + this.grantAmount + this.depAmount + this.assessedAmount);
+    },
+    percentAwarded() {
+      return `${Math.round(
+        (100 * (this.disAmount + this.grantAmount + this.depAmount + this.assessedAmount)) / this.totalCosts
+      )}%`;
+    },
   },
   methods: {
     ...mapActions("cslPartTimeStore", ["initialize", "recalculate"]),
@@ -129,6 +154,8 @@ export default {
       "setStudyAreas",
       "setProvinces",
       "setPrograms",
+      "setStatus",
+      "setStatusReasons",
     ]),
 
     showSuccess(mgs) {
@@ -136,9 +163,6 @@ export default {
     },
     showError(mgs) {
       this.$emit("showError", mgs);
-    },
-    saveClick() {
-      this.recalculate();
     },
     formatMoney(input, defaultVal = false) {
       if (isNumber(input)) {
