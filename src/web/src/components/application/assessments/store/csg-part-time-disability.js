@@ -41,7 +41,7 @@ const getters = {
     return Object.is(Math.round(rawVal), -0) ? 0 : Math.round(rawVal);
   },
   needRemaining(state) {
-    return store.getters["cslPartTimeStore/totalCosts"];
+    return Math.max(0, store.getters["cslPartTimeStore/totalCosts"]);
   },
 
   threshold(state) {
