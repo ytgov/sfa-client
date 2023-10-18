@@ -184,6 +184,17 @@ export default {
     application: function() {
       return store.getters.selectedApplication;
     },
+    requestTypesToHide() {
+      let alwaysHide = [31, 33, 34];
+      let currentRequests = this.application.funding_requests.map((r) => r.request_type_id);
+
+      // hide disability grant if student has CSL PT
+      if (currentRequests.includes(5)) {
+        return [...alwaysHide, 29];
+      }
+
+      return alwaysHide;
+    },
   },
   data: () => ({
     fundingRequestId: null,
@@ -205,7 +216,6 @@ export default {
       received_date_menu: false,
       assessmentsComponents: {},
     },
-    requestTypesToHide: [31, 33, 34],
   }),
   async created() {
     this.loadFundingTypes();

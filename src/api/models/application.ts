@@ -638,7 +638,9 @@ export function StudentFromDraft(draft: any): any {
   let educations = draft.education.education_history;
   let studentUpdate = {} as any;
 
-  if (educations) {
+  studentUpdate.is_crown_ward = draft.statistical.crown_ward === true;
+
+  if (educations && educations.length == 0 && educations[0].school) {
     if (educations[0].school === -1) {
       studentUpdate.high_school_id = HighSchool.SpecialTypes.NOT_LISTED;
     } else {
@@ -650,12 +652,12 @@ export function StudentFromDraft(draft: any): any {
       studentUpdate.high_school_left_month = parseInt(educations[0].left_high_school.split("/")[1]);
     } catch (err) {
       console.log("ERROR PARSING educations[0].left_high_school", educations[0]);
+      console.log("** ", draft.education);
     }
-
-    studentUpdate.is_crown_ward = draft.statistical.crown_ward;
 
     if (!isInteger(studentUpdate.high_school_id)) {
       console.log("Data format error: studentUpdate.high_school_id", educations[0].school);
+      console.log("** ", draft.education);
       delete studentUpdate.high_school_id;
     }
 
@@ -665,6 +667,7 @@ export function StudentFromDraft(draft: any): any {
         studentUpdate.high_school_left_year,
         educations[0].left_high_school
       );
+      console.log("** ", draft.education);
       delete studentUpdate.high_school_left_year;
     }
 
@@ -674,6 +677,7 @@ export function StudentFromDraft(draft: any): any {
         studentUpdate.high_school_left_month,
         educations[0].left_high_school
       );
+      console.log("** ", draft.education);
       delete studentUpdate.high_school_left_month;
     }
   }

@@ -5,7 +5,7 @@ import { parse } from "vue-currency-input";
 import { APPLICATION_URL, CSG_THRESHOLD_URL } from "@/urls";
 import store from "@/store";
 
-const REQUEST_TYPE_ID = 34;
+const REQUEST_TYPE_ID = 29;
 
 const state = {
   csgThresholds: [],

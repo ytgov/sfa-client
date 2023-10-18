@@ -73,7 +73,7 @@ export class PortalApplicationService {
 
       if (draft) {
         let trx = await db.transaction();
-        let errorMessage = "Loading loading application information";
+        let errorMessage = "Error loading application information";
 
         try {
           let draftApp = JSON.parse(draft.application_json);

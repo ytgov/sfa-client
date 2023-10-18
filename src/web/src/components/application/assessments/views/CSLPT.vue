@@ -27,7 +27,7 @@
               class="my-0 ml-3"
               :color="msfaa.msfaa_status == 'Received' ? 'green lighten-3' : 'orange lighten-4'"
               style="font-weight: 400"
-              >MSFAA: {{ msfaa.msfaa_status }}</v-chip
+              >MSFAA: {{ msfaa?.msfaa_status ?? "Not Sent" }}</v-chip
             >
           </div>
         </v-card-title>
