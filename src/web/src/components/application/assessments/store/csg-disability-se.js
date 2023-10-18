@@ -172,7 +172,7 @@ const actions = {
 
   async addDisbursement({ state }) {
     state.disbursements.push({
-      disbursement_type_id: 4,
+      disbursement_type_id: 1,
       issue_date: moment().format("YYYY-MM-DD"), // today
     });
   },

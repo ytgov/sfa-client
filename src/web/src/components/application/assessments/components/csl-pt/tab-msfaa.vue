@@ -2,7 +2,7 @@
   <div>
     <v-card-text>
       <h3>Master Student Financial Assistance Agreement (MSFAA)</h3>
-      <v-row v-if="assessment">
+      <v-row v-if="msfaa">
         <v-col cols="12" md="6">
           <v-text-field
             :value="msfaa.id"
@@ -121,6 +121,11 @@
           ></v-text-field>
         </v-col>
       </v-row>
+      <div v-else>
+        <v-alert type="warning">
+          No MSFAA record exists for this application
+        </v-alert>
+      </div>
     </v-card-text>
   </div>
 </template>
