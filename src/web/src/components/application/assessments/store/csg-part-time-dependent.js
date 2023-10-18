@@ -91,6 +91,8 @@ const getters = {
   assessedAmount(state, getters) {
     if (isUndefined(state.assessment.study_weeks)) return 0;
     if (getters.pastThreshold) return 0;
+    if (!(state.fundingRequest && [6, 7].includes(state.fundingRequest.status_id))) return 0;
+    
     return state.assessment.study_weeks * getters.weeklyRate;
   },
   previousDisbursements(state) {

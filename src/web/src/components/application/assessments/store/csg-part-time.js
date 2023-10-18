@@ -72,6 +72,7 @@ const getters = {
 
   assessedAmount(state, getters) {
     if (isUndefined(state.assessment.study_months) || getters.familyIncome >= getters.threshold.income_cutoff) return 0;
+    if (!(state.fundingRequest && [6, 7].includes(state.fundingRequest.status_id))) return 0;
 
     let amt = Math.max(
       0,
