@@ -32,6 +32,7 @@ const getters = {
   assessedAmount(state, getters) {
     if (!state.fundingRequest) return 0;
     if (getters.pastThreshold) return 0;
+    if (!(state.fundingRequest && [6, 7].includes(state.fundingRequest.status_id))) return 0;
     return state.baseRate;
   },
   netAmount(state, getters) {

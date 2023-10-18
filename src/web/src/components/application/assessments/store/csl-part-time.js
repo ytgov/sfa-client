@@ -116,6 +116,7 @@ const getters = {
     let value = 0;
 
     if (state.fundingRequest?.is_csg_only) return 0;
+    if (!(state.fundingRequest && [6, 7].includes(state.fundingRequest.status_id))) return 0;
 
     let requestedAmount = state.baseMaxAllowable;
 
