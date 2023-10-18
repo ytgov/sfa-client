@@ -13,22 +13,22 @@
     "@fortawesome/free-solid-svg-icons": "^6.4.2",
     "@fortawesome/vue-fontawesome": "^2.0.9",
     "axios": "^0.21.4",
-    "core-js": "^3.6.5",
+    "core-js": "^3.33.0",
     "file-saver": "^2.0.5",
     "jspdf": "^2.5.1",
-    "jspdf-autotable": "^3.6.0",
+    "jspdf-autotable": "^3.7.0",
     "lodash": "^4.17.21",
     "moment": "^2.29.4",
     "vue": "^2.7.14",
     "vue-currency-input": "^1.22.6",
-    "vue-editable-grid": "^0.3.19",
+    "vue-editable-grid": "^0.3.20",
     "vue-router": "^3.6.5",
     "vuedraggable": "^2.24.3",
     "vuetify": "^2.7.1",
     "vuex": "^3.4.0"
   },
   "devDependencies": {
-    "@mdi/js": "^7.2.96",
+    "@mdi/js": "^7.3.67",
     "@vue/cli-plugin-babel": "^5.0.8",
     "@vue/cli-plugin-eslint": "^5.0.8",
     "@vue/cli-plugin-router": "^5.0.8",
@@ -40,7 +40,7 @@
     "eslint-plugin-prettier": "^3.1.3",
     "eslint-plugin-vue": "^7.20.0",
     "prettier": "^1.19.1",
-    "vue-template-compiler": "^2.6.11"
+    "vue-template-compiler": "^2.7.14"
   },
   "eslintConfig": {
     "root": true,
