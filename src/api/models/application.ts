@@ -637,7 +637,8 @@ export function ResidenceFromDraft(draft: any): any[] {
 export function StudentFromDraft(draft: any): any {
   let educations = draft.education.education_history;
   let studentUpdate = {} as any;
-  studentUpdate.is_crown_ward = draft.statistical.crown_ward && draft.statistical.crown_ward == true;
+
+  studentUpdate.is_crown_ward = draft.statistical.crown_ward === true;
 
   if (educations && educations.length == 0 && educations[0].school) {
     if (educations[0].school === -1) {
