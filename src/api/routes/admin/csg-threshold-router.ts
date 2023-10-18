@@ -9,12 +9,16 @@ import moment from "moment";
 
 const db = knex(DB_CONFIG);
 
+const CSLFT_REQUEST_TYPE_ID = 4;
+const CSLPT_REQUEST_TYPE_ID = 5;
+
 const CSGTU_REQUEST_TYPE_ID = 28;
 const CSGD_REQUEST_TYPE_ID = 29;
 const CSGDSE_REQUEST_TYPE_ID = 30;
-const CSGDEP_REQUEST_TYPE_ID = 32;
+const CSGPT_REQUEST_TYPE_ID = 31;
+const CSFTDEP_REQUEST_TYPE_ID = 32;
+const CSPTDEP_REQUEST_TYPE_ID = 33;
 const CSGFT_REQUEST_TYPE_ID = 35;
-const CSLPT_REQUEST_TYPE_ID = 5;
 
 export const csgThresholdRouter = express.Router();
 
@@ -40,7 +44,7 @@ csgThresholdRouter.get(
     const { application_id } = req.params;
 
     let funding_request = await db("sfa.funding_request")
-      .where({ application_id, request_type_id: 4 })
+      .where({ application_id, request_type_id: CSLFT_REQUEST_TYPE_ID })
       .orderBy("id", "desc")
       .first();
 
@@ -110,7 +114,7 @@ csgThresholdRouter.get(
     const { application_id } = req.params;
 
     let funding_request = await db("sfa.funding_request")
-      .where({ application_id, request_type_id: CSGDEP_REQUEST_TYPE_ID })
+      .where({ application_id, request_type_id: CSFTDEP_REQUEST_TYPE_ID })
       .orderBy("id", "desc")
       .first();
 
@@ -132,7 +136,7 @@ csgThresholdRouter.get(
       return res.json({ data: { funding_request, assessment, disbursements } });
     }
 
-    res.status(404).send();
+    res.status(404).send("Funding Request not found");
   }
 );
 
@@ -166,7 +170,7 @@ csgThresholdRouter.get(
       return res.json({ data: { funding_request, assessment, disbursements } });
     }
 
-    res.status(404).send();
+    res.status(404).send("Funding Request not found");
   }
 );
 
@@ -200,7 +204,7 @@ csgThresholdRouter.get(
       return res.json({ data: { funding_request, assessment, disbursements } });
     }
 
-    res.status(404).send();
+    res.status(404).send("Funding Request not found");
   }
 );
 
@@ -234,7 +238,7 @@ csgThresholdRouter.get(
       return res.json({ data: { funding_request, assessment, disbursements } });
     }
 
-    res.status(404).send();
+    res.status(404).send("Funding Request not found");
   }
 );
 
@@ -268,7 +272,7 @@ csgThresholdRouter.get(
       return res.json({ data: { funding_request, assessment, disbursements } });
     }
 
-    res.status(404).send();
+    res.status(404).send("Funding Request not found");
   }
 );
 
@@ -280,7 +284,7 @@ csgThresholdRouter.get(
     const { application_id } = req.params;
 
     let funding_request = await db("sfa.funding_request")
-      .where({ application_id, request_type_id: 31 })
+      .where({ application_id, request_type_id: CSGPT_REQUEST_TYPE_ID })
       .orderBy("id", "desc")
       .first();
 
@@ -314,7 +318,7 @@ csgThresholdRouter.get(
     const { application_id } = req.params;
 
     let funding_request = await db("sfa.funding_request")
-      .where({ application_id, request_type_id: 34 })
+      .where({ application_id, request_type_id: CSGD_REQUEST_TYPE_ID })
       .orderBy("id", "desc")
       .first();
 
@@ -348,7 +352,7 @@ csgThresholdRouter.get(
     const { application_id } = req.params;
 
     let funding_request = await db("sfa.funding_request")
-      .where({ application_id, request_type_id: 33 })
+      .where({ application_id, request_type_id: CSPTDEP_REQUEST_TYPE_ID })
       .orderBy("id", "desc")
       .first();
 
