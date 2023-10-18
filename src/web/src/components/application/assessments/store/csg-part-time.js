@@ -159,55 +159,62 @@ const actions = {
   },
 
   loadAssessment({ commit, state }, applicationId) {
-    axios.get(`${CSG_THRESHOLD_URL}/csgpt/${applicationId}`).then((resp) => {
-      commit("SET_FUNDINGREQUEST", resp.data.data.funding_request);
-      commit("SET_DISBURSEMENTS", resp.data.data.disbursements);
+    axios
+      .get(`${CSG_THRESHOLD_URL}/csgpt/${applicationId}`)
+      .then((resp) => {
+        commit("SET_FUNDINGREQUEST", resp.data.data.funding_request);
+        commit("SET_DISBURSEMENTS", resp.data.data.disbursements);
 
-      if (resp.data.data.assessment) {
-        let assessment = resp.data.data.assessment;
-        assessment.assessed_date = moment.utc(assessment.assessed_date).format("YYYY-MM-DD");
-        assessment.classes_start_date = moment.utc(assessment.classes_start_date).format("YYYY-MM-DD");
-        assessment.classes_end_date = moment.utc(assessment.classes_end_date).format("YYYY-MM-DD");
+        if (resp.data.data.assessment) {
+          let assessment = resp.data.data.assessment;
+          assessment.assessed_date = moment.utc(assessment.assessed_date).format("YYYY-MM-DD");
+          assessment.classes_start_date = moment.utc(assessment.classes_start_date).format("YYYY-MM-DD");
+          assessment.classes_end_date = moment.utc(assessment.classes_end_date).format("YYYY-MM-DD");
 
-        commit("SET_ASSESSMENT", resp.data.data.assessment);
-      } else {
-        let parent = state.parentAssessment;
-        let assessment = {
-          assessed_date: moment().format("YYYY-MM-DD"),
-          study_weeks: parent.study_weeks,
-          classes_start_date: moment.utc(parent.classes_start_date).format("YYYY-MM-DD"),
-          classes_end_date: moment.utc(parent.classes_end_date).format("YYYY-MM-DD"),
-          study_months: parent.study_months,
-          family_size: parent.family_size,
-          dependent_count: parent.dependent_count,
-          student_ln150_income: parent.student_ln150_income,
-          spouse_ln150_income: parent.spouse_ln150_income,
-          parent1_income: parent.parent1_income,
-          parent2_income: parent.parent2_income,
-          relocation_total: parent.relocation_total,
-          discretionary_cost: parent.discretionary_cost,
-          discretionary_cost_actual: parent.discretionary_cost_actual,
-          tuition_estimate: parent.tuition_estimate,
-          books_supplies_cost: parent.books_supplies_cost,
-          r_trans_16wk: parent.r_trans_16wk,
-          shelter_month: parent.shelter_month,
-          p_trans_month: parent.p_trans_month,
-          day_care_allowable: parent.day_care_allowable,
-          day_care_actual: parent.day_care_actual,
-          depend_food_allowable: parent.depend_food_allowable,
-          depend_tran_allowable: parent.depend_tran_allowable,
-          spouse_expected_contribution: parent.spouse_expected_contribution,
-          student_expected_contribution: parent.student_expected_contribution,
-          student_contrib_exempt: parent.student_contrib_exempt,
-          spouse_contrib_exempt: parent.spouse_contrib_exempt,
-          student_contribution_review: parent.student_contribution_review,
-          spouse_contribution_review: parent.spouse_contribution_review,
-          parent_contribution_review: parent.parent_contribution_review,
-        };
+          commit("SET_ASSESSMENT", resp.data.data.assessment);
+        } else {
+          let parent = state.parentAssessment;
+          let assessment = {
+            assessed_date: moment().format("YYYY-MM-DD"),
+            study_weeks: parent.study_weeks,
+            classes_start_date: moment.utc(parent.classes_start_date).format("YYYY-MM-DD"),
+            classes_end_date: moment.utc(parent.classes_end_date).format("YYYY-MM-DD"),
+            study_months: parent.study_months,
+            family_size: parent.family_size,
+            dependent_count: parent.dependent_count,
+            student_ln150_income: parent.student_ln150_income,
+            spouse_ln150_income: parent.spouse_ln150_income,
+            parent1_income: parent.parent1_income,
+            parent2_income: parent.parent2_income,
+            relocation_total: parent.relocation_total,
+            discretionary_cost: parent.discretionary_cost,
+            discretionary_cost_actual: parent.discretionary_cost_actual,
+            tuition_estimate: parent.tuition_estimate,
+            books_supplies_cost: parent.books_supplies_cost,
+            r_trans_16wk: parent.r_trans_16wk,
+            shelter_month: parent.shelter_month,
+            p_trans_month: parent.p_trans_month,
+            day_care_allowable: parent.day_care_allowable,
+            day_care_actual: parent.day_care_actual,
+            depend_food_allowable: parent.depend_food_allowable,
+            depend_tran_allowable: parent.depend_tran_allowable,
+            spouse_expected_contribution: parent.spouse_expected_contribution,
+            student_expected_contribution: parent.student_expected_contribution,
+            student_contrib_exempt: parent.student_contrib_exempt,
+            spouse_contrib_exempt: parent.spouse_contrib_exempt,
+            student_contribution_review: parent.student_contribution_review,
+            spouse_contribution_review: parent.spouse_contribution_review,
+            parent_contribution_review: parent.parent_contribution_review,
+          };
 
-        commit("SET_ASSESSMENT", assessment);
-      }
-    });
+          commit("SET_ASSESSMENT", assessment);
+        }
+      })
+      .catch((e) => {
+        commit("SET_FUNDINGREQUEST", undefined);
+        commit("SET_DISBURSEMENTS", []);
+        commit("SET_ASSESSMENT", {});
+      });
   },
 
   async recalculate({ state, dispatch, commit }) {
