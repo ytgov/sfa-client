@@ -78,6 +78,7 @@ const getters = {
       0,
       Math.min(
         getters.totalCosts,
+        getters.needRemaining,
         state.baseRate,
         state.baseRate - getters.phaseOutRate * (getters.familyIncome - getters.threshold.income_threshold)
       )
@@ -106,7 +107,7 @@ const getters = {
   },
   needRemaining(state) {
     let totalNeed = store.getters["cslPartTimeStore/totalCosts"];
-    return totalNeed - store.getters["csgPartTimeDisabilityStore/assessedAmount"];
+    return Math.max(0, totalNeed - store.getters["csgPartTimeDisabilityStore/assessedAmount"]);
   },
 
   pastThreshold(state, getters) {

@@ -92,8 +92,8 @@ const getters = {
     if (isUndefined(state.assessment.study_weeks)) return 0;
     if (getters.pastThreshold) return 0;
     if (!(state.fundingRequest && [6, 7].includes(state.fundingRequest.status_id))) return 0;
-    
-    return state.assessment.study_weeks * getters.weeklyRate;
+
+    return Math.min(getters.needRemaining, state.assessment.study_weeks * getters.weeklyRate);
   },
   previousDisbursements(state) {
     let amounts = state.disbursements.map((d) => d.disbursed_amount);
@@ -125,10 +125,11 @@ const getters = {
   },
   needRemaining(state) {
     let totalNeed = store.getters["cslPartTimeStore/totalCosts"];
-    return (
+    return Math.max(
+      0,
       totalNeed -
-      store.getters["csgPartTimeDisabilityStore/assessedAmount"] -
-      store.getters["csgPartTimeStore/assessedAmount"]
+        store.getters["csgPartTimeDisabilityStore/assessedAmount"] -
+        store.getters["csgPartTimeStore/assessedAmount"]
     );
   },
 };
