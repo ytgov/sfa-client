@@ -1,6 +1,10 @@
 <template>
   <div v-if="assessment">
-    <v-toolbar flat :color="assessableStatus.includes(fundingRequest.status_id) ? '#c7d4de' : 'error lighten-3'">
+    <v-toolbar
+      v-if="fundingRequest"
+      flat
+      :color="assessableStatus.includes(fundingRequest.status_id) ? '#c7d4de' : 'error lighten-3'"
+    >
       <v-row>
         <v-col>
           <v-autocomplete
