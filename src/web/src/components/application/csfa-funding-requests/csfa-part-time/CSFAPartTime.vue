@@ -62,20 +62,15 @@
               background-color="white"
               hide-details
               label="Requested amount"
-              @keypress="validate.isNumber($event)"
-              :value="'$' + (CSFAPartTimeRequest.csl_request_amount ?? 0)"
-              @input="
-                (e) => {
-                  CSFAPartTimeRequest.csl_request_amount = Number(e.slice(1));
-                }
-              "
+              :value="formatMoney(CSFAPartTimeRequest.csl_request_amount, 0)"
               @change="
                 updateFundingRequest(
                   {
-                    csl_request_amount: CSFAPartTimeRequest.csl_request_amount,
+                    csl_request_amount: parseCurrency($event),
                   },
                   CSFAPartTimeRequest.id
-                )
+                );
+                value = $event;
               "
             >
             </v-text-field>
@@ -88,15 +83,12 @@
           dense
           background-color="white"
           hide-details
-          label="Student gross income (Ln 15000)"
-          @keypress="validate.isNumber($event)"
-          :value="'$' + (application.student_ln150_income ?? 0)"
-          @input="
-            (e) => {
-              application.student_ln150_income = Number(e.slice(1));
-            }
+          label="Student gross income (Ln 150)"
+          :value="formatMoney(application.student_ln150_income, 0)"
+          @change="
+            doSaveApp('student_ln150_income', parseCurrency($event));
+            value = $event;
           "
-          @change="doSaveApp('student_ln150_income', application.student_ln150_income)"
         >
         </v-text-field>
       </div>
@@ -116,8 +108,11 @@
           background-color="white"
           hide-details
           label="Outstanding principal from previous CSFA Loan"
-          v-model="application.outstanding_cslpt_amount"
-          @change="doSaveApp('outstanding_cslpt_amount', application.outstanding_cslpt_amount)"
+          :value="formatMoney(application.outstanding_cslpt_amount, 0)"
+          @change="
+            doSaveApp('outstanding_cslpt_amount', parseCurrency($event));
+            value = $event;
+          "
         >
         </v-text-field>
       </div>
@@ -421,6 +416,8 @@ import store from "@/store";
 import axios from "axios";
 import { APPLICATION_URL } from "@/urls";
 import validator from "@/validator";
+import { parse } from "vue-currency-input";
+import { isNumber } from "lodash";
 
 export default {
   computed: {
@@ -472,9 +469,16 @@ export default {
 
       this.showAdd = false;
     },
-    doSaveApp(field, value) {
-      store.dispatch("updateApplication", [field, value, this]);
+    async doSaveApp(field, value) {
+      await store.dispatch("updateApplication", [field, value, this]).then(() => {
+        store.dispatch("loadApplication", this.application.id);
+      });
     },
+    parseCurrency(input) {
+      let value = `${input}`.replace(/[^\d.]/g, "");
+      return parse(value, { currency: "USD" });
+    },
+
     async deleteRecord(id) {
       try {
         const resDelete = await axios.delete(APPLICATION_URL + `/${id}/status`);
@@ -586,6 +590,8 @@ export default {
       }
     },
     async updateFundingRequest(itemToUpdate, id) {
+      console.log("FUNDINGUPDATE", itemToUpdate, id);
+
       try {
         const resInsert = await axios.put(APPLICATION_URL + `/${this.application.id}/status/${id}`, {
           data: { ...itemToUpdate },
@@ -650,6 +656,16 @@ export default {
           this.CSFAPartTimeRequest.id
         );
       }
+    },
+    formatMoney(input, defaultVal = false) {
+      if (isNumber(input)) {
+        return Intl.NumberFormat("en", {
+          currency: "USD",
+          style: "currency",
+        }).format(input);
+      }
+      if (defaultVal) return input;
+      return "$0.00";
     },
   },
 };

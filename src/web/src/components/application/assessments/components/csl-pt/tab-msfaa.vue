@@ -131,7 +131,7 @@
 </template>
 
 <script>
-import { mapGetters, mapState } from "vuex";
+import { mapState } from "vuex";
 import { isEmpty } from "lodash";
 import moment from "moment";
 
