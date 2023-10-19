@@ -545,6 +545,8 @@ export function DependantsFromDraft(draft: any): any[] {
 
 export function FundingFromDraft(draft: any): any[] {
   let funding = new Array<any>();
+  let hasDependents =
+    draft.student_dependants && draft.student_dependants.has_dependants && draft.student_dependants.dependants;
 
   if (draft.funding_sources && draft.funding_sources.sources) {
     for (let source of draft.funding_sources.sources) {
@@ -602,6 +604,34 @@ export function FundingFromDraft(draft: any): any[] {
           is_csg_only: csfa_amounts == "Grants only",
           yea_request_amount: cleanNumber(yea_request_amount),
         });
+
+      if (hasDependents && request_type_id == 4) {
+        funding.push({
+          request_type_id: 32, // Dependent grant for FT
+          status_id: 32, // Online status per Mariazel
+          received_date: new Date(),
+          status_date: new Date(),
+          entering_first_year: draft.program_details.year_entering == 1,
+          student_is_in_ft_study: draft.program_details.attendance == "Full Time",
+          csl_request_amount: application_type_id == 2 ? cleanNumber(loan_amount) : 0,
+          is_csl_full_amount: application_type_id == 2 && csfa_amounts == "Full amount loans and grants",
+          is_csg_only: csfa_amounts == "Grants only",
+          yea_request_amount: cleanNumber(yea_request_amount),
+        });
+      } else if (hasDependents && request_type_id == 5) {
+        funding.push({
+          request_type_id: 33, // Dependent grant for PT
+          status_id: 32, // Online status per Mariazel
+          received_date: new Date(),
+          status_date: new Date(),
+          entering_first_year: draft.program_details.year_entering == 1,
+          student_is_in_ft_study: draft.program_details.attendance == "Full Time",
+          csl_request_amount: application_type_id == 2 ? cleanNumber(loan_amount) : 0,
+          is_csl_full_amount: application_type_id == 2 && csfa_amounts == "Full amount loans and grants",
+          is_csg_only: csfa_amounts == "Grants only",
+          yea_request_amount: cleanNumber(yea_request_amount),
+        });
+      }
     }
   }
 
