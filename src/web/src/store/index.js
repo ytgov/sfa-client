@@ -314,7 +314,7 @@ export default new Vuex.Store({
         state.dispatch("loadStudent", emitter.student.id);
       }
     },
-    updateApplication(state, vals) {
+    async updateApplication(state, vals) {
       let body = JSON.parse(`{"${vals[0]}": "${vals[1]}"}`);
 
       if (vals[1] == null) {
@@ -323,7 +323,7 @@ export default new Vuex.Store({
 
       let emitter = vals[2];
 
-      axios
+      return axios
         .put(`${APPLICATION_URL}/${state.state.selectedApplicationId}`, body)
         .then((resp) => {
           let message = resp.data.messages[0];
