@@ -388,13 +388,36 @@ csgThresholdRouter.post(
 
     let assessment = req.body;
     let disbursements = assessment.disbursements;
+    let generateTransactions = assessment.generateTransaction;
     assessment.funding_request_id = funding_request_id;
     delete assessment.disbursements;
+    delete assessment.generateTransaction;
+
+    let fundingRequest = await db("sfa.funding_request").where({ id: funding_request_id }).first();
+    let transaction_number = undefined;
 
     if (assessment.return_uncashable_cert)
       assessment.return_uncashable_cert = cleanNumber(assessment.return_uncashable_cert);
 
+    if (fundingRequest && fundingRequest.request_type_id == CSLPT_REQUEST_TYPE_ID) {
+      if (generateTransactions === true) {
+        transaction_number = (await db.raw(`select next value for sfa.csl_transaction_seq as nextval`))[0].nextval;
+
+        let childDisbursements = await db("sfa.funding_request")
+          .select("disbursement.*")
+          .where({ application_id })
+          .whereIn("request_type_id", [CSGPT_REQUEST_TYPE_ID, CSGD_REQUEST_TYPE_ID, CSPTDEP_REQUEST_TYPE_ID])
+          .join("sfa.disbursement", "funding_request.id", "disbursement.funding_request_id")
+          .whereNull("disbursement.transaction_number");
+
+        for (let cd of childDisbursements) {
+          await db("sfa.disbursement").where({ id: cd.id }).update({ transaction_number });
+        }
+      }
+    }
+
     let assessmentInsert = await db("sfa.assessment").insert(assessment).returning("*");
+
     if (assessmentInsert.length > 0 && disbursements && isArray(disbursements)) {
       for (let disb of disbursements) {
         disb.assessment_id = assessmentInsert[0].id;
@@ -408,11 +431,10 @@ csgThresholdRouter.post(
           disb.disbursed_amount = cleanNumber(disb.disbursed_amount);
           await db("sfa.disbursement").where({ id }).update(disb);
         } else {
+          disb.transaction_number = transaction_number;
           await db("sfa.disbursement").insert(disb);
         }
       }
-
-      let fundingRequest = await db("sfa.funding_request").where({ id: funding_request_id }).first();
 
       if (fundingRequest && fundingRequest.request_type_id == CSLPT_REQUEST_TYPE_ID) {
         let msfaaForApplication = await db("sfa.msfaa").where({ application_id, is_full_time: false });
@@ -496,17 +518,25 @@ csgThresholdRouter.put(
     const { application_id, funding_request_id, assessment_id } = req.params;
     let assessment = req.body;
     let disbursements = assessment.disbursements;
+    let generateTransactions = assessment.generateTransaction;
     delete assessment.id;
     delete assessment.disbursements;
+    delete assessment.generateTransaction;
 
     if (assessment.return_uncashable_cert)
       assessment.return_uncashable_cert = cleanNumber(assessment.return_uncashable_cert);
 
     await db("sfa.assessment").where({ id: assessment_id }).update(assessment);
+    let transaction_number = undefined;
+
+    if (generateTransactions === true) {
+      transaction_number = (await db.raw(`select next value for sfa.csl_transaction_seq as nextval`))[0].nextval;
+    }
 
     for (let disb of disbursements) {
       disb.assessment_id = assessment_id;
       disb.funding_request_id = funding_request_id;
+
       disb.disbursed_amount = cleanNumber(disb.disbursed_amount);
 
       delete disb.financial_batch_id; // not editable through the interface
@@ -518,6 +548,7 @@ csgThresholdRouter.put(
 
         await db("sfa.disbursement").where({ id }).update(disb);
       } else {
+        disb.transaction_number = transaction_number;
         await db("sfa.disbursement").insert(disb);
       }
     }

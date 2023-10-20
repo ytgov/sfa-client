@@ -15,4 +15,12 @@ export default [
       requiresAuth: true,
     },
   },
+  {
+    path: "/administration/yea-import",
+    name: "YEAImport",
+    component: () => import("../views/YEAImport.vue"),
+    meta: {
+      requiresAuth: true,
+    },
+  },
 ];

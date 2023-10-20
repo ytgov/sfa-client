@@ -28,11 +28,42 @@ const getters = {
   assessmentType(state) {
     return "Assessment";
   },
-  allowance(state) {
+  allowance(state, getters) {
     return state.allowances?.find(
-      (a) =>
-        a.province_id == state.application?.study_province_id && a.student_category_id == state.application?.category_id
+      (a) => a.province_id == state.application?.study_province_id && a.student_category_id == getters.studentCategory
     );
+  },
+  studentCategory(state) {
+    let csl_classification = state.application?.csl_classification ?? 1;
+    let accom_code = state.application?.study_accom_code ?? 1;
+
+    const studyCodes = {
+      DEP: 1, // Dependent
+      M: 2, // Married
+      MW: 3, // Married with dependents
+      SDA: 4, // Single dependent away
+      SDH: 5, // Single dependent home
+      SIA: 6, // Single independent away
+      SIH: 7, // Single independent home
+      SP: 8, // Single parent
+      IND: 9, // Independent
+    };
+
+    if (csl_classification === 1 && accom_code === 1) {
+      return studyCodes.SDH;
+    } else if (csl_classification === 1 && accom_code === 2) {
+      return studyCodes.SDA;
+    } else if ([2, 5].includes(csl_classification) && accom_code === 1) {
+      return studyCodes.SIH;
+    } else if ([2, 5].includes(csl_classification ?? 0) && accom_code === 2) {
+      return studyCodes.SIA;
+    } else if (csl_classification === 3) {
+      return studyCodes.M;
+    } else if (csl_classification === 4) {
+      return studyCodes.SP;
+    } else {
+      return studyCodes.DEP;
+    }
   },
 
   totalStudyCosts(state) {
@@ -263,7 +294,7 @@ const actions = {
           study_weeks: weeksBetween(application.classes_start_date, application.classes_end_date),
           family_size: familySize,
           dependent_count: dependentCount,
-          study_province_id: application.csl_previous_province_id,
+          study_province_id: application.study_province_id,
           spouse_province_id: application.spouse_last_jurisdiction_id,
           tuition_estimate: application.tuition_estimate_amount,
           books_supplies_cost: application.books_supplies_cost,
@@ -341,7 +372,7 @@ const actions = {
         study_weeks: weeksBetween(application.classes_start_date, application.classes_end_date),
         family_size: familySize,
         dependent_count: dependentCount,
-        study_province_id: application.csl_previous_province_id,
+        study_province_id: application.study_province_id,
         spouse_province_id: application.spouse_last_jurisdiction_id,
         tuition_estimate: application.tuition_estimate_amount,
         books_supplies_cost: application.books_supplies_cost,
@@ -412,7 +443,7 @@ const actions = {
       data: { status_id: 7 }, // Awarded
     });
 
-    dispatch("save");
+    dispatch("save", true);
   },
 
   async removeDisbursement({ state }, { item, index }) {
@@ -433,14 +464,16 @@ const actions = {
     });
   },
 
-  async save({ state, dispatch }) {
+  async save({ state, dispatch }, disburseClicked = false) {
     state.assessment.disbursements = state.disbursements;
+
+    console.log("DISBURSE CLCK", disburseClicked)
 
     if (state.assessment.id) {
       axios
         .put(
           `${CSG_THRESHOLD_URL}/csgftdep/${state.fundingRequest.application_id}/funding-request/${state.fundingRequest.id}/assessment/${state.assessment.id}`,
-          state.assessment
+          { ...state.assessment, generateTransaction: disburseClicked }
         )
         .then((resp) => {
           dispatch("loadCSLPTAssessment", state.fundingRequest.application_id);
@@ -449,7 +482,7 @@ const actions = {
       axios
         .post(
           `${CSG_THRESHOLD_URL}/csgftdep/${state.fundingRequest.application_id}/funding-request/${state.fundingRequest.id}/assessment`,
-          state.assessment
+          { ...state.assessment, generateTransaction: disburseClicked }
         )
         .then((resp) => {
           dispatch("loadCSLPTAssessment", state.fundingRequest.application_id);

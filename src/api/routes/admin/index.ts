@@ -76,6 +76,7 @@ import { cslMsfaaSendRouter } from "./csl-msfaa-send-router";
 import { cslRestrictedData } from "./csl-restricted-data-router";
 import ReportingController from "@/controllers/admin/reporting-controller";
 import { csgThresholdRouter } from "./csg-threshold-router";
+import { yeaImportRouter } from "./yea-import-router";
 
 export const adminRouter = express.Router();
 //adminRouter.use("/", RequireServerAuth, RequireAdmin)
@@ -167,3 +168,4 @@ adminRouter.use("/reporting/fundingStatus/:years", routedTo(ReportingController,
 adminRouter.use("/reporting/staYukonUniversity", routedTo(ReportingController, "runSTAYukonUniversityReport"));
 
 adminRouter.use("/csg-threshold", csgThresholdRouter);
+adminRouter.use("/yea-import", yeaImportRouter);
