@@ -25,6 +25,9 @@
     <p>
       <router-link to="/administration/reports">Reports</router-link>
     </p>
+    <p>
+      <router-link to="/administration/yea-import">YEA Import</router-link>
+    </p>
   </div>
 </template>
 
