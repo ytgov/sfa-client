@@ -244,7 +244,7 @@
               append-icon="mdi-pencil"
               v-model="disburseCount"
             />
-            <v-btn color="primary" class="ml-3" @click="disburseClick" :disabled="netAmount == 0">Disburse</v-btn>
+            <v-btn color="primary" class="ml-3" @click="disburseClick">Disburse</v-btn>
           </v-col>
         </v-row>
       </div>
