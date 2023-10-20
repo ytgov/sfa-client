@@ -30,8 +30,7 @@ const getters = {
   },
   allowance(state, getters) {
     return state.allowances?.find(
-      (a) =>
-        a.province_id == state.application?.study_province_id && a.student_category_id == getters.studentCategory
+      (a) => a.province_id == state.application?.study_province_id && a.student_category_id == getters.studentCategory
     );
   },
   studentCategory(state) {
@@ -444,7 +443,7 @@ const actions = {
       data: { status_id: 7 }, // Awarded
     });
 
-    dispatch("save");
+    dispatch("save", true);
   },
 
   async removeDisbursement({ state }, { item, index }) {
@@ -465,14 +464,16 @@ const actions = {
     });
   },
 
-  async save({ state, dispatch }) {
+  async save({ state, dispatch }, disburseClicked = false) {
     state.assessment.disbursements = state.disbursements;
+
+    console.log("DISBURSE CLCK", disburseClicked)
 
     if (state.assessment.id) {
       axios
         .put(
           `${CSG_THRESHOLD_URL}/csgftdep/${state.fundingRequest.application_id}/funding-request/${state.fundingRequest.id}/assessment/${state.assessment.id}`,
-          state.assessment
+          { ...state.assessment, generateTransaction: disburseClicked }
         )
         .then((resp) => {
           dispatch("loadCSLPTAssessment", state.fundingRequest.application_id);
@@ -481,7 +482,7 @@ const actions = {
       axios
         .post(
           `${CSG_THRESHOLD_URL}/csgftdep/${state.fundingRequest.application_id}/funding-request/${state.fundingRequest.id}/assessment`,
-          state.assessment
+          { ...state.assessment, generateTransaction: disburseClicked }
         )
         .then((resp) => {
           dispatch("loadCSLPTAssessment", state.fundingRequest.application_id);
