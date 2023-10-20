@@ -53,6 +53,7 @@
               hide-details
               label="City"
               v-model="application.prestudy_city_id"
+              autocomplete="null"
               @change="doSaveApp('prestudy_city_id', application.prestudy_city_id)"
               :items="cities"
               item-text="description"
@@ -67,6 +68,7 @@
               hide-details
               label="Province"
               v-model="application.prestudy_province_id"
+              autocomplete="null"
               @change="doSaveApp('prestudy_province_id', application.prestudy_province_id)"
               :items="provinces"
               item-text="description"
@@ -158,6 +160,7 @@
               hide-details
               label="City"
               v-model="application.study_city_id"
+              autocomplete="null"
               @change="doSaveApp('study_city_id', application.study_city_id)"
               :items="cities"
               item-text="description"
@@ -171,6 +174,7 @@
               background-color="white"
               hide-details
               label="Province"
+              autocomplete="null"
               v-model="application.study_province_id"
               @change="doSaveApp('study_province_id', application.study_province_id)"
               :items="provinces"
