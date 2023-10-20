@@ -196,8 +196,10 @@ export default {
 
       return input;
     },
-    doSaveApp(field, value) {
-      store.dispatch("updateApplication", [field, value, this]);
+    async doSaveApp(field, value) {
+      store.dispatch("updateApplication", [field, value, this]).then(() => {
+        store.dispatch("loadApplication", this.application.id);
+      });
     },
     setShowAdd() {
       this.newRecord = {
