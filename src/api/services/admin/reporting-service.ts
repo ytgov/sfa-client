@@ -73,6 +73,28 @@ export default class ReportingService {
     return results;
   }
 
+  static async runScholarshipReport({
+    academic_year_id,
+    status_id,
+    scholarshipIds,
+  }: ScholarshipReportParams): Promise<any[]> {
+    let results = await db.raw(
+      `SELECT request_type.description scholarship, person.first_name, person.last_name, study_area.description program
+      FROM sfa.application
+       INNER JOIN sfa.funding_request ON application.id = funding_request.application_id
+       INNER JOIN sfa.request_type ON funding_request.request_type_id = request_type.id
+       INNER JOIN sfa.student on application.student_id = student.id
+       INNER JOIN sfa.person on student.person_id = person.id
+       INNER JOIN sfa.study_area on application.study_area_id = study_area.id
+      WHERE
+        application.academic_year_id = ${academic_year_id}
+        AND funding_request.request_type_id IN (${scholarshipIds.join(",")})
+        AND funding_request.status_id = ${status_id}`
+    );
+
+    return results;
+  }
+
   static async generateAs({
     format,
     reportData,
@@ -179,4 +201,10 @@ export default class ReportingService {
 
 export interface FundingStatusReportParams {
   years: number[];
+}
+
+export interface ScholarshipReportParams {
+  academic_year_id: number;
+  status_id: number;
+  scholarshipIds: number[];
 }

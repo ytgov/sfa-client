@@ -41,6 +41,27 @@ const state = {
         { text: "Grant", value: "grantType" },
       ],
     },
+    {
+      text: "Scholarship Qualified Report",
+      url: "/scholarshipQualified/:academic_year_id/",
+      parameters: [
+        {
+          name: "Academic year",
+          field: "academic_year_id",
+          options: "academicYears",
+          required: true,
+          itemText: "year",
+          itemValue: "year",
+        },
+      ],
+      downloadFormat: ".csv",
+      headers: [
+        { text: "Scholarship", value: "scholarship" },
+        { text: "First name", value: "firstName" },
+        { text: "Last name", value: "lastName" },
+        { text: "Program", value: "program" },
+      ],
+    },
   ],
   selectedReport: undefined,
   reportResults: undefined,
