@@ -46,7 +46,7 @@ export default class FundingRequestsService {
         throw new Error("Funding request not found");
       });
 
-    fundingRequest.requestType
+    fundingRequest.requestType;
 
     if (this.#includes.includes("application")) {
       fundingRequest.application = await ApplicationsService.includes([
@@ -87,6 +87,21 @@ export default class FundingRequestsService {
         let childFundingRequests = await db("fundingRequest").where({ application_id: fundingRequest.applicationId });
         //the related grants
         let childTypeIds = [35, 32, 29, 28];
+        childFundingRequests = childFundingRequests.filter((c) => childTypeIds.includes(c.requestTypeId));
+
+        fundingRequest.disbursements = await db("disbursement")
+          .join("fundingRequest", "fundingRequest.id", "disbursement.fundingRequestId")
+          .join("requestType", "requestType.id", "fundingRequest.requestTypeId")
+          .select("requestType.description as fundingRequestDescription", "disbursement.*")
+          .whereIn("fundingRequestId", [fundingRequest.id, ...childFundingRequests.map((fr) => fr.id)])
+          .orderByRaw("CASE WHEN request_type.description LIKE 'Grant%' THEN 2 ELSE 1 END")
+          .orderBy("disbursement.dueDate");
+      }
+      // this is CSLPT and we include the grants with it!
+      else if (fundingRequest.requestTypeId == 5) {
+        let childFundingRequests = await db("fundingRequest").where({ application_id: fundingRequest.applicationId });
+        //the related grants
+        let childTypeIds = [31, 33, 29, 34];
         childFundingRequests = childFundingRequests.filter((c) => childTypeIds.includes(c.requestTypeId));
 
         fundingRequest.disbursements = await db("disbursement")

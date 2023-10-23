@@ -1,0 +1,124 @@
+<div>
+  <div class="header">
+    <p class="date">{{momentDateFormat currentDate "DD MMM YYYY"}}</p>
+  </div>
+
+  <p class="address">
+    {{recipient.firstName}}
+    {{recipient.initials}}
+    {{recipient.lastName}}
+    <br />
+    {{recipient.address1}}
+    {{#if recipient.address2}}
+      <br />
+      {{recipient.address2}}
+    {{/if}}
+    <br />
+    {{recipient.city}},
+    {{recipient.province}}
+    <br />
+    {{recipient.country}},
+    {{recipient.postalCode}}
+  </p>
+
+  <p class="saluation">
+    Dear
+    {{recipient.firstName}}:
+  </p>
+
+  <p>
+    I am pleased to inform you that your application for the Canada Student Financial Assistance Program has been
+    approved for the period of
+    {{momentDateFormat startDate "MMM YYYY"}}
+    -
+    {{momentDateFormat endDate "MMM YYYY"}}
+    and you have qualified for:
+  </p>
+
+  <p>
+    {{#each assessments}}
+      <span class="flex mt-1"></span>
+      {{#if (hasManyElements @root.assessments)}}
+        {{#if @first}}
+          <span class="flex">Current Assessment</span>
+        {{else}}
+          <span class="flex">Previous Assessment: {{momentDateFormat this.assessedDate "MMM Do, YYYY"}}</span>
+        {{/if}}
+      {{/if}}
+
+    {{/each}}
+  </p>
+
+  {{#if disbursements}}
+    <table style="width: 100%; font-size: 11pt;">
+      <thead>
+        <tr>
+          <th style="text-align:left;">Approved/Reassessed</th>
+          <th style="text-align:right !important; padding-left: 10px">Amount</th>
+          <th style="text-align:left; padding-left: 15px">Release Date</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{#each disbursements}}
+          <tr>
+            <td style="text-align:left">{{this.fundName}}</td>
+            <td style="text-align:right; padding-left: 10px">{{centsToDollarString this.amountInCents}}</td>
+            <td style="text-align:left; padding-left: 15px">{{momentDateFormat this.releaseDate "MMM YYYY"}}</td>
+          </tr>
+        {{/each}}
+      </tbody>
+    </table>
+  {{/if}}
+
+  <p>
+    This is your 10-digit MSFAA number:
+    {{msfaaNumber}}.
+  </p>
+
+  {{#if msfaaOnboarded}}
+    <p>
+      As you have already signed and sent in your Master Student Financial Assistance Agreement (MSFAA), no further
+      action is required on your part.
+    </p>
+  {{else}}
+    <p>
+      You will receive a Welcome Email from NSLSC with a subject line: Register now to set up your online account.
+      Please register and complete your MSFAA online as soon as possible to prevent delay or cancellation.
+    </p>
+  {{/if}}
+
+  <p>
+    *The National Student Loan Service Centre (NSLSC) will confirm your full-time enrolment with your school. Once
+    confirmed your payment(s) will be released within 5-10 business days.
+  </p>
+  <p>
+    NOTE: If you provided incomplete information or your enrolment status changes during a term/semester then grant(s)
+    may be converted to a loan. If you provided incomplete information or withdraw from studies within 30 days of your
+    start date in each term/semester then grant(s) may be converted to a loan.
+  </p>
+  <p>
+    If you have any questions regarding your assessment, please contact our office by email at sfa@yukon.ca, by
+    telephone at 867-667-5929, or toll free within Yukon at 1-800-661-0408 ext. 5929.
+  </p>
+
+  <p>
+    Congratulations on your decision to further your education. On behalf of the Department of Education, I wish you the
+    very best in your studies.
+  </p>
+
+  <p>
+    Sincerely,
+  </p>
+  <p class="mt-10">
+    {{studentFinancialAssistanceOfficer.firstName}}
+    {{studentFinancialAssistanceOfficer.lastName}}
+    <br />
+    {{#if studentFinancialAssistanceOfficer.position}}
+      {{studentFinancialAssistanceOfficer.position}}
+    {{else}}
+      Student Financial Services Officer
+    {{/if}}
+    <br />
+    Department of Education, Government of Yukon
+  </p>
+</div>
