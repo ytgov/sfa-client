@@ -67,8 +67,7 @@ const getters = {
   },
 
   totalStudyCosts(state) {
-    let total = (state.application?.tuition_estimate_amount ?? 0) + (state.application?.books_supplies_cost ?? 0);
-    return total;
+    return (state.assessment?.tuition_estimate ?? 0) + (state.assessment?.books_supplies_cost ?? 0);
   },
 
   totalTransportation(state, getters) {
@@ -117,18 +116,18 @@ const getters = {
     if (state.assessment) {
       let mult = state.assessment.study_weeks >= 24 ? 2 : state.assessment.study_weeks > 0 ? 1 : 0;
 
-      let reloc = state.assessment.relocation_total || 0;
-      let disc = Math.min(state.assessment.discretionary_cost, state.assessment.discretionary_cost_actual) || 0;
+      //let reloc = state.assessment.relocation_total || 0;
+      //let disc = Math.min(state.assessment.discretionary_cost, state.assessment.discretionary_cost_actual) || 0;
       let tuit = state.assessment.tuition_estimate || 0;
       let books = state.assessment.books_supplies_cost || 0;
-      let rtrans = state.assessment.r_trans_16wk * mult;
-      let shelter = state.assessment.shelter_month * state.assessment.study_months;
+      //let rtrans = state.assessment.r_trans_16wk * mult;
+      //let shelter = state.assessment.shelter_month * state.assessment.study_months;
       let ptrans = state.assessment.p_trans_month * state.assessment.study_months;
       let daycare =
         Math.min(state.assessment.day_care_allowable, state.assessment.day_care_actual) * state.assessment.study_months;
-      let dshelter = state.assessment.depend_food_allowable * state.assessment.study_months;
-      let dptrans = state.assessment.depend_tran_allowable * state.assessment.study_months;
-      let totalCosts = reloc + disc + tuit + books + rtrans + shelter + ptrans + daycare + dshelter + dptrans;
+      //let dshelter = state.assessment.depend_food_allowable * state.assessment.study_months;
+      //let dptrans = state.assessment.depend_tran_allowable * state.assessment.study_months;
+      let totalCosts = tuit + books + ptrans + daycare + dptrans;
 
       let contribution =
         (state.assessment.spouse_expected_contribution || 0) + state.assessment.student_expected_contribution;
@@ -151,7 +150,11 @@ const getters = {
 
     let requestedAmount = state.baseMaxAllowable;
 
-    if (state.fundingRequest?.csl_request_amount && state.fundingRequest?.csl_request_amount > 0)
+    if (
+      state.fundingRequest?.csl_request_amount &&
+      state.fundingRequest?.csl_request_amount > 0 &&
+      !state.fundingRequest?.is_csl_full_amount
+    )
       requestedAmount = state.fundingRequest?.csl_request_amount;
 
     let need = getters.needRemaining;
@@ -298,6 +301,7 @@ const actions = {
           spouse_province_id: application.spouse_last_jurisdiction_id,
           tuition_estimate: application.tuition_estimate_amount,
           books_supplies_cost: application.books_supplies_cost,
+          uncapped_costs_total: (application.tuition_estimate_amount ?? 0) + (application.books_supplies_cost ?? 0),
           student_ln150_income: application.student_ln150_income,
           spouse_ln150_income: application.spouse_ln150_income,
           spouse_expected_contribution: 0,
@@ -376,6 +380,7 @@ const actions = {
         spouse_province_id: application.spouse_last_jurisdiction_id,
         tuition_estimate: application.tuition_estimate_amount,
         books_supplies_cost: application.books_supplies_cost,
+        uncapped_costs_total: (application.tuition_estimate_amount ?? 0) + (application.books_supplies_cost ?? 0),
         student_ln150_income: application.student_ln150_income,
         spouse_ln150_income: application.spouse_ln150_income,
         spouse_expected_contribution: 0,
@@ -467,7 +472,7 @@ const actions = {
   async save({ state, dispatch }, disburseClicked = false) {
     state.assessment.disbursements = state.disbursements;
 
-    console.log("DISBURSE CLCK", disburseClicked)
+    console.log("DISBURSE CLCK", disburseClicked);
 
     if (state.assessment.id) {
       axios
