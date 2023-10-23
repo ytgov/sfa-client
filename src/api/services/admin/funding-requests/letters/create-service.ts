@@ -17,6 +17,8 @@ import YukonExcellenceAwardsApprovalLetterService from "@/services/admin/funding
 import YukonExcellenceAwardsRejectionLetterService from "@/services/admin/funding-requests/letters/yukon-excellence-awards-rejection-letter-service";
 import CanadaStudentLoanFulltimeApprovalLetterService from "@/services/admin/funding-requests/letters/canada-student-loan-fulltime-approval-letter-service";
 import CanadaStudentLoanFulltimeRejectionLetterService from "@/services/admin/funding-requests/letters/canada-student-loan-fulltime-rejection-letter-service";
+import CanadaStudentLoanParttimeApprovalLetterService from "@/services/admin/funding-requests/letters/canada-student-loan-parttime-approval-letter-service";
+import CanadaStudentLoanParttimeRejectionLetterService from "@/services/admin/funding-requests/letters/canada-student-loan-parttime-rejection-letter-service";
 
 export default class CreateService {
   #fundingRequestId: number;
@@ -96,24 +98,47 @@ export default class CreateService {
         fundingRequest,
         currentUser,
       });
-    }
-    else if (requestType === RequestType.Types.CANADA_STUDENT_LOAN_FULL_TIME && requestStatus === Status.Types.AWARDED) {
+    } else if (
+      requestType === RequestType.Types.CANADA_STUDENT_LOAN_FULL_TIME &&
+      requestStatus === Status.Types.AWARDED
+    ) {
       return this.#generateCanadaStudentLoanFulltimeLetter({
         director,
         uploader,
         fundingRequest,
         currentUser,
       });
-    } else if (requestType === RequestType.Types.CANADA_STUDENT_LOAN_FULL_TIME && requestStatus === Status.Types.REJECTED) {
+    } else if (
+      requestType === RequestType.Types.CANADA_STUDENT_LOAN_FULL_TIME &&
+      requestStatus === Status.Types.REJECTED
+    ) {
       return this.#generateCanadaStudentLoanFulltimeLetterRejectionLetter({
         director,
         uploader,
         fundingRequest,
         currentUser,
       });
-    }
-    
-    else {
+    } else if (
+      requestType === RequestType.Types.CANADA_STUDENT_LOAN_PART_TIME &&
+      requestStatus === Status.Types.AWARDED
+    ) {
+      return this.#generateCanadaStudentLoanParttimeLetter({
+        director,
+        uploader,
+        fundingRequest,
+        currentUser,
+      });
+    } else if (
+      requestType === RequestType.Types.CANADA_STUDENT_LOAN_PART_TIME &&
+      requestStatus === Status.Types.REJECTED
+    ) {
+      return this.#generateCanadaStudentLoanParttimeLetterRejectionLetter({
+        director,
+        uploader,
+        fundingRequest,
+        currentUser,
+      });
+    } else {
       throw new Error(
         `Could not generate letter for this funding request with request type: ${requestType} and status: ${requestStatus}`
       );
@@ -346,6 +371,55 @@ export default class CreateService {
     currentUser: User;
   }): Promise<string[]> {
     const letterService = new CanadaStudentLoanFulltimeRejectionLetterService({
+      director,
+      fundingRequest,
+      signingOfficer: currentUser,
+    });
+
+    const letter = await letterService.renderAsPdf();
+    const letterName = letterService.buildFileName({ format: "pdf" });
+    await uploader.upload(letter, letterName);
+
+    return [letterName];
+  }
+
+  async #generateCanadaStudentLoanParttimeLetter({
+    director,
+    fundingRequest,
+    currentUser,
+    uploader,
+  }: {
+    director: User;
+    fundingRequest: FundingRequest;
+    currentUser: User;
+    uploader: UploaderService;
+  }): Promise<string[]> {
+    const letterService = new CanadaStudentLoanParttimeApprovalLetterService({
+      fundingRequest,
+      director,
+      signingOfficer: currentUser,
+    });
+    const letter = await letterService.renderAsPdf();
+    const letterName = letterService.buildFileName({
+      format: "pdf",
+    });
+    await uploader.upload(letter, letterName);
+
+    return [letterName];
+  }
+
+  async #generateCanadaStudentLoanParttimeLetterRejectionLetter({
+    director,
+    uploader,
+    fundingRequest,
+    currentUser,
+  }: {
+    director: User;
+    uploader: UploaderService;
+    fundingRequest: FundingRequest;
+    currentUser: User;
+  }): Promise<string[]> {
+    const letterService = new CanadaStudentLoanParttimeRejectionLetterService({
       director,
       fundingRequest,
       signingOfficer: currentUser,
