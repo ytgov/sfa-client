@@ -79,7 +79,7 @@ export default class ReportingService {
     scholarshipIds,
   }: ScholarshipReportParams): Promise<any[]> {
     let results = await db.raw(
-      `SELECT request_type.description scholarship, person.first_name, person.last_name, study_area.description program
+      `SELECT request_type.description scholarship, person.first_name, person.last_name, study_area.description program, application.academic_percent
       FROM sfa.application
        INNER JOIN sfa.funding_request ON application.id = funding_request.application_id
        INNER JOIN sfa.request_type ON funding_request.request_type_id = request_type.id
@@ -89,7 +89,8 @@ export default class ReportingService {
       WHERE
         application.academic_year_id = ${academic_year_id}
         AND funding_request.request_type_id IN (${scholarshipIds.join(",")})
-        AND funding_request.status_id = ${status_id}`
+        AND funding_request.status_id = ${status_id}
+      ORDER BY request_type.description, application.academic_percent desc`
     );
 
     return results;

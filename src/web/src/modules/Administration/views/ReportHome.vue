@@ -22,14 +22,7 @@
 
     <v-row class="mt-3">
       <v-col cols="12" md="9">
-        <v-select
-          label="Choose a report"
-          :items="reportOptions"
-          v-model="report"
-          return-object
-          outlined
-          dense
-        />
+        <v-select label="Choose a report" :items="reportOptions" v-model="report" return-object outlined dense />
         <div>
           <div v-for="item of report?.parameters">
             <v-select
@@ -47,10 +40,12 @@
           </div>
         </div>
       </v-col>
-      <v-col class="text-right">
-        <v-btn color="primary" @click="runClick" >
-          <v-icon class="mr-2">mdi-eye</v-icon> Preview
-        </v-btn>
+      <v-col class="d-flex">
+        <div class="align-self-end text-right mb-7" style="width: 100%;">
+          <v-btn color="primary" @click="runClick" class="align-self-end">
+            <v-icon class="mr-2">mdi-eye</v-icon> Preview
+          </v-btn>
+        </div>
       </v-col>
     </v-row>
     <v-card class="default">

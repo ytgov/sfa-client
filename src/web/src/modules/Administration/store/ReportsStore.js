@@ -60,6 +60,7 @@ const state = {
         { text: "First name", value: "firstName" },
         { text: "Last name", value: "lastName" },
         { text: "Program", value: "program" },
+        { text: "Academic Percentage", value: "academicPercent" },
       ],
     },
   ],
