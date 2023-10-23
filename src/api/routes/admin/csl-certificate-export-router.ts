@@ -57,6 +57,7 @@ cslCertificateExportRouter.get(
 
       await db("sfa.disbursement")
         .where({ csl_cert_seq_number: CSL_CERT_SEQ_P })
+        .whereNull("ecert_sent_date")
         .update({ ecert_sent_date: new Date() });
 
       if (results2[0].fileText) {

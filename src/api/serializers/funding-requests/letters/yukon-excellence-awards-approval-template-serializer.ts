@@ -114,7 +114,7 @@ export default class YukonExcellenceAwardsApprovalTemplateSerializer {
 
       return {
         amountInCents: disbursement.disbursedAmount * 100,
-        releaseDate: disbursement.issueDate,
+        releaseDate: disbursement.dueDate,
       };
     });
   }

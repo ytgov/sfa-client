@@ -166,7 +166,7 @@ export default class YukonGrantInstitutionApprovalTemplateSerializer {
 
       return {
         amountInCents: disbursement.disbursedAmount * 100,
-        releaseDate: disbursement.issueDate,
+        releaseDate: disbursement.dueDate,
       }
     })
   }

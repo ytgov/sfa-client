@@ -38,7 +38,7 @@
             readonly
             hide-details
             label="Total"
-            :value="formatMoney(totalStudyCosts)"
+            :value="formatMoney(assessment.uncapped_costs_total)"
           />
         </v-col>
       </v-row>
