@@ -581,11 +581,10 @@ applicationRouter.delete(
           let d21 = trx("sfa.msfaa").where({ application_id: id }).delete();
 
           await Promise.all([d20, d21]).then(async () => {
-            return trx("sfa.application").where({ id }).delete();
+            await trx("sfa.application").where({ id }).delete();
+            await trx.commit();
+            return res.json({ data: {}, messages: [{ variant: "success", text: "Application deleted" }] });
           });
-
-          await trx.commit();
-          res.json({ data: {}, messages: [{ variant: "success", text: "Application deleted" }] });
         })
         .catch(async (err) => {
           await trx.rollback();
@@ -595,7 +594,7 @@ applicationRouter.delete(
             .json({ data: {}, messages: [{ variant: "error", text: "Error deleting application: " + err.message }] });
         });
     } catch (e: any) {
-      trx.rollback();
+      await trx.rollback();
       return res
         .status(500)
         .json({ data: {}, messages: [{ variant: "error", text: "Error deleting application: " + e.message }] });
