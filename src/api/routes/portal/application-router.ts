@@ -17,32 +17,64 @@ portalApplicationRouter.get("/:sub", async (req: Request, res: Response) => {
 
   if (student) {
     // replace the section below with this once we show submitted in portal
-    /* let drafts = await applicationService.getDraftsForStudent(student.id);
+    let drafts = await applicationService.getDraftsForStudent(student.id);
     let appService = new StudentApplicationsService({ studentId: student.id });
     let apps = await appService.getApplications();
-    return res.json({ data: [...drafts.filter((a) => a.status == "In Progress"), ...apps] }); */
+    return res.json({ data: [...drafts.filter((a) => a.status == "In Progress"), ...apps] });
 
-    let drafts = await applicationService.getDraftsForStudent(student.id);
-    return res.json({ data: drafts });
+    //let drafts = await applicationService.getDraftsForStudent(student.id);
+    //return res.json({ data: drafts });
   }
 
   res.status(404);
 });
 
+// returns the application details for a submitted application
 portalApplicationRouter.get("/:sub/application/:applicationId", async (req: Request, res: Response) => {
   const { sub, applicationId } = req.params;
   let student = await studentService.getBySub(sub);
 
   if (student) {
     let appService = new StudentApplicationsService({ studentId: student.id, applicationId: parseInt(applicationId) });
-    let application = await appService
-      .getApplication()
-      .then((resp) => resp)
-      .catch(() => {
+
+    let application = await appService.getApplication().then((resp) => resp);
+    /* .catch((er) => {
+        console.log("SERER ERRR", er)
         return res.status(404);
-      });
+      }); */
 
     return res.json({ data: application });
+  }
+
+  res.status(404);
+});
+
+// returns the letters associated with a submitted application
+portalApplicationRouter.get("/:sub/application/:applicationId/letters", async (req: Request, res: Response) => {
+  const { sub, applicationId } = req.params;
+  let student = await studentService.getBySub(sub);
+
+  if (student) {
+    let documents = await documentService.getDocumentsForApplication(parseInt(applicationId));
+
+    documents = documents.filter((d) => d.funding_request_id && d.visible_in_portal);
+
+    return res.json({ data: documents });
+  }
+
+  res.status(404);
+});
+
+// returns the documents associated with a submitted application
+portalApplicationRouter.get("/:sub/application/:applicationId/documents", async (req: Request, res: Response) => {
+  const { sub, applicationId } = req.params;
+  let student = await studentService.getBySub(sub);
+
+  if (student) {
+    let documents = await documentService.getDocumentsForApplication(parseInt(applicationId));
+    documents = documents.filter((d) => d.upload_source == "Portal");
+
+    return res.json({ data: documents });
   }
 
   res.status(404);
@@ -202,6 +234,33 @@ portalApplicationRouter.get("/:sub/:draftId/files/:key", async (req: Request, re
         fileReference &&
         fileReference.student_id == student.id &&
         fileReference.application_draft_id == parseInt(draftId)
+      ) {
+        res.set("Content-disposition", "attachment; filename=" + fileReference.file_name);
+        res.set("Content-type", fileReference.mime_type);
+        return res.send(fileReference.file_contents);
+      }
+    }
+  }
+
+  res.status(404).send();
+});
+
+// downloads a document from an application
+portalApplicationRouter.get("/:sub/application/:applicationId/files/:key", async (req: Request, res: Response) => {
+  const { sub, applicationId, key } = req.params;
+  let student = await studentService.getBySub(sub);
+
+  if (student) {
+    let applications = await applicationService.getApplicationsForStudent(student.id);
+    let appIds = applications.map((a) => a.id);
+
+    if (appIds.includes(parseInt(applicationId))) {
+      let fileReference = await documentService.getDocumentWithFile(key);
+
+      if (
+        fileReference &&
+        fileReference.student_id == student.id &&
+        fileReference.application_id == parseInt(applicationId)
       ) {
         res.set("Content-disposition", "attachment; filename=" + fileReference.file_name);
         res.set("Content-type", fileReference.mime_type);

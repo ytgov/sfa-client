@@ -1972,6 +1972,25 @@ applicationRouter.get(
   }
 );
 
+applicationRouter.put(
+  "/:applicationId/funding-request/:fundingRequestId/letters/:object_key",
+  [param("applicationId").isInt().notEmpty(), param("fundingRequestId").isInt().notEmpty()],
+  ReturnValidationErrors,
+  async (req: Request, res: Response) => {
+    const { fundingRequestId, object_key } = req.params;
+    let letters = await documentService.getDocumentsForFundingRequest(parseInt(fundingRequestId));
+    let letter = letters.filter((l) => l.object_key == object_key);
+
+    if (letter.length > 0) {
+      await documentService.updateDocument(object_key, req.body);
+      res.json({data: "Success"})
+
+    }
+
+    res.status(404).send;
+  }
+);
+
 applicationRouter.delete(
   "/:applicationId/funding-request/:fundingRequestId/letters/:object_key",
   [param("applicationId").isInt().notEmpty(), param("fundingRequestId").isInt().notEmpty()],

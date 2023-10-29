@@ -216,6 +216,7 @@ const actions = {
           student_contribution_review: parent.student_contribution_review,
           spouse_contribution_review: parent.spouse_contribution_review,
           parent_contribution_review: parent.parent_contribution_review,
+          assessed_amount: parse(getters.assessedAmount, { currency: "usd" }),
         };
 
         commit("SET_ASSESSMENT", assessment);
@@ -259,6 +260,7 @@ const actions = {
         student_contribution_review: parent.student_contribution_review,
         spouse_contribution_review: parent.spouse_contribution_review,
         parent_contribution_review: parent.parent_contribution_review,
+        assessed_amount: parse(getters.assessedAmount, { currency: "usd" }),
       };
 
       commit("SET_ASSESSMENT", assessment);
