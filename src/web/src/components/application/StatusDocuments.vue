@@ -68,8 +68,11 @@
                 <a @click="downloadLetterClick(letter)" class="mr-5"
                   ><v-icon small color="primary">mdi-download</v-icon> Download</a
                 >
-                <a @click="publishLetterClick(letter)" class="mr-5" v-if="letter.canPublish">
-                  <v-icon small color="primary">mdi-forward</v-icon> Publish</a
+                <a @click="publishLetterClick(letter)" class="mr-5" v-if="letter.visible_in_portal">
+                  <v-icon small color="primary">mdi-publish-off</v-icon> UnPublish</a
+                >
+                <a @click="publishLetterClick(letter)" class="mr-5" v-else>
+                  <v-icon small color="primary">mdi-publish</v-icon> Publish</a
                 >
                 <a @click="emailLetterClick(letter)" class="mr-5">
                   <v-icon small color="primary">mdi-email</v-icon> Email</a
@@ -125,6 +128,7 @@ export default {
         .get(`${APPLICATION_URL}/${this.item.application_id}/funding-request/${this.item.id}/letters`)
         .then((resp) => {
           this.letters = resp.data.data;
+          console.log(this.letters);
         })
         .catch();
     },
@@ -154,7 +158,18 @@ export default {
       let documentUrl = `${APPLICATION_URL}/${this.item.application_id}/funding-request/${this.item.id}/letters/${letter.object_key}`;
       window.open(documentUrl);
     },
-    publishLetterClick(letter) {},
+    publishLetterClick(letter) {
+      console.log("You want to publish", letter.file_name);
+      axios
+        .put(
+          `${APPLICATION_URL}/${this.item.application_id}/funding-request/${this.item.id}/letters/${letter.object_key}`,
+          { visible_in_portal: !letter.visible_in_portal }
+        )
+        .then((resp) => {
+          this.loadLetters();
+          this.selectedFile = null;
+        });
+    },
     emailLetterClick(letter) {},
     deleteLetterClick(letter) {
       axios

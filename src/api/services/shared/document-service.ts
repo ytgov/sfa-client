@@ -74,7 +74,10 @@ export class DocumentService {
 
   //return the Document metadata
   async getDocumentsForApplication(application_id: number): Promise<FileReferenceBase[]> {
-    return await db<FileReferenceBase>("sfa.file_reference").where({ application_id });
+    return await db<FileReferenceBase>("sfa.file_reference")
+      .where({ application_id })
+      .leftJoin("sfa.requirement_type", "file_reference.requirement_type_id", "requirement_type.id")
+      .select("file_reference.*", "requirement_type.description as requirementTypeDescription");
   }
 
   //return the Document metadata

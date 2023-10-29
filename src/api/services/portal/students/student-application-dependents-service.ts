@@ -1,16 +1,16 @@
-import { groupBy } from "lodash"
+import { groupBy } from "lodash";
 
-import db from "@/db/db-client"
+import db from "@/db/db-client";
 
-import Dependent from "@/models/dependent"
+import Dependent from "@/models/dependent";
 
 export default class StudentApplicationDependentsService {
-  #studentId: number
-  #applicationId?: number
+  #studentId: number;
+  #applicationId?: number;
 
   constructor({ studentId, applicationId }: { studentId: number; applicationId?: number }) {
-    this.#studentId = studentId
-    this.#applicationId = applicationId
+    this.#studentId = studentId;
+    this.#applicationId = applicationId;
   }
 
   /*
@@ -36,7 +36,7 @@ export default class StudentApplicationDependentsService {
   */
   async getDependents(): Promise<Dependent[]> {
     if (this.#studentId === undefined) {
-      throw new Error('studentId is required')
+      throw new Error("studentId is required");
     }
 
     const rows = await db
@@ -56,8 +56,9 @@ export default class StudentApplicationDependentsService {
         t2IsActive: "relationship.isActive",
       })
       .from("dependent")
+      .innerJoin("dependentEligibility", "dependent.id", "dependentEligibility.dependentId")
       .leftJoin("relationship", "relationship.id", "dependent.relationshipId")
-      .where({ studentId: this.#studentId })
+      .where({ studentId: this.#studentId, applicationId: this.#applicationId });
 
     const dependents = rows.map((row) => ({
       id: row.t1Id,
@@ -75,27 +76,27 @@ export default class StudentApplicationDependentsService {
         description: row.t2Description,
         isActive: row.t2IsActive,
       },
-    }))
+    }));
 
     if (this.#applicationId === undefined) {
-      throw new Error("Application ID is not set")
+      throw new Error("Application ID is not set");
     } else {
-      await this.#injectDependentEligibilities(dependents, this.#applicationId)
+      await this.#injectDependentEligibilities(dependents, this.#applicationId);
     }
 
-    return dependents
+    return dependents;
   }
 
   async #injectDependentEligibilities(dependents: Dependent[], applicationId: number) {
-    const dependentIds = dependents.map((dependent) => dependent.id)
+    const dependentIds = dependents.map((dependent) => dependent.id);
     const dependentEligibilityHash = await db("dependentEligibility")
       .where({ applicationId })
       .where("id", "in", dependentIds)
-      .then((rows) => groupBy(rows, "dependentId"))
+      .then((rows) => groupBy(rows, "dependentId"));
 
     dependents.forEach((dependent) => {
-      const dependentId = dependent.id
-      dependent.dependentEligibilities = dependentEligibilityHash[dependentId]
-    })
+      const dependentId = dependent.id;
+      dependent.dependentEligibilities = dependentEligibilityHash[dependentId];
+    });
   }
 }

@@ -12,7 +12,7 @@ const state = {
   disbursements: [],
   parentAssessment: {},
   parentDisbursements: [],
-  baseRate: 0.00,
+  baseRate: 0.0,
 };
 const getters = {
   disbursements(state) {
@@ -27,6 +27,7 @@ const getters = {
     return formatMoney(total);
   },
   assessedAmount(state) {
+    state.assessment.assessed_amount = state.baseRate;
     return formatMoney(state.baseRate);
   },
   netAmount(state, getters) {
@@ -137,6 +138,7 @@ const actions = {
           student_contribution_review: parent.student_contribution_review,
           spouse_contribution_review: parent.spouse_contribution_review,
           parent_contribution_review: parent.parent_contribution_review,
+          assessed_amount: state.baseRate,
         };
 
         commit("SET_ASSESSMENT", assessment);
@@ -178,6 +180,7 @@ const actions = {
         student_contribution_review: parent.student_contribution_review,
         spouse_contribution_review: parent.spouse_contribution_review,
         parent_contribution_review: parent.parent_contribution_review,
+        assessed_amount: state.baseRate,
       };
 
       commit("SET_ASSESSMENT", assessment);

@@ -36,6 +36,7 @@ const getters = {
     if (isUndefined(state.assessment.study_months)) return formatMoney(0);
 
     let total = state.assessment.study_months * state.baseRate;
+    state.assessment.assessed_amount = total;
     return formatMoney(total);
   },
   netAmount(state, getters) {
@@ -97,7 +98,7 @@ const actions = {
     });
   },
 
-  loadCSGFTAssessment({ commit, state }, applicationId) {
+  loadCSGFTAssessment({ commit, state, getters }, applicationId) {
     axios.get(`${CSG_THRESHOLD_URL}/csgtu/${applicationId}`).then((resp) => {
       commit("SET_FUNDINGREQUEST", resp.data.data.funding_request);
       commit("SET_DISBURSEMENTS", resp.data.data.disbursements);
@@ -141,6 +142,7 @@ const actions = {
             student_contribution_review: parent.student_contribution_review,
             spouse_contribution_review: parent.spouse_contribution_review,
             parent_contribution_review: parent.parent_contribution_review,
+            assessed_amount: parse(getters.assessedAmount, { currency: "usd" }),
           };
 
           commit("SET_ASSESSMENT", assessment);
@@ -149,7 +151,7 @@ const actions = {
     });
   },
 
-  async recalculate({ state, dispatch, commit }) {
+  async recalculate({ state, dispatch, commit, getters }) {
     dispatch("loadCSLFTAssessment", { id: state.fundingRequest.application_id, refreshChild: false }).then(() => {
       let parent = state.parentAssessment;
 
@@ -183,6 +185,7 @@ const actions = {
         student_contribution_review: parent.student_contribution_review,
         spouse_contribution_review: parent.spouse_contribution_review,
         parent_contribution_review: parent.parent_contribution_review,
+        assessed_amount: parse(getters.assessedAmount, { currency: "usd" }),
       };
 
       commit("SET_ASSESSMENT", assessment);

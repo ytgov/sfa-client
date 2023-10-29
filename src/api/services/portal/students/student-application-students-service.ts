@@ -1,17 +1,17 @@
-import db from "@/db/db-client"
+import db from "@/db/db-client";
 
-import Student from "@/models/student"
+import Student from "@/models/student";
 
-import StudentApplicationDependentsService from "@/services/portal/students/student-application-dependents-service"
-import StudentApplicationStudentPersonsService from "@/services/portal/students/student-application-student-persons-service"
+import StudentApplicationDependentsService from "@/services/portal/students/student-application-dependents-service";
+import StudentApplicationStudentPersonsService from "@/services/portal/students/student-application-student-persons-service";
 
 export default class StudentApplicationStudentsService {
-  #studentId: number
-  #applicationId?: number
+  #studentId: number;
+  #applicationId?: number;
 
   constructor({ studentId, applicationId }: { studentId: number; applicationId?: number }) {
-    this.#studentId = studentId
-    this.#applicationId = applicationId
+    this.#studentId = studentId;
+    this.#applicationId = applicationId;
   }
 
   async getStudent() {
@@ -71,7 +71,7 @@ export default class StudentApplicationStudentsService {
         t2LastName: "person.lastName",
         t2Initials: "person.initials",
         t2PreviousLastName: "person.previousLastName",
-        t2Sin: "person.sin",
+        //t2Sin: "person.sin",
         t2CitizenshipCode: "person.citizenshipCode",
         t2BirthDate: "person.birthDate",
         t2Telephone: "person.telephone",
@@ -82,11 +82,13 @@ export default class StudentApplicationStudentsService {
         t4Id: "sex.id",
         t4Description: "sex.description",
         t4IsActive: "sex.isActive",
+        t5Name: "highSchool.name",
       })
       .from("student")
       .innerJoin("person", "person.id", "student.personId")
       .leftJoin("language", "language.id", "person.languageId")
       .leftJoin("sex", "sex.id", "person.sexId")
+      .leftJoin("highSchool", "highSchool.id", "student.highSchoolId")
       .where({ ["student.id"]: this.#studentId })
       .first()
       .then((result) => {
@@ -135,6 +137,9 @@ export default class StudentApplicationStudentsService {
           kinProvinceId: result.t1KinProvinceId,
           kinCountryId: result.t1KinCountryId,
           kinPostalCode: result.t1KinPostalCode,
+          highSchool: {
+            name: result.t5Name,
+          },
           person: {
             id: result.t2Id,
             languageId: result.t2LanguageId,
@@ -146,7 +151,7 @@ export default class StudentApplicationStudentsService {
             lastName: result.t2LastName,
             initials: result.t2Initials,
             previousLastName: result.t2PreviousLastName,
-            sin: result.t2Sin,
+            //sin: result.t2Sin,
             citizenshipCode: result.t2CitizenshipCode,
             birthDate: result.t2BirthDate,
             telephone: result.t2Telephone,
@@ -162,48 +167,46 @@ export default class StudentApplicationStudentsService {
               isActive: result.t4IsActive,
             },
           },
-        })
-      })
+        });
+      });
 
-    if (student.person) {
+    /* if (student.person) {
       const personAddresses = await this.#getPersonAddresses(student.personId)
       student.person.personAddresses = personAddresses
-    }
+    } */
 
     if (this.#applicationId === undefined) {
-      throw new Error("Application ID is not set")
+      throw new Error("Application ID is not set");
     } else {
-      student.dependents = await this.#getDependents(student.id, this.#applicationId)
+      student.dependents = await this.#getDependents(student.id, this.#applicationId);
     }
 
-    student.studentConsents = await this.#getStudentConsents(student.id)
-    student.residences = await this.#getResidences(student.id)
-    student.studentPersons = await this.#getStudentPersons(student.id)
+    student.studentConsents = await this.#getStudentConsents(student.id);
+    student.residences = await this.#getResidences(student.id);
+    student.studentPersons = await this.#getStudentPersons(student.id);
 
-    return student
+    return student;
   }
 
   #getDependents(studentId: number, applicationId: number) {
-    const dependentsService = new StudentApplicationDependentsService({ studentId, applicationId })
-    return dependentsService.getDependents()
+    const dependentsService = new StudentApplicationDependentsService({ studentId, applicationId });
+    return dependentsService.getDependents();
   }
 
   #getPersonAddresses(personId: number) {
-    return db
-      .from("personAddress")
-      .where({ personId })
+    return db.from("personAddress").where({ personId });
   }
 
   #getStudentConsents(studentId: number) {
-    return db("studentConsent").where({ studentId })
+    return db("studentConsent").where({ studentId });
   }
 
   #getStudentPersons(studentId: number) {
-    const studentPersonsService = new StudentApplicationStudentPersonsService({ studentId })
-    return studentPersonsService.getStudentPersons()
+    const studentPersonsService = new StudentApplicationStudentPersonsService({ studentId });
+    return studentPersonsService.getStudentPersons();
   }
 
   #getResidences(studentId: number) {
-    return db("residence").where({ studentId })
+    return db("residence").where({ studentId });
   }
 }
