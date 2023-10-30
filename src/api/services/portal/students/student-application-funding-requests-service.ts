@@ -74,7 +74,9 @@ export default class StudentApplicationFundingRequestsService {
     const assessmentIds = assessments.map((assessment) => assessment.id);
 
     const disbursementsHash = await db("disbursement")
+      .leftJoin("changeReason", "disbursement.changeReasonId", "changeReason.id")
       .whereIn("assessmentId", assessmentIds)
+      .select("disbursement.*", "changeReason.description as changeReasonDescription")
       .then((rows) => groupBy(rows, "assessmentId"));
 
     assessments.forEach((assessment) => {
