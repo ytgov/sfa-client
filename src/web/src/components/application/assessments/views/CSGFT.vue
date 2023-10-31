@@ -171,7 +171,7 @@
                 hide-details
                 label="Family income"
                 readonly
-                v-model="familyIncome"
+                :value="formatMoney(familyIncome)"
                 append-icon="mdi-calculator"
               ></v-text-field>
             </v-col>
@@ -191,7 +191,7 @@
                 background-color="#ddd"
                 readonly
                 label="Monthly rate"
-                v-model="monthlyRate"
+                :value="formatMoney(monthlyRate)"
                 append-icon="mdi-lock"
               ></v-text-field>
             </v-col>
@@ -202,7 +202,7 @@
                 background-color="#ddd"
                 label="Assessed need"
                 readonly
-                v-model="assessedNeed"
+                :value="formatMoney(assessedNeed)"
                 append-icon="mdi-lock"
               ></v-text-field>
               <v-text-field
@@ -211,7 +211,7 @@
                 background-color="#ddd"
                 label="Assessed amount"
                 readonly
-                v-model="assessedAmount"
+                :value="formatMoney(assessedAmount)"
                 append-icon="mdi-calculator"
               ></v-text-field>
               <v-text-field
@@ -221,7 +221,7 @@
                 hide-details
                 label="Previous disbursements"
                 readonly
-                v-model="previousDisbursements"
+                :value="formatMoney(previousDisbursements)"
                 append-icon="mdi-calculator"
               ></v-text-field>
             </v-col>
@@ -248,7 +248,7 @@
                 hide-details
                 label="Net amount"
                 readonly
-                v-model="netAmount"
+                :value="netAmount"
                 append-icon="mdi-calculator"
               ></v-text-field
             ></v-col>

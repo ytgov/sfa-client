@@ -92,11 +92,11 @@ export class AssessmentYukonGrant extends AssessmentBaseRepository {
       assess.weekly_amount = yg_cost.weekly_amount || 0;
     }
 
-    const disburse_required = await this.getScalarValue<number>("fn_disbursments_required", [
+   /*  const disburse_required = await this.getScalarValue<number>("fn_disbursments_required", [
       application_id,
       assessment_id || 0,
       "NULL",
-    ]);
+    ]); */
 
     let disbursed_amt = null;
 
@@ -108,18 +108,18 @@ export class AssessmentYukonGrant extends AssessmentBaseRepository {
       disbursed_amt = disbursedAmounts.reduce((a, b) => a + b, 0);
     }
 
-    if (disbursed_amt) {
+     if (disbursed_amt) {
       assess.previous_disbursement = disbursed_amt;
 
-      if (disburse_required > 0 && disburse_required < 1) {
+   /*    if (disburse_required > 0 && disburse_required < 1) {
         assess.disbursements_required = 1;
       } else {
         assess.disbursements_required = Math.floor(disburse_required);
-      }
+      } */
     } else {
       assess.previous_disbursement = 0;
-      assess.disbursements_required = Math.floor(disburse_required);
-    }
+      //assess.disbursements_required = Math.floor(disburse_required);
+    } 
 
     assess.over_award = 0;
     assess.assessment_adj_amount = 0;
@@ -129,7 +129,7 @@ export class AssessmentYukonGrant extends AssessmentBaseRepository {
     assess.air_travel_disbursement_period = undefined;
 
     assess.assessed_amount = await this.getScalarValue<number>("fn_get_total", [
-      String(assess.disbursements_required),
+      "1", //String(assess.disbursements_required),
       this.application.academic_year_id || 0,
       String(assess.living_costs),
       String(assess.allowed_tuition),
@@ -142,7 +142,7 @@ export class AssessmentYukonGrant extends AssessmentBaseRepository {
     ]);
 
     assess.pre_leg_amount = await this.getScalarValue<number>("fn_get_old_total", [
-      String(assess.disbursements_required),
+      "1", //String(assess.disbursements_required),
       String(this.application.academic_year_id),
       String(assess.living_costs),
       String(assess.allowed_tuition),
@@ -193,11 +193,11 @@ export class AssessmentYukonGrant extends AssessmentBaseRepository {
       assessment.destination_city_id || 0,
     ]);
 
-    const disburse_required = await this.getScalarValue<number>("fn_disbursments_required", [
+    /* const disburse_required = await this.getScalarValue<number>("fn_disbursments_required", [
       application_id,
       assessment?.id || 0,
       program_division || 0,
-    ]);
+    ]); */
 
     let disbursed_amt = null;
 
@@ -208,18 +208,18 @@ export class AssessmentYukonGrant extends AssessmentBaseRepository {
     if (disbursed_amt) {
       assess.previous_disbursement = disbursed_amt;
 
-      if (disburse_required > 0 && disburse_required < 1) {
+      /* if (disburse_required > 0 && disburse_required < 1) {
         assess.disbursements_required = 1;
       } else {
         assess.disbursements_required = Math.floor(disburse_required);
-      }
+      } */
     } else {
       assess.previous_disbursement = 0;
-      assess.disbursements_required = Math.floor(disburse_required);
+      //assess.disbursements_required = Math.floor(disburse_required);
     }
 
     assess.assessed_amount = await this.getScalarValue<number>("fn_get_total", [
-      assess.disbursements_required || 0,
+      "1", //assess.disbursements_required || 0,
       this.application.academic_year_id || 0,
       String(assess.living_costs),
       String(assess.allowed_tuition),
@@ -232,7 +232,7 @@ export class AssessmentYukonGrant extends AssessmentBaseRepository {
     ]);
 
     assess.pre_leg_amount = await this.getScalarValue<number>("fn_get_old_total", [
-      assess.disbursements_required || 0,
+      "1", //assess.disbursements_required || 0,
       String(this.application.academic_year_id),
       String(assessment.living_costs),
       String(assessment.allowed_tuition),
