@@ -25,7 +25,7 @@ const getters = {
         (state.assessment.parent1_income || 0) +
         (state.assessment.parent2_income || 0)
       : 0;
-    return formatMoney(val);
+    return val;
   },
 
   threshold(state) {
@@ -57,13 +57,13 @@ const getters = {
       let contribution =
         (state.assessment.spouse_expected_contribution || 0) + state.assessment.student_expected_contribution;
 
-      return formatMoney(totalCosts > contribution ? totalCosts - contribution : 0);
+      return totalCosts > contribution ? totalCosts - contribution : 0;
     }
-    return "$0.00";
+    return 0;
   },
 
   phaseOutRate(state, getters) {
-    let income = parse(getters.familyIncome, { currency: "usd" });
+    let income = getters.familyIncome;
 
     if (income >= getters.threshold.income_cutoff) return 0;
     else if (income > getters.threshold.income_threshold) return getters.threshold.phase_out_rate;
@@ -71,26 +71,22 @@ const getters = {
   },
 
   monthlyRate(state, getters) {
-    if (isUndefined(getters.threshold.phase_out_rate) || isUndefined(getters.familyIncome)) return formatMoney(0);
+    if (isUndefined(getters.threshold.phase_out_rate) || isUndefined(getters.familyIncome)) return 0;
 
     let rate = Math.max(
       0,
       Math.min(
         state.baseRate,
-        state.baseRate -
-          getters.threshold.phase_out_rate *
-            (parse(getters.familyIncome, { currency: "usd" }) - getters.threshold.income_threshold)
+        state.baseRate - getters.threshold.phase_out_rate * (getters.familyIncome - getters.threshold.income_threshold)
       )
     );
 
-    return formatMoney(rate);
+    return Math.round(rate * 100) / 100;
   },
   assessedAmount(state, getters) {
     if (isUndefined(state.assessment.study_months)) return formatMoney(0);
 
-    return state.assessment
-      ? formatMoney(parse(getters.monthlyRate, { currency: "usd" }) * state.assessment.study_months)
-      : formatMoney(0);
+    return state.assessment ? getters.monthlyRate * state.assessment.study_months : 0;
   },
   previousDisbursements(state) {
     let amounts = state.disbursements.map((d) => d.disbursed_amount);
@@ -98,14 +94,13 @@ const getters = {
       return t + a;
     }, 0);
 
-    return formatMoney(total);
+    return total;
   },
   netAmount(state, getters) {
-    return formatMoney(getters.netAmountRaw);
+    return getters.netAmountRaw;
   },
   netAmountRaw(state, getters) {
-    let rawVal =
-      parse(getters.assessedAmount, { currency: "usd" }) - parse(getters.previousDisbursements, { currency: "usd" });
+    let rawVal = getters.assessedAmount - getters.previousDisbursements;
     if (rawVal > 0 && rawVal < 100) return 100.0;
     return Object.is(Math.round(rawVal), -0) ? 0 : Math.round(rawVal);
   },
@@ -216,7 +211,7 @@ const actions = {
           student_contribution_review: parent.student_contribution_review,
           spouse_contribution_review: parent.spouse_contribution_review,
           parent_contribution_review: parent.parent_contribution_review,
-          assessed_amount: parse(getters.assessedAmount, { currency: "usd" }),
+          assessed_amount: getters.assessedAmount,
         };
 
         commit("SET_ASSESSMENT", assessment);
@@ -260,7 +255,7 @@ const actions = {
         student_contribution_review: parent.student_contribution_review,
         spouse_contribution_review: parent.spouse_contribution_review,
         parent_contribution_review: parent.parent_contribution_review,
-        assessed_amount: parse(getters.assessedAmount, { currency: "usd" }),
+        assessed_amount: getters.assessedAmount,
       };
 
       commit("SET_ASSESSMENT", assessment);
@@ -352,6 +347,8 @@ export default {
   actions,
   namespaced: true,
 };
+
+window.debugThing = { state, getters };
 
 function formatMoney(input) {
   if (isNumber(input)) {
