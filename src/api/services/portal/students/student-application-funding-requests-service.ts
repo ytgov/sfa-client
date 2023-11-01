@@ -31,13 +31,15 @@ export default class StudentApplicationFundingRequestsService {
   async getFundingRequests() {
     const fundingRequests = await db("fundingRequest")
       .where({ applicationId: this.#applicationId })
+      .innerJoin("requestType", "requestType.id", "fundingRequest.requestTypeId")
       .leftJoin("status", "fundingRequest.statusId", "status.id")
       .leftJoin("statusReason", "fundingRequest.statusReasonId", "status.id")
       .select(
         "fundingRequest.*",
         "status.description as statusDescription",
         "statusReason.description as reasonDescription"
-      );
+      )
+      .orderByRaw("COALESCE(funding_group_id, 4), CASE WHEN request_type_id = 2 THEN 1 ELSE 2 END, request_type_id");
 
     await this.#injectRequestTypes(fundingRequests);
     await this.#injectAssessments(fundingRequests);

@@ -25,8 +25,20 @@ export default class StudentApplicationsService {
 
   getApplications() {
     return db("application")
-      .select("id", "studentId", "academicYearId", "updatedAt", "onlineSubmitDate")
-      .where({ studentId: this.#studentId });
+      .innerJoin("institutionCampus", "institutionCampus.id", "application.institutionCampusId")
+      .innerJoin("institution", "institution.id", "institutionCampus.institutionId")
+      .select(
+        "application.id",
+        "studentId",
+        "academicYearId",
+        "updatedAt",
+        "onlineSubmitDate",
+        "institution.name AS institutionName",
+        "classesStartDate",
+        "classesEndDate"
+      )
+      .where({ studentId: this.#studentId })
+      .orderBy("academic_year_id", "desc");
   }
 
   async getApplication() {
