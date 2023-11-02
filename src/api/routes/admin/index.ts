@@ -170,6 +170,7 @@ adminRouter.use(
   "/reporting/scholarshipQualified/:academic_year_id",
   routedTo(ReportingController, "runScholarshipReport")
 );
+adminRouter.use("/reporting/nars2023", routedTo(ReportingController, "runNars2023Report"));
 
 adminRouter.use("/csg-threshold", csgThresholdRouter);
 adminRouter.use("/yea-import", yeaImportRouter);

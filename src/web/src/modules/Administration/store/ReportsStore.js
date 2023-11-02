@@ -63,6 +63,14 @@ const state = {
         { text: "Academic Percentage", value: "academicPercent" },
       ],
     },
+    {
+      text: "NARS 2023",
+      url: "/nars2023",
+      downloadFormat: ".pdf",
+      headers: [
+        { text: "Name", value: "id" },
+      ],
+    },
   ],
   selectedReport: undefined,
   reportResults: undefined,

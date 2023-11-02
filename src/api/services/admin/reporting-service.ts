@@ -96,6 +96,17 @@ export default class ReportingService {
     return results;
   }
 
+
+  static async runNars2023Report(): Promise<any[]> {
+    let results = await db.raw(
+      `SELECT TOP 5 *
+      FROM sfa.application
+      ORDER BY 1`
+    );
+
+    return results;
+  }
+
   static async generateAs({
     format,
     reportData,

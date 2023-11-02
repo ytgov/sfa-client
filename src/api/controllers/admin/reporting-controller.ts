@@ -86,6 +86,26 @@ export default class ReportingController extends BaseController {
         this.response.send("Error generating report: " + e);
       });
   }
+
+  async runNars2023Report() {
+    let reportData = await ReportingService.runNars2023Report();
+
+    return ReportingService.generateAs({ format: this.format, reportData })
+      .then(async ({ fileContent, fileName, mimeType }) => {
+        if (this.format == "html") {
+          this.response.send(fileContent);
+        } else if (this.format == "json") {
+          this.response.json(fileContent);
+        } else {
+          this.response.setHeader("Content-disposition", `attachment; filename="${fileName}"`);
+          this.response.setHeader("Content-type", mimeType);
+          this.response.send(fileContent);
+        }
+      })
+      .catch((e) => {
+        this.response.send("Error generating report: " + e);
+      });
+  }
 }
 
 function formatMoney(input: number) {
