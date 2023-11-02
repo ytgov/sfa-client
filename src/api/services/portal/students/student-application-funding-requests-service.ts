@@ -33,7 +33,7 @@ export default class StudentApplicationFundingRequestsService {
       .where({ applicationId: this.#applicationId })
       .innerJoin("requestType", "requestType.id", "fundingRequest.requestTypeId")
       .leftJoin("status", "fundingRequest.statusId", "status.id")
-      .leftJoin("statusReason", "fundingRequest.statusReasonId", "status.id")
+      .leftJoin("statusReason", "fundingRequest.statusReasonId", "statusReason.id")
       .select(
         "fundingRequest.*",
         "status.description as statusDescription",

@@ -870,6 +870,10 @@ applicationRouter.put(
     const { application_id, id } = req.params;
     const { data } = req.body;
 
+    if (data.status_id || data.status_reason_id) {
+      data.status_date = new Date();
+    }
+
     try {
       const resUpdate = await db("sfa.funding_request")
         .where({ id, application_id })
