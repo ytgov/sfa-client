@@ -396,8 +396,6 @@ const actions = {
       };
       assessment.period = assessment.study_months <= 4 ? "S" : "P";
 
-      console.log(assessment);
-
       commit("SET_ASSESSMENT", assessment);
       dispatch("save");
     });
@@ -457,8 +455,6 @@ const actions = {
 
   async save({ state, dispatch }, disburseClicked = false) {
     state.assessment.disbursements = state.disbursements;
-
-    console.log("DISBURSE CLCK", disburseClicked);
 
     if (state.assessment.id) {
       axios
