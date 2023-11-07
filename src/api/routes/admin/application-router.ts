@@ -742,6 +742,7 @@ applicationRouter.post("/:application_id/student/:student_id/files", async (req:
         comment,
         source: "Admin",
         status,
+        visible_in_portal: true,
       });
     }
     return res.json({ messages: [{ variant: "success", text: "Saved" }] });
@@ -1987,8 +1988,7 @@ applicationRouter.put(
 
     if (letter.length > 0) {
       await documentService.updateDocument(object_key, req.body);
-      res.json({data: "Success"})
-
+      res.json({ data: "Success" });
     }
 
     res.status(404).send;
@@ -2034,7 +2034,7 @@ applicationRouter.post(
           source: "Admin",
           status: DocumentStatus.APPROVED,
           funding_request_id: parseInt(fundingRequestId.toString()),
-          visible_in_portal: false,
+          visible_in_portal: true,
         });
 
         return res.status(201).send();

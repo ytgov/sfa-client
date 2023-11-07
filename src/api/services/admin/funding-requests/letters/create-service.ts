@@ -169,7 +169,7 @@ export default class CreateService {
     const yukonGrantInstitutionLetterName = yukonGrantInstitutionLetterService.buildFileName({
       format: "pdf",
     });
-    await uploader.upload(yukonGrantInstitutionLetter, yukonGrantInstitutionLetterName);
+    await uploader.upload(yukonGrantInstitutionLetter, yukonGrantInstitutionLetterName, false);
 
     const yukonGrantStudentLetterService = new YukonGrantStudentApprovalLetterService({
       director,
