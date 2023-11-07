@@ -4028,7 +4028,7 @@ BEGIN
 	WHERE fr.request_type_id IN (4, 5)
 		AND d.csl_cert_seq_number = @CSL_CERT_SEQ_P
 		AND d.issue_date >= @FROM_DATE_P AND d.issue_date <= @TO_DATE_P	   					
-		AND (m.msfaa_status = 'Received' AND m.is_full_time = CASE WHEN d.disbursement_type_id = 4 THEN 1 ELSE 0 END OR app.academic_year_id <= 2012)
+		AND (m.msfaa_status = 'Received' OR app.academic_year_id <= 2012)
 		AND d.ecert_sent_date IS NULL	
 	ORDER BY 1, 2;	  	
 				
