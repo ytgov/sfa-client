@@ -26,7 +26,7 @@ portalApplicationRouter.get("/:sub", async (req: Request, res: Response) => {
     //return res.json({ data: drafts });
   }
 
-  res.status(404);
+  res.status(404).send();
 });
 
 // returns the application details for a submitted application
@@ -46,7 +46,7 @@ portalApplicationRouter.get("/:sub/application/:applicationId", async (req: Requ
     return res.json({ data: application });
   }
 
-  res.status(404);
+  res.status(404).send();
 });
 
 // returns the letters associated with a submitted application
@@ -62,7 +62,7 @@ portalApplicationRouter.get("/:sub/application/:applicationId/letters", async (r
     return res.json({ data: documents });
   }
 
-  res.status(404);
+  res.status(404).send();
 });
 
 // returns the documents associated with a submitted application
@@ -77,7 +77,7 @@ portalApplicationRouter.get("/:sub/application/:applicationId/documents", async 
     return res.json({ data: documents });
   }
 
-  res.status(404);
+  res.status(404).send();
 });
 
 portalApplicationRouter.get("/:sub/:draftId/required-documents", async (req: Request, res: Response) => {
@@ -170,7 +170,7 @@ portalApplicationRouter.get("/:sub/:draftId/required-documents", async (req: Req
     }
   }
 
-  res.status(404);
+  res.status(404).send();
 });
 
 //uploads a document
@@ -312,7 +312,7 @@ portalApplicationRouter.put("/:sub/:draftId", async (req: Request, res: Response
     }
   }
 
-  res.status(404);
+  res.status(404).send();
 });
 
 // submits a draft application and creates a real application
@@ -366,5 +366,5 @@ portalApplicationRouter.delete("/:sub/:draftId", async (req: Request, res: Respo
     res.json({ data: "success" });
   }
 
-  res.status(404);
+  res.status(404).send();
 });
