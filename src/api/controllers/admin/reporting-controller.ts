@@ -87,24 +87,23 @@ export default class ReportingController extends BaseController {
       });
   }
 
-  async runNars2023Report() {
-    let reportData = await ReportingService.runNars2023Report();
-
-    return ReportingService.generateAs({ format: this.format, reportData })
-      .then(async ({ fileContent, fileName, mimeType }) => {
-        if (this.format == "html") {
-          this.response.send(fileContent);
+  async runNars2022Report() {
+    return ReportingService.runNars2022Report({ format: this.format })
+    .then(reportData=> {
+       if (this.format == "html") {
+          this.response.send(reportData);
+        } else if (this.format == "csv") {
+          this.response.setHeader("Content-disposition", `attachment; filename="PPYT.CSLS.NARS_2223.001.csv"`);
+          this.response.setHeader("Content-type", "text/csv");
+          this.response.send(reportData);
         } else if (this.format == "json") {
-          this.response.json(fileContent);
+          this.response.json(reportData);
         } else {
-          this.response.setHeader("Content-disposition", `attachment; filename="${fileName}"`);
-          this.response.setHeader("Content-type", mimeType);
-          this.response.send(fileContent);
+          this.response.setHeader("Content-disposition", `attachment; filename="PPYT.CSLS.NARS_2223.001.txt"`);
+          this.response.setHeader("Content-type", "text/plain");
+          this.response.send(reportData);
         }
-      })
-      .catch((e) => {
-        this.response.send("Error generating report: " + e);
-      });
+    })
   }
 }
 

@@ -2,6 +2,7 @@ import db from "@/db/db-client";
 import { unparse } from "papaparse";
 import moment from "moment";
 import { renderReportAsHtml, renderReportAsPdf } from "@/utils/express-handlebars-pdf-client";
+import { NarsV17ReportingService } from "./nars-v17-reporting-service";
 
 const STA_YUKON_UNIVERSITY_TEMPLATE = "./templates/admin/reports/student-training-allowance-yukon-university";
 
@@ -96,15 +97,30 @@ export default class ReportingService {
     return results;
   }
 
+  static async runNars2022Report({ format = "json" }: { format: string | undefined }): Promise<any> {
+    let service = new NarsV17ReportingService({
+      startDate: new Date("2022-06-01"),
+      endDate: new Date("2023-05-31"),
+      year: 2022,
+    });
 
-  static async runNars2023Report(): Promise<any[]> {
-    let results = await db.raw(
-      `SELECT TOP 5 *
-      FROM sfa.application
-      ORDER BY 1`
-    );
+    let results = await service.runReport();
 
-    return results;
+    if (format == "json") {
+      return results.map((r) => r.toJson());
+    } else if (format == "csv") {
+      let lines = results.map((r) => r.toCsv());
+
+      lines.unshift(results[0].columns.map((c) => c.field).join(","));
+
+      return lines.join("\n");
+    }
+
+    let lines = results.map((r) => r.toString());
+
+    console.log("LINES", lines);
+
+    return lines.join("\n");
   }
 
   static async generateAs({
