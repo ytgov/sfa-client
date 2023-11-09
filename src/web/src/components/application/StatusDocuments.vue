@@ -159,7 +159,6 @@ export default {
       window.open(documentUrl);
     },
     publishLetterClick(letter) {
-      console.log("You want to publish", letter.file_name);
       axios
         .put(
           `${APPLICATION_URL}/${this.item.application_id}/funding-request/${this.item.id}/letters/${letter.object_key}`,

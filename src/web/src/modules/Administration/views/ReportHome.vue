@@ -61,8 +61,15 @@
               hide-details
               class="mb-2"
             />
-            <v-btn color="info" @click="downloadClick" class="my-0 ml-4" style="width: 183px"
-              ><v-icon class="mr-2">mdi-download</v-icon> Download</v-btn
+
+            <v-btn
+              v-for="item of selectedReport?.downloadFormat"
+              color="info"
+              @click="downloadClick(item)"
+              class="my-0 ml-4"
+              style="width: 183px"
+            >
+              <v-icon class="mr-2">mdi-download</v-icon> Download {{ item.replace(".", "").toUpperCase() }}</v-btn
             >
           </v-col>
         </v-row>
@@ -114,8 +121,8 @@ export default {
       this.search = "";
       this.runReport();
     },
-    downloadClick() {
-      this.downloadReport();
+    downloadClick(format) {
+      this.downloadReport(format);
     },
   },
 };

@@ -395,9 +395,9 @@ export default {
                 if (!this.GrantFullTimeRequest?.id) {
                     this.addFundingRequest(35);
                 }
-                if (!this.GrantTopUpFullTimeRequest?.id) {
+                /* if (!this.GrantTopUpFullTimeRequest?.id) {
                     this.addFundingRequest(28);
-                }
+                } */
             }
         },
         toggleForBoth(event, requestType = "") {

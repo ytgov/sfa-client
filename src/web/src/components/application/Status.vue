@@ -272,7 +272,6 @@ export default {
           break;
 
         default:
-          console.log("REQUEST", request_type_id);
           this.showFundings = false;
           store.dispatch("getAssessments", { application_id: this.application.id, funding_request_id });
           this.assessmentTypeId = request_type_id;
