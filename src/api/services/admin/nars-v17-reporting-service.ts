@@ -32,7 +32,7 @@ export class NarsV17ReportingService {
   }
 
   async runReport() {
-    this.allApplications = await db("narsv17base").where({ id: 31665 });
+    this.allApplications = await db("narsv17base").where({ academic_year_id: 2022 });
 
     /* let studentIds = this.allApplications.map((a: any) => a.studentId);
     let appIds = this.allApplications.map((a: any) => a.id);
