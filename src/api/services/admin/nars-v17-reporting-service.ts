@@ -1,7 +1,7 @@
 import { DB_CONFIG } from "@/config";
 import { weeksBetween } from "@/utils/date-utils";
 import knex from "knex";
-import { isEmpty, isUndefined, sortBy } from "lodash";
+import { isUndefined } from "lodash";
 import moment from "moment";
 
 const db = knex(DB_CONFIG);
@@ -34,7 +34,7 @@ export class NarsV17ReportingService {
   async runReport() {
     this.allApplications = await db("narsv17base").where({ academic_year_id: 2022 }); //.where({ id: 31665 });
 
-    /* this.allApplications = await db.raw(`
+   /* this.allApplications = await db.raw(`
     select 
     person.sex_id, person.sin, person.birth_date, 
     spouse_person.sin as spouse_sin, 
@@ -52,7 +52,9 @@ export class NarsV17ReportingService {
     application.program_year_total, application.program_year,  application.prestudy_city_id, application.study_city_id, application.is_perm_disabled, 
     application.permanent_disability, application.pers_or_prolong_disability, application.is_persist_disabled, 
     application.tuition_estimate_amount, application.percent_of_full_time,
-    assessment.*, d.disbursed, parent_address.postal_code as parent_postal_code
+    assessment.*, d.disbursed, parent_address.postal_code as parent_postal_code,
+
+    funding_request.is_csg_only, funding_request.is_csl_full_amount, funding_request.csl_request_amount
     
     from sfa.student
       INNER JOIN sfa.person ON (student.person_id = person.id)
@@ -72,7 +74,7 @@ export class NarsV17ReportingService {
       LEFT JOIN (SELECT SUM(COALESCE(paid_amount, 0)) disbursed, max(issue_date) issue_date, funding_request_id, assessment_id 
         FROM sfa.disbursement WHERE financial_batch_serial_no IS NOT NULL GROUP BY assessment_id, funding_request_id) d ON (funding_request.id = d.funding_request_id and assessment.id = d.assessment_id)
     where
-      funding_request.request_type_id = 4`); */
+      funding_request.request_type_id = 4`);*/
 
     /* let studentIds = this.allApplications.map((a: any) => a.studentId);
     let appIds = this.allApplications.map((a: any) => a.id);
@@ -196,7 +198,10 @@ export class NarsV17ReportingService {
     let csg_dse = 0;
     let topup_fund = 0;
 
+    let provGrants = 0;
+
     let stud_sp_cost_computers = 0;
+    let stud_sp_cost_other = 0;
 
     if (appId) {
       let applicationId = appId.application_id;
@@ -252,6 +257,10 @@ export class NarsV17ReportingService {
       if (disSEGrant) csg_dse = Math.ceil(disSEGrant.disbursed_amount);
       if (topup) topup_fund = Math.ceil(topup.disbursed_amount);
 
+      let provGr = otherFunds.filter((f) => [1, 2, 3].includes(f.request_type_id));
+
+      provGrants = provGr.map((f) => f.disbursed_amount).reduce((a, f) => a + f, 0);
+
       let expenses = await db("sfa.expense").where({ application_id: applicationId });
 
       let compExp = expenses.find((e) => e.category_id == 14);
@@ -267,8 +276,24 @@ export class NarsV17ReportingService {
     totalCosts += Math.min(2700, Math.ceil(app.books_supplies_cost));
     totalCosts += app.shelter_month * app.study_months;
     totalCosts += app.p_trans_month * app.study_months;
-    totalCosts += stud_sp_cost_computers;
+    totalCosts += Math.ceil(app.day_care_actual * app.study_months);
+    totalCosts += stud_sp_cost_ret_transp;
     totalCosts += app.x_trans_total;
+    totalCosts += app.relocation_total;
+
+    stud_sp_cost_other =
+      (app.depend_food_allowable + app.depend_tran_allowable) * app.study_months + app.discretionary_cost_actual;
+
+    totalCosts += stud_sp_cost_other;
+    stud_sp_cost_other -= stud_sp_cost_computers;
+
+    let totalGrants = csg_ft + csg_ftdep + csg_d + topup_fund;
+
+    let req_need = app.csl_request_amount;
+    let tot_ass_res = app.student_expected_contribution;
+
+    if (app.is_csg_only) req_need = 0;
+    else if (app.is_csl_full_amount) req_need = app.study_weeks * 210;
 
     let row = new Row();
     row.push(new Column("loanyear", `${this.year}${this.year + 1}`, " ", 8));
@@ -356,7 +381,7 @@ export class NarsV17ReportingService {
     row.push(new Column("parent_cont", `0`, "0", 6)); // always 0
     row.push(new Column("frspousal_cont_amt", `0`, "0", 6)); // always 0
     row.push(new Column("other_resources", `0`, "0", 6)); // always 0
-    row.push(new Column("tot_ass_res", app.student_expected_contribution, "0", 6)); // total, but we only use 1 field
+    row.push(new Column("tot_ass_res", tot_ass_res, "0", 6)); // total, but we only use 1 field
 
     row.push(new Column("fs_cont_exempt_indig", indigenous_flag, " ", 1));
     row.push(new Column("fs_cont_exempt_pd", app.is_disabled ? "Y" : "N", " ", 1));
@@ -376,17 +401,17 @@ export class NarsV17ReportingService {
     row.push(new Column("stud_sp_cost_comp_fee", `0`, "0", 6)); // always 0
     row.push(new Column("stud_sp_cost_computers", stud_sp_cost_computers, "0", 6));
     row.push(new Column("stud_sp_cost_allow_book", Math.min(2700, Math.ceil(app.books_supplies_cost)), "0", 6));
-    row.push(new Column("stud_sp_cost_allow_child", app.day_care_allowable, "0", 6));
+    row.push(new Column("stud_sp_cost_allow_child", Math.ceil(app.day_care_actual * app.study_months), "0", 6));
     row.push(new Column("stud_sp_cost_ret_transp", stud_sp_cost_ret_transp, "0", 6));
-    row.push(new Column("stud_sp_cost_other_trans", `0`, "0", 6)); // not sure
-    row.push(new Column("stud_sp_cost_other", `999`, "0", 6)); // catch-all bucket
+    row.push(new Column("stud_sp_cost_other_trans", app.x_trans_total + app.p_trans_month * app.study_months, "0", 6)); // not sure
+    row.push(new Column("stud_sp_cost_other", stud_sp_cost_other, "0", 6)); // catch-all bucket
     row.push(new Column("tot_ass_cost", totalCosts, "0", 6));
 
-    row.push(new Column("req_need", `999`, "0", 6));
-    row.push(new Column("tot_calc_need", `999`, "0", 7));
-    row.push(new Column("ass_csl_bef_overa", `999`, "0", 6));
+    row.push(new Column("req_need", req_need, "0", 6)); // if maximum, costs minus resources, or 0 if grants only (multilples of 210/week)
+    row.push(new Column("tot_calc_need", totalCosts - tot_ass_res, "+", 7)); // calculated need in award tab
+    row.push(new Column("ass_csl_bef_overa", csl_ft || 0, "0", 6)); // sum of loan disbursements for this assessment
     row.push(new Column("ass_psl_bef_overa", `0`, "0", 6)); // always 0
-    row.push(new Column("csl_over_award_recovered", `999`, "0", 6));
+    row.push(new Column("csl_over_award_recovered", `0`, "0", 6)); // this is complicated by the over award change reason, 0 for now
     row.push(new Column("psl_over_award_recovered", `0`, "0", 6)); // always 0
     row.push(new Column("auth_csl_amt", csl_ft || 0, "0", 6));
     row.push(new Column("auth_psl_amt", `0`, "0", 6)); // always 0
@@ -397,12 +422,19 @@ export class NarsV17ReportingService {
     row.push(new Column("csg_dse", csg_dse, "0", 6));
     row.push(new Column("topup_fund", topup_fund, "0", 6));
 
-    row.push(new Column("prov_grant_burs_schol_amt", `0`, "0", 6)); // not sure
-    row.push(new Column("prov_unmet_need_grant_auth_amt", `0`, "0", 6)); // maybe Yukon Grant?
+    row.push(new Column("prov_grant_burs_schol_amt", provGrants, "0", 6));
+    row.push(new Column("prov_unmet_need_grant_auth_amt", `0`, "0", 6)); // likely not relevant
     row.push(new Column("other_prov_assist", `0`, "0", 6)); // always 0
 
-    row.push(new Column("tot_assist", csl_ft + csg_ft + csg_ftdep + csg_d + csg_dse + topup_fund, "0", 6));
-    row.push(new Column("unmet_need", `999`, "0", 7));
+    row.push(new Column("tot_assist", csl_ft + csg_ft + csg_ftdep + csg_d + csg_dse + topup_fund + provGrants, "0", 6));
+    row.push(
+      new Column(
+        "unmet_need",
+        totalCosts - tot_ass_res - (csl_ft + csg_ft + csg_ftdep + csg_d + csg_dse + topup_fund + provGrants) + csg_dse,
+        "0",
+        7
+      )
+    );
 
     //console.log(row.columns.length);
     //console.log(row.columns.reduce((a, r) => a + r.length, 0));
@@ -464,7 +496,8 @@ export class Column {
     this.length = length;
     //this.output = `${value}`;
 
-    if (fill == "0") this.output = this.rawValue.padStart(length, fill).substring(0, length);
+    if (fill == "+") this.output = "+" + this.rawValue.padStart(length - 1, "0").substring(0, length);
+    else if (fill == "0") this.output = this.rawValue.padStart(length, fill).substring(0, length);
     else this.output = this.rawValue.padEnd(length, fill).substring(0, length);
   }
 
