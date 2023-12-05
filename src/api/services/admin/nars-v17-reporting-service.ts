@@ -135,7 +135,7 @@ export class NarsV17ReportingService {
 
     //let assessDate = cslftAssess;
 
-    console.log("APPP", app);
+    //console.log("APPP", app);
 
     let num_dep_child_pse = 0;
     let depchild_to_11_and_dis_12over = 0;
