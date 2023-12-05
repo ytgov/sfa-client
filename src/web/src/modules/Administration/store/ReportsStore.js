@@ -64,7 +64,7 @@ const state = {
       ],
     },
     {
-      text: "NARS 2022",
+      text: "NARS FT 2022",
       url: "/nars2022",
       downloadFormat: [".csv", ".txt"],
       headers: [
