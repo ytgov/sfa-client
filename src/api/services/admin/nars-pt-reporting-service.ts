@@ -223,7 +223,7 @@ export class NarsPTReportingService {
     row.push(new Column("pscd", moment.utc(app.classes_start_date).format("YYYYMMDD"), " ", 8));
     row.push(new Column("psed", moment.utc(app.classes_end_date).format("YYYYMMDD"), " ", 8));
     row.push(new Column("perc_full_course_load", app.percent_of_full_time ?? 60, "0", 2));
-    row.push(new Column("nr_of_courses", "99", "0", 1));
+    row.push(new Column("nr_of_courses", app.courses_per_week, "0", 1));
     row.push(new Column("early_withdrawal_ind", `0`, " ", 1)); //always send 0
 
     row.push(new Column("stud_gross_annual_inc", app.student_ln150_income, " ", 6));
@@ -240,7 +240,7 @@ export class NarsPTReportingService {
 
     row.push(new Column("csl_pt_amt", csl_pt || 0, "0", 5)); // sum of loan disbursements for this assessment
     row.push(new Column("psl_pt_amt", `0`, "0", 5)); // always 0
-    row.push(new Column("principal_outstanding", `9`, "0", 5)); // this is complicated by the over award change reason, 0 for now
+    row.push(new Column("principal_outstanding", app.outstanding_cslpt_amount, "0", 5)); 
 
     row.push(new Column("csg_pt_studies", csg_pt, "0", 5));
     row.push(new Column("csg_ptdep", csg_ptdep, "0", 5));
