@@ -94,7 +94,6 @@ export class NarsV17ReportingService {
     for (let student of this.allApplications) {
       let rows = await this.makeRows(student);
       this.reportData.push(...rows);
-      break;
     }
 
     return this.reportData;
