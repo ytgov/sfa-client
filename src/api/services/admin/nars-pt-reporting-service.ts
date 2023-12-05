@@ -79,7 +79,6 @@ export class NarsPTReportingService {
     for (let student of this.allApplications) {
       let rows = await this.makeRows(student);
       this.reportData.push(...rows);
-      break;
     }
 
     return this.reportData;
