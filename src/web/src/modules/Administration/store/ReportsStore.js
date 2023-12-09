@@ -233,6 +233,30 @@ const state = {
         { text: "psg_pt_amt", value: "psg_pt_amt" },
       ],
     },
+    {
+      text: "STEP Report",
+      url: "/step/:academic_year_id",
+      parameters: [
+        {
+          name: "Academic year",
+          field: "academic_year_id",
+          options: "academicYears",
+          required: true,
+          itemText: "year",
+          itemValue: "year",
+        },
+      ],
+      downloadFormat: [".csv"],
+      headers: [
+        { text: "Last name", value: "lastName" },
+        { text: "First name", value: "firstName" },
+        { text: "Program name", value: "programName" },
+        { text: "Program type", value: "programType" },
+        { text: "Program year", value: "programYear" },
+        { text: "Institution", value: "institutionName" },
+        { text: "Email", value: "email" }
+      ],
+    },
   ],
   selectedReport: undefined,
   reportResults: undefined,
