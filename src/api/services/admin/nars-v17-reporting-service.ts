@@ -334,11 +334,11 @@ export class NarsV17ReportingService {
     row.push(new Column("sp_away_home", app.study_accom_code == 1 ? "H" : "A", " ", 1));
 
     row.push(new Column("ei_code", app.institution_code, " ", 4));
-    row.push(new Column("pos", app.field_program_code, "0", 2));
+    row.push(new Column("pos", app.field_program_code, " ", 2));
     row.push(new Column("pos2", "", " ", 25)); // send blank
     row.push(new Column("program_type", program_type, " ", 1));
-    row.push(new Column("year_study", Math.min(app.program_year, 4), "0", 1));
-    row.push(new Column("year_in_program", app.program_year, "0", 1));
+    row.push(new Column("year_study", Math.min(app.program_year, 4), " ", 1));
+    row.push(new Column("year_in_program", app.program_year, "1", 1));
     row.push(new Column("program_duration", app.program_year_total, "0", 1));
     row.push(new Column("pscd", moment.utc(app.classes_start_date).format("YYYYMMDD"), " ", 8));
     row.push(new Column("psed", moment.utc(app.classes_end_date).format("YYYYMMDD"), " ", 8));
@@ -348,8 +348,8 @@ export class NarsV17ReportingService {
 
     row.push(new Column("date_left_high_school", date_left_high_school, " ", 8));
 
-    row.push(new Column("stud_sp_inc_targ_fund_total", `0`, "0", 6)); // always 0
-    row.push(new Column("stud_sp_inc_mbsa_tot", `0`, " ", 6)); // dont know we have this info
+    row.push(new Column("stud_sp_inc_targ_fund_total", ` `, " ", 6)); // always 0
+    row.push(new Column("stud_sp_inc_mbsa_tot", ` `, " ", 6)); // dont know we have this info
     row.push(new Column("stud_gross_annual_inc", app.student_ln150_income, " ", 6));
     row.push(new Column("stud_gross_annual_inc_reassess", ``, " ", 6)); // always blank
 
@@ -375,7 +375,7 @@ export class NarsV17ReportingService {
     row.push(new Column("spouse_gross_annual_inc_reassess", ` `, " ", 6)); // always blank
 
     row.push(new Column("stud_cont_targfund", `0`, "0", 6)); // always 0
-    row.push(new Column("stud_cont_bsa", `0`, "0", 6)); // don't know we have this
+    row.push(new Column("stud_cont_bsa", ` `, " ", 6)); // don't know we have this
     row.push(new Column("fs_cont_amt", app.student_expected_contribution, "0", 6));
     row.push(new Column("parent_cont", `0`, "0", 6)); // always 0
     row.push(new Column("frspousal_cont_amt", `0`, "0", 6)); // always 0

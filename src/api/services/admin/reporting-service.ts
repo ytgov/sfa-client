@@ -4,6 +4,8 @@ import moment from "moment";
 import { renderReportAsHtml, renderReportAsPdf } from "@/utils/express-handlebars-pdf-client";
 import { NarsV17ReportingService } from "./nars-v17-reporting-service";
 import { NarsPTReportingService } from "./nars-pt-reporting-service";
+import { NarsDisabilityReportingService } from "./nars-dis-reporting-service";
+import { NarsDisabilityRCLReportingService } from "./nars-disft-reporting-service";
 
 const STA_YUKON_UNIVERSITY_TEMPLATE = "./templates/admin/reports/student-training-allowance-yukon-university";
 
@@ -111,16 +113,11 @@ export default class ReportingService {
       return results.map((r) => r.toJson());
     } else if (format == "csv") {
       let lines = results.map((r) => r.toCsv());
-
       lines.unshift(results[0].columns.map((c) => c.field).join(","));
-
       return lines.join("\n");
     }
 
     let lines = results.map((r) => r.toString());
-
-    console.log("LINES", lines);
-
     return lines.join("\n");
   }
 
@@ -137,19 +134,85 @@ export default class ReportingService {
       return results.map((r) => r.toJson());
     } else if (format == "csv") {
       let lines = results.map((r) => r.toCsv());
-
       lines.unshift(results[0].columns.map((c) => c.field).join(","));
-
       return lines.join("\n");
     }
 
     let lines = results.map((r) => r.toString());
-
-    console.log("LINES", lines);
-
     return lines.join("\n");
   }
 
+  static async runNars2022DisabilityReport({ format = "json" }: { format: string | undefined }): Promise<any> {
+    let service = new NarsDisabilityReportingService({
+      startDate: new Date("2022-06-01"),
+      endDate: new Date("2023-05-31"),
+      year: 2022,
+    });
+
+    let results = await service.runReport();
+
+    if (format == "json") {
+      return results.map((r) => r.toJson());
+    } else if (format == "csv") {
+      let lines = results.map((r) => r.toCsv());
+      lines.unshift(results[0].columns.map((c) => c.field).join(","));
+      return lines.join("\n");
+    }
+
+    let lines = results.map((r) => r.toString());
+    return lines.join("\n");
+  }
+
+  static async runNars2022DisabilityRCLReport({ format = "json" }: { format: string | undefined }): Promise<any> {
+    let service = new NarsDisabilityRCLReportingService({
+      startDate: new Date("2022-06-01"),
+      endDate: new Date("2023-05-31"),
+      year: 2022,
+    });
+
+    let results = await service.runReport();
+
+    if (format == "json") {
+      return results.map((r) => r.toJson());
+    } else if (format == "csv") {
+      let lines = results.map((r) => r.toCsv());
+      lines.unshift(results[0].columns.map((c) => c.field).join(","));
+      return lines.join("\n");
+    }
+
+    let lines = results.map((r) => r.toString());
+    return lines.join("\n");
+  }
+
+  static async runStepReport({
+    academic_year_id,
+    format = "json",
+  }: {
+    academic_year_id: number;
+    format: string | undefined;
+  }): Promise<any> {
+    let results = await db.raw(
+      `SELECT distinct person.last_name, person.first_name, study_area.description program_name, 
+         program.description program_type, program_year, institution.name institution_name, person.email
+       FROM sfa.application
+         INNER JOIN sfa.student on application.student_id = student.id
+         INNER JOIN sfa.person on student.person_id = person.id
+         INNER JOIN sfa.study_area on application.study_area_id = study_area.id
+         INNER JOIN sfa.program on application.program_id = program.id
+         INNER JOIN sfa.institution_campus on application.institution_campus_id = institution_campus.id
+         INNER JOIN sfa.institution on institution_campus.institution_id = institution.id
+       WHERE application.academic_year_id = ${academic_year_id} and has_consent_to_share_data = 1
+       ORDER BY 1, 2`
+    );
+
+    if (format == "csv") {
+      let lines = results.map((r: any) => r.toCsv());
+      lines.unshift(results[0].columns.map((c: any) => c.field).join(","));
+      return lines.join("\n");
+    }
+
+    return results;
+  }
 
   static async generateAs({
     format,
