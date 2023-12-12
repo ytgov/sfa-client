@@ -53,7 +53,7 @@ export class NarsDisabilityRCLReportingService {
       INNER JOIN sfa.institution ON (institution.id = institution_campus.institution_id)
       INNER JOIN sfa.study_field ON (study_area.study_field_id = study_field.id)
       INNER JOIN sfa.field_program ON (application.program_id = field_program.program_id AND study_field.id = field_program.study_field_id)
-      LEFT JOIN (SELECT SUM(COALESCE(disbursed_amount, 0)) disbursed, max(issue_date) issue_date, funding_request_id, assessment_id 
+      INNER JOIN (SELECT SUM(COALESCE(disbursed_amount, 0)) disbursed, max(issue_date) issue_date, funding_request_id, assessment_id 
         FROM sfa.disbursement GROUP BY assessment_id, funding_request_id) d ON (funding_request.id = d.funding_request_id and assessment.id = d.assessment_id)
     where
       funding_request.request_type_id IN (4,5) AND application.academic_year_id = 2022 AND
