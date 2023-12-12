@@ -142,11 +142,17 @@ export default class ReportingService {
     return lines.join("\n");
   }
 
-  static async runNars2022DisabilityReport({ format = "json" }: { format: string | undefined }): Promise<any> {
+  static async runNars2022DisabilityReport({
+    format = "json",
+    academic_year_id,
+  }: {
+    format: string | undefined;
+    academic_year_id: number;
+  }): Promise<any> {
     let service = new NarsDisabilityReportingService({
       startDate: new Date("2022-06-01"),
       endDate: new Date("2023-05-31"),
-      year: 2022,
+      year: academic_year_id,
     });
 
     let results = await service.runReport();
@@ -163,11 +169,17 @@ export default class ReportingService {
     return lines.join("\n");
   }
 
-  static async runNars2022DisabilityRCLReport({ format = "json" }: { format: string | undefined }): Promise<any> {
+  static async runNars2022DisabilityRCLReport({
+    format = "json",
+    academic_year_id,
+  }: {
+    format: string | undefined;
+    academic_year_id: number;
+  }): Promise<any> {
     let service = new NarsDisabilityRCLReportingService({
       startDate: new Date("2022-06-01"),
       endDate: new Date("2023-05-31"),
-      year: 2022,
+      year: academic_year_id,
     });
 
     let results = await service.runReport();

@@ -172,8 +172,8 @@ adminRouter.use(
 );
 adminRouter.use("/reporting/nars2022", routedTo(ReportingController, "runNars2022FTReport"));
 adminRouter.use("/reporting/nars2022pt", routedTo(ReportingController, "runNars2022PTReport"));
-adminRouter.use("/reporting/nars2022dis", routedTo(ReportingController, "runNars2022DisabilityReport"));
-adminRouter.use("/reporting/nars2022disrcl", routedTo(ReportingController, "runNars2022DisabilityRCLReport"));
+adminRouter.use("/reporting/nars2022dis/:academic_year_id", routedTo(ReportingController, "runNars2022DisabilityReport"));
+adminRouter.use("/reporting/nars2022disrcl/:academic_year_id", routedTo(ReportingController, "runNars2022DisabilityRCLReport"));
 adminRouter.use("/reporting/step/:academic_year_id", routedTo(ReportingController, "runStepReport"));
 
 adminRouter.use("/csg-threshold", csgThresholdRouter);
