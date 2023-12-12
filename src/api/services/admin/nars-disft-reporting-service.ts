@@ -216,7 +216,16 @@ export class Column {
     //this.output = `${value}`;
 
     if (fill == "+") this.output = "+" + this.rawValue.padStart(length - 1, "0").substring(0, length);
-    else if (fill == "0") this.output = this.rawValue.padStart(length, fill).substring(0, length);
+    else if (fill == "0")
+      this.output =
+        this.rawValue.length == 0
+          ? ".".padEnd(length, " ").substring(0, length)
+          : this.rawValue.padEnd(length, " ").substring(0, length);
+    else if (fill == ".")
+      this.output =
+        this.rawValue.length == 0
+          ? ".".padEnd(length, " ").substring(0, length)
+          : this.rawValue.padEnd(length, " ").substring(0, length);
     else this.output = this.rawValue.padEnd(length, fill).substring(0, length);
   }
 

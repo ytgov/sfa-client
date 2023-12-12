@@ -32,9 +32,9 @@ export class NarsV17ReportingService {
   }
 
   async runReport() {
-    this.allApplications = await db("narsv17base").where({ academic_year_id: 2022 }); //.where({ id: 31665 });
+    //this.allApplications = await db("narsv17base").where({ academic_year_id: 2022 }); //.where({ id: 31665 });
 
-   /* this.allApplications = await db.raw(`
+    this.allApplications = await db.raw(`
     select 
     person.sex_id, person.sin, person.birth_date, 
     spouse_person.sin as spouse_sin, 
@@ -74,7 +74,7 @@ export class NarsV17ReportingService {
       LEFT JOIN (SELECT SUM(COALESCE(paid_amount, 0)) disbursed, max(issue_date) issue_date, funding_request_id, assessment_id 
         FROM sfa.disbursement WHERE financial_batch_serial_no IS NOT NULL GROUP BY assessment_id, funding_request_id) d ON (funding_request.id = d.funding_request_id and assessment.id = d.assessment_id)
     where
-      funding_request.request_type_id = 4`);*/
+      funding_request.request_type_id = 4`);
 
     /* let studentIds = this.allApplications.map((a: any) => a.studentId);
     let appIds = this.allApplications.map((a: any) => a.id);
@@ -348,38 +348,38 @@ export class NarsV17ReportingService {
 
     row.push(new Column("date_left_high_school", date_left_high_school, " ", 8));
 
-    row.push(new Column("stud_sp_inc_targ_fund_total", ` `, " ", 6)); // always 0
-    row.push(new Column("stud_sp_inc_mbsa_tot", ` `, " ", 6)); // dont know we have this info
-    row.push(new Column("stud_gross_annual_inc", app.student_ln150_income, " ", 6));
-    row.push(new Column("stud_gross_annual_inc_reassess", ``, " ", 6)); // always blank
+    row.push(new Column("stud_sp_inc_targ_fund_total", "", "0", 6)); // always 0
+    row.push(new Column("stud_sp_inc_mbsa_tot", "", "0", 6)); // dont know we have this info
+    row.push(new Column("stud_gross_annual_inc", app.student_ln150_income, "0", 6));
+    row.push(new Column("stud_gross_annual_inc_reassess", "", "0", 6)); // always blank
 
-    row.push(new Column("parent1_gross_ann_inc", app.parent1_income ?? "", " ", 6));
-    row.push(new Column("parent1_net_ann_inc", app.parent1_income ?? "", " ", 6));
-    row.push(new Column("parent1_cpp_cont", ` `, " ", 6)); // always blank
-    row.push(new Column("parent1_ei_prem", ` `, " ", 6)); // always blank
-    row.push(new Column("parent1_inc_tax_paid", app.parent1_tax_paid ?? "", "", 6));
-    row.push(new Column("parent1_tot_tax_inc", ` `, " ", 6)); // always blank
-    row.push(new Column("parent1_gross_ann_inc_reassess", ` `, " ", 6)); // always blank
-    row.push(new Column("parent1_net_ann_inc_reassess", ` `, " ", 6)); // always blank
+    row.push(new Column("parent1_gross_ann_inc", app.parent1_income ?? "", "0", 6));
+    row.push(new Column("parent1_net_ann_inc", app.parent1_income ?? "", "0", 6));
+    row.push(new Column("parent1_cpp_cont", "", "0", 6)); // always blank
+    row.push(new Column("parent1_ei_prem", "", "0", 6)); // always blank
+    row.push(new Column("parent1_inc_tax_paid", app.parent1_tax_paid ?? "", "0", 6));
+    row.push(new Column("parent1_tot_tax_inc", "", "0", 6)); // always blank
+    row.push(new Column("parent1_gross_ann_inc_reassess", "", "0", 6)); // always blank
+    row.push(new Column("parent1_net_ann_inc_reassess", "", "0", 6)); // always blank
 
-    row.push(new Column("parent2_gross_ann_inc", app.parent2_income ?? "", " ", 6));
-    row.push(new Column("parent2_net_ann_inc", app.parent2_income ?? "", " ", 6));
-    row.push(new Column("parent2_cpp_cont", ` `, " ", 6)); // always blank
-    row.push(new Column("parent2_ei_prem", ` `, " ", 6)); // always blank
-    row.push(new Column("parent2_inc_tax_paid", app.parent2_tax_paid ?? "", "", 6));
-    row.push(new Column("parent2_tot_tax_inc", ` `, " ", 6)); // always blank
-    row.push(new Column("parent2_gross_ann_inc_reassess", ` `, " ", 6)); // always blank
-    row.push(new Column("parent2_net_ann_inc_reassess", ` `, " ", 6)); // always blank
+    row.push(new Column("parent2_gross_ann_inc", app.parent2_income ?? "", "0", 6));
+    row.push(new Column("parent2_net_ann_inc", app.parent2_income ?? "", "0", 6));
+    row.push(new Column("parent2_cpp_cont", "", "0", 6)); // always blank
+    row.push(new Column("parent2_ei_prem", "", "0", 6)); // always blank
+    row.push(new Column("parent2_inc_tax_paid", app.parent2_tax_paid ?? "", "0", 6));
+    row.push(new Column("parent2_tot_tax_inc", "", "0", 6)); // always blank
+    row.push(new Column("parent2_gross_ann_inc_reassess", "", "0", 6)); // always blank
+    row.push(new Column("parent2_net_ann_inc_reassess", "", "0", 6)); // always blank
 
     row.push(new Column("spouse_gross_annual_inc", app.spouse_gross_income ?? "", "0", 6));
-    row.push(new Column("spouse_gross_annual_inc_reassess", ` `, " ", 6)); // always blank
+    row.push(new Column("spouse_gross_annual_inc_reassess", "", "0", 6)); // always blank
 
-    row.push(new Column("stud_cont_targfund", `0`, "0", 6)); // always 0
-    row.push(new Column("stud_cont_bsa", ` `, " ", 6)); // don't know we have this
+    row.push(new Column("stud_cont_targfund", "", "0", 6)); // always 0
+    row.push(new Column("stud_cont_bsa", "", "0", 6)); // don't know we have this
     row.push(new Column("fs_cont_amt", app.student_expected_contribution, "0", 6));
-    row.push(new Column("parent_cont", `0`, "0", 6)); // always 0
-    row.push(new Column("frspousal_cont_amt", `0`, "0", 6)); // always 0
-    row.push(new Column("other_resources", `0`, "0", 6)); // always 0
+    row.push(new Column("parent_cont", "", "0", 6)); // always 0
+    row.push(new Column("frspousal_cont_amt", "", "0", 6)); // always 0
+    row.push(new Column("other_resources", "", "0", 6)); // always 0
     row.push(new Column("tot_ass_res", tot_ass_res, "0", 6)); // total, but we only use 1 field
 
     row.push(new Column("fs_cont_exempt_indig", indigenous_flag, " ", 1));
@@ -397,7 +397,7 @@ export class NarsV17ReportingService {
 
     row.push(new Column("stud_sp_cost_living_allow", app.shelter_month * app.study_months, "0", 6));
     row.push(new Column("stud_sp_cost_tuition", app.tuition_estimate, "0", 6));
-    row.push(new Column("stud_sp_cost_comp_fee", `0`, "0", 6)); // always 0
+    row.push(new Column("stud_sp_cost_comp_fee", "", "0", 6)); // always 0
     row.push(new Column("stud_sp_cost_computers", stud_sp_cost_computers, "0", 6));
     row.push(new Column("stud_sp_cost_allow_book", Math.min(2700, Math.ceil(app.books_supplies_cost)), "0", 6));
     row.push(new Column("stud_sp_cost_allow_child", Math.ceil(app.day_care_actual * app.study_months), "0", 6));
@@ -409,11 +409,11 @@ export class NarsV17ReportingService {
     row.push(new Column("req_need", req_need, "0", 6)); // if maximum, costs minus resources, or 0 if grants only (multilples of 210/week)
     row.push(new Column("tot_calc_need", totalCosts - tot_ass_res, "+", 7)); // calculated need in award tab
     row.push(new Column("ass_csl_bef_overa", csl_ft || 0, "0", 6)); // sum of loan disbursements for this assessment
-    row.push(new Column("ass_psl_bef_overa", `0`, "0", 6)); // always 0
-    row.push(new Column("csl_over_award_recovered", `0`, "0", 6)); // this is complicated by the over award change reason, 0 for now
-    row.push(new Column("psl_over_award_recovered", `0`, "0", 6)); // always 0
+    row.push(new Column("ass_psl_bef_overa", "", "0", 6)); // always 0
+    row.push(new Column("csl_over_award_recovered", "", "0", 6)); // this is complicated by the over award change reason, 0 for now
+    row.push(new Column("psl_over_award_recovered", "", "0", 6)); // always 0
     row.push(new Column("auth_csl_amt", csl_ft || 0, "0", 6));
-    row.push(new Column("auth_psl_amt", `0`, "0", 6)); // always 0
+    row.push(new Column("auth_psl_amt", "", "0", 6)); // always 0
 
     row.push(new Column("csg_ft", csg_ft, "0", 6));
     row.push(new Column("csg_ftdep", csg_ftdep, "0", 6));
@@ -422,8 +422,8 @@ export class NarsV17ReportingService {
     row.push(new Column("topup_fund", topup_fund, "0", 6));
 
     row.push(new Column("prov_grant_burs_schol_amt", provGrants, "0", 6));
-    row.push(new Column("prov_unmet_need_grant_auth_amt", `0`, "0", 6)); // likely not relevant
-    row.push(new Column("other_prov_assist", `0`, "0", 6)); // always 0
+    row.push(new Column("prov_unmet_need_grant_auth_amt", "", "0", 6)); // likely not relevant
+    row.push(new Column("other_prov_assist", "", "0", 6)); // always 0
 
     row.push(new Column("tot_assist", csl_ft + csg_ft + csg_ftdep + csg_d + csg_dse + topup_fund + provGrants, "0", 6));
     row.push(
@@ -496,7 +496,16 @@ export class Column {
     //this.output = `${value}`;
 
     if (fill == "+") this.output = "+" + this.rawValue.padStart(length - 1, "0").substring(0, length);
-    else if (fill == "0") this.output = this.rawValue.padStart(length, fill).substring(0, length);
+    else if (fill == "0")
+      this.output =
+        this.rawValue.length == 0
+          ? ".".padEnd(length, " ").substring(0, length)
+          : this.rawValue.padEnd(length, " ").substring(0, length);
+    else if (fill == ".")
+      this.output =
+        this.rawValue.length == 0
+          ? ".".padEnd(length, " ").substring(0, length)
+          : this.rawValue.padEnd(length, " ").substring(0, length);
     else this.output = this.rawValue.padEnd(length, fill).substring(0, length);
   }
 

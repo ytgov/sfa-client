@@ -20,8 +20,6 @@ yeaImportRouter.post("/", async (req: Request, res: Response) => {
     if (parsed.error) {
       return res.status(400).json({ error: parsed.error });
     } else if (parsed.lines) {
-      console.log(parsed);
-
       let insertedCount = 0;
 
       for (let line of parsed.lines) {
