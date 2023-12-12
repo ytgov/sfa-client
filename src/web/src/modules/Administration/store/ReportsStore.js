@@ -235,8 +235,18 @@ const state = {
     },
     {
       text: "NARS Disability FT & PT 2022",
-      url: "/nars2022dis",
+      url: "/nars2022dis/:academic_year_id",
       downloadFormat: [".csv", ".txt"],
+      parameters: [
+        {
+          name: "Academic year",
+          field: "academic_year_id",
+          options: "academicYears",
+          required: true,
+          itemText: "year",
+          itemValue: "year",
+        },
+      ],
       headers: [
         { text: "sin", value: "sin" },
         { text: "last_name", value: "last_name" },
@@ -268,7 +278,17 @@ const state = {
     },
     {
       text: "NARS Disability FT - Reduced Course Load 2022",
-      url: "/nars2022disrcl",
+      url: "/nars2022disrcl/:academic_year_id",
+      parameters: [
+        {
+          name: "Academic year",
+          field: "academic_year_id",
+          options: "academicYears",
+          required: true,
+          itemText: "year",
+          itemValue: "year",
+        },
+      ],
       downloadFormat: [".csv", ".txt"],
       headers: [
         { text: "loanyear", value: "loanyear" },
