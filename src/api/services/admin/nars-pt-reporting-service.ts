@@ -216,7 +216,7 @@ export class NarsPTReportingService {
     row.push(new Column("res_postal", res_postal, " ", 6));
 
     row.push(new Column("ei_code", app.institution_code, " ", 4));
-    row.push(new Column("pos", app.field_program_code, "0", 2));
+    row.push(new Column("pos", app.field_program_code, " ", 2));
     row.push(new Column("pos2", "", " ", 25)); // send blank
     row.push(new Column("program_type", program_type, " ", 1));
     row.push(new Column("pscd", moment.utc(app.classes_start_date).format("YYYYMMDD"), " ", 8));
@@ -225,10 +225,10 @@ export class NarsPTReportingService {
     row.push(new Column("nr_of_courses", app.courses_per_week, "0", 1));
     row.push(new Column("early_withdrawal_ind", `0`, " ", 1)); //always send 0
 
-    row.push(new Column("stud_gross_annual_inc", app.student_ln150_income, " ", 6));
-    row.push(new Column("stud_gross_annual_inc_reassess", ``, " ", 6)); // always blank
+    row.push(new Column("stud_gross_annual_inc", app.student_ln150_income, "0", 6));
+    row.push(new Column("stud_gross_annual_inc_reassess", "", "0", 6)); // always blank
     row.push(new Column("spouse_gross_annual_inc", app.spouse_gross_income ?? "", "0", 6));
-    row.push(new Column("spouse_gross_annual_inc_reassess", ` `, " ", 6)); // always blank
+    row.push(new Column("spouse_gross_annual_inc_reassess", "", "0", 6)); // always blank
     row.push(new Column("family_income", app.student_ln150_income + app.spouse_gross_income, "0", 6)); // always blank
 
     row.push(new Column("stud_sp_cost_tuition", app.tuition_estimate, "0", 5));
@@ -238,7 +238,7 @@ export class NarsPTReportingService {
     row.push(new Column("miscellaneous_allow", stud_sp_cost_other, "0", 5)); // catch-all bucket
 
     row.push(new Column("csl_pt_amt", csl_pt || 0, "0", 5)); // sum of loan disbursements for this assessment
-    row.push(new Column("psl_pt_amt", `0`, "0", 5)); // always 0
+    row.push(new Column("psl_pt_amt", "", "0", 5)); // always 0
     row.push(new Column("principal_outstanding", app.outstanding_cslpt_amount, "0", 5)); 
 
     row.push(new Column("csg_pt_studies", csg_pt, "0", 5));
@@ -309,7 +309,16 @@ export class Column {
     //this.output = `${value}`;
 
     if (fill == "+") this.output = "+" + this.rawValue.padStart(length - 1, "0").substring(0, length);
-    else if (fill == "0") this.output = this.rawValue.padStart(length, fill).substring(0, length);
+    else if (fill == "0")
+      this.output =
+        this.rawValue.length == 0
+          ? ".".padEnd(length, " ").substring(0, length)
+          : this.rawValue.padEnd(length, " ").substring(0, length);
+    else if (fill == ".")
+      this.output =
+        this.rawValue.length == 0
+          ? ".".padEnd(length, " ").substring(0, length)
+          : this.rawValue.padEnd(length, " ").substring(0, length);
     else this.output = this.rawValue.padEnd(length, fill).substring(0, length);
   }
 

@@ -136,13 +136,13 @@ export class NarsDisabilityReportingService {
     row.push(new Column("loan_type", app.request_type_id == 4 ? "F" : "P", " ", 1));
     row.push(new Column("prov_issue", "YT", " ", 2));
 
-    row.push(new Column("csg_pd_auth", csg_d, " ", 5));
-    row.push(new Column("csg_pd_disb", csg_d, " ", 5));
+    row.push(new Column("csg_pd_auth", csg_d, "0", 5));
+    row.push(new Column("csg_pd_disb", csg_d, "0", 5));
     row.push(new Column("csg_pd_authdate", moment.utc(app.assessed_date).format("YYYYMMDD"), " ", 8));
     row.push(new Column("csg_pd_disbdate", csg_d_date ? moment.utc(csg_d_date).format("YYYYMMDD") : "", " ", 8));
 
-    row.push(new Column("csg_pdse_auth", csg_dse, " ", 5));
-    row.push(new Column("csg_pdse_disb", csg_dse, " ", 5));
+    row.push(new Column("csg_pdse_auth", csg_dse, "0", 5));
+    row.push(new Column("csg_pdse_disb", csg_dse, "0", 5));
     row.push(new Column("csg_pdse_authdate", moment.utc(app.assessed_date).format("YYYYMMDD"), " ", 8));
     row.push(new Column("csg_pdse_disbdate", csg_dse_date ? moment.utc(csg_dse_date).format("YYYYMMDD") : "", " ", 8));
 
@@ -221,7 +221,16 @@ export class Column {
     //this.output = `${value}`;
 
     if (fill == "+") this.output = "+" + this.rawValue.padStart(length - 1, "0").substring(0, length);
-    else if (fill == "0") this.output = this.rawValue.padStart(length, fill).substring(0, length);
+    else if (fill == "0")
+      this.output =
+        this.rawValue.length == 0
+          ? ".".padEnd(length, " ").substring(0, length)
+          : this.rawValue.padEnd(length, " ").substring(0, length);
+    else if (fill == ".")
+      this.output =
+        this.rawValue.length == 0
+          ? ".".padEnd(length, " ").substring(0, length)
+          : this.rawValue.padEnd(length, " ").substring(0, length);
     else this.output = this.rawValue.padEnd(length, fill).substring(0, length);
   }
 
