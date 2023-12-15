@@ -107,7 +107,7 @@ export class ChequeReqList extends BaseRepository {
                                     CAST(sfa.get_batch_group_id_fct(fr.id) AS VARCHAR(10))
                                 )
                             ) + RIGHT('0000' + 
-                            CAST(d.financial_batch_id_year AS VARCHAR(4)), 4) + '-' + 
+                            CAST(d.financial_batch_id_year AS VARCHAR(4)), 2) + '-' + 
                             CAST(d.financial_batch_id AS VARCHAR(10)),
                             ' ',
                             ''
