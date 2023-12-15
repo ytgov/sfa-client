@@ -57,7 +57,7 @@ applicationRouter.get("/all", ReturnValidationErrors, async (req: Request, res: 
         .select("person.first_name")
         .select("person.last_name")
         .limit(150)
-        .whereLike("last_name", `[${filter}]%`)
+        .whereRaw(`UPPER(last_name) like '[${filter}]%'`)
         .andWhere("funding_request.status_id", 32)
         .groupBy(
           "application.id",
@@ -111,7 +111,7 @@ applicationRouter.get("/latest-updates", ReturnValidationErrors, async (req: Req
         .select("person.first_name")
         .select("person.last_name")
         .limit(150)
-        .whereLike("last_name", `[${filter}]%`)
+        .whereRaw(`UPPER(last_name) like '[${filter}]%'`)
         .andWhere({ seen: true })
         .whereNotNull("updated_at")
         .orderBy("updated_at", "desc");
