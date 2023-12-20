@@ -1,5 +1,6 @@
 import { DB_CONFIG } from "@/config";
 import { weeksBetween } from "@/utils/date-utils";
+import { application } from "express";
 import knex from "knex";
 import { isUndefined } from "lodash";
 import moment from "moment";
@@ -32,9 +33,9 @@ export class NarsV17ReportingService {
   }
 
   async runReport() {
-    //this.allApplications = await db("narsv17base").where({ academic_year_id: 2022 }); //.where({ id: 31665 });
+    this.allApplications = await db("narsv17base").where({ academic_year_id: 2022 }); //.where({ id: 31665 });
 
-    this.allApplications = await db.raw(`
+    /* this.allApplications = await db.raw(`
     select 
     person.sex_id, person.sin, person.birth_date, 
     spouse_person.sin as spouse_sin, 
@@ -74,7 +75,7 @@ export class NarsV17ReportingService {
       LEFT JOIN (SELECT SUM(COALESCE(paid_amount, 0)) disbursed, max(issue_date) issue_date, funding_request_id, assessment_id 
         FROM sfa.disbursement WHERE financial_batch_serial_no IS NOT NULL GROUP BY assessment_id, funding_request_id) d ON (funding_request.id = d.funding_request_id and assessment.id = d.assessment_id)
     where
-      funding_request.request_type_id = 4`);
+      funding_request.request_type_id = 4`); */
 
     /* let studentIds = this.allApplications.map((a: any) => a.studentId);
     let appIds = this.allApplications.map((a: any) => a.id);
@@ -100,50 +101,12 @@ export class NarsV17ReportingService {
   }
 
   async makeRows(app: any): Promise<Row[]> {
-    //let studentApps = this.allApplications.filter((a: any) => a.studentId == student.id);
     let result = new Array<Row>();
-
-    // console.log("Making rows for", app);
-
-    //for (let app of studentApps) {
-    /* let appFundingRequests = this.allFundingRequests.filter((f: any) => (f.applicationId = app.id));
-
-      for (let fr of appFundingRequests) {
-        fr.assessments = this.allAssessments.filter((a: any) => a.fundingRequestId == fr.id);
-        fr.disbursements = this.allDisbursements.filter((a: any) => a.fundingRequestId == fr.id);
-      }
-
-      let cslftRequest = appFundingRequests.find((f: any) => f.requestTypeId == CSLFT_REQUEST_TYPE_ID);
-      let csgftRequest = appFundingRequests.find((f: any) => f.requestTypeId == CSGFT_REQUEST_TYPE_ID);
-      let csgdRequest = appFundingRequests.find((f: any) => f.requestTypeId == CSGD_REQUEST_TYPE_ID);
-      let csgdseRequest = appFundingRequests.find((f: any) => f.requestTypeId == CSGDSE_REQUEST_TYPE_ID);
-      let csgtuRequest = appFundingRequests.find((f: any) => f.requestTypeId == CSGTU_REQUEST_TYPE_ID); */
-
-    //console.log("cslftRequest", cslftRequest);
-    //console.log("csgftRequest", csgftRequest);
-    //console.log("csgdRequest", csgdRequest);
-    //console.log("csgdseRequest", csgdseRequest);
-    //console.log("csgtuRequest", csgtuRequest);
-
-    //if (!cslftRequest) continue; // if the application doesn't have a CLSFT, it's not applicable
-
-    //console.log(cslftRequest.assessments);
-
-    //let cslftAssess = sortBy(cslftRequest.assessments, "assessedDate");
-    //let latestAssess = cslftAssess;
-
-    //let assessDate = cslftAssess;
-
-    //console.log("APPP", app);
 
     let num_dep_child_pse = 0;
     let depchild_to_11_and_dis_12over = 0;
     let depchild_12over_ndis_andothdep = 0;
     let hasDependents = "N";
-
-    let allForFundingRequest = this.allApplications.filter((a: any) => a.funding_request_id == app.funding_request_id);
-
-    //console.log("FU", allForFundingRequest);
 
     let cat_code =
       app.csl_classification == 3
@@ -165,7 +128,7 @@ export class NarsV17ReportingService {
         ? "2"
         : [5, 8].includes(app.aboriginal_status_id)
         ? "1"
-        : "0";
+        : ".";
 
     let res_postal = app.primary_postal_code ? app.primary_postal_code.replace(" ", "").replace("-", "") : "XXXXXX";
     let parent_postal = app.parent_postal_code ? app.parent_postal_code.replace(" ", "").replace("-", "") : "XXXXXX";
@@ -174,7 +137,7 @@ export class NarsV17ReportingService {
       app.program_id == 6 ? 5 : app.program_id == 5 ? 4 : app.program_id == 4 ? 3 : app.program_id == 3 ? 2 : 1;
 
     let date_left_high_school = moment(
-      `${app.high_school_left_year}-${`${app.high_school_left_month}`.padStart(2, "0")}-01`
+      `${app.high_school_left_year}-${`${app.high_school_left_month ?? 6}`.padStart(2, "0")}-01`
     ).format("YYYYMMDD");
     let app_status = [7, 40].includes(app.funding_request_status_id)
       ? "A"
@@ -201,6 +164,7 @@ export class NarsV17ReportingService {
 
     let stud_sp_cost_computers = 0;
     let stud_sp_cost_other = 0;
+    let stud_sp_inc_mbsa_tot = 0;
 
     if (appId) {
       let applicationId = appId.application_id;
@@ -257,14 +221,18 @@ export class NarsV17ReportingService {
       if (topup) topup_fund = Math.ceil(topup.disbursed_amount);
 
       let provGr = otherFunds.filter((f) => [1, 2, 3].includes(f.request_type_id));
-
       provGrants = provGr.map((f) => f.disbursed_amount).reduce((a, f) => a + f, 0);
 
       let expenses = await db("sfa.expense").where({ application_id: applicationId });
-
       let compExp = expenses.find((e) => e.category_id == 14);
-
       if (compExp) stud_sp_cost_computers = Math.ceil(compExp.amount);
+
+      let incomes = await db("sfa.income").where({ application_id: applicationId });
+      let scholarshipIncome = incomes.find((e) => e.income_type_id == 16); // Scholarships - Merit Based
+      if (scholarshipIncome)
+        stud_sp_inc_mbsa_tot = scholarshipIncome
+          .map((f: any) => f.amount ?? 0)
+          .reduce((a: number, f: number) => a + f, 0);
     } else {
       console.log("NO APP");
     }
@@ -298,7 +266,7 @@ export class NarsV17ReportingService {
     row.push(new Column("loanyear", `${this.year}${this.year + 1}`, " ", 8));
     row.push(new Column("prov_issue", "YT", " ", 2));
     row.push(new Column("app_number", `${app.id}`, "0", 8));
-    row.push(new Column("version_num", `1`, "0", 2));
+    row.push(new Column("version_num", app.assessment_type_id == 1 ? "1" : "2", "0", 2));
     row.push(new Column("app_status", app_status, " ", 1));
 
     row.push(new Column("assess_date", moment.utc(app.assessed_date).format("YYYYMMDD"), " ", 8));
@@ -311,8 +279,8 @@ export class NarsV17ReportingService {
     row.push(new Column("cat_code", cat_code, " ", 1));
     row.push(new Column("single_ind_stat_reas", single_ind_stat_reas, " ", 1)); // 1-6
     row.push(new Column("social_assist_flag", "N", " ", 1)); // always N
-    row.push(new Column("disab_flag", app.is_perm_disabled ? "1" : app.is_disabled ? "2" : "0", " ", 1));
-    row.push(new Column("disab_sr_status", app.is_disabled && !app.is_perm_disabled ? "Y" : "N", " ", 1));
+    row.push(new Column("disab_flag", app.is_perm_disabled ? "1" : app.is_persist_disabled ? "2" : "0", " ", 1));
+    row.push(new Column("disab_sr_status", app.is_persist_disabled ? "Y" : "", " ", 1));
     row.push(new Column("indigenous_flag", indigenous_flag, " ", 1));
     row.push(new Column("indigenous_cat", indigenous_cat, " ", 1));
     row.push(new Column("visible_ind", ["True", true, 1].includes(app.is_minority) ? "Y" : "N", " ", 1));
@@ -322,10 +290,10 @@ export class NarsV17ReportingService {
     row.push(new Column("parent2_postal", `XXXXXX`, "X", 6)); // always 6 X
 
     row.push(new Column("spouse_sin", app.spouse_sin ?? "", " ", 9));
-    row.push(new Column("spouse_student", isUndefined(app.spouse_study_school_from) ? "N" : "Y", " ", 1));
+    row.push(new Column("spouse_student", isUndefined(spouse_num_sp_weeks) ? "N" : "Y", " ", 1));
     row.push(new Column("spouse_num_sp_weeks", spouse_num_sp_weeks, " ", 2));
 
-    row.push(new Column("family_size", app.family_size, " ", 2));
+    row.push(new Column("family_size", app.family_size == 0 ? "." : app.family_size, " ", 2));
     row.push(new Column("num_dep_child_pse", num_dep_child_pse, " ", 1));
     row.push(new Column("depchild_to_11_and_dis_12over", depchild_to_11_and_dis_12over, " ", 1));
     row.push(new Column("depchild_12over_ndis_andothdep", depchild_12over_ndis_andothdep, " ", 1));
@@ -342,36 +310,36 @@ export class NarsV17ReportingService {
     row.push(new Column("program_duration", app.program_year_total, "0", 1));
     row.push(new Column("pscd", moment.utc(app.classes_start_date).format("YYYYMMDD"), " ", 8));
     row.push(new Column("psed", moment.utc(app.classes_end_date).format("YYYYMMDD"), " ", 8));
-    row.push(new Column("num_sp_assess_weeks", app.study_weeks, "0", 2));
+    row.push(new Column("num_sp_assess_weeks", app.study_weeks ?? 1, "0", 2));
     row.push(new Column("perc_full_course_load", app.percent_of_full_time ?? 60, "0", 3));
     row.push(new Column("early_withdrawal_ind", `0`, " ", 1)); //always send 0
 
     row.push(new Column("date_left_high_school", date_left_high_school, " ", 8));
 
     row.push(new Column("stud_sp_inc_targ_fund_total", "", "0", 6)); // always 0
-    row.push(new Column("stud_sp_inc_mbsa_tot", "", "0", 6)); // dont know we have this info
-    row.push(new Column("stud_gross_annual_inc", app.student_ln150_income, "0", 6));
+    row.push(new Column("stud_sp_inc_mbsa_tot", stud_sp_inc_mbsa_tot, "0", 6)); // dont know we have this info
+    row.push(new Column("stud_gross_annual_inc", app.student_ln150_income ?? 0, "0", 6));
     row.push(new Column("stud_gross_annual_inc_reassess", "", "0", 6)); // always blank
 
-    row.push(new Column("parent1_gross_ann_inc", app.parent1_income ?? "", "0", 6));
-    row.push(new Column("parent1_net_ann_inc", app.parent1_income ?? "", "0", 6));
+    row.push(new Column("parent1_gross_ann_inc", cat_code == 4 ? app.parent1_income ?? "" : "", "0", 6));
+    row.push(new Column("parent1_net_ann_inc", cat_code == 4 ? app.parent1_income ?? "" : "", "0", 6));
     row.push(new Column("parent1_cpp_cont", "", "0", 6)); // always blank
     row.push(new Column("parent1_ei_prem", "", "0", 6)); // always blank
-    row.push(new Column("parent1_inc_tax_paid", app.parent1_tax_paid ?? "", "0", 6));
-    row.push(new Column("parent1_tot_tax_inc", "", "0", 6)); // always blank
+    row.push(new Column("parent1_inc_tax_paid", cat_code == 4 ? app.parent1_tax_paid ?? "" : "", "0", 6));
+    row.push(new Column("parent1_tot_tax_inc", cat_code == 4 ? app.parent1_net_income ?? "" : "", "0", 6)); // always blank
     row.push(new Column("parent1_gross_ann_inc_reassess", "", "0", 6)); // always blank
     row.push(new Column("parent1_net_ann_inc_reassess", "", "0", 6)); // always blank
 
-    row.push(new Column("parent2_gross_ann_inc", app.parent2_income ?? "", "0", 6));
-    row.push(new Column("parent2_net_ann_inc", app.parent2_income ?? "", "0", 6));
+    row.push(new Column("parent2_gross_ann_inc", cat_code == 4 ? app.parent2_income ?? "" : "", "0", 6));
+    row.push(new Column("parent2_net_ann_inc", cat_code == 4 ? app.parent2_income ?? "" : "", "0", 6));
     row.push(new Column("parent2_cpp_cont", "", "0", 6)); // always blank
     row.push(new Column("parent2_ei_prem", "", "0", 6)); // always blank
-    row.push(new Column("parent2_inc_tax_paid", app.parent2_tax_paid ?? "", "0", 6));
-    row.push(new Column("parent2_tot_tax_inc", "", "0", 6)); // always blank
+    row.push(new Column("parent2_inc_tax_paid", cat_code == 4 ? app.parent2_tax_paid ?? "" : "", "0", 6));
+    row.push(new Column("parent2_tot_tax_inc", cat_code == 4 ? app.parent2_net_income ?? "" : "", "0", 6)); // always blank
     row.push(new Column("parent2_gross_ann_inc_reassess", "", "0", 6)); // always blank
     row.push(new Column("parent2_net_ann_inc_reassess", "", "0", 6)); // always blank
 
-    row.push(new Column("spouse_gross_annual_inc", app.spouse_gross_income ?? "", "0", 6));
+    row.push(new Column("spouse_gross_annual_inc", cat_code == 1 ? app.spouse_gross_income ?? "" : "", "0", 6));
     row.push(new Column("spouse_gross_annual_inc_reassess", "", "0", 6)); // always blank
 
     row.push(new Column("stud_cont_targfund", "", "0", 6)); // always 0
