@@ -102,7 +102,7 @@
       v-on:showAPIMessages="showAPIMessages"
     ></application-delete>
 
-    <v-app-bar app color="#fff" flat height="70" style="left: 0; border-bottom: 3px #f3b228 solid">
+    <v-app-bar app color="#fff" flat height="70" style="left: 0; border-bottom: 3px #f3b228 solid" clipped-right>
       <!-- <v-icon color="#f3b228" class="mr-5">{{ applicationIcon }}</v-icon> -->
       <img src="/yukon.svg" style="margin: -8px 155px 0 0" height="44" />
       <v-toolbar-title>

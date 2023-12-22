@@ -84,6 +84,9 @@ import csgPartTimeStore from "../components/application/assessments/store/csg-pa
 import csgPartTimeDependentStore from "../components/application/assessments/store/csg-part-time-dependent";
 import csgPartTimeDisabilityStore from "../components/application/assessments/store/csg-part-time-disability";
 
+import sfaScholarshipArmyStore from "../components/application/assessments/store/sfa-scholarship-army";
+import sfaScholarshipHarachStore from "../components/application/assessments/store/sfa-scholarship-harach";
+import sfaScholarshipHuskysStore from "../components/application/assessments/store/sfa-scholarship-huskys";
 // Administration Stores
 import reportsStore from "@/modules/Administration/store/ReportsStore";
 
@@ -112,6 +115,7 @@ export default new Vuex.Store({
     monthOptions: [],
     flagOptions: [],
     flagMatches: [],
+    documentation: [],
   },
   getters: {
     showAppSidebar: (state) => state.showAppSidebar,
@@ -190,6 +194,9 @@ export default new Vuex.Store({
     SET_FLAGMATCHES(state, value) {
       state.flagMatches = value;
     },
+    SET_DOCUMENTATION(state, value) {
+      state.documentation = value;
+    },
   },
   actions: {
     setAppSidebar(state, value) {
@@ -234,9 +241,10 @@ export default new Vuex.Store({
         .get(`${APPLICATION_URL}/${id}`)
         .then((resp) => {
           if (!state.state.selectedStudent.id) {
-            this.dispatch("loadStudent", resp.data.data.student_id);
+            state.dispatch("loadStudent", resp.data.data.student_id);
           }
           state.commit("SET_APPLICATION", resp.data.data);
+          state.dispatch("loadDocumentation");v
         })
         .catch((err) => {
           let recentList = JSON.parse(localStorage.RECENT_APPLICATIONS);
@@ -255,6 +263,12 @@ export default new Vuex.Store({
       let resp = await axios.get(`${STUDENT_URL}/${id}`);
       state.commit("SET_STUDENT", resp.data.data);
     },
+    async loadDocumentation({ commit, state }) {
+      await axios.get(`${APPLICATION_URL}/${state.selectedApplicationId}/required-documents`).then((resp) => {
+        commit("SET_DOCUMENTATION", resp.data.data);
+      });
+    },
+
     async updateStudent(state, vals) {
       const url = vals[6] !== undefined ? vals[6] : "";
       const isInsertion = vals[7] !== undefined ? vals[7] : false;
@@ -577,7 +591,11 @@ export default new Vuex.Store({
     csgPartTimeStore,
     csgPartTimeDependentStore,
     csgPartTimeDisabilityStore,
-    
+
+    sfaScholarshipArmyStore,
+    sfaScholarshipHarachStore,
+    sfaScholarshipHuskysStore,
+
     reportsStore,
   },
 });
