@@ -1,5 +1,6 @@
 import Vue from "vue";
 import Vuex from "vuex";
+import moment from "moment";
 
 // Stores
 import auth from "./auth";
@@ -195,6 +196,18 @@ export default new Vuex.Store({
       state.flagMatches = value;
     },
     SET_DOCUMENTATION(state, value) {
+      if (value) {
+        for (let doc of value) {
+          doc.upload_date = !isEmpty(doc.upload_date)
+            ? moment.utc(doc.upload_date).format("YYYY-MM-DD")
+            : doc.upload_date;
+          doc.status_date = !isEmpty(doc.status_date)
+            ? moment.utc(doc.status_date).format("YYYY-MM-DD")
+            : doc.status_date;
+          doc.showThing = doc.status == "2";
+        }
+      }
+
       state.documentation = value;
     },
   },
@@ -244,7 +257,7 @@ export default new Vuex.Store({
             state.dispatch("loadStudent", resp.data.data.student_id);
           }
           state.commit("SET_APPLICATION", resp.data.data);
-          state.dispatch("loadDocumentation");v
+          //state.dispatch("loadDocumentation");
         })
         .catch((err) => {
           let recentList = JSON.parse(localStorage.RECENT_APPLICATIONS);
@@ -264,7 +277,7 @@ export default new Vuex.Store({
       state.commit("SET_STUDENT", resp.data.data);
     },
     async loadDocumentation({ commit, state }) {
-      await axios.get(`${APPLICATION_URL}/${state.selectedApplicationId}/required-documents`).then((resp) => {
+      axios.get(`${APPLICATION_URL}/${state.selectedApplicationId}/required-documents`).then((resp) => {
         commit("SET_DOCUMENTATION", resp.data.data);
       });
     },

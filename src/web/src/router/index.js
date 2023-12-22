@@ -347,8 +347,7 @@ router.beforeEach(async (to, from, next) => {
 
   if (requiresAuth && !isAuthenticated) {
     console.log("You aren't authenticatd, redirecting to sign-in");
-    next("/sign-in");
-    return;
+    return next("/sign-in");
   }
 
   return next();

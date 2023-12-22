@@ -372,10 +372,8 @@ applicationRouter.get("/:id", [param("id").notEmpty()], ReturnValidationErrors, 
       }
 
       const readOnlyData = await db.raw(
-        `SELECT 
-                    COALESCE(sfa.fn_get_yea_total(${student.yukon_id}), 0) AS yea_earned,
-                    COALESCE(sfa.fn_get_system_yea_used(${student.id}), 0) AS yea_used
-                    `
+        `SELECT COALESCE(sfa.fn_get_yea_total(${student.yukon_id}), 0) AS yea_earned,
+          COALESCE(sfa.fn_get_system_yea_used(${student.id}), 0) AS yea_used`
       );
 
       application.calculated_data = readOnlyData?.[0] || {};

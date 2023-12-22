@@ -9,22 +9,22 @@
     <v-row>
       <v-col cols="12">
         <v-card class="mb-5 default" v-for="(item, i) of documentation" :key="i">
-          <v-toolbar color="#ffc850" dense flat>
-            <v-btn icon @click="expand(item, i)">
+          <v-toolbar color="#ffc850" dense flat @click="expand(item, i)">
+            <v-btn icon>
               <v-icon>{{ item.showThing ? "mdi-chevron-down" : "mdi-chevron-up" }}</v-icon>
             </v-btn>
             <v-toolbar-title class="pl-0">{{ item.description }}</v-toolbar-title>
             <v-spacer></v-spacer>
-            <v-btn icon title="Preview" v-if="canPreview(item)" @click="showPreview(item)">
+            <v-btn icon title="Preview" v-if="canPreview(item)" @click.stop="showPreview(item)">
               <v-icon>mdi-eye</v-icon>
             </v-btn>
-            <v-btn icon title="Download" v-if="item.file_name && item.upload_date" @click="downloadItem(item)">
+            <v-btn icon title="Download" v-if="item.file_name && item.upload_date" @click.stop="downloadItem(item)">
               <v-icon>mdi-download</v-icon>
             </v-btn>
             <v-btn icon v-else @click="startUploadItem(item)">
               <v-icon>mdi-upload</v-icon>
             </v-btn>
-            <v-btn icon v-if="item.file_name && item.upload_date" @click="startDeleteItem(item)">
+            <v-btn icon v-if="item.file_name && item.upload_date" @click.stop="startDeleteItem(item)">
               <v-icon>mdi-delete</v-icon>
             </v-btn>
           </v-toolbar>
@@ -261,7 +261,7 @@ import store from "../../store";
 import { mapActions, mapGetters, mapState } from "vuex";
 import axios from "axios";
 import moment from "moment";
-import { sortBy } from "lodash";
+import { sortBy, isEmpty } from "lodash";
 import { APPLICATION_URL, REQUIREMENT_TYPE } from "../../urls";
 import PdfPreviewDialog from "@/components/PDFPreviewDialog.vue";
 import PdfPreviewSidebar from "@/components/PDFPreviewSidebar.vue";
@@ -315,12 +315,6 @@ export default {
 
     async loadDocuments() {
       await this.loadDocumentation();
-
-      for (let doc of this.documentation) {
-        doc.upload_date = doc.upload_date ? moment.utc(doc.upload_date).format("YYYY-MM-DD") : doc.upload_date;
-        doc.status_date = doc.status_date ? moment.utc(doc.status_date).format("YYYY-MM-DD") : doc.status_date;
-        doc.showThing = doc.status == "2";
-      }
     },
 
     expand(item, idx) {
@@ -417,6 +411,7 @@ export default {
         .then((resp) => {
           let message = resp.data.messages[0];
           this.$emit("showSuccess", message.text);
+          this.loadDocuments()
         });
     },
 

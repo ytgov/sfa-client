@@ -271,7 +271,7 @@ function forInsert(input: FileReference | FileReferenceBase) {
 }
 
 function forUpdate(input: FileReference | FileReferenceBase) {
-  return { status: input.status, status_date: input.status_date, visible_in_portal: input.visible_in_portal };
+  return { status: input.status, status_date: input.status_date, visible_in_portal: input.visible_in_portal, comment: input.comment, upload_date: input.upload_date};
 }
 
 const streamToBuffer = (stream: Readable) =>
