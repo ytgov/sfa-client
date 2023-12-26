@@ -28,6 +28,8 @@ RUN npm install && npm cache clean --force --loglevel=error
 COPY --chown=node:node src/api /home/node/app/
 COPY --chown=node:node src/web /home/node/web/
 
+ENV NODE_OPTIONS=--openssl-legacy-provider
+
 RUN npm run build:docker
 
 EXPOSE 3000
