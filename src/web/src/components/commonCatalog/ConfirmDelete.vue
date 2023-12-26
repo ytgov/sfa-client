@@ -7,7 +7,7 @@
       >
         <v-card>
           <v-card-text class="text-h5 mt-8">
-            You want to permanently delete ?
+            You want to permanently delete?
           </v-card-text>
           <v-card-actions>
             <v-spacer></v-spacer>

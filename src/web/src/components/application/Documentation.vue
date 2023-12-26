@@ -1,69 +1,39 @@
 <template>
   <div class="home">
-    <h1>Documentation Required and Received</h1>
+    <div class="d-flex">
+      <h1>Documentation Required and Received</h1>
+      <v-spacer></v-spacer>
+      <v-btn class="mt-2" color="primary" @click="startUploadItem({})">Upload</v-btn>
+    </div>
 
-    <v-card class="default mb-5">
-      <v-card-text>
-        <div class="row">
-          <div class="col-md-12">
-            <h3>Documentation</h3>
-            <div v-for="(item, i) of this.application.finalDocumentation5" :key="i" class="row">
-              <div class="col-md-6">
-                <v-select
-                  outlined
-                  dense
-                  background-color="white"
-                  hide-details
-                  disabled
-                  label="Documentation"
-                  v-model="item.description"
-                  :items="documents2"
-                  item-text="description"
-                  item-value="description"
-                ></v-select>
-              </div>
+    <v-row>
+      <v-col cols="12">
+        <v-card class="mb-5 default" v-for="(item, i) of documentation" :key="i">
+          <v-toolbar color="#ffc850" dense flat @click="expand(item, i)">
+            <v-btn icon>
+              <v-icon>{{ item.showThing ? "mdi-chevron-down" : "mdi-chevron-up" }}</v-icon>
+            </v-btn>
+            <v-toolbar-title class="pl-0">{{ item.description }}</v-toolbar-title>
+            <v-spacer></v-spacer>
+            <v-btn icon title="Preview" v-if="canPreview(item)" @click.stop="showPreview(item)">
+              <v-icon>mdi-eye</v-icon>
+            </v-btn>
+            <v-btn icon title="Download" v-if="item.file_name && item.upload_date" @click.stop="downloadItem(item)">
+              <v-icon>mdi-download</v-icon>
+            </v-btn>
+            <v-btn icon v-else @click="startUploadItem(item)">
+              <v-icon>mdi-upload</v-icon>
+            </v-btn>
+            <v-btn icon v-if="item.file_name && item.upload_date" @click.stop="startDeleteItem(item)">
+              <v-icon>mdi-delete</v-icon>
+            </v-btn>
+          </v-toolbar>
 
-              <div class="col-md-6">
-                <v-menu
-                  v-model="item.completed_date_menu"
-                  :close-on-content-click="false"
-                  transition="scale-transition"
-                  left
-                  nudge-top="26"
-                  offset-y
-                  min-width="auto"
-                >
-                  <template v-slot:activator="{ on, attrs }">
-                    <v-text-field
-                      :value="item.completed_date ? item.completed_date.toString().slice(0, 10) : item.completed_date"
-                      label="Completed date"
-                      append-icon="mdi-calendar"
-                      hide-details
-                      readonly
-                      outlined
-                      dense
-                      background-color="white"
-                      v-bind="attrs"
-                      v-on="on"
-                    ></v-text-field>
-                  </template>
-                  <v-date-picker
-                    :value="formatDate(item.completed_date)"
-                    @input="
-                      (e) => {
-                        item.completed_date = e;
-                        item.completed_date_menu = false;
-                      }
-                    "
-                    @change="updateReqMet({ completed_date: item.completed_date }, item.requirement_type_id)"
-                  ></v-date-picker>
-                </v-menu>
-              </div>
-
-              <div class="col-md-3">
+          <v-card-text v-bind:class="{ 'd-none': item.showThing }">
+            <v-row>
+              <v-col cols="12" md="3">
                 <v-menu
                   v-model="item.upload_date_menu"
-                  :close-on-content-click="false"
                   transition="scale-transition"
                   left
                   nudge-top="26"
@@ -72,24 +42,23 @@
                 >
                   <template v-slot:activator="{ on, attrs }">
                     <v-text-field
-                      :value="item.upload_date ? item.upload_date.toString().slice(0, 10) : item.upload_date"
+                      :value="item.upload_date"
                       label="Received date"
                       append-icon="mdi-calendar"
                       hide-details
-                      readonly
-                      disabled
                       outlined
                       dense
                       background-color="white"
+                      :disabled="!item.object_key"
                       v-bind="attrs"
                       v-on="on"
                     ></v-text-field>
                   </template>
-                  <v-date-picker v-model="item.upload_date" @input="item.upload_date_menu = false"></v-date-picker>
+                  <v-date-picker v-model="item.upload_date" @change="updateDocumentation(item)"></v-date-picker>
                 </v-menu>
-              </div>
+              </v-col>
 
-              <div class="col-md-3">
+              <v-col cols="12" md="3">
                 <v-autocomplete
                   outlined
                   dense
@@ -101,10 +70,38 @@
                   :items="documentStatusList"
                   item-text="description"
                   item-value="id"
-                  @change="updateStatus({ status: item.status, comment: item.comment }, item.requirement_type_id, item)"
+                  @change="updateDocumentation(item)"
                 ></v-autocomplete>
-              </div>
-              <div class="col-md-3">
+              </v-col>
+              <v-col cols="12" md="3">
+                <v-menu
+                  v-model="item.status_date_menu"
+                  transition="scale-transition"
+                  left
+                  nudge-top="26"
+                  offset-y
+                  min-width="auto"
+                >
+                  <template v-slot:activator="{ on, attrs }">
+                    <v-text-field
+                      :value="item.status_date"
+                      label="Status date"
+                      append-icon="mdi-calendar"
+                      hide-details
+                      readonly
+                      outlined
+                      dense
+                      background-color="white"
+                      :disabled="!item.object_key"
+                      v-bind="attrs"
+                      v-on="on"
+                    ></v-text-field>
+                  </template>
+                  <v-date-picker v-model="item.status_date" @change="updateDocumentation(item)"></v-date-picker>
+                </v-menu>
+              </v-col>
+
+              <v-col cols="12" md="3">
                 <v-text-field
                   outlined
                   dense
@@ -113,489 +110,321 @@
                   :disabled="!item.object_key"
                   label="Comment"
                   v-model="item.comment"
-                  @change="updateComment({ status: item.status, comment: item.comment }, item.requirement_type_id, item)"
-                  required
+                  @change="updateDocumentation(item)"
                 ></v-text-field>
-              </div>
-              <div class="col-md-1" v-if="item.file_name && item.upload_date">
-                <h4 style="font-size: 16px; font-weight: 700;">{{ item.file_name }}</h4>
-              </div>
+              </v-col>
 
-              <div class="col-md-1" v-if="item.file_name && item.upload_date && item.mime_type === 'application/pdf'">
-                <v-btn class="mt-0" color="success" @click="showPDF(item.requirement_type_id)">
-                  Preview
-                </v-btn>
-              </div>
+              <v-col cols="12" v-if="item.file_name && item.upload_date">
+                <strong>{{ item.file_name }}</strong> - uploaded by <strong>{{ item.upload_user }}</strong>
+              </v-col>
 
-              <div class="col-md-1" v-if="item.file_name && item.upload_date">
-                <v-btn class="mt-0" color="success" :href="downloadPdf(item.requirement_type_id)">
-                  Download
-                </v-btn>
-              </div>
+              <v-col cols="12" v-else> * {{ item.required_for }} </v-col>
+            </v-row>
+          </v-card-text>
+        </v-card>
+      </v-col>
+    </v-row>
 
-              <div class="col-md-6">
-                <v-file-input
-                  ref="fileInput"
-                  multiple
-                  truncate-length="15"
-                  outlined
-                  dense
-                  background-color="white"
-                  hide-details
-                  label="Upload document"
-                  v-model="documents[i]"
-                  @change="uploadDoc(item, i)"
-                ></v-file-input>
-              </div>
-              <div class="col-md-1">
-                <v-btn class="mt-0" color="primary" @click="postDoc(item, i)">
-                  Upload file
-                </v-btn>
-              </div>
-              <div class="col-md-12">
-                <v-divider horizontal v-if="i < application.finalDocumentation5.length - 1"></v-divider>
-              </div>
-            </div>
-          </div>
-        </div>
-      </v-card-text>
-    </v-card>
+    <v-dialog v-model="showAdd" modal persistent max-width="600px">
+      <v-card>
+        <v-toolbar dense color="primary" dark flat>
+          Upload Documentation
+          <v-spacer></v-spacer>
+          <v-btn icon @click="showAdd = false"> <v-icon>mdi-close</v-icon></v-btn>
+        </v-toolbar>
+        <v-card-text class="pt-4" v-if="uploadDoc">
+          <v-autocomplete
+            label="Documentation"
+            dense
+            outlined
+            v-model="uploadDoc.requirement_type_id"
+            :items="documentTypeOptions"
+            item-text="description"
+            item-value="id"
+          ></v-autocomplete>
 
-    <v-card class="default mb-5 row" v-if="showAdd">
-      <div class="col-md-6">
-        <h3 class="text-h6 font-weight-regular">Add Documentation</h3>
-      </div>
-      <div class="col-md-6">
-        <v-row>
-          <div class="col-md-6">
-            <v-btn @click="setClose" block color="error" class="my-0">Cancel</v-btn>
-          </div>
-          <div class="col-md-6">
-            <v-btn block color="success" class="my-0" @click="handleUploadAndClose()">Add</v-btn>
-          </div>
-        </v-row>
-      </div>
+          <v-file-input
+            outlined
+            dense
+            background-color="white"
+            label="Select document"
+            v-model="uploadFile"
+            prepend-inner-icon="mdi-paperclip"
+            prepend-icon=""
+          ></v-file-input>
 
-      <div class="col-md-6">
-        <v-autocomplete
-          outlined
-          dense
-          background-color="white"
-          hide-details
-          label="Documentation"
-          v-model="documentationData.description"
-          :items="documents2"
-          item-text="description"
-          item-value="id"
-        ></v-autocomplete>
-      </div>
-      <div class="col-md-6">
-        <v-menu
-          v-model="documentationData.completed_date_menu"
-          :close-on-content-click="false"
-          transition="scale-transition"
-          left
-          nudge-top="26"
-          offset-y
-          min-width="auto"
-        >
-          <template v-slot:activator="{ on, attrs }">
-            <v-text-field
-              v-model="documentationData.completed_date"
-              label="Completed date"
-              append-icon="mdi-calendar"
-              hide-details
-              readonly
-              outlined
-              dense
-              background-color="white"
-              v-bind="attrs"
-              v-on="on"
-            ></v-text-field>
-          </template>
-          <v-date-picker
-            v-model="documentationData.completed_date"
-            @input="documentationData.completed_date_menu = false"
-          ></v-date-picker>
-        </v-menu>
-      </div>
-      <div class="col-md-4">
-        <v-menu
-          v-model="documentationData.received_date_menu"
-          :close-on-content-click="false"
-          transition="scale-transition"
-          left
-          nudge-top="26"
-          offset-y
-          min-width="auto"
-        >
-          <template v-slot:activator="{ on, attrs }">
-            <v-text-field
-              v-model="documentationData.received_date"
-              label="Received date"
-              append-icon="mdi-calendar"
-              hide-details
-              readonly
-              outlined
-              dense
-              background-color="white"
-              v-bind="attrs"
-              v-on="on"
-            ></v-text-field>
-          </template>
-          <v-date-picker
-            v-model="documentationData.received_date"
-            @input="documentationData.received_date_menu = false"
-          ></v-date-picker>
-        </v-menu>
-      </div>
+          <v-row>
+            <v-col cols="6">
+              <v-menu
+                v-model="uploadDoc.received_date_menu"
+                :close-on-content-click="false"
+                transition="scale-transition"
+                left
+                nudge-top="26"
+                offset-y
+                min-width="auto"
+              >
+                <template v-slot:activator="{ on, attrs }">
+                  <v-text-field
+                    v-model="uploadDoc.received_date"
+                    label="Received date"
+                    append-icon="mdi-calendar"
+                    readonly
+                    hide-details
+                    outlined
+                    dense
+                    background-color="white"
+                    v-bind="attrs"
+                    v-on="on"
+                  ></v-text-field>
+                </template>
+                <v-date-picker
+                  v-model="uploadDoc.received_date"
+                  @input="uploadDoc.received_date_menu = false"
+                ></v-date-picker>
+              </v-menu>
+            </v-col>
+            <v-col cols="6">
+              <v-menu
+                v-model="uploadDoc.completed_date_menu"
+                :close-on-content-click="false"
+                transition="scale-transition"
+                left
+                nudge-top="26"
+                offset-y
+                min-width="auto"
+              >
+                <template v-slot:activator="{ on, attrs }">
+                  <v-text-field
+                    v-model="uploadDoc.completed_date"
+                    label="Completed date"
+                    append-icon="mdi-calendar"
+                    readonly
+                    hide-details
+                    outlined
+                    dense
+                    background-color="white"
+                    v-bind="attrs"
+                    v-on="on"
+                  ></v-text-field>
+                </template>
+                <v-date-picker
+                  v-model="uploadDoc.completed_date"
+                  @input="uploadDoc.completed_date_menu = false"
+                ></v-date-picker>
+              </v-menu>
+            </v-col>
+            <v-col cols="6">
+              <v-autocomplete
+                outlined
+                dense
+                background-color="white"
+                label="Status"
+                hide-detail
+                v-model="uploadDoc.status"
+                :items="documentStatusList"
+                item-text="description"
+                item-value="id"
+              ></v-autocomplete>
+            </v-col>
 
-      <div class="col-md-4">
-        <v-autocomplete
-          outlined
-          dense
-          background-color="white"
-          hide-details
-          label="Status"
-          v-model="documentationData.status"
-          :items="documentStatusList"
-          item-text="description"
-          item-value="id"
-        ></v-autocomplete>
-      </div>
+            <v-col cols="6">
+              <v-text-field
+                outlined
+                dense
+                background-color="white"
+                label="Comment"
+                v-model="uploadDoc.comment"
+                hide-detail
+              ></v-text-field>
+            </v-col>
+          </v-row>
 
-      <div class="col-md-4">
-        <v-text-field
-          outlined
-          dense
-          background-color="white"
-          hide-details
-          label="Comment"
-          v-model="documentationData.comment"
-          required
-        ></v-text-field>
-      </div>
+          <v-divider class="mb-5"></v-divider>
+          <v-btn class="mt-0" color="primary" @click="doUploadItem" :disabled="!canUpload">
+            Upload documentation
+          </v-btn>
+        </v-card-text>
+      </v-card>
+    </v-dialog>
 
-      <div class="col-md-6">
-        <v-file-input
-          multiple
-          truncate-length="15"
-          outlined
-          dense
-          background-color="white"
-          hide-details
-          label="Upload document"
-          @change="checkFile"
-        ></v-file-input>
-      </div>
-    </v-card>
-
-    <v-btn color="primary" @click="setClose" v-if="!showAdd">
-      Add Documentation
-    </v-btn>
-    <v-btn v-else color="primary" @click="setClose">
-      Cancel
-    </v-btn>
     <confirm-dialog ref="confirm"></confirm-dialog>
-    <show-pdf ref="showPdf"> </show-pdf>
+
+    <pdf-preview-dialog ref="pdfPreview"></pdf-preview-dialog>
+    <pdf-preview-sidebar ref="pdfPreviewSide"></pdf-preview-sidebar>
   </div>
 </template>
 
 <script>
+import Vue from "vue";
 import store from "../../store";
-import { mapGetters } from "vuex";
+import { mapActions, mapGetters, mapState } from "vuex";
 import axios from "axios";
+import moment from "moment";
+import { sortBy, isEmpty } from "lodash";
 import { APPLICATION_URL, REQUIREMENT_TYPE } from "../../urls";
+import PdfPreviewDialog from "@/components/PDFPreviewDialog.vue";
+import PdfPreviewSidebar from "@/components/PDFPreviewSidebar.vue";
 
 export default {
   name: "Home",
+  components: { PdfPreviewDialog, PdfPreviewSidebar },
   data: () => ({
     applicationId: -1,
-    documentationOptions: ["YG Application", "Official Transcript - Original document (must be mailed)"],
-    file: null,
-    statusDisabled: true,
     uploadedDoc: [],
-    documents: [],
-    documents2: [],
+    documentTypeOptions: [],
     showAdd: false,
-    documentationData: {
-      description: null,
-      received_date: null,
-      completed_date: null,
-      status: null,
-      received_date_menu: null,
-      completed_date_menu: null,
-      file: null,
-      comment: "",
-    },
+    uploadFile: null,
+    uploadDoc: null,
   }),
   computed: {
+    ...mapGetters(["documentStatusList"]),
+    ...mapState(["documentation"]),
     username() {
       return store.getters.fullName;
     },
-    ...mapGetters(["documentStatusList"]),
     application: function() {
       return store.getters.selectedApplication;
     },
     student: function() {
       return store.getters.selectedStudent;
     },
+
+    canUpload() {
+      return (
+        this.uploadDoc.requirement_type_id && this.uploadDoc.received_date && this.uploadDoc.status && this.uploadFile
+      );
+    },
   },
-  async created() {
+  async mounted() {
     this.loadRequirementTypes();
     this.applicationId = this.$route.params.id;
     let storeApp = store.getters.selectedApplication;
 
-    if (this.applicationId != storeApp.HISTORY_DETAIL_ID) {
+    if (this.applicationId != storeApp.id) {
       await store.dispatch("loadApplication", this.applicationId);
     }
+
+    await this.loadDocuments();
 
     store.dispatch("setAppSidebar", true);
     store.dispatch("setDocumentStatus");
   },
   methods: {
-    checkFile(event) {
-      const formData = new FormData();
-      this.documentationData.file = event;
+    ...mapActions(["loadDocumentation"]),
+
+    async loadDocuments() {
+      await this.loadDocumentation();
     },
-    handleUploadAndClose() {
-      if(!this.documentationData.description) {
-        this.$emit("showError", "Please fill in the description field");
-      } else {
-        if(!this.documentationData.received_date) {
-          this.$emit("showError", "Please fill in the receved date field");
-        } else {
-          if(!this.documentationData.status) {
-            this.$emit("showError", "Please fill in the status field");
-          } else {                 
-            if (!this.documentationData.comment && this.documentationData.status === 3) {
-              this.$emit("showError", "If status is rejected, you must comment");
-            }  else {
-              if(!this.documentationData.file) {
-              this.$emit("showError", "Please fill in the file field");
-            } else {              
-              this.uploadNewDoc();
-            }
-            }                          
-          }
-        }
+
+    expand(item, idx) {
+      item.showThing = !item.showThing;
+      Vue.set(this.documentation, idx, item);
+    },
+
+    canPreview(item) {
+      if (item.file_name && item.upload_date) {
+        let previewTypes = ["application/pdf"];
+        if (previewTypes.includes(item.mime_type) || item.mime_type.startsWith("image/")) return true;
       }
+
+      return false;
     },
-    async uploadNewDoc() {
+
+    showPreview(item) {
+      if (item.mime_type.startsWith("image/"))
+        this.$refs.pdfPreviewSide.showImage(
+          item.file_name,
+          `${APPLICATION_URL}/${this.application.id}/student/${this.student.id}/files_id/${item.object_key}`
+        );
+      else
+        this.$refs.pdfPreviewSide.show(
+          item.file_name,
+          `${APPLICATION_URL}/${this.application.id}/student/${this.student.id}/files_id/${item.object_key}`
+        );
+    },
+
+    downloadItem(item) {
+      window.open(`${APPLICATION_URL}/${this.application.id}/student/${this.student.id}/files_id/${item.object_key}`);
+    },
+
+    startUploadItem(item) {
+      this.uploadDoc = {
+        requirement_type_id: item.requirement_type_id,
+        received_date: moment().format("YYYY-MM-DD"),
+        status: 1,
+        comment: "",
+      };
+
+      this.showAdd = true;
+    },
+
+    async doUploadItem() {
+      if (!this.canUpload) return;
+
+      if (this.uploadDoc.status != 1)
+        this.uploadDoc.completed_date = this.uploadDoc.completed_date ?? moment().format("YYYY-MM-DD");
+
       const formData = new FormData();
-      formData.append("files", this.documentationData.file[0]);
-      formData.append("comment", this.documentationData.comment);
-      formData.append("requirement_type_id", this.documentationData.description);
-      formData.append("disability_requirement_id", null);
-      formData.append("status", this.documentationData.status);
-      formData.append("person_id", null);
-      formData.append("dependent_id", null);
-      formData.append("email", this.username);
+      formData.append("files", this.uploadFile);
+      formData.append("requirement_type_id", this.uploadDoc.requirement_type_id);
+      formData.append("comment", this.uploadDoc.comment);
+      formData.append("completed_date", this.uploadDoc.completed_date);
+      formData.append("received_date", this.uploadDoc.received_date);
+      formData.append("status", this.uploadDoc.status);
 
-      const innerFormData = new FormData();
-      innerFormData.append("requirement_type_id", this.documentationData.description);
-      innerFormData.append("completed_date", this.documentationData.completed_date);      
-      innerFormData.append("data", { completed_date: this.documentationData.completed_date });
-
-      try {
-        const reqType = this.documentationData.description;
-
-        if (!this.documentationData.comment && this.documentationData.status === 3) {
-          this.$emit("showError", "If status is rejected, you must comment");
-        } else {  
-          const resInsert = await axios.post(APPLICATION_URL + `/${this.application.id}/student/${this.student.id}/files`, formData, { headers: { "Content-Type": "multipart/form-data" }});
-
-          try {
-            const resInsert = await axios.post(APPLICATION_URL + `/${this.application.id}/student/${this.student.id}/files/${reqType}`, innerFormData, { headers: { "Content-Type": "multipart/form-data" }});
-            const message = resInsert?.data?.messages[0];
-            if (message?.variant === "success") {
-              this.$emit("showSuccess", message.text);
-            } else {
-              this.$emit("showError", message.text);
-            }
-          } catch (error) {
-            console.log(error);
-            this.$emit("showError", "Error to update inner");
-          } finally {
-            store.dispatch("loadApplication", this.applicationId);
-          }
-
-          const message = resInsert.data.messages[0];
-          if (message?.variant === "success") {
-            this.$emit("showSuccess", message.text);
-          } else {
-            this.$emit("showError", message.text);
-          }
-          this.setClose();        
-      }
-    } catch (error) {
-      console.log(error);
-      this.$emit("showError", "Error to update");
-    } finally {
-      store.dispatch("loadApplication", this.applicationId);
-      this.documentationData.comment = "";
-    }
+      axios
+        .post(`${APPLICATION_URL}/${this.application.id}/student/${this.student.id}/files`, formData, {
+          headers: { "Content-Type": "multipart/form-data" },
+        })
+        .then(() => {
+          this.loadDocuments();
+          this.showAdd = false;
+        });
     },
 
-    formatDate(date) {
-      if (!date) return null;
-
-      return date.toString().slice(0, 10);
-    },
-
-    setClose() {
-      this.documentationData.description = null;
-      this.documentationData.received_date = null;
-      this.documentationData.completed_date = null;
-      this.documentationData.status = null;
-      this.documentationData.received_date_menu = null;
-      this.documentationData.completed_date_menu = null;
-      this.documentationData.file = null;
-
-      this.showAdd = !this.showAdd;
-    },
-    addDocumentation() {
-      this.documents.push({ birth_date: "" });
-    },
-    removeDocumentation(index) {
+    startDeleteItem(item) {
       this.$refs.confirm.show(
-        "Are you sure?",
-        "Click 'Confirm' below to permanently remove this documentation.",
+        "Delete Documentation",
+        `You are sure you want to permanently delete ${item.file_name}?`,
         () => {
-          this.documents.splice(index, 1);
+          axios
+            .delete(`${APPLICATION_URL}/${this.application.id}/student/${this.student.id}/files/${item.object_key}`)
+            .then(() => {
+              this.loadDocuments();
+            });
         },
         () => {}
       );
     },
+
+    updateDocumentation(item) {
+      let body = {
+        upload_date: item.upload_date,
+        status: item.status,
+        status_date: item.status_date,
+        comment: item.comment,
+      };
+
+      axios
+        .put(`${APPLICATION_URL}/${this.application.id}/student/${this.student.id}/files/${item.object_key}`, body)
+        .then((resp) => {
+          let message = resp.data.messages[0];
+          this.$emit("showSuccess", message.text);
+          this.loadDocuments()
+        });
+    },
+
+    formatDate(date) {
+      if (!date) return null;
+      return date.toString().slice(0, 10);
+    },
+
     loadRequirementTypes() {
       axios.get(REQUIREMENT_TYPE).then((resp) => {
-        resp.data.data.forEach((d) => {
-          if (d.is_active === true) {
-            this.documents2.push({ id: d.id, description: d.description });
-          }
-        });
+        let docs = resp.data.data.filter((d) => d.is_active);
+        this.documentTypeOptions = sortBy(docs, "description");
       });
-    },
-    async showPDF(refId) {
-      try {
-        let buf = await fetch(
-          APPLICATION_URL + `/${this.application.id}/student/${this.student.id}/files/${refId}`
-        ).then((r) => r.arrayBuffer());
-        const blob = new Blob([buf], { type: "application/pdf" });
-        const blobURL = URL.createObjectURL(blob) || "";
-        this.$refs.showPdf.showModal(blobURL);
-      } catch (error) {
-        console.log(error);
-      }
-    },
-    downloadPdf(refId) {
-      return APPLICATION_URL + `/${this.application.id}/student/${this.student.id}/files/${refId}`;
-    },
-    async updateReqMet(itemToUpdate, refId) {
-      try {
-        const resInsert = await axios.put(APPLICATION_URL + `/${this.application.id}/files/${refId}`, {
-          data: { ...itemToUpdate },
-          type: "date",
-        });
-        const message = resInsert?.data?.messages[0];
-
-        if (message?.variant === "success") {
-          this.$emit("showSuccess", message.text);
-        } else {
-          this.$emit("showError", message.text);
-        }
-      } catch (error) {
-        this.$emit("showError", "Error to update");
-      } finally {
-        store.dispatch("loadApplication", this.applicationId);
-      }
-    },
-    async updateComment(itemToUpdate, refId, item) {
-      if(itemToUpdate.status !== 3 || itemToUpdate.comment) {
-        try {
-          const resInsert = await axios.put(APPLICATION_URL + `/${this.application.id}/files/${refId}`, {
-            data: { ...itemToUpdate },
-            type: "comment",
-            object_key: item.object_key,
-          });
-          const message = resInsert?.data?.messages[0];
-
-          if (message?.variant === "success") {
-            this.$emit("showSuccess", message.text);
-          } else {
-            this.$emit("showError", message.text);
-          }
-        } catch (error) {
-          this.$emit("showError", "Error to update");
-        } finally {
-          store.dispatch("loadApplication", this.applicationId);
-        }
-      } else {
-        this.$emit("showError", "If status is rejected, you must comment");
-      }      
-    },
-    async updateStatus(itemToUpdate, refId) {  
-      if (itemToUpdate.status === 3 && !itemToUpdate.comment) {
-        this.$emit("showError", "If status is rejected, you must comment");                     
-      } else {
-        try {
-          const resInsert = await axios.put(
-            APPLICATION_URL + `/${this.application.id}/student/${this.student.id}/files/${refId}`,
-            { data: { ...itemToUpdate } }
-          );
-          const message = resInsert?.data?.messages[0];
-          if (message?.variant === "success") {
-            this.$emit("showSuccess", message.text);
-          } else {
-            this.$emit("showError", message.text);
-          }
-        } catch (error) {
-          this.$emit("showError", "Error to update");
-        } finally {
-          store.dispatch("loadApplication", this.applicationId);
-        }
-      }
-    },
-    async uploadDoc(item, i) {
-      this.statusDisabled = false;
-      this.uploadedDoc.push({ id: i, file: event.target.files[0] });
-    },
-    async postDoc(item, i) {
-      if (this.documents[i]) {
-        let doc = this.documents[i][0];
-        const formData = new FormData();
-
-        formData.append("files", doc);
-        formData.append("requirement_type_id", item.requirement_type_id);
-        formData.append("disability_requirement_id", item.disability_requirement_id);
-        formData.append("person_id", item.person_id);
-        formData.append("dependent_id", item.dependent_id);
-        formData.append("object_key", item.object_key);
-
-        const innerFormData = new FormData();
-        innerFormData.append("completed_data", item.completed_date);
-
-        try {
-          let resInsert = await axios.post(
-            APPLICATION_URL + `/${this.application.id}/student/${this.student.id}/files`,
-            formData,
-            { headers: { "Content-Type": "multipart/form-data" } }
-          );
-          let message = resInsert?.data?.messages[0];
-          if (message?.variant === "success") {
-            this.$emit("showSuccess", message.text);
-          } else {
-            this.$emit("showError", message.text);
-          }
-        } catch (error) {
-          console.log(error);
-          this.documents[i] = undefined;
-          this.$emit("showError", "Error to update");
-        } finally {
-          this.documents[i] = undefined;
-          store.dispatch("loadApplication", this.applicationId);
-        }
-      }
     },
   },
 };

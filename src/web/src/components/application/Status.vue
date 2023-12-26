@@ -270,6 +270,15 @@ export default {
         case 5:
           this.$router.push(`/application/${this.applicationId}/cslpt/${funding_request_id}`);
           break;
+        case 7:
+          this.$router.push(`/application/${this.applicationId}/scholarship-army/${funding_request_id}`);
+          break;
+        case 9:
+          this.$router.push(`/application/${this.applicationId}/scholarship-harach/${funding_request_id}`);
+          break;
+        case 11:
+          this.$router.push(`/application/${this.applicationId}/scholarship-huskys/${funding_request_id}`);
+          break;
 
         default:
           this.showFundings = false;

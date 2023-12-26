@@ -39,9 +39,6 @@
           </v-card-text>
         </v-card>
 
-      </div>
-
-      <div class="col-md-12">
         <v-card class="default mb-5">
           <v-card-text>
             <h3>Nicholas John Harach Scholarship</h3>
@@ -55,11 +52,7 @@
               @change="toggle($event, 'NJHS', nicholasJohnHarachScholarship?.id)"
             ></v-switch>
             <div v-if="checkNJH">
-              <v-switch
-                dense
-                hide-details
-                label="Entering first year"
-              ></v-switch>
+              <v-switch dense hide-details label="Entering first year"></v-switch>
 
               <div v-if="!checkNJH" class="mt-5">
                 <v-file-input
@@ -72,9 +65,7 @@
                   label="Upload post-secondary transcript"
                 ></v-file-input>
 
-                <v-btn class="mt-5 mb-5 float-right" color="primary"
-                  >View post-secondary transcript</v-btn
-                >
+                <v-btn class="mt-5 mb-5 float-right" color="primary">View post-secondary transcript</v-btn>
 
                 <v-text-field
                   style="clear: both"
@@ -107,11 +98,7 @@
             ></v-switch>
 
             <div v-if="checkHuskys">
-              <v-switch
-                dense
-                hide-details
-                label="Entering first year"
-              ></v-switch>
+              <v-switch dense hide-details label="Entering first year"></v-switch>
 
               <!-- <div v-if="!radio_club.first_year" class="mt-5">
                 <v-file-input
@@ -155,38 +142,31 @@
 
 <script>
 import moment from "moment";
-import store from '@/store';
-import axios from 'axios';
+import store from "@/store";
+import axios from "axios";
 import { APPLICATION_URL } from "@/urls";
 import validator from "@/validator";
 
 export default {
   computed: {
-    application: function () {
+    application: function() {
       return store.getters.selectedApplication;
     },
-    canadianArmyScholarship: function () {
-      const request = this.application
-        ?.funding_requests
-        ?.find(fr => fr.request_type_id === 7);
+    canadianArmyScholarship: function() {
+      const request = this.application?.funding_requests?.find((fr) => fr.request_type_id === 7);
       this.checkCandianArmy = !!request;
       return request || {};
     },
-    nicholasJohnHarachScholarship: function () {
-      const request = this.application
-        ?.funding_requests
-        ?.find(fr => fr.request_type_id === 9);
+    nicholasJohnHarachScholarship: function() {
+      const request = this.application?.funding_requests?.find((fr) => fr.request_type_id === 9);
       this.checkNJH = !!request;
       return request || {};
     },
-    yukonHuskysScholarship: function () {
-      const request = this.application
-        ?.funding_requests
-        ?.find(fr => fr.request_type_id === 11);
+    yukonHuskysScholarship: function() {
+      const request = this.application?.funding_requests?.find((fr) => fr.request_type_id === 11);
       this.checkHuskys = !!request;
       return request || {};
     },
-
   },
   data: () => ({
     applicationId: -1,
@@ -199,10 +179,10 @@ export default {
     checkNJH: false,
     checkHuskys: false,
     scholarshipsTypes: {
-      CAS:7,
-      NJHS:9,
-      YASS:10,
-      YHS:11,
+      CAS: 7,
+      NJHS: 9,
+      YASS: 10,
+      YHS: 11,
     },
   }),
   async created() {
@@ -221,15 +201,13 @@ export default {
     },
     async deleteRecord(id) {
       try {
-        const resDelete = await axios.delete(
-        APPLICATION_URL+`/${id}/status`,
-        );
+        const resDelete = await axios.delete(APPLICATION_URL + `/${id}/status`);
         const message = resDelete.data.messages[0];
         if (message.variant == "success") {
-            this.$emit("showSuccess", message.text);
-            this.checkYEARequest = false;
+          this.$emit("showSuccess", message.text);
+          this.checkYEARequest = false;
         } else {
-            this.$emit("showError", message.text);
+          this.$emit("showError", message.text);
         }
       } catch (error) {
         this.$emit("showError", "Error to delete");
@@ -239,35 +217,35 @@ export default {
     },
     removeRecord(id, type) {
       this.$refs.confirm.show(
-            "Are you sure?",
-            "Click 'Confirm' below to permanently remove this funding record.",
-          () => {
-            this.deleteRecord(id);
-          },
-          () => {
-            switch (this.scholarshipsTypes?.[type]) {
-              case 7:
-                this.checkCandianArmy = !this.checkCandianArmy;
-                break;
-              case 9:
-                this.checkNJH = !this.checkNJH;
-                break;
-              case 11:
-                this.checkHuskys = !this.checkHuskys;
-                break;
-            
-              default:
-                break;
-            }
+        "Are you sure?",
+        "Click 'Confirm' below to permanently remove this funding record.",
+        () => {
+          this.deleteRecord(id);
+        },
+        () => {
+          switch (this.scholarshipsTypes?.[type]) {
+            case 7:
+              this.checkCandianArmy = !this.checkCandianArmy;
+              break;
+            case 9:
+              this.checkNJH = !this.checkNJH;
+              break;
+            case 11:
+              this.checkHuskys = !this.checkHuskys;
+              break;
+
+            default:
+              break;
           }
-      ); 
+        }
+      );
     },
     async addFundingRequest(type) {
       try {
-        const resInsert = await axios.post(
-          APPLICATION_URL+`/${this.application.id}/status`,
-          { request_type_id: type, received_date: new Date(),},
-        );
+        const resInsert = await axios.post(APPLICATION_URL + `/${this.application.id}/status`, {
+          request_type_id: type,
+          received_date: new Date(),
+        });
         const message = resInsert?.data?.messages[0];
         if (message?.variant === "success") {
           this.$emit("showSuccess", message.text);
@@ -275,7 +253,6 @@ export default {
         } else {
           this.$emit("showError", message.text);
         }
-          
       } catch (error) {
         this.$emit("showError", "Error to insert");
       } finally {
@@ -284,10 +261,9 @@ export default {
     },
     async updateFundingRequest(itemToUpdate, id) {
       try {
-        const resInsert = await axios.put(
-            APPLICATION_URL+`/${this.application.id}/status/${id}`,
-            { data: { ...itemToUpdate } },
-          );
+        const resInsert = await axios.put(APPLICATION_URL + `/${this.application.id}/status/${id}`, {
+          data: { ...itemToUpdate },
+        });
         const message = resInsert?.data?.messages[0];
         if (message?.variant === "success") {
           this.$emit("showSuccess", message.text);

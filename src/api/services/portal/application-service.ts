@@ -261,24 +261,4 @@ export class PortalApplicationService {
   async deleteDraft(id: number) {
     return await db("application_draft").withSchema(schema).where({ id }).delete();
   }
-
-  async getDocumentRequirementsFor(reqTypes: number[]): Promise<any[]> {
-    return db("request_requirement")
-      .withSchema(schema)
-      .innerJoin("requirement_type", "requirement_type.id", "request_requirement.requirement_type_id")
-      .where({ "requirement_type.show_online": 1, "requirement_type.is_active": 1 })
-      .whereIn("request_requirement.request_type_id", reqTypes)
-      .select([
-        "requirement_type.description",
-        "requirement_type.document_location",
-        "request_requirement.requirement_type_id",
-      ])
-      .min("request_requirement.condition as condition")
-      .groupBy([
-        "requirement_type.description",
-        "requirement_type.document_location",
-        "request_requirement.requirement_type_id",
-      ])
-      .orderBy("requirement_type.description");
-  }
 }

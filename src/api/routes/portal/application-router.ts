@@ -1,15 +1,15 @@
 import express, { Request, Response } from "express";
 import { PortalApplicationService, PortalStudentService } from "../../services/portal";
-import { DocumentService } from "../../services/shared";
-import { FundingFromDraft } from "../../models";
-import { clone, isArray, sortBy, uniq } from "lodash";
 import StudentApplicationsService from "@/services/portal/students/student-applications-service";
+import { DocumentService, DocumentationService } from "../../services/shared";
+import { isArray } from "lodash";
 
 export const portalApplicationRouter = express.Router();
 
 const applicationService = new PortalApplicationService();
 const studentService = new PortalStudentService();
 const documentService = new DocumentService();
+const documentationService = new DocumentationService();
 
 portalApplicationRouter.get("/:sub", async (req: Request, res: Response) => {
   const { sub } = req.params;
@@ -89,83 +89,9 @@ portalApplicationRouter.get("/:sub/:draftId/required-documents", async (req: Req
     let appIds = applications.map((a) => a.id);
 
     if (appIds.includes(parseInt(draftId))) {
-      let existingDocs = await documentService.getDocumentsForDraft(parseInt(draftId));
-      existingDocs = existingDocs.filter((d) => d.status_description != "Replaced");
       let draft = applications.filter((a) => a.id == draftId)[0];
       let app = JSON.parse(draft.application_json);
-
-      let funding = FundingFromDraft(app);
-      let requestTypes = uniq(funding.map((f) => f.request_type_id));
-
-      let reqDocs = await applicationService.getDocumentRequirementsFor(requestTypes);
-      let returnDocs = new Array<any>();
-
-      for (let doc of reqDocs) {
-        let existing = existingDocs.filter((d) => d.requirement_type_id == doc.requirement_type_id);
-        existing = sortBy(existing, "upload_date");
-        doc.status_description = "Missing";
-
-        for (let i = 0; i < existing.length; i++) {
-          if (i == 0) {
-            doc.upload = existing[i];
-            doc.status_description = existing[i].status_description;
-          } else {
-            let d1 = clone(doc);
-
-            doc.upload = existing[i];
-            doc.status_description = existing[i].status_description;
-            returnDocs.push(d1);
-          }
-        }
-
-        returnDocs.push(doc);
-      }
-
-      for (let doc of returnDocs) {
-        doc.meets_conditions = true;
-
-        // if (doc.condition) console.log(doc, doc.condition);
-
-        switch (doc.condition) {
-          case "CSL Only":
-            // I don't currently know how to handle this...
-            // But I belive it's handled by not having the requirement
-            break;
-          case "Dependent":
-            if (app.personal_details.category != 1) doc.meets_conditions = false;
-            break;
-          case "Has Dependant":
-            if (app.student_dependants.has_dependants == false) doc.meets_conditions = false;
-            break;
-          case "Married/Common Law":
-            if (app.personal_details.category != 2) doc.meets_conditions = false;
-            break;
-          case "Not CSL":
-            // I don't currently know how to handle this...
-            // But I belive it's handled by not having the requirement
-            break;
-          case "Not Dependent Student":
-            if (app.personal_details.category == 1) doc.meets_conditions = false;
-            break;
-          case "Other Agency Funding":
-            if (app.other_funding.has_funding == true) {
-            } else doc.meets_conditions = false;
-            break;
-          case "Private/Distance/Outside Canada":
-            break;
-          case "Spouse as Dependent":
-            // I don't currently know how to handle this...
-            break;
-          case "Yukon and Previous CSL":
-            // I don't currently know how to handle this...
-            // But I belive it's handled by not having the requirement
-            break;
-        }
-      }
-
-      returnDocs = returnDocs.filter((r) => r.meets_conditions == true);
-      returnDocs = sortBy(returnDocs, "description");
-
+      let returnDocs = await documentationService.getRequiredDocumentsForDraft(parseInt(draftId), app);
       res.json({ data: returnDocs });
     }
   }

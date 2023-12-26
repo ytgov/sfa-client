@@ -567,7 +567,7 @@
                   :value="item.issue_date?.slice(0, 10)"
                   @input="e => {
                     item.issue_date = e;
-                    if (institutionCode === 'LVAA') {
+                    if (institutionCode === 'LUAA') {
                       item.due_date = e;
                     }
                     item.issue_date_menu = false;

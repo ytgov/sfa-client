@@ -56,4 +56,28 @@ export default [
       requiresAuth: true,
     },
   },
+  {
+    path: "/application/:id/scholarship-army/:fundingRequestId",
+    name: "FR_CSLPT",
+    component: () => import("../../assessments/views/Scholarship-Army.vue"),
+    meta: {
+      requiresAuth: true,
+    },
+  },
+  {
+    path: "/application/:id/scholarship-huskys/:fundingRequestId",
+    name: "FR_CSLPT",
+    component: () => import("../../assessments/views/Scholarship-Huskys.vue"),
+    meta: {
+      requiresAuth: true,
+    },
+  },
+  {
+    path: "/application/:id/scholarship-harach/:fundingRequestId",
+    name: "FR_CSLPT",
+    component: () => import("../../assessments/views/Scholarship-Harach.vue"),
+    meta: {
+      requiresAuth: true,
+    },
+  },
 ];
