@@ -90,7 +90,7 @@ export class DocumentService {
     return await db<FileReferenceBase>("sfa.file_reference")
       .innerJoin("sfa.document_status", "file_reference.status", "document_status.id")
       .select(["file_reference.*", "document_status.description as status_description"])
-      .where({ application_draft_id });
+      .where({ application_draft_id, visible_in_portal: true });
   }
 
   //return the Document metadata and file
@@ -271,7 +271,13 @@ function forInsert(input: FileReference | FileReferenceBase) {
 }
 
 function forUpdate(input: FileReference | FileReferenceBase) {
-  return { status: input.status, status_date: input.status_date, visible_in_portal: input.visible_in_portal, comment: input.comment, upload_date: input.upload_date};
+  return {
+    status: input.status,
+    status_date: input.status_date,
+    visible_in_portal: input.visible_in_portal,
+    comment: input.comment,
+    upload_date: input.upload_date,
+  };
 }
 
 const streamToBuffer = (stream: Readable) =>

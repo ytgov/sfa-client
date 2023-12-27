@@ -36,6 +36,7 @@ export class DocumentationService {
     let requestTypes = uniq(funding.map((f) => f.request_type_id));
     let reqDocs = await this.getDocumentRequirementsFor(requestTypes);
     let returnDocs = new Array<any>();
+    let usedKeys = new Array<string>();
 
     for (let doc of reqDocs) {
       let existing = existingDocs.filter((d) => d.requirement_type_id == doc.requirement_type_id);
@@ -52,6 +53,8 @@ export class DocumentationService {
       doc.required_for = doc.required_for.replace(/, $/, "");
 
       for (let i = 0; i < existing.length; i++) {
+        usedKeys.push(existing[i].object_key);
+
         if (i == 0) {
           doc.upload = existing[i];
           doc = { ...doc, ...existing[i] };
@@ -68,6 +71,13 @@ export class DocumentationService {
 
       returnDocs.push(doc);
     }
+
+    let missing = existingDocs.filter((d) => !usedKeys.includes(d.object_key) && !d.funding_request_id);
+
+    missing.map((d) => {
+      (d as any).description = (d as any).requirementTypeDescription;
+      returnDocs.push(d);
+    });
 
     for (let doc of returnDocs) {
       doc.meets_conditions = true;
@@ -124,6 +134,7 @@ export class DocumentationService {
 
     let reqDocs = await this.getDocumentRequirementsFor(requestTypes);
     let returnDocs = new Array<any>();
+    let usedKeys = new Array<string>();
 
     for (let doc of reqDocs) {
       let existing = existingDocs.filter((d) => d.requirement_type_id == doc.requirement_type_id);
@@ -131,6 +142,8 @@ export class DocumentationService {
       doc.status_description = "Missing";
 
       for (let i = 0; i < existing.length; i++) {
+        usedKeys.push(existing[i].object_key);
+
         if (i == 0) {
           doc.upload = existing[i];
           doc.status_description = existing[i].status_description;
@@ -145,6 +158,13 @@ export class DocumentationService {
 
       returnDocs.push(doc);
     }
+
+    let missing = existingDocs.filter((d) => !usedKeys.includes(d.object_key) && !d.funding_request_id);
+
+    missing.map((d) => {
+      (d as any).description = (d as any).requirementTypeDescription;
+      returnDocs.push(d);
+    });
 
     for (let doc of returnDocs) {
       doc.meets_conditions = true;
