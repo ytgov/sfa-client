@@ -255,7 +255,7 @@ const actions = {
         let familySize = 1;
 
         // Common-law or Married
-        if ([3, 4].includes(state.application.csl_classification)) familySize++;
+        if ([3].includes(state.application.csl_classification)) familySize++;
 
         if (store.getters.selectedStudent && isArray(store.getters.selectedStudent.dependent_info)) {
           dependentCount = store.getters.selectedStudent.dependent_info.filter(
@@ -334,7 +334,7 @@ const actions = {
       let application = state.application;
 
       // Common-law or Married
-      if ([3, 4].includes(state.application.csl_classification)) familySize++;
+      if ([3].includes(state.application.csl_classification)) familySize++;
 
       if (store.getters.selectedStudent && isArray(store.getters.selectedStudent.dependent_info)) {
         dependentCount = store.getters.selectedStudent.dependent_info.filter(
