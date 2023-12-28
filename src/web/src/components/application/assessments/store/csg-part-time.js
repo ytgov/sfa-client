@@ -71,6 +71,16 @@ const getters = {
   },
 
   assessedAmount(state, getters) {
+    console.log(state.assessment.study_months, getters.familyIncome, getters.threshold.income_cutoff);
+    console.log("FR", state.fundingRequest.status_id);
+    console.log(
+      getters.totalCosts,
+      getters.needRemaining,
+      state.baseRate,
+      getters.phaseOutRate,
+      getters.threshold.income_threshold
+    );
+
     if (isUndefined(state.assessment.study_months) || getters.familyIncome >= getters.threshold.income_cutoff) return 0;
     if (!(state.fundingRequest && [6, 7].includes(state.fundingRequest.status_id))) return 0;
 
