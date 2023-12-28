@@ -43,11 +43,13 @@ const getters = {
       Math.min(state.assessment.day_care_allowable, state.assessment.day_care_actual) * state.assessment.study_months
     );
   },
-  maxMiscellaneous(state, getters) {
-    return state.baseMiscAmount * state.application?.courses_per_week;
+  maxMiscellaneous(state) {
+    console.log("MM", state.baseMiscAmount, state.application?.courses_per_week ?? 0);
+    return state.baseMiscAmount * state.application?.courses_per_week ?? 0;
   },
   totalMiscellaneous(state, getters) {
-    return getters.maxMiscellaneous * state.assessment.study_weeks;
+    console.log("TM", getters.maxMiscellaneous);
+    return (state.baseMiscAmount * state.application?.courses_per_week ?? 0) * state.assessment.study_weeks;
   },
   totalCosts(state, getters) {
     return getters.totalStudyCosts + getters.totalTransportation + getters.totalDayCare + getters.totalMiscellaneous;
@@ -71,16 +73,6 @@ const getters = {
   },
 
   assessedAmount(state, getters) {
-    console.log(state.assessment.study_months, getters.familyIncome, getters.threshold.income_cutoff);
-    console.log("FR", state.fundingRequest.status_id);
-    console.log(
-      getters.totalCosts,
-      getters.needRemaining,
-      state.baseRate,
-      getters.phaseOutRate,
-      getters.threshold.income_threshold
-    );
-
     if (isUndefined(state.assessment.study_months) || getters.familyIncome >= getters.threshold.income_cutoff) return 0;
     if (!(state.fundingRequest && [6, 7].includes(state.fundingRequest.status_id))) return 0;
 
