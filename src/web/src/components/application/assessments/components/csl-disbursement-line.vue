@@ -202,6 +202,7 @@
         dense
         hide-details
         outlined
+        readonly
         background-color="#ccc"
         class="narrowInput"
       ></v-text-field>
