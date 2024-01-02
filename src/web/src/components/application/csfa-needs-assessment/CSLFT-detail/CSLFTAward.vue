@@ -413,7 +413,7 @@ export default {
             prevDis = 0;
           }
 
-          //store.dispatch("setPreviousDisbursement", prevDis);
+          store.dispatch("setPreviousDisbursement", prevDis);
         }
 
         if (newVal.length === 0) {
