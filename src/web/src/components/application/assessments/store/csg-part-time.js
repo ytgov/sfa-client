@@ -44,11 +44,9 @@ const getters = {
     );
   },
   maxMiscellaneous(state) {
-    console.log("MM", state.baseMiscAmount, state.application?.courses_per_week ?? 0);
     return state.baseMiscAmount * state.application?.courses_per_week ?? 0;
   },
   totalMiscellaneous(state, getters) {
-    console.log("TM", getters.maxMiscellaneous);
     return (state.baseMiscAmount * state.application?.courses_per_week ?? 0) * state.assessment.study_weeks;
   },
   totalCosts(state, getters) {

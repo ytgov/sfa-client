@@ -2,7 +2,7 @@ import { DB_CONFIG } from "@/config";
 import { weeksBetween } from "@/utils/date-utils";
 import { application } from "express";
 import knex from "knex";
-import { isUndefined } from "lodash";
+import { isNumber, isUndefined } from "lodash";
 import moment from "moment";
 
 const db = knex(DB_CONFIG);
@@ -35,7 +35,7 @@ export class NarsV17ReportingService {
   async runReport() {
     this.allApplications = await db("narsv17base").where({ academic_year_id: 2022 }); //.where({ id: 31665 });
 
-    /* this.allApplications = await db.raw(`
+    this.allApplications = await db.raw(`
     select 
     person.sex_id, person.sin, person.birth_date, 
     spouse_person.sin as spouse_sin, 
@@ -75,7 +75,7 @@ export class NarsV17ReportingService {
       LEFT JOIN (SELECT SUM(COALESCE(paid_amount, 0)) disbursed, max(issue_date) issue_date, funding_request_id, assessment_id 
         FROM sfa.disbursement WHERE financial_batch_serial_no IS NOT NULL GROUP BY assessment_id, funding_request_id) d ON (funding_request.id = d.funding_request_id and assessment.id = d.assessment_id)
     where
-      funding_request.request_type_id = 4`); */
+      funding_request.request_type_id = 4`);
 
     /* let studentIds = this.allApplications.map((a: any) => a.studentId);
     let appIds = this.allApplications.map((a: any) => a.id);
@@ -103,6 +103,8 @@ export class NarsV17ReportingService {
   async makeRows(app: any): Promise<Row[]> {
     let result = new Array<Row>();
 
+    console.log(app);
+
     let num_dep_child_pse = 0;
     let depchild_to_11_and_dis_12over = 0;
     let depchild_12over_ndis_andothdep = 0;
@@ -117,7 +119,7 @@ export class NarsV17ReportingService {
         ? 3
         : 4;
 
-    let single_ind_stat_reas = app.csl_classification == 2 ? "1" : app.csl_classification == 5 ? "2" : "";
+    let single_ind_stat_reas = app.csl_classification == 2 ? "1" : app.csl_classification == 5 ? "2" : ".";
     let indigenous_flag = [2, 3, 5, 6, 7, 8, 9, 10].includes(app.aboriginal_status_id) ? "Y" : "N";
     let indigenous_cat =
       app.aboriginal_status_id == 6
@@ -150,6 +152,8 @@ export class NarsV17ReportingService {
         ? weeksBetween(app.spouse_study_school_from, app.spouse_study_school_to)
         : "";
 
+    let spouse_student = cat_code == 1 && isNumber(spouse_num_sp_weeks) ? "Y" : "N";
+
     let stud_sp_cost_ret_transp = app.study_weeks <= 16 ? app.r_trans_16wk : app.r_trans_16wk * 2;
 
     let appId = await db("sfa.funding_request").where({ id: app.funding_request_id }).select("application_id").first();
@@ -162,9 +166,11 @@ export class NarsV17ReportingService {
 
     let provGrants = 0;
 
+    let stud_sp_cost_living_allow = 0;
     let stud_sp_cost_computers = 0;
     let stud_sp_cost_other = 0;
     let stud_sp_inc_mbsa_tot = 0;
+    let stud_cont_targfund = 0;
 
     if (appId) {
       let applicationId = appId.application_id;
@@ -233,6 +239,12 @@ export class NarsV17ReportingService {
         stud_sp_inc_mbsa_tot = scholarshipIncome
           .map((f: any) => f.amount ?? 0)
           .reduce((a: number, f: number) => a + f, 0);
+
+      let targetedResourcesIncome = incomes.find((e) => e.income_type_id == 3 || e.income_type_id == 10); // EI and HRDC
+      if (targetedResourcesIncome)
+        stud_cont_targfund = targetedResourcesIncome
+          .map((f: any) => f.amount ?? 0)
+          .reduce((a: number, f: number) => a + f, 0);
     } else {
       console.log("NO APP");
     }
@@ -247,6 +259,8 @@ export class NarsV17ReportingService {
     totalCosts += stud_sp_cost_ret_transp;
     totalCosts += app.x_trans_total;
     totalCosts += app.relocation_total;
+
+    stud_sp_cost_living_allow = app.shelter_month * app.study_months + app.p_trans_month * app.study_months;
 
     stud_sp_cost_other =
       (app.depend_food_allowable + app.depend_tran_allowable) * app.study_months + app.discretionary_cost_actual;
@@ -290,10 +304,10 @@ export class NarsV17ReportingService {
     row.push(new Column("parent2_postal", `XXXXXX`, "X", 6)); // always 6 X
 
     row.push(new Column("spouse_sin", app.spouse_sin ?? "", " ", 9));
-    row.push(new Column("spouse_student", isUndefined(spouse_num_sp_weeks) ? "N" : "Y", " ", 1));
+    row.push(new Column("spouse_student", spouse_student, " ", 1));
     row.push(new Column("spouse_num_sp_weeks", spouse_num_sp_weeks, " ", 2));
 
-    row.push(new Column("family_size", app.family_size == 0 ? "." : app.family_size, " ", 2));
+    row.push(new Column("family_size", app.family_size == 0 ? "." : app.family_size, "0", 2));
     row.push(new Column("num_dep_child_pse", num_dep_child_pse, " ", 1));
     row.push(new Column("depchild_to_11_and_dis_12over", depchild_to_11_and_dis_12over, " ", 1));
     row.push(new Column("depchild_12over_ndis_andothdep", depchild_12over_ndis_andothdep, " ", 1));
@@ -342,12 +356,12 @@ export class NarsV17ReportingService {
     row.push(new Column("spouse_gross_annual_inc", cat_code == 1 ? app.spouse_gross_income ?? "" : "", "0", 6));
     row.push(new Column("spouse_gross_annual_inc_reassess", "", "0", 6)); // always blank
 
-    row.push(new Column("stud_cont_targfund", "", "0", 6)); // always 0
-    row.push(new Column("stud_cont_bsa", "", "0", 6)); // don't know we have this
+    row.push(new Column("stud_cont_targfund", stud_cont_targfund, "0", 6));
+    row.push(new Column("stud_cont_bsa", Math.max(0, stud_sp_inc_mbsa_tot - 1800), "0", 6));
     row.push(new Column("fs_cont_amt", app.student_expected_contribution, "0", 6));
     row.push(new Column("parent_cont", "", "0", 6)); // always 0
     row.push(new Column("frspousal_cont_amt", "", "0", 6)); // always 0
-    row.push(new Column("other_resources", "", "0", 6)); // always 0
+    row.push(new Column("other_resources", "0", "0", 6)); // always 0
     row.push(new Column("tot_ass_res", tot_ass_res, "0", 6)); // total, but we only use 1 field
 
     row.push(new Column("fs_cont_exempt_indig", indigenous_flag, " ", 1));
@@ -363,23 +377,23 @@ export class NarsV17ReportingService {
     row.push(new Column("parental_cont_review_flag", `N`, " ", 1)); // always N
     row.push(new Column("frspouse_cont_review_flag", `N`, " ", 1)); // always N
 
-    row.push(new Column("stud_sp_cost_living_allow", app.shelter_month * app.study_months, "0", 6));
+    row.push(new Column("stud_sp_cost_living_allow", stud_sp_cost_living_allow, "0", 6));
     row.push(new Column("stud_sp_cost_tuition", app.tuition_estimate, "0", 6));
-    row.push(new Column("stud_sp_cost_comp_fee", "", "0", 6)); // always 0
+    row.push(new Column("stud_sp_cost_comp_fee", "0", "0", 6)); // always 0
     row.push(new Column("stud_sp_cost_computers", stud_sp_cost_computers, "0", 6));
     row.push(new Column("stud_sp_cost_allow_book", Math.min(2700, Math.ceil(app.books_supplies_cost)), "0", 6));
     row.push(new Column("stud_sp_cost_allow_child", Math.ceil(app.day_care_actual * app.study_months), "0", 6));
     row.push(new Column("stud_sp_cost_ret_transp", stud_sp_cost_ret_transp, "0", 6));
-    row.push(new Column("stud_sp_cost_other_trans", app.x_trans_total + app.p_trans_month * app.study_months, "0", 6)); // not sure
+    row.push(new Column("stud_sp_cost_other_trans", app.x_trans_total + app.relocation_total, "0", 6));
     row.push(new Column("stud_sp_cost_other", stud_sp_cost_other, "0", 6)); // catch-all bucket
     row.push(new Column("tot_ass_cost", totalCosts, "0", 6));
 
     row.push(new Column("req_need", req_need, "0", 6)); // if maximum, costs minus resources, or 0 if grants only (multilples of 210/week)
     row.push(new Column("tot_calc_need", totalCosts - tot_ass_res, "+", 7)); // calculated need in award tab
     row.push(new Column("ass_csl_bef_overa", csl_ft || 0, "0", 6)); // sum of loan disbursements for this assessment
-    row.push(new Column("ass_psl_bef_overa", "", "0", 6)); // always 0
+    row.push(new Column("ass_psl_bef_overa", "0", "0", 6)); // always 0
     row.push(new Column("csl_over_award_recovered", "", "0", 6)); // this is complicated by the over award change reason, 0 for now
-    row.push(new Column("psl_over_award_recovered", "", "0", 6)); // always 0
+    row.push(new Column("psl_over_award_recovered", "0", "0", 6)); // always 0
     row.push(new Column("auth_csl_amt", csl_ft || 0, "0", 6));
     row.push(new Column("auth_psl_amt", "", "0", 6)); // always 0
 
