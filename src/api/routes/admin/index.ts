@@ -165,7 +165,7 @@ adminRouter.use("/csl-restricted-data", cslRestrictedData);
 
 adminRouter.use("/reporting", pathFormatMiddleware);
 adminRouter.use("/reporting/fundingStatus/:years", routedTo(ReportingController, "runFundingStatusReport"));
-adminRouter.use("/reporting/staYukonUniversity", routedTo(ReportingController, "runSTAYukonUniversityReport"));
+adminRouter.use("/reporting/staYukonUniversity/:academic_year_id", routedTo(ReportingController, "runSTAYukonUniversityReport"));
 adminRouter.use(
   "/reporting/scholarshipQualified/:academic_year_id",
   routedTo(ReportingController, "runScholarshipReport")
@@ -175,6 +175,7 @@ adminRouter.use("/reporting/nars2022pt", routedTo(ReportingController, "runNars2
 adminRouter.use("/reporting/nars2022dis/:academic_year_id", routedTo(ReportingController, "runNars2022DisabilityReport"));
 adminRouter.use("/reporting/nars2022disrcl/:academic_year_id", routedTo(ReportingController, "runNars2022DisabilityRCLReport"));
 adminRouter.use("/reporting/step/:academic_year_id", routedTo(ReportingController, "runStepReport"));
+adminRouter.use("/reporting/approvedFunding/:academic_year_id", routedTo(ReportingController, "runApprovedFundingReport"));
 
 adminRouter.use("/csg-threshold", csgThresholdRouter);
 adminRouter.use("/yea-import", yeaImportRouter);

@@ -7,7 +7,7 @@ import { NarsPTReportingService } from "./nars-pt-reporting-service";
 import { NarsDisabilityReportingService } from "./nars-dis-reporting-service";
 import { NarsDisabilityRCLReportingService } from "./nars-disft-reporting-service";
 
-const STA_YUKON_UNIVERSITY_TEMPLATE = "./templates/admin/reports/student-training-allowance-yukon-university";
+export const STA_YUKON_UNIVERSITY_TEMPLATE = "./templates/admin/reports/student-training-allowance-yukon-university";
 
 export default class ReportingService {
   static async runFundingStatusReport({ years }: FundingStatusReportParams): Promise<any[]> {
@@ -46,7 +46,13 @@ export default class ReportingService {
     return results;
   }
 
-  static async runSTAYukonUniversityReport({ date }: { date: Date | undefined }): Promise<any[]> {
+  static async runSTAYukonUniversityReport({
+    academic_year_id,
+    format = "json",
+  }: {
+    academic_year_id: number;
+    format: string | undefined;
+  }): Promise<any[]> {
     let results = await db.raw(
       `SELECT CONCAT(person.first_name, ' ', person.last_name) 'Name', 
       person.sin, 
@@ -55,7 +61,8 @@ export default class ReportingService {
       weekly_amount,
       travel_allowance,
       disbursement.disbursed_amount as net,
-      change_reason.description as comment
+      change_reason.description as comment,
+      disbursement.id
       FROM sfa.funding_request
         INNER JOIN sfa.application ON funding_request.application_id = application.id
         INNER JOIN sfa.student ON application.student_id = student.id
@@ -63,7 +70,7 @@ export default class ReportingService {
         INNER JOIN sfa.assessment ON assessment.funding_request_id = funding_request.id
         INNER JOIN sfa.disbursement ON assessment.id = disbursement.assessment_id
         LEFT OUTER JOIN sfa.change_reason ON disbursement.change_reason_id = change_reason.id
-      WHERE application.academic_year_id IN (2023)
+      WHERE application.academic_year_id IN (${academic_year_id})
         AND application.institution_campus_id IN (5326, 3488, 5648)
         AND disbursement.issue_date <= GETDATE()
         AND disbursement.due_date IS NULL
@@ -227,6 +234,78 @@ export default class ReportingService {
     return results;
   }
 
+  static async runApprovedFundingReport({ academic_year_id }: { academic_year_id: number }): Promise<any[]> {
+    let results = await db.raw(
+      `SELECT DISTINCT application.academic_year_id academic_year, student.id as sfa_id, last_name, first_name, LEFT(sex.description, 1) gender
+          ,(0+ FORMAT(COALESCE(application.classes_start_date, GETDATE()),'yyyyMMdd') - FORMAT(person.birth_date,'yyyyMMdd') ) /10000 age
+          , aboriginal_status.description ethnicity, first_nation.description first_nation, marital_status.description marital_status
+          , application.csl_classification, category.description yg_category
+          , institution.name institution_name, institution_country.description institution_country, institution_province.description institution_province
+          , institution_level.description institution_level, CONCAT (application.program_year, ' of ',  application.program_year_total) year_of_program
+          , study_area.description program_name, program.description program_type, study_field.description study_field
+          , CONCAT(student.yukon_resident_from_month,'/', student.yukon_resident_from_year) AS yukon_resident_since, CONCAT(student.high_school_left_year, '/', student.high_school_left_month) AS left_high_school
+          , COALESCE(prestudy_classification.description, 'Unknown') as prestudy_csl_classification, COALESCE(prestudy_accomodation.description, 'Unknown') AS prestudy_accomodation
+          , COALESCE(study_classification.description, 'Unknown') as study_csl_classification, COALESCE(study_accomodation.description, 'Unknown') AS study_accomodation
+          , application.parent1_income, application.parent2_income, application.student_ln150_income, application.spouse_ln150_income
+          , application.classes_start_date, application.classes_end_date
+          , mail_address.address1 mail_address_line1, mail_address.address2 mail_address_line2, mail_address.city mail_address_city, mail_address.province mail_address_province, mail_address.country mail_address_country, mail_address.postal_code mail_address_postal_code
+          , application.school_email, application.school_telephone
+        FROM sfa.funding_request
+          INNER JOIN sfa.application ON funding_request.application_id = application.id
+          INNER JOIN sfa.student ON application.student_id = student.id
+          INNER JOIN sfa.person ON student.person_id = person.id
+          INNER JOIN sfa.assessment ON assessment.funding_request_id = funding_request.id
+          INNER JOIN sfa.disbursement ON assessment.id = disbursement.assessment_id
+          INNER JOIN sfa.sex on person.sex_id = sex.id
+          INNER JOIN sfa.institution_campus on application.institution_campus_id = institution_campus.id
+          LEFT JOIN sfa.country institution_country on institution_country.id = institution_campus.address_country_id
+          LEFT JOIN sfa.province institution_province on institution_province.id = institution_campus.address_province_id
+          INNER JOIN sfa.institution on institution_campus.institution_id = institution.id
+          LEFT JOIN sfa.institution_level on institution_level.id = institution.institution_level_id
+          LEFT JOIN sfa.aboriginal_status ON application.aboriginal_status_id = aboriginal_status.id
+          LEFT JOIN sfa.first_nation ON application.first_nation_id = first_nation.id
+          LEFT JOIN sfa.marital_status ON application.marital_status_id = marital_status.id
+          LEFT JOIN sfa.csl_classification ON application.csl_classification = csl_classification.id
+          LEFT JOIN sfa.category on application.category_id = category.id
+          LEFT JOIN sfa.program on application.program_id = program.id
+          LEFT JOIN sfa.study_area on application.study_area_id = study_area.id
+          LEFT JOIN sfa.study_field on study_area.study_field_id = study_field.id
+          LEFT JOIN sfa.csl_classification prestudy_classification on prestudy_classification.id = application.prestudy_csl_classification
+          LEFT JOIN sfa.csl_classification study_classification on study_classification.id = application.csl_classification
+          LEFT JOIN sfa.accommodation_type prestudy_accomodation ON prestudy_accomodation.id = application.prestudy_accom_code
+          LEFT JOIN sfa.accommodation_type study_accomodation ON study_accomodation.id = application.study_accom_code
+          LEFT JOIN sfa.person_address on application.primary_address_id = person_address.id
+          LEFT JOIN sfa.v_current_person_address mail_address on (mail_address.address_type_id = 1 and mail_address.person_id = student.person_id)
+        WHERE application.academic_year_id = ${academic_year_id} and funding_request.status_id = 7
+        ORDER BY student.id`
+    );
+
+    let payments =
+      await db.raw(`SELECT application.student_id, funding_request.request_type_id, SUM(disbursement.disbursed_amount) disbursed_amount
+        FROM sfa.disbursement
+        INNER JOIN sfa.assessment ON disbursement.assessment_id = assessment.id
+        INNER JOIN sfa.funding_request ON disbursement.funding_request_id = funding_request.id and funding_request.status_id = 7
+        INNER JOIN sfa.application ON funding_request.application_id = application.id
+        WHERE application.academic_year_id = 2022
+        GROUP BY student_id, request_type_id
+        ORDER BY student_id`);
+
+    let dependents =
+      await db.raw(`SELECT application.student_id, dependent_eligibility.is_sta_eligible, dependent_eligibility.is_csl_eligible, birth_date
+        ,(0 + FORMAT(COALESCE(application.classes_start_date, GETDATE()),'yyyyMMdd') - FORMAT(dependent.birth_date,'yyyyMMdd')) / 10000 age
+        FROM sfa.dependent_eligibility
+        INNER JOIN sfa.application on dependent_eligibility.application_id = application.id
+        INNER JOIN sfa.dependent on dependent.id  = dependent_eligibility.dependent_id
+        WHERE application.academic_year_id = 2022
+          AND (dependent_eligibility.is_sta_eligible = 1 OR dependent_eligibility.is_csl_eligible = 1)`);
+
+    for (let row of results) {
+      //row.effectiveDate = row.effectiveDate ? moment.utc(row.effectiveDate).format("YYYY-MM-DD") : "";
+    }
+
+    return results;
+  }
+
   static async generateAs({
     format,
     reportData,
@@ -240,12 +319,16 @@ export default class ReportingService {
         quotes: true,
       });
 
+      console.log("MAKING CSV");
+
       return Promise.resolve({
         fileContent: t,
         fileName: `fundingStatusReport_${moment().format("YYYY-MM-DD")}.csv`,
         mimeType: "text/csv",
       });
     } else if (format == "html") {
+      console.log("MAKING HTML");
+
       let disbursements = await db.raw(
         `SELECT disbursement.id,
         CONCAT(person.first_name, ' ', person.last_name) 'Name', 
@@ -284,47 +367,6 @@ export default class ReportingService {
         mimeType: "text/html",
       });
     } else if (format == "pdf") {
-      let results = await db.raw(
-        `SELECT disbursement.id,
-        CONCAT(person.first_name, ' ', person.last_name) 'Name', 
-        person.sin, 
-        assessment.effective_rate_date effectiveDate, 
-        weeks_allowed weeks,
-        weekly_amount * 100 AS weekly_amount,
-        travel_allowance * 100 AS travel_allowance,
-        disbursement.disbursed_amount * 100 as net,
-        change_reason.description as comment
-        FROM sfa.funding_request
-        INNER JOIN sfa.application ON funding_request.application_id = application.id
-        INNER JOIN sfa.student ON application.student_id = student.id
-        INNER JOIN sfa.person ON student.person_id = person.id
-        INNER JOIN sfa.assessment ON assessment.funding_request_id = funding_request.id
-        INNER JOIN sfa.disbursement ON assessment.id = disbursement.assessment_id
-        LEFT OUTER JOIN sfa.change_reason ON disbursement.change_reason_id = change_reason.id
-        WHERE application.academic_year_id IN (2023)
-          AND application.institution_campus_id IN (5326, 3488, 5648)
-          AND disbursement.issue_date <= GETDATE()
-          AND disbursement.due_date IS NULL
-          AND funding_request.request_type_id = 1
-        ORDER BY person.last_name, person.first_name`
-      );
-
-      for (let line of results) {
-        await db("disbursement").where({ id: line.id }).update({ due_date: new Date() });
-      }
-
-      let total = results.reduce((t: number, a: any) => {
-        return t + a.net;
-      }, 0);
-
-      let data = { currentDate: new Date(), disbursements: results, total };
-      let pdf = await renderReportAsPdf(STA_YUKON_UNIVERSITY_TEMPLATE, data, "LETTER", true);
-
-      return Promise.resolve({
-        fileContent: pdf,
-        fileName: `STA_YukonUniversity_${moment().format("YYYY-MM-DD")}.pdf`,
-        mimeType: "application/pdf",
-      });
     } else {
       return Promise.reject("Unsupported format");
     }

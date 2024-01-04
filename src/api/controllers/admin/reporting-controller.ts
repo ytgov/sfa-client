@@ -1,10 +1,14 @@
 import BaseController from "@/controllers/base-controller";
+import db from "@/db/db-client";
 import ReportingService, {
   FundingStatusReportParams,
+  STA_YUKON_UNIVERSITY_TEMPLATE,
   ScholarshipReportParams,
 } from "@/services/admin/reporting-service";
+import { renderReportAsHtml, renderReportAsPdf } from "@/utils/express-handlebars-pdf-client";
 import { isNumber } from "lodash";
 import moment from "moment";
+import { unparse } from "papaparse";
 
 export default class ReportingController extends BaseController {
   async runFundingStatusReport() {
@@ -33,32 +37,49 @@ export default class ReportingController extends BaseController {
   }
 
   async runSTAYukonUniversityReport() {
-    let years = this.request.params.years || moment().format("YYYY");
-    let yList = years.split(",").map(Number);
+    let academic_year_id = parseInt(this.request.params.academic_year_id ?? moment().format("YYYY"));
 
-    let reportData = await ReportingService.runSTAYukonUniversityReport({ date: undefined });
-
-    return ReportingService.generateAs({ format: this.format, reportData })
-      .then(async ({ fileContent, fileName, mimeType }) => {
+    return ReportingService.runSTAYukonUniversityReport({ academic_year_id, format: this.format }).then(
+      async (reportData) => {
         if (this.format == "html") {
-          this.response.send(fileContent);
+          let total = reportData.reduce((t: number, a: any) => {
+            return t + a.net;
+          }, 0);
+
+          let data = { currentDate: new Date(), disbursements: reportData, total };
+          let file = await renderReportAsHtml(STA_YUKON_UNIVERSITY_TEMPLATE, data);
+          this.response.send(file);
         } else if (this.format == "json") {
-          for (let line of fileContent) {
+          for (let line of reportData) {
             line.weeklyAmount = formatMoney(line.weeklyAmount);
             line.travelAllowance = formatMoney(line.travelAllowance);
             line.net = formatMoney(line.net);
           }
 
-          this.response.json(fileContent);
+          this.response.json(reportData);
         } else {
-          this.response.setHeader("Content-disposition", `attachment; filename="${fileName}"`);
-          this.response.setHeader("Content-type", mimeType);
-          this.response.send(fileContent);
+          console.log("MAKING PDF", reportData);
+
+          for (let line of reportData) {
+            await db("disbursement").where({ id: line.id }).update({ due_date: new Date() });
+          }
+
+          let total = reportData.reduce((t: number, a: any) => {
+            return t + a.net;
+          }, 0);
+
+          let data = { currentDate: new Date(), disbursements: reportData, total };
+          let pdf = await renderReportAsPdf(STA_YUKON_UNIVERSITY_TEMPLATE, data, "LETTER", true);
+
+          this.response.setHeader(
+            "Content-disposition",
+            `attachment; filename="STA_YukonUniversity_${moment().format("YYYY-MM-DD")}.pdf"`
+          );
+          this.response.setHeader("Content-type", "application/pdf");
+          this.response.send(pdf);
         }
-      })
-      .catch((e) => {
-        this.response.send("Error generating report: " + e);
-      });
+      }
+    );
   }
 
   async runScholarshipReport() {
@@ -193,6 +214,26 @@ export default class ReportingController extends BaseController {
       .catch((e) => {
         this.response.send("Error generating report: " + e);
       });
+  }
+
+  async runApprovedFundingReport() {
+    let academic_year_id = parseInt(this.request.params.academic_year_id ?? moment().format("YYYY"));
+
+    return ReportingService.runApprovedFundingReport({ academic_year_id }).then(async (reportData) => {
+      if (this.format == "json") {
+        this.response.json(reportData);
+      } else {
+        let csv = unparse(reportData, {
+          quotes: true,
+        });
+        this.response.setHeader(
+          "Content-disposition",
+          `attachment; filename="ApprovedFunding${academic_year_id}_${moment().format("YYYY-MM-DD")}.csv"`
+        );
+        this.response.setHeader("Content-type", "text/csv");
+        this.response.send(csv);
+      }
+    });
   }
 }
 
