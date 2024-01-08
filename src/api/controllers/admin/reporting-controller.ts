@@ -235,6 +235,26 @@ export default class ReportingController extends BaseController {
       }
     });
   }
+
+  async runT4AReport() {
+    let tax_year = parseInt(this.request.params.tax_year ?? moment().format("YYYY"));
+
+    return ReportingService.runT4AReport({ tax_year }).then(async (reportData) => {
+      if (this.format == "json") {
+        this.response.json(reportData);
+      } else {
+        let csv = unparse(reportData, {
+          quotes: true,
+        });
+        this.response.setHeader(
+          "Content-disposition",
+          `attachment; filename="T4A_${tax_year}.csv"`
+        );
+        this.response.setHeader("Content-type", "text/csv");
+        this.response.send(csv);
+      }
+    });
+  }
 }
 
 function formatMoney(input: number) {
