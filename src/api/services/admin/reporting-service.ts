@@ -305,6 +305,33 @@ export default class ReportingService {
 
     return results;
   }
+  static async runT4AReport({ tax_year }: { tax_year: number }): Promise<any[]> {
+    let results = await db.raw(
+      `select person.sin, person.last_name, person.first_name, person.initials
+      , address1, address2, city, province, country, postal_code
+      , request_type.description
+      , SUM(paid.disbursed) amount, student.vendor_id
+      from sfa.application
+        INNER JOIN sfa.funding_request ON application.id = funding_request.application_id
+        INNER JOIN sfa.request_type ON funding_request.request_type_id = request_type.id
+        INNER JOIN sfa.student ON application.student_id = student.id
+        INNER JOIN sfa.person ON student.person_id = person.id
+        INNER JOIN sfa.v_current_person_address ON person.id = v_current_person_address.person_id AND v_current_person_address.address_type_id = 1
+        INNER JOIN (select assessment.funding_request_id, SUM(disbursed_amount) disbursed
+      FROM sfa.assessment INNER JOIN sfa.disbursement ON assessment.id = disbursement.assessment_id
+      WHERE tax_year = ${tax_year}
+      group by assessment.funding_request_id
+      having SUM(disbursed_amount) > 0) paid ON funding_request.id = paid.funding_request_id
+      WHERE t4a_required = 1 AND funding_request.status_id = 7
+      GROUP BY person.sin, person.last_name, person.first_name, person.initials
+      , address1, address2, city, province, country, postal_code
+      , request_type.description, student.vendor_id
+      order by sin, description
+      `
+    );
+
+    return results;
+  }
 
   static async generateAs({
     format,
