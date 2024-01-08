@@ -50,6 +50,7 @@ export class NarsDisabilityReportingService {
       INNER JOIN sfa.institution ON (institution.id = institution_campus.institution_id)
       INNER JOIN (SELECT SUM(COALESCE(disbursed_amount, 0)) disbursed, max(issue_date) issue_date, funding_request_id, assessment_id 
         FROM sfa.disbursement GROUP BY assessment_id, funding_request_id) d ON (funding_request.id = d.funding_request_id and assessment.id = d.assessment_id)
+      INNER JOIN (SELECT funding_request_id, MAX(id) last_id FROM sfa.assessment GROUP BY funding_request_id) maxid ON assessment.id = maxid.last_id
     where
       funding_request.request_type_id IN (4,5) AND application.academic_year_id = ${this.year} AND
       (application.is_perm_disabled = 1 OR application.permanent_disability = 1 OR application.pers_or_prolong_disability = 1 OR application.is_persist_disabled = 1)`);
