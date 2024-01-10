@@ -50,7 +50,7 @@ export class NarsPTReportingService {
      application.parent2_net_income,  application.spouse_study_school_from, application.spouse_study_school_to,
     application.is_spouse_study_csl, application.spouse_study_emp_status_id, application.is_minority, application.is_disabled,
     application.program_year_total, application.program_year,  application.prestudy_city_id, application.study_city_id, application.is_perm_disabled, 
-    application.permanent_disability, application.pers_or_prolong_disability, 
+    application.permanent_disability, application.pers_or_prolong_disability, application.is_persist_disabled, 
     application.tuition_estimate_amount, application.percent_of_full_time,
     assessment.*, d.disbursed, parent_address.postal_code as parent_postal_code,
 
