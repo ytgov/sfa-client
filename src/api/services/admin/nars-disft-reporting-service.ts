@@ -35,12 +35,11 @@ export class NarsDisabilityRCLReportingService {
     //this.allApplications = await db("narsv17base").where({ academic_year_id: 2022 }); //.where({ id: 31665 });
 
     this.allApplications = await db.raw(`
-    select 
-      person.sex_id, person.sin, person.birth_date, field_program.field_program_code, funding_request.status_id AS funding_request_status_id,
+    select person.sex_id, person.sin, person.birth_date, field_program.field_program_code, funding_request.status_id AS funding_request_status_id,
       application.academic_year_id,
       application.category_id, application.is_disabled,
       application.program_year_total, application.program_year, application.is_perm_disabled, 
-      application.permanent_disability, application.pers_or_prolong_disability, application.is_persist_disabled, 
+      application.permanent_disability, application.pers_or_prolong_disability, 
       application.percent_of_full_time, COALESCE(institution.federal_institution_code, institution_campus.federal_institution_code ) institution_code, 
       assessment.*, d.disbursed    
     from sfa.student
@@ -58,7 +57,7 @@ export class NarsDisabilityRCLReportingService {
       INNER JOIN (SELECT funding_request_id, MAX(id) last_id FROM sfa.assessment GROUP BY funding_request_id) maxid ON assessment.id = maxid.last_id
       WHERE
       funding_request.request_type_id IN (4,5) AND application.academic_year_id = ${this.year} AND
-      (application.is_perm_disabled = 1 OR application.permanent_disability = 1 OR application.pers_or_prolong_disability = 1 OR application.is_persist_disabled = 1)
+      (application.is_perm_disabled = 1 OR application.permanent_disability = 1 OR application.pers_or_prolong_disability = 1)
     ORDER BY sin`);
 
     for (let student of this.allApplications) {
