@@ -35,11 +35,12 @@ export class NarsDisabilityRCLReportingService {
     //this.allApplications = await db("narsv17base").where({ academic_year_id: 2022 }); //.where({ id: 31665 });
 
     this.allApplications = await db.raw(`
-    select person.sex_id, person.sin, person.birth_date, field_program.field_program_code, funding_request.status_id AS funding_request_status_id,
+    select 
+      person.sex_id, person.sin, person.birth_date, field_program.field_program_code, funding_request.status_id AS funding_request_status_id,
       application.academic_year_id,
       application.category_id, application.is_disabled,
       application.program_year_total, application.program_year, application.is_perm_disabled, 
-      application.permanent_disability, application.pers_or_prolong_disability, 
+      application.permanent_disability, application.pers_or_prolong_disability, application.is_persist_disabled, 
       application.percent_of_full_time, COALESCE(institution.federal_institution_code, institution_campus.federal_institution_code ) institution_code, 
       assessment.*, d.disbursed    
     from sfa.student
@@ -57,7 +58,7 @@ export class NarsDisabilityRCLReportingService {
       INNER JOIN (SELECT funding_request_id, MAX(id) last_id FROM sfa.assessment GROUP BY funding_request_id) maxid ON assessment.id = maxid.last_id
       WHERE
       funding_request.request_type_id IN (4,5) AND application.academic_year_id = ${this.year} AND
-      (application.is_perm_disabled = 1 OR application.permanent_disability = 1 OR application.pers_or_prolong_disability = 1)
+      (application.is_perm_disabled = 1 OR application.permanent_disability = 1 OR application.pers_or_prolong_disability = 1 OR application.is_persist_disabled = 1)
     ORDER BY sin`);
 
     for (let student of this.allApplications) {
@@ -146,14 +147,14 @@ export class NarsDisabilityRCLReportingService {
     row.push(new Column("course_load_changed_date", "", " ", 8));
     row.push(new Column("perc_full_course_load", app.percent_of_full_time ?? 60, "0", 3));
     row.push(new Column("amt_disb", csl_ft || 0, "0", 6));
-    row.push(new Column("disb_date", csl_ft_date ? moment.utc(csl_ft_date).format("YYYYMMDD") : " ", " ", 8));
+    row.push(new Column("disb_date", csl_ft_date ? moment.utc(csl_ft_date).format("YYYYMMDD") : ".", " ", 8));
     row.push(new Column("csgp_ft", csg_ft, "0", 6));
-    row.push(new Column("csgpft_disb_date", csg_ft_date ? moment.utc(csg_ft_date).format("YYYYMMDD") : "", " ", 8));
+    row.push(new Column("csgpft_disb_date", csg_ft_date ? moment.utc(csg_ft_date).format("YYYYMMDD") : ".", " ", 8));
     row.push(new Column("csgp_pd", csg_d, "0", 6));
-    row.push(new Column("csgppd_disb_date", csg_d_date ? moment.utc(csg_d_date).format("YYYYMMDD") : "", " ", 8));
+    row.push(new Column("csgppd_disb_date", csg_d_date ? moment.utc(csg_d_date).format("YYYYMMDD") : ".", " ", 8));
     row.push(new Column("csgp_ftdep", csg_ftdep, "0", 6));
     row.push(
-      new Column("csgpftd_disb_date", csgp_ftdep_date ? moment.utc(csgp_ftdep_date).format("YYYYMMDD") : "", " ", 8)
+      new Column("csgpftd_disb_date", csgp_ftdep_date ? moment.utc(csgp_ftdep_date).format("YYYYMMDD") : ".", " ", 8)
     );
 
     //console.log(row.columns.length);

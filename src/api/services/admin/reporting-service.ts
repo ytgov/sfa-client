@@ -236,8 +236,8 @@ export default class ReportingService {
 
   static async runApprovedFundingReport({ academic_year_id }: { academic_year_id: number }): Promise<any[]> {
     let results = await db.raw(
-      `SELECT DISTINCT application.academic_year_id academic_year, student.id as sfa_id, last_name, first_name, LEFT(sex.description, 1) gender
-          ,(0+ FORMAT(COALESCE(application.classes_start_date, GETDATE()),'yyyyMMdd') - FORMAT(person.birth_date,'yyyyMMdd') ) /10000 age
+      `SELECT DISTINCT application.academic_year_id academic_year, student.id as sfa_id, last_name, first_name, LEFT(sex. description, 1) gender
+          , (0 + FORMAT(COALESCE(application.classes_start_date, GETDATE()),'yyyyMMdd') - FORMAT(person.birth_date,'yyyyMMdd') ) / 10000 age
           , aboriginal_status.description ethnicity, first_nation.description first_nation, marital_status.description marital_status
           , application.csl_classification, category.description yg_category
           , institution.name institution_name, institution_country.description institution_country, institution_province.description institution_province
@@ -300,7 +300,54 @@ export default class ReportingService {
           AND (dependent_eligibility.is_sta_eligible = 1 OR dependent_eligibility.is_csl_eligible = 1)`);
 
     for (let row of results) {
-      //row.effectiveDate = row.effectiveDate ? moment.utc(row.effectiveDate).format("YYYY-MM-DD") : "";
+      let rowPays = payments.filter((p: any) => p.studentId == row.sfaId);
+      let rowDepends = dependents.filter((p: any) => p.studentId == row.sfaId);
+
+      row.yukon_grant_amount = rowPays.find((r: any) => r.requestTypeId == 2)?.disbursedAmount ?? 0;
+      row.sta_amount = rowPays.find((r: any) => r.requestTypeId == 1)?.disbursedAmount ?? 0;
+      row.yea_amount = rowPays.find((r: any) => r.requestTypeId == 3)?.disbursedAmount ?? 0;
+      row.csl_ft_amount = rowPays.find((r: any) => r.requestTypeId == 4)?.disbursedAmount ?? 0;
+      row.csg_ft_amount = rowPays.find((r: any) => r.requestTypeId == 35)?.disbursedAmount ?? 0;
+      row.csg_tu_amount = rowPays.find((r: any) => r.requestTypeId == 28)?.disbursedAmount ?? 0;
+      row.csg_ftdep_amount = rowPays.find((r: any) => r.requestTypeId == 32)?.disbursedAmount ?? 0;
+      row.csg_disequp_amount = rowPays.find((r: any) => r.requestTypeId == 30)?.disbursedAmount ?? 0;
+      row.csg_ftdis_amount = rowPays.find((r: any) => r.requestTypeId == 29)?.disbursedAmount ?? 0;
+      row.csl_pt_amount = rowPays.find((r: any) => r.requestTypeId == 5)?.disbursedAmount ?? 0;
+      row.csg_pt_amount = rowPays.find((r: any) => r.requestTypeId == 31)?.disbursedAmount ?? 0;
+      row.csg_ptdep_amount = rowPays.find((r: any) => r.requestTypeId == 33)?.disbursedAmount ?? 0;
+      row.sfa_army_amount = rowPays.find((r: any) => r.requestTypeId == 7)?.disbursedAmount ?? 0;
+      row.sfa_harach_amount = rowPays.find((r: any) => r.requestTypeId == 9)?.disbursedAmount ?? 0;
+      row.sfa_art_amount = rowPays.find((r: any) => r.requestTypeId == 10)?.disbursedAmount ?? 0;
+      row.sfa_husky_amount = rowPays.find((r: any) => r.requestTypeId == 11)?.disbursedAmount ?? 0;
+      row.total_gov_amount =
+        row.yukon_grant_amount +
+        row.sta_amount +
+        row.yea_amount +
+        row.csl_ft_amount +
+        row.csg_ft_amount +
+        row.csg_tu_amount +
+        row.csg_ftdep_amount +
+        row.csg_disequp_amount +
+        row.csg_ftdis_amount +
+        row.csl_pt_amount +
+        row.csg_pt_amount +
+        row.csg_ptdep_amount;
+      row.total_amount =
+        row.total_gov_amount + row.sfa_army_amount + row.sfa_harach_amount + row.sfa_art_amount + row.sfa_husky_amount;
+
+      let staCount = rowDepends.filter((r: any) => r.isStaEligible).length;
+      let csl0Count = rowDepends.filter((r: any) => r.isCslEligible && r.age < 12).length;
+      let csl12Count = rowDepends.filter((r: any) => r.isCslEligible && r.age > 11).length;
+
+      row.sta_dependants = staCount;
+      row.csl_dependants_0_11 = csl0Count;
+      row.csl_dependants_12_up = csl12Count;
+      row.csl_dependants_total = csl0Count + csl12Count;
+
+      let csl_family_size = 99;
+
+
+      row.csl_family_size = 99
     }
 
     return results;

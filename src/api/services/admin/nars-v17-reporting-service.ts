@@ -51,7 +51,7 @@ export class NarsV17ReportingService {
      application.parent2_net_income,  application.spouse_study_school_from, application.spouse_study_school_to,
     application.is_spouse_study_csl, application.spouse_study_emp_status_id, application.is_minority, application.is_disabled,
     application.program_year_total, application.program_year,  application.prestudy_city_id, application.study_city_id, application.is_perm_disabled, 
-    application.permanent_disability, application.pers_or_prolong_disability, 
+    application.permanent_disability, application.pers_or_prolong_disability, application.is_persist_disabled, 
     application.tuition_estimate_amount, application.percent_of_full_time,
     assessment.*, d.disbursed, parent_address.postal_code as parent_postal_code,
 
@@ -291,8 +291,8 @@ export class NarsV17ReportingService {
     row.push(new Column("cat_code", cat_code, " ", 1));
     row.push(new Column("single_ind_stat_reas", single_ind_stat_reas, " ", 1)); // 1-6
     row.push(new Column("social_assist_flag", "N", " ", 1)); // always N
-    row.push(new Column("disab_flag", app.is_perm_disabled ? "1" : app.pers_or_prolong_disability ? "2" : "0", " ", 1));
-    row.push(new Column("disab_sr_status", app.pers_or_prolong_disability ? "Y" : "", " ", 1));
+    row.push(new Column("disab_flag", app.is_perm_disabled ? "1" : app.is_persist_disabled ? "2" : "0", " ", 1));
+    row.push(new Column("disab_sr_status", app.is_persist_disabled ? "Y" : "", " ", 1));
     row.push(new Column("indigenous_flag", indigenous_flag, " ", 1));
     row.push(new Column("indigenous_cat", indigenous_cat, " ", 1));
     row.push(new Column("visible_ind", ["True", true, 1].includes(app.is_minority) ? "Y" : "N", " ", 1));
