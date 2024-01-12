@@ -58,8 +58,6 @@ export default class ReportingController extends BaseController {
 
           this.response.json(reportData);
         } else {
-          console.log("MAKING PDF", reportData);
-
           for (let line of reportData) {
             await db("disbursement").where({ id: line.id }).update({ due_date: new Date() });
             line.weeklyAmount = Math.round(line.weeklyAmount * 100);
