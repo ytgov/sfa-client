@@ -62,6 +62,9 @@ export default class ReportingController extends BaseController {
 
           for (let line of reportData) {
             await db("disbursement").where({ id: line.id }).update({ due_date: new Date() });
+            line.weeklyAmount = Math.round(line.weeklyAmount * 100);
+            line.travelAllowance = Math.round(line.travelAllowance * 100);
+            line.net = Math.round(line.net * 100);
           }
 
           let total = reportData.reduce((t: number, a: any) => {
@@ -154,13 +157,19 @@ export default class ReportingController extends BaseController {
         if (this.format == "html") {
           this.response.send(reportData);
         } else if (this.format == "csv") {
-          this.response.setHeader("Content-disposition", `attachment; filename="PPYT.CSLS.PDEXPAND_2223.${moment().format("YYYY-MM-DD")}.csv"`);
+          this.response.setHeader(
+            "Content-disposition",
+            `attachment; filename="PPYT.CSLS.PDEXPAND_2223.${moment().format("YYYY-MM-DD")}.csv"`
+          );
           this.response.setHeader("Content-type", "text/csv");
           this.response.send(reportData);
         } else if (this.format == "json") {
           this.response.json(reportData);
         } else {
-          this.response.setHeader("Content-disposition", `attachment; filename="PPYT.CSLS.PDEXPAND_2223.${moment().format("YYYY-MM-DD")}.txt"`);
+          this.response.setHeader(
+            "Content-disposition",
+            `attachment; filename="PPYT.CSLS.PDEXPAND_2223.${moment().format("YYYY-MM-DD")}.txt"`
+          );
           this.response.setHeader("Content-type", "text/plain");
           this.response.send(reportData);
         }
@@ -175,13 +184,19 @@ export default class ReportingController extends BaseController {
         if (this.format == "html") {
           this.response.send(reportData);
         } else if (this.format == "csv") {
-          this.response.setHeader("Content-disposition", `attachment; filename="PPYT.CSLS.PDReducedCourseLoad_2223.${moment().format("YYYY-MM-DD")}.csv"`);
+          this.response.setHeader(
+            "Content-disposition",
+            `attachment; filename="PPYT.CSLS.PDReducedCourseLoad_2223.${moment().format("YYYY-MM-DD")}.csv"`
+          );
           this.response.setHeader("Content-type", "text/csv");
           this.response.send(reportData);
         } else if (this.format == "json") {
           this.response.json(reportData);
         } else {
-          this.response.setHeader("Content-disposition", `attachment; filename="PPYT.CSLS.PDReducedCourseLoad_2223.${moment().format("YYYY-MM-DD")}.txt"`);
+          this.response.setHeader(
+            "Content-disposition",
+            `attachment; filename="PPYT.CSLS.PDReducedCourseLoad_2223.${moment().format("YYYY-MM-DD")}.txt"`
+          );
           this.response.setHeader("Content-type", "text/plain");
           this.response.send(reportData);
         }
@@ -246,10 +261,7 @@ export default class ReportingController extends BaseController {
         let csv = unparse(reportData, {
           quotes: true,
         });
-        this.response.setHeader(
-          "Content-disposition",
-          `attachment; filename="T4A_${tax_year}.csv"`
-        );
+        this.response.setHeader("Content-disposition", `attachment; filename="T4A_${tax_year}.csv"`);
         this.response.setHeader("Content-type", "text/csv");
         this.response.send(csv);
       }
