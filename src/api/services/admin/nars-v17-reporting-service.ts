@@ -2,7 +2,7 @@ import { DB_CONFIG } from "@/config";
 import { weeksBetween } from "@/utils/date-utils";
 import { application } from "express";
 import knex from "knex";
-import { isNumber, isUndefined } from "lodash";
+import { isEmpty, isNumber, isUndefined } from "lodash";
 import moment from "moment";
 
 const db = knex(DB_CONFIG);
@@ -35,16 +35,13 @@ export class NarsV17ReportingService {
   async runReport() {
     this.allApplications = await db("narsv17base").where({ academic_year_id: 2022 }); //.where({ id: 31665 });
 
-    /* this.allApplications = await db.raw(`
-    select 
-    person.sex_id, person.sin, person.birth_date, 
+    /* this.allApplications = await db.raw(`select person.sex_id, person.sin, person.birth_date, 
     spouse_person.sin as spouse_sin, 
     parent1_person.sin as parent1_sin,
     parent2_person.sin as parent2_sin,
     person_address.postal_code as primary_postal_code,
     field_program.field_program_code,
-    funding_request.status_id AS funding_request_status_id,
-    
+    funding_request.status_id AS funding_request_status_id,    
     student.indigenous_learner_id, student.high_school_left_year, student.high_school_left_month, student.is_crown_ward,
     application.academic_year_id, COALESCE(institution.federal_institution_code, institution_campus.federal_institution_code ) institution_code , application.aboriginal_status_id,  
     application.category_id, application.primary_address_id, application.parent1_net_income,
@@ -54,9 +51,7 @@ export class NarsV17ReportingService {
     application.permanent_disability, application.pers_or_prolong_disability, application.is_persist_disabled, 
     application.tuition_estimate_amount, application.percent_of_full_time,
     assessment.*, d.disbursed, parent_address.postal_code as parent_postal_code,
-
-    funding_request.is_csg_only, funding_request.is_csl_full_amount, funding_request.csl_request_amount
-    
+    funding_request.is_csg_only, funding_request.is_csl_full_amount, funding_request.csl_request_amount    
     from sfa.student
       INNER JOIN sfa.person ON (student.person_id = person.id)
       INNER JOIN sfa.application ON (student.id = application.student_id)
@@ -77,21 +72,6 @@ export class NarsV17ReportingService {
     where
       funding_request.request_type_id = 4`); */
 
-    /* let studentIds = this.allApplications.map((a: any) => a.studentId);
-    let appIds = this.allApplications.map((a: any) => a.id);
-
-    this.allFundingRequests = await db("fundingRequest").whereIn("applicationId", appIds);
-
-    let fundingIds = this.allFundingRequests.map((f: any) => f.id);
-
-    this.allAssessments = await db("assessment").whereIn("fundingRequestId", fundingIds);
-    this.allDisbursements = await db("disbursement").whereIn("fundingRequestId", fundingIds);
-
-    let students = await db("student")
-      .innerJoin("person", "person.id", "student.personId")
-      .whereIn("student.id", studentIds)
-      .select("student.*", "person.firstName", "person.lastName", "person.sin", "person.sexId", "person.birthDate");
- */
     for (let student of this.allApplications) {
       let rows = await this.makeRows(student);
       this.reportData.push(...rows);
@@ -103,19 +83,16 @@ export class NarsV17ReportingService {
   async makeRows(app: any): Promise<Row[]> {
     let result = new Array<Row>();
 
-    let num_dep_child_pse = 0;
-    let depchild_to_11_and_dis_12over = 0;
-    let depchild_12over_ndis_andothdep = 0;
-    let hasDependents = "N";
+    let appId = await db("sfa.funding_request").where({ id: app.funding_request_id }).select("application_id").first();
 
-    let cat_code =
-      app.csl_classification == 3
-        ? "1"
-        : app.csl_classification == 4
-        ? "2"
-        : [2, 5].includes(app.csl_classification)
-        ? "3"
-        : "4";
+    let family = await calculateFamilySize(
+      app.csl_classification,
+      appId?.application_id ?? 0,
+      !isEmpty(app.parent1_sin),
+      !isEmpty(app.parent2_sin)
+    );
+
+    let cat_code = family.narsCatCode;
 
     let single_ind_stat_reas = app.csl_classification == 2 ? "1" : app.csl_classification == 5 ? "2" : ".";
     let indigenous_flag = [2, 3, 5, 6, 7, 8, 9, 10].includes(app.aboriginal_status_id) ? "Y" : "N";
@@ -154,7 +131,6 @@ export class NarsV17ReportingService {
 
     let stud_sp_cost_ret_transp = app.study_weeks <= 16 ? app.r_trans_16wk : app.r_trans_16wk * 2;
 
-    let appId = await db("sfa.funding_request").where({ id: app.funding_request_id }).select("application_id").first();
     let csl_ft = 0;
     let csg_ft = 0;
     let csg_ftdep = 0;
@@ -172,36 +148,6 @@ export class NarsV17ReportingService {
 
     if (appId) {
       let applicationId = appId.application_id;
-      let deps = await db("sfa.dependent")
-        .innerJoin("sfa.dependent_eligibility", "dependent.id", "dependent_eligibility.dependent_id")
-        .where({ application_id: applicationId, is_csl_eligible: true });
-
-      let parentDeps = await db("sfa.parent_dependent").where({ application_id: applicationId, is_eligible: true });
-      let depCounts = 0;
-
-      for (let dep of deps) {
-        hasDependents = "Y";
-        if (dep.is_disability) {
-          depchild_to_11_and_dis_12over++;
-          depCounts++;
-        } else if (dep.birth_date) {
-          let age = moment().diff(dep.birth_date, "years");
-          if (age < 12) {
-            depchild_to_11_and_dis_12over++;
-            depCounts++;
-          }
-        }
-      }
-
-      // Dependent
-      if (cat_code == "4") {
-        num_dep_child_pse = 1 + parentDeps.filter((d) => d.is_attend_post_secondary).length;
-        depchild_12over_ndis_andothdep = 1 + parentDeps.length - depCounts;
-      } // Married or single parent
-      else if (cat_code == "1" || cat_code == "2") {
-        num_dep_child_pse = deps.filter((d) => d.is_post_secondary).length;
-        depchild_12over_ndis_andothdep = deps.length - depCounts;
-      }
 
       let otherFunds = await db("sfa.funding_request")
         .where({ application_id: applicationId })
@@ -266,8 +212,6 @@ export class NarsV17ReportingService {
     totalCosts += stud_sp_cost_other;
     stud_sp_cost_other -= stud_sp_cost_computers;
 
-    let totalGrants = csg_ft + csg_ftdep + csg_d + topup_fund;
-
     let req_need = app.csl_request_amount;
     let tot_ass_res = app.student_expected_contribution;
 
@@ -288,7 +232,7 @@ export class NarsV17ReportingService {
     row.push(new Column("sin", app.sin, " ", 9));
     row.push(new Column("dob", moment.utc(app.birth_date).format("YYYYMMDD"), " ", 8));
     row.push(new Column("sex_code", app.sex_id == 1 ? "M" : app.sex_id == 2 ? "F" : "U", " ", 1));
-    row.push(new Column("cat_code", cat_code, " ", 1));
+    row.push(new Column("cat_code", family.narsCatCode, " ", 1));
     row.push(new Column("single_ind_stat_reas", single_ind_stat_reas, " ", 1)); // 1-6
     row.push(new Column("social_assist_flag", "N", " ", 1)); // always N
     row.push(new Column("disab_flag", app.is_perm_disabled ? "1" : app.is_persist_disabled ? "2" : "0", " ", 1));
@@ -305,10 +249,10 @@ export class NarsV17ReportingService {
     row.push(new Column("spouse_student", spouse_student, " ", 1));
     row.push(new Column("spouse_num_sp_weeks", spouse_num_sp_weeks, " ", 2));
 
-    row.push(new Column("family_size", app.family_size == 0 ? "1" : app.family_size, "0", 2));
-    row.push(new Column("num_dep_child_pse", num_dep_child_pse, " ", 1));
-    row.push(new Column("depchild_to_11_and_dis_12over", depchild_to_11_and_dis_12over, " ", 1));
-    row.push(new Column("depchild_12over_ndis_andothdep", depchild_12over_ndis_andothdep, " ", 1));
+    row.push(new Column("family_size", family.family_size, "0", 2));
+    row.push(new Column("num_dep_child_pse", family.post_secondary, " ", 1));
+    row.push(new Column("depchild_to_11_and_dis_12over", family.under12_or_disabled, " ", 1));
+    row.push(new Column("depchild_12over_ndis_andothdep", family.over11, " ", 1));
 
     row.push(new Column("res_postal", res_postal, " ", 6));
     row.push(new Column("sp_away_home", app.study_accom_code == 1 ? "H" : "A", " ", 1));
@@ -364,7 +308,7 @@ export class NarsV17ReportingService {
 
     row.push(new Column("fs_cont_exempt_indig", indigenous_flag, " ", 1));
     row.push(new Column("fs_cont_exempt_pd", app.is_disabled ? "Y" : "N", " ", 1));
-    row.push(new Column("fs_cont_exempt_dependant", hasDependents, " ", 1));
+    row.push(new Column("fs_cont_exempt_dependant", family.total_dependants > 0 ? "Y" : "N", " ", 1));
     row.push(new Column("fs_cont_exempt_crown", app.student_contrib_exempt && app.is_crown_ward ? "Y" : "N", " ", 1));
     row.push(new Column("frspouse_cont_exempt_stud", spouse_num_sp_weeks ? "Y" : "N", " ", 1));
     row.push(new Column("frspouse_cont_exempt_ei", `N`, " ", 1)); // always N
@@ -498,4 +442,99 @@ export class Column {
   toCsv() {
     return `${this.output},`;
   }
+}
+
+async function calculateFamilySize(
+  classification: number,
+  applicationId: number,
+  hasParent1: boolean,
+  hasParent2: boolean
+): Promise<{
+  family_size: number;
+  total_dependants: number;
+  csl_dependants: number;
+  csg_dependants: number;
+  sta_dependants: number;
+  post_secondary: number;
+  narsCatCode: string;
+  under12_or_disabled: number;
+  over11: number;
+}> {
+  let family = {
+    family_size: 0,
+    total_dependants: 0,
+    csl_dependants: 0,
+    csg_dependants: 0,
+    sta_dependants: 0,
+    post_secondary: 1,
+    narsCatCode: "1",
+    under12_or_disabled: 0,
+    over11: 0,
+  };
+
+  // Single Dependent
+  if (classification == 1) {
+    family.narsCatCode = "4";
+  }
+  // Single Independent - 2 year workforce
+  else if (classification == 2) {
+    family.narsCatCode = "3";
+  }
+  // Married / Common Law
+  else if (classification == 3) {
+    family.narsCatCode = "1";
+  } // Single Parent
+  else if (classification == 4) {
+    family.narsCatCode = "2";
+  }
+  // Single Independent - 4 year high school
+  else if (classification == 5) {
+    family.narsCatCode = "3";
+  }
+
+  if ([3, 4].includes(classification)) {
+    let deps = await db("sfa.dependent")
+      .innerJoin("sfa.dependent_eligibility", "dependent.id", "dependent_eligibility.dependent_id")
+      .innerJoin("sfa.application", "application.id", "dependent_eligibility.application_id")
+      .select("dependent.*", "dependent_eligibility.*")
+      .select(
+        db.raw(
+          "(0 + FORMAT(COALESCE(application.classes_start_date, GETDATE()),'yyyyMMdd') - FORMAT(birth_date,'yyyyMMdd') ) / 10000 age"
+        )
+      )
+      .where({ "dependent_eligibility.application_id": applicationId });
+
+    family.csl_dependants = deps.filter((f: any) => f.is_csl_eligible).length;
+    family.csg_dependants = deps.filter((f: any) => f.is_csg_eligible).length;
+    family.sta_dependants = deps.filter((f: any) => f.is_sta_eligible).length;
+
+    family.under12_or_disabled = deps.filter((f: any) => f.is_csl_eligible && (f.age < 11 || f.is_disability)).length;
+    family.over11 = deps.filter((f: any) => f.is_csl_eligible && f.age >= 12).length;
+    family.post_secondary = deps.filter((f: any) => f.is_post_secondary).length;
+
+    family.family_size = classification == 3 ? 2 + family.csl_dependants : 1 + family.csl_dependants;
+  } else if (classification == 1) {
+    let parentDeps = await db("sfa.parent_dependent")
+      .innerJoin("sfa.application", "application.id", "parent_dependent.application_id")
+      .select("parent_dependent.*")
+      .select(
+        db.raw(
+          "(0 + FORMAT(COALESCE(application.classes_start_date, GETDATE()),'yyyyMMdd') - FORMAT(birth_date,'yyyyMMdd') ) / 10000 age"
+        )
+      )
+      .where({ application_id: applicationId, is_eligible: true });
+
+    family.total_dependants = 1 + parentDeps.length;
+    family.csl_dependants = 1;
+
+    family.post_secondary = parentDeps.filter((f: any) => f.is_attend_post_secondary).length + 1;
+    family.family_size = 1 + parentDeps.length + (hasParent1 ? 1 : 0) + (hasParent2 ? 1 : 0);
+
+    family.under12_or_disabled = parentDeps.filter((f: any) => f(f.age < 11 || f.is_disabled)).length;
+    family.over11 = parentDeps.filter((f: any) => f.is_csl_eligible && f.age >= 12).length;
+  } else {
+    family.family_size = 1;
+  }
+
+  return family;
 }
