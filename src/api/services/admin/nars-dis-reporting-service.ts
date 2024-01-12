@@ -40,7 +40,7 @@ export class NarsDisabilityReportingService {
     application.academic_year_id, COALESCE(institution.federal_institution_code, institution_campus.federal_institution_code ) institution_code , application.aboriginal_status_id,  
     application.category_id, application.is_disabled, application.program_year_total, application.program_year, application.is_perm_disabled, 
     application.permanent_disability, application.pers_or_prolong_disability, application.is_persist_disabled, 
-    assessment.*, d.disbursed, funding_request.request_type_id    
+    assessment.*, d.disbursed, d.issue_date, funding_request.request_type_id    
     from sfa.student
       INNER JOIN sfa.person ON (student.person_id = person.id)
       INNER JOIN sfa.application ON (student.id = application.student_id)
@@ -72,8 +72,10 @@ export class NarsDisabilityReportingService {
 
     let csg_d = 0;
     let csg_d_date = null;
+    let csg_di_date = null;
     let csg_dse = 0;
     let csg_dse_date = null;
+    let csg_dsei_date = null;
 
     let code1 = "";
     let code2 = "";
@@ -89,16 +91,19 @@ export class NarsDisabilityReportingService {
         .select("request_type_id")
         .groupBy("request_type_id")
         .sum("disbursed_amount as disbursed_amount")
-        .min("due_date as disbursed_date");
+        .min("due_date as disbursed_date")        
+        .min("issue_date as issue_date");
 
       let disGrant = otherFunds.find((f) => f.request_type_id == 29);
       let disSEGrant = otherFunds.find((f) => f.request_type_id == 30);
 
       if (disGrant) csg_d = Math.ceil(disGrant.disbursed_amount);
       if (disGrant) csg_d_date = disGrant.disbursed_date;
+      if (disGrant) csg_di_date = disGrant.issue_date;
 
       if (disSEGrant) csg_dse = Math.ceil(disSEGrant.disbursed_amount);
       if (disSEGrant) csg_dse_date = disSEGrant.disbursed_date;
+      if (disSEGrant) csg_dsei_date = disSEGrant.issue_date;
 
       let disability = await db("sfa.disability")
         .join("sfa.disability_type", "disability.disability_type_id", "disability_type.id")
@@ -139,28 +144,28 @@ export class NarsDisabilityReportingService {
 
     row.push(new Column("csg_pd_auth", csg_d, "0", 5));
     row.push(new Column("csg_pd_disb", csg_d, "0", 5));
-    row.push(new Column("csg_pd_authdate", moment.utc(app.assessed_date).format("YYYYMMDD"), " ", 8));
+    row.push(new Column("csg_pd_authdate", moment.utc(csg_di_date).format("YYYYMMDD"), " ", 8));
     row.push(new Column("csg_pd_disbdate", csg_d_date ? moment.utc(csg_d_date).format("YYYYMMDD") : "", " ", 8));
 
     row.push(new Column("csg_pdse_auth", csg_dse, "0", 5));
     row.push(new Column("csg_pdse_disb", csg_dse, "0", 5));
-    row.push(new Column("csg_pdse_authdate", moment.utc(app.assessed_date).format("YYYYMMDD"), " ", 8));
+    row.push(new Column("csg_pdse_authdate", moment.utc(csg_dsei_date).format("YYYYMMDD"), " ", 8));
     row.push(new Column("csg_pdse_disbdate", csg_dse_date ? moment.utc(csg_dse_date).format("YYYYMMDD") : "", " ", 8));
 
-    row.push(new Column("disab_code1", code1, " ", 1));
-    row.push(new Column("disab_code2", code2, " ", 1));
-    row.push(new Column("disab_code3", code3, " ", 1));
+    row.push(new Column("disab_code1", code1, ".", 1));
+    row.push(new Column("disab_code2", code2, ".", 1));
+    row.push(new Column("disab_code3", code3, ".", 1));
 
-    row.push(new Column("type_serv_eqpt1", types[0] ? types[0] : "", " ", 2));
-    row.push(new Column("type_serv_eqpt2", types[1] ? types[1] : "", " ", 2));
-    row.push(new Column("type_serv_eqpt3", types[2] ? types[2] : "", " ", 2));
-    row.push(new Column("type_serv_eqpt4", types[3] ? types[3] : "", " ", 2));
-    row.push(new Column("type_serv_eqpt5", types[4] ? types[4] : "", " ", 2));
-    row.push(new Column("type_serv_eqpt6", types[5] ? types[5] : "", " ", 2));
+    row.push(new Column("type_serv_eqpt1", types[0] ? types[0] : "", ".", 2));
+    row.push(new Column("type_serv_eqpt2", types[1] ? types[1] : "", ".", 2));
+    row.push(new Column("type_serv_eqpt3", types[2] ? types[2] : "", ".", 2));
+    row.push(new Column("type_serv_eqpt4", types[3] ? types[3] : "", ".", 2));
+    row.push(new Column("type_serv_eqpt5", types[4] ? types[4] : "", ".", 2));
+    row.push(new Column("type_serv_eqpt6", types[5] ? types[5] : "", ".", 2));
 
-    row.push(new Column("type_serveqpt_desc1", "", " ", 25));
-    row.push(new Column("type_serveqpt_desc2", "", " ", 25));
-    row.push(new Column("type_serveqpt_desc3", "", " ", 25));
+    row.push(new Column("type_serveqpt_desc1", "", ".", 25));
+    row.push(new Column("type_serveqpt_desc2", "", ".", 25));
+    row.push(new Column("type_serveqpt_desc3", "", ".", 25));
 
     //console.log(row.columns.length);
     //console.log(row.columns.reduce((a, r) => a + r.length, 0));

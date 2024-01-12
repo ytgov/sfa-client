@@ -147,14 +147,14 @@ export class NarsDisabilityRCLReportingService {
     row.push(new Column("course_load_changed_date", "", " ", 8));
     row.push(new Column("perc_full_course_load", app.percent_of_full_time ?? 60, "0", 3));
     row.push(new Column("amt_disb", csl_ft || 0, "0", 6));
-    row.push(new Column("disb_date", csl_ft_date ? moment.utc(csl_ft_date).format("YYYYMMDD") : " ", " ", 8));
+    row.push(new Column("disb_date", csl_ft_date ? moment.utc(csl_ft_date).format("YYYYMMDD") : ".", " ", 8));
     row.push(new Column("csgp_ft", csg_ft, "0", 6));
-    row.push(new Column("csgpft_disb_date", csg_ft_date ? moment.utc(csg_ft_date).format("YYYYMMDD") : "", " ", 8));
+    row.push(new Column("csgpft_disb_date", csg_ft_date ? moment.utc(csg_ft_date).format("YYYYMMDD") : ".", " ", 8));
     row.push(new Column("csgp_pd", csg_d, "0", 6));
-    row.push(new Column("csgppd_disb_date", csg_d_date ? moment.utc(csg_d_date).format("YYYYMMDD") : "", " ", 8));
+    row.push(new Column("csgppd_disb_date", csg_d_date ? moment.utc(csg_d_date).format("YYYYMMDD") : ".", " ", 8));
     row.push(new Column("csgp_ftdep", csg_ftdep, "0", 6));
     row.push(
-      new Column("csgpftd_disb_date", csgp_ftdep_date ? moment.utc(csgp_ftdep_date).format("YYYYMMDD") : "", " ", 8)
+      new Column("csgpftd_disb_date", csgp_ftdep_date ? moment.utc(csgp_ftdep_date).format("YYYYMMDD") : ".", " ", 8)
     );
 
     //console.log(row.columns.length);
