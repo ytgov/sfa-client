@@ -530,7 +530,7 @@ async function calculateFamilySize(
     family.post_secondary = parentDeps.filter((f: any) => f.is_attend_post_secondary).length + 1;
     family.family_size = 1 + parentDeps.length + (hasParent1 ? 1 : 0) + (hasParent2 ? 1 : 0);
 
-    family.under12_or_disabled = parentDeps.filter((f: any) => f(f.age < 11 || f.is_disabled)).length;
+    family.under12_or_disabled = parentDeps.filter((f: any) => f.age < 11 || f.is_disabled).length;
     family.over11 = parentDeps.filter((f: any) => f.is_csl_eligible && f.age >= 12).length;
   } else {
     family.family_size = 1;
