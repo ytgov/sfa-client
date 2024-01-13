@@ -492,6 +492,7 @@ async function calculateFamilySize(
     family.narsCatCode = "3";
   }
 
+  // Married / Common Law or Single Parent
   if ([3, 4].includes(classification)) {
     let deps = await db("sfa.dependent")
       .innerJoin("sfa.dependent_eligibility", "dependent.id", "dependent_eligibility.dependent_id")
@@ -513,7 +514,9 @@ async function calculateFamilySize(
     family.post_secondary = deps.filter((f: any) => f.is_post_secondary).length;
 
     family.family_size = classification == 3 ? 2 + family.csl_dependants : 1 + family.csl_dependants;
-  } else if (classification == 1) {
+  }
+  // Single Dependent
+  else if (classification == 1) {
     let parentDeps = await db("sfa.parent_dependent")
       .innerJoin("sfa.application", "application.id", "parent_dependent.application_id")
       .select("parent_dependent.*")
@@ -530,7 +533,9 @@ async function calculateFamilySize(
     family.post_secondary = parentDeps.filter((f: any) => f.is_attend_post_secondary).length + 1;
     family.family_size = 1 + parentDeps.length + (hasParent1 ? 1 : 0) + (hasParent2 ? 1 : 0);
 
-    family.under12_or_disabled = parentDeps.filter((f: any) => f.age < 11 || f.is_disabled).length;
+    family.under12_or_disabled = parentDeps.filter(
+      (f: any) => f.is_csl_eligible && (f.age < 11 || f.is_disabled)
+    ).length;
     family.over11 = parentDeps.filter((f: any) => f.is_csl_eligible && f.age >= 12).length;
   } else {
     family.family_size = 1;
