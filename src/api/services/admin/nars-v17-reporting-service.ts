@@ -75,6 +75,7 @@ export class NarsV17ReportingService {
     for (let student of this.allApplications) {
       let rows = await this.makeRows(student);
       this.reportData.push(...rows);
+      break;
     }
 
     return this.reportData;
@@ -82,6 +83,7 @@ export class NarsV17ReportingService {
 
   async makeRows(app: any): Promise<Row[]> {
     let result = new Array<Row>();
+    console.log(app);
 
     let appId = await db("sfa.funding_request").where({ id: app.funding_request_id }).select("application_id").first();
 
@@ -107,7 +109,26 @@ export class NarsV17ReportingService {
         ? "1"
         : ".";
 
-    let res_postal = app.primary_postal_code ? app.primary_postal_code.replace(" ", "").replace("-", "") : "XXXXXX";
+    let res_postal = "";
+
+    if (app.primary_address_id && app.primary_postal_code) {
+      res_postal = app.primary_postal_code.replace(" ", "").replace("-", "");
+
+      if (app.primary_country_id && app.primary_country_id != 1) res_postal = "XXXXXX";
+    } else {
+      let homeAddress = await db("sfa.v_current_person_address")
+        .where({
+          person_id: app.person_id,
+          address_type_id: 1,
+        })
+        .first();
+
+      if (homeAddress) {
+        res_postal = homeAddress.postal_code;
+        if (homeAddress.country != "Canada") res_postal = "XXXXXX";
+      }
+    }
+
     let parent_postal = app.parent_postal_code ? app.parent_postal_code.replace(" ", "").replace("-", "") : "XXXXXX";
 
     let program_type =
@@ -272,7 +293,7 @@ export class NarsV17ReportingService {
 
     row.push(new Column("date_left_high_school", date_left_high_school, " ", 8));
 
-    row.push(new Column("stud_sp_inc_targ_fund_total", "", "0", 6)); // always 0
+    row.push(new Column("stud_sp_inc_targ_fund_total", "0", "0", 6)); // always 0
     row.push(new Column("stud_sp_inc_mbsa_tot", stud_sp_inc_mbsa_tot, "0", 6)); // dont know we have this info
     row.push(new Column("stud_gross_annual_inc", app.student_ln150_income ?? 0, "0", 6));
     row.push(new Column("stud_gross_annual_inc_reassess", "", "0", 6)); // always blank
@@ -295,14 +316,14 @@ export class NarsV17ReportingService {
     row.push(new Column("parent2_gross_ann_inc_reassess", "", "0", 6)); // always blank
     row.push(new Column("parent2_net_ann_inc_reassess", "", "0", 6)); // always blank
 
-    row.push(new Column("spouse_gross_annual_inc", cat_code == "1" ? app.spouse_gross_income ?? "" : "", "0", 6));
+    row.push(new Column("spouse_gross_annual_inc", cat_code == "1" ? app.spouse_ln150_income ?? "" : "", "0", 6));
     row.push(new Column("spouse_gross_annual_inc_reassess", "", "0", 6)); // always blank
 
     row.push(new Column("stud_cont_targfund", stud_cont_targfund, "0", 6));
     row.push(new Column("stud_cont_bsa", Math.max(0, stud_sp_inc_mbsa_tot - 1800), "0", 6));
-    row.push(new Column("fs_cont_amt", app.student_expected_contribution, "0", 6));
-    row.push(new Column("parent_cont", "", "0", 6)); // always 0
-    row.push(new Column("frspousal_cont_amt", "", "0", 6)); // always 0
+    row.push(new Column("fs_cont_amt", app.student_contribution ?? "0", "0", 6));
+    row.push(new Column("parent_cont", app.parent_contribution_override ?? "0", "0", 6));
+    row.push(new Column("frspousal_cont_amt", app.spouse_contribution ?? "0", "0", 6));
     row.push(new Column("other_resources", "0", "0", 6)); // always 0
     row.push(new Column("tot_ass_res", tot_ass_res, "0", 6)); // total, but we only use 1 field
 
@@ -334,10 +355,10 @@ export class NarsV17ReportingService {
     row.push(new Column("tot_calc_need", totalCosts - tot_ass_res, "+", 7)); // calculated need in award tab
     row.push(new Column("ass_csl_bef_overa", csl_ft || 0, "0", 6)); // sum of loan disbursements for this assessment
     row.push(new Column("ass_psl_bef_overa", "0", "0", 6)); // always 0
-    row.push(new Column("csl_over_award_recovered", "", "0", 6)); // this is complicated by the over award change reason, 0 for now
+    row.push(new Column("csl_over_award_recovered", "0", "0", 6)); // this is complicated by the over award change reason, 0 for now
     row.push(new Column("psl_over_award_recovered", "0", "0", 6)); // always 0
     row.push(new Column("auth_csl_amt", csl_ft || 0, "0", 6));
-    row.push(new Column("auth_psl_amt", "", "0", 6)); // always 0
+    row.push(new Column("auth_psl_amt", "0", "0", 6)); // always 0
 
     row.push(new Column("csg_ft", csg_ft, "0", 6));
     row.push(new Column("csg_ftdep", csg_ftdep, "0", 6));
@@ -346,8 +367,8 @@ export class NarsV17ReportingService {
     row.push(new Column("topup_fund", topup_fund, "0", 6));
 
     row.push(new Column("prov_grant_burs_schol_amt", provGrants, "0", 6));
-    row.push(new Column("prov_unmet_need_grant_auth_amt", "", "0", 6)); // likely not relevant
-    row.push(new Column("other_prov_assist", "", "0", 6)); // always 0
+    row.push(new Column("prov_unmet_need_grant_auth_amt", "0", "0", 6)); // likely not relevant
+    row.push(new Column("other_prov_assist", "0", "0", 6)); // always 0
 
     row.push(new Column("tot_assist", csl_ft + csg_ft + csg_ftdep + csg_d + csg_dse + topup_fund + provGrants, "0", 6));
     row.push(
