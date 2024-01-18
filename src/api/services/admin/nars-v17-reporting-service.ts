@@ -75,7 +75,6 @@ export class NarsV17ReportingService {
     for (let student of this.allApplications) {
       let rows = await this.makeRows(student);
       this.reportData.push(...rows);
-      break;
     }
 
     return this.reportData;
@@ -83,7 +82,6 @@ export class NarsV17ReportingService {
 
   async makeRows(app: any): Promise<Row[]> {
     let result = new Array<Row>();
-    console.log(app);
 
     let appId = await db("sfa.funding_request").where({ id: app.funding_request_id }).select("application_id").first();
 
