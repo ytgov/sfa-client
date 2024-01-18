@@ -122,12 +122,14 @@ export class NarsV17ReportingService {
         .first();
 
       if (homeAddress) {
-        res_postal = homeAddress.postal_code;
+        res_postal = homeAddress.postal_code.replace(" ", "").replace("-", "");
         if (homeAddress.country != "Canada") res_postal = "XXXXXX";
       }
     }
 
-    let parent_postal = app.parent_postal_code ? app.parent_postal_code.replace(" ", "").replace("-", "") : "XXXXXX";
+    let parent_postal = app.parent_postal_code ? app.parent_postal_code.replace(" ", "").replace("-", "") : "";
+
+    if (parent_postal && parent_postal.length > 0 && isNumber(parent_postal)) parent_postal = "XXXXXX";
 
     let program_type =
       app.program_id == 6 ? 5 : app.program_id == 5 ? 4 : app.program_id == 4 ? 3 : app.program_id == 3 ? 2 : 1;
