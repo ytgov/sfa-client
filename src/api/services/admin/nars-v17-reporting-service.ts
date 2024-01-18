@@ -204,8 +204,8 @@ export class NarsV17ReportingService {
           .map((f: any) => f.amount ?? 0)
           .reduce((a: number, f: number) => a + f, 0);
 
-      let targetedResourcesIncome = incomes.find((e) => e.income_type_id == 3 || e.income_type_id == 10); // EI and HRDC
-      if (targetedResourcesIncome)
+      let targetedResourcesIncome = incomes.filter((e) => e.income_type_id == 3 || e.income_type_id == 10); // EI and HRDC
+      if (isArray(targetedResourcesIncome) && targetedResourcesIncome.length > 0)
         stud_cont_targfund = targetedResourcesIncome
           .map((f: any) => f.amount ?? 0)
           .reduce((a: number, f: number) => a + f, 0);
