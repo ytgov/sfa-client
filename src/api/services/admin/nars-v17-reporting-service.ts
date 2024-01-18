@@ -2,7 +2,7 @@ import { DB_CONFIG } from "@/config";
 import { weeksBetween } from "@/utils/date-utils";
 import { application } from "express";
 import knex from "knex";
-import { isEmpty, isNumber, isUndefined } from "lodash";
+import { isArray, isEmpty, isNumber, isUndefined } from "lodash";
 import moment from "moment";
 
 const db = knex(DB_CONFIG);
@@ -198,7 +198,8 @@ export class NarsV17ReportingService {
 
       let incomes = await db("sfa.income").where({ application_id: applicationId });
       let scholarshipIncome = incomes.filter((e) => e.income_type_id == 16); // Scholarships - Merit Based
-      if (scholarshipIncome)
+
+      if (isArray(scholarshipIncome) && scholarshipIncome.length > 0)
         stud_sp_inc_mbsa_tot = scholarshipIncome
           .map((f: any) => f.amount ?? 0)
           .reduce((a: number, f: number) => a + f, 0);
