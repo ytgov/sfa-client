@@ -197,7 +197,7 @@ export class NarsV17ReportingService {
       if (compExp) stud_sp_cost_computers = Math.ceil(compExp.amount);
 
       let incomes = await db("sfa.income").where({ application_id: applicationId });
-      let scholarshipIncome = incomes.find((e) => e.income_type_id == 16); // Scholarships - Merit Based
+      let scholarshipIncome = incomes.filter((e) => e.income_type_id == 16); // Scholarships - Merit Based
       if (scholarshipIncome)
         stud_sp_inc_mbsa_tot = scholarshipIncome
           .map((f: any) => f.amount ?? 0)
