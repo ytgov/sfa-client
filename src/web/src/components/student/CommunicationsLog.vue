@@ -111,6 +111,7 @@
           <v-col class="text-right">
             <v-btn v-if="communicationData.id" color="success" class="my-0" @click="modifyCommunication">Save</v-btn>
             <v-btn v-else color="success" class="my-0" @click="addCommunication">Save</v-btn>
+            <v-btn v-if="communicationData.id" color="error" class="my-0 ml-5" @click="deleteClick">Delete</v-btn>
             <v-btn color="warning" class="my-0 ml-5" @click="cancelClick">Cancel</v-btn>
           </v-col>
         </v-row>
@@ -139,25 +140,23 @@
         </v-list>
       </v-card-text>
     </v-card>
+    <ConfirmDialog ref="confirm"></ConfirmDialog>
   </div>
 </template>
 
 <script>
-import { mapState } from "vuex";
+import { mapActions, mapState } from "vuex";
 import store from "../../store";
 import axios from "axios";
 import moment from "moment";
 import { clone } from "lodash";
 import { COMMUNICATION_TYPES, REQUEST_TYPES } from "../../urls";
 
-import ConsentForm from "./ConsentForm.vue";
-import ContactForm from "./ContactForm.vue";
-import SfaInfoForm from "./SfaInfoForm.vue";
-import VendorInfoForm from "./VendorInfoForm.vue";
+import ConfirmDialog from "@/components/ConfirmDialog.vue";
 
 export default {
   name: "Home",
-  components: { ContactForm, ConsentForm, SfaInfoForm, VendorInfoForm },
+  components: { ConfirmDialog },
   computed: {
     ...mapState(["selectedStudent"]),
     username() {
@@ -205,6 +204,8 @@ export default {
     },
   },
   methods: {
+    ...mapActions("communicationStore", ["deleteCommunication"]),
+
     addClick() {
       this.communicationData = {
         communication_date: moment().format("YYYY-MM-DD"),
@@ -218,11 +219,20 @@ export default {
     cancelClick() {
       this.communicationData = null;
     },
-
-    hendleEdition(i) {
-      activateEdition(i);
-      deactivateEdition(i);
+    deleteClick() {
+      this.$refs.confirm.show(
+        "Delete Communication Log?",
+        "This will permanently delete this item. Are you sure you would like to continue?",
+        this.doDelete,
+        () => {}
+      );
     },
+    doDelete() {
+      this.deleteCommunication({ id: this.communicationData.id }).then(() => {
+        this.loadCommunication();
+      });
+    },
+
     formatDate(date) {
       if (!date) return null;
 

@@ -84,3 +84,23 @@ communicationTypeRouter.put(
     }
   }
 );
+
+communicationTypeRouter.delete(
+  "/:id",
+  [param("id").isInt().notEmpty()],
+  ReturnValidationErrors,
+  async (req: Request, res: Response) => {
+    const { id } = req.params;
+
+    db("sfa.communication")
+      .where({ id })
+      .delete()
+      .then(() => {
+        res.json({ messages: [{ variant: "success", text: "Saved" }] });
+      })
+      .catch(() => {
+        console.log("ERROR: Deleting communication log", id);
+        res.json({ messages: [{ variant: "error", text: "Failed" }] });
+      });
+  }
+);

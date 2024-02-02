@@ -2,6 +2,7 @@ import axios from "axios";
 import { COMMUNICATION_TYPES } from "@/urls";
 
 const state = {
+  studentId: 0,
   communication: [],
 };
 const getters = {
@@ -9,7 +10,12 @@ const getters = {
   activeOnly: (state) => state.activeOnly,
 };
 const actions = {
-  async loadStudentCommunication({ commit }, { studentId }) {
+  clearStudentCommunication({ commit }) {
+    commit("SET_COMMUNICATION", []);
+  },
+
+  async loadStudentCommunication({ state, commit }, { studentId }) {
+    state.studentId = studentId;
     axios
       .get(`${COMMUNICATION_TYPES}/${studentId}`)
       .then((resp) => {
@@ -20,6 +26,14 @@ const actions = {
       .catch(() => {
         commit("SET_COMMUNICATION", []);
       });
+  },
+  addCommunication() {},
+  updateCommunication() {},
+
+  deleteCommunication({ state, dispatch }, { id }) {
+    return axios.delete(`${COMMUNICATION_TYPES}/${id}`).catch(() => {
+      commit("SET_COMMUNICATION", []);
+    });
   },
 };
 const mutations = {

@@ -245,6 +245,7 @@ export default new Vuex.Store({
     },
     clearStudent(state) {
       state.commit("CLEAR_STUDENT");
+      state.dispatch("communicationStore/clearStudentCommunication");
     },
     clearApplication(state) {
       state.commit("CLEAR_APPLICATION");
