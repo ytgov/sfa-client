@@ -17,7 +17,7 @@
             <v-icon>mdi-school</v-icon>
           </v-list-item-icon>
           <v-list-item-content>
-            <v-list-item-title>Student Details</v-list-item-title>
+            <v-list-item-title style="line-height: 1.1rem;">Student Details</v-list-item-title>
           </v-list-item-content>
         </v-list-item>
 
@@ -26,7 +26,10 @@
             <v-icon>mdi-forum</v-icon>
           </v-list-item-icon>
           <v-list-item-content>
-            <v-list-item-title>Communications Log</v-list-item-title>
+            <v-list-item-title style="line-height: 1.1rem;">
+              Communications Log
+              <v-badge v-if="flaggedCount > 0" class="ml-2 mb-0" color="error" :content="flaggedCount"></v-badge>
+            </v-list-item-title>
           </v-list-item-content>
         </v-list-item>
 
@@ -197,7 +200,7 @@
 import router from "./router";
 import store from "./store";
 import * as config from "./config";
-import { mapState } from "vuex";
+import { mapGetters, mapState } from "vuex";
 import { LOGOUT_URL } from "./urls";
 import SideBarAdmin from "@/components/adminHome/SideBarAdmin.vue";
 import SnackBarAdmin from "@/components/commonCatalog/SnackBarAdmin.vue";
@@ -215,6 +218,7 @@ export default {
       "selectedStudentId",
       "selectedStudent",
     ]),
+    ...mapGetters("communicationStore", ["flaggedCount"]),
     email_officer() {
       return store.getters.email_officer;
     },
@@ -248,10 +252,15 @@ export default {
     chosenApplication: -1,
   }),
   created: async function() {
+    /* console.log("APP", this.$route.path.startsWith("/application") ||
+        this.$route.path.startsWith("/student") ||
+        this.$route.path.startsWith("/communications-log"))
     store.dispatch(
       "setAppSidebar",
-      this.$route.path.startsWith("/application") || this.$route.path.startsWith("/student")
-    );
+      this.$route.path.startsWith("/application") ||
+        this.$route.path.startsWith("/student") ||
+        this.$route.path.startsWith("/communications-log")
+    ); */
     store.dispatch("setAppSideBarAdmin", this.$route.path.startsWith("/administration"));
 
     this.hasSideBarAdmin = this.$route.path.startsWith("/administration");

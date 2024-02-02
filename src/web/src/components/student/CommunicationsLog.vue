@@ -198,7 +198,6 @@ export default {
     this.studentId = this.$route.params.id;
 
     await store.dispatch("loadStudent", this.studentId);
-    store.dispatch("setAppSidebar", true);
   },
   watch: {
     search() {
@@ -298,6 +297,7 @@ export default {
         this.communicationsAccordion = items;
         this.doSearch();
       });
+      store.dispatch("communicationStore/loadStudentCommunication", { studentId });
     },
     doSearch() {
       let value = (this.search ?? "").toLowerCase().trim();
