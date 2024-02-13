@@ -203,8 +203,11 @@ const actions = {
             dependentCount = store.getters.selectedStudent.dependent_info.filter(
               (d) => d.is_csg_eligible && d.application_id == state.fundingRequest.application_id
             ).length;
+
+            familySize += store.getters.selectedStudent.dependent_info.filter(
+              (d) => d.is_csl_eligible && d.application_id == state.fundingRequest.application_id
+            ).length;
           }
-          familySize += dependentCount;
 
           let parent = state.parentAssessment;
           let assessment = {
@@ -264,7 +267,6 @@ const actions = {
           (d) => d.is_csg_eligible && d.application_id == state.fundingRequest.application_id
         ).length;
 
-        
         familySize += store.getters.selectedStudent.dependent_info.filter(
           (d) => d.is_csl_eligible && d.application_id == state.fundingRequest.application_id
         ).length;
