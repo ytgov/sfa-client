@@ -182,7 +182,7 @@ const actions = {
               (d) => d.is_csg_eligible && d.application_id == state.fundingRequest.application_id
             ).length;
           }
-          
+
           let parent = state.parentAssessment;
           let assessment = {
             assessed_date: moment().format("YYYY-MM-DD"),
@@ -230,6 +230,13 @@ const actions = {
   async recalculate({ state, dispatch, commit }) {
     dispatch("loadAssessment", state.fundingRequest.application_id).then(() => {
       let parent = state.parentAssessment;
+      let dependentCount = 0;
+
+      if (store.getters.selectedStudent && isArray(store.getters.selectedStudent.dependent_info)) {
+        dependentCount = store.getters.selectedStudent.dependent_info.filter(
+          (d) => d.is_csg_eligible && d.application_id == state.fundingRequest.application_id
+        ).length;
+      }
 
       let assessment = {
         id: state.assessment.id,
@@ -239,7 +246,7 @@ const actions = {
         classes_end_date: moment.utc(parent.classes_end_date).format("YYYY-MM-DD"),
         study_months: parent.study_months,
         family_size: parent.family_size,
-        dependent_count: parent.dependent_count,
+        dependent_count: dependentCount,
         student_ln150_income: parent.student_ln150_income,
         spouse_ln150_income: parent.spouse_ln150_income,
         parent1_income: parent.parent1_income,
