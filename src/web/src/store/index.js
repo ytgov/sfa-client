@@ -91,6 +91,8 @@ import sfaScholarshipHuskysStore from "../components/application/assessments/sto
 // Administration Stores
 import reportsStore from "@/modules/Administration/store/ReportsStore";
 
+import communicationStore from "./communicationStore";
+
 // Config
 import axios from "axios";
 import { APPLICATION_URL, STUDENT_URL } from "../urls";
@@ -243,6 +245,7 @@ export default new Vuex.Store({
     },
     clearStudent(state) {
       state.commit("CLEAR_STUDENT");
+      state.dispatch("communicationStore/clearStudentCommunication");
     },
     clearApplication(state) {
       state.commit("CLEAR_APPLICATION");
@@ -275,6 +278,8 @@ export default new Vuex.Store({
 
       let resp = await axios.get(`${STUDENT_URL}/${id}`);
       state.commit("SET_STUDENT", resp.data.data);
+
+      state.dispatch("communicationStore/loadStudentCommunication", { studentId: id });
     },
     async loadDocumentation({ commit, state }) {
       axios.get(`${APPLICATION_URL}/${state.selectedApplicationId}/required-documents`).then((resp) => {
@@ -610,5 +615,7 @@ export default new Vuex.Store({
     sfaScholarshipHuskysStore,
 
     reportsStore,
+
+    communicationStore,
   },
 });

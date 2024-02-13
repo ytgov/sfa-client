@@ -335,7 +335,10 @@ const router = new VueRouter({
 router.beforeEach(async (to, from, next) => {
   var requiresAuth = to.meta.requiresAuth || false;
 
-  store.dispatch("setAppSidebar", to.path.startsWith("/application") || to.path.startsWith("/student"));
+  store.dispatch(
+    "setAppSidebar",
+    to.path.startsWith("/application") || to.path.startsWith("/student") || to.path.startsWith("/communications-log")
+  );
   store.dispatch("setAppSideBarAdmin", to.path.startsWith("/administration"));
 
   if (!requiresAuth) {
