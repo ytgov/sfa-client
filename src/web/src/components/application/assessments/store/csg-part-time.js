@@ -1,6 +1,6 @@
 import axios from "axios";
 import moment from "moment";
-import { isNumber, isUndefined } from "lodash";
+import { isArray, isNumber, isUndefined } from "lodash";
 import { parse } from "vue-currency-input";
 import { APPLICATION_URL, CSG_THRESHOLD_URL } from "@/urls";
 import store from "@/store";
@@ -221,6 +221,8 @@ const actions = {
         }
       })
       .catch((e) => {
+
+        console.log("EEEE", e)
         commit("SET_FUNDINGREQUEST", undefined);
         commit("SET_DISBURSEMENTS", []);
         commit("SET_ASSESSMENT", {});
