@@ -85,6 +85,8 @@ import csgPartTimeStore from "../components/application/assessments/store/csg-pa
 import csgPartTimeDependentStore from "../components/application/assessments/store/csg-part-time-dependent";
 import csgPartTimeDisabilityStore from "../components/application/assessments/store/csg-part-time-disability";
 
+import cslFullTimeStore from "../components/application/assessments/store/csl-full-time";
+
 import sfaScholarshipArmyStore from "../components/application/assessments/store/sfa-scholarship-army";
 import sfaScholarshipHarachStore from "../components/application/assessments/store/sfa-scholarship-harach";
 import sfaScholarshipHuskysStore from "../components/application/assessments/store/sfa-scholarship-huskys";
@@ -609,6 +611,7 @@ export default new Vuex.Store({
     csgPartTimeStore,
     csgPartTimeDependentStore,
     csgPartTimeDisabilityStore,
+    cslFullTimeStore,
 
     sfaScholarshipArmyStore,
     sfaScholarshipHarachStore,

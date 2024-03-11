@@ -6,6 +6,7 @@ import { param } from "express-validator";
 import { ReturnValidationErrors } from "@/middleware";
 import { cleanNumber } from "@/models";
 import moment from "moment";
+import { AssessmentCslftRepositoryV2 } from "@/repositories";
 
 const db = knex(DB_CONFIG);
 
@@ -37,11 +38,12 @@ csgThresholdRouter.get(
 );
 
 csgThresholdRouter.get(
-  "/cslft/:application_id",
+  "/cslft/:application_id/:assessment_id?",
   param("application_id").isInt(),
   ReturnValidationErrors,
   async (req: Request, res: Response) => {
-    const { application_id } = req.params;
+    const { application_id, assessment_id } = req.params;
+    console.log("ASSESSEMENT", assessment_id);
 
     let funding_request = await db("sfa.funding_request")
       .where({ application_id, request_type_id: CSLFT_REQUEST_TYPE_ID })
@@ -49,12 +51,39 @@ csgThresholdRouter.get(
       .first();
 
     if (funding_request) {
-      let assessment = await db("sfa.assessment")
+      let assessments = await db("sfa.assessment")
+        .select(["id", "assessed_date", "assessment_type_id"])
         .where({
           funding_request_id: funding_request.id,
         })
-        .orderBy("id", "desc")
-        .first();
+        .orderBy("assessed_date");
+
+      funding_request.assessments = assessments;
+      let assessment = null;
+
+      // if one is requested, return that, otherwise return the most recent
+      if (assessment_id) {
+        assessment = await db("sfa.assessment")
+          .where({
+            funding_request_id: funding_request.id,
+            id: assessment_id,
+          })
+          .orderBy("id", "asc")
+          .first();
+      } else {
+        assessment = await db("sfa.assessment")
+          .where({
+            funding_request_id: funding_request.id,
+          })
+          .orderBy("assessed_date", "desc")
+          .first();
+      }
+
+      let repo = new AssessmentCslftRepositoryV2(db);
+      // if there aren't any yet, build a new one
+      if (!assessment) {
+        assessment = repo.init(funding_request.id);
+      } else assessment = await repo.loadExisting(assessment, funding_request.application_id);
 
       let disbursements = await db("sfa.disbursement")
         .where({
@@ -62,6 +91,8 @@ csgThresholdRouter.get(
         })
         .orderBy("issue_date")
         .orderBy("id");
+
+      //console.log("ASMT", assessment);
 
       return res.json({ data: { funding_request, assessment, disbursements } });
     }

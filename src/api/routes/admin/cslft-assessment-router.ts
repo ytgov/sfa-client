@@ -17,7 +17,7 @@ assessmentCslftRouter.get(
   ReturnValidationErrors,
   async (req: Request, res: Response) => {
     const assessmentCslftRepo = new AssessmentCslftRepository(db);
-    const { id = undefined } = req.params;
+    const { id } = req.params;
     let results: Partial<DataDTO<CslftResultDTO>> = {};
 
     try {

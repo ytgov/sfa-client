@@ -281,6 +281,11 @@ export default {
           break;
 
         default:
+          if (request_type_id == 4) {
+            console.log("THIS IS A 4")
+            window.open(`/application/${this.applicationId}/cslft/${funding_request_id}`)
+          }
+
           this.showFundings = false;
           store.dispatch("getAssessments", { application_id: this.application.id, funding_request_id });
           this.assessmentTypeId = request_type_id;
