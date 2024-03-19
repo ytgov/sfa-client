@@ -1,10 +1,10 @@
 import express, { Request, Response } from "express";
 import knex from "knex";
 import { DB_CONFIG } from "../../config";
-import { isArray, sortBy } from "lodash";
+import { conformsTo, isArray, sortBy, update } from "lodash";
 import { param } from "express-validator";
 import { ReturnValidationErrors } from "@/middleware";
-import { cleanNumber } from "@/models";
+import { cleanNumber, cleanNumberOptional } from "@/models";
 import moment from "moment";
 import { AssessmentCslftRepositoryV2 } from "@/repositories";
 
@@ -37,13 +37,208 @@ csgThresholdRouter.get(
   }
 );
 
+csgThresholdRouter.delete(
+  "/funding-request/:funding_request_id/assessment/:assessment_id",
+  param("assessment_id").isInt(),
+  param("funding_request_id").isInt(),
+  ReturnValidationErrors,
+  async (req: Request, res: Response) => {
+    const { assessment_id, funding_request_id } = req.params;
+
+    let disbursements = await db("sfa.disbursement").where({ assessment_id });
+
+    if (disbursements) {
+      let eCertDisbursements = disbursements.filter((d) => d.csl_cert_seq_number);
+
+      if (eCertDisbursements.length)
+        return res.status(400).json({ errors: ["Cannot delete an assessment with eCert disbursements"] });
+
+      await db("sfa.disbursement").where({ assessment_id }).delete();
+    }
+
+    await db("sfa.assessment").where({ id: assessment_id }).delete();
+    return res.status(200).json({ data: "Assessment Deleted" });
+  }
+);
+
+csgThresholdRouter.put(
+  "/funding-request/:funding_request_id/assessment/:assessment_id",
+  param("assessment_id").isInt(),
+  param("funding_request_id").isInt(),
+  ReturnValidationErrors,
+  async (req: Request, res: Response) => {
+    const { assessment_id, funding_request_id } = req.params;
+    const {
+      assessed_date,
+      csl_over_reason_id,
+      csl_non_reason_id,
+      over_award,
+      return_uncashable_cert,
+      student_contribution_override,
+      spouse_contribution_override,
+      parent_contribution_override,
+      disbursements,
+    } = req.body;
+
+    if (disbursements && disbursements.length > 0) {
+      let transaction_number = (await db.raw(`select next value for sfa.csl_transaction_seq as nextval`))[0].nextval;
+
+      for (let disb of disbursements) {
+        disb.assessment_id = assessment_id;
+        disb.funding_request_id = funding_request_id;
+        delete disb.financial_batch_id; // not editable through the interface
+        delete disb.csl_cert_seq_number;
+
+        if (disb.id) {
+          let id = disb.id;
+          delete disb.id;
+          disb.disbursed_amount = cleanNumber(disb.disbursed_amount);
+          await db("sfa.disbursement").where({ id }).update(disb);
+        } else {
+          disb.transaction_number = transaction_number;
+          await db("sfa.disbursement").insert(disb);
+        }
+      }
+    }
+
+    let updateValue = {
+      assessed_date,
+      csl_non_reason_id,
+      csl_over_reason_id,
+      return_uncashable_cert: cleanNumberOptional(return_uncashable_cert),
+      over_award: cleanNumberOptional(over_award),
+      student_contribution_override: cleanNumberOptional(student_contribution_override),
+      spouse_contribution_override: cleanNumberOptional(spouse_contribution_override),
+      parent_contribution_override: cleanNumberOptional(parent_contribution_override),
+    };
+
+    let fundingRequest = await db("sfa.funding_request").where({ id: funding_request_id }).first();
+    let assessment = await db("sfa.assessment").where({ id: assessment_id }).first();
+
+    assessment = Object.assign(assessment, updateValue);
+
+    let repo = new AssessmentCslftRepositoryV2(db);
+    assessment = await repo.updateCalcs(assessment);
+    let calced = await repo.loadExisting(assessment, fundingRequest.application_id);
+
+    await db("sfa.assessment")
+      .where({ id: assessment_id })
+      .update({
+        assessed_date,
+        assessed_amount: calced.assessed_amount,
+        csl_assessed_need: calced.csl_assessed_need,
+        return_uncashable_cert: cleanNumberOptional(return_uncashable_cert),
+        over_award: cleanNumberOptional(over_award),
+        student_contribution_override: cleanNumberOptional(student_contribution_override),
+        spouse_contribution_override: cleanNumberOptional(spouse_contribution_override),
+        parent_contribution_override: cleanNumberOptional(parent_contribution_override),
+      });
+
+    return res.status(200).json({ data: "Assessment Saved" });
+  }
+);
+
+csgThresholdRouter.put(
+  "/funding-request/:funding_request_id/assessment/:assessment_id/recalculate",
+  param("assessment_id").isInt(),
+  param("funding_request_id").isInt(),
+  ReturnValidationErrors,
+  async (req: Request, res: Response) => {
+    const { assessment_id, funding_request_id } = req.params;
+
+    let repo = new AssessmentCslftRepositoryV2(db);
+    let recalc = await repo.create(funding_request_id);
+
+    delete (recalc as any).id;
+    (recalc as any).student_contribution_override = null;
+    (recalc as any).spouse_contribution_override = null;
+    (recalc as any).parent_contribution_override = null;
+    (recalc as any).over_award = null;
+    (recalc as any).return_uncashable_cert = null;
+    (recalc as any).csl_non_reason_id = null;
+    (recalc as any).csl_over_reason_id = null;
+
+    await db("sfa.assessment").where({ id: assessment_id }).update(recalc);
+    return res.status(200).json({ data: "Assessment Saved" });
+  }
+);
+
+csgThresholdRouter.post(
+  "/funding-request/:funding_request_id/assessment/:assessment_id/record-overaward",
+  param("assessment_id").isInt(),
+  param("funding_request_id").isInt(),
+  ReturnValidationErrors,
+  async (req: Request, res: Response) => {
+    const { assessment_id, funding_request_id } = req.params;
+
+    let fundingRequest = await db("sfa.funding_request").where({ id: funding_request_id }).first();
+    let application = await db("sfa.application").where({ id: fundingRequest.application_id }).first();
+    let assessment = await db("sfa.assessment").where({ id: assessment_id }).first();
+    let student = await db("sfa.student").where({ id: application.student_id }).first();
+
+    let repo = new AssessmentCslftRepositoryV2(db);
+    let loaded = await repo.loadExisting(assessment, fundingRequest.application_id);
+
+    let existingOveraward = student.pre_over_award_amount ?? 0;
+    existingOveraward += Math.abs(loaded.net_amount);
+
+    await db("sfa.student").where({ id: application.student_id }).update({ pre_over_award_amount: existingOveraward });
+
+    //await db("sfa.assessment").where({ id: assessment_id }).update(recalc);
+    return res.status(200).json({ data: "Assessment Saved" });
+  }
+);
+
+csgThresholdRouter.post(
+  "/funding-request/:funding_request_id/assessment/:assessment_id/clear-overaward",
+  param("assessment_id").isInt(),
+  param("funding_request_id").isInt(),
+  ReturnValidationErrors,
+  async (req: Request, res: Response) => {
+    const { assessment_id, funding_request_id } = req.params;
+
+    let fundingRequest = await db("sfa.funding_request").where({ id: funding_request_id }).first();
+    let application = await db("sfa.application").where({ id: fundingRequest.application_id }).first();
+    let assessment = await db("sfa.assessment").where({ id: assessment_id }).first();
+    let student = await db("sfa.student").where({ id: application.student_id }).first();
+
+    let repo = new AssessmentCslftRepositoryV2(db);
+    let loaded = await repo.loadExisting(assessment, fundingRequest.application_id);
+
+    let existingOveraward = student.pre_over_award_amount ?? 0;
+    existingOveraward -= Math.abs(loaded.net_amount);
+
+    await db("sfa.student").where({ id: application.student_id }).update({ pre_over_award_amount: existingOveraward });
+
+    return res.status(200).json({ data: "Assessment Saved" });
+  }
+);
+
+csgThresholdRouter.post(
+  "/cslft/:application_id/funding-request/:funding_request_id/assessment",
+  param("application_id").isInt(),
+  param("funding_request_id").isInt(),
+  ReturnValidationErrors,
+  async (req: Request, res: Response) => {
+    const { application_id, funding_request_id } = req.params;
+    console.log("CREATE ASSESSMENT");
+
+    let repo = new AssessmentCslftRepositoryV2(db);
+
+    let newAssessment = await repo.create(funding_request_id);
+    let inserted = await repo.insert(newAssessment);
+    let loaded = await repo.loadExisting(inserted, application_id);
+
+    return res.status(200).json({ data: loaded });
+  }
+);
+
 csgThresholdRouter.get(
   "/cslft/:application_id/:assessment_id?",
   param("application_id").isInt(),
   ReturnValidationErrors,
   async (req: Request, res: Response) => {
     const { application_id, assessment_id } = req.params;
-    console.log("ASSESSEMENT", assessment_id);
 
     let funding_request = await db("sfa.funding_request")
       .where({ application_id, request_type_id: CSLFT_REQUEST_TYPE_ID })
@@ -82,19 +277,22 @@ csgThresholdRouter.get(
       let repo = new AssessmentCslftRepositoryV2(db);
       // if there aren't any yet, build a new one
       if (!assessment) {
-        assessment = repo.init(funding_request.id);
-      } else assessment = await repo.loadExisting(assessment, funding_request.application_id);
+        assessment = await repo.create(funding_request.id);
+        assessment = await repo.loadExisting(assessment, application_id);
+        delete (assessment as any).id;
+        return res.json({ data: { funding_request, assessment, disbursements: [] } });
+      } else {
+        assessment = await repo.loadExisting(assessment, funding_request.application_id);
 
-      let disbursements = await db("sfa.disbursement")
-        .where({
-          funding_request_id: funding_request.id,
-        })
-        .orderBy("issue_date")
-        .orderBy("id");
-
-      //console.log("ASMT", assessment);
-
-      return res.json({ data: { funding_request, assessment, disbursements } });
+        let disbursements = await db("sfa.disbursement")
+          .where({
+            funding_request_id: funding_request.id,
+            assessment_id: assessment.id,
+          })
+          .orderBy("issue_date")
+          .orderBy("id");
+        return res.json({ data: { funding_request, assessment, disbursements } });
+      }
     }
 
     res.status(404).send("Funding Request not found");

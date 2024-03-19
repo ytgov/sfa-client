@@ -56,9 +56,9 @@
     </v-toolbar>
     <v-card-text>
       <div v-if="assessableStatus.includes(fundingRequest.status_id)">
-        <v-alert type="warning" v-if="pastThreshold">
+        <!--   <v-alert type="warning" v-if="pastThreshold">
           {{ pastThreshold }}
-        </v-alert>
+        </v-alert> -->
 
         <v-row>
           <v-col cols="12" md="3">
@@ -170,12 +170,13 @@
           <v-col cols="12" md="3">
             <v-text-field
               label="Outstanding overaward"
-              v-currency
+              readonly
               outlined
               dense
               hide-details
-              background-color="white"
-              v-model="assessment.recovered_overaward"
+              background-color="#ddd"
+              append-icon="mdi-lock"
+              :value="formatMoney(assessment.over_award)"
             />
           </v-col>
 
@@ -289,7 +290,7 @@
         </v-row>
       </div>
       <v-divider class="my-5" />
-      <cslpt-disbursements v-on:showError="showError" v-on:showSuccess="showSuccess"></cslpt-disbursements>
+      <cslft-disbursements v-on:showError="showError" v-on:showSuccess="showSuccess"></cslft-disbursements>
     </v-card-text>
   </div>
 </template>
@@ -298,10 +299,10 @@
 import { mapActions, mapGetters, mapState } from "vuex";
 import { isEmpty, isNumber } from "lodash";
 import moment from "moment";
-import CslptDisbursements from "../cslpt-disbursements.vue";
+import CslftDisbursements from "../cslft-disbursements.vue";
 
 export default {
-  components: { CslptDisbursements },
+  components: { CslftDisbursements },
   props: ["canSave"],
   data: () => ({
     disburseCount: 1,
@@ -312,18 +313,6 @@ export default {
     ...mapState({ application: "selectedApplication" }),
     ...mapState("cslFullTimeStore", ["assessment", "fundingRequest"]),
     ...mapGetters(["cslReasonOverAward", "cslReasonNonAward"]),
-    ...mapGetters("cslFullTimeStore", [
-      "totalCosts",
-      "familyIncome",
-      "requestedAmount",
-      "maxAllowable",
-      "assessedAmount",
-      "previousDisbursements",
-      "actualAward",
-      "netAmount",
-      "needRemaining",
-      "pastThreshold",
-    ]),
   },
   methods: {
     ...mapActions("cslFullTimeStore", ["makeDisbursements", "recalculate", "updateFundingRequest"]),

@@ -44,6 +44,14 @@ const mutations = {
     state.fundingRequest = value;
   },
   SET_ASSESSMENT(state, value) {
+    if (value.return_uncashable_cert) value.return_uncashable_cert = formatMoney(value.return_uncashable_cert);
+    if (value.student_contribution_override)
+      value.student_contribution_override = formatMoney(value.student_contribution_override);
+    if (value.spouse_contribution_override)
+      value.spouse_contribution_override = formatMoney(value.spouse_contribution_override);
+    if (value.parent_contribution_override)
+      value.parent_contribution_override = formatMoney(value.parent_contribution_override);
+
     state.assessment = value;
   },
   SET_DISBURSEMENTS(state, value) {
@@ -95,18 +103,21 @@ const actions = {
   },
 
   async recalculate({ state, dispatch, commit }) {
-    dispatch("loadCSLFTAssessment", state.fundingRequest.application_id).then(() => {
-      let dependentCount = 0;
-      let familySize = 1;
-      let application = state.application;
-
-      commit("SET_ASSESSMENT", assessment);
-      //dispatch("save");
-    });
+    axios
+      .put(
+        `${CSG_THRESHOLD_URL}/funding-request/${state.fundingRequest.id}/assessment/${state.assessment.id}/recalculate`,
+        {}
+      )
+      .then((resp) => {
+        dispatch("loadCSLFTAssessment", {
+          applicationId: state.fundingRequest.application_id,
+          assessmentId: state.assessment.id,
+        });
+      });
   },
 
   async makeDisbursements({ getters, commit, state, dispatch }, numberOfDisbursements) {
-    let parts = Math.ceil(getters.netAmount / numberOfDisbursements);
+    let parts = Math.ceil(Math.max(state.assessment.net_amount, 0) / numberOfDisbursements);
     let disbursedValues = [];
 
     let total = 0;
@@ -122,10 +133,10 @@ const actions = {
       });
     }
 
-    let remainder = parse(formatMoney(getters.netAmount - total), { currency: "usd" });
+    let remainder = parse(formatMoney(state.assessment.net_amount - total), { currency: "usd" });
 
     disbursedValues.push({
-      disbursed_amount: remainder,
+      disbursed_amount: Math.max(remainder, 0),
       disbursement_type_id: 4,
       issue_date: moment().format("YYYY-MM-DD"),
     });
@@ -162,24 +173,30 @@ const actions = {
 
     if (state.assessment.id) {
       axios
-        .put(
-          `${CSG_THRESHOLD_URL}/csgftdep/${state.fundingRequest.application_id}/funding-request/${state.fundingRequest.id}/assessment/${state.assessment.id}`,
-          { ...state.assessment, generateTransaction: disburseClicked }
-        )
+        .put(`${CSG_THRESHOLD_URL}/funding-request/${state.fundingRequest.id}/assessment/${state.assessment.id}`, {
+          ...state.assessment,
+          generateTransaction: disburseClicked,
+        })
         .then((resp) => {
-          dispatch("loadCSLFTAssessment", state.fundingRequest.application_id);
+          dispatch("loadCSLFTAssessment", {
+            applicationId: state.fundingRequest.application_id,
+            assessmentId: state.assessment.id,
+          });
         });
     } else {
       axios
         .post(
-          `${CSG_THRESHOLD_URL}/csgftdep/${state.fundingRequest.application_id}/funding-request/${state.fundingRequest.id}/assessment`,
+          `${CSG_THRESHOLD_URL}/cslft/${state.fundingRequest.application_id}/funding-request/${state.fundingRequest.id}/assessment`,
           { ...state.assessment, generateTransaction: disburseClicked }
         )
         .then((resp) => {
-          dispatch("loadCSLFTAssessment", state.fundingRequest.application_id);
+          dispatch("loadCSLFTAssessment", {
+            applicationId: state.fundingRequest.application_id,
+          });
         });
     }
   },
+
   async updateFundingRequest({ state, dispatch }) {
     return await axios
       .put(`${APPLICATION_URL}/${state.application.id}/status/${state.fundingRequest.id}`, {
@@ -190,8 +207,41 @@ const actions = {
         },
       })
       .then((resp) => {
-        dispatch("loadCSLFTAssessment", state.application.id);
+        dispatch("loadCSLFTAssessment", {
+          applicationId: state.fundingRequest.application_id,
+          assessmentId: state.assessment.id,
+        });
       });
+  },
+
+  async createAssessment({ state }) {
+    let url = `${CSG_THRESHOLD_URL}/cslft/${state.application.id}/funding-request/${state.fundingRequest.id}/assessment`;
+
+    axios.post(url).then(async (resp) => {
+      console.log("RESP", resp);
+    });
+  },
+
+  async clearOveraward() {
+    console.log("CLEARING OVERAWRD");
+    let url = `${CSG_THRESHOLD_URL}/funding-request/${state.fundingRequest.id}/assessment/${state.assessment.id}/clear-overaward`;
+
+    return axios.post(url).then(async (resp) => {
+      console.log("RESP", resp);
+    });
+  },
+  async recordOveraward({ state }) {
+    console.log("RECORDing OVERAWRD");
+    let url = `${CSG_THRESHOLD_URL}/funding-request/${state.fundingRequest.id}/assessment/${state.assessment.id}/record-overaward`;
+
+    return axios.post(url).then(async (resp) => {
+      console.log("RESP", resp);
+    });
+  },
+  async deleteAssessment() {
+    return axios.delete(
+      `${CSG_THRESHOLD_URL}/funding-request/${state.fundingRequest.id}/assessment/${state.assessment.id}`
+    );
   },
 };
 

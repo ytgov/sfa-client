@@ -24,16 +24,25 @@
             readonly
             hide-details
             label="Exempt reason"
-            :value="`${assessment.student_contrib_exempt} - ${assessment.student_exemption_reason ?? ''}`"
+            :value="assessment.student_contrib_exempt_reason"
           ></v-text-field>
         </v-col>
         <v-col cols="12" md="3">
-          <v-checkbox
+          <!-- <v-checkbox
             class="mb-0 mt-1"
             label="Reduce on re-assess?"
             v-model="assessment.student_contribution_review"
             hide-details
-          ></v-checkbox>
+          ></v-checkbox> -->
+          <v-text-field
+            outlined
+            dense
+            background-color="#fff"
+            hide-details
+            label="Contribution override"
+            v-currency
+            v-model="assessment.student_contribution_override"
+          />
         </v-col>
       </v-row>
       <v-row>
@@ -48,6 +57,18 @@
             label="Expected contribution"
             :value="formatMoney(assessment.student_expected_contribution)"
           ></v-text-field>
+        </v-col>
+        <v-col cols="12" md="3">
+          <v-text-field
+            outlined
+            dense
+            background-color="#ddd"
+            append-icon="mdi-calculator"
+            readonly
+            hide-details
+            label="Other resources"
+            :value="formatMoney(assessment.student_other_resources)"
+          />
         </v-col>
         <v-col cols="12" md="3">
           <v-text-field
@@ -71,17 +92,6 @@
             readonly
             label="Net contribution"
             :value="formatMoney(assessment.student_contribution)"
-          ></v-text-field>
-        </v-col>
-        <v-col cols="12" md="3">
-          <v-text-field
-            outlined
-            dense
-            background-color="#fff"
-            hide-details
-            label="Contribution override"
-            v-currency
-            v-model="assessment.student_contribution_override"
           ></v-text-field>
         </v-col>
       </v-row>
@@ -111,17 +121,28 @@
             readonly
             hide-details
             label="Exempt reason"
-            :value="`${assessment.spouse_contrib_exempt} - ${assessment.spouse_exemption_reason}`"
+            :value="assessment.spouse_contrib_exempt_reason"
           ></v-text-field>
         </v-col>
         <v-col cols="12" md="3">
+          <v-text-field
+            outlined
+            dense
+            background-color="#fff"
+            hide-details
+            label="Contribution override"
+            v-currency
+            v-model="assessment.spouse_contribution_override"
+          ></v-text-field>
+        </v-col>
+        <!-- <v-col cols="12" md="3">
           <v-checkbox
             class="mb-0 mt-1"
             label="Reduce on re-assess?"
             hide-details
             v-model="assessment.spouse_contribution_review"
-          ></v-checkbox>
-        </v-col>
+          ></v-checkbox> 
+        </v-col>-->
       </v-row>
       <v-row>
         <v-col cols="12" md="3">
@@ -136,6 +157,7 @@
             :value="formatMoney(assessment.spouse_expected_contribution)"
           ></v-text-field>
         </v-col>
+        <v-col cols="12" md="3"> </v-col>
         <v-col cols="12" md="3">
           <v-text-field
             outlined
@@ -158,17 +180,6 @@
             readonly
             label="Net contribution"
             :value="formatMoney(assessment.spouse_contribution)"
-          ></v-text-field>
-        </v-col>
-        <v-col cols="12" md="3">
-          <v-text-field
-            outlined
-            dense
-            background-color="#fff"
-            hide-details
-            label="Contribution override"
-            v-currency
-            v-model="assessment.spouse_contribution_override"
           ></v-text-field>
         </v-col>
       </v-row>
@@ -269,7 +280,7 @@
         </v-col>
       </v-row>
       <v-row>
-        <v-col cols="12" md="9" class="pt-0"> </v-col>
+        <!-- <v-col cols="12" md="9" class="pt-0"> </v-col>
         <v-col cols="12" md="3" class="pt-0">
           <v-checkbox
             class="mb-0 mt-1"
@@ -277,7 +288,7 @@
             hide-details
             v-model="assessment.parent_contribution_review"
           ></v-checkbox>
-        </v-col>
+        </v-col> -->
         <v-col cols="12" md="3"> </v-col>
         <v-col cols="12" md="3">
           <v-text-field

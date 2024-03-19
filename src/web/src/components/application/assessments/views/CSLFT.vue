@@ -26,7 +26,9 @@
         <v-divider class="mt-1"></v-divider>
 
         <v-tabs background-color="primary lighten-1" dark>
-          <v-tab v-for="asmt of assessmentItems" @click="changeAssessment(asmt)" :to="asmt.to">{{ asmt.title }}</v-tab>
+          <v-tab v-for="asmt of assessmentItems" @click="changeAssessment(asmt)" :to="asmt.to"
+            ><v-icon class="mr-2">mdi-lock</v-icon> {{ asmt.title }}</v-tab
+          >
 
           <v-spacer />
 
@@ -41,10 +43,21 @@
                 <v-list-item-icon><v-icon>mdi-content-save</v-icon></v-list-item-icon>
                 <v-list-item-title>Save</v-list-item-title>
               </v-list-item>
-
               <v-list-item v-if="canAddAssessment" @click="addAssessmentClick">
                 <v-list-item-icon><v-icon>mdi-refresh</v-icon></v-list-item-icon>
                 <v-list-item-title>Add Reassessment</v-list-item-title>
+              </v-list-item>
+              <v-list-item v-if="canRecordOveraward" @click="recordOverawardClick">
+                <v-list-item-icon><v-icon>mdi-pin-outline</v-icon></v-list-item-icon>
+                <v-list-item-title>Record Overaward</v-list-item-title>
+              </v-list-item>
+              <v-list-item v-if="canClearOveraward" @click="clearOverawardClick">
+                <v-list-item-icon><v-icon>mdi-eraser</v-icon></v-list-item-icon>
+                <v-list-item-title>Clear Student Overaward</v-list-item-title>
+              </v-list-item>
+              <v-list-item v-if="canDelete" @click="deleteClick">
+                <v-list-item-icon><v-icon>mdi-trash-can-outline</v-icon></v-list-item-icon>
+                <v-list-item-title>Delete Assessment</v-list-item-title>
               </v-list-item>
             </v-list>
           </v-menu>
@@ -63,7 +76,7 @@
             >CSG-PTDEP<br />
             {{ formatMoney(depAmount) }}</v-tab
           > -->
-          <v-tab key="3">Award<br />{{ formatMoney(totalAwarded) }}</v-tab>
+          <v-tab key="3">Award<br />{{ formatMoney(assessment.net_amount) }}</v-tab>
           <v-tab key="4">MSFAA</v-tab>
         </v-tabs>
         <v-divider></v-divider>
@@ -171,14 +184,14 @@ export default {
     },
   },
   computed: {
-    ...mapState({ application: "selectedApplication" }),
+    ...mapState({ application: "selectedApplication", student: "selectedStudent" }),
     ...mapState("cslFullTimeStore", ["isLoading", "assessment", "fundingRequest", "disbursements", "msfaa"]),
     ...mapGetters(["cslClassifications", "disbursementTypes", "changeReasons"]),
     totalAwarded() {
-      return this.formatMoney(this.assessment.assessed_amount);
+      return this.formatMoney(this.assessment.net_amount);
     },
     percentAwarded() {
-      return `${Math.round((100 * this.assessment.assessed_amount) / this.assessment.total_costs)}%`;
+      return `${Math.round((100 * this.assessment.net_amount) / this.assessment.total_costs)}%`;
     },
     assessmentItems() {
       if (this.fundingRequest) {
@@ -217,15 +230,33 @@ export default {
       return [];
     },
     canSave() {
+      if (this.assessmentItems.length == 1) return true;
       let lastItem = this.assessmentItems[this.assessmentItems.length - 1];
       return lastItem.id === parseInt(this.assessment.id);
     },
     canAddAssessment() {
-      return this.canSave;
+      return this.canSave && this.disbursements.length > 0;
+    },
+    canClearOveraward() {
+      return this.assessment.over_award && this.assessment.over_award > 0;
+    },
+    canRecordOveraward() {
+      return this.canSave && this.assessment.net_amount < 0 && (this.student.pre_over_award_amount ?? 0) < 1;
+    },
+    canDelete() {
+      return this.disbursements.length == 0;
     },
   },
   methods: {
-    ...mapActions("cslFullTimeStore", ["initialize", "recalculate"]),
+    ...mapActions("cslFullTimeStore", [
+      "initialize",
+      "save",
+      "recalculate",
+      "createAssessment",
+      "clearOveraward",
+      "recordOveraward",
+      "deleteAssessment",
+    ]),
     ...mapActions([
       "setCslClassifications",
       "setDisbursementTypes",
@@ -267,11 +298,22 @@ export default {
         this.$router.replace(asmt.to);
       }
     },
-    saveClick() {
-      console.log("SAVING ASSESSMENT");
+    async saveClick() {
+      await this.save();
     },
-    addAssessmentClick() {
-      console.log("ADDING ASSESSMENT");
+    async addAssessmentClick() {
+      await this.createAssessment();
+    },
+    async clearOverawardClick() {
+      await this.clearOveraward();
+    },
+    async recordOverawardClick() {
+      await this.recordOveraward();
+    },
+    async deleteClick() {
+      await this.deleteAssessment().then((resp) => {
+        this.$router.push(`/application/${this.application.id}/cslft/${this.fundingRequest.id}`);
+      });
     },
   },
 };
