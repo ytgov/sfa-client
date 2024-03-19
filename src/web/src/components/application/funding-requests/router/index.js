@@ -80,4 +80,12 @@ export default [
       requiresAuth: true,
     },
   },
+  {
+    path: "/application/:id/cslft/:fundingRequestId/:assessmentId?",
+    name: "FR_CSLFT",
+    component: () => import("../../assessments/views/CSLFT.vue"),
+    meta: {
+      requiresAuth: true,
+    },
+  },
 ];

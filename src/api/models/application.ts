@@ -12,7 +12,7 @@ import PrestudyEmploymentStatus from "@/models/prestudy-employment-status";
 import Program from "@/models/program";
 import Student from "@/models/student";
 import StudyArea from "@/models/study-area";
-import { isInteger, isNaN, isNumber } from "lodash";
+import { isEmpty, isInteger, isNaN, isNull, isNumber, isUndefined } from "lodash";
 
 // Application with standard JS naming conventions
 // trailing underscore to avoid conflicting with legacy Application format
@@ -774,6 +774,11 @@ export function ExpensesFromDraft(draft: any): any[] {
 }
 
 const SQL_MAXVALUE = 99999999.99;
+
+export function cleanNumberOptional(input: any): number | null {
+  if (isEmpty(input) || isNull(input) || isUndefined(input)) return null;
+  return cleanNumber(input);
+}
 
 export function cleanNumber(input: any): number {
   let isNegative = false;

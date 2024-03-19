@@ -3,6 +3,20 @@
     <v-card class="default mb-5">
       <v-card-title class="text-h6 font-weight-regular">Funding Statistics </v-card-title>
       <v-card-text>
+        <v-row>
+          <v-col cols="12" md="4">
+            <v-text-field
+              outlined
+              dense
+              background-color="#ddd"
+              hide-details
+              label="Previous overaward"
+              append-icon="mdi-lock"
+              readonly
+              :value="formatMoney(student.pre_over_award_amount)"
+            />
+          </v-col>
+        </v-row>
         <div class="row">
           <div :class="index === 2 ? 'col-md-3' : 'col-md-2'" v-for="(name, index) in columns_names" :key="index">
             <h3 class="text-center">
@@ -26,8 +40,7 @@
               label=""
               v-model="student.pre_funded_year"
               @change="doSaveStudent('pre_funded_year', student.pre_funded_year, 'studentInfo', student.id)"
-            >
-            </v-text-field>
+            />
           </div>
         </div>
         <!--  -->
@@ -329,6 +342,7 @@ import { mapState, mapGetters } from "vuex";
 import { APPLICATION_URL } from "@/urls";
 import validator from "@/validator";
 import SearchByLastName from "../application/SearchByLastName.vue";
+import { isNumber } from "lodash";
 
 export default {
   data: () => ({
@@ -406,6 +420,16 @@ export default {
     },
     showError(mgs) {
       this.$emit("showError", mgs);
+    },
+    formatMoney(input, defaultVal = false) {
+      if (isNumber(input)) {
+        return Intl.NumberFormat("en", {
+          currency: "USD",
+          style: "currency",
+        }).format(input);
+      }
+      if (defaultVal) return input;
+      return "$0.00";
     },
   },
   components: {

@@ -110,6 +110,7 @@ const mutations = {
     state.cslft_disbursement = cleanDisbursements(disbursement);
   },
   setPreviousDisbursement(state, value) {
+    console.log("SETPREV", value)
     state.cslft.previous_disbursement = value;
   },
   setCslftNetAmount(state, value) {
@@ -534,6 +535,9 @@ const getters = {
     return null;
   },
   cslft_get_net_amount(state) {
+
+    console.log("HERE1", state.cslft.id, state.cslft.previous_disbursement)
+
     let result =
       numHelper.getNum(state.cslft.assessed_amount ?? 0) -
       numHelper.getNum(state.cslft.previous_disbursement ?? 0) +
